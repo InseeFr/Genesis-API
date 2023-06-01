@@ -1,2 +1,11 @@
-/.idea/
-/target/
+# Config
+src/main/resources/application-*.properties
+
+# IntelliJ Files
+.idea
+*.iml
+
+# Compiled files
+target/
+doc/
+src/bin/
