@@ -9,9 +9,10 @@ import java.util.List;
 @Data
 public class VariableStateDto {
 
-    private String idParentRow;
-    private String idLoopRow;
     private String idVar;
+    private DataType type;
+    private String idLoop;
+    private String idParent;
     private List<String> values;
 
 }
