@@ -4,6 +4,7 @@ src/main/resources/application-*.properties
 # IntelliJ Files
 .idea
 *.iml
+genesis-api.iml
 
 # Compiled files
 target/
