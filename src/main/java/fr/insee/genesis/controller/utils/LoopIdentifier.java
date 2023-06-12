@@ -20,7 +20,7 @@ public class LoopIdentifier {
 		return String.format("%s_%d", variable.getGroup().getName() ,index);
 	}
 
-	public static String getParent(String variableName, VariablesMap variablesMap) {
+	public static String getParentGroupName(String variableName, VariablesMap variablesMap) {
 		Variable variable = variablesMap.getVariable(variableName);
 		if ( variable == null || variable.getGroup().isRoot()) {
 			return null;

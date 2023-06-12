@@ -1,7 +1,6 @@
 package fr.insee.genesis.controller.utils;
 
 import fr.insee.genesis.Constants;
-import fr.insee.genesis.controller.adapter.LunaticXmlAdapter;
 import fr.insee.genesis.controller.sources.ddi.Group;
 import fr.insee.genesis.controller.sources.ddi.Variable;
 import fr.insee.genesis.controller.sources.ddi.VariableType;
@@ -47,6 +46,20 @@ public class LoopIdentifierTest {
 	public void test03(){
 		//When + Then
 		Assertions.assertThat(LoopIdentifier.getLoopIdentifier("var3", variablesMap, 2)).isEqualTo(Constants.ROOT_GROUP_NAME);
+	}
+
+	@Test
+	@DisplayName("Should return the root group as parent")
+	public void test04(){
+		//When + Then
+		Assertions.assertThat(LoopIdentifier.getParentGroupName("var1", variablesMap)).isEqualTo(Constants.ROOT_GROUP_NAME);
+	}
+
+	@Test
+	@DisplayName("Should return null as parent")
+	public void test05(){
+		//When + Then
+		Assertions.assertThat(LoopIdentifier.getParentGroupName("var2", variablesMap)).isNull();
 	}
 
 }

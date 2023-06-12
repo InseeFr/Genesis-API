@@ -37,7 +37,7 @@ public class LunaticXmlAdapter {
                         .idVar(lunaticXmlCollectedData.getVariableName())
                         .values(transformToList(lunaticXmlCollectedData.getCollected().get(i-1).getValue()))
                         .idLoop(LoopIdentifier.getLoopIdentifier(lunaticXmlCollectedData.getVariableName(), variablesMap,i))
-                        .idParent(LoopIdentifier.getParent(lunaticXmlCollectedData.getVariableName(), variablesMap))
+                        .idParent(LoopIdentifier.getParentGroupName(lunaticXmlCollectedData.getVariableName(), variablesMap))
                         .type(DataType.COLLECTED)
                         .build());
             }
