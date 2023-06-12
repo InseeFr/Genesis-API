@@ -25,8 +25,6 @@ public class VariablesMap {
      * Keys: group name.
      * Values: Group. */
     protected final LinkedHashMap<String, Group> groups = new LinkedHashMap<>();
-    
-    
 
     /** The root group is created when creating a VariablesMap instance. */
     public VariablesMap() {
@@ -45,6 +43,7 @@ public class VariablesMap {
             log.debug(String.format("Variable named \"%s\" is not in the variables map", name));
         }
     }
+
     /** Return the variable with given name. */
     public Variable getVariable(String variableName){
         Variable variable = this.variables.get(variableName);
@@ -53,6 +52,7 @@ public class VariablesMap {
         }
         return variable;
     }
+
     /** Return the names of all variables in the map. */
     public Set<String> getVariableNames() {
         return variables.keySet();
@@ -65,15 +65,16 @@ public class VariablesMap {
     	return set;
     }
 
-
     /** Register a group in the map. */
     public void putGroup(Group group) {
         groups.put(group.getName(), group);
     }
+
     /** Return the group with given name. */
     public Group getGroup(String groupName) {
         return groups.get(groupName);
     }
+
     /** Return the root group. */
     public Group getRootGroup() {
         if (! groups.containsKey(Constants.ROOT_GROUP_NAME)) {
@@ -81,10 +82,12 @@ public class VariablesMap {
         }
         return groups.get(Constants.ROOT_GROUP_NAME);
     }
+
     /** Return the name of all groups registered in the map, including the root group. */
     public List<String> getGroupNames() {
         return new ArrayList<>(groups.keySet());
     }
+
     /** Return the names of all groups registered in the map, except the root group. */
     public List<String> getSubGroupNames() {
         return groups.keySet()
@@ -111,10 +114,12 @@ public class VariablesMap {
     public boolean hasVariable(String variableName) {
         return variables.containsKey(variableName);
     }
+
     /** Return true if there is a group under the given name. */
     public boolean hasGroup(String groupName) {
         return groups.containsKey(groupName);
     }
+
     /** Return false is there is only the root group. */
     public boolean hasSubGroups() {
         int size = groups.size();
