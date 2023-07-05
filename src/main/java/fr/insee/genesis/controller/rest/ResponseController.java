@@ -123,6 +123,23 @@ public class ResponseController {
         return new ResponseEntity<>("Test", HttpStatus.OK);
     }
 
+    @Operation(summary = "Retrieve responses with IdUE and IdQuestionnaire from Genesis Database")
+    @GetMapping(path = "/findResponsesByUEAndQuestionnaire")
+    public ResponseEntity<List<SurveyUnitUpdateDto>> findResponsesByUEAndQuestionnaire(     @RequestParam("idUE") String idUE,
+                                                                                            @RequestParam("idQuestionnaire") String idQuestionnaire) {
+        List<SurveyUnitUpdateDto> responses = surveyUnitService.findByIdsUEAndQuestionnaire(idUE, idQuestionnaire);
+        return new ResponseEntity<>(responses, HttpStatus.OK);
+    }
+
+    @Operation(summary = "Retrieve all responses of one questionnaire")
+    @GetMapping(path = "/findAllResponsesByQuestionnaire")
+    public ResponseEntity<List<SurveyUnitUpdateDto>> findAllResponsesByQuestionnaire(@RequestParam("idQuestionnaire") String idQuestionnaire) {
+        log.info("Try to find all responses of questionnaire : " + idQuestionnaire);
+        List<SurveyUnitUpdateDto> responses = surveyUnitService.findByIdQuestionnaire(idQuestionnaire);
+        log.info("Responses found : " + responses.size());
+        return new ResponseEntity<>(responses, HttpStatus.OK);
+    }
+
     private static LunaticJsonDataFile readJsonFile(Path jsonFilePath) throws GenesisException, IOException {
         if (Files.exists(jsonFilePath)) {
             log.info(String.format("Found file : %s", jsonFilePath));

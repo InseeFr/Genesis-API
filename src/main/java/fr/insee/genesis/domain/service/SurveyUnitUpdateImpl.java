@@ -18,4 +18,21 @@ public class SurveyUnitUpdateImpl implements SurveyUnitUpdateApiPort {
     public void saveSurveyUnits(List<SurveyUnitUpdateDto> suDtos) {
         surveyUnitUpdatePersistencePort.saveAll(suDtos);
     }
+
+    @Override
+    public List<SurveyUnitUpdateDto> findByIdsUEAndQuestionnaire(String idUE, String idQuest) {
+        return surveyUnitUpdatePersistencePort.findByIds(idUE, idQuest);
+    }
+
+    @Override
+    public List<SurveyUnitUpdateDto> findByIdUE(String idUE) {
+        return surveyUnitUpdatePersistencePort.findByIdUE(idUE);
+    }
+
+    @Override
+    public List<SurveyUnitUpdateDto> findByIdQuestionnaire(String idQuestionnaire) {
+        return surveyUnitUpdatePersistencePort.findByIdQuestionnaire(idQuestionnaire);
+    }
+
+
 }

@@ -9,4 +9,9 @@ public interface SurveyUnitUpdateApiPort {
 
     void saveSurveyUnits(List<SurveyUnitUpdateDto> suList);
 
+    List<SurveyUnitUpdateDto> findByIdsUEAndQuestionnaire(String idUE, String idQuest);
+
+    List<SurveyUnitUpdateDto> findByIdUE(String idUE);
+
+    List<SurveyUnitUpdateDto> findByIdQuestionnaire(String idQuestionnaire);
 }
