@@ -43,7 +43,7 @@ public class SaxonTransformer {
 
         // Instantiation of the XSL transformer factory
         TransformerFactory transformerFactory = new net.sf.saxon.TransformerFactoryImpl(); // basic transformer
-        transformerFactory.setURIResolver(new ClasspathURIResolver());
+        //transformerFactory.setURIResolver(new ClasspathURIResolver());
 
         // Apply the XSL transformation
         try {

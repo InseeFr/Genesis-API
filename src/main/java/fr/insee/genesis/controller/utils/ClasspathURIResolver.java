@@ -13,6 +13,11 @@ public class ClasspathURIResolver implements URIResolver {
     @Override
     public Source resolve(String href, String base) throws TransformerException {
         log.debug("Resolving URI with href: " + href + " and base: " + base);
+        String resolvedHref = getResolvedHref(href);
+        return new StreamSource(ClasspathURIResolver.class.getResourceAsStream(resolvedHref));
+    }
+
+    private static String getResolvedHref(String href) {
         String resolvedHref;
         if (href.startsWith("..")) {
             if (href.startsWith("../..")) {
@@ -26,7 +31,7 @@ public class ClasspathURIResolver implements URIResolver {
             resolvedHref = href;
             log.debug("Resolved URI href is: " + resolvedHref);
         }
-        return new StreamSource(ClasspathURIResolver.class.getResourceAsStream(resolvedHref));
+        return resolvedHref;
     }
 
 }
