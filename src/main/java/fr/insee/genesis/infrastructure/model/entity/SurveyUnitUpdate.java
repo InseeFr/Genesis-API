@@ -1,4 +1,4 @@
-package fr.insee.genesis.infrastructure.entity;
+package fr.insee.genesis.infrastructure.model.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;

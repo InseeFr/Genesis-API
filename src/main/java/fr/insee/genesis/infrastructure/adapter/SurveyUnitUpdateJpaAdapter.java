@@ -18,7 +18,7 @@ import java.util.List;
 @Service
 @Transactional
 @Slf4j
-@ConditionalOnProperty(name = "fr.insee.genesis.persistance.implementation", havingValue = "jpa")
+@ConditionalOnProperty(name = "fr.insee.genesis.persistence.implementation", havingValue = "postgresql")
 public class SurveyUnitUpdateJpaAdapter implements SurveyUnitUpdatePersistencePort {
 
     @Autowired

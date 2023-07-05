@@ -1,7 +1,7 @@
 package fr.insee.genesis.infrastructure.mappers;
 
 import fr.insee.genesis.domain.dtos.VariableStateDto;
-import fr.insee.genesis.infrastructure.entity.VariableState;
+import fr.insee.genesis.infrastructure.model.entity.VariableState;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 

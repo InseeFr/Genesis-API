@@ -1,7 +1,7 @@
 package fr.insee.genesis.infrastructure.mappers;
 
 import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
-import fr.insee.genesis.infrastructure.entity.SurveyUnitUpdate;
+import fr.insee.genesis.infrastructure.model.entity.SurveyUnitUpdate;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
