@@ -1,7 +1,6 @@
 package fr.insee.genesis.infrastructure.repository;
 
 import fr.insee.genesis.infrastructure.model.document.SurveyUnitUpdateDocument;
-import fr.insee.genesis.infrastructure.model.entity.SurveyUnitUpdate;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 

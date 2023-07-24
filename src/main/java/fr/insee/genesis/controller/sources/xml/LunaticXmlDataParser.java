@@ -14,7 +14,9 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,6 +57,9 @@ public class LunaticXmlDataParser {
 
     private Document readXmlFile(Path filePath) throws IOException, SAXException, GenesisException, ParserConfigurationException {
         File file = filePath.toFile();
+        //Extraction of the file last modified date
+        BasicFileAttributes attr = Files.readAttributes(filePath, BasicFileAttributes.class);
+        log.info("lastModifiedTime: " + attr.lastModifiedTime());
         System.setProperty("javax.xml.parsers.DocumentBuilderFactory",
                 "com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl");
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();

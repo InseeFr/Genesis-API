@@ -13,6 +13,7 @@ import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
 import fr.insee.genesis.domain.ports.api.SurveyUnitUpdateApiPort;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitUpdatePersistencePort;
 import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.infrastructure.utils.FileUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +39,9 @@ public class ResponseController {
 
     @Autowired
     SurveyUnitUpdateApiPort surveyUnitService;
+
+    @Autowired
+    FileUtils fileUtils;
 
     @Operation(summary = "Read responses in JSON Lunatic")
     @PostMapping(path = "/readJSONLunatic", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -98,7 +102,7 @@ public class ResponseController {
     }
 
     @Operation(summary = "Save responses from XML Lunatic in Genesis Database")
-    @PutMapping(path = "/saveXMLLunatic")
+    @PutMapping(path = "/save/lunatic-xml/one-file")
     public ResponseEntity<Object> saveResponsesFromXmlFile(     @RequestParam("pathLunaticXml") String xmlFile,
                                                                 @RequestParam("pathDDI") String ddiFile)
             throws Exception {
@@ -120,6 +124,40 @@ public class ResponseController {
         }
         surveyUnitService.saveSurveyUnits(suDtos);
         log.info("File {} treated", xmlFile);
+        return new ResponseEntity<>("Test", HttpStatus.OK);
+    }
+
+    @Operation(summary = "Save multiples files in Genesis Database")
+    @PutMapping(path = "/save/lunatic-xml")
+    public ResponseEntity<Object> saveResponsesFromXmlCampaignFolder(@RequestParam("pathFolder") String pathFolder,
+                                                                     @RequestParam("dataSource") String dataSource,
+                                                                    @RequestParam("mode") String mode)
+            throws Exception {
+        log.info("Try to import data from folder : {}", pathFolder);
+        LunaticXmlDataParser parser = new LunaticXmlDataParser();
+        String dataFolder = fileUtils.getDataFolder(pathFolder,dataSource);
+        List<String> dataFiles = fileUtils.listFiles(dataFolder);
+        log.info("Numbers of files to load in folder {} : {}", pathFolder, dataFiles.size());
+        for(String fileName : dataFiles){
+            String pathFile = String.format("%s/%s", dataFolder, fileName);
+            log.info("Try to read Xml file : {}", fileName);
+            LunaticXmlCampaign campaign = parser.parseDataFile(Paths.get(pathFile));
+            Path ddiFilePath = fileUtils.findDDIFile(pathFolder, mode);
+            VariablesMap variablesMap;
+            try {
+                variablesMap = DDIReader.getVariablesFromDDI(ddiFilePath.toFile().toURI().toURL());
+            } catch (GenesisException e) {
+                return ResponseEntity.status(e.getStatus()).body(e.getMessage());
+            }
+            List<SurveyUnitUpdateDto> suDtos = new ArrayList<>();
+            for (LunaticXmlSurveyUnit su : campaign.getSurveyUnits()) {
+                SurveyUnitUpdateDto suDto = LunaticXmlAdapter.convert(su, variablesMap);
+                suDtos.add(suDto);
+            }
+            surveyUnitService.saveSurveyUnits(suDtos);
+            log.info("File {} saved", fileName);
+            fileUtils.moveDataFile(pathFolder, dataSource, fileName, mode);
+        }
         return new ResponseEntity<>("Test", HttpStatus.OK);
     }
 
@@ -149,15 +187,6 @@ public class ResponseController {
         }
         ObjectMapper objectMapper = new ObjectMapper();
         return objectMapper.readValue(new File(jsonFilePath.toUri()),LunaticJsonDataFile.class);
-    }
-
-    private static void readDDIFile(Path ddiFilePath) throws GenesisException, IOException {
-        if (Files.exists(ddiFilePath)) {
-            log.info(String.format("Found file : %s", ddiFilePath));
-        } else {
-            log.info("No file found at path : " + ddiFilePath);
-            throw new GenesisException(400, String.format("DDI file not found at path : %s", ddiFilePath));
-        }
     }
 
 
