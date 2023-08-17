@@ -1,13 +1,11 @@
 package fr.insee.genesis.controller.sources.ddi;
 
 import fr.insee.genesis.Constants;
-import fr.insee.genesis.controller.sources.ddi.Group;
-import fr.insee.genesis.controller.sources.ddi.Variable;
-import fr.insee.genesis.controller.sources.ddi.VariablesMap;
 import fr.insee.genesis.controller.utils.SaxonTransformer;
 import fr.insee.genesis.exceptions.GenesisException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -23,38 +21,37 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 
 @Slf4j
-@Service
 public class DDIReader {
 
-    public static VariablesMap getVariablesFromDDI(URL ddiUrl) throws GenesisException, ParserConfigurationException, SAXException {
-        try {
+    private DDIReader() {
+        throw new IllegalStateException("Utility class");
+    }
+
+    public static VariablesMap getVariablesFromDDI(URL ddiUrl) throws GenesisException {
+        boolean isCreated = false;
+        try  {
             File variablesFile = File.createTempFile("variables", ".xml");
+            isCreated = true;
             variablesFile.deleteOnExit();
             Path variablesTempFilePath = variablesFile.toPath();
             transformDDI(ddiUrl, variablesTempFilePath);
             VariablesMap variablesMap = readVariables(variablesTempFilePath);
-            if (variablesFile.delete()){
-                log.debug("File {} deleted",variablesFile.toPath());
-            } else {
-                log.debug("Impossible to delete file {}",variablesFile.toPath());
-            }
+            Files.delete(variablesFile.toPath());
+            log.debug("File {} deleted",variablesFile.toPath());
             return variablesMap;
         }
-
-        catch (MalformedURLException e) {
-            log.error(String.format("Error when converting file path '%s' to an URL.", ddiUrl), e);
-            return null;
-        } catch (IOException e) {
-            log.error("Unable to write temp file.", e);
-            return null;
+        catch (IOException e) {
+            if (isCreated) {
+                throw new GenesisException(500,"Impossible to delete variables temp file");
+            } else {
+                throw new GenesisException(500,"Unable to create variables temp file.");
+            }
         } catch (SAXException | ParserConfigurationException e) {
-            log.error("Unable to read Variables in DDI file.", e);
-            return null;
+            throw new GenesisException(500,"Unable to read Variables in DDI file.");
         }
     }
 

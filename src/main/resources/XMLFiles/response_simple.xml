@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Campaign>
+  <Id>ENQUETE_TEST</Id>
+  <Label />
+  <SurveyUnits>
+    <SurveyUnit>
+      <Id>TEST500001</Id>
+      <QuestionnaireModelId>MODELE_ENQUETE_TEST</QuestionnaireModelId>
+      <Data>
+        <COLLECTED>
+          <LIEUNAISS>
+            <COLLECTED type="null" />
+            <EDITED type="null" />
+            <INPUTED type="null" />
+            <FORCED type="null" />
+            <PREVIOUS type="null" />
+          </LIEUNAISS>
+          <LIEUNAISSPAR>
+            <COLLECTED type="null" />
+            <EDITED type="null" />
+            <INPUTED type="null" />
+            <FORCED type="null" />
+            <PREVIOUS type="null" />
+          </LIEUNAISSPAR>
+          <TPSPART>
+            <COLLECTED type="null" />
+            <EDITED type="null" />
+            <INPUTED type="null" />
+            <FORCED type="null" />
+            <PREVIOUS type="null" />
+          </TPSPART>
+		</COLLECTED>
+        <CALCULATED />
+        <EXTERNAL>
+          <ADMINISTRATION2 type="string">AGENCE DE SERVICES ET DE PAIEMENT</ADMINISTRATION2>
+          <ADMINISTRATION1 type="string">MINISTERE DE L'AGRICULTURE ET DE LA SOUVERAINETE ALIMENTAIRE</ADMINISTRATION1>
+        </EXTERNAL>
+      </Data>
+	  <Personalization>
+        <Variable>
+          <Name>whoAnswers1</Name>
+          <Value>PRENOM1 NOM1</Value>
+        </Variable>
+        <Variable>
+          <Name>whoAnswers2</Name>
+          <Value>PRENOM2</Value>
+        </Variable>
+        <Variable>
+          <Name>whoAnswers3</Name>
+          <Value />
+        </Variable>
+      </Personalization>
+    </SurveyUnit>
+	<SurveyUnit>
+      <Id>TEST500002</Id>
+      <QuestionnaireModelId>MODELE_ENQUETE_TEST</QuestionnaireModelId>
+      <Data>
+        <COLLECTED>
+          <LIEUNAISS>
+            <COLLECTED type="null" />
+            <EDITED type="null" />
+            <INPUTED type="null" />
+            <FORCED type="null" />
+            <PREVIOUS type="null" />
+          </LIEUNAISS>
+          <LIEUNAISSPAR>
+            <COLLECTED type="null" />
+            <EDITED type="null" />
+            <INPUTED type="null" />
+            <FORCED type="null" />
+            <PREVIOUS type="null" />
+          </LIEUNAISSPAR>
+          <TPSPART>
+            <COLLECTED type="null" />
+            <EDITED type="null" />
+            <INPUTED type="null" />
+            <FORCED type="null" />
+            <PREVIOUS type="null" />
+          </TPSPART>
+		</COLLECTED>
+        <CALCULATED />
+        <EXTERNAL>
+          <ADMINISTRATION2 type="string">AGENCE DE SERVICES ET DE PAIEMENT</ADMINISTRATION2>
+          <ADMINISTRATION1 type="string">MINISTERE DE L'AGRICULTURE ET DE LA SOUVERAINETE ALIMENTAIRE</ADMINISTRATION1>
+        </EXTERNAL>
+      </Data>
+	  <Personalization>
+        <Variable>
+          <Name>whoAnswers1</Name>
+          <Value>PRENOM3 NOM3</Value>
+        </Variable>
+      </Personalization>
+    </SurveyUnit>
+    <SurveyUnit>
+      <Id>TEST500003</Id>
+      <QuestionnaireModelId>MODELE_ENQUETE_TEST</QuestionnaireModelId>
+      <Data>
+        <COLLECTED>
+          <LIEUNAISS>
+            <COLLECTED type="null" />
+            <EDITED type="null" />
+            <INPUTED type="null" />
+            <FORCED type="null" />
+            <PREVIOUS type="null" />
+          </LIEUNAISS>
+          <LIEUNAISSPAR>
+            <COLLECTED type="null" />
+            <EDITED type="null" />
+            <INPUTED type="null" />
+            <FORCED type="null" />
+            <PREVIOUS type="null" />
+          </LIEUNAISSPAR>
+          <TPSPART>
+            <COLLECTED type="null" />
+            <EDITED type="null" />
+            <INPUTED type="null" />
+            <FORCED type="null" />
+            <PREVIOUS type="null" />
+          </TPSPART>
+        </COLLECTED>
+        <CALCULATED />
+        <EXTERNAL>
+          <ADMINISTRATION2 type="string">AGENCE DE SERVICES ET DE PAIEMENT</ADMINISTRATION2>
+          <ADMINISTRATION1 type="string">MINISTERE DE L'AGRICULTURE ET DE LA SOUVERAINETE ALIMENTAIRE</ADMINISTRATION1>
+        </EXTERNAL>
+      </Data>
+      <Personalization>
+        <Variable>
+          <Name>whoAnswers11</Name>
+          <Value>PRENOM1 NOM11</Value>
+        </Variable>
+        <Variable>
+          <Name>whoAnswers21</Name>
+          <Value>PRENOM21</Value>
+        </Variable>
+        <Variable>
+          <Name>whoAnswers31</Name>
+          <Value />
+        </Variable>
+      </Personalization>
+    </SurveyUnit>
+    <SurveyUnit>
+      <Id>TEST500004</Id>
+      <QuestionnaireModelId>MODELE_ENQUETE_TEST</QuestionnaireModelId>
+      <Data>
+        <COLLECTED>
+          <LIEUNAISS>
+            <COLLECTED type="null" />
+            <EDITED type="null" />
+            <INPUTED type="null" />
+            <FORCED type="null" />
+            <PREVIOUS type="null" />
+          </LIEUNAISS>
+          <LIEUNAISSPAR>
+            <COLLECTED type="null" />
+            <EDITED type="null" />
+            <INPUTED type="null" />
+            <FORCED type="null" />
+            <PREVIOUS type="null" />
+          </LIEUNAISSPAR>
+          <TPSPART>
+            <COLLECTED type="null" />
+            <EDITED type="null" />
+            <INPUTED type="null" />
+            <FORCED type="null" />
+            <PREVIOUS type="null" />
+          </TPSPART>
+        </COLLECTED>
+        <CALCULATED />
+        <EXTERNAL>
+          <ADMINISTRATION2 type="string">AGENCE DE SERVICES ET DE PAIEMENT</ADMINISTRATION2>
+          <ADMINISTRATION1 type="string">MINISTERE DE L'AGRICULTURE ET DE LA SOUVERAINETE ALIMENTAIRE</ADMINISTRATION1>
+        </EXTERNAL>
+      </Data>
+      <Personalization>
+        <Variable>
+          <Name>whoAnswers1</Name>
+          <Value>PRENOM31 NOM31</Value>
+        </Variable>
+      </Personalization>
+    </SurveyUnit>
+  </SurveyUnits>
+</Campaign>
