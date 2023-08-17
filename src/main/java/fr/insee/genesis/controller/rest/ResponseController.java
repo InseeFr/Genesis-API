@@ -1,6 +1,7 @@
 package fr.insee.genesis.controller.rest;
 
 import fr.insee.genesis.controller.adapter.LunaticXmlAdapter;
+import fr.insee.genesis.controller.model.Mode;
 import fr.insee.genesis.controller.sources.ddi.DDIReader;
 import fr.insee.genesis.controller.sources.ddi.VariablesMap;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlCampaign;
@@ -67,7 +68,7 @@ public class ResponseController {
     @PutMapping(path = "/save/lunatic-xml")
     public ResponseEntity<Object> saveResponsesFromXmlCampaignFolder(@RequestParam("pathFolder") String pathFolder,
                                                                      @RequestParam("dataSource") String dataSource,
-                                                                    @RequestParam("mode") String mode)
+                                                                     @RequestParam(value = "mode", required = false) Mode mode)
             throws Exception {
         log.info("Try to import data from folder : {}", pathFolder);
         LunaticXmlDataParser parser = new LunaticXmlDataParser();
@@ -78,7 +79,7 @@ public class ResponseController {
             String pathFile = String.format("%s/%s", dataFolder, fileName);
             log.info("Try to read Xml file : {}", fileName);
             LunaticXmlCampaign campaign = parser.parseDataFile(Paths.get(pathFile));
-            Path ddiFilePath = fileUtils.findDDIFile(pathFolder, mode);
+            Path ddiFilePath = fileUtils.findDDIFile(pathFolder, mode.getMode());
             VariablesMap variablesMap;
             try {
                 variablesMap = DDIReader.getVariablesFromDDI(ddiFilePath.toFile().toURI().toURL());
@@ -92,7 +93,7 @@ public class ResponseController {
             }
             surveyUnitService.saveSurveyUnits(suDtos);
             log.info("File {} saved", fileName);
-            fileUtils.moveDataFile(pathFolder, dataSource, fileName, mode);
+            fileUtils.moveDataFile(pathFolder, dataSource, fileName, mode.getMode());
         }
         return new ResponseEntity<>("Test", HttpStatus.OK);
     }
