@@ -5,17 +5,33 @@ import org.springframework.lang.Nullable;
 
 public enum Mode {
 
-	WEB("Web"),TEL("Tel"),FAF("FaF");
+	WEB("WEB", "WEB"),TEL("TEL", "ENQ"),FAF("FAF", "ENQ");
 
 	@Nullable
-	@Schema(nullable = true, type = "string", allowableValues = { "Web", "Tel", "FaF" })
-	private final String mode;
+	@Schema(nullable = true, type = "string", allowableValues = { "WEB", "TEL", "FAF" })
+	private final String modeName;
 
-	Mode(String mode) {
-		this.mode = mode;
+	private final String folder;
+
+	Mode(String modeName, String folder) {
+		this.modeName = modeName;
+		this.folder = folder;
 	}
 
-	public String getMode() {
-		return mode;
+	public static Mode getEnumFromModeName(String modeName) {
+		for (Mode mode : Mode.values()) {
+			if (mode.getModeName().equals(modeName)) {
+				return mode;
+			}
+		}
+		return null;
+	}
+
+	public String getModeName() {
+		return modeName;
+	}
+
+	public String getFolder() {
+		return folder;
 	}
 }

@@ -14,20 +14,20 @@ class FileUtilsTest {
 
 	@Test
 	void getDataFolderTest() {
-		assertEquals("/test/genesis/data/coleman/TEST",
-				fileUtils.getDataFolder("TEST", "coleman"));
+		assertEquals("/test/genesis/IN/WEB/TEST",
+				fileUtils.getDataFolder("TEST", "WEB"));
 	}
 
 	@Test
 	void getDoneFolderTest() {
-		assertEquals("/test/genesis/done/TEST/WEB",
+		assertEquals("/test/genesis/DONE/WEB/TEST",
 				fileUtils.getDoneFolder("TEST", "WEB"));
 	}
 
 	@Test
 	void getSpecFolderTest(){
-		assertEquals("/test/genesis/in/TEST/WEB",
-				fileUtils.getSpecFolder("TEST", "WEB"));
+		assertEquals("/test/kraftwerk/in/TEST",
+				fileUtils.getSpecFolder("TEST"));
 	}
 
 

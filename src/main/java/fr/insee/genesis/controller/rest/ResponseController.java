@@ -9,7 +9,9 @@ import fr.insee.genesis.controller.sources.xml.LunaticXmlDataParser;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
 import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
 import fr.insee.genesis.domain.ports.api.SurveyUnitUpdateApiPort;
+import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.exceptions.NoDataError;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -66,36 +69,64 @@ public class ResponseController {
 
     @Operation(summary = "Save multiples files in Genesis Database")
     @PutMapping(path = "/save/lunatic-xml")
-    public ResponseEntity<Object> saveResponsesFromXmlCampaignFolder(@RequestParam("pathFolder") String pathFolder,
-                                                                     @RequestParam("dataSource") String dataSource,
+    public ResponseEntity<Object> saveResponsesFromXmlCampaignFolder(@RequestParam("campaignName") String campaignName,
                                                                      @RequestParam(value = "mode", required = false) Mode mode)
             throws Exception {
-        log.info("Try to import data from folder : {}", pathFolder);
+        log.info("Try to import data for campaign : {}", campaignName);
         LunaticXmlDataParser parser = new LunaticXmlDataParser();
-        String dataFolder = fileUtils.getDataFolder(pathFolder,dataSource);
-        List<String> dataFiles = fileUtils.listFiles(dataFolder);
-        log.info("Numbers of files to load in folder {} : {}", pathFolder, dataFiles.size());
-        for(String fileName : dataFiles){
-            String pathFile = String.format("%s/%s", dataFolder, fileName);
-            log.info("Try to read Xml file : {}", fileName);
-            LunaticXmlCampaign campaign = parser.parseDataFile(Paths.get(pathFile));
-            Path ddiFilePath = fileUtils.findDDIFile(pathFolder, mode.getMode());
-            VariablesMap variablesMap;
-            try {
-                variablesMap = DDIReader.getVariablesFromDDI(ddiFilePath.toFile().toURI().toURL());
-            } catch (GenesisException e) {
-                return ResponseEntity.status(e.getStatus()).body(e.getMessage());
+        List<Mode> modes = new ArrayList<>();
+        // We list the mode to treat, if no mode is specified, we treat all modes in the campaign.
+        // If a mode is specified, we treat only this mode. If no node is specified and no specs are found, we return an error
+        if (mode != null){
+            modes.add(mode);
+        } else {
+            String specFolder = fileUtils.getSpecFolder(campaignName);
+            List<String> specFolders = fileUtils.listFolders(specFolder);
+            if (specFolders.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No specification folder found " + specFolder);
             }
-            List<SurveyUnitUpdateDto> suDtos = new ArrayList<>();
-            for (LunaticXmlSurveyUnit su : campaign.getSurveyUnits()) {
-                SurveyUnitUpdateDto suDto = LunaticXmlAdapter.convert(su, variablesMap);
-                suDtos.add(suDto);
+            for(String modeLabel : specFolders){
+                modes.add(Mode.getEnumFromModeName(modeLabel));
             }
-            surveyUnitService.saveSurveyUnits(suDtos);
-            log.info("File {} saved", fileName);
-            fileUtils.moveDataFile(pathFolder, dataSource, fileName, mode.getMode());
+            if (modes.contains(Mode.FAF) && modes.contains(Mode.TEL)) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body("Cannot treat simultaneously TEL and FAF modes");
+            }
         }
-        return new ResponseEntity<>("Test", HttpStatus.OK);
+
+        List<GenesisError> errors = new ArrayList<>();
+        for(Mode currentMode : modes) {
+            log.info("Try to import data for mode : {}", currentMode.getModeName());
+            String dataFolder = fileUtils.getDataFolder(campaignName, currentMode.getFolder());
+            List<String> dataFiles = fileUtils.listFiles(dataFolder);
+            log.info("Numbers of files to load in folder {} : {}", dataFolder, dataFiles.size());
+            if (dataFiles.isEmpty()) {
+                errors.add(new NoDataError("No data file found",Mode.getEnumFromModeName(currentMode.getModeName())));
+                log.info("No data file found in folder " + dataFolder);
+            }
+            for (String fileName : dataFiles) {
+                String pathFile = String.format("%s/%s", dataFolder, fileName);
+                log.info("Try to read Xml file : {}", fileName);
+                LunaticXmlCampaign campaign = parser.parseDataFile(Paths.get(pathFile));
+                VariablesMap variablesMap;
+                try {
+                    Path ddiFilePath = fileUtils.findDDIFile(campaignName, currentMode.getModeName());
+                    variablesMap = DDIReader.getVariablesFromDDI(ddiFilePath.toFile().toURI().toURL());
+                } catch (GenesisException e) {
+                    return ResponseEntity.status(e.getStatus()).body(e.getMessage());
+                } catch(Exception e) {
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+                }
+                List<SurveyUnitUpdateDto> suDtos = new ArrayList<>();
+                for (LunaticXmlSurveyUnit su : campaign.getSurveyUnits()) {
+                    SurveyUnitUpdateDto suDto = LunaticXmlAdapter.convert(su, variablesMap);
+                    suDtos.add(suDto);
+                }
+                surveyUnitService.saveSurveyUnits(suDtos);
+                log.info("File {} saved", fileName);
+                fileUtils.moveDataFile(campaignName, currentMode.getFolder(), fileName);
+            }
+        }
+        return new ResponseEntity<>("Data saved", HttpStatus.OK);
     }
 
     @Operation(summary = "Retrieve responses with IdUE and IdQuestionnaire from Genesis Database")

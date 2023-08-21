@@ -14,8 +14,11 @@ public class Config {
 	/********** Configuration properties		***********/
 	/******************************************************/
 
-	@Value("${fr.insee.genesis.files.source}")
-	private String genesisFolder;
+	@Value("${fr.insee.genesis.sourcefolder.data}")
+	private String dataFolderSource;
+
+	@Value("${fr.insee.genesis.sourcefolder.specifications}")
+	private String specFolderSource;
 
 	@Value("${fr.insee.genesis.persistence.implementation}")
 	private String persistenceImplementation;

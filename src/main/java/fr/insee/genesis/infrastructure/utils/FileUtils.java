@@ -2,13 +2,13 @@ package fr.insee.genesis.infrastructure.utils;
 
 import fr.insee.genesis.configuration.Config;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -17,10 +17,13 @@ import java.util.stream.Stream;
 @Component
 public class FileUtils {
 
-	private final String genesisFolder;
+	private final String dataFolderSource;
+
+	private final String specFolderSource;
 
 	public FileUtils(Config config) {
-		this.genesisFolder = config.getGenesisFolder();
+		this.dataFolderSource = config.getDataFolderSource();
+		this.specFolderSource = config.getSpecFolderSource();
 	}
 
 	/**
@@ -44,12 +47,11 @@ public class FileUtils {
 	 * @param campaign Name of the campaign (also folder name)
 	 * @param dataSource Application the data came from
 	 * @param filename Data file to move
-	 * @param mode Mode of collect
 	 * @throws IOException
 	 */
-	public void moveDataFile(String campaign, String dataSource, String filename, String mode) throws IOException {
+	public void moveDataFile(String campaign, String dataSource, String filename) throws IOException {
 		String from = getDataFolder(campaign, dataSource);
-		String destination = getDoneFolder(campaign, mode);
+		String destination = getDoneFolder(campaign, dataSource);
 		moveFiles(from, destination, filename);
 	}
 
@@ -87,6 +89,28 @@ public class FileUtils {
 	}
 
 	/**
+	 * List all folders in a folder
+	 * @param dir
+	 * @return List of folders, empty list if the folder does not exist
+	 */
+	public List<String> listFolders(String dir) {
+		if (isFolderPresent(dir)) {
+			List<String> folders =new ArrayList<>();
+			File[] objs = new File(dir).listFiles();
+			if (objs == null) {
+				return List.of();
+			}
+			for (File file : objs) {
+				if (file.isDirectory()) {
+					folders.add(file.getName());
+				}
+			}
+			return folders;
+		}
+		return List.of();
+	}
+
+	/**
 	 * Find the DDI file in the folder of a campaign
 	 * @param campaign
 	 * @param mode
@@ -94,9 +118,9 @@ public class FileUtils {
 	 * @throws IOException
 	 */
 	public Path findDDIFile(String campaign, String mode) throws IOException {
-		try (Stream<Path> files = Files.find(Path.of(getSpecFolder(campaign, mode)), 1, (path, basicFileAttributes) -> path.toFile().getName().matches("ddi[\\w,\\s-]+\\.xml"))) {
+		try (Stream<Path> files = Files.find(Path.of(String.format("%s/%s",getSpecFolder(campaign),mode)), 1, (path, basicFileAttributes) -> path.toFile().getName().matches("ddi[\\w,\\s-]+\\.xml"))) {
 			return files.findFirst()
-					.orElseThrow(() -> new RuntimeException("No DDI file found in " + getSpecFolder(campaign, mode)));
+					.orElseThrow(() -> new RuntimeException("No DDI file found in " + String.format("%s/%s",getSpecFolder(campaign),mode)));
 		}
 	}
 
@@ -107,26 +131,25 @@ public class FileUtils {
 	 * @return Path of the data folder
 	 */
 	public String getDataFolder(String campaign, String dataSource) {
-		return  String.format("%s/%s/%s/%s", genesisFolder, "data", dataSource, campaign);
+		return  String.format("%s/%s/%s/%s", dataFolderSource, "IN", dataSource, campaign);
 	}
 
 	/**
 	 * Get the path of the folder where the specifications files are stored
 	 * @param campaign
-	 * @param mode
 	 * @return Path of the specifications folder
 	 */
-	public String getSpecFolder(String campaign, String mode) {
-		return  String.format("%s/%s/%s/%s", genesisFolder, "in", campaign, mode);
+	public String getSpecFolder(String campaign) {
+		return  String.format("%s/%s/%s", specFolderSource, "in", campaign);
 	}
 
 	/**
 	 * Get the path of the folder where the files are stored after processing
 	 * @param campaign
-	 * @param mode
+	 * @param dataSource
 	 * @return Path of the done folder
 	 */
-	public String getDoneFolder(String campaign, String mode) {
-		return  String.format("%s/%s/%s/%s", genesisFolder, "done", campaign, mode);
+	public String getDoneFolder(String campaign, String dataSource) {
+		return  String.format("%s/%s/%s/%s", dataFolderSource, "DONE", dataSource, campaign);
 	}
 }
