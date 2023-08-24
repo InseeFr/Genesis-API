@@ -1,5 +1,6 @@
 package fr.insee.genesis.infrastructure.model.document;
 
+import fr.insee.genesis.infrastructure.model.entity.ExternalVariable;
 import fr.insee.genesis.infrastructure.model.entity.VariableState;
 import jakarta.persistence.Id;
 import lombok.Data;
@@ -21,4 +22,5 @@ public class SurveyUnitUpdateDocument {
 	private String source;
 	private LocalDateTime date;
 	private List<VariableState> variablesUpdate;
+	private List<ExternalVariable> externalVariables;
 }

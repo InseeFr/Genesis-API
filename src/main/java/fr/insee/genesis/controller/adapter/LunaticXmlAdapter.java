@@ -1,10 +1,7 @@
 package fr.insee.genesis.controller.adapter;
 
-import fr.insee.genesis.Constants;
-import fr.insee.genesis.controller.sources.ddi.Variable;
 import fr.insee.genesis.controller.sources.ddi.VariablesMap;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
-import fr.insee.genesis.controller.sources.xml.ValueType;
 import fr.insee.genesis.controller.utils.LoopIdentifier;
 import fr.insee.genesis.domain.dtos.*;
 import lombok.extern.slf4j.Slf4j;
@@ -40,12 +37,20 @@ public class LunaticXmlAdapter {
                             .values(transformToList(lunaticXmlCollectedData.getCollected().get(i - 1).getValue()))
                             .idLoop(LoopIdentifier.getLoopIdentifier(lunaticXmlCollectedData.getVariableName(), variablesMap, i))
                             .idParent(LoopIdentifier.getParentGroupName(lunaticXmlCollectedData.getVariableName(), variablesMap))
-                            .type(DataType.COLLECTED)
                             .build());
                 }
             }
         });
         surveyUnitUpdateDto.setVariablesUpdate(variablesUpdate);
+
+        List<ExternalVariableDto> externalVariables = new ArrayList<>();
+        su.getData().getExternal().forEach(lunaticXmlExternalData ->
+            externalVariables.add(ExternalVariableDto.builder()
+                    .idVar(lunaticXmlExternalData.getVariableName())
+                    .values(transformToList(lunaticXmlExternalData.getValues().get(0).getValue()))
+                    .build())
+        );
+        surveyUnitUpdateDto.setExternalVariables(externalVariables);
         return surveyUnitUpdateDto;
     }
 

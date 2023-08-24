@@ -17,5 +17,6 @@ public class SurveyUnitUpdateDto {
     private Source source;
     private LocalDateTime date;
     private List<VariableStateDto> variablesUpdate;
+    private List<ExternalVariableDto> externalVariables;
 
 }
