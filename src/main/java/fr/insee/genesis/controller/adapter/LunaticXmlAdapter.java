@@ -33,13 +33,16 @@ public class LunaticXmlAdapter {
         * To be updated when we will receive data from dynamic tables*/
         su.getData().getCollected().forEach(lunaticXmlCollectedData -> {
             for (int i =1;i<=lunaticXmlCollectedData.getCollected().size();i++) {
-                variablesUpdate.add(VariableStateDto.builder()
-                        .idVar(lunaticXmlCollectedData.getVariableName())
-                        .values(transformToList(lunaticXmlCollectedData.getCollected().get(i-1).getValue()))
-                        .idLoop(LoopIdentifier.getLoopIdentifier(lunaticXmlCollectedData.getVariableName(), variablesMap,i))
-                        .idParent(LoopIdentifier.getParentGroupName(lunaticXmlCollectedData.getVariableName(), variablesMap))
-                        .type(DataType.COLLECTED)
-                        .build());
+                List<String> variableValues = transformToList(lunaticXmlCollectedData.getCollected().get(i-1).getValue());
+                if (!variableValues.isEmpty()) {
+                    variablesUpdate.add(VariableStateDto.builder()
+                            .idVar(lunaticXmlCollectedData.getVariableName())
+                            .values(transformToList(lunaticXmlCollectedData.getCollected().get(i - 1).getValue()))
+                            .idLoop(LoopIdentifier.getLoopIdentifier(lunaticXmlCollectedData.getVariableName(), variablesMap, i))
+                            .idParent(LoopIdentifier.getParentGroupName(lunaticXmlCollectedData.getVariableName(), variablesMap))
+                            .type(DataType.COLLECTED)
+                            .build());
+                }
             }
         });
         surveyUnitUpdateDto.setVariablesUpdate(variablesUpdate);
@@ -47,9 +50,12 @@ public class LunaticXmlAdapter {
     }
 
     private static List<String> transformToList(String value) {
-        List<String> values = new ArrayList<>();
-        values.add(value);
-        return values;
+        if (value != null){
+            List<String> values = new ArrayList<>();
+            values.add(value);
+            return values;
+        }
+        return List.of();
     }
 
 }
