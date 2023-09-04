@@ -1,9 +1,19 @@
 # Config
 src/main/resources/application-*.properties
+!src/main/resources/application-local.properties
 
 # IntelliJ Files
 .idea
 *.iml
+
+# Eclipse files
+.metadata
+.classpath
+.project
+.settings
+RemoteSystemsTempFiles
+.factorypath
+.springBeans
 
 # Compiled files
 target/
