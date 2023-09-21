@@ -129,7 +129,7 @@ public class ResponseController {
     }
 
     @Operation(summary = "Retrieve responses with IdUE and IdQuestionnaire from Genesis Database")
-    @GetMapping(path = "/findResponsesByUEAndQuestionnaire")
+    @GetMapping(path = "/get-responses/by-ue-and-questionnaire")
     public ResponseEntity<List<SurveyUnitUpdateDto>> findResponsesByUEAndQuestionnaire(     @RequestParam("idUE") String idUE,
                                                                                             @RequestParam("idQuestionnaire") String idQuestionnaire) {
         List<SurveyUnitUpdateDto> responses = surveyUnitService.findByIdsUEAndQuestionnaire(idUE, idQuestionnaire);
@@ -137,11 +137,19 @@ public class ResponseController {
     }
 
     @Operation(summary = "Retrieve all responses of one questionnaire")
-    @GetMapping(path = "/findAllResponsesByQuestionnaire")
+    @GetMapping(path = "/get-responses/by-questionnaire")
     public ResponseEntity<List<SurveyUnitUpdateDto>> findAllResponsesByQuestionnaire(@RequestParam("idQuestionnaire") String idQuestionnaire) {
         log.info("Try to find all responses of questionnaire : " + idQuestionnaire);
         List<SurveyUnitUpdateDto> responses = surveyUnitService.findByIdQuestionnaire(idQuestionnaire);
         log.info("Responses found : " + responses.size());
+        return new ResponseEntity<>(responses, HttpStatus.OK);
+    }
+
+    @Operation(summary = "Retrieve responses latest state with IdUE and IdQuestionnaire")
+    @GetMapping(path = "/get-responses/by-ue-and-questionnaire/latest")
+    public ResponseEntity<List<SurveyUnitUpdateDto>> getResponsesLatestStateByUE ( @RequestParam("idUE") String idUE,
+                                                                                   @RequestParam("idQuestionnaire") String idQuestionnaire) {
+        List<SurveyUnitUpdateDto> responses = surveyUnitService.findLatestByIds(idUE, idQuestionnaire);
         return new ResponseEntity<>(responses, HttpStatus.OK);
     }
 
