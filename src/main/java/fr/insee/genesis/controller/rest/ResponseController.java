@@ -2,12 +2,15 @@ package fr.insee.genesis.controller.rest;
 
 import fr.insee.genesis.controller.adapter.LunaticXmlAdapter;
 import fr.insee.genesis.controller.model.Mode;
+import fr.insee.genesis.controller.responses.SurveyUnitUpdateSimplified;
 import fr.insee.genesis.controller.sources.ddi.DDIReader;
 import fr.insee.genesis.controller.sources.ddi.VariablesMap;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlCampaign;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlDataParser;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
+import fr.insee.genesis.domain.dtos.ExternalVariableDto;
 import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
+import fr.insee.genesis.domain.dtos.VariableStateDto;
 import fr.insee.genesis.domain.ports.api.SurveyUnitUpdateApiPort;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
@@ -147,10 +150,30 @@ public class ResponseController {
 
     @Operation(summary = "Retrieve responses latest state with IdUE and IdQuestionnaire")
     @GetMapping(path = "/get-responses/by-ue-and-questionnaire/latest")
-    public ResponseEntity<List<SurveyUnitUpdateDto>> getResponsesLatestStateByUE ( @RequestParam("idUE") String idUE,
+    public ResponseEntity<List<SurveyUnitUpdateDto>> getLatestByUE ( @RequestParam("idUE") String idUE,
                                                                                    @RequestParam("idQuestionnaire") String idQuestionnaire) {
         List<SurveyUnitUpdateDto> responses = surveyUnitService.findLatestByIds(idUE, idQuestionnaire);
         return new ResponseEntity<>(responses, HttpStatus.OK);
+    }
+
+    @Operation(summary = "Retrieve responses latest state with IdUE and IdQuestionnaire in one object in the output")
+    @GetMapping(path = "/get-responses/by-ue-and-questionnaire/latest/one-object")
+    public ResponseEntity<SurveyUnitUpdateSimplified> getLatestByUEOneObject ( @RequestParam("idUE") String idUE,
+                                                                                   @RequestParam("idQuestionnaire") String idQuestionnaire) {
+        List<SurveyUnitUpdateDto> responses = surveyUnitService.findLatestByIds(idUE, idQuestionnaire);
+        List<VariableStateDto> outputVariables = new ArrayList<>();
+        List<ExternalVariableDto> outputExternalVariables = new ArrayList<>();
+        responses.forEach(response -> {
+            outputVariables.addAll(response.getVariablesUpdate());
+            outputExternalVariables.addAll(response.getExternalVariables());
+        });
+        return new ResponseEntity<>(SurveyUnitUpdateSimplified.builder()
+                .idQuest(responses.get(0).getIdQuest())
+                .idCampaign(responses.get(0).getIdCampaign())
+                .idUE(responses.get(0).getIdUE())
+                .variablesUpdate(outputVariables)
+                .externalVariables(outputExternalVariables)
+                .build(), HttpStatus.OK);
     }
 
 }
