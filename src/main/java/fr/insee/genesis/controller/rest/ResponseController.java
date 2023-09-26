@@ -8,6 +8,7 @@ import fr.insee.genesis.controller.sources.ddi.VariablesMap;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlCampaign;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlDataParser;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
+import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.dtos.ExternalVariableDto;
 import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
 import fr.insee.genesis.domain.dtos.VariableStateDto;
@@ -30,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @RequestMapping(path = "/response")
@@ -42,6 +44,9 @@ public class ResponseController {
 
     @Autowired
     FileUtils fileUtils;
+
+    @Autowired
+    ControllerUtils controllerUtils;
 
     @Operation(summary = "Save responses from XML Lunatic in Genesis Database")
     @PutMapping(path = "/save/lunatic-xml/one-file")
@@ -72,31 +77,19 @@ public class ResponseController {
     @Operation(summary = "Save multiples files in Genesis Database")
     @PutMapping(path = "/save/lunatic-xml")
     public ResponseEntity<Object> saveResponsesFromXmlCampaignFolder(@RequestParam("campaignName") String campaignName,
-                                                                     @RequestParam(value = "mode", required = false) Mode mode)
+                                                                     @RequestParam(value = "mode", required = false) Mode modeSpecified)
             throws Exception {
         log.info("Try to import data for campaign : {}", campaignName);
         LunaticXmlDataParser parser = new LunaticXmlDataParser();
-        List<Mode> modes = new ArrayList<>();
-        // We list the mode to treat, if no mode is specified, we treat all modes in the campaign.
-        // If a mode is specified, we treat only this mode. If no node is specified and no specs are found, we return an error
-        if (mode != null){
-            modes.add(mode);
-        } else {
-            String specFolder = fileUtils.getSpecFolder(campaignName);
-            List<String> specFolders = fileUtils.listFolders(specFolder);
-            if (specFolders.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No specification folder found " + specFolder);
-            }
-            for(String modeLabel : specFolders){
-                modes.add(Mode.getEnumFromModeName(modeLabel));
-            }
-            if (modes.contains(Mode.FAF) && modes.contains(Mode.TEL)) {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body("Cannot treat simultaneously TEL and FAF modes");
-            }
+        List<Mode> modesList;
+        try {
+            modesList = controllerUtils.getModesList(campaignName, modeSpecified);
+        } catch(GenesisException e) {
+            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
         }
 
         List<GenesisError> errors = new ArrayList<>();
-        for(Mode currentMode : modes) {
+        for(Mode currentMode : modesList) {
             log.info("Try to import data for mode : {}", currentMode.getModeName());
             String dataFolder = fileUtils.getDataFolder(campaignName, currentMode.getFolder());
             List<String> dataFiles = fileUtils.listFiles(dataFolder);
