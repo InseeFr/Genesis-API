@@ -15,6 +15,10 @@ import java.util.List;
 @Slf4j
 public class LunaticXmlAdapter {
 
+    private LunaticXmlAdapter() {
+        throw new IllegalStateException("Utility class");
+    }
+
     public static SurveyUnitUpdateDto convert(LunaticXmlSurveyUnit su, VariablesMap variablesMap){
         SurveyUnitUpdateDto surveyUnitUpdateDto = SurveyUnitUpdateDto.builder()
                 .idQuest(su.getQuestionnaireModelId())

@@ -33,11 +33,11 @@ public class SurveyUnitUpdateJpaAdapter implements SurveyUnitUpdatePersistencePo
         log.info("Saving {} survey units updates", suListDto.size());
         List<SurveyUnitUpdate> suList = SurveyUnitUpdateMapper.INSTANCE.listDtoToListEntity(suListDto);
         for (int i = 0; i < suList.size(); i++) {
-/*            if(i > 0 && i % BATCH_SIZE == 0) {
+            if(i > 0 && i % BATCH_SIZE == 0) {
                 entityManager.flush();
                 entityManager.clear();
                 log.info("Flushing and clearing entity manager");
-            }*/
+            }
             entityManager.persist(suList.get(i));
         }
         log.info("Survey units updates saved");
