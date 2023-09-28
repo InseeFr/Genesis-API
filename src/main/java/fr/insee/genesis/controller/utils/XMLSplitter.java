@@ -16,7 +16,6 @@ import java.util.List;
 public class XMLSplitter {
 
 	// We use StAX in this class to deal with memory issues on huge XML files
-
 	private XMLSplitter() {
 		throw new IllegalStateException("Utility class");
 	}
