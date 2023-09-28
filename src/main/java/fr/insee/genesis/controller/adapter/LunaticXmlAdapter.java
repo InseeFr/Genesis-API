@@ -4,20 +4,16 @@ import fr.insee.genesis.controller.sources.ddi.VariablesMap;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
 import fr.insee.genesis.controller.utils.LoopIdentifier;
 import fr.insee.genesis.domain.dtos.*;
+import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-@Service
+@UtilityClass
 @Slf4j
 public class LunaticXmlAdapter {
-
-    private LunaticXmlAdapter() {
-        throw new IllegalStateException("Utility class");
-    }
 
     public static SurveyUnitUpdateDto convert(LunaticXmlSurveyUnit su, VariablesMap variablesMap){
         SurveyUnitUpdateDto surveyUnitUpdateDto = SurveyUnitUpdateDto.builder()
