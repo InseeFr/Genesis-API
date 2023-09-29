@@ -1,0 +1,357 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Campaign>
+  <Id>TEST2023X01</Id>
+  <Label>Enquête Test Unitaire</Label>
+  <SurveyUnits>
+	<SurveyUnit>
+      <Id>UE0000000001</Id>
+      <QuestionnaireModelId>TEST2023X01</QuestionnaireModelId>
+      <Data>
+        <COLLECTED>
+          <VAR1>
+            <COLLECTED type="null" />
+            <EDITED type="null" />
+            <INPUTED type="null" />
+            <FORCED type="null" />
+            <PREVIOUS type="null" />
+          </VAR1>
+          <VAR2>
+            <COLLECTED>
+              <COLLECTED type="string">012</COLLECTED>
+              <COLLECTED type="null" />
+            </COLLECTED>
+            <EDITED>
+              <EDITED type="null" />
+            </EDITED>
+            <INPUTED>
+              <INPUTED type="null" />
+            </INPUTED>
+            <FORCED>
+              <FORCED type="null" />
+            </FORCED>
+            <PREVIOUS>
+              <PREVIOUS type="null" />
+            </PREVIOUS>
+          </VAR2>
+          <VAR3>
+            <COLLECTED type="null" />
+            <EDITED type="null" />
+            <INPUTED type="null" />
+            <FORCED type="null" />
+            <PREVIOUS type="null" />
+          </VAR3>
+          <VAR4>
+            <COLLECTED type="null" />
+            <EDITED type="null" />
+            <INPUTED type="null" />
+            <FORCED type="null" />
+            <PREVIOUS type="null" />
+          </VAR4>
+          <VAR5>
+            <COLLECTED type="string">2</COLLECTED>
+            <EDITED type="null" />
+            <INPUTED type="null" />
+            <FORCED type="null" />
+            <PREVIOUS type="null" />
+          </VAR5>
+          <VAR6>
+            <COLLECTED type="null" />
+            <EDITED type="null" />
+            <INPUTED type="null" />
+            <FORCED type="null" />
+            <PREVIOUS type="null" />
+          </VAR6>
+          <VAR7>
+            <COLLECTED type="null" />
+            <EDITED type="null" />
+            <INPUTED type="null" />
+            <FORCED type="null" />
+            <PREVIOUS type="null" />
+          </VAR7>
+          <VAR8>
+            <COLLECTED type="null" />
+            <EDITED type="null" />
+            <INPUTED type="null" />
+            <FORCED type="null" />
+            <PREVIOUS type="null" />
+          </VAR8>
+          <VAR9>
+            <COLLECTED type="string">3</COLLECTED>
+            <EDITED type="null" />
+            <INPUTED type="null" />
+            <FORCED type="null" />
+            <PREVIOUS type="null" />
+          </VAR9>
+          <VAR10>
+            <COLLECTED type="null" />
+            <EDITED type="null" />
+            <INPUTED type="null" />
+            <FORCED type="null" />
+            <PREVIOUS type="null" />
+          </VAR10>
+          <VAR11>
+            <COLLECTED>
+              <COLLECTED type="null" />
+              <COLLECTED type="string">2</COLLECTED>
+            </COLLECTED>
+            <EDITED>
+              <EDITED type="null" />
+            </EDITED>
+            <INPUTED>
+              <INPUTED type="null" />
+            </INPUTED>
+            <FORCED>
+              <FORCED type="null" />
+            </FORCED>
+            <PREVIOUS>
+              <PREVIOUS type="null" />
+            </PREVIOUS>
+          </VAR11>
+          <VAR12>
+            <COLLECTED>
+              <COLLECTED type="null" />
+              <COLLECTED type="null" />
+            </COLLECTED>
+            <EDITED>
+              <EDITED type="null" />
+            </EDITED>
+            <INPUTED>
+              <INPUTED type="null" />
+            </INPUTED>
+            <FORCED>
+              <FORCED type="null" />
+            </FORCED>
+            <PREVIOUS>
+              <PREVIOUS type="null" />
+            </PREVIOUS>
+          </VAR12>
+          <VAR13>
+            <COLLECTED type="string">2</COLLECTED>
+            <EDITED type="null" />
+            <INPUTED type="null" />
+            <FORCED type="null" />
+            <PREVIOUS type="null" />
+          </VAR13>
+          <VAR14>
+            <COLLECTED type="string">3</COLLECTED>
+            <EDITED type="null" />
+            <INPUTED type="null" />
+            <FORCED type="null" />
+            <PREVIOUS type="null" />
+          </VAR14>
+          <VAR15>
+            <COLLECTED>
+              <COLLECTED type="null" />
+            </COLLECTED>
+            <EDITED>
+              <EDITED type="null" />
+            </EDITED>
+            <INPUTED>
+              <INPUTED type="null" />
+            </INPUTED>
+            <FORCED>
+              <FORCED type="null" />
+            </FORCED>
+            <PREVIOUS>
+              <PREVIOUS type="null" />
+            </PREVIOUS>
+          </VAR15>
+          <VAR16>
+            <COLLECTED>
+              <COLLECTED type="null" />
+            </COLLECTED>
+            <EDITED>
+              <EDITED type="null" />
+            </EDITED>
+            <INPUTED>
+              <INPUTED type="null" />
+            </INPUTED>
+            <FORCED>
+              <FORCED type="null" />
+            </FORCED>
+            <PREVIOUS>
+              <PREVIOUS type="null" />
+            </PREVIOUS>
+          </VAR16>
+          <VAR17>
+            <COLLECTED type="string">1</COLLECTED>
+            <EDITED type="null" />
+            <INPUTED type="null" />
+            <FORCED type="null" />
+            <PREVIOUS type="null" />
+          </VAR17>
+          <VAR18>
+            <COLLECTED type="string">1</COLLECTED>
+            <EDITED type="null" />
+            <INPUTED type="null" />
+            <FORCED type="null" />
+            <PREVIOUS type="null" />
+          </VAR18>
+          <VAR19>
+            <COLLECTED>
+              <COLLECTED type="string">2</COLLECTED>
+              <COLLECTED type="string">1</COLLECTED>
+            </COLLECTED>
+            <EDITED>
+              <EDITED type="null" />
+            </EDITED>
+            <INPUTED>
+              <INPUTED type="null" />
+            </INPUTED>
+            <FORCED>
+              <FORCED type="null" />
+            </FORCED>
+            <PREVIOUS>
+              <PREVIOUS type="null" />
+            </PREVIOUS>
+          </VAR19>
+          <VAR_20>
+            <COLLECTED>
+              <COLLECTED type="string">LOIC BOB</COLLECTED>
+              <COLLECTED type="string">ALICE</COLLECTED>
+            </COLLECTED>
+            <EDITED>
+              <EDITED type="null" />
+            </EDITED>
+            <INPUTED>
+              <INPUTED type="null" />
+            </INPUTED>
+            <FORCED>
+              <FORCED type="null" />
+            </FORCED>
+            <PREVIOUS>
+              <PREVIOUS type="null" />
+            </PREVIOUS>
+          </VAR_20>
+          <VAR21>
+            <COLLECTED type="boolean">true</COLLECTED>
+            <EDITED type="null" />
+            <INPUTED type="null" />
+            <FORCED type="null" />
+            <PREVIOUS type="null" />
+          </VAR21>
+          <VAR22>
+            <COLLECTED>
+              <COLLECTED type="string">1</COLLECTED>
+              <COLLECTED type="string">2</COLLECTED>
+            </COLLECTED>
+            <EDITED>
+              <EDITED type="null" />
+            </EDITED>
+            <INPUTED>
+              <INPUTED type="null" />
+            </INPUTED>
+            <FORCED>
+              <FORCED type="null" />
+            </FORCED>
+            <PREVIOUS>
+              <PREVIOUS type="null" />
+            </PREVIOUS>
+          </VAR22>
+          <VAR23>
+            <COLLECTED>
+              <COLLECTED type="null" />
+              <COLLECTED type="string">1</COLLECTED>
+            </COLLECTED>
+            <EDITED>
+              <EDITED type="null" />
+            </EDITED>
+            <INPUTED>
+              <INPUTED type="null" />
+            </INPUTED>
+            <FORCED>
+              <FORCED type="null" />
+            </FORCED>
+            <PREVIOUS>
+              <PREVIOUS type="null" />
+            </PREVIOUS>
+          </VAR23>
+          <VAR24>
+            <COLLECTED>
+              <COLLECTED type="boolean">true</COLLECTED>
+              <COLLECTED type="boolean">true</COLLECTED>
+            </COLLECTED>
+            <EDITED>
+              <EDITED type="null" />
+            </EDITED>
+            <INPUTED>
+              <INPUTED type="null" />
+            </INPUTED>
+            <FORCED>
+              <FORCED type="null" />
+            </FORCED>
+            <PREVIOUS>
+              <PREVIOUS type="null" />
+            </PREVIOUS>
+          </VAR24>
+          <VAR25>
+            <COLLECTED>
+              <COLLECTED type="null" />
+              <COLLECTED type="null" />
+            </COLLECTED>
+            <EDITED>
+              <EDITED type="null" />
+            </EDITED>
+            <INPUTED>
+              <INPUTED type="null" />
+            </INPUTED>
+            <FORCED>
+              <FORCED type="null" />
+            </FORCED>
+            <PREVIOUS>
+              <PREVIOUS type="null" />
+            </PREVIOUS>
+          </VAR25>
+          <VAR26>
+            <COLLECTED>
+              <COLLECTED type="string">1983-03-30</COLLECTED>
+              <COLLECTED type="string">1990-08-18</COLLECTED>
+            </COLLECTED>
+            <EDITED>
+              <EDITED type="null" />
+            </EDITED>
+            <INPUTED>
+              <INPUTED type="null" />
+            </INPUTED>
+            <FORCED>
+              <FORCED type="null" />
+            </FORCED>
+            <PREVIOUS>
+              <PREVIOUS type="null" />
+            </PREVIOUS>
+          </VAR26>
+        </COLLECTED>
+        <CALCULATED>
+          <VAR_CALCULATED1 type="string" />
+        </CALCULATED>
+        <EXTERNAL>
+          <EXT1 type="string">BOB</EXT1>
+          <EXT2 type="string">JENNY</EXT2>
+          <EXT3 type="null" />
+          <EXT4 type="string">ETAGE 2</EXT4>
+          <EXT5 type="string">PARIS</EXT5>
+          <EXT6 type="string">MADAME</EXT6>
+          <EXT7 type="string">75000</EXT7>
+          <EXT8 type="string">MONSIEUR</EXT8>
+          <EXT9 type="string">DUPOND</EXT9>
+          <EXT10 type="string">DURAND</EXT10>
+          <EXT11 type="string">22 RUE DES TULIPES</EXT11>
+        </EXTERNAL>
+      </Data>
+      <Personalization>
+        <Variable>
+          <Name>whoAnswers1</Name>
+          <Value>Un adulte du ménage</Value>
+        </Variable>
+        <Variable>
+          <Name>whoAnswers2</Name>
+          <Value />
+        </Variable>
+        <Variable>
+          <Name>whoAnswers3</Name>
+          <Value />
+        </Variable>
+      </Personalization>
+    </SurveyUnit>
+  </SurveyUnits>
+</Campaign>
