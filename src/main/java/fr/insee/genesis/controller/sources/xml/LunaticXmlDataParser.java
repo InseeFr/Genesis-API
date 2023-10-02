@@ -46,7 +46,7 @@ public class LunaticXmlDataParser {
         return document;
     }
 
-    public LunaticXmlCampaign parseDataFile(Path filePath) throws Exception {
+    public LunaticXmlCampaign parseDataFile(Path filePath) throws GenesisException, IOException, ParserConfigurationException, SAXException {
 
         Document document = readXmlFile(filePath);
         log.debug("Begin to parse {} ", filePath);
@@ -77,7 +77,7 @@ public class LunaticXmlDataParser {
         return campaign;
     }
 
-    private LunaticXmlData getData(NodeList dataNodeList) throws Exception {
+    private LunaticXmlData getData(NodeList dataNodeList) throws GenesisException {
         LunaticXmlData lunaticXmlData = new LunaticXmlData();
         for (int j = 0; j < dataNodeList.getLength(); j++) {
             Node dataNode = dataNodeList.item(j);
@@ -94,7 +94,7 @@ public class LunaticXmlDataParser {
         return lunaticXmlData;
     }
 
-    private void readCollected(LunaticXmlData lunaticXmlData, Node dataNode) throws Exception {
+    private void readCollected(LunaticXmlData lunaticXmlData, Node dataNode) throws GenesisException {
             List<LunaticXmlCollectedData> lunaticXmlCollectedDataList = new ArrayList<>();
             Element dataElement = (Element) dataNode;
             NodeList variablesNodes = dataElement.getChildNodes();
@@ -133,9 +133,9 @@ public class LunaticXmlDataParser {
      * Extracts the data from a collected variable element
      * @param element
      * @return LunaticXmlCollectedData : the data extracted from the element
-     * @throws Exception
+     * @throws GenesisException
      */
-    private LunaticXmlCollectedData extractCollected(Element element) throws Exception {
+    private LunaticXmlCollectedData extractCollected(Element element) throws GenesisException {
         if (null == element) {
             return null;
         }
@@ -242,7 +242,7 @@ public class LunaticXmlDataParser {
                 varData.setPrevious(valueTypes);
                 break;
             default:
-                throw new GenesisException(421, String.format("Tag {} not recognized", valueElement.getTagName()));
+                throw new GenesisException(421, String.format("Tag %s not recognized", valueElement.getTagName()));
         }
     }
 

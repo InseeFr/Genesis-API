@@ -55,7 +55,12 @@ public class ResponseController {
             throws Exception {
         log.info(String.format("Try to read Xml file : %s", xmlFile));
         LunaticXmlDataParser parser = new LunaticXmlDataParser();
-        LunaticXmlCampaign campaign = parser.parseDataFile(Paths.get(xmlFile));
+        LunaticXmlCampaign campaign;
+        try {
+            campaign = parser.parseDataFile(Paths.get(xmlFile));
+        } catch (GenesisException e) {
+            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
+        }
         log.info(String.format("Try to read DDI file : %s", ddiFile));
         Path ddiFilePath = Paths.get(ddiFile);
         VariablesMap variablesMap;
