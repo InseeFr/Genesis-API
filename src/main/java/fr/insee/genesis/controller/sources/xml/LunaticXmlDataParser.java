@@ -51,29 +51,26 @@ public class LunaticXmlDataParser {
         Document document = readXmlFile(filePath);
         log.debug("Begin to parse {} ", filePath);
         LunaticXmlCampaign campaign = new LunaticXmlCampaign();
-        if (document!=null) {
-            Element root = document.getDocumentElement();
-            campaign.setId(root.getElementsByTagName("Id").item(0).getFirstChild().getNodeValue());
-            campaign.setLabel(root.getElementsByTagName("Label").item(0).getFirstChild().getNodeValue());
-            NodeList surveyUnits = root.getElementsByTagName("SurveyUnit");
-            List<LunaticXmlSurveyUnit> lunaticXmlSurveyUnits = new ArrayList<>();
-            for (int i = 0; i < surveyUnits.getLength(); i++) {
-                Node surveyUnit = surveyUnits.item(i);
-                if (surveyUnit.getNodeType() == Node.ELEMENT_NODE) {
-                    Element surveyUnitElement = (Element) surveyUnit;
-                    LunaticXmlSurveyUnit lunaticXmlSurveyUnit = new LunaticXmlSurveyUnit();
-                    lunaticXmlSurveyUnit.setId(surveyUnitElement.getElementsByTagName("Id").item(0).getFirstChild().getNodeValue());
-                    lunaticXmlSurveyUnit.setQuestionnaireModelId(surveyUnitElement.getElementsByTagName("QuestionnaireModelId").item(0).getFirstChild().getNodeValue());
-                    Node data = surveyUnitElement.getElementsByTagName("Data").item(0);
-                    NodeList dataNodeList = data.getChildNodes();
-                    lunaticXmlSurveyUnit.setData(getData(dataNodeList));
-                    lunaticXmlSurveyUnits.add(lunaticXmlSurveyUnit);
-                }
-
+        Element root = document.getDocumentElement();
+        campaign.setId(root.getElementsByTagName("Id").item(0).getFirstChild().getNodeValue());
+        campaign.setLabel(root.getElementsByTagName("Label").item(0).getFirstChild().getNodeValue());
+        NodeList surveyUnits = root.getElementsByTagName("SurveyUnit");
+        List<LunaticXmlSurveyUnit> lunaticXmlSurveyUnits = new ArrayList<>();
+        for (int i = 0; i < surveyUnits.getLength(); i++) {
+            Node surveyUnit = surveyUnits.item(i);
+            if (surveyUnit.getNodeType() == Node.ELEMENT_NODE) {
+                Element surveyUnitElement = (Element) surveyUnit;
+                LunaticXmlSurveyUnit lunaticXmlSurveyUnit = new LunaticXmlSurveyUnit();
+                lunaticXmlSurveyUnit.setId(surveyUnitElement.getElementsByTagName("Id").item(0).getFirstChild().getNodeValue());
+                lunaticXmlSurveyUnit.setQuestionnaireModelId(surveyUnitElement.getElementsByTagName("QuestionnaireModelId").item(0).getFirstChild().getNodeValue());
+                Node data = surveyUnitElement.getElementsByTagName("Data").item(0);
+                NodeList dataNodeList = data.getChildNodes();
+                lunaticXmlSurveyUnit.setData(getData(dataNodeList));
+                lunaticXmlSurveyUnits.add(lunaticXmlSurveyUnit);
             }
-            campaign.setSurveyUnits(lunaticXmlSurveyUnits);
-            log.info("Successfully parsed Lunatic answers file: {}",filePath);
         }
+        campaign.setSurveyUnits(lunaticXmlSurveyUnits);
+        log.info("Successfully parsed Lunatic answers file: {}",filePath);
         return campaign;
     }
 
