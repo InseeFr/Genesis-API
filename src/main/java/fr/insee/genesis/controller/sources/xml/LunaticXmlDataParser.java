@@ -23,6 +23,7 @@ import java.util.List;
 @Slf4j
 public class LunaticXmlDataParser {
 
+    private static final String COLLECTED = "COLLECTED";
     private static final String CALCULATED = "CALCULATED";
     private static final String EXTERNAL = "EXTERNAL";
 
@@ -65,27 +66,32 @@ public class LunaticXmlDataParser {
                     lunaticXmlSurveyUnit.setQuestionnaireModelId(surveyUnitElement.getElementsByTagName("QuestionnaireModelId").item(0).getFirstChild().getNodeValue());
                     Node data = surveyUnitElement.getElementsByTagName("Data").item(0);
                     NodeList dataNodeList = data.getChildNodes();
-                    LunaticXmlData lunaticXmlData = new LunaticXmlData();
-                    for (int j = 0; j < dataNodeList.getLength(); j++) {
-                        Node dataNode = dataNodeList.item(j);
-                        if (dataNode.getNodeType() == Node.ELEMENT_NODE && dataNode.getNodeName().equals("COLLECTED")) {
-                            readCollected(lunaticXmlData, dataNode);
-                        }
-                        if (dataNode.getNodeType() == Node.ELEMENT_NODE && dataNode.getNodeName().equals(CALCULATED)) {
-                            readCalculatedOrExternal(lunaticXmlData, dataNode, CALCULATED);
-                        }
-                        if (dataNode.getNodeType() == Node.ELEMENT_NODE && dataNode.getNodeName().equals(EXTERNAL)) {
-                            readCalculatedOrExternal(lunaticXmlData, dataNode, EXTERNAL);
-                        }
-                    }
-                    lunaticXmlSurveyUnit.setData(lunaticXmlData);
+                    lunaticXmlSurveyUnit.setData(getData(dataNodeList));
                     lunaticXmlSurveyUnits.add(lunaticXmlSurveyUnit);
                 }
+
             }
             campaign.setSurveyUnits(lunaticXmlSurveyUnits);
             log.info("Successfully parsed Lunatic answers file: {}",filePath);
         }
         return campaign;
+    }
+
+    private LunaticXmlData getData(NodeList dataNodeList) throws Exception {
+        LunaticXmlData lunaticXmlData = new LunaticXmlData();
+        for (int j = 0; j < dataNodeList.getLength(); j++) {
+            Node dataNode = dataNodeList.item(j);
+            if (dataNode.getNodeType() == Node.ELEMENT_NODE && dataNode.getNodeName().equals(COLLECTED)) {
+                readCollected(lunaticXmlData, dataNode);
+            }
+            if (dataNode.getNodeType() == Node.ELEMENT_NODE && dataNode.getNodeName().equals(CALCULATED)) {
+                readCalculatedOrExternal(lunaticXmlData, dataNode, CALCULATED);
+            }
+            if (dataNode.getNodeType() == Node.ELEMENT_NODE && dataNode.getNodeName().equals(EXTERNAL)) {
+                readCalculatedOrExternal(lunaticXmlData, dataNode, EXTERNAL);
+            }
+        }
+        return lunaticXmlData;
     }
 
     private void readCollected(LunaticXmlData lunaticXmlData, Node dataNode) throws Exception {
@@ -140,22 +146,26 @@ public class LunaticXmlDataParser {
         for (int i = 0; i < data.getLength(); i++) {
             Node value = data.item(i);
             if (value.getNodeType() == Node.ELEMENT_NODE) {
-                Element valueElement = (Element) value;
-                List<ValueType> valueTypes = new ArrayList<>();
-                if(hasChildElements(valueElement)){
-                    NodeList values = valueElement.getChildNodes();
-                    for (int j = 0; j < values.getLength(); j++) {
-                        if (values.item(j).getNodeType() == Node.ELEMENT_NODE) {
-                            addNodeToJavaList(values.item(j), valueTypes);
-                        }
-                    }
-                } else {
-                    addNodeToJavaList(value, valueTypes);
-                }
-                setValues(varData, valueElement, valueTypes);
+                setValues(varData, value, getCollectedValues(value));
             }
         }
         return varData;
+    }
+
+    private List<ValueType> getCollectedValues(Node value) {
+        Element valueElement = (Element) value;
+        List<ValueType> valueTypes = new ArrayList<>();
+        if(hasChildElements(valueElement)){
+            NodeList values = valueElement.getChildNodes();
+            for (int j = 0; j < values.getLength(); j++) {
+                if (values.item(j).getNodeType() == Node.ELEMENT_NODE) {
+                    addNodeToJavaList(values.item(j), valueTypes);
+                }
+            }
+        } else {
+            addNodeToJavaList(value, valueTypes);
+        }
+        return valueTypes;
     }
 
     private LunaticXmlOtherData extractCalculatedOrExternal(Element element) {
@@ -209,13 +219,14 @@ public class LunaticXmlDataParser {
     /**
      * Set the values of the LunaticXmlCollectedData object
      * @param varData
-     * @param valueElement
+     * @param value
      * @param valueTypes
      * @throws GenesisException
      */
-    private static void setValues(LunaticXmlCollectedData varData, Element valueElement, List<ValueType> valueTypes) throws GenesisException {
+    private static void setValues(LunaticXmlCollectedData varData, Node value, List<ValueType> valueTypes) throws GenesisException {
+        Element valueElement = (Element) value;
         switch(valueElement.getTagName()){
-            case "COLLECTED":
+            case COLLECTED:
                 varData.setCollected(valueTypes);
                 break;
             case "EDITED":
