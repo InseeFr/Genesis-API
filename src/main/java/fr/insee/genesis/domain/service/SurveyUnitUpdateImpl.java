@@ -1,6 +1,7 @@
 package fr.insee.genesis.domain.service;
 
 import fr.insee.genesis.domain.dtos.ExternalVariableDto;
+import fr.insee.genesis.domain.dtos.SurveyUnitDto;
 import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
 import fr.insee.genesis.domain.dtos.VariableStateDto;
 import fr.insee.genesis.domain.ports.api.SurveyUnitUpdateApiPort;
@@ -83,6 +84,14 @@ public class SurveyUnitUpdateImpl implements SurveyUnitUpdateApiPort {
 
         return latestUpdatesbyVariables;
     }
+
+    @Override
+    public List<SurveyUnitDto> findDistinctIdUEsByIdQuestionnaire(String idQuestionnaire) {
+        List<SurveyUnitDto> surveyUnits = surveyUnitUpdatePersistencePort.findIdUEsByIdQuestionnaire(idQuestionnaire);
+        return surveyUnits.stream().distinct().toList();
+    }
+
+
 
 
 }

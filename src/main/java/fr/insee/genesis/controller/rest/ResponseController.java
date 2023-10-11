@@ -10,6 +10,7 @@ import fr.insee.genesis.controller.sources.xml.LunaticXmlDataParser;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.dtos.ExternalVariableDto;
+import fr.insee.genesis.domain.dtos.SurveyUnitDto;
 import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
 import fr.insee.genesis.domain.dtos.VariableStateDto;
 import fr.insee.genesis.domain.ports.api.SurveyUnitUpdateApiPort;
@@ -31,7 +32,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 @RequestMapping(path = "/response")
@@ -174,4 +174,10 @@ public class ResponseController {
                 .build(), HttpStatus.OK);
     }
 
+    @Operation (summary = "Retrieve all IdUEs for a given questionnaire")
+    @GetMapping(path = "/get-idUEs/by-questionnaire")
+    public ResponseEntity<List<SurveyUnitDto>> getAllIdUEsByQuestionnaire(@RequestParam("idQuestionnaire") String idQuestionnaire) {
+        List<SurveyUnitDto> responses = surveyUnitService.findDistinctIdUEsByIdQuestionnaire(idQuestionnaire);
+        return new ResponseEntity<>(responses, HttpStatus.OK);
+    }
 }

@@ -1,9 +1,10 @@
 package fr.insee.genesis.infrastructure.adapter;
 
+import fr.insee.genesis.domain.dtos.SurveyUnitDto;
 import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitUpdatePersistencePort;
-import fr.insee.genesis.infrastructure.model.entity.SurveyUnitUpdate;
 import fr.insee.genesis.infrastructure.mappers.SurveyUnitUpdateMapper;
+import fr.insee.genesis.infrastructure.model.entity.SurveyUnitUpdate;
 import fr.insee.genesis.infrastructure.repository.SurveyUnitUpdateJPARepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -61,6 +62,10 @@ public class SurveyUnitUpdateJpaAdapter implements SurveyUnitUpdatePersistencePo
         return surveyUnitsUpdate.isEmpty() ? null : SurveyUnitUpdateMapper.INSTANCE.listEntityToListDto(surveyUnitsUpdate);
     }
 
+    @Override
+    public List<SurveyUnitDto> findIdUEsByIdQuestionnaire(String idQuestionnaire) {
+        return null;
+    }
 
 
 }

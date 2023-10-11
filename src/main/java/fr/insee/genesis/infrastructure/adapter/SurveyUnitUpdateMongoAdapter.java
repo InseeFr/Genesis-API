@@ -1,8 +1,11 @@
 package fr.insee.genesis.infrastructure.adapter;
 
+import fr.insee.genesis.domain.dtos.SurveyUnitDto;
 import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitUpdatePersistencePort;
+import fr.insee.genesis.infrastructure.mappers.SurveyUnitDocumentMapper;
 import fr.insee.genesis.infrastructure.mappers.SurveyUnitUpdateDocumentMapper;
+import fr.insee.genesis.infrastructure.model.document.SurveyUnitDocument;
 import fr.insee.genesis.infrastructure.model.document.SurveyUnitUpdateDocument;
 import fr.insee.genesis.infrastructure.repository.SurveyUnitUpdateMongoDBRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -44,5 +47,10 @@ public class SurveyUnitUpdateMongoAdapter implements SurveyUnitUpdatePersistence
 	public List<SurveyUnitUpdateDto> findByIdQuestionnaire(String idQuestionnaire) {
 		List<SurveyUnitUpdateDocument> surveyUnitsUpdate = mongoRepository.findByIdQuestionnaire(idQuestionnaire);
 		return surveyUnitsUpdate.isEmpty() ? null : SurveyUnitUpdateDocumentMapper.INSTANCE.listDocumentToListDto(surveyUnitsUpdate);
+	}
+
+	public List<SurveyUnitDto> findIdUEsByIdQuestionnaire(String idQuestionnaire) {
+		List<SurveyUnitDocument> surveyUnits = mongoRepository.findIdUEsByIdQuestionnaire(idQuestionnaire);
+		return surveyUnits.isEmpty() ? null : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListDto(surveyUnits);
 	}
 }
