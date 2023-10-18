@@ -2,6 +2,8 @@ package fr.insee.genesis.controller.rest;
 
 import fr.insee.genesis.controller.adapter.LunaticXmlAdapter;
 import fr.insee.genesis.controller.model.Mode;
+import fr.insee.genesis.controller.model.Source;
+import fr.insee.genesis.controller.model.SurveyUnitId;
 import fr.insee.genesis.controller.responses.SurveyUnitUpdateSimplified;
 import fr.insee.genesis.controller.sources.ddi.DDIReader;
 import fr.insee.genesis.controller.sources.ddi.VariablesMap;
@@ -197,8 +199,15 @@ public class ResponseController {
 
     @Operation (summary = "Retrieve all IdUEs for a given questionnaire")
     @GetMapping(path = "/get-idUEs/by-questionnaire")
-    public ResponseEntity<List<SurveyUnitDto>> getAllIdUEsByQuestionnaire(@RequestParam("idQuestionnaire") String idQuestionnaire) {
-        List<SurveyUnitDto> responses = surveyUnitService.findDistinctIdUEsByIdQuestionnaire(idQuestionnaire);
+    public ResponseEntity<List<SurveyUnitId>> getAllIdUEsByQuestionnaire(@RequestParam("idQuestionnaire") String idQuestionnaire) {
+        List<SurveyUnitId> responses = surveyUnitService.findDistinctIdUEsByIdQuestionnaire(idQuestionnaire);
+        return new ResponseEntity<>(responses, HttpStatus.OK);
+    }
+
+    @Operation (summary = "List sources used for a given questionnaire")
+    @GetMapping(path = "/get-sources/by-questionnaire")
+    public ResponseEntity<List<Source>> getSourcesByQuestionnaire(@RequestParam("idQuestionnaire") String idQuestionnaire) {
+        List<Source> responses = surveyUnitService.findSourcesByIdQuestionnaire(idQuestionnaire);
         return new ResponseEntity<>(responses, HttpStatus.OK);
     }
 }

@@ -1,6 +1,5 @@
 package fr.insee.genesis.infrastructure.model.document;
 
-import jakarta.persistence.Id;
 import lombok.Data;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -9,5 +8,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class SurveyUnitDocument {
 
 	private String idUE;
+
+	private String source;
 
 }

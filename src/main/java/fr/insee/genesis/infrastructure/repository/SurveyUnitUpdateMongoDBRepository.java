@@ -17,6 +17,6 @@ public interface SurveyUnitUpdateMongoDBRepository extends MongoRepository<Surve
 
 	List<SurveyUnitUpdateDocument> findByIdUEAndIdQuestionnaire(String idUE, String idQuestionnaire);
 
-	@Query(value = "{ 'idQuestionnaire' : ?0 }", fields="{ 'idUE' : 1}")
+	@Query(value = "{ 'idQuestionnaire' : ?0 }", fields="{ 'idUE' : 1, 'source' :  1}")
 	List<SurveyUnitDocument> findIdUEsByIdQuestionnaire(String idQuestionnaire);
 }

@@ -1,5 +1,7 @@
 package fr.insee.genesis.domain.ports.api;
 
+import fr.insee.genesis.controller.model.Source;
+import fr.insee.genesis.controller.model.SurveyUnitId;
 import fr.insee.genesis.domain.dtos.SurveyUnitDto;
 import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
 
@@ -20,5 +22,7 @@ public interface SurveyUnitUpdateApiPort {
 
     List<SurveyUnitUpdateDto> findLatestByIds(String idUE, String idQuest);
 
-    List<SurveyUnitDto> findDistinctIdUEsByIdQuestionnaire(String idQuestionnaire);
+    List<SurveyUnitId> findDistinctIdUEsByIdQuestionnaire(String idQuestionnaire);
+
+    List<Source> findSourcesByIdQuestionnaire(String idQuestionnaire);
 }
