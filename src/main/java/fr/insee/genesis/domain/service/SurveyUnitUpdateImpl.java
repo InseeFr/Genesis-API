@@ -34,6 +34,11 @@ public class SurveyUnitUpdateImpl implements SurveyUnitUpdateApiPort {
     }
 
     @Override
+    public List<SurveyUnitUpdateDto> findByIdUEsAndIdQuestionnaire(List<SurveyUnitDto> idUEs, String idQuestionnaire) {
+        return surveyUnitUpdatePersistencePort.findByIdUEsAndIdQuestionnaire(idUEs, idQuestionnaire);
+    }
+
+    @Override
     public List<SurveyUnitUpdateDto> findByIdQuestionnaire(String idQuestionnaire) {
         return surveyUnitUpdatePersistencePort.findByIdQuestionnaire(idQuestionnaire);
     }

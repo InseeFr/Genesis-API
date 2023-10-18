@@ -13,6 +13,8 @@ public interface SurveyUnitUpdatePersistencePort {
 
     List<SurveyUnitUpdateDto> findByIdUE(String idUE);
 
+    List<SurveyUnitUpdateDto> findByIdUEsAndIdQuestionnaire(List<SurveyUnitDto> idUEs, String idQuestionnaire);
+
     List<SurveyUnitUpdateDto> findByIdQuestionnaire(String idQuestionnaire);
 
     List<SurveyUnitDto> findIdUEsByIdQuestionnaire(String idQuestionnaire);

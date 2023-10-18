@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -42,6 +43,18 @@ public class SurveyUnitUpdateMongoAdapter implements SurveyUnitUpdatePersistence
 		List<SurveyUnitUpdateDocument> surveyUnitsUpdate = mongoRepository.findByIdUE(idUE);
 		return surveyUnitsUpdate.isEmpty() ? null : SurveyUnitUpdateDocumentMapper.INSTANCE.listDocumentToListDto(surveyUnitsUpdate);
 	}
+
+	@Override
+	public List<SurveyUnitUpdateDto> findByIdUEsAndIdQuestionnaire(List<SurveyUnitDto> idUEs, String idQuestionnaire) {
+		List<SurveyUnitUpdateDocument> surveyUnitsUpdate= new ArrayList<>();
+		// TODO: 18-10-2023 : find a way to do this in one query
+		idUEs.forEach(su -> {
+			List<SurveyUnitUpdateDocument> docs = mongoRepository.findByIdUEAndIdQuestionnaire(su.getIdUE(), idQuestionnaire);
+			surveyUnitsUpdate.addAll(docs);
+		});
+		return surveyUnitsUpdate.isEmpty() ? null : SurveyUnitUpdateDocumentMapper.INSTANCE.listDocumentToListDto(surveyUnitsUpdate);
+	}
+
 
 	@Override
 	public List<SurveyUnitUpdateDto> findByIdQuestionnaire(String idQuestionnaire) {

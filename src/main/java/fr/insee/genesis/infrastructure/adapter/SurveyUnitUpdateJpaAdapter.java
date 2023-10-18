@@ -57,6 +57,11 @@ public class SurveyUnitUpdateJpaAdapter implements SurveyUnitUpdatePersistencePo
     }
 
     @Override
+    public List<SurveyUnitUpdateDto> findByIdUEsAndIdQuestionnaire(List<SurveyUnitDto> idUEs, String idQuestionnaire) {
+        return null;
+    }
+
+    @Override
     public List<SurveyUnitUpdateDto> findByIdQuestionnaire(String idQuestionnaire) {
         List<SurveyUnitUpdate> surveyUnitsUpdate = surveyUnitUpdateRepository.findByIdQuestionnaire(idQuestionnaire);
         return surveyUnitsUpdate.isEmpty() ? null : SurveyUnitUpdateMapper.INSTANCE.listEntityToListDto(surveyUnitsUpdate);

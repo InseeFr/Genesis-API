@@ -24,10 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -154,8 +151,8 @@ public class ResponseController {
         return new ResponseEntity<>(responses, HttpStatus.OK);
     }
 
-    @Operation(summary = "Retrieve responses latest state with IdUE and IdQuestionnaire in one object in the output")
-    @GetMapping(path = "/get-responses/by-ue-and-questionnaire/latest/one-object")
+    @Operation(summary = "Retrieve response latest state with IdUE and IdQuestionnaire in one object in the output")
+    @GetMapping(path = "/get-simplified-response/by-ue-and-questionnaire/latest")
     public ResponseEntity<SurveyUnitUpdateSimplified> getLatestByUEOneObject ( @RequestParam("idUE") String idUE,
                                                                                    @RequestParam("idQuestionnaire") String idQuestionnaire) {
         List<SurveyUnitUpdateDto> responses = surveyUnitService.findLatestByIds(idUE, idQuestionnaire);
@@ -172,6 +169,30 @@ public class ResponseController {
                 .variablesUpdate(outputVariables)
                 .externalVariables(outputExternalVariables)
                 .build(), HttpStatus.OK);
+    }
+
+    @Operation(summary = "Retrieve responses latest state with IdUE and IdQuestionnaire for the given list of Survey Unit Ids")
+    @PostMapping(path = "/get-simplified-responses/by-ue-and-questionnaire/latest")
+    public ResponseEntity<List<SurveyUnitUpdateSimplified>> getLatestForUEList( @RequestParam("idQuestionnaire") String idQuestionnaire,
+                                                                          @RequestBody List<SurveyUnitDto> idUEs) {
+        List<SurveyUnitUpdateSimplified> results = new ArrayList<>();
+        idUEs.forEach(idUE -> {
+            List<SurveyUnitUpdateDto> responses = surveyUnitService.findLatestByIds(idUE.getIdUE(), idQuestionnaire);
+            List<VariableStateDto> outputVariables = new ArrayList<>();
+            List<ExternalVariableDto> outputExternalVariables = new ArrayList<>();
+            responses.forEach(response -> {
+                outputVariables.addAll(response.getVariablesUpdate());
+                outputExternalVariables.addAll(response.getExternalVariables());
+            });
+            results.add(SurveyUnitUpdateSimplified.builder()
+                    .idQuest(responses.get(0).getIdQuest())
+                    .idCampaign(responses.get(0).getIdCampaign())
+                    .idUE(responses.get(0).getIdUE())
+                    .variablesUpdate(outputVariables)
+                    .externalVariables(outputExternalVariables)
+                    .build());
+        });
+        return new ResponseEntity<>(results, HttpStatus.OK);
     }
 
     @Operation (summary = "Retrieve all IdUEs for a given questionnaire")
