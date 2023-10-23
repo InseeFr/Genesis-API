@@ -18,7 +18,6 @@ import java.util.List;
 
 @Slf4j
 @Service
-@ConditionalOnProperty(name = "fr.insee.genesis.persistence.implementation", havingValue = "mongodb")
 public class SurveyUnitUpdateMongoAdapter implements SurveyUnitUpdatePersistencePort {
 
 	@Autowired
