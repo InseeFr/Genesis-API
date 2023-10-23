@@ -1,8 +1,7 @@
 package fr.insee.genesis.infrastructure.model.document;
 
-import fr.insee.genesis.infrastructure.model.entity.ExternalVariable;
-import fr.insee.genesis.infrastructure.model.entity.VariableState;
-import jakarta.persistence.Id;
+import fr.insee.genesis.infrastructure.model.ExternalVariable;
+import fr.insee.genesis.infrastructure.model.VariableState;
 import lombok.Data;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -13,7 +12,7 @@ import java.util.List;
 @Document(collection = "responses")
 public class SurveyUnitUpdateDocument {
 
-	@Id
+
 	private String idUpdate;
 	private String idCampaign;
 	private String idUE;

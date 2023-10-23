@@ -1,7 +1,7 @@
 package fr.insee.genesis.infrastructure.mappers;
 
 import fr.insee.genesis.domain.dtos.ExternalVariableDto;
-import fr.insee.genesis.infrastructure.model.entity.ExternalVariable;
+import fr.insee.genesis.infrastructure.model.ExternalVariable;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
