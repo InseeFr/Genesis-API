@@ -5,6 +5,7 @@
     <groupId>fr.insee.genesis</groupId>
     <artifactId>genesis-api</artifactId>
     <version>0.0.1-SNAPSHOT</version>
+    <packaging>jar</packaging>
     <name>genesis-api</name>
 
     <parent>
