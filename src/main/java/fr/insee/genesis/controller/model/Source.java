@@ -11,18 +11,18 @@ public class Source {
 
 	@Getter
 	@Setter
-	private String source;
+	private String sourceLabel;
 
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 		Source source1 = (Source) o;
-		return Objects.equals(source, source1.source);
+		return Objects.equals(sourceLabel, source1.sourceLabel);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(source);
+		return Objects.hash(sourceLabel);
 	}
 }
