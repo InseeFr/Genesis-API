@@ -15,8 +15,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -90,6 +88,16 @@ class SurveyUnitUpdateMongoAdapterTest {
 	}
 
 	@Test
+	void shouldReturnNull_IfIdsNotFoundInDataBase() {
+		//Given
+		when(mongoRepository.findByIdUEAndIdQuestionnaire(any(String.class), any(String.class))).thenReturn(List.of());
+		// When
+		List< SurveyUnitUpdateDto> updates = surveyUnitUpdateMongoAdapter.findByIds("UE1100000001", "TEST2023X01");
+		// Then
+		Assertions.assertThat(updates).isNull();
+	}
+
+	@Test
 	void shouldReturnListOfSurveyUnitUpdateDto_IfIdUEFoundInDataBase() {
 		//Given
 		List<SurveyUnitUpdateDocument> responses = new ArrayList<>();
@@ -101,6 +109,16 @@ class SurveyUnitUpdateMongoAdapterTest {
 		// Then
 		Assertions.assertThat(updates).isNotNull().hasSize(2);
 		Assertions.assertThat(updates.get(0).getSource()).isEqualTo(Source.WEB);
+	}
+
+	@Test
+	void shouldReturnNull_IfIdUENotFoundInDataBase() {
+		//Given
+		when(mongoRepository.findByIdUE(any(String.class))).thenReturn(List.of());
+		// When
+		List< SurveyUnitUpdateDto> updates = surveyUnitUpdateMongoAdapter.findByIdUE("UE1100000001");
+		// Then
+		Assertions.assertThat(updates).isNull();
 	}
 
 	@Test
@@ -116,6 +134,16 @@ class SurveyUnitUpdateMongoAdapterTest {
 		// Then
 		Assertions.assertThat(updates).isNotNull().hasSize(3);
 		Assertions.assertThat(updates.get(2).getSource()).isEqualTo(Source.WEB);
+	}
+
+	@Test
+	void shouldReturnNull_IfIdQuestionnaireNotFoundInDataBase() {
+		//Given
+		when(mongoRepository.findByIdQuestionnaire(any(String.class))).thenReturn(List.of());
+		// When
+		List< SurveyUnitUpdateDto> updates = surveyUnitUpdateMongoAdapter.findByIdQuestionnaire("TEST2023X01");
+		// Then
+		Assertions.assertThat(updates).isNull();
 	}
 
 	@Test
@@ -137,4 +165,18 @@ class SurveyUnitUpdateMongoAdapterTest {
 		Assertions.assertThat(updates).isNotNull().hasSize(3);
 		Assertions.assertThat(updates.get(0).getSource()).isEqualTo(Source.WEB);
 	}
+
+	@Test
+	void shouldReturnNull_IfIdUEsNotFoundInDataBase() {
+		//Given
+		when(mongoRepository.findByIdUEAndIdQuestionnaire(any(String.class),any(String.class))).thenReturn(List.of());
+		SurveyUnitDto id1 = SurveyUnitDto.builder().idUE("UE1100000001").build();
+		SurveyUnitDto id2 = SurveyUnitDto.builder().idUE("UE1100000002").build();
+		List<SurveyUnitDto> ids = List.of(id1, id2);
+		// When
+		List< SurveyUnitUpdateDto> updates = surveyUnitUpdateMongoAdapter.findByIdUEsAndIdQuestionnaire(ids, "TEST2023X01");
+		// Then
+		Assertions.assertThat(updates).isNull();
+	}
+
 }
