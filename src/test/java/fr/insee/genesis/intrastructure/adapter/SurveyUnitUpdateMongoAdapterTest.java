@@ -1,6 +1,7 @@
 package fr.insee.genesis.intrastructure.adapter;
 
 import fr.insee.genesis.domain.dtos.Source;
+import fr.insee.genesis.domain.dtos.SurveyUnitDto;
 import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
 import fr.insee.genesis.infrastructure.adapter.SurveyUnitUpdateMongoAdapter;
 import fr.insee.genesis.infrastructure.model.ExternalVariable;
@@ -115,5 +116,25 @@ class SurveyUnitUpdateMongoAdapterTest {
 		// Then
 		Assertions.assertThat(updates).isNotNull().hasSize(3);
 		Assertions.assertThat(updates.get(2).getSource()).isEqualTo(Source.WEB);
+	}
+
+	@Test
+	void shouldReturnListOfSurveyUnitUpdateDto_WhenGivenAListOfIdUEs() {
+		//Given
+		List<SurveyUnitUpdateDocument> responses1 = new ArrayList<>();
+		responses1.add(suDoc);
+		responses1.add(suDoc2);
+		List<SurveyUnitUpdateDocument> responses2 = new ArrayList<>();
+		responses2.add(suDoc3);
+		when(mongoRepository.findByIdUEAndIdQuestionnaire("UE1100000001", "TEST2023X01")).thenReturn(responses1);
+		when(mongoRepository.findByIdUEAndIdQuestionnaire("UE1100000002", "TEST2023X01")).thenReturn(responses2);
+		SurveyUnitDto id1 = SurveyUnitDto.builder().idUE("UE1100000001").build();
+		SurveyUnitDto id2 = SurveyUnitDto.builder().idUE("UE1100000002").build();
+		List<SurveyUnitDto> ids = List.of(id1, id2);
+		// When
+		List< SurveyUnitUpdateDto> updates = surveyUnitUpdateMongoAdapter.findByIdUEsAndIdQuestionnaire(ids, "TEST2023X01");
+		// Then
+		Assertions.assertThat(updates).isNotNull().hasSize(3);
+		Assertions.assertThat(updates.get(0).getSource()).isEqualTo(Source.WEB);
 	}
 }
