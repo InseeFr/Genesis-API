@@ -6,6 +6,7 @@ import lombok.Data;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 @Data
@@ -19,7 +20,8 @@ public class SurveyUnitUpdateDocument {
 	private String idQuestionnaire;
 	private String state;
 	private String source;
-	private LocalDateTime date;
+	private LocalDateTime uploadDate;
+	private LocalDateTime fileDate;
 	private List<VariableState> variablesUpdate;
 	private List<ExternalVariable> externalVariables;
 }

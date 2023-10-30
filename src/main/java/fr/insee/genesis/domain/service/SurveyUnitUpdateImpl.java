@@ -49,8 +49,8 @@ public class SurveyUnitUpdateImpl implements SurveyUnitUpdateApiPort {
     public List<SurveyUnitUpdateDto> findLatestByIds(String idUE, String idQuest) {
         List<SurveyUnitUpdateDto> latestUpdatesbyVariables = new ArrayList<>();
         List<SurveyUnitUpdateDto> surveyUnitUpdateDtos = surveyUnitUpdatePersistencePort.findByIds(idUE, idQuest);
-        //Sorting update by date (lastest updates first)
-        surveyUnitUpdateDtos.sort((o1, o2) -> o2.getDate().compareTo(o1.getDate()));
+        //Sorting update by date (lastest updates first by date of upload in database)
+        surveyUnitUpdateDtos.sort((o1, o2) -> o2.getUploadDate().compareTo(o1.getUploadDate()));
 
         //We had all the variables of the oldest update
         latestUpdatesbyVariables.add(surveyUnitUpdateDtos.get(0));

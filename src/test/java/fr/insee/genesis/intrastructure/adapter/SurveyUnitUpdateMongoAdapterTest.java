@@ -46,7 +46,7 @@ class SurveyUnitUpdateMongoAdapterTest {
 		suDoc.setIdQuestionnaire("TEST2023X01");
 		suDoc.setState("COLLECTED");
 		suDoc.setSource("WEB");
-		suDoc.setDate(LocalDateTime.now());
+		suDoc.setUploadDate(LocalDateTime.now());
 		suDoc.setVariablesUpdate(List.of(new VariableState()));
 		suDoc.setExternalVariables(List.of(new ExternalVariable()));
 
@@ -57,7 +57,7 @@ class SurveyUnitUpdateMongoAdapterTest {
 		suDoc2.setIdQuestionnaire("TEST2023X01");
 		suDoc2.setState("COLLECTED");
 		suDoc2.setSource("TEL");
-		suDoc2.setDate(LocalDateTime.now());
+		suDoc2.setUploadDate(LocalDateTime.now());
 		suDoc2.setVariablesUpdate(List.of(new VariableState()));
 		suDoc2.setExternalVariables(List.of(new ExternalVariable()));
 
@@ -68,7 +68,7 @@ class SurveyUnitUpdateMongoAdapterTest {
 		suDoc3.setIdQuestionnaire("TEST2023X01");
 		suDoc3.setState("COLLECTED");
 		suDoc3.setSource("WEB");
-		suDoc3.setDate(LocalDateTime.now());
+		suDoc3.setUploadDate(LocalDateTime.now());
 		suDoc3.setVariablesUpdate(List.of(new VariableState()));
 		suDoc3.setExternalVariables(List.of(new ExternalVariable()));
 	}

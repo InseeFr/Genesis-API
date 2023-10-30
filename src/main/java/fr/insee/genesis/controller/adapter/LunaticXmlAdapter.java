@@ -7,7 +7,9 @@ import fr.insee.genesis.domain.dtos.*;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,7 +24,8 @@ public class LunaticXmlAdapter {
                 .idUE(su.getId())
                 .state(DataState.COLLECTED)
                 .source(Source.WEB)
-                .date(LocalDateTime.now())
+                .uploadDate(LocalDateTime.now())
+                .fileDate(su.getFileDate())
                 .build();
         List<VariableStateDto> variablesUpdate = new ArrayList<>();
 

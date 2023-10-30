@@ -7,6 +7,7 @@ import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Service
 public class LunaticJsonAdapter {
@@ -18,7 +19,7 @@ public class LunaticJsonAdapter {
                 .idUE(su.getIdUE())
                 .state(DataState.COLLECTED)
                 .source(Source.WEB)
-                .date(LocalDateTime.now())
+                .uploadDate(LocalDateTime.now())
                 .build();
     }
 

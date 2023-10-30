@@ -17,6 +17,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,7 +37,6 @@ public class LunaticXmlDataParser {
         System.setProperty("javax.xml.parsers.DocumentBuilderFactory",
                 "com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl");
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-
         factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
         factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
         DocumentBuilder builder = factory.newDocumentBuilder();
@@ -44,6 +45,11 @@ public class LunaticXmlDataParser {
             throw new GenesisException(500,"Can't read file {}");
         }
         return document;
+    }
+
+    private LocalDateTime getFileDate(Path filePath) throws IOException {
+        BasicFileAttributes attr = Files.readAttributes(filePath, BasicFileAttributes.class);
+        return LocalDateTime.ofInstant(attr.lastModifiedTime().toInstant(), ZoneId.of("Europe/Paris"));
     }
 
     public LunaticXmlCampaign parseDataFile(Path filePath) throws GenesisException, IOException, ParserConfigurationException, SAXException {
@@ -61,6 +67,7 @@ public class LunaticXmlDataParser {
             if (surveyUnit.getNodeType() == Node.ELEMENT_NODE) {
                 Element surveyUnitElement = (Element) surveyUnit;
                 LunaticXmlSurveyUnit lunaticXmlSurveyUnit = new LunaticXmlSurveyUnit();
+                lunaticXmlSurveyUnit.setFileDate(getFileDate(filePath));
                 lunaticXmlSurveyUnit.setId(surveyUnitElement.getElementsByTagName("Id").item(0).getFirstChild().getNodeValue());
                 lunaticXmlSurveyUnit.setQuestionnaireModelId(surveyUnitElement.getElementsByTagName("QuestionnaireModelId").item(0).getFirstChild().getNodeValue());
                 Node data = surveyUnitElement.getElementsByTagName("Data").item(0);
