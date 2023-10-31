@@ -140,7 +140,7 @@ public class FileUtils {
 	 * @return Path of the specifications folder
 	 */
 	public String getSpecFolder(String campaign) {
-		return  String.format("%s/%s/%s", specFolderSource, "in", campaign);
+		return  String.format("%s/%s/%s", specFolderSource, "specs", campaign);
 	}
 
 	/**
