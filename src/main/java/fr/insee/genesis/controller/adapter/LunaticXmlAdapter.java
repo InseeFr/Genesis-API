@@ -1,20 +1,20 @@
 package fr.insee.genesis.controller.adapter;
 
-import fr.insee.genesis.controller.sources.ddi.VariablesMap;
-import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
-import fr.insee.genesis.controller.utils.LoopIdentifier;
-import fr.insee.genesis.domain.dtos.*;
-import lombok.experimental.UtilityClass;
-import lombok.extern.slf4j.Slf4j;
-
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.insee.genesis.controller.sources.ddi.VariablesMap;
+import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
+import fr.insee.genesis.controller.utils.LoopIdentifier;
+import fr.insee.genesis.domain.dtos.DataState;
+import fr.insee.genesis.domain.dtos.ExternalVariableDto;
+import fr.insee.genesis.domain.dtos.Source;
+import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
+import fr.insee.genesis.domain.dtos.VariableStateDto;
+import lombok.experimental.UtilityClass;
+
 @UtilityClass
-@Slf4j
 public class LunaticXmlAdapter {
 
     public static SurveyUnitUpdateDto convert(LunaticXmlSurveyUnit su, VariablesMap variablesMap, String idCampaign){

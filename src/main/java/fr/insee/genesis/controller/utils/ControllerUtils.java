@@ -1,17 +1,16 @@
 package fr.insee.genesis.controller.utils;
 
-import fr.insee.genesis.controller.model.Mode;
-import fr.insee.genesis.exceptions.GenesisException;
-import fr.insee.genesis.infrastructure.utils.FileUtils;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-@Slf4j
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import fr.insee.genesis.controller.model.Mode;
+import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.infrastructure.utils.FileUtils;
+
 @Component
 public class ControllerUtils {
 

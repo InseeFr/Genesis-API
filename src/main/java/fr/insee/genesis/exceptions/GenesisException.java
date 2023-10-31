@@ -6,7 +6,12 @@ import lombok.Getter;
 @AllArgsConstructor
 public class GenesisException extends Exception{
 
-    @Getter
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 3356078796351491095L;
+
+	@Getter
     private final int status;
 
     @Getter

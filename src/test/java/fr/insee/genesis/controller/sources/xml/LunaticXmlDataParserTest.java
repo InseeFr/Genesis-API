@@ -1,11 +1,10 @@
 package fr.insee.genesis.controller.sources.xml;
 
-import fr.insee.genesis.exceptions.GenesisException;
+import java.nio.file.Path;
+
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-
-import java.nio.file.Path;
 
 class LunaticXmlDataParserTest {
 
