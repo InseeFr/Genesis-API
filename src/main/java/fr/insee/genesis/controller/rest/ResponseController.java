@@ -70,7 +70,7 @@ public class ResponseController {
         }
         List<SurveyUnitUpdateDto> suDtos = new ArrayList<>();
         for (LunaticXmlSurveyUnit su : campaign.getSurveyUnits()) {
-            SurveyUnitUpdateDto suDto = LunaticXmlAdapter.convert(su, variablesMap);
+            SurveyUnitUpdateDto suDto = LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign());
             suDtos.add(suDto);
         }
         surveyUnitService.saveSurveyUnits(suDtos);
@@ -117,7 +117,7 @@ public class ResponseController {
                 }
                 List<SurveyUnitUpdateDto> suDtos = new ArrayList<>();
                 for (LunaticXmlSurveyUnit su : campaign.getSurveyUnits()) {
-                    SurveyUnitUpdateDto suDto = LunaticXmlAdapter.convert(su, variablesMap);
+                    SurveyUnitUpdateDto suDto = LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign());
                     suDtos.add(suDto);
                 }
                 surveyUnitService.saveSurveyUnits(suDtos);

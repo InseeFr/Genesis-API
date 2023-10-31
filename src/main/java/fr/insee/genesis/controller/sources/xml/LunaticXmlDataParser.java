@@ -58,7 +58,7 @@ public class LunaticXmlDataParser {
         log.debug("Begin to parse {} ", filePath);
         LunaticXmlCampaign campaign = new LunaticXmlCampaign();
         Element root = document.getDocumentElement();
-        campaign.setId(root.getElementsByTagName("Id").item(0).getFirstChild().getNodeValue());
+        campaign.setIdCampaign(root.getElementsByTagName("Id").item(0).getFirstChild().getNodeValue());
         campaign.setLabel(root.getElementsByTagName("Label").item(0).getFirstChild().getNodeValue());
         NodeList surveyUnits = root.getElementsByTagName("SurveyUnit");
         List<LunaticXmlSurveyUnit> lunaticXmlSurveyUnits = new ArrayList<>();

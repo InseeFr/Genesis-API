@@ -22,6 +22,8 @@ class LunaticXmlAdapterTest {
 
 	private static final String LOOP_NAME = "BOUCLE1";
 
+	private static final String ID_CAMPAIGN = "ID_CAMPAIGN";
+
 	@BeforeEach
 	void setUp(){
 		//Given
@@ -52,7 +54,7 @@ class LunaticXmlAdapterTest {
 	@DisplayName("SurveyUnitUpdateDto should not be null")
 	void test01(){
 		// When
-		SurveyUnitUpdateDto suDto = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit,variablesMap);
+		SurveyUnitUpdateDto suDto = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit,variablesMap, ID_CAMPAIGN);
 		// Then
 		Assertions.assertThat(suDto).isNotNull();
 	}
@@ -61,7 +63,7 @@ class LunaticXmlAdapterTest {
 	@DisplayName("SurveyUnitUpdateDto should have the right idQuest")
 	void test02(){
 		// When
-		SurveyUnitUpdateDto suDto = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit,variablesMap);
+		SurveyUnitUpdateDto suDto = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit,variablesMap, ID_CAMPAIGN);
 		// Then
 		Assertions.assertThat(suDto.getIdQuest()).isEqualTo("idQuest1");
 	}
@@ -70,7 +72,7 @@ class LunaticXmlAdapterTest {
 	@DisplayName("SurveyUnitUpdateDto should have the right id")
 	void test03(){
 		// When
-		SurveyUnitUpdateDto suDto = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit,variablesMap);
+		SurveyUnitUpdateDto suDto = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit,variablesMap, ID_CAMPAIGN);
 		// Then
 		Assertions.assertThat(suDto.getIdUE()).isEqualTo("idUE1");
 	}
@@ -79,7 +81,7 @@ class LunaticXmlAdapterTest {
 	@DisplayName("SurveyUnitUpdateDto should contains 4 variable state updates")
 	void test04(){
 		// When
-		SurveyUnitUpdateDto suDto = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit,variablesMap);
+		SurveyUnitUpdateDto suDto = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit,variablesMap, ID_CAMPAIGN);
 		// Then
 		Assertions.assertThat(suDto.getVariablesUpdate()).hasSize(4);
 	}

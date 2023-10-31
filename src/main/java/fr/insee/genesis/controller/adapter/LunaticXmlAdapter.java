@@ -17,10 +17,10 @@ import java.util.List;
 @Slf4j
 public class LunaticXmlAdapter {
 
-    public static SurveyUnitUpdateDto convert(LunaticXmlSurveyUnit su, VariablesMap variablesMap){
+    public static SurveyUnitUpdateDto convert(LunaticXmlSurveyUnit su, VariablesMap variablesMap, String idCampaign){
         SurveyUnitUpdateDto surveyUnitUpdateDto = SurveyUnitUpdateDto.builder()
                 .idQuest(su.getQuestionnaireModelId())
-                .idCampaign("")
+                .idCampaign(idCampaign)
                 .idUE(su.getId())
                 .state(DataState.COLLECTED)
                 .source(Source.WEB)
