@@ -19,7 +19,7 @@ public class LunaticJsonAdapter {
                 .idUE(su.getIdUE())
                 .state(DataState.COLLECTED)
                 .source(Source.WEB)
-                .uploadDate(LocalDateTime.now())
+                .recordDate(LocalDateTime.now())
                 .build();
     }
 

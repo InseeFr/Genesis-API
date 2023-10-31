@@ -24,7 +24,7 @@ public class LunaticXmlAdapter {
                 .idUE(su.getId())
                 .state(DataState.COLLECTED)
                 .source(Source.WEB)
-                .uploadDate(LocalDateTime.now())
+                .recordDate(LocalDateTime.now())
                 .fileDate(su.getFileDate())
                 .build();
         List<VariableStateDto> variablesUpdate = new ArrayList<>();

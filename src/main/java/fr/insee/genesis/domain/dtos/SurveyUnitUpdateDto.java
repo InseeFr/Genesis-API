@@ -16,7 +16,7 @@ public class SurveyUnitUpdateDto {
     private String idUE;
     private DataState state;
     private Source source;
-    private LocalDateTime uploadDate;
+    private LocalDateTime recordDate;
     private LocalDateTime fileDate;
     private List<VariableStateDto> variablesUpdate;
     private List<ExternalVariableDto> externalVariables;

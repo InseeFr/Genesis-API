@@ -20,7 +20,7 @@ public class SurveyUnitUpdateDocument {
 	private String idQuestionnaire;
 	private String state;
 	private String source;
-	private LocalDateTime uploadDate;
+	private LocalDateTime recordDate;
 	private LocalDateTime fileDate;
 	private List<VariableState> variablesUpdate;
 	private List<ExternalVariable> externalVariables;
