@@ -26,7 +26,7 @@ class FileUtilsTest {
 
 	@Test
 	void getSpecFolderTest(){
-		assertEquals("/test/kraftwerk/in/TEST",
+		assertEquals("/test/kraftwerk/specs/TEST",
 				fileUtils.getSpecFolder("TEST"));
 	}
 
