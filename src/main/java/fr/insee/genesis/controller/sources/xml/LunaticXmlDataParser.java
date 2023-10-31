@@ -17,41 +17,15 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
 public class LunaticXmlDataParser {
 
-
-/*    public final void parseSurveyData(Path dataPath) throws NullException {
-        if (dataPath == null) log.error("Datapath is null");
-        else {
-            if (Files.isRegularFile(dataPath)) {
-                parseDataFile(dataPath);
-            }
-
-            else if (Files.isDirectory(dataPath)) {
-                try (Stream<Path> stream = Files.list(dataPath)){
-                    stream.forEach(t -> {
-                        try {
-                            parseDataFile(t);
-                        } catch (NullException e) {
-                            log.error("IOException occurred when trying to list data file: {} in folder {}", t, dataPath);
-                        }
-                    });
-                } catch (IOException e) {
-                    log.error(String.format("IOException occurred when trying to list data files of folder: %s", dataPath));
-                }
-            }
-
-            else {
-                log.warn(String.format("Data path given could not be identified as a file or folder: %s", dataPath));
-                log.warn("No data was parsed.");
-            }
-        }
-    }*/
-
+    private static final String COLLECTED = "COLLECTED";
     private static final String CALCULATED = "CALCULATED";
     private static final String EXTERNAL = "EXTERNAL";
 
@@ -63,7 +37,6 @@ public class LunaticXmlDataParser {
         System.setProperty("javax.xml.parsers.DocumentBuilderFactory",
                 "com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl");
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-
         factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
         factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
         DocumentBuilder builder = factory.newDocumentBuilder();
@@ -74,50 +47,58 @@ public class LunaticXmlDataParser {
         return document;
     }
 
-    public LunaticXmlCampaign parseDataFile(Path filePath) throws Exception {
+    private LocalDateTime getFileDate(Path filePath) throws IOException {
+        BasicFileAttributes attr = Files.readAttributes(filePath, BasicFileAttributes.class);
+        return LocalDateTime.ofInstant(attr.lastModifiedTime().toInstant(), ZoneId.of("Europe/Paris"));
+    }
+
+    public LunaticXmlCampaign parseDataFile(Path filePath) throws GenesisException, IOException, ParserConfigurationException, SAXException {
 
         Document document = readXmlFile(filePath);
         log.debug("Begin to parse {} ", filePath);
         LunaticXmlCampaign campaign = new LunaticXmlCampaign();
-        if (document!=null) {
-            Element root = document.getDocumentElement();
-            campaign.setId(root.getElementsByTagName("Id").item(0).getFirstChild().getNodeValue());
-            campaign.setLabel(root.getElementsByTagName("Label").item(0).getFirstChild().getNodeValue());
-            NodeList surveyUnits = root.getElementsByTagName("SurveyUnit");
-            List<LunaticXmlSurveyUnit> lunaticXmlSurveyUnits = new ArrayList<>();
-            for (int i = 0; i < surveyUnits.getLength(); i++) {
-                Node surveyUnit = surveyUnits.item(i);
-                if (surveyUnit.getNodeType() == Node.ELEMENT_NODE) {
-                    Element surveyUnitElement = (Element) surveyUnit;
-                    LunaticXmlSurveyUnit lunaticXmlSurveyUnit = new LunaticXmlSurveyUnit();
-                    lunaticXmlSurveyUnit.setId(surveyUnitElement.getElementsByTagName("Id").item(0).getFirstChild().getNodeValue());
-                    lunaticXmlSurveyUnit.setQuestionnaireModelId(surveyUnitElement.getElementsByTagName("QuestionnaireModelId").item(0).getFirstChild().getNodeValue());
-                    Node data = surveyUnitElement.getElementsByTagName("Data").item(0);
-                    NodeList dataNodeList = data.getChildNodes();
-                    LunaticXmlData lunaticXmlData = new LunaticXmlData();
-                    for (int j = 0; j < dataNodeList.getLength(); j++) {
-                        Node dataNode = dataNodeList.item(j);
-                        if (dataNode.getNodeType() == Node.ELEMENT_NODE && dataNode.getNodeName().equals("COLLECTED")) {
-                            readCollected(lunaticXmlData, dataNode);
-                        }
-                        if (dataNode.getNodeType() == Node.ELEMENT_NODE && dataNode.getNodeName().equals(CALCULATED)) {
-                            readCalculatedOrExternal(lunaticXmlData, dataNode, CALCULATED);
-                        }
-                        if (dataNode.getNodeType() == Node.ELEMENT_NODE && dataNode.getNodeName().equals(EXTERNAL)) {
-                            readCalculatedOrExternal(lunaticXmlData, dataNode, EXTERNAL);
-                        }
-                    }
-                    lunaticXmlSurveyUnit.setData(lunaticXmlData);
-                    lunaticXmlSurveyUnits.add(lunaticXmlSurveyUnit);
-                }
+        Element root = document.getDocumentElement();
+        campaign.setIdCampaign(root.getElementsByTagName("Id").item(0).getFirstChild().getNodeValue());
+        campaign.setLabel(root.getElementsByTagName("Label").item(0).getFirstChild().getNodeValue());
+        NodeList surveyUnits = root.getElementsByTagName("SurveyUnit");
+        List<LunaticXmlSurveyUnit> lunaticXmlSurveyUnits = new ArrayList<>();
+        for (int i = 0; i < surveyUnits.getLength(); i++) {
+            Node surveyUnit = surveyUnits.item(i);
+            if (surveyUnit.getNodeType() == Node.ELEMENT_NODE) {
+                Element surveyUnitElement = (Element) surveyUnit;
+                LunaticXmlSurveyUnit lunaticXmlSurveyUnit = new LunaticXmlSurveyUnit();
+                lunaticXmlSurveyUnit.setFileDate(getFileDate(filePath));
+                lunaticXmlSurveyUnit.setId(surveyUnitElement.getElementsByTagName("Id").item(0).getFirstChild().getNodeValue());
+                lunaticXmlSurveyUnit.setQuestionnaireModelId(surveyUnitElement.getElementsByTagName("QuestionnaireModelId").item(0).getFirstChild().getNodeValue());
+                Node data = surveyUnitElement.getElementsByTagName("Data").item(0);
+                NodeList dataNodeList = data.getChildNodes();
+                lunaticXmlSurveyUnit.setData(getData(dataNodeList));
+                lunaticXmlSurveyUnits.add(lunaticXmlSurveyUnit);
             }
-            campaign.setSurveyUnits(lunaticXmlSurveyUnits);
-            log.info("Successfully parsed Lunatic answers file: {}",filePath);
         }
+        campaign.setSurveyUnits(lunaticXmlSurveyUnits);
+        log.info("Successfully parsed Lunatic answers file: {}",filePath);
         return campaign;
     }
 
-    private void readCollected(LunaticXmlData lunaticXmlData, Node dataNode) throws Exception {
+    private LunaticXmlData getData(NodeList dataNodeList) throws GenesisException {
+        LunaticXmlData lunaticXmlData = new LunaticXmlData();
+        for (int j = 0; j < dataNodeList.getLength(); j++) {
+            Node dataNode = dataNodeList.item(j);
+            if (dataNode.getNodeType() == Node.ELEMENT_NODE && dataNode.getNodeName().equals(COLLECTED)) {
+                readCollected(lunaticXmlData, dataNode);
+            }
+            if (dataNode.getNodeType() == Node.ELEMENT_NODE && dataNode.getNodeName().equals(CALCULATED)) {
+                readCalculatedOrExternal(lunaticXmlData, dataNode, CALCULATED);
+            }
+            if (dataNode.getNodeType() == Node.ELEMENT_NODE && dataNode.getNodeName().equals(EXTERNAL)) {
+                readCalculatedOrExternal(lunaticXmlData, dataNode, EXTERNAL);
+            }
+        }
+        return lunaticXmlData;
+    }
+
+    private void readCollected(LunaticXmlData lunaticXmlData, Node dataNode) throws GenesisException {
             List<LunaticXmlCollectedData> lunaticXmlCollectedDataList = new ArrayList<>();
             Element dataElement = (Element) dataNode;
             NodeList variablesNodes = dataElement.getChildNodes();
@@ -156,9 +137,9 @@ public class LunaticXmlDataParser {
      * Extracts the data from a collected variable element
      * @param element
      * @return LunaticXmlCollectedData : the data extracted from the element
-     * @throws Exception
+     * @throws GenesisException
      */
-    private LunaticXmlCollectedData extractCollected(Element element) throws Exception {
+    private LunaticXmlCollectedData extractCollected(Element element) throws GenesisException {
         if (null == element) {
             return null;
         }
@@ -169,22 +150,26 @@ public class LunaticXmlDataParser {
         for (int i = 0; i < data.getLength(); i++) {
             Node value = data.item(i);
             if (value.getNodeType() == Node.ELEMENT_NODE) {
-                Element valueElement = (Element) value;
-                List<ValueType> valueTypes = new ArrayList<>();
-                if(hasChildElements(valueElement)){
-                    NodeList values = valueElement.getChildNodes();
-                    for (int j = 0; j < values.getLength(); j++) {
-                        if (values.item(j).getNodeType() == Node.ELEMENT_NODE) {
-                            addNodeToJavaList(values.item(j), valueTypes);
-                        }
-                    }
-                } else {
-                    addNodeToJavaList(value, valueTypes);
-                }
-                setValues(varData, valueElement, valueTypes);
+                setValues(varData, value, getCollectedValues(value));
             }
         }
         return varData;
+    }
+
+    private List<ValueType> getCollectedValues(Node value) {
+        Element valueElement = (Element) value;
+        List<ValueType> valueTypes = new ArrayList<>();
+        if(hasChildElements(valueElement)){
+            NodeList values = valueElement.getChildNodes();
+            for (int j = 0; j < values.getLength(); j++) {
+                if (values.item(j).getNodeType() == Node.ELEMENT_NODE) {
+                    addNodeToJavaList(values.item(j), valueTypes);
+                }
+            }
+        } else {
+            addNodeToJavaList(value, valueTypes);
+        }
+        return valueTypes;
     }
 
     private LunaticXmlOtherData extractCalculatedOrExternal(Element element) {
@@ -238,13 +223,14 @@ public class LunaticXmlDataParser {
     /**
      * Set the values of the LunaticXmlCollectedData object
      * @param varData
-     * @param valueElement
+     * @param value
      * @param valueTypes
      * @throws GenesisException
      */
-    private static void setValues(LunaticXmlCollectedData varData, Element valueElement, List<ValueType> valueTypes) throws GenesisException {
+    private static void setValues(LunaticXmlCollectedData varData, Node value, List<ValueType> valueTypes) throws GenesisException {
+        Element valueElement = (Element) value;
         switch(valueElement.getTagName()){
-            case "COLLECTED":
+            case COLLECTED:
                 varData.setCollected(valueTypes);
                 break;
             case "EDITED":
@@ -260,7 +246,7 @@ public class LunaticXmlDataParser {
                 varData.setPrevious(valueTypes);
                 break;
             default:
-                throw new GenesisException(421, String.format("Tag {} not recognized", valueElement.getTagName()));
+                throw new GenesisException(421, String.format("Tag %s not recognized", valueElement.getTagName()));
         }
     }
 

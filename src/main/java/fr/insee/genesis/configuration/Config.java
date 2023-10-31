@@ -20,8 +20,4 @@ public class Config {
 	@Value("${fr.insee.genesis.sourcefolder.specifications}")
 	private String specFolderSource;
 
-	@Value("${fr.insee.genesis.persistence.implementation}")
-	private String persistenceImplementation;
-
-
 }

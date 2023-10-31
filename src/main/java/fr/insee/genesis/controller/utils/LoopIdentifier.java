@@ -8,6 +8,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class LoopIdentifier {
 
+	private LoopIdentifier() {
+		throw new IllegalStateException("Utility class");
+	}
+
 	public static String getLoopIdentifier(String variableName, VariablesMap variablesMap, int index) {
 		Variable variable = variablesMap.getVariable(variableName);
 		if (variable == null) {

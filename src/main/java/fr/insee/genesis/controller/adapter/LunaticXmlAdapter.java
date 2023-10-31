@@ -4,25 +4,28 @@ import fr.insee.genesis.controller.sources.ddi.VariablesMap;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
 import fr.insee.genesis.controller.utils.LoopIdentifier;
 import fr.insee.genesis.domain.dtos.*;
+import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
-@Service
+@UtilityClass
 @Slf4j
 public class LunaticXmlAdapter {
 
-    public static SurveyUnitUpdateDto convert(LunaticXmlSurveyUnit su, VariablesMap variablesMap){
+    public static SurveyUnitUpdateDto convert(LunaticXmlSurveyUnit su, VariablesMap variablesMap, String idCampaign){
         SurveyUnitUpdateDto surveyUnitUpdateDto = SurveyUnitUpdateDto.builder()
                 .idQuest(su.getQuestionnaireModelId())
-                .idCampaign("")
+                .idCampaign(idCampaign)
                 .idUE(su.getId())
                 .state(DataState.COLLECTED)
                 .source(Source.WEB)
-                .date(LocalDateTime.now())
+                .recordDate(LocalDateTime.now())
+                .fileDate(su.getFileDate())
                 .build();
         List<VariableStateDto> variablesUpdate = new ArrayList<>();
 

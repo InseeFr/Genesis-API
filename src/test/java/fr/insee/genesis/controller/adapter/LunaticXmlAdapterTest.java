@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import org.assertj.core.api.Assertions;
 
-public class LunaticXmlAdapterTest {
+class LunaticXmlAdapterTest {
 
 	LunaticXmlSurveyUnit lunaticXmlSurveyUnit = new LunaticXmlSurveyUnit();
 
@@ -22,8 +22,10 @@ public class LunaticXmlAdapterTest {
 
 	private static final String LOOP_NAME = "BOUCLE1";
 
+	private static final String ID_CAMPAIGN = "ID_CAMPAIGN";
+
 	@BeforeEach
-	public void setUp(){
+	void setUp(){
 		//Given
 		//SurveyUnit
 		LunaticXmlData lunaticXmlData = new LunaticXmlData();
@@ -50,38 +52,38 @@ public class LunaticXmlAdapterTest {
 
 	@Test
 	@DisplayName("SurveyUnitUpdateDto should not be null")
-	public void test01(){
+	void test01(){
 		// When
-		SurveyUnitUpdateDto suDto = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit,variablesMap);
+		SurveyUnitUpdateDto suDto = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit,variablesMap, ID_CAMPAIGN);
 		// Then
 		Assertions.assertThat(suDto).isNotNull();
 	}
 
 	@Test
 	@DisplayName("SurveyUnitUpdateDto should have the right idQuest")
-	public void test02(){
+	void test02(){
 		// When
-		SurveyUnitUpdateDto suDto = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit,variablesMap);
+		SurveyUnitUpdateDto suDto = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit,variablesMap, ID_CAMPAIGN);
 		// Then
 		Assertions.assertThat(suDto.getIdQuest()).isEqualTo("idQuest1");
 	}
 
 	@Test
 	@DisplayName("SurveyUnitUpdateDto should have the right id")
-	public void test03(){
+	void test03(){
 		// When
-		SurveyUnitUpdateDto suDto = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit,variablesMap);
+		SurveyUnitUpdateDto suDto = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit,variablesMap, ID_CAMPAIGN);
 		// Then
 		Assertions.assertThat(suDto.getIdUE()).isEqualTo("idUE1");
 	}
 
 	@Test
 	@DisplayName("SurveyUnitUpdateDto should contains 4 variable state updates")
-	public void test04(){
+	void test04(){
 		// When
-		SurveyUnitUpdateDto suDto = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit,variablesMap);
+		SurveyUnitUpdateDto suDto = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit,variablesMap, ID_CAMPAIGN);
 		// Then
-		Assertions.assertThat(suDto.getVariablesUpdate().size()).isEqualTo(4);
+		Assertions.assertThat(suDto.getVariablesUpdate()).hasSize(4);
 	}
 
 }

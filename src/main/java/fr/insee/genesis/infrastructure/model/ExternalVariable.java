@@ -1,4 +1,4 @@
-package fr.insee.genesis.infrastructure.model.entity;
+package fr.insee.genesis.infrastructure.model;
 
 import lombok.Data;
 

@@ -2,6 +2,7 @@ package fr.insee.genesis.controller.utils;
 
 import lombok.extern.slf4j.Slf4j;
 
+import javax.xml.XMLConstants;
 import javax.xml.stream.*;
 import javax.xml.stream.events.EndDocument;
 import javax.xml.stream.events.StartDocument;
@@ -16,7 +17,6 @@ import java.util.List;
 public class XMLSplitter {
 
 	// We use StAX in this class to deal with memory issues on huge XML files
-
 	private XMLSplitter() {
 		throw new IllegalStateException("Utility class");
 	}
@@ -28,6 +28,8 @@ public class XMLSplitter {
 
 		XMLEventFactory xef = XMLEventFactory.newFactory();
 		XMLInputFactory xif = XMLInputFactory.newInstance();
+		xif.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+		xif.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
 		XMLEventReader xer = xif.createXMLEventReader(new FileReader(xmlResource));
 		StartElement rootStartElement = xer.nextTag().asStartElement();
 		StartDocument startDocument = xef.createStartDocument();
@@ -83,6 +85,8 @@ public class XMLSplitter {
 
 	private static List<XMLEvent> getHeader(String xmlResource, String condition) throws Exception {
 		XMLInputFactory xif = XMLInputFactory.newInstance();
+		xif.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+		xif.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
 		XMLEventReader xer = xif.createXMLEventReader(new FileReader(xmlResource));
 
 		List<XMLEvent> cachedXMLEvents = new ArrayList<>();

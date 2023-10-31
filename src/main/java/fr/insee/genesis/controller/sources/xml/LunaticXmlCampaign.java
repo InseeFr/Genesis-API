@@ -9,7 +9,7 @@ import java.util.List;
 @Setter
 public class LunaticXmlCampaign {
 
-    private String id;
+    private String idCampaign;
     private String label;
     private List<LunaticXmlSurveyUnit> surveyUnits;
 

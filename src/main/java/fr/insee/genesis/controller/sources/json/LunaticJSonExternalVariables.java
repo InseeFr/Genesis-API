@@ -11,8 +11,8 @@ public class LunaticJSonExternalVariables {
     private Map<String, String> externalMap = new HashMap<>();
 
     @JsonAnySetter
-    public void setVariables(String var, String value){
-        this.externalMap.put(var, value);
+    public void setVariables(String variable, String value){
+        this.externalMap.put(variable, value);
     }
 
 }

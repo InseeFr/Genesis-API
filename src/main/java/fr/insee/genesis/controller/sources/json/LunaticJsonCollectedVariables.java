@@ -12,7 +12,7 @@ public class LunaticJsonCollectedVariables {
     private Map<String, LunaticJsonVariableData> collectedMap = new HashMap<>();
 
     @JsonAnySetter
-    public void setVariables(String var, LunaticJsonVariableData value){
-        this.collectedMap.put(var, value);
+    public void setVariables(String variable, LunaticJsonVariableData value){
+        this.collectedMap.put(variable, value);
     }
 }

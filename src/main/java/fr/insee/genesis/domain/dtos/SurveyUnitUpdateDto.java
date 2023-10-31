@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 @Builder
@@ -15,7 +16,8 @@ public class SurveyUnitUpdateDto {
     private String idUE;
     private DataState state;
     private Source source;
-    private LocalDateTime date;
+    private LocalDateTime recordDate;
+    private LocalDateTime fileDate;
     private List<VariableStateDto> variablesUpdate;
     private List<ExternalVariableDto> externalVariables;
 
