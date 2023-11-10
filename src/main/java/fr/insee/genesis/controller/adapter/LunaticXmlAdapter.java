@@ -1,18 +1,14 @@
 package fr.insee.genesis.controller.adapter;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
 import fr.insee.genesis.controller.sources.ddi.VariablesMap;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
 import fr.insee.genesis.controller.utils.LoopIdentifier;
-import fr.insee.genesis.domain.dtos.DataState;
-import fr.insee.genesis.domain.dtos.ExternalVariableDto;
-import fr.insee.genesis.domain.dtos.Source;
-import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
-import fr.insee.genesis.domain.dtos.VariableStateDto;
+import fr.insee.genesis.domain.dtos.*;
 import lombok.experimental.UtilityClass;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @UtilityClass
 public class LunaticXmlAdapter {
@@ -23,13 +19,13 @@ public class LunaticXmlAdapter {
                 .idCampaign(idCampaign)
                 .idUE(su.getId())
                 .state(DataState.COLLECTED)
-                .source(Source.WEB)
+                .mode(Mode.WEB)
                 .recordDate(LocalDateTime.now())
                 .fileDate(su.getFileDate())
                 .build();
         List<VariableStateDto> variablesUpdate = new ArrayList<>();
 
-        /*For now we don't manage list of values, we always define a list of one element in values
+        /*For now, we don't manage list of values, we always define a list of one element in values
         * To be updated when we will receive data from dynamic tables*/
         su.getData().getCollected().forEach(lunaticXmlCollectedData -> {
             for (int i =1;i<=lunaticXmlCollectedData.getCollected().size();i++) {

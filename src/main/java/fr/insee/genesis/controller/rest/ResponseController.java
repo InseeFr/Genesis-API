@@ -1,8 +1,6 @@
 package fr.insee.genesis.controller.rest;
 
 import fr.insee.genesis.controller.adapter.LunaticXmlAdapter;
-import fr.insee.genesis.controller.model.Mode;
-import fr.insee.genesis.controller.model.Source;
 import fr.insee.genesis.controller.model.SurveyUnitId;
 import fr.insee.genesis.controller.responses.SurveyUnitUpdateSimplified;
 import fr.insee.genesis.controller.sources.ddi.DDIReader;
@@ -11,10 +9,7 @@ import fr.insee.genesis.controller.sources.xml.LunaticXmlCampaign;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlDataParser;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
 import fr.insee.genesis.controller.utils.ControllerUtils;
-import fr.insee.genesis.domain.dtos.ExternalVariableDto;
-import fr.insee.genesis.domain.dtos.SurveyUnitDto;
-import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
-import fr.insee.genesis.domain.dtos.VariableStateDto;
+import fr.insee.genesis.domain.dtos.*;
 import fr.insee.genesis.domain.ports.api.SurveyUnitUpdateApiPort;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
@@ -23,6 +18,7 @@ import fr.insee.genesis.infrastructure.utils.FileUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Description;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -38,14 +34,16 @@ import java.util.List;
 @Slf4j
 public class ResponseController {
 
-    @Autowired
-    SurveyUnitUpdateApiPort surveyUnitService;
+    private final SurveyUnitUpdateApiPort surveyUnitService;
+    private final FileUtils fileUtils;
+    private final ControllerUtils controllerUtils;
 
     @Autowired
-    FileUtils fileUtils;
-
-    @Autowired
-    ControllerUtils controllerUtils;
+    public ResponseController(SurveyUnitUpdateApiPort surveyUnitService, FileUtils fileUtils, ControllerUtils controllerUtils) {
+        this.surveyUnitService = surveyUnitService;
+        this.fileUtils = fileUtils;
+        this.controllerUtils = controllerUtils;
+    }
 
     @Operation(summary = "Save responses from XML Lunatic in Genesis Database")
     @PutMapping(path = "/save/lunatic-xml/one-file")
@@ -149,18 +147,19 @@ public class ResponseController {
     @GetMapping(path = "/get-responses/by-ue-and-questionnaire/latest")
     public ResponseEntity<List<SurveyUnitUpdateDto>> getLatestByUE ( @RequestParam("idUE") String idUE,
                                                                                    @RequestParam("idQuestionnaire") String idQuestionnaire) {
-        List<SurveyUnitUpdateDto> responses = surveyUnitService.findLatestByIds(idUE, idQuestionnaire);
+        List<SurveyUnitUpdateDto> responses = surveyUnitService.findLatestByIdAndByMode(idUE, idQuestionnaire);
         return new ResponseEntity<>(responses, HttpStatus.OK);
     }
 
     @Operation(summary = "Retrieve response latest state with IdUE and IdQuestionnaire in one object in the output")
     @GetMapping(path = "/get-simplified-response/by-ue-and-questionnaire/latest")
     public ResponseEntity<SurveyUnitUpdateSimplified> getLatestByUEOneObject ( @RequestParam("idUE") String idUE,
-                                                                                   @RequestParam("idQuestionnaire") String idQuestionnaire) {
-        List<SurveyUnitUpdateDto> responses = surveyUnitService.findLatestByIds(idUE, idQuestionnaire);
+                                                                                   @RequestParam("idQuestionnaire") String idQuestionnaire,
+                                                                               @RequestParam("mode") Mode mode) {
+        List<SurveyUnitUpdateDto> responses = surveyUnitService.findLatestByIdAndByMode(idUE, idQuestionnaire);
         List<VariableStateDto> outputVariables = new ArrayList<>();
         List<ExternalVariableDto> outputExternalVariables = new ArrayList<>();
-        responses.forEach(response -> {
+        responses.stream().filter(rep->rep.getMode().equals(mode)).forEach(response -> {
             outputVariables.addAll(response.getVariablesUpdate());
             outputExternalVariables.addAll(response.getExternalVariables());
         });
@@ -173,26 +172,33 @@ public class ResponseController {
                 .build(), HttpStatus.OK);
     }
 
-    @Operation(summary = "Retrieve responses latest state with IdUE and IdQuestionnaire for the given list of Survey Unit Ids")
+
+    @Operation(summary = "Retrieve all responses for a questionnaire and a list of UE",
+                description = "Return the latest state for each variable for the given ids and a given questionnaire.<br>" +
+                        "For a given id the endpoint returns a document by collection mode(if there is more than one).")
     @PostMapping(path = "/get-simplified-responses/by-ue-and-questionnaire/latest")
     public ResponseEntity<List<SurveyUnitUpdateSimplified>> getLatestForUEList( @RequestParam("idQuestionnaire") String idQuestionnaire,
-                                                                          @RequestBody List<SurveyUnitDto> idUEs) {
+                                                                          @RequestBody List<SurveyUnitId> idUEs) {
         List<SurveyUnitUpdateSimplified> results = new ArrayList<>();
+        List<Mode> modes = surveyUnitService.findModesByIdQuestionnaire(idQuestionnaire);
         idUEs.forEach(idUE -> {
-            List<SurveyUnitUpdateDto> responses = surveyUnitService.findLatestByIds(idUE.getIdUE(), idQuestionnaire);
-            List<VariableStateDto> outputVariables = new ArrayList<>();
-            List<ExternalVariableDto> outputExternalVariables = new ArrayList<>();
-            responses.forEach(response -> {
-                outputVariables.addAll(response.getVariablesUpdate());
-                outputExternalVariables.addAll(response.getExternalVariables());
+            List<SurveyUnitUpdateDto> responses = surveyUnitService.findLatestByIdAndByMode(idUE.getIdUE(), idQuestionnaire);
+            modes.forEach(mode -> {
+                List<VariableStateDto> outputVariables = new ArrayList<>();
+                List<ExternalVariableDto> outputExternalVariables = new ArrayList<>();
+                responses.stream().filter(rep->rep.getMode().equals(mode)).forEach(response -> {
+                    outputVariables.addAll(response.getVariablesUpdate());
+                    outputExternalVariables.addAll(response.getExternalVariables());
+                });
+                results.add(SurveyUnitUpdateSimplified.builder()
+                        .idQuest(responses.get(0).getIdQuest())
+                        .idCampaign(responses.get(0).getIdCampaign())
+                        .idUE(responses.get(0).getIdUE())
+                        .mode(mode)
+                        .variablesUpdate(outputVariables)
+                        .externalVariables(outputExternalVariables)
+                        .build());
             });
-            results.add(SurveyUnitUpdateSimplified.builder()
-                    .idQuest(responses.get(0).getIdQuest())
-                    .idCampaign(responses.get(0).getIdCampaign())
-                    .idUE(responses.get(0).getIdUE())
-                    .variablesUpdate(outputVariables)
-                    .externalVariables(outputExternalVariables)
-                    .build());
         });
         return new ResponseEntity<>(results, HttpStatus.OK);
     }
@@ -205,9 +211,9 @@ public class ResponseController {
     }
 
     @Operation (summary = "List sources used for a given questionnaire")
-    @GetMapping(path = "/get-sources/by-questionnaire")
-    public ResponseEntity<List<Source>> getSourcesByQuestionnaire(@RequestParam("idQuestionnaire") String idQuestionnaire) {
-        List<Source> responses = surveyUnitService.findSourcesByIdQuestionnaire(idQuestionnaire);
-        return new ResponseEntity<>(responses, HttpStatus.OK);
+    @GetMapping(path = "/get-modes/by-questionnaire")
+    public ResponseEntity<List<Mode>> getModesByQuestionnaire(@RequestParam("idQuestionnaire") String idQuestionnaire) {
+        List<Mode> modes = surveyUnitService.findModesByIdQuestionnaire(idQuestionnaire);
+        return new ResponseEntity<>(modes, HttpStatus.OK);
     }
 }

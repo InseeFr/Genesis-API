@@ -13,6 +13,6 @@ public class SurveyUnitDto {
 
 	private String idUE;
 
-	private String source;
+	private Mode mode;
 
 }

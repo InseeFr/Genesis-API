@@ -14,7 +14,7 @@ public class SurveyUnitUpdateDto {
     private String idCampaign;
     private String idUE;
     private DataState state;
-    private Source source;
+    private Mode mode;
     private LocalDateTime recordDate;
     private LocalDateTime fileDate;
     private List<VariableStateDto> variablesUpdate;

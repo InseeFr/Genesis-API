@@ -7,15 +7,19 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import fr.insee.genesis.controller.model.Mode;
+import fr.insee.genesis.domain.dtos.Mode;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 
 @Component
 public class ControllerUtils {
 
+	private final FileUtils fileUtils;
+
 	@Autowired
-	FileUtils fileUtils;
+	public ControllerUtils(FileUtils fileUtils) {
+		this.fileUtils = fileUtils;
+	}
 
 	public List<Mode> getModesList(String campaign, Mode modeSpecified) throws GenesisException {
 		// If a mode is specified, we treat only this mode.
@@ -31,7 +35,7 @@ public class ControllerUtils {
 			throw new GenesisException(404, "No specification folder found " + specFolder);
 		}
 		specFolders.forEach(modeLabel -> modes.add(Mode.getEnumFromModeName(modeLabel)));
-		if (modes.contains(Mode.FAF) && modes.contains(Mode.TEL)) {
+		if (modes.contains(Mode.F2F) && modes.contains(Mode.TEL)) {
 			throw new GenesisException(409, "Cannot treat simultaneously TEL and FAF modes");
 		}
 		return modes;

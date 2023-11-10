@@ -1,6 +1,7 @@
 package fr.insee.genesis.controller.responses;
 
 import fr.insee.genesis.domain.dtos.ExternalVariableDto;
+import fr.insee.genesis.domain.dtos.Mode;
 import fr.insee.genesis.domain.dtos.VariableStateDto;
 import lombok.Builder;
 import lombok.Data;
@@ -14,6 +15,7 @@ public class SurveyUnitUpdateSimplified {
 	private String idQuest;
 	private String idCampaign;
 	private String idUE;
+	private Mode mode;
 	private List<VariableStateDto> variablesUpdate;
 	private List<ExternalVariableDto> externalVariables;
 }

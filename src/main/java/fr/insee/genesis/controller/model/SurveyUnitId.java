@@ -1,16 +1,23 @@
 package fr.insee.genesis.controller.model;
 
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Objects;
 
-@AllArgsConstructor
 public class SurveyUnitId {
+
+	public SurveyUnitId(String idUE) {
+		this.idUE = idUE;
+	}
+
+	public SurveyUnitId() {
+	}
 
 	@Getter
 	@Setter
+	@JsonProperty("idUE")
 	private String idUE;
 
 	@Override

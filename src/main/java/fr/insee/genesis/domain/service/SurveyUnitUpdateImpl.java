@@ -1,11 +1,7 @@
 package fr.insee.genesis.domain.service;
 
-import fr.insee.genesis.controller.model.Source;
 import fr.insee.genesis.controller.model.SurveyUnitId;
-import fr.insee.genesis.domain.dtos.ExternalVariableDto;
-import fr.insee.genesis.domain.dtos.SurveyUnitDto;
-import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
-import fr.insee.genesis.domain.dtos.VariableStateDto;
+import fr.insee.genesis.domain.dtos.*;
 import fr.insee.genesis.domain.ports.api.SurveyUnitUpdateApiPort;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitUpdatePersistencePort;
 
@@ -14,7 +10,7 @@ import java.util.List;
 
 public class SurveyUnitUpdateImpl implements SurveyUnitUpdateApiPort {
 
-    private SurveyUnitUpdatePersistencePort surveyUnitUpdatePersistencePort;
+    private final SurveyUnitUpdatePersistencePort surveyUnitUpdatePersistencePort;
 
     public SurveyUnitUpdateImpl(SurveyUnitUpdatePersistencePort surveyUnitUpdatePersistencePort) {
         this.surveyUnitUpdatePersistencePort = surveyUnitUpdatePersistencePort;
@@ -46,49 +42,58 @@ public class SurveyUnitUpdateImpl implements SurveyUnitUpdateApiPort {
     }
 
     @Override
-    public List<SurveyUnitUpdateDto> findLatestByIds(String idUE, String idQuest) {
+    public List<SurveyUnitUpdateDto> findLatestByIdAndByMode(String idUE, String idQuest) {
+        //In this method we want to get the latest update for each variable of a survey unit
+        //But we need to separate the updates by mode
+        //So we will calculate the latest state for a given collection mode
         List<SurveyUnitUpdateDto> latestUpdatesbyVariables = new ArrayList<>();
         List<SurveyUnitUpdateDto> surveyUnitUpdateDtos = surveyUnitUpdatePersistencePort.findByIds(idUE, idQuest);
-        //Sorting update by date (lastest updates first by date of upload in database)
-        surveyUnitUpdateDtos.sort((o1, o2) -> o2.getRecordDate().compareTo(o1.getRecordDate()));
-
-        //We had all the variables of the oldest update
-        latestUpdatesbyVariables.add(surveyUnitUpdateDtos.get(0));
-
-        //We keep the name of already added variables to skip them in older updates
-        List<String> addedVariables = new ArrayList<>();
-        SurveyUnitUpdateDto latestUpdate = surveyUnitUpdateDtos.get(0);
-
-        latestUpdate.getVariablesUpdate().forEach(variableStateDto -> addedVariables.add(variableStateDto.getIdVar()));
-        latestUpdate.getExternalVariables().forEach(externalVariableDto -> addedVariables.add(externalVariableDto.getIdVar()));
-
-        surveyUnitUpdateDtos.forEach(surveyUnitUpdateDto -> {
-            List<VariableStateDto> variablesToKeep = new ArrayList<>();
-            List<ExternalVariableDto> externalToKeep = new ArrayList<>();
-            // We iterate over the variables of the update and add them to the list if they are not already added
-            surveyUnitUpdateDto.getVariablesUpdate().forEach(variableStateDto -> {
-                if (!addedVariables.contains(variableStateDto.getIdVar())){
-                    variablesToKeep.add(variableStateDto);
-                    addedVariables.add(variableStateDto.getIdVar());
+        List<Mode> modes = getDistinctsModes(surveyUnitUpdateDtos);
+        modes.forEach(mode ->{
+            List<SurveyUnitUpdateDto> suByMode = new ArrayList<>();
+            surveyUnitUpdateDtos.forEach(surveyUnitUpdateDto -> {
+                if (surveyUnitUpdateDto.getMode().equals(mode)){
+                    suByMode.add(surveyUnitUpdateDto);
                 }
             });
-            if (surveyUnitUpdateDto.getExternalVariables() != null){
-                surveyUnitUpdateDto.getExternalVariables().forEach(externalVariableDto -> {
-                    if (!addedVariables.contains(externalVariableDto.getIdVar())) {
-                        externalToKeep.add(externalVariableDto);
-                        addedVariables.add(externalVariableDto.getIdVar());
+            //Sorting update by date (lastest updates first by date of upload in database)
+            suByMode.sort((o1, o2) -> o2.getRecordDate().compareTo(o1.getRecordDate()));
+            //We had all the variables of the oldest update
+            latestUpdatesbyVariables.add(suByMode.get(0));
+            //We keep the name of already added variables to skip them in older updates
+            List<String> addedVariables = new ArrayList<>();
+            SurveyUnitUpdateDto latestUpdate = suByMode.get(0);
+
+            latestUpdate.getVariablesUpdate().forEach(variableStateDto -> addedVariables.add(variableStateDto.getIdVar()));
+            latestUpdate.getExternalVariables().forEach(externalVariableDto -> addedVariables.add(externalVariableDto.getIdVar()));
+
+            suByMode.forEach(surveyUnitUpdateDto -> {
+                List<VariableStateDto> variablesToKeep = new ArrayList<>();
+                List<ExternalVariableDto> externalToKeep = new ArrayList<>();
+                // We iterate over the variables of the update and add them to the list if they are not already added
+                surveyUnitUpdateDto.getVariablesUpdate().forEach(variableStateDto -> {
+                    if (!addedVariables.contains(variableStateDto.getIdVar())){
+                        variablesToKeep.add(variableStateDto);
+                        addedVariables.add(variableStateDto.getIdVar());
                     }
                 });
-            }
+                if (surveyUnitUpdateDto.getExternalVariables() != null){
+                    surveyUnitUpdateDto.getExternalVariables().forEach(externalVariableDto -> {
+                        if (!addedVariables.contains(externalVariableDto.getIdVar())) {
+                            externalToKeep.add(externalVariableDto);
+                            addedVariables.add(externalVariableDto.getIdVar());
+                        }
+                    });
+                }
 
-            // If there are new variables, we add the update to the list of latest updates
-            if (!variablesToKeep.isEmpty() || !externalToKeep.isEmpty()){
-                surveyUnitUpdateDto.setVariablesUpdate(variablesToKeep);
-                surveyUnitUpdateDto.setExternalVariables(externalToKeep);
-                latestUpdatesbyVariables.add(surveyUnitUpdateDto);
-            }
+                // If there are new variables, we add the update to the list of latest updates
+                if (!variablesToKeep.isEmpty() || !externalToKeep.isEmpty()){
+                    surveyUnitUpdateDto.setVariablesUpdate(variablesToKeep);
+                    surveyUnitUpdateDto.setExternalVariables(externalToKeep);
+                    latestUpdatesbyVariables.add(surveyUnitUpdateDto);
+                }
+            });
         });
-
         return latestUpdatesbyVariables;
     }
 
@@ -101,12 +106,17 @@ public class SurveyUnitUpdateImpl implements SurveyUnitUpdateApiPort {
     }
 
     @Override
-    public List<Source> findSourcesByIdQuestionnaire(String idQuestionnaire) {
+    public List<Mode> findModesByIdQuestionnaire(String idQuestionnaire) {
         List<SurveyUnitDto> surveyUnits = surveyUnitUpdatePersistencePort.findIdUEsByIdQuestionnaire(idQuestionnaire);
-        List<Source> sources = new ArrayList<>();
-        surveyUnits.forEach(surveyUnitDto -> sources.add(new Source(surveyUnitDto.getSource())));
+        List<Mode> sources = new ArrayList<>();
+        surveyUnits.forEach(surveyUnitDto -> sources.add(surveyUnitDto.getMode()));
         return sources.stream().distinct().toList();
     }
 
+    private static List<Mode> getDistinctsModes(List<SurveyUnitUpdateDto> surveyUnits) {
+        List<Mode> sources = new ArrayList<>();
+        surveyUnits.forEach(surveyUnitDto -> sources.add(surveyUnitDto.getMode()));
+        return sources.stream().distinct().toList();
+    }
 
 }

@@ -1,6 +1,6 @@
 package fr.insee.genesis.exceptions;
 
-import fr.insee.genesis.controller.model.Mode;
+import fr.insee.genesis.domain.dtos.Mode;
 import lombok.Getter;
 
 public class NoDataError extends GenesisError {

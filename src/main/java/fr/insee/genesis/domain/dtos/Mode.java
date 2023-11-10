@@ -1,14 +1,14 @@
-package fr.insee.genesis.controller.model;
+package fr.insee.genesis.domain.dtos;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.lang.Nullable;
 
 public enum Mode {
 
-	WEB("WEB", "WEB"),TEL("TEL", "ENQ"),FAF("FAF", "ENQ");
+	WEB("WEB", "WEB"),TEL("TEL", "ENQ"),F2F("F2F", "ENQ"),OTHER("OTHER", ""),PAPER("PAPER", "");
 
 	@Nullable
-	@Schema(nullable = true, type = "string", allowableValues = { "WEB", "TEL", "FAF" })
+	@Schema(nullable = true, type = "string", allowableValues = { "WEB", "TEL", "F2F", "PAPER", "OTHER" })
 	private final String modeName;
 
 	private final String folder;

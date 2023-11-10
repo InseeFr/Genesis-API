@@ -9,6 +9,6 @@ public class SurveyUnitDocument {
 
 	private String idUE;
 
-	private String source;
+	private String mode;
 
 }
