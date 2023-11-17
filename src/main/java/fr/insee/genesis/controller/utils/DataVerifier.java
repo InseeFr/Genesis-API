@@ -102,6 +102,46 @@ public class DataVerifier {
     }
 
     /**
+     * Use the correct parser and try to parse
+     * @param value value to verify
+     * @param type type of the variable
+     * @return true if the value is not conform to the variable type
+     */
+    private static boolean isParseError(String value, VariableType type){
+        switch(type){
+            case BOOLEAN:
+                if(!value.equals("true")
+                        &&!value.equals("false")
+                        &&!value.isEmpty()) {
+                    return true;
+                }
+                break;
+            case DATE:
+                try{
+                    LocalDateTime.parse(value);
+                }catch (DateTimeParseException e){
+                    return true;
+                }
+                break;
+            case INTEGER:
+                try{
+                    Integer.parseInt(value);
+                }catch (NumberFormatException e){
+                    return true;
+                }
+                break;
+            case NUMBER:
+                try{
+                    Long.parseLong(value);
+                }catch (NumberFormatException e){
+                    return true;
+                }
+                break;
+        }
+        return false;
+    }
+
+    /**
      * changes values flagged as incorrect in update variables from source and fill the destination's update variables
      * @param sourceSurveyUnitUpdateDto source Survey Unit
      * @param destinationSurveyUnitUpdateDto destination Survey Unit
@@ -130,9 +170,7 @@ public class DataVerifier {
             }
         }
     }
-
-
-
+    
     /**
      * changes values flagged as incorrect in update variables from source and fill the destination's external variables
      * @param sourceSurveyUnitUpdateDto source Survey Unit
@@ -189,43 +227,4 @@ public class DataVerifier {
         return incorrectValuesIndexes;
     }
 
-    /**
-     * Use the correct parser and try to parse
-     * @param value value to verify
-     * @param type type of the variable
-     * @return true if the value is not conform to the variable type
-     */
-    private static boolean isParseError(String value, VariableType type){
-        switch(type){
-            case BOOLEAN:
-                if(!value.equals("true")
-                        &&!value.equals("false")
-                        &&!value.isEmpty()) {
-                    return true;
-                }
-                break;
-            case DATE:
-                try{
-                    LocalDateTime.parse(value);
-                }catch (DateTimeParseException e){
-                    return true;
-                }
-                break;
-            case INTEGER:
-                try{
-                    Integer.parseInt(value);
-                }catch (NumberFormatException e){
-                    return true;
-                }
-                break;
-            case NUMBER:
-                try{
-                    Long.parseLong(value);
-                }catch (NumberFormatException e){
-                    return true;
-                }
-                break;
-        }
-        return false;
-    }
 }
