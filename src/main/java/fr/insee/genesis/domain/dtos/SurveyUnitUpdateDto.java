@@ -1,6 +1,7 @@
 package fr.insee.genesis.domain.dtos;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import lombok.Builder;
@@ -20,4 +21,19 @@ public class SurveyUnitUpdateDto {
     private List<VariableStateDto> variablesUpdate;
     private List<ExternalVariableDto> externalVariables;
 
+    /**
+     * @return a copy of itself with forced status and record date set to .now()
+     */
+    public SurveyUnitUpdateDto buildForcedSurveyUnitUpdate() {
+        return SurveyUnitUpdateDto.builder()
+                .idQuest(idQuest)
+                .idCampaign(idCampaign)
+                .idUE(idUE)
+                .state(DataState.FORCED)
+                .mode(mode)
+                .recordDate(LocalDateTime.now())
+                .variablesUpdate(new ArrayList<>(variablesUpdate))
+                .externalVariables(new ArrayList<>(externalVariables))
+                .build();
+    }
 }

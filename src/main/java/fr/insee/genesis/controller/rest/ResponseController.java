@@ -11,6 +11,7 @@ import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.dtos.*;
 import fr.insee.genesis.domain.ports.api.SurveyUnitUpdateApiPort;
+import fr.insee.genesis.domain.service.SurveyUnitVerificationService;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.exceptions.NoDataError;
@@ -35,12 +36,14 @@ import java.util.List;
 public class ResponseController {
 
     private final SurveyUnitUpdateApiPort surveyUnitService;
+    private final SurveyUnitVerificationService surveyUnitVerificationService;
     private final FileUtils fileUtils;
     private final ControllerUtils controllerUtils;
 
     @Autowired
-    public ResponseController(SurveyUnitUpdateApiPort surveyUnitService, FileUtils fileUtils, ControllerUtils controllerUtils) {
+    public ResponseController(SurveyUnitUpdateApiPort surveyUnitService,SurveyUnitVerificationService surveyUnitVerificationService, FileUtils fileUtils, ControllerUtils controllerUtils) {
         this.surveyUnitService = surveyUnitService;
+        this.surveyUnitVerificationService = surveyUnitVerificationService;
         this.fileUtils = fileUtils;
         this.controllerUtils = controllerUtils;
     }
@@ -71,6 +74,7 @@ public class ResponseController {
             SurveyUnitUpdateDto suDto = LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign());
             suDtos.add(suDto);
         }
+        surveyUnitVerificationService.verifySurveyUnits(suDtos,variablesMap);
         surveyUnitService.saveSurveyUnits(suDtos);
         log.info("File {} treated", xmlFile);
         return new ResponseEntity<>("Test", HttpStatus.OK);
