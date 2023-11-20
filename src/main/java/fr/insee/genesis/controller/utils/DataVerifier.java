@@ -39,13 +39,13 @@ public class DataVerifier {
             // create new survey unit
             // change the incorrect value to empty if multiple value
             // exclude variable if only value
-            if(incorrectUpdateVariablesTuples.size() + incorrectExternalVariablesTuples.size() > 1) {
+            if(incorrectUpdateVariablesTuples.size() + incorrectExternalVariablesTuples.size() > 0) {
                 SurveyUnitUpdateDto newSuDtoForced = suDto.buildForcedSurveyUnitUpdate();
 
-                if(incorrectUpdateVariablesTuples.size() > 1)
+                if(!incorrectUpdateVariablesTuples.isEmpty())
                     updateVariablesManagement(suDto,newSuDtoForced,incorrectUpdateVariablesTuples);
 
-                if(incorrectExternalVariablesTuples.size() > 1)
+                if(!incorrectExternalVariablesTuples.isEmpty())
                     externalVariablesManagement(suDto,newSuDtoForced,incorrectExternalVariablesTuples);
 
                 suDtosList.add(newSuDtoForced);
@@ -132,10 +132,12 @@ public class DataVerifier {
                 break;
             case NUMBER:
                 try{
-                    Long.parseLong(value);
+                    Double.parseDouble(value);
                 }catch (NumberFormatException e){
                     return true;
                 }
+                break;
+            default:
                 break;
         }
         return false;
@@ -162,15 +164,14 @@ public class DataVerifier {
                     //Change incorrect value(s) to empty if multiple values
                     for(int incorrectValueIndex : getIncorrectValuesIndexes(incorrectUpdateVariablesTuples, variable.getIdVar()))
                         variable.getValues().set(incorrectValueIndex,"");
-                    destinationSurveyUnitUpdateDto.getVariablesUpdate().add(variable);
+                }else {
+                    // Don't add variable to destination survey unit if only 1 value
+                    destinationSurveyUnitUpdateDto.getVariablesUpdate().remove(variable);
                 }
-                // Don't add variable to destination survey unit if only 1 value
-            }else{
-                destinationSurveyUnitUpdateDto.getVariablesUpdate().add(variable);
             }
         }
     }
-    
+
     /**
      * changes values flagged as incorrect in update variables from source and fill the destination's external variables
      * @param sourceSurveyUnitUpdateDto source Survey Unit
@@ -192,11 +193,10 @@ public class DataVerifier {
                     //Change incorrect value(s) to empty if multiple values
                     for(int incorrectValueIndex : getIncorrectValuesIndexes(incorrectExternalVariablesTuples, variable.getIdVar()))
                         variable.getValues().set(incorrectValueIndex,"");
-                    destinationSurveyUnitUpdateDto.getExternalVariables().add(variable);
+                }else {
+                    // Don't add variable to destination survey unit if only 1 value
+                    destinationSurveyUnitUpdateDto.getExternalVariables().remove(variable);
                 }
-                // Don't add variable to destination survey unit if only 1 value
-            }else{
-                destinationSurveyUnitUpdateDto.getExternalVariables().add(variable);
             }
         }
     }
