@@ -4,7 +4,6 @@ import fr.insee.genesis.controller.sources.ddi.VariablesMap;
 import fr.insee.genesis.controller.utils.DataVerifier;
 import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
