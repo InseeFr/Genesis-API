@@ -205,8 +205,6 @@ public class DataVerifier {
         }
     }
 
-    //TODO Tester une nouvelle fois puis commit push et si OK pull request
-
     /**
      * Go through a list of tuples(variable name, incorrect value index) and add variable names to a set
      * @param incorrectVariablesPairs tuples to iterate through
