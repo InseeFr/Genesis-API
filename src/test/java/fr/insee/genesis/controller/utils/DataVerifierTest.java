@@ -282,25 +282,24 @@ class DataVerifierTest {
     }
 
     @Test
-    @DisplayName("Case 2 : Incorrect update variable type (1 value), incorrect variable removed")
+    @DisplayName("Case 2 : Incorrect update variable type (1 value), incorrect variable kept with empty value")
     void incorrectUpdateVariable1Test(){
         assertThat(testSurveyUnitUpdateDtos.get(initialSize)).isNotNull();
-        assertThat(testSurveyUnitUpdateDtos.get(initialSize).getVariablesUpdate()).hasSize(1);
+        assertThat(testSurveyUnitUpdateDtos.get(initialSize).getVariablesUpdate().get(0).getValues().get(0)).isEmpty();
     }
 
     @Test
     @DisplayName("Case 3 : Incorrect update variable type (2 values), incorrect value set to empty")
     void incorrectUpdateVariable2Test(){
         assertThat(testSurveyUnitUpdateDtos.get(initialSize + 1)).isNotNull();
-        assertThat(testSurveyUnitUpdateDtos.get(initialSize + 1).getVariablesUpdate()).hasSize(2);
-        assertThat(testSurveyUnitUpdateDtos.get(initialSize + 1).getVariablesUpdate().get(1).getValues()).hasSize(2).contains("");
+        assertThat(testSurveyUnitUpdateDtos.get(initialSize + 1).getVariablesUpdate().get(0).getValues()).hasSize(2).contains("");
     }
 
     @Test
-    @DisplayName("Case 4 : Incorrect external variable type (1 value), incorrect variable removed")
+    @DisplayName("Case 4 : Incorrect external variable type (1 value), incorrect variable kept with empty value")
     void incorrectExternalVariable1Test(){
         assertThat(testSurveyUnitUpdateDtos.get(initialSize + 2)).isNotNull();
-        assertThat(testSurveyUnitUpdateDtos.get(initialSize + 2).getExternalVariables()).isEmpty();
+        assertThat(testSurveyUnitUpdateDtos.get(initialSize + 2).getExternalVariables().get(0).getValues().get(0)).isEmpty();
     }
 
     @Test

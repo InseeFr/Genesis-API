@@ -160,14 +160,17 @@ public class DataVerifier {
 
         for (VariableStateDto variable : sourceSurveyUnitUpdateDto.getVariablesUpdate()){
             if(incorrectVariablesNames.contains(variable.getIdVar())){
-                if(variable.getValues().size() > 1){
-                    //Change incorrect value(s) to empty if multiple values
-                    for(int incorrectValueIndex : getIncorrectValuesIndexes(incorrectUpdateVariablesTuples, variable.getIdVar()))
-                        variable.getValues().set(incorrectValueIndex,"");
-                }else {
-                    // Don't add variable to destination survey unit if only 1 value
-                    destinationSurveyUnitUpdateDto.getVariablesUpdate().remove(variable);
-                }
+                //Copy variable
+                VariableStateDto newVariable = VariableStateDto.builder()
+                        .idVar(variable.getIdVar())
+                        .idLoop(variable.getIdLoop())
+                        .idParent(variable.getIdParent())
+                        .values(new ArrayList<>(variable.getValues()))
+                        .build();
+                //Change incorrect value(s) to empty
+                for(int incorrectValueIndex : getIncorrectValuesIndexes(incorrectUpdateVariablesTuples, variable.getIdVar()))
+                    newVariable.getValues().set(incorrectValueIndex,"");
+                destinationSurveyUnitUpdateDto.getVariablesUpdate().add(newVariable);
             }
         }
     }
@@ -189,17 +192,20 @@ public class DataVerifier {
 
         for (ExternalVariableDto variable : sourceSurveyUnitUpdateDto.getExternalVariables()){
             if(incorrectVariablesNames.contains(variable.getIdVar())){
-                if(variable.getValues().size() > 1){
-                    //Change incorrect value(s) to empty if multiple values
-                    for(int incorrectValueIndex : getIncorrectValuesIndexes(incorrectExternalVariablesTuples, variable.getIdVar()))
-                        variable.getValues().set(incorrectValueIndex,"");
-                }else {
-                    // Don't add variable to destination survey unit if only 1 value
-                    destinationSurveyUnitUpdateDto.getExternalVariables().remove(variable);
-                }
+                //Copy variable
+                ExternalVariableDto newVariable = ExternalVariableDto.builder()
+                        .idVar(variable.getIdVar())
+                        .values(new ArrayList<>(variable.getValues()))
+                        .build();
+                //Change incorrect value(s) to empty
+                for(int incorrectValueIndex : getIncorrectValuesIndexes(incorrectExternalVariablesTuples, variable.getIdVar()))
+                    newVariable.getValues().set(incorrectValueIndex,"");
+                destinationSurveyUnitUpdateDto.getExternalVariables().add(newVariable);
             }
         }
     }
+
+    //TODO Tester une nouvelle fois puis commit push et si OK pull request
 
     /**
      * Go through a list of tuples(variable name, incorrect value index) and add variable names to a set

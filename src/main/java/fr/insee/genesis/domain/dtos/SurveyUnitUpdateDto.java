@@ -32,8 +32,8 @@ public class SurveyUnitUpdateDto {
                 .state(DataState.FORCED)
                 .mode(mode)
                 .recordDate(LocalDateTime.now())
-                .variablesUpdate(new ArrayList<>(variablesUpdate))
-                .externalVariables(new ArrayList<>(externalVariables))
+                .variablesUpdate(new ArrayList<>())
+                .externalVariables(new ArrayList<>())
                 .build();
     }
 }
