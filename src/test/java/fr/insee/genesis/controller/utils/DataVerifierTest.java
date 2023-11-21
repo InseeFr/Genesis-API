@@ -78,7 +78,7 @@ class DataVerifierTest {
         );
         variableUpdates.add(VariableStateDto.builder()
                 .idVar("testDate")
-                .values(new ArrayList<>(List.of(new String[]{"2001-01-01T01:01:01.001"})))
+                .values(new ArrayList<>(List.of(new String[]{"2001-01-01"})))
                 .build()
         );
 
@@ -105,7 +105,7 @@ class DataVerifierTest {
         );
         externalVariables.add(ExternalVariableDto.builder()
                 .idVar("testDateExt")
-                .values(new ArrayList<>(List.of(new String[]{"2001-01-01T01:01:01.001"})))
+                .values(new ArrayList<>(List.of(new String[]{"2001-01-01"})))
                 .build()
         );
 
@@ -133,6 +133,11 @@ class DataVerifierTest {
         variableUpdates.add(VariableStateDto.builder()
                 .idVar("testInteger")
                 .values(new ArrayList<>(List.of(new String[]{"?"})))
+                .build()
+        );
+        variableUpdates.add(VariableStateDto.builder()
+                .idVar("testDate")
+                .values(new ArrayList<>(List.of(new String[]{"2000-99-99"})))
                 .build()
         );
         externalVariables.add(ExternalVariableDto.builder()
@@ -205,6 +210,12 @@ class DataVerifierTest {
         externalVariables.add(ExternalVariableDto.builder()
                 .idVar("testIntegerExt")
                 .values(new ArrayList<>(List.of(new String[]{"?"})))
+                .build()
+        );
+
+        externalVariables.add(ExternalVariableDto.builder()
+                .idVar("testDateExt")
+                .values(new ArrayList<>(List.of(new String[]{"2000-99-99"})))
                 .build()
         );
 
@@ -282,10 +293,13 @@ class DataVerifierTest {
     }
 
     @Test
-    @DisplayName("Case 2 : Incorrect update variable type (1 value), incorrect variable kept with empty value")
+    @DisplayName("Case 2 : Incorrect update variable type (1 value), incorrect variable kept with empty value (except dates)")
     void incorrectUpdateVariable1Test(){
         assertThat(testSurveyUnitUpdateDtos.get(initialSize)).isNotNull();
+        //Integer assert
         assertThat(testSurveyUnitUpdateDtos.get(initialSize).getVariablesUpdate().get(0).getValues().get(0)).isEmpty();
+        //Date assert
+        assertThat(testSurveyUnitUpdateDtos.get(initialSize).getVariablesUpdate()).hasSize(1);
     }
 
     @Test
@@ -296,10 +310,13 @@ class DataVerifierTest {
     }
 
     @Test
-    @DisplayName("Case 4 : Incorrect external variable type (1 value), incorrect variable kept with empty value")
+    @DisplayName("Case 4 : Incorrect external variable type (1 value), incorrect variable kept with empty value (except dates)")
     void incorrectExternalVariable1Test(){
         assertThat(testSurveyUnitUpdateDtos.get(initialSize + 2)).isNotNull();
+        //Integer assert
         assertThat(testSurveyUnitUpdateDtos.get(initialSize + 2).getExternalVariables().get(0).getValues().get(0)).isEmpty();
+        //Date assert
+        assertThat(testSurveyUnitUpdateDtos.get(initialSize + 2).getExternalVariables()).hasSize(1);
     }
 
     @Test

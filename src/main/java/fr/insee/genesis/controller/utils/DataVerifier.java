@@ -1,19 +1,22 @@
 package fr.insee.genesis.controller.utils;
 
+import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.sources.ddi.Variable;
 import fr.insee.genesis.controller.sources.ddi.VariableType;
 import fr.insee.genesis.controller.sources.ddi.VariablesMap;
 import fr.insee.genesis.domain.dtos.ExternalVariableDto;
 import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
 import fr.insee.genesis.domain.dtos.VariableStateDto;
+import lombok.extern.slf4j.Slf4j;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+@Slf4j
 public class DataVerifier {
     private DataVerifier() {
         throw new IllegalStateException("Utility class");
@@ -117,10 +120,11 @@ public class DataVerifier {
                 }
                 break;
             case DATE:
-                try{
-                    LocalDateTime.parse(value);
-                }catch (DateTimeParseException e){
-                    return true;
+                Pattern pattern = Pattern.compile(Constants.DATE_REGEX);
+                Matcher matcher = pattern.matcher(value);
+                if(!matcher.find()){
+                    log.warn("Can't parse date " + value);
+                    return false;
                 }
                 break;
             case INTEGER:
