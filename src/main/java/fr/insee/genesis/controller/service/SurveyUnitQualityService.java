@@ -1,4 +1,4 @@
-package fr.insee.genesis.domain.service;
+package fr.insee.genesis.controller.service;
 
 import fr.insee.genesis.controller.sources.ddi.VariablesMap;
 import fr.insee.genesis.controller.utils.DataVerifier;
@@ -8,10 +8,10 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 /**
- * This service is used in the data verification process
+ * This service is used to ensure data quality processes
  */
 @Service
-public class SurveyUnitVerificationService {
+public class SurveyUnitQualityService {
     public void verifySurveyUnits(List<SurveyUnitUpdateDto> suDtos, VariablesMap variablesMap) {
         DataVerifier.verifySurveyUnits(suDtos,variablesMap);
     }

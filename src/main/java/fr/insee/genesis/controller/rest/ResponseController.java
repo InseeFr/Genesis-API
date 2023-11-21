@@ -1,7 +1,7 @@
 package fr.insee.genesis.controller.rest;
 
 import fr.insee.genesis.controller.adapter.LunaticXmlAdapter;
-import fr.insee.genesis.controller.model.SurveyUnitId;
+import fr.insee.genesis.domain.dtos.SurveyUnitId;
 import fr.insee.genesis.controller.responses.SurveyUnitUpdateSimplified;
 import fr.insee.genesis.controller.sources.ddi.DDIReader;
 import fr.insee.genesis.controller.sources.ddi.VariablesMap;
@@ -11,7 +11,7 @@ import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.dtos.*;
 import fr.insee.genesis.domain.ports.api.SurveyUnitUpdateApiPort;
-import fr.insee.genesis.domain.service.SurveyUnitVerificationService;
+import fr.insee.genesis.controller.service.SurveyUnitQualityService;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.exceptions.NoDataError;
@@ -35,14 +35,14 @@ import java.util.List;
 public class ResponseController {
 
     private final SurveyUnitUpdateApiPort surveyUnitService;
-    private final SurveyUnitVerificationService surveyUnitVerificationService;
+    private final SurveyUnitQualityService surveyUnitQualityService;
     private final FileUtils fileUtils;
     private final ControllerUtils controllerUtils;
 
     @Autowired
-    public ResponseController(SurveyUnitUpdateApiPort surveyUnitService,SurveyUnitVerificationService surveyUnitVerificationService, FileUtils fileUtils, ControllerUtils controllerUtils) {
+    public ResponseController(SurveyUnitUpdateApiPort surveyUnitService, SurveyUnitQualityService surveyUnitQualityService, FileUtils fileUtils, ControllerUtils controllerUtils) {
         this.surveyUnitService = surveyUnitService;
-        this.surveyUnitVerificationService = surveyUnitVerificationService;
+        this.surveyUnitQualityService = surveyUnitQualityService;
         this.fileUtils = fileUtils;
         this.controllerUtils = controllerUtils;
     }
@@ -73,7 +73,7 @@ public class ResponseController {
             SurveyUnitUpdateDto suDto = LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign());
             suDtos.add(suDto);
         }
-        surveyUnitVerificationService.verifySurveyUnits(suDtos,variablesMap);
+        surveyUnitQualityService.verifySurveyUnits(suDtos,variablesMap);
         surveyUnitService.saveSurveyUnits(suDtos);
         log.info("File {} treated", xmlFile);
         return new ResponseEntity<>("Test", HttpStatus.OK);
@@ -121,6 +121,7 @@ public class ResponseController {
                     SurveyUnitUpdateDto suDto = LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign());
                     suDtos.add(suDto);
                 }
+                surveyUnitQualityService.verifySurveyUnits(suDtos,variablesMap);
                 surveyUnitService.saveSurveyUnits(suDtos);
                 log.info("File {} saved", fileName);
                 fileUtils.moveDataFile(campaignName, currentMode.getFolder(), fileName);
@@ -160,8 +161,8 @@ public class ResponseController {
                                                                                    @RequestParam("idQuestionnaire") String idQuestionnaire,
                                                                                @RequestParam("mode") Mode mode) {
         List<SurveyUnitUpdateDto> responses = surveyUnitService.findLatestByIdAndByMode(idUE, idQuestionnaire);
-        List<VariableStateDto> outputVariables = new ArrayList<>();
-        List<ExternalVariableDto> outputExternalVariables = new ArrayList<>();
+        List<CollectedVariableDto> outputVariables = new ArrayList<>();
+        List<VariableDto> outputExternalVariables = new ArrayList<>();
         responses.stream().filter(rep->rep.getMode().equals(mode)).forEach(response -> {
             outputVariables.addAll(response.getVariablesUpdate());
             outputExternalVariables.addAll(response.getExternalVariables());
@@ -187,8 +188,8 @@ public class ResponseController {
         idUEs.forEach(idUE -> {
             List<SurveyUnitUpdateDto> responses = surveyUnitService.findLatestByIdAndByMode(idUE.getIdUE(), idQuestionnaire);
             modes.forEach(mode -> {
-                List<VariableStateDto> outputVariables = new ArrayList<>();
-                List<ExternalVariableDto> outputExternalVariables = new ArrayList<>();
+                List<CollectedVariableDto> outputVariables = new ArrayList<>();
+                List<VariableDto> outputExternalVariables = new ArrayList<>();
                 responses.stream().filter(rep->rep.getMode().equals(mode)).forEach(response -> {
                     outputVariables.addAll(response.getVariablesUpdate());
                     outputExternalVariables.addAll(response.getExternalVariables());

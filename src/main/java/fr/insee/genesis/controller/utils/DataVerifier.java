@@ -4,9 +4,9 @@ import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.sources.ddi.Variable;
 import fr.insee.genesis.controller.sources.ddi.VariableType;
 import fr.insee.genesis.controller.sources.ddi.VariablesMap;
-import fr.insee.genesis.domain.dtos.ExternalVariableDto;
+import fr.insee.genesis.domain.dtos.CollectedVariableDto;
+import fr.insee.genesis.domain.dtos.VariableDto;
 import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
-import fr.insee.genesis.domain.dtos.VariableStateDto;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -24,8 +24,8 @@ public class DataVerifier {
 
     /**
      * Verify data format in all surveyUnits DTOs
-     * If there is at least 1 incorrect variable, a new SurveyUnitUpdateDto is created with "FORCED" status
-     * The new surveyUnitUpdate is added to the list
+     * If there is at least 1 incorrect variable for a survey unit, a new SurveyUnitUpdateDto is created with "FORCED" status
+     * The new surveyUnitUpdates are added to the list
      * @param suDtosList list of SurveyUnitUpdateDtos to verify
      * @param variablesMap VariablesMap containing definitions of each variable
      */
@@ -34,8 +34,8 @@ public class DataVerifier {
 
         for(SurveyUnitUpdateDto suDto : suDtosList){
             //Pairs(variable name, incorrect value index)
-            List<String[]> incorrectUpdateVariablesTuples = verifyUpdateVariables(suDto.getVariablesUpdate(), variablesMap);
-            List<String[]> incorrectExternalVariablesTuples = verifyExternalVariables(suDto.getExternalVariables(), variablesMap);
+            List<String[]> incorrectUpdateVariablesTuples = verifyVariables(suDto.getVariablesUpdate(), variablesMap);
+            List<String[]> incorrectExternalVariablesTuples = verifyVariables(suDto.getExternalVariables(), variablesMap);
 
             // If variable has at least 1 incorrect value
             // create new survey unit
@@ -57,38 +57,14 @@ public class DataVerifier {
     }
 
     /**
-     * @param variablesToVerify update variables to verify
+     * @param variablesToVerify variables to verify
      * @param variablesMap variable definitions
      * @return a list of pairs (variable name, index)
      */
-    private static List<String[]> verifyUpdateVariables(List<VariableStateDto> variablesToVerify, VariablesMap variablesMap){
-        List<String[]> incorrectVariables = new ArrayList<>();
-        for (VariableStateDto variable : variablesToVerify){
-            if (variablesMap.getVariable(variable.getIdVar()) != null) {
-                Variable variableDefinition = variablesMap.getVariable(variable.getIdVar());
-                int valueIndex = 0;
-                for (String value : variable.getValues()) {
-                    if(isParseError(value, variableDefinition.getType())){
-                        incorrectVariables.add(new String[]{variable.getIdVar(), Integer.toString(valueIndex)});
-                    }
-                    valueIndex++;
-                }
-            }
-        }
-
-        return incorrectVariables;
-    }
-
-    /**
-     * @param variablesToVerify external variables to verify
-     * @param variablesMap variable definitions
-     * @return a list of pairs (variable name, index)
-     */
-    private static List<String[]> verifyExternalVariables(List<ExternalVariableDto> variablesToVerify, VariablesMap variablesMap){
+    private static List<String[]> verifyVariables(List<? extends VariableDto> variablesToVerify, VariablesMap variablesMap){
         // List of tuples (
         List<String[]> incorrectVariables = new ArrayList<>();
-
-        for (ExternalVariableDto variable : variablesToVerify){
+        for (VariableDto variable : variablesToVerify){
             if (variablesMap.getVariable(variable.getIdVar()) != null) {
                 Variable variableDefinition = variablesMap.getVariable(variable.getIdVar());
                 int valueIndex = 0;
@@ -122,6 +98,7 @@ public class DataVerifier {
                 Pattern pattern = Pattern.compile(Constants.DATE_REGEX);
                 Matcher matcher = pattern.matcher(value);
                 if(!matcher.find()){
+                    // We only monitor parsing date errors, so we always return false
                     log.warn("Can't parse date " + value);
                     return false;
                 }
@@ -147,7 +124,7 @@ public class DataVerifier {
     }
 
     /**
-     * changes values flagged as incorrect in update variables from source and fill the destination's update variables
+     * Changes values flagged as incorrect in update variables from source and fill the destination's update variables
      * @param sourceSurveyUnitUpdateDto source Survey Unit
      * @param destinationSurveyUnitUpdateDto destination Survey Unit
      * @param incorrectUpdateVariablesTuples (incorrect variable name, incorrect value index) pairs
@@ -161,10 +138,10 @@ public class DataVerifier {
         Set<String> incorrectVariablesNames = new HashSet<>();
         getIncorrectVariableNames(incorrectUpdateVariablesTuples, incorrectVariablesNames);
 
-        for (VariableStateDto variable : sourceSurveyUnitUpdateDto.getVariablesUpdate()){
+        for (CollectedVariableDto variable : sourceSurveyUnitUpdateDto.getVariablesUpdate()){
             if(incorrectVariablesNames.contains(variable.getIdVar())){
                 //Copy variable
-                VariableStateDto newVariable = VariableStateDto.builder()
+                CollectedVariableDto newVariable = CollectedVariableDto.collectedVariableBuilder()
                         .idVar(variable.getIdVar())
                         .idLoop(variable.getIdLoop())
                         .idParent(variable.getIdParent())
@@ -193,10 +170,10 @@ public class DataVerifier {
         Set<String> incorrectVariablesNames = new HashSet<>();
         getIncorrectVariableNames(incorrectExternalVariablesTuples, incorrectVariablesNames);
 
-        for (ExternalVariableDto variable : sourceSurveyUnitUpdateDto.getExternalVariables()){
+        for (VariableDto variable : sourceSurveyUnitUpdateDto.getExternalVariables()){
             if(incorrectVariablesNames.contains(variable.getIdVar())){
                 //Copy variable
-                ExternalVariableDto newVariable = ExternalVariableDto.builder()
+                VariableDto newVariable = VariableDto.builder()
                         .idVar(variable.getIdVar())
                         .values(new ArrayList<>(variable.getValues()))
                         .build();

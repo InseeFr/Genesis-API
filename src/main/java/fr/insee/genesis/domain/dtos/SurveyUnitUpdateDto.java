@@ -18,8 +18,8 @@ public class SurveyUnitUpdateDto {
     private Mode mode;
     private LocalDateTime recordDate;
     private LocalDateTime fileDate;
-    private List<VariableStateDto> variablesUpdate;
-    private List<ExternalVariableDto> externalVariables;
+    private List<CollectedVariableDto> variablesUpdate;
+    private List<VariableDto> externalVariables;
 
     /**
      * @return a copy of itself with forced status and record date set to .now()

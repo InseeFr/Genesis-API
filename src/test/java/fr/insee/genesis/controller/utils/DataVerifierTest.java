@@ -4,11 +4,8 @@ package fr.insee.genesis.controller.utils;
 import fr.insee.genesis.controller.sources.ddi.Variable;
 import fr.insee.genesis.controller.sources.ddi.VariableType;
 import fr.insee.genesis.controller.sources.ddi.VariablesMap;
-import fr.insee.genesis.domain.dtos.DataState;
-import fr.insee.genesis.domain.dtos.ExternalVariableDto;
-import fr.insee.genesis.domain.dtos.Mode;
-import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
-import fr.insee.genesis.domain.dtos.VariableStateDto;
+import fr.insee.genesis.domain.dtos.*;
+import fr.insee.genesis.domain.dtos.VariableDto;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -54,56 +51,56 @@ class DataVerifierTest {
         variablesMap.putVariable(var10);
 
         //Case 1 : Correct variables types
-        List<VariableStateDto> variableUpdates = new ArrayList<>();
+        List<CollectedVariableDto> variableUpdates = new ArrayList<>();
 
-        variableUpdates.add(VariableStateDto.builder()
+        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
                 .idVar("testString")
                 .values(new ArrayList<>(List.of(new String[]{"test"})))
                 .build()
         );
-        variableUpdates.add(VariableStateDto.builder()
+        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
                 .idVar("testInteger")
                 .values(new ArrayList<>(List.of(new String[]{"1"})))
                 .build()
         );
-        variableUpdates.add(VariableStateDto.builder()
+        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
                 .idVar("testNumber")
                 .values(new ArrayList<>(List.of(new String[]{"1.1"})))
                 .build()
         );
-        variableUpdates.add(VariableStateDto.builder()
+        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
                 .idVar("testBoolean")
                 .values(new ArrayList<>(List.of(new String[]{"true"})))
                 .build()
         );
-        variableUpdates.add(VariableStateDto.builder()
+        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
                 .idVar("testDate")
                 .values(new ArrayList<>(List.of(new String[]{"2001-01-01"})))
                 .build()
         );
 
-        List<ExternalVariableDto> externalVariables = new ArrayList<>();
-        externalVariables.add(ExternalVariableDto.builder()
+        List<VariableDto> externalVariables = new ArrayList<>();
+        externalVariables.add(VariableDto.builder()
                 .idVar("testStringExt")
                 .values(new ArrayList<>(List.of(new String[]{"test"})))
                 .build()
         );
-        externalVariables.add(ExternalVariableDto.builder()
+        externalVariables.add(VariableDto.builder()
                 .idVar("testIntegerExt")
                 .values(new ArrayList<>(List.of(new String[]{"1"})))
                 .build()
         );
-        externalVariables.add(ExternalVariableDto.builder()
+        externalVariables.add(VariableDto.builder()
                 .idVar("testNumberExt")
                 .values(new ArrayList<>(List.of(new String[]{"1.1"})))
                 .build()
         );
-        externalVariables.add(ExternalVariableDto.builder()
+        externalVariables.add(VariableDto.builder()
                 .idVar("testBooleanExt")
                 .values(new ArrayList<>(List.of(new String[]{"true"})))
                 .build()
         );
-        externalVariables.add(ExternalVariableDto.builder()
+        externalVariables.add(VariableDto.builder()
                 .idVar("testDateExt")
                 .values(new ArrayList<>(List.of(new String[]{"2001-01-01"})))
                 .build()
@@ -125,22 +122,22 @@ class DataVerifierTest {
         externalVariables.clear();
 
         //Case 2 : Incorrect update variable type (1 value)
-        variableUpdates.add(VariableStateDto.builder()
+        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
                 .idVar("testString")
                 .values(new ArrayList<>(List.of(new String[]{"test"})))
                 .build()
         );
-        variableUpdates.add(VariableStateDto.builder()
+        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
                 .idVar("testInteger")
                 .values(new ArrayList<>(List.of(new String[]{"?"})))
                 .build()
         );
-        variableUpdates.add(VariableStateDto.builder()
+        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
                 .idVar("testDate")
                 .values(new ArrayList<>(List.of(new String[]{"2000-99-99"})))
                 .build()
         );
-        externalVariables.add(ExternalVariableDto.builder()
+        externalVariables.add(VariableDto.builder()
                 .idVar("testIntegerExt")
                 .values(new ArrayList<>(List.of(new String[]{"1"})))
                 .build()
@@ -163,17 +160,17 @@ class DataVerifierTest {
 
 
         //Case 3 : Incorrect update variable type (2 values)
-        variableUpdates.add(VariableStateDto.builder()
+        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
                 .idVar("testString")
                 .values(new ArrayList<>(List.of(new String[]{"test"})))
                 .build()
         );
-        variableUpdates.add(VariableStateDto.builder()
+        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
                 .idVar("testInteger")
                 .values(new ArrayList<>(List.of(new String[]{"1","?"})))
                 .build()
         );
-        externalVariables.add(ExternalVariableDto.builder()
+        externalVariables.add(VariableDto.builder()
                 .idVar("testIntegerExt")
                 .values(new ArrayList<>(List.of(new String[]{"1"})))
                 .build()
@@ -197,23 +194,23 @@ class DataVerifierTest {
 
 
         // Case 4 : Incorrect external variable type (1 value)
-        variableUpdates.add(VariableStateDto.builder()
+        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
                 .idVar("testString")
                 .values(new ArrayList<>(List.of(new String[]{"test"})))
                 .build()
         );
-        variableUpdates.add(VariableStateDto.builder()
+        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
                 .idVar("testInteger")
                 .values(new ArrayList<>(List.of(new String[]{"1"})))
                 .build()
         );
-        externalVariables.add(ExternalVariableDto.builder()
+        externalVariables.add(VariableDto.builder()
                 .idVar("testIntegerExt")
                 .values(new ArrayList<>(List.of(new String[]{"?"})))
                 .build()
         );
 
-        externalVariables.add(ExternalVariableDto.builder()
+        externalVariables.add(VariableDto.builder()
                 .idVar("testDateExt")
                 .values(new ArrayList<>(List.of(new String[]{"2000-99-99"})))
                 .build()
@@ -235,17 +232,17 @@ class DataVerifierTest {
         externalVariables.clear();
 
         // Case 5 : Incorrect external variable type (2 values)
-        variableUpdates.add(VariableStateDto.builder()
+        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
                 .idVar("testString")
                 .values(new ArrayList<>(List.of(new String[]{"test"})))
                 .build()
         );
-        variableUpdates.add(VariableStateDto.builder()
+        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
                 .idVar("testInteger")
                 .values(new ArrayList<>(List.of(new String[]{"1"})))
                 .build()
         );
-        externalVariables.add(ExternalVariableDto.builder()
+        externalVariables.add(VariableDto.builder()
                 .idVar("testIntegerExt")
                 .values(new ArrayList<>(List.of(new String[]{"1","?"})))
                 .build()

@@ -1,13 +1,13 @@
 package fr.insee.genesis.domain.dtos;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 
 import java.util.List;
 
 @Builder
-@Data
-public class ExternalVariableDto {
+@Getter
+@Setter
+public class VariableDto {
 
 	private String idVar;
 	private List<String> values;
