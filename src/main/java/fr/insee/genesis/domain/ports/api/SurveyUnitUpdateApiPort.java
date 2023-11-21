@@ -1,6 +1,6 @@
 package fr.insee.genesis.domain.ports.api;
 
-import fr.insee.genesis.controller.model.SurveyUnitId;
+import fr.insee.genesis.domain.dtos.SurveyUnitId;
 import fr.insee.genesis.domain.dtos.Mode;
 import fr.insee.genesis.domain.dtos.SurveyUnitDto;
 import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;

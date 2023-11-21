@@ -1,6 +1,6 @@
 package fr.insee.genesis.domain.service;
 
-import fr.insee.genesis.controller.model.SurveyUnitId;
+import fr.insee.genesis.domain.dtos.SurveyUnitId;
 import fr.insee.genesis.domain.dtos.*;
 import fr.insee.genesis.domain.ports.api.SurveyUnitUpdateApiPort;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitUpdatePersistencePort;
@@ -68,8 +68,8 @@ public class SurveyUnitUpdateImpl implements SurveyUnitUpdateApiPort {
             latestUpdate.getExternalVariables().forEach(externalVariableDto -> addedVariables.add(externalVariableDto.getIdVar()));
 
             suByMode.forEach(surveyUnitUpdateDto -> {
-                List<VariableStateDto> variablesToKeep = new ArrayList<>();
-                List<ExternalVariableDto> externalToKeep = new ArrayList<>();
+                List<CollectedVariableDto> variablesToKeep = new ArrayList<>();
+                List<VariableDto> externalToKeep = new ArrayList<>();
                 // We iterate over the variables of the update and add them to the list if they are not already added
                 surveyUnitUpdateDto.getVariablesUpdate().forEach(variableStateDto -> {
                     if (!addedVariables.contains(variableStateDto.getIdVar())){

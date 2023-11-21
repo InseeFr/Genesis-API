@@ -1,4 +1,4 @@
-package fr.insee.genesis.controller.model;
+package fr.insee.genesis.domain.dtos;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;

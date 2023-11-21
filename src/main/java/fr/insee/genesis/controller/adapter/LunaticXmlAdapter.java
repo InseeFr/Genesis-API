@@ -23,7 +23,7 @@ public class LunaticXmlAdapter {
                 .recordDate(LocalDateTime.now())
                 .fileDate(su.getFileDate())
                 .build();
-        List<VariableStateDto> variablesUpdate = new ArrayList<>();
+        List<CollectedVariableDto> variablesUpdate = new ArrayList<>();
 
         /*For now, we don't manage list of values, we always define a list of one element in values
         * To be updated when we will receive data from dynamic tables*/
@@ -31,7 +31,7 @@ public class LunaticXmlAdapter {
             for (int i =1;i<=lunaticXmlCollectedData.getCollected().size();i++) {
                 List<String> variableValues = transformToList(lunaticXmlCollectedData.getCollected().get(i-1).getValue());
                 if (!variableValues.isEmpty()) {
-                    variablesUpdate.add(VariableStateDto.builder()
+                    variablesUpdate.add(CollectedVariableDto.collectedVariableBuilder()
                             .idVar(lunaticXmlCollectedData.getVariableName())
                             .values(transformToList(lunaticXmlCollectedData.getCollected().get(i - 1).getValue()))
                             .idLoop(LoopIdentifier.getLoopIdentifier(lunaticXmlCollectedData.getVariableName(), variablesMap, i))
@@ -42,9 +42,9 @@ public class LunaticXmlAdapter {
         });
         surveyUnitUpdateDto.setVariablesUpdate(variablesUpdate);
 
-        List<ExternalVariableDto> externalVariables = new ArrayList<>();
+        List<VariableDto> externalVariables = new ArrayList<>();
         su.getData().getExternal().forEach(lunaticXmlExternalData ->
-            externalVariables.add(ExternalVariableDto.builder()
+            externalVariables.add(VariableDto.builder()
                     .idVar(lunaticXmlExternalData.getVariableName())
                     .values(transformToList(lunaticXmlExternalData.getValues().get(0).getValue()))
                     .build())
