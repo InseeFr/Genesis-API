@@ -30,10 +30,9 @@ public class DataVerifier {
      * @param variablesMap VariablesMap containing definitions of each variable
      */
     public static void verifySurveyUnits(List<SurveyUnitUpdateDto> suDtosList, VariablesMap variablesMap){
-        //To avoid live edit of suDtoList while reading it
-        List<SurveyUnitUpdateDto> suDtosListCopy = new ArrayList<>(suDtosList);
+        List<SurveyUnitUpdateDto> suDtosListForced = new ArrayList<>();
 
-        for(SurveyUnitUpdateDto suDto : suDtosListCopy){
+        for(SurveyUnitUpdateDto suDto : suDtosList){
             //Pairs(variable name, incorrect value index)
             List<String[]> incorrectUpdateVariablesTuples = verifyUpdateVariables(suDto.getVariablesUpdate(), variablesMap);
             List<String[]> incorrectExternalVariablesTuples = verifyExternalVariables(suDto.getExternalVariables(), variablesMap);
@@ -51,10 +50,10 @@ public class DataVerifier {
                 if(!incorrectExternalVariablesTuples.isEmpty())
                     externalVariablesManagement(suDto,newSuDtoForced,incorrectExternalVariablesTuples);
 
-                suDtosList.add(newSuDtoForced);
+                suDtosListForced.add(newSuDtoForced);
             }
-
         }
+        suDtosList.addAll(suDtosListForced);
     }
 
     /**
