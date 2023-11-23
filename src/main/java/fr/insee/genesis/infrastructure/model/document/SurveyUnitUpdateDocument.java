@@ -14,7 +14,6 @@ import lombok.Data;
 public class SurveyUnitUpdateDocument {
 
 
-	private String idUpdate;
 	private String idCampaign;
 	private String idUE;
 	private String idQuestionnaire;

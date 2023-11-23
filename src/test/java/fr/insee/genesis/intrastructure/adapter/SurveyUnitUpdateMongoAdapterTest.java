@@ -40,7 +40,6 @@ class SurveyUnitUpdateMongoAdapterTest {
 	static void setUp() {
 		surveyUnitUpdateMongoAdapter = new SurveyUnitUpdateMongoAdapter();
 		suDoc= new SurveyUnitUpdateDocument();
-		suDoc.setIdUpdate("idUpdate");
 		suDoc.setIdCampaign("idCampaign");
 		suDoc.setIdUE("UE1100000001");
 		suDoc.setIdQuestionnaire("TEST2023X01");
@@ -51,7 +50,6 @@ class SurveyUnitUpdateMongoAdapterTest {
 		suDoc.setExternalVariables(List.of(new ExternalVariable()));
 
 		suDoc2= new SurveyUnitUpdateDocument();
-		suDoc2.setIdUpdate("idUpdate");
 		suDoc2.setIdCampaign("idCampaign");
 		suDoc2.setIdUE("UE1100000001");
 		suDoc2.setIdQuestionnaire("TEST2023X01");
@@ -62,7 +60,6 @@ class SurveyUnitUpdateMongoAdapterTest {
 		suDoc2.setExternalVariables(List.of(new ExternalVariable()));
 
 		suDoc3= new SurveyUnitUpdateDocument();
-		suDoc3.setIdUpdate("idUpdate");
 		suDoc3.setIdCampaign("idCampaign");
 		suDoc3.setIdUE("UE1100000002");
 		suDoc3.setIdQuestionnaire("TEST2023X01");
