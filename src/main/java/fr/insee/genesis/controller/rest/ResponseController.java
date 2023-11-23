@@ -194,14 +194,16 @@ public class ResponseController {
                     outputVariables.addAll(response.getVariablesUpdate());
                     outputExternalVariables.addAll(response.getExternalVariables());
                 });
-                results.add(SurveyUnitUpdateSimplified.builder()
-                        .idQuest(responses.get(0).getIdQuest())
-                        .idCampaign(responses.get(0).getIdCampaign())
-                        .idUE(responses.get(0).getIdUE())
-                        .mode(mode)
-                        .variablesUpdate(outputVariables)
-                        .externalVariables(outputExternalVariables)
-                        .build());
+                if (!outputVariables.isEmpty() || !outputExternalVariables.isEmpty()) {
+                    results.add(SurveyUnitUpdateSimplified.builder()
+                            .idQuest(responses.get(0).getIdQuest())
+                            .idCampaign(responses.get(0).getIdCampaign())
+                            .idUE(responses.get(0).getIdUE())
+                            .mode(mode)
+                            .variablesUpdate(outputVariables)
+                            .externalVariables(outputExternalVariables)
+                            .build());
+                }
             });
         });
         return new ResponseEntity<>(results, HttpStatus.OK);
