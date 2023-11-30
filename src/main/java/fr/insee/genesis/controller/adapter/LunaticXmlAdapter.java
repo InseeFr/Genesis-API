@@ -65,30 +65,17 @@ public class LunaticXmlAdapter {
                 .fileDate(su.getFileDate())
                 .build();
 
-        if(dataState.equals(DataState.COLLECTED))
-            return getCollectedDataFromSurveyUnit(su, surveyUnitUpdateDto, variablesMap);
-        else{
-            return getOtherDataFromSurveyUnit(su, surveyUnitUpdateDto, variablesMap,dataState);
-        }
+        getExternalDataFromSurveyUnit(su, surveyUnitUpdateDto);
+
+        return getCollectedDataFromSurveyUnit(su, surveyUnitUpdateDto, variablesMap, dataState);
     }
 
-    private static SurveyUnitUpdateDto getCollectedDataFromSurveyUnit(LunaticXmlSurveyUnit su, SurveyUnitUpdateDto surveyUnitUpdateDto, VariablesMap variablesMap) {
-        List<CollectedVariableDto> variablesUpdate = new ArrayList<>();
-        for (LunaticXmlCollectedData lunaticXmlCollectedData : su.getData().getCollected()){
-            for (int i =1;i<=lunaticXmlCollectedData.getCollected().size();i++) {
-                List<String> variableValues = transformToList(lunaticXmlCollectedData.getCollected().get(i-1).getValue());
-                if (!variableValues.isEmpty()) {
-                    variablesUpdate.add(CollectedVariableDto.collectedVariableBuilder()
-                            .idVar(lunaticXmlCollectedData.getVariableName())
-                            .values(transformToList(lunaticXmlCollectedData.getCollected().get(i - 1).getValue()))
-                            .idLoop(LoopIdentifier.getLoopIdentifier(lunaticXmlCollectedData.getVariableName(), variablesMap, i))
-                            .idParent(LoopIdentifier.getParentGroupName(lunaticXmlCollectedData.getVariableName(), variablesMap))
-                            .build());
-                }
-            }
-        }
-        surveyUnitUpdateDto.setVariablesUpdate(variablesUpdate);
-
+    /**
+     * Extract external data from XML survey unit and put it into DTO
+     * @param su XML survey unit
+     * @param surveyUnitUpdateDto DTO to aliment
+     */
+    private static void getExternalDataFromSurveyUnit(LunaticXmlSurveyUnit su, SurveyUnitUpdateDto surveyUnitUpdateDto) {
         //External variables goes into the COLLECTED DTO
         List<VariableDto> externalVariables = new ArrayList<>();
         su.getData().getExternal().forEach(lunaticXmlExternalData ->
@@ -98,17 +85,26 @@ public class LunaticXmlAdapter {
                         .build())
         );
         surveyUnitUpdateDto.setExternalVariables(externalVariables);
-
-        return surveyUnitUpdateDto;
     }
 
-    private static SurveyUnitUpdateDto getOtherDataFromSurveyUnit(LunaticXmlSurveyUnit su, SurveyUnitUpdateDto surveyUnitUpdateDto, VariablesMap variablesMap, DataState dataState) {
+
+    /**
+     * Gets data from a specific state and put it into DTO's data
+     * @param su XML survey unit to extract from
+     * @param surveyUnitUpdateDto DTO to aliment
+     * @param variablesMap variables definitions (used for loops)
+     * @param dataState data state from XML
+     * @return the DTO containing data, null if no data and not COLLECTED
+     */
+    private static SurveyUnitUpdateDto getCollectedDataFromSurveyUnit(LunaticXmlSurveyUnit su, SurveyUnitUpdateDto surveyUnitUpdateDto, VariablesMap variablesMap, DataState dataState) {
         List<CollectedVariableDto> variablesUpdate = new ArrayList<>();
 
         int dataCount = 0;
         for (LunaticXmlCollectedData lunaticXmlCollectedData : su.getData().getCollected()){
             List<ValueType> valueTypeList;
             switch (dataState){
+                case COLLECTED: valueTypeList = lunaticXmlCollectedData.getCollected();
+                break;
                 case EDITED : valueTypeList = lunaticXmlCollectedData.getEdited();
                 break;
                 case FORCED : valueTypeList = lunaticXmlCollectedData.getForced();
@@ -137,8 +133,8 @@ public class LunaticXmlAdapter {
         }
         surveyUnitUpdateDto.setVariablesUpdate(variablesUpdate);
 
-        //Return null if no data
-        if(dataCount > 0) return surveyUnitUpdateDto;
+        //Return null if no data and not COLLECTED
+        if(dataCount > 0 || dataState.equals(DataState.COLLECTED)) return surveyUnitUpdateDto;
         return null;
     }
 
