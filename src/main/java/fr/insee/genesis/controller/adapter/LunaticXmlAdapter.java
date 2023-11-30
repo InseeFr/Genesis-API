@@ -65,26 +65,7 @@ public class LunaticXmlAdapter {
                 .fileDate(su.getFileDate())
                 .build();
 
-        getExternalDataFromSurveyUnit(su, surveyUnitUpdateDto);
-
         return getCollectedDataFromSurveyUnit(su, surveyUnitUpdateDto, variablesMap, dataState);
-    }
-
-    /**
-     * Extract external data from XML survey unit and put it into DTO
-     * @param su XML survey unit
-     * @param surveyUnitUpdateDto DTO to aliment
-     */
-    private static void getExternalDataFromSurveyUnit(LunaticXmlSurveyUnit su, SurveyUnitUpdateDto surveyUnitUpdateDto) {
-        //External variables goes into the COLLECTED DTO
-        List<VariableDto> externalVariables = new ArrayList<>();
-        su.getData().getExternal().forEach(lunaticXmlExternalData ->
-                externalVariables.add(VariableDto.builder()
-                        .idVar(lunaticXmlExternalData.getVariableName())
-                        .values(transformToList(lunaticXmlExternalData.getValues().get(0).getValue()))
-                        .build())
-        );
-        surveyUnitUpdateDto.setExternalVariables(externalVariables);
     }
 
 
@@ -104,6 +85,8 @@ public class LunaticXmlAdapter {
             List<ValueType> valueTypeList;
             switch (dataState){
                 case COLLECTED: valueTypeList = lunaticXmlCollectedData.getCollected();
+                    //External variables goes into the COLLECTED DTO
+                    getExternalDataFromSurveyUnit(su, surveyUnitUpdateDto);
                 break;
                 case EDITED : valueTypeList = lunaticXmlCollectedData.getEdited();
                 break;
@@ -136,6 +119,24 @@ public class LunaticXmlAdapter {
         //Return null if no data and not COLLECTED
         if(dataCount > 0 || dataState.equals(DataState.COLLECTED)) return surveyUnitUpdateDto;
         return null;
+    }
+
+
+
+    /**
+     * Extract external data from XML survey unit and put it into DTO
+     * @param su XML survey unit
+     * @param surveyUnitUpdateDto DTO to aliment
+     */
+    private static void getExternalDataFromSurveyUnit(LunaticXmlSurveyUnit su, SurveyUnitUpdateDto surveyUnitUpdateDto) {
+        List<VariableDto> externalVariables = new ArrayList<>();
+        su.getData().getExternal().forEach(lunaticXmlExternalData ->
+                externalVariables.add(VariableDto.builder()
+                        .idVar(lunaticXmlExternalData.getVariableName())
+                        .values(transformToList(lunaticXmlExternalData.getValues().get(0).getValue()))
+                        .build())
+        );
+        surveyUnitUpdateDto.setExternalVariables(externalVariables);
     }
 
 
