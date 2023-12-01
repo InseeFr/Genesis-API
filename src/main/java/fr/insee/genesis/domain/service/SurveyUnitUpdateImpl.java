@@ -64,14 +64,14 @@ public class SurveyUnitUpdateImpl implements SurveyUnitUpdateApiPort {
             List<String> addedVariables = new ArrayList<>();
             SurveyUnitUpdateDto latestUpdate = suByMode.get(0);
 
-            latestUpdate.getVariablesUpdate().forEach(variableStateDto -> addedVariables.add(variableStateDto.getIdVar()));
+            latestUpdate.getCollectedVariables().forEach(variableStateDto -> addedVariables.add(variableStateDto.getIdVar()));
             latestUpdate.getExternalVariables().forEach(externalVariableDto -> addedVariables.add(externalVariableDto.getIdVar()));
 
             suByMode.forEach(surveyUnitUpdateDto -> {
                 List<CollectedVariableDto> variablesToKeep = new ArrayList<>();
                 List<VariableDto> externalToKeep = new ArrayList<>();
                 // We iterate over the variables of the update and add them to the list if they are not already added
-                surveyUnitUpdateDto.getVariablesUpdate().forEach(variableStateDto -> {
+                surveyUnitUpdateDto.getCollectedVariables().forEach(variableStateDto -> {
                     if (!addedVariables.contains(variableStateDto.getIdVar())){
                         variablesToKeep.add(variableStateDto);
                         addedVariables.add(variableStateDto.getIdVar());
@@ -88,7 +88,7 @@ public class SurveyUnitUpdateImpl implements SurveyUnitUpdateApiPort {
 
                 // If there are new variables, we add the update to the list of latest updates
                 if (!variablesToKeep.isEmpty() || !externalToKeep.isEmpty()){
-                    surveyUnitUpdateDto.setVariablesUpdate(variablesToKeep);
+                    surveyUnitUpdateDto.setCollectedVariables(variablesToKeep);
                     surveyUnitUpdateDto.setExternalVariables(externalToKeep);
                     latestUpdatesbyVariables.add(surveyUnitUpdateDto);
                 }

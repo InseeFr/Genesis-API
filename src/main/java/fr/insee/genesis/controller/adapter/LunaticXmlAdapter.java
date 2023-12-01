@@ -6,6 +6,7 @@ import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
 import fr.insee.genesis.controller.sources.xml.ValueType;
 import fr.insee.genesis.controller.utils.LoopIdentifier;
 import fr.insee.genesis.domain.dtos.*;
+import lombok.Value;
 import lombok.experimental.UtilityClass;
 
 import java.time.LocalDateTime;
@@ -26,6 +27,7 @@ public class LunaticXmlAdapter {
         //Get COLLECTED Data and external variables
         List<SurveyUnitUpdateDto> surveyUnitUpdateDtoList = new ArrayList<>();
         SurveyUnitUpdateDto surveyUnitUpdateDto = getStateDataFromSurveyUnit(su, variablesMap, idCampaign, DataState.COLLECTED);
+        getExternalDataFromSurveyUnit(su,surveyUnitUpdateDto);
 
         surveyUnitUpdateDtoList.add(surveyUnitUpdateDto);
 
@@ -85,8 +87,6 @@ public class LunaticXmlAdapter {
             List<ValueType> valueTypeList;
             switch (dataState){
                 case COLLECTED: valueTypeList = lunaticXmlCollectedData.getCollected();
-                    //External variables goes into the COLLECTED DTO
-                    getExternalDataFromSurveyUnit(su, surveyUnitUpdateDto);
                 break;
                 case EDITED : valueTypeList = lunaticXmlCollectedData.getEdited();
                 break;
@@ -101,20 +101,20 @@ public class LunaticXmlAdapter {
             }
             if(valueTypeList != null) {
                 for (int i = 1; i <= valueTypeList.size(); i++) {
-                    dataCount++;
-                    List<String> variableValues = transformToList(valueTypeList.get(i - 1).getValue());
+                    List<String> variableValues = getValuesFromValueTypeList(valueTypeList);
                     if (!variableValues.isEmpty()) {
                         variablesUpdate.add(CollectedVariableDto.collectedVariableBuilder()
                                 .idVar(lunaticXmlCollectedData.getVariableName())
-                                .values(transformToList(valueTypeList.get(i - 1).getValue()))
+                                .values(variableValues)
                                 .idLoop(LoopIdentifier.getLoopIdentifier(lunaticXmlCollectedData.getVariableName(), variablesMap, i))
                                 .idParent(LoopIdentifier.getParentGroupName(lunaticXmlCollectedData.getVariableName(), variablesMap))
                                 .build());
+                        dataCount++;
                     }
                 }
             }
         }
-        surveyUnitUpdateDto.setVariablesUpdate(variablesUpdate);
+        surveyUnitUpdateDto.setCollectedVariables(variablesUpdate);
 
         //Return null if no data and not COLLECTED
         if(dataCount > 0 || dataState.equals(DataState.COLLECTED)) return surveyUnitUpdateDto;
@@ -133,17 +133,19 @@ public class LunaticXmlAdapter {
         su.getData().getExternal().forEach(lunaticXmlExternalData ->
                 externalVariables.add(VariableDto.builder()
                         .idVar(lunaticXmlExternalData.getVariableName())
-                        .values(transformToList(lunaticXmlExternalData.getValues().get(0).getValue()))
+                        .values(getValuesFromValueTypeList(lunaticXmlExternalData.getValues()))
                         .build())
         );
         surveyUnitUpdateDto.setExternalVariables(externalVariables);
     }
 
-
-    private static List<String> transformToList(String value) {
-        if (value != null){
+    private static List<String> getValuesFromValueTypeList(List<ValueType> valueTypeList) {
+        if (!valueTypeList.isEmpty()){
             List<String> values = new ArrayList<>();
-            values.add(value);
+            for(ValueType valueType : valueTypeList)
+                if (valueType.getValue() != null) {
+                    values.add(valueType.getValue());
+                }
             return values;
         }
         return List.of();

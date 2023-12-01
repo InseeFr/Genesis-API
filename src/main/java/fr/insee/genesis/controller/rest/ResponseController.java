@@ -162,7 +162,7 @@ public class ResponseController {
         List<CollectedVariableDto> outputVariables = new ArrayList<>();
         List<VariableDto> outputExternalVariables = new ArrayList<>();
         responses.stream().filter(rep->rep.getMode().equals(mode)).forEach(response -> {
-            outputVariables.addAll(response.getVariablesUpdate());
+            outputVariables.addAll(response.getCollectedVariables());
             outputExternalVariables.addAll(response.getExternalVariables());
         });
         return new ResponseEntity<>(SurveyUnitUpdateSimplified.builder()
@@ -189,7 +189,7 @@ public class ResponseController {
                 List<CollectedVariableDto> outputVariables = new ArrayList<>();
                 List<VariableDto> outputExternalVariables = new ArrayList<>();
                 responses.stream().filter(rep->rep.getMode().equals(mode)).forEach(response -> {
-                    outputVariables.addAll(response.getVariablesUpdate());
+                    outputVariables.addAll(response.getCollectedVariables());
                     outputExternalVariables.addAll(response.getExternalVariables());
                 });
                 if (!outputVariables.isEmpty() || !outputExternalVariables.isEmpty()) {

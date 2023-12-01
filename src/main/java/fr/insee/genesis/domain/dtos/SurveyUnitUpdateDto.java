@@ -18,7 +18,7 @@ public class SurveyUnitUpdateDto {
     private Mode mode;
     private LocalDateTime recordDate;
     private LocalDateTime fileDate;
-    private List<CollectedVariableDto> variablesUpdate;
+    private List<CollectedVariableDto> collectedVariables;
     private List<VariableDto> externalVariables;
 
     /**
@@ -32,7 +32,7 @@ public class SurveyUnitUpdateDto {
                 .state(DataState.FORCED)
                 .mode(mode)
                 .recordDate(LocalDateTime.now())
-                .variablesUpdate(new ArrayList<>())
+                .collectedVariables(new ArrayList<>())
                 .externalVariables(new ArrayList<>())
                 .build();
     }

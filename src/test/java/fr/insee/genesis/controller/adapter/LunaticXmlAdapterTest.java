@@ -172,7 +172,7 @@ class LunaticXmlAdapterTest {
 		// When
 		List<SurveyUnitUpdateDto> suDtos = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit1,variablesMap, ID_CAMPAIGN);
 		// Then
-		Assertions.assertThat(suDtos.get(0).getVariablesUpdate()).hasSize(4);
+		Assertions.assertThat(suDtos.get(0).getCollectedVariables()).hasSize(4);
 	}
 
 	//TODO Unit tests from datastate
@@ -193,7 +193,7 @@ class LunaticXmlAdapterTest {
 		Assertions.assertThat(editedDTO).isPresent();
 
 		//Content check
-		for(CollectedVariableDto collectedVariableDto : editedDTO.get().getVariablesUpdate()){
+		for(CollectedVariableDto collectedVariableDto : editedDTO.get().getCollectedVariables()){
 			Assertions.assertThat(collectedVariableDto.getValues()).containsAnyOf("1e","2e").doesNotContain("1","2");
 		}
 	}

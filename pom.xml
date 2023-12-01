@@ -121,12 +121,6 @@
             <version>${cucumber.version}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>io.cucumber</groupId>
-            <artifactId>cucumber-spring</artifactId>
-            <version>${cucumber.version}</version>
-            <scope>test</scope>
-        </dependency>
 
         <!-- Karate -->
         <!-- https://www.baeldung.com/karate-rest-api-testing -->

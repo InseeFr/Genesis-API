@@ -34,7 +34,7 @@ public class DataVerifier {
 
         for(SurveyUnitUpdateDto suDto : suDtosList){
             //Pairs(variable name, incorrect value index)
-            List<String[]> incorrectUpdateVariablesTuples = verifyVariables(suDto.getVariablesUpdate(), variablesMap);
+            List<String[]> incorrectUpdateVariablesTuples = verifyVariables(suDto.getCollectedVariables(), variablesMap);
             List<String[]> incorrectExternalVariablesTuples = verifyVariables(suDto.getExternalVariables(), variablesMap);
 
             // If variable has at least 1 incorrect value
@@ -62,17 +62,19 @@ public class DataVerifier {
      * @return a list of pairs (variable name, index)
      */
     private static List<String[]> verifyVariables(List<? extends VariableDto> variablesToVerify, VariablesMap variablesMap){
-        // List of tuples (
+        // List of tuples
         List<String[]> incorrectVariables = new ArrayList<>();
-        for (VariableDto variable : variablesToVerify){
-            if (variablesMap.getVariable(variable.getIdVar()) != null) {
-                Variable variableDefinition = variablesMap.getVariable(variable.getIdVar());
-                int valueIndex = 0;
-                for (String value : variable.getValues()) {
-                    if(isParseError(value, variableDefinition.getType())){
-                        incorrectVariables.add(new String[]{variable.getIdVar(), Integer.toString(valueIndex)});
+        if(variablesToVerify != null){
+            for (VariableDto variable : variablesToVerify){
+                if (variablesMap.getVariable(variable.getIdVar()) != null) {
+                    Variable variableDefinition = variablesMap.getVariable(variable.getIdVar());
+                    int valueIndex = 0;
+                    for (String value : variable.getValues()) {
+                        if(isParseError(value, variableDefinition.getType())){
+                            incorrectVariables.add(new String[]{variable.getIdVar(), Integer.toString(valueIndex)});
+                        }
+                        valueIndex++;
                     }
-                    valueIndex++;
                 }
             }
         }
@@ -138,7 +140,7 @@ public class DataVerifier {
         Set<String> incorrectVariablesNames = new HashSet<>();
         getIncorrectVariableNames(incorrectUpdateVariablesTuples, incorrectVariablesNames);
 
-        for (CollectedVariableDto variable : sourceSurveyUnitUpdateDto.getVariablesUpdate()){
+        for (CollectedVariableDto variable : sourceSurveyUnitUpdateDto.getCollectedVariables()){
             if(incorrectVariablesNames.contains(variable.getIdVar())){
                 //Copy variable
                 CollectedVariableDto newVariable = CollectedVariableDto.collectedVariableBuilder()
@@ -150,7 +152,7 @@ public class DataVerifier {
                 //Change incorrect value(s) to empty
                 for(int incorrectValueIndex : getIncorrectValuesIndexes(incorrectUpdateVariablesTuples, variable.getIdVar()))
                     newVariable.getValues().set(incorrectValueIndex,"");
-                destinationSurveyUnitUpdateDto.getVariablesUpdate().add(newVariable);
+                destinationSurveyUnitUpdateDto.getCollectedVariables().add(newVariable);
             }
         }
     }
