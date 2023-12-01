@@ -70,8 +70,7 @@ public class ResponseController {
         }
         List<SurveyUnitUpdateDto> suDtos = new ArrayList<>();
         for (LunaticXmlSurveyUnit su : campaign.getSurveyUnits()) {
-            SurveyUnitUpdateDto suDto = LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign());
-            suDtos.add(suDto);
+            suDtos.addAll(LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign()));
         }
         surveyUnitQualityService.verifySurveyUnits(suDtos,variablesMap);
         surveyUnitService.saveSurveyUnits(suDtos);
@@ -118,8 +117,7 @@ public class ResponseController {
                 }
                 List<SurveyUnitUpdateDto> suDtos = new ArrayList<>();
                 for (LunaticXmlSurveyUnit su : campaign.getSurveyUnits()) {
-                    SurveyUnitUpdateDto suDto = LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign());
-                    suDtos.add(suDto);
+                    suDtos.addAll(LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign()));
                 }
                 surveyUnitQualityService.verifySurveyUnits(suDtos,variablesMap);
                 surveyUnitService.saveSurveyUnits(suDtos);
@@ -164,7 +162,7 @@ public class ResponseController {
         List<CollectedVariableDto> outputVariables = new ArrayList<>();
         List<VariableDto> outputExternalVariables = new ArrayList<>();
         responses.stream().filter(rep->rep.getMode().equals(mode)).forEach(response -> {
-            outputVariables.addAll(response.getVariablesUpdate());
+            outputVariables.addAll(response.getCollectedVariables());
             outputExternalVariables.addAll(response.getExternalVariables());
         });
         return new ResponseEntity<>(SurveyUnitUpdateSimplified.builder()
@@ -191,7 +189,7 @@ public class ResponseController {
                 List<CollectedVariableDto> outputVariables = new ArrayList<>();
                 List<VariableDto> outputExternalVariables = new ArrayList<>();
                 responses.stream().filter(rep->rep.getMode().equals(mode)).forEach(response -> {
-                    outputVariables.addAll(response.getVariablesUpdate());
+                    outputVariables.addAll(response.getCollectedVariables());
                     outputExternalVariables.addAll(response.getExternalVariables());
                 });
                 if (!outputVariables.isEmpty() || !outputExternalVariables.isEmpty()) {

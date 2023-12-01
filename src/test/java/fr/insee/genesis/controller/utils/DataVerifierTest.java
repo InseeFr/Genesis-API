@@ -113,7 +113,7 @@ class DataVerifierTest {
                 .state(DataState.COLLECTED)
                 .mode(Mode.WEB)
                 .recordDate(LocalDateTime.now())
-                .variablesUpdate(new ArrayList<>(variableUpdates))
+                .collectedVariables(new ArrayList<>(variableUpdates))
                 .externalVariables(new ArrayList<>(externalVariables))
                 .build();
 
@@ -150,7 +150,7 @@ class DataVerifierTest {
                 .state(DataState.COLLECTED)
                 .mode(Mode.WEB)
                 .recordDate(LocalDateTime.now())
-                .variablesUpdate(new ArrayList<>(variableUpdates))
+                .collectedVariables(new ArrayList<>(variableUpdates))
                 .externalVariables(new ArrayList<>(externalVariables))
                 .build();
 
@@ -183,7 +183,7 @@ class DataVerifierTest {
                 .state(DataState.COLLECTED)
                 .mode(Mode.WEB)
                 .recordDate(LocalDateTime.now())
-                .variablesUpdate(new ArrayList<>(variableUpdates))
+                .collectedVariables(new ArrayList<>(variableUpdates))
                 .externalVariables(new ArrayList<>(externalVariables))
                 .build();
 
@@ -223,7 +223,7 @@ class DataVerifierTest {
                 .state(DataState.COLLECTED)
                 .mode(Mode.WEB)
                 .recordDate(LocalDateTime.now())
-                .variablesUpdate(new ArrayList<>(variableUpdates))
+                .collectedVariables(new ArrayList<>(variableUpdates))
                 .externalVariables(new ArrayList<>(externalVariables))
                 .build();
 
@@ -255,7 +255,7 @@ class DataVerifierTest {
                 .state(DataState.COLLECTED)
                 .mode(Mode.WEB)
                 .recordDate(LocalDateTime.now())
-                .variablesUpdate(new ArrayList<>(variableUpdates))
+                .collectedVariables(new ArrayList<>(variableUpdates))
                 .externalVariables(new ArrayList<>(externalVariables))
                 .build();
 
@@ -294,16 +294,16 @@ class DataVerifierTest {
     void incorrectUpdateVariable1Test(){
         assertThat(testSurveyUnitUpdateDtos.get(initialSize)).isNotNull();
         //Integer assert
-        assertThat(testSurveyUnitUpdateDtos.get(initialSize).getVariablesUpdate().get(0).getValues().get(0)).isEmpty();
+        assertThat(testSurveyUnitUpdateDtos.get(initialSize).getCollectedVariables().get(0).getValues().get(0)).isEmpty();
         //Date assert
-        assertThat(testSurveyUnitUpdateDtos.get(initialSize).getVariablesUpdate()).hasSize(1);
+        assertThat(testSurveyUnitUpdateDtos.get(initialSize).getCollectedVariables()).hasSize(1);
     }
 
     @Test
     @DisplayName("Case 3 : Incorrect update variable type (2 values), incorrect value set to empty")
     void incorrectUpdateVariable2Test(){
         assertThat(testSurveyUnitUpdateDtos.get(initialSize + 1)).isNotNull();
-        assertThat(testSurveyUnitUpdateDtos.get(initialSize + 1).getVariablesUpdate().get(0).getValues()).hasSize(2).contains("");
+        assertThat(testSurveyUnitUpdateDtos.get(initialSize + 1).getCollectedVariables().get(0).getValues()).hasSize(2).contains("");
     }
 
     @Test
