@@ -55,6 +55,6 @@ Feature: Do we extract data ?
     And For external variable "<ExternalVariableName>" in survey unit "<SurveyUnitId>" we should have "<ExpectedValue>" as value number <ExpectedValueIndex>
     Examples:
       | Directory              | FileName                                                          | DDIFileName                   | ExpectedNumberOfValues | ExternalVariableName | SurveyUnitId | ExpectedValue    | ExpectedValueIndex |
-      | SAMPLETEST-PARADATA-v1 | reponse-platine/data.complete.validated.STPDv1.20231122164209.xml |ddi-SAMPLETEST-PARADATA-v1.xml | 1                      | RPANAISCONJ          | 0000007      | 1986             | 1                  |
-      | SAMPLETEST-PARADATA-v1 | reponse-platine/data.complete.validated.STPDv1.20231122164209.xml |ddi-SAMPLETEST-PARADATA-v1.xml | 2                      | RPPRENOM             | 0000007      | TESTRPRENOM7_2   | 1                  |
-      | SAMPLETEST-PARADATA-v1 | reponse-platine/data.complete.validated.STPDv1.20231122164209.xml |ddi-SAMPLETEST-PARADATA-v1.xml | 2                      | RPPRENOM             | 0000007      | TESTRPRENOM7PAR1 | 2                  |
+      | SAMPLETEST-PARADATA-v1 | reponse-platine/data.complete.validated.STPDv1.20231122164209.xml |ddi-SAMPLETEST-PARADATA-v1.xml | 1                      | RPANAISCONJ          | 0000007      | 1986             | 0                  |
+      | SAMPLETEST-PARADATA-v1 | reponse-platine/data.complete.validated.STPDv1.20231122164209.xml |ddi-SAMPLETEST-PARADATA-v1.xml | 2                      | RPPRENOM             | 0000007      | TESTRPRENOM7_2   | 0                  |
+      | SAMPLETEST-PARADATA-v1 | reponse-platine/data.complete.validated.STPDv1.20231122164209.xml |ddi-SAMPLETEST-PARADATA-v1.xml | 2                      | RPPRENOM             | 0000007      | TESTRPRENOM7PAR1 | 1                  |
