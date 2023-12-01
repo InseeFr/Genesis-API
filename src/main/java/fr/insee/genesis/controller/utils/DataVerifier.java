@@ -34,18 +34,18 @@ public class DataVerifier {
 
         for(SurveyUnitUpdateDto suDto : suDtosList){
             //Pairs(variable name, incorrect value index)
-            List<String[]> incorrectUpdateVariablesTuples = verifyVariables(suDto.getCollectedVariables(), variablesMap);
+            List<String[]> incorrectCollectedVariablesTuples = verifyVariables(suDto.getCollectedVariables(), variablesMap);
             List<String[]> incorrectExternalVariablesTuples = verifyVariables(suDto.getExternalVariables(), variablesMap);
 
             // If variable has at least 1 incorrect value
             // create new survey unit
             // change the incorrect value to empty if multiple value
             // exclude variable if only value
-            if(incorrectUpdateVariablesTuples.size() + incorrectExternalVariablesTuples.size() > 0) {
+            if(incorrectCollectedVariablesTuples.size() + incorrectExternalVariablesTuples.size() > 0) {
                 SurveyUnitUpdateDto newSuDtoForced = suDto.buildForcedSurveyUnitUpdate();
 
-                if(!incorrectUpdateVariablesTuples.isEmpty())
-                    updateVariablesManagement(suDto,newSuDtoForced,incorrectUpdateVariablesTuples);
+                if(!incorrectCollectedVariablesTuples.isEmpty())
+                    collectedVariablesManagement(suDto,newSuDtoForced,incorrectCollectedVariablesTuples);
 
                 if(!incorrectExternalVariablesTuples.isEmpty())
                     externalVariablesManagement(suDto,newSuDtoForced,incorrectExternalVariablesTuples);
@@ -129,16 +129,16 @@ public class DataVerifier {
      * Changes values flagged as incorrect in update variables from source and fill the destination's update variables
      * @param sourceSurveyUnitUpdateDto source Survey Unit
      * @param destinationSurveyUnitUpdateDto destination Survey Unit
-     * @param incorrectUpdateVariablesTuples (incorrect variable name, incorrect value index) pairs
+     * @param incorrectCollectedVariablesTuples (incorrect variable name, incorrect value index) pairs
      */
-    private static void updateVariablesManagement(
+    private static void collectedVariablesManagement(
             SurveyUnitUpdateDto sourceSurveyUnitUpdateDto
             ,SurveyUnitUpdateDto destinationSurveyUnitUpdateDto
-            ,List<String[]> incorrectUpdateVariablesTuples
+            ,List<String[]> incorrectCollectedVariablesTuples
     ){
         //Variable names extraction
         Set<String> incorrectVariablesNames = new HashSet<>();
-        getIncorrectVariableNames(incorrectUpdateVariablesTuples, incorrectVariablesNames);
+        getIncorrectVariableNames(incorrectCollectedVariablesTuples, incorrectVariablesNames);
 
         for (CollectedVariableDto variable : sourceSurveyUnitUpdateDto.getCollectedVariables()){
             if(incorrectVariablesNames.contains(variable.getIdVar())){
@@ -150,7 +150,7 @@ public class DataVerifier {
                         .values(new ArrayList<>(variable.getValues()))
                         .build();
                 //Change incorrect value(s) to empty
-                for(int incorrectValueIndex : getIncorrectValuesIndexes(incorrectUpdateVariablesTuples, variable.getIdVar()))
+                for(int incorrectValueIndex : getIncorrectValuesIndexes(incorrectCollectedVariablesTuples, variable.getIdVar()))
                     newVariable.getValues().set(incorrectValueIndex,"");
                 destinationSurveyUnitUpdateDto.getCollectedVariables().add(newVariable);
             }
