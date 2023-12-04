@@ -1,7 +1,7 @@
-package fr.insee.genesis.intrastructure.utils;
+package fr.insee.genesis.infrastructure.utils;
 
+import cucumber.TestConstants;
 import fr.insee.genesis.configuration.Config;
-import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import org.junit.jupiter.api.Test;
 
@@ -14,19 +14,19 @@ class FileUtilsTest {
 
 	@Test
 	void getDataFolderTest() {
-		assertEquals("/test/genesis/IN/WEB/TEST",
+		assertEquals(TestConstants.TEST_RESOURCES_DIRECTORY + "/IN/WEB/TEST",
 				fileUtils.getDataFolder("TEST", "WEB"));
 	}
 
 	@Test
 	void getDoneFolderTest() {
-		assertEquals("/test/genesis/DONE/WEB/TEST",
+		assertEquals(TestConstants.TEST_RESOURCES_DIRECTORY + "/DONE/WEB/TEST",
 				fileUtils.getDoneFolder("TEST", "WEB"));
 	}
 
 	@Test
 	void getSpecFolderTest(){
-		assertEquals("/test/kraftwerk/specs/TEST",
+		assertEquals(TestConstants.TEST_RESOURCES_DIRECTORY + "/IN/specs/TEST",
 				fileUtils.getSpecFolder("TEST"));
 	}
 
