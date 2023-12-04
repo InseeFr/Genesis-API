@@ -4,10 +4,12 @@ import cucumber.TestConstants;
 import fr.insee.genesis.controller.responses.SurveyUnitUpdateSimplified;
 import fr.insee.genesis.controller.service.SurveyUnitQualityService;
 import fr.insee.genesis.controller.utils.ControllerUtils;
+import fr.insee.genesis.domain.dtos.CollectedVariableDto;
 import fr.insee.genesis.domain.dtos.DataState;
 import fr.insee.genesis.domain.dtos.Mode;
 import fr.insee.genesis.domain.dtos.SurveyUnitId;
 import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
+import fr.insee.genesis.domain.dtos.VariableDto;
 import fr.insee.genesis.domain.ports.api.SurveyUnitUpdateApiPort;
 import fr.insee.genesis.domain.service.SurveyUnitUpdateImpl;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
@@ -24,6 +26,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -54,10 +57,31 @@ class ResponseControllerTest {
     }
 
     @BeforeEach
-    void clean() throws IOException {
-        if(!surveyUnitUpdatePersistencePortStub.getMongoStub().isEmpty())
-            surveyUnitUpdatePersistencePortStub.getMongoStub().clear();
+    void reset() throws IOException {
+        //MongoDB stub management
+        surveyUnitUpdatePersistencePortStub.getMongoStub().clear();
 
+        List<VariableDto> externalVariableDtoList = new ArrayList<>();
+        VariableDto variableDto = VariableDto.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
+        externalVariableDtoList.add(variableDto);
+
+        List<CollectedVariableDto> collectedVariableDtoList = new ArrayList<>();
+        CollectedVariableDto collectedVariableDto = new CollectedVariableDto("TESTIDVAR", List.of(new String[]{"V1", "V2"}),"TESTIDLOOP","TESTIDPARENT");
+        collectedVariableDtoList.add(collectedVariableDto);
+        surveyUnitUpdatePersistencePortStub.getMongoStub().add(SurveyUnitUpdateDto.builder()
+                .idCampaign("TESTIDCAMPAIGN")
+                .mode(Mode.WEB)
+                .idUE("TESTIDUE")
+                .idQuest("TESTIDQUESTIONNAIRE")
+                .state(DataState.COLLECTED)
+                .fileDate(LocalDateTime.of(2023,1,1,0,0,0))
+                .recordDate(LocalDateTime.of(2024,1,1,0,0,0))
+                .externalVariables(externalVariableDtoList)
+                .collectedVariables(collectedVariableDtoList)
+                .build());
+
+
+        //Test file management
         if(Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("DONE").toFile().exists())
             Files.walk(Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("DONE"))
                     .sorted(Comparator.reverseOrder())
@@ -109,6 +133,8 @@ class ResponseControllerTest {
 
     @Test
     void saveResponsesFromXmlCampaignFolderTest_noData() throws Exception {
+        surveyUnitUpdatePersistencePortStub.getMongoStub().clear();
+
         responseControllerStatic.saveResponsesFromXmlCampaignFolder(
                 "TESTNODATA"
                 ,Mode.WEB
@@ -136,15 +162,18 @@ class ResponseControllerTest {
         Assertions.assertThat(response.getBody().get(0).getIdQuest()).isEqualTo("TESTIDQUESTIONNAIRE");
     }
 
-    //TODO Maybe interact with mongoStub
+    //TODO refaire pour répondre à la logique du call
     @Test
     void getLatestByUETest(){
+        addAdditionnalDtoToMongoStub();
+
         ResponseEntity<List<SurveyUnitUpdateDto>> response = responseControllerStatic.getLatestByUE("TESTIDUE","TESTIDQUESTIONNAIRE");
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
         Assertions.assertThat(response.getBody().get(0).getIdUE()).isEqualTo("TESTIDUE");
         Assertions.assertThat(response.getBody().get(0).getIdQuest()).isEqualTo("TESTIDQUESTIONNAIRE");
+        Assertions.assertThat(response.getBody().get(0).getFileDate()).hasMonth(Month.FEBRUARY);
     }
 
     @Test
@@ -182,6 +211,29 @@ class ResponseControllerTest {
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().hasSize(1);
         Assertions.assertThat(response.getBody().get(0)).isEqualTo(Mode.WEB);
+    }
+
+    private void addAdditionnalDtoToMongoStub(){
+        List<VariableDto> externalVariableDtoList = new ArrayList<>();
+        VariableDto variableDto = VariableDto.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
+        externalVariableDtoList.add(variableDto);
+
+        List<CollectedVariableDto> collectedVariableDtoList = new ArrayList<>();
+        CollectedVariableDto collectedVariableDto = new CollectedVariableDto("TESTIDVAR", List.of(new String[]{"V1", "V2"}),"TESTIDLOOP","TESTIDPARENT");
+        collectedVariableDtoList.add(collectedVariableDto);
+
+        SurveyUnitUpdateDto recentDTO = SurveyUnitUpdateDto.builder()
+                .idCampaign("TESTIDCAMPAIGN")
+                .mode(Mode.WEB)
+                .idUE("TESTIDUE")
+                .idQuest("TESTIDQUESTIONNAIRE")
+                .state(DataState.COLLECTED)
+                .fileDate(LocalDateTime.of(2023,2,2,0,0,0))
+                .recordDate(LocalDateTime.of(2024,2,2,0,0,0))
+                .externalVariables(externalVariableDtoList)
+                .collectedVariables(collectedVariableDtoList)
+                .build();
+        surveyUnitUpdatePersistencePortStub.getMongoStub().add(recentDTO);
     }
 
 }
