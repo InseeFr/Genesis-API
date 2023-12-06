@@ -17,31 +17,51 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 public class VariablesMapTest {
 
+    private final static String LOOP1_NAME = "INDIVIDUALS_LOOP";
+    private final static String LOOP2_NAME = "CARS_LOOP";
+    private final static String ADDRESS_VARIABLE_NAME = "ADDRESS";
+    private final static String HOUSEHOLD_INCOME_VARIABLE_NAME = "HOUSEHOLD_INCOME";
+    private final static String FIRST_NAME_VARIABLE_NAME = "FIRST_NAME";
+    private final static String LAST_NAME_VARIABLE_NAME = "LAST_NAME";
+    private final static String GENDER_VARIABLE_NAME = "GENDER";
+    private final static String CAR_COLOR_VARIABLE_NAME = "CAR_COLOR";
+    private final static String VEHICLE_OWNER_VARIABLE_NAME = "VEHICLE_OWNER";
+    private final static String CAR_OWNER_VARIABLE_NAME = "CAR_OWNER";
+    private final static String MOTO_OWNER_VARIABLE_NAME = "MOTO_OWNER";
+    private final static String SEX_VARIABLE_NAME = "SEXE";
+
+    private final static String DUMMY_VARIABLE_NAME = "DUMMY";
+    private final static String UNKNOWN_QUESTION_VARIABLE_NAME = "UNKNOWN_QUESTION";
+
+    private final static String RELATIONSHIP_QUESTION_ITEM = "RELATIONSHIP";
+    
+
     private VariablesMap variablesMap;
 
     @BeforeEach
     public void createTestVariablesMap() {
         variablesMap = new VariablesMap();
 
+
         Group rootGroup = variablesMap.getRootGroup();
-        Group individualsGroup = new Group("INDIVIDUALS_LOOP", Constants.ROOT_GROUP_NAME);
-        Group carsGroup = new Group("CARS_LOOP", "INDIVIDUALS_LOOP");
+        Group individualsGroup = new Group(LOOP1_NAME, Constants.ROOT_GROUP_NAME);
+        Group carsGroup = new Group(LOOP2_NAME, LOOP1_NAME);
 
         variablesMap.putGroup(individualsGroup);
         variablesMap.putGroup(carsGroup);
 
         variablesMap.putVariable(
-                new Variable("ADDRESS", rootGroup, VariableType.STRING));
+                new Variable(ADDRESS_VARIABLE_NAME, rootGroup, VariableType.STRING));
         variablesMap.putVariable(
-                new Variable("HOUSEHOLD_INCOME", rootGroup, VariableType.NUMBER));
+                new Variable(HOUSEHOLD_INCOME_VARIABLE_NAME, rootGroup, VariableType.NUMBER));
         variablesMap.putVariable(
-                new Variable("FIRST_NAME", individualsGroup, VariableType.STRING));
+                new Variable(FIRST_NAME_VARIABLE_NAME, individualsGroup, VariableType.STRING));
         variablesMap.putVariable(
-                new Variable("LAST_NAME", individualsGroup, VariableType.STRING));
+                new Variable(LAST_NAME_VARIABLE_NAME, individualsGroup, VariableType.STRING));
         variablesMap.putVariable(
-                new Variable("GENDER", individualsGroup, VariableType.STRING));
+                new Variable(GENDER_VARIABLE_NAME, individualsGroup, VariableType.STRING));
         variablesMap.putVariable(
-                new Variable("CAR_COLOR", carsGroup, VariableType.STRING));
+                new Variable(CAR_COLOR_VARIABLE_NAME, carsGroup, VariableType.STRING));
     }
 
     @Test
@@ -55,19 +75,19 @@ public class VariablesMapTest {
     void testGetVariableByName() {
 
         // Get
-        Variable rootVariable = variablesMap.getVariable("HOUSEHOLD_INCOME");
-        Variable group1Variable = variablesMap.getVariable("FIRST_NAME");
-        Variable group2Variable = variablesMap.getVariable("CAR_COLOR");
+        Variable rootVariable = variablesMap.getVariable(HOUSEHOLD_INCOME_VARIABLE_NAME);
+        Variable group1Variable = variablesMap.getVariable(FIRST_NAME_VARIABLE_NAME);
+        Variable group2Variable = variablesMap.getVariable(CAR_COLOR_VARIABLE_NAME);
 
         // Get a variable that does not exist
         log.debug("Trying to get a variable that does not exist in a test function, " +
                 "a second message should pop in the log.");
-        Variable dummyVariable = variablesMap.getVariable("DUMMY");
+        Variable dummyVariable = variablesMap.getVariable(DUMMY_VARIABLE_NAME);
 
         //
-        assertEquals("HOUSEHOLD_INCOME", rootVariable.getName());
-        assertEquals("FIRST_NAME", group1Variable.getName());
-        assertEquals("CAR_COLOR", group2Variable.getName());
+        assertEquals(HOUSEHOLD_INCOME_VARIABLE_NAME, rootVariable.getName());
+        assertEquals(FIRST_NAME_VARIABLE_NAME, group1Variable.getName());
+        assertEquals(CAR_COLOR_VARIABLE_NAME, group2Variable.getName());
         assertNull(dummyVariable);
     }
 
@@ -75,8 +95,8 @@ public class VariablesMapTest {
     void testRemoveAndHasVariable() {
 
         // Remove
-        variablesMap.removeVariable("HOUSEHOLD_INCOME");
-        variablesMap.removeVariable("CAR_COLOR");
+        variablesMap.removeVariable(HOUSEHOLD_INCOME_VARIABLE_NAME);
+        variablesMap.removeVariable(CAR_COLOR_VARIABLE_NAME);
 
         // Remove a variable that does not exist
         log.debug("Trying to remove a variable that does not exist in a test function, " +
@@ -84,64 +104,64 @@ public class VariablesMapTest {
         variablesMap.removeVariable("FOO");
 
         //
-        assertFalse(variablesMap.hasVariable("HOUSEHOLD_INCOME"));
-        assertTrue(variablesMap.hasVariable("FIRST_NAME"));
-        assertFalse(variablesMap.hasVariable("CAR_COLOR"));
+        assertFalse(variablesMap.hasVariable(HOUSEHOLD_INCOME_VARIABLE_NAME));
+        assertTrue(variablesMap.hasVariable(FIRST_NAME_VARIABLE_NAME));
+        assertFalse(variablesMap.hasVariable(CAR_COLOR_VARIABLE_NAME));
     }
 
     @Test
     void getIdentifierNamesTest() {
         assertEquals(
-                List.of(Constants.ROOT_IDENTIFIER_NAME, "INDIVIDUALS_LOOP", "CARS_LOOP"),
+                List.of(Constants.ROOT_IDENTIFIER_NAME, LOOP1_NAME, LOOP2_NAME),
                 variablesMap.getIdentifierNames()
         );
     }
 
     @Test
     void getFullyQualifiedNameTest() {
-        assertEquals("HOUSEHOLD_INCOME",
-                variablesMap.getFullyQualifiedName("HOUSEHOLD_INCOME"));
+        assertEquals(HOUSEHOLD_INCOME_VARIABLE_NAME,
+                variablesMap.getFullyQualifiedName(HOUSEHOLD_INCOME_VARIABLE_NAME));
         assertEquals("INDIVIDUALS_LOOP.FIRST_NAME",
-                variablesMap.getFullyQualifiedName("FIRST_NAME"));
+                variablesMap.getFullyQualifiedName(FIRST_NAME_VARIABLE_NAME));
         assertEquals("INDIVIDUALS_LOOP.CARS_LOOP.CAR_COLOR",
-                variablesMap.getFullyQualifiedName("CAR_COLOR"));
+                variablesMap.getFullyQualifiedName(CAR_COLOR_VARIABLE_NAME));
     }
 
     @Test
     void testGetGroupVariableNames() {
         assertTrue(variablesMap.getGroupVariableNames(Constants.ROOT_GROUP_NAME)
-                .containsAll(Set.of("ADDRESS", "HOUSEHOLD_INCOME")));
-        assertTrue(variablesMap.getGroupVariableNames("INDIVIDUALS_LOOP")
-                .containsAll(Set.of("FIRST_NAME", "LAST_NAME", "GENDER")));
-        assertTrue(variablesMap.getGroupVariableNames("CARS_LOOP")
-                .contains("CAR_COLOR"));
+                .containsAll(Set.of(ADDRESS_VARIABLE_NAME, HOUSEHOLD_INCOME_VARIABLE_NAME)));
+        assertTrue(variablesMap.getGroupVariableNames(LOOP1_NAME)
+                .containsAll(Set.of(FIRST_NAME_VARIABLE_NAME, LAST_NAME_VARIABLE_NAME, GENDER_VARIABLE_NAME)));
+        assertTrue(variablesMap.getGroupVariableNames(LOOP2_NAME)
+                .contains(CAR_COLOR_VARIABLE_NAME));
     }
 
     @Test
     void testMcqMethods() {
         //
-        Group group = variablesMap.getGroup("INDIVIDUALS_LOOP");
+        Group group = variablesMap.getGroup(LOOP1_NAME);
         variablesMap.putVariable(McqVariable.builder()
-                .name("RELATIONSHIP_A").group(group).questionItemName("RELATIONSHIP").text("Spouse").build());
+                .name(RELATIONSHIP_QUESTION_ITEM + "_A").group(group).questionItemName(RELATIONSHIP_QUESTION_ITEM).text("Spouse").build());
         variablesMap.putVariable(McqVariable.builder()
-                .name("RELATIONSHIP_B").group(group).questionItemName("RELATIONSHIP").text("Child").build());
+                .name(RELATIONSHIP_QUESTION_ITEM + "_B").group(group).questionItemName(RELATIONSHIP_QUESTION_ITEM).text("Child").build());
         variablesMap.putVariable(McqVariable.builder()
-                .name("RELATIONSHIP_C").group(group).questionItemName("RELATIONSHIP").text("Parent").build());
+                .name(RELATIONSHIP_QUESTION_ITEM + "_C").group(group).questionItemName(RELATIONSHIP_QUESTION_ITEM).text("Parent").build());
         variablesMap.putVariable(McqVariable.builder()
-                .name("RELATIONSHIP_D").group(group).questionItemName("RELATIONSHIP").text("Other").build());
+                .name(RELATIONSHIP_QUESTION_ITEM + "_D").group(group).questionItemName(RELATIONSHIP_QUESTION_ITEM).text("Other").build());
         //
-        assertTrue(variablesMap.hasMcq("RELATIONSHIP"));
-        assertSame("RELATIONSHIP", variablesMap.getVariable("RELATIONSHIP_A").getQuestionItemName());
-        assertFalse(variablesMap.hasMcq("ADDRESS"));
-        assertFalse(variablesMap.hasMcq("FIRST_NAME"));
-        assertFalse(variablesMap.hasMcq("CAR_COLOR"));
-        assertFalse(variablesMap.hasMcq("UNKNOWN_QUESTION"));
+        assertTrue(variablesMap.hasMcq(RELATIONSHIP_QUESTION_ITEM));
+        assertSame(RELATIONSHIP_QUESTION_ITEM, variablesMap.getVariable(RELATIONSHIP_QUESTION_ITEM + "_A").getQuestionItemName());
+        assertFalse(variablesMap.hasMcq(ADDRESS_VARIABLE_NAME));
+        assertFalse(variablesMap.hasMcq(FIRST_NAME_VARIABLE_NAME));
+        assertFalse(variablesMap.hasMcq(CAR_COLOR_VARIABLE_NAME));
+        assertFalse(variablesMap.hasMcq(UNKNOWN_QUESTION_VARIABLE_NAME));
         //
-        assertSame(group, variablesMap.getMcqGroup("RELATIONSHIP"));
-        assertNull(variablesMap.getMcqGroup("ADDRESS"));
-        assertNull(variablesMap.getMcqGroup("FIRST_NAME"));
-        assertNull(variablesMap.getMcqGroup("CAR_COLOR"));
-        assertNull(variablesMap.getMcqGroup("UNKNOWN_QUESTION"));
+        assertSame(group, variablesMap.getMcqGroup(RELATIONSHIP_QUESTION_ITEM));
+        assertNull(variablesMap.getMcqGroup(ADDRESS_VARIABLE_NAME));
+        assertNull(variablesMap.getMcqGroup(FIRST_NAME_VARIABLE_NAME));
+        assertNull(variablesMap.getMcqGroup(CAR_COLOR_VARIABLE_NAME));
+        assertNull(variablesMap.getMcqGroup(UNKNOWN_QUESTION_VARIABLE_NAME));
     }
 
     @Test
@@ -152,25 +172,25 @@ public class VariablesMapTest {
         List<String> mcqVariablesNames = variablesMap.getMcqVariablesNames();
         Set<String> variablesNames = variablesMap.getVariableNames();
         // Check ucq
-        assertTrue(ucqMcqVariablesNames.contains("VEHICLE_OWNER"));
-        assertFalse(ucqMcqVariablesNames.contains("CAR_OWNER"));
+        assertTrue(ucqMcqVariablesNames.contains(VEHICLE_OWNER_VARIABLE_NAME));
+        assertFalse(ucqMcqVariablesNames.contains(CAR_OWNER_VARIABLE_NAME));
         // Check mcq
-        assertFalse(mcqVariablesNames.contains("VEHICLE_OWNER"));
-        assertTrue(mcqVariablesNames.contains("RELATIONSHIP"));
-        assertFalse(mcqVariablesNames.contains("RELATIONSHIP_A"));
+        assertFalse(mcqVariablesNames.contains(VEHICLE_OWNER_VARIABLE_NAME));
+        assertTrue(mcqVariablesNames.contains(RELATIONSHIP_QUESTION_ITEM));
+        assertFalse(mcqVariablesNames.contains(RELATIONSHIP_QUESTION_ITEM + "_A"));
         // Check mcq
-        assertFalse(variablesNames.contains("VEHICLE_OWNER"));
-        assertTrue(variablesNames.contains("CAR_OWNER"));
-        assertTrue(variablesNames.contains("MOTO_OWNER"));
+        assertFalse(variablesNames.contains(VEHICLE_OWNER_VARIABLE_NAME));
+        assertTrue(variablesNames.contains(CAR_OWNER_VARIABLE_NAME));
+        assertTrue(variablesNames.contains(MOTO_OWNER_VARIABLE_NAME));
 
-        assertTrue(variablesMap.hasMcq("RELATIONSHIP"));
-        assertTrue(variablesMap.hasUcq("CAR_OWNER"));
-        assertTrue(variablesMap.hasUcqMcq("CAR_OWNER"));
-        assertFalse(variablesMap.hasUcqMcq("VEHICLE_OWNER"));
-        assertFalse(variablesMap.hasMcq("ADDRESS"));
-        assertFalse(variablesMap.hasMcq("FIRST_NAME"));
-        assertFalse(variablesMap.hasMcq("CAR_COLOR"));
-        assertFalse(variablesMap.hasMcq("UNKNOWN_QUESTION"));
+        assertTrue(variablesMap.hasMcq(RELATIONSHIP_QUESTION_ITEM));
+        assertTrue(variablesMap.hasUcq(CAR_OWNER_VARIABLE_NAME));
+        assertTrue(variablesMap.hasUcqMcq(CAR_OWNER_VARIABLE_NAME));
+        assertFalse(variablesMap.hasUcqMcq(VEHICLE_OWNER_VARIABLE_NAME));
+        assertFalse(variablesMap.hasMcq(ADDRESS_VARIABLE_NAME));
+        assertFalse(variablesMap.hasMcq(FIRST_NAME_VARIABLE_NAME));
+        assertFalse(variablesMap.hasMcq(CAR_COLOR_VARIABLE_NAME));
+        assertFalse(variablesMap.hasMcq(UNKNOWN_QUESTION_VARIABLE_NAME));
     }
 
     /* Variables map objects to test multimode management */
@@ -186,28 +206,28 @@ public class VariablesMapTest {
 
         // Groups
         Group rootGroup = variablesMap.getRootGroup();
-        Group carsGroup = new Group("CARS_LOOP", Constants.ROOT_GROUP_NAME);
+        Group carsGroup = new Group(LOOP2_NAME, Constants.ROOT_GROUP_NAME);
         variablesMap.putGroup(carsGroup);
 
         // Variables
-        variablesMap.putVariable(new Variable("LAST_NAME", rootGroup, VariableType.STRING, "20"));
-        variablesMap.putVariable(new Variable("FIRST_NAME", rootGroup, VariableType.STRING, "50"));
+        variablesMap.putVariable(new Variable(LAST_NAME_VARIABLE_NAME, rootGroup, VariableType.STRING, "20"));
+        variablesMap.putVariable(new Variable(FIRST_NAME_VARIABLE_NAME, rootGroup, VariableType.STRING, "50"));
         variablesMap.putVariable(new Variable("AGE", rootGroup, VariableType.INTEGER, "50"));
-        variablesMap.putVariable(new Variable("CAR_COLOR", carsGroup, VariableType.STRING, "50"));
+        variablesMap.putVariable(new Variable(CAR_COLOR_VARIABLE_NAME, carsGroup, VariableType.STRING, "50"));
 
         // unique choice question variable
-        UcqVariable ucq = new UcqVariable("SEXE", rootGroup, VariableType.STRING, "50");
+        UcqVariable ucq = new UcqVariable(SEX_VARIABLE_NAME, rootGroup, VariableType.STRING, "50");
         ucq.addModality("1", "Male");
         ucq.addModality("2", "Female");
         variablesMap.putVariable(ucq);
 
         // unique choice question variable related to multiple choices question
-        UcqVariable ucqMcq1 = new UcqVariable("CAR_OWNER", rootGroup, VariableType.STRING, "50");
-        ucqMcq1.setQuestionItemName("VEHICLE_OWNER");
+        UcqVariable ucqMcq1 = new UcqVariable(CAR_OWNER_VARIABLE_NAME, rootGroup, VariableType.STRING, "50");
+        ucqMcq1.setQuestionItemName(VEHICLE_OWNER_VARIABLE_NAME);
         ucqMcq1.addModality("1", "Yes");
         ucqMcq1.addModality("2", "No");
-        UcqVariable ucqMcq2 = new UcqVariable("MOTO_OWNER", rootGroup, VariableType.STRING, "50");
-        ucqMcq2.setQuestionItemName("VEHICLE_OWNER");
+        UcqVariable ucqMcq2 = new UcqVariable(MOTO_OWNER_VARIABLE_NAME, rootGroup, VariableType.STRING, "50");
+        ucqMcq2.setQuestionItemName(VEHICLE_OWNER_VARIABLE_NAME);
         ucqMcq2.addModality("1", "Yes");
         ucqMcq2.addModality("2", "No");
         variablesMap.putVariable(ucqMcq1);
@@ -215,13 +235,13 @@ public class VariablesMapTest {
 
         // multiple choices question variable
         variablesMap.putVariable(McqVariable.builder()
-                .name("RELATIONSHIP_A").group(rootGroup).questionItemName("RELATIONSHIP").text("Spouse").build());
+                .name(RELATIONSHIP_QUESTION_ITEM + "_A").group(rootGroup).questionItemName(RELATIONSHIP_QUESTION_ITEM).text("Spouse").build());
         variablesMap.putVariable(McqVariable.builder()
-                .name("RELATIONSHIP_B").group(rootGroup).questionItemName("RELATIONSHIP").text("Child").build());
+                .name(RELATIONSHIP_QUESTION_ITEM + "_B").group(rootGroup).questionItemName(RELATIONSHIP_QUESTION_ITEM).text("Child").build());
         variablesMap.putVariable(McqVariable.builder()
-                .name("RELATIONSHIP_C").group(rootGroup).questionItemName("RELATIONSHIP").text("Parent").build());
+                .name(RELATIONSHIP_QUESTION_ITEM + "_C").group(rootGroup).questionItemName(RELATIONSHIP_QUESTION_ITEM).text("Parent").build());
         variablesMap.putVariable(McqVariable.builder()
-                .name("RELATIONSHIP_D").group(rootGroup).questionItemName("RELATIONSHIP").text("Other").build());
+                .name(RELATIONSHIP_QUESTION_ITEM + "_D").group(rootGroup).questionItemName(RELATIONSHIP_QUESTION_ITEM).text("Other").build());
 
         return variablesMap;
     }
@@ -232,14 +252,14 @@ public class VariablesMapTest {
 
         // Groups
         Group rootGroup = variablesMap.getRootGroup();
-        Group carsGroup = new Group("CARS_LOOP", Constants.ROOT_GROUP_NAME);
+        Group carsGroup = new Group(LOOP2_NAME, Constants.ROOT_GROUP_NAME);
         variablesMap.putGroup(carsGroup);
 
         // Variables
-        variablesMap.putVariable(new Variable("LAST_NAME", rootGroup, VariableType.STRING, "50"));
-        variablesMap.putVariable(new Variable("FIRST_NAME", rootGroup, VariableType.STRING, "20"));
-        variablesMap.putVariable(new Variable("ADDRESS", rootGroup, VariableType.STRING, "50"));
-        variablesMap.putVariable(new Variable("CAR_COLOR", carsGroup, VariableType.STRING, "500"));
+        variablesMap.putVariable(new Variable(LAST_NAME_VARIABLE_NAME, rootGroup, VariableType.STRING, "50"));
+        variablesMap.putVariable(new Variable(FIRST_NAME_VARIABLE_NAME, rootGroup, VariableType.STRING, "20"));
+        variablesMap.putVariable(new Variable(ADDRESS_VARIABLE_NAME, rootGroup, VariableType.STRING, "50"));
+        variablesMap.putVariable(new Variable(CAR_COLOR_VARIABLE_NAME, carsGroup, VariableType.STRING, "500"));
 
         return variablesMap;
     }
@@ -254,9 +274,9 @@ public class VariablesMapTest {
         variablesMap.putGroup(rootGroup);
 
         variablesMap.putVariable(
-                new Variable("ADDRESS", rootGroup, VariableType.STRING));
+                new Variable(ADDRESS_VARIABLE_NAME, rootGroup, VariableType.STRING));
         variablesMap.putVariable(
-                new Variable("HOUSEHOLD_INCOME", rootGroup, VariableType.NUMBER));
+                new Variable(HOUSEHOLD_INCOME_VARIABLE_NAME, rootGroup, VariableType.NUMBER));
 
         return variablesMap;
     }
@@ -264,16 +284,16 @@ public class VariablesMapTest {
     public static VariablesMap createVariablesMap_oneLevel() {
         VariablesMap variablesMap = createVariablesMap_rootOnly();
 
-        Group individualsGroup = new Group("INDIVIDUALS_LOOP", Constants.ROOT_GROUP_NAME);
+        Group individualsGroup = new Group(LOOP1_NAME, Constants.ROOT_GROUP_NAME);
 
         variablesMap.putGroup(individualsGroup);
 
         variablesMap.putVariable(
-                new Variable("FIRST_NAME", individualsGroup, VariableType.STRING));
+                new Variable(FIRST_NAME_VARIABLE_NAME, individualsGroup, VariableType.STRING));
         variablesMap.putVariable(
-                new Variable("LAST_NAME", individualsGroup, VariableType.STRING));
+                new Variable(LAST_NAME_VARIABLE_NAME, individualsGroup, VariableType.STRING));
         variablesMap.putVariable(
-                new Variable("GENDER", individualsGroup, VariableType.STRING));
+                new Variable(GENDER_VARIABLE_NAME, individualsGroup, VariableType.STRING));
 
         return variablesMap;
     }
@@ -281,12 +301,12 @@ public class VariablesMapTest {
     public static VariablesMap createVariablesMap_twoLevels() {
         VariablesMap variablesMap = createVariablesMap_oneLevel();
 
-        Group carsGroup = new Group("CARS_LOOP", "INDIVIDUALS_LOOP");
+        Group carsGroup = new Group(LOOP2_NAME, LOOP1_NAME);
 
         variablesMap.putGroup(carsGroup);
 
         variablesMap.putVariable(
-                new Variable("CAR_COLOR", carsGroup, VariableType.STRING));
+                new Variable(CAR_COLOR_VARIABLE_NAME, carsGroup, VariableType.STRING));
 
         return variablesMap;
     }
