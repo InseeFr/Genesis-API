@@ -16,7 +16,7 @@
 
     <properties>
         <java.version>17</java.version>
-        <springdoc.version>2.2.0</springdoc.version>
+        <springdoc.version>2.3.0</springdoc.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
         <cucumber.version>7.14.1</cucumber.version>
         <karate.version>1.3.1</karate.version>
