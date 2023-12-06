@@ -175,7 +175,6 @@ class LunaticXmlAdapterTest {
 		Assertions.assertThat(suDtos.get(0).getCollectedVariables()).hasSize(4);
 	}
 
-	//TODO Unit tests from datastate
 	@Test
 	@DisplayName("There should be a EDITED DTO with EDITED data")
 	void test05(){

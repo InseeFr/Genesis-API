@@ -102,7 +102,7 @@ public class ResponseController {
                 errors.add(new NoDataError("No data file found",Mode.getEnumFromModeName(currentMode.getModeName())));
                 log.info("No data file found in folder " + dataFolder);
             }
-            for (String fileName : dataFiles) {
+            for (String fileName : dataFiles.stream().filter(s -> s.endsWith(".xml")).toList()) {
                 String pathFile = String.format("%s/%s", dataFolder, fileName);
                 log.info("Try to read Xml file : {}", fileName);
                 LunaticXmlCampaign campaign = parser.parseDataFile(Paths.get(pathFile));
