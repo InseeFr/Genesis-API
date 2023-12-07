@@ -70,7 +70,7 @@ public class ResponseController {
         }
         List<SurveyUnitUpdateDto> suDtos = new ArrayList<>();
         for (LunaticXmlSurveyUnit su : campaign.getSurveyUnits()) {
-            suDtos.addAll(LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign()));
+            suDtos.addAll(LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign(), Mode.WEB));
         }
         surveyUnitQualityService.verifySurveyUnits(suDtos,variablesMap);
         surveyUnitService.saveSurveyUnits(suDtos);
@@ -102,22 +102,22 @@ public class ResponseController {
                 errors.add(new NoDataError("No data file found",Mode.getEnumFromModeName(currentMode.getModeName())));
                 log.info("No data file found in folder " + dataFolder);
             }
+            VariablesMap variablesMap;
+            try {
+                Path ddiFilePath = fileUtils.findDDIFile(campaignName, currentMode.getModeName());
+                variablesMap = DDIReader.getVariablesFromDDI(ddiFilePath.toFile().toURI().toURL());
+            } catch (GenesisException e) {
+                return ResponseEntity.status(e.getStatus()).body(e.getMessage());
+            } catch(Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+            }
             for (String fileName : dataFiles) {
                 String pathFile = String.format("%s/%s", dataFolder, fileName);
                 log.info("Try to read Xml file : {}", fileName);
                 LunaticXmlCampaign campaign = parser.parseDataFile(Paths.get(pathFile));
-                VariablesMap variablesMap;
-                try {
-                    Path ddiFilePath = fileUtils.findDDIFile(campaignName, currentMode.getModeName());
-                    variablesMap = DDIReader.getVariablesFromDDI(ddiFilePath.toFile().toURI().toURL());
-                } catch (GenesisException e) {
-                    return ResponseEntity.status(e.getStatus()).body(e.getMessage());
-                } catch(Exception e) {
-                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-                }
                 List<SurveyUnitUpdateDto> suDtos = new ArrayList<>();
                 for (LunaticXmlSurveyUnit su : campaign.getSurveyUnits()) {
-                    suDtos.addAll(LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign()));
+                    suDtos.addAll(LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign(),currentMode));
                 }
                 surveyUnitQualityService.verifySurveyUnits(suDtos,variablesMap);
                 surveyUnitService.saveSurveyUnits(suDtos);
