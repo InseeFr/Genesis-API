@@ -1,9 +1,8 @@
-package fr.insee.genesis.intrastructure.adapter;
+package fr.insee.genesis.infrastructure.adapter;
 
 import fr.insee.genesis.domain.dtos.Mode;
 import fr.insee.genesis.domain.dtos.SurveyUnitDto;
 import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
-import fr.insee.genesis.infrastructure.adapter.SurveyUnitUpdateMongoAdapter;
 import fr.insee.genesis.infrastructure.model.ExternalVariable;
 import fr.insee.genesis.infrastructure.model.VariableState;
 import fr.insee.genesis.infrastructure.model.document.SurveyUnitUpdateDocument;

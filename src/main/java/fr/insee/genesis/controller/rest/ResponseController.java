@@ -111,7 +111,7 @@ public class ResponseController {
             } catch(Exception e) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
             }
-            for (String fileName : dataFiles) {
+            for (String fileName : dataFiles.stream().filter(s -> s.endsWith(".xml")).toList()) {
                 String pathFile = String.format("%s/%s", dataFolder, fileName);
                 log.info("Try to read Xml file : {}", fileName);
                 LunaticXmlCampaign campaign = parser.parseDataFile(Paths.get(pathFile));
