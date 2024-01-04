@@ -1,5 +1,6 @@
 package fr.insee.genesis.controller.sources.xml;
 
+import fr.insee.genesis.Constants;
 import fr.insee.genesis.exceptions.GenesisException;
 import lombok.extern.slf4j.Slf4j;
 import org.w3c.dom.Document;
@@ -25,10 +26,6 @@ import java.util.List;
 @Slf4j
 public class LunaticXmlDataParser {
 
-    private static final String COLLECTED = "COLLECTED";
-    private static final String CALCULATED = "CALCULATED";
-    private static final String EXTERNAL = "EXTERNAL";
-
     private Document readXmlFile(Path filePath) throws IOException, SAXException, GenesisException, ParserConfigurationException {
         File file = filePath.toFile();
         //Extraction of the file last modified date
@@ -53,7 +50,6 @@ public class LunaticXmlDataParser {
     }
 
     public LunaticXmlCampaign parseDataFile(Path filePath) throws GenesisException, IOException, ParserConfigurationException, SAXException {
-
         Document document = readXmlFile(filePath);
         log.debug("Begin to parse {} ", filePath);
         LunaticXmlCampaign campaign = new LunaticXmlCampaign();
@@ -87,14 +83,14 @@ public class LunaticXmlDataParser {
         LunaticXmlData lunaticXmlData = new LunaticXmlData();
         for (int j = 0; j < dataNodeList.getLength(); j++) {
             Node dataNode = dataNodeList.item(j);
-            if (dataNode.getNodeType() == Node.ELEMENT_NODE && dataNode.getNodeName().equals(COLLECTED)) {
+            if (dataNode.getNodeType() == Node.ELEMENT_NODE && dataNode.getNodeName().equals(Constants.COLLECTED_NODE_NAME)) {
                 readCollected(lunaticXmlData, dataNode);
             }
-            if (dataNode.getNodeType() == Node.ELEMENT_NODE && dataNode.getNodeName().equals(CALCULATED)) {
-                readCalculatedOrExternal(lunaticXmlData, dataNode, CALCULATED);
+            if (dataNode.getNodeType() == Node.ELEMENT_NODE && dataNode.getNodeName().equals(Constants.CALCULATED_NODE_NAME)) {
+                readCalculatedOrExternal(lunaticXmlData, dataNode, Constants.CALCULATED_NODE_NAME);
             }
-            if (dataNode.getNodeType() == Node.ELEMENT_NODE && dataNode.getNodeName().equals(EXTERNAL)) {
-                readCalculatedOrExternal(lunaticXmlData, dataNode, EXTERNAL);
+            if (dataNode.getNodeType() == Node.ELEMENT_NODE && dataNode.getNodeName().equals(Constants.EXTERNAL_NODE_NAME)) {
+                readCalculatedOrExternal(lunaticXmlData, dataNode, Constants.EXTERNAL_NODE_NAME);
             }
         }
         return lunaticXmlData;
@@ -127,10 +123,10 @@ public class LunaticXmlDataParser {
                 lunaticXmlOtherData.add(variable);
             }
         }
-        if (dataType.equals(CALCULATED)) {
+        if (dataType.equals(Constants.CALCULATED_NODE_NAME)) {
             lunaticXmlData.setCalculated(lunaticXmlOtherData);
         }
-        if (dataType.equals(EXTERNAL)) {
+        if (dataType.equals(Constants.EXTERNAL_NODE_NAME)) {
             lunaticXmlData.setExternal(lunaticXmlOtherData);
         }
     }
@@ -232,7 +228,7 @@ public class LunaticXmlDataParser {
     private static void setValues(LunaticXmlCollectedData varData, Node value, List<ValueType> valueTypes) throws GenesisException {
         Element valueElement = (Element) value;
         switch(valueElement.getTagName()){
-            case COLLECTED:
+            case Constants.COLLECTED_NODE_NAME:
                 varData.setCollected(valueTypes);
                 break;
             case "EDITED":
