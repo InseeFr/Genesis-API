@@ -167,7 +167,21 @@ public class LunaticXmlDataSequentialParser{
                 final StartElement element = event.asStartElement();
                 final String stateName = element.getName().getLocalPart();
 
-                List<ValueType> values = readValues(reader, stateName);
+                List<ValueType> values = new ArrayList<>();
+                if(element.isStartElement()
+                        && event.asStartElement().getName().getLocalPart().equals(stateName)
+                        && event.asStartElement().getAttributeByName(new QName("type")) != null
+                ){
+                    //If only 1 value (determined by presence of type)
+                    String type = element.getAttributeByName(new QName("type")).getValue();
+                    if(!type.equals("null")){
+                        String value = reader.getElementText();
+                        values.add(new ValueType(value, type));
+                    }
+                }else{
+                    //If multiple value
+                    values = readValues(reader, stateName);
+                }
 
                 switch (stateName) {
                     case "COLLECTED":
@@ -193,59 +207,9 @@ public class LunaticXmlDataSequentialParser{
         return variable;
     }
 
-    private List<LunaticXmlOtherData> readCalculatedOrExternal(XMLEventReader reader) throws XMLStreamException {
-        List<LunaticXmlOtherData> lunaticXmlOtherDataList = new ArrayList<>();
-        while(reader.hasNext()) {
-            final XMLEvent event = reader.nextEvent();
-
-            if (event.isEndElement() &&
-                    (event.asEndElement().getName().getLocalPart().equals(Constants.SURVEYUNIT_DATA_CALCULATED_NODE_NAME)
-                            || event.asEndElement().getName().getLocalPart().equals(Constants.SURVEYUNIT_DATA_EXTERNAL_NODE_NAME))
-            ){
-                // End of calculated or external data part
-                return lunaticXmlOtherDataList;
-            }
-            if(event.isStartElement()) {
-                final StartElement element = event.asStartElement();
-                final String variableName = element.getName().getLocalPart();
-
-                LunaticXmlOtherData variable = readNextCalculatedOrExternalVariable(reader, variableName);
-
-                lunaticXmlOtherDataList.add(variable);
-            }
-        }
-
-        return lunaticXmlOtherDataList;
-    }
-
-    private LunaticXmlOtherData readNextCalculatedOrExternalVariable(XMLEventReader reader, String variableName) throws XMLStreamException {
-        LunaticXmlOtherData variable = new LunaticXmlOtherData();
-        variable.setVariableName(variableName);
-
-        while(reader.hasNext()) {
-            final XMLEvent event = reader.nextEvent();
-            if (event.isEndElement() && event.asEndElement().getName().getLocalPart().equals(variableName)) {
-                // End of variable
-                return variable;
-            }
-
-            if(event.isStartElement()){
-                final StartElement element = event.asStartElement();
-                String type = element.getAttributeByName(new QName("type")).getValue();
-                String value = reader.getElementText();
-
-                List<ValueType> values = new ArrayList<>();
-                values.add(new ValueType(value, type));
-                variable.setValues(values);
-            }
-        }
-
-        return variable;
-    }
-
-
     private List<ValueType> readValues(XMLEventReader reader, String stateName) throws XMLStreamException {
         List<ValueType> values = new ArrayList<>();
+
 
         while(reader.hasNext()){
             final XMLEvent event = reader.nextEvent();
@@ -266,6 +230,39 @@ public class LunaticXmlDataSequentialParser{
         }
 
         return values;
+    }
+
+    private List<LunaticXmlOtherData> readCalculatedOrExternal(XMLEventReader reader) throws XMLStreamException {
+        List<LunaticXmlOtherData> lunaticXmlOtherDataList = new ArrayList<>();
+        while(reader.hasNext()) {
+            final XMLEvent event = reader.nextEvent();
+
+            if (event.isEndElement() &&
+                    (event.asEndElement().getName().getLocalPart().equals(Constants.SURVEYUNIT_DATA_CALCULATED_NODE_NAME)
+                            || event.asEndElement().getName().getLocalPart().equals(Constants.SURVEYUNIT_DATA_EXTERNAL_NODE_NAME))
+            ){
+                // End of calculated or external data part
+                return lunaticXmlOtherDataList;
+            }
+            if(event.isStartElement()) {
+                final StartElement element = event.asStartElement();
+                final String variableName = element.getName().getLocalPart();
+
+                LunaticXmlOtherData variable = new LunaticXmlOtherData();
+                variable.setVariableName(variableName);
+
+                String type = element.getAttributeByName(new QName("type")).getValue();
+                String value = reader.getElementText();
+
+                List<ValueType> values = new ArrayList<>();
+                values.add(new ValueType(value, type));
+                variable.setValues(values);
+
+                lunaticXmlOtherDataList.add(variable);
+            }
+        }
+
+        return lunaticXmlOtherDataList;
     }
 
     private LocalDateTime getFileDate(Path filePath) throws IOException {

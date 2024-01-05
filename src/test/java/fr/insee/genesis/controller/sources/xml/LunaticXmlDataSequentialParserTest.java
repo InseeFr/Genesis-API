@@ -30,7 +30,7 @@ class LunaticXmlDataSequentialParserTest {
         surveyUnit = parser.readNextSurveyUnit();
     }
 
-    //TODO tests
+    // Then
 
     @Test
     void campaignHasGoodLabelAndId() throws Exception {
@@ -52,6 +52,32 @@ class LunaticXmlDataSequentialParserTest {
     @Test
     void checkNumberOfExternalVariables() throws Exception {
         Assertions.assertThat(surveyUnit.getData().getExternal()).hasSize(11);
+    }
+
+    @Test
+    void checkCollectedVariableValues(){
+        Assertions.assertThat(surveyUnit.getData().getCollected().get(0)).isNotNull();
+        Assertions.assertThat(surveyUnit.getData().getCollected().get(0).getCollected()).isEmpty();
+
+        Assertions.assertThat(surveyUnit.getData().getCollected().get(1)).isNotNull();
+        Assertions.assertThat(surveyUnit.getData().getCollected().get(1).getCollected()).isNotEmpty();
+        Assertions.assertThat(surveyUnit.getData().getCollected().get(1).getCollected()).hasSize(2);
+        Assertions.assertThat(surveyUnit.getData().getCollected().get(1).getCollected().get(0).getType()).isEqualTo("string");
+        Assertions.assertThat(surveyUnit.getData().getCollected().get(1).getCollected().get(0).getValue()).isEqualTo("012");
+
+        Assertions.assertThat(surveyUnit.getData().getCollected().get(4)).isNotNull();
+        Assertions.assertThat(surveyUnit.getData().getCollected().get(4).getCollected()).hasSize(1);
+        Assertions.assertThat(surveyUnit.getData().getCollected().get(4).getCollected().get(0).getType()).isEqualTo("string");
+        Assertions.assertThat(surveyUnit.getData().getCollected().get(4).getCollected().get(0).getValue()).isEqualTo("2");
+    }
+
+    @Test
+    void checkExternalVariableValue(){
+        Assertions.assertThat(surveyUnit.getData().getExternal().get(0)).isNotNull();
+        Assertions.assertThat(surveyUnit.getData().getExternal().get(0).getValues()).isNotEmpty();
+        Assertions.assertThat(surveyUnit.getData().getExternal().get(0).getValues()).hasSize(1);
+        Assertions.assertThat(surveyUnit.getData().getExternal().get(0).getValues().get(0).getType()).isEqualTo("string");
+        Assertions.assertThat(surveyUnit.getData().getExternal().get(0).getValues().get(0).getValue()).isEqualTo("BOB");
     }
 
     @AfterAll

@@ -24,10 +24,8 @@ public class SurveyUnitUpdateMongoAdapter implements SurveyUnitUpdatePersistence
 
 	@Override
 	public void saveAll(List<SurveyUnitUpdateDto> suListDto) {
-		log.info("Saving {} survey units updates", suListDto.size());
 		List<SurveyUnitUpdateDocument> suList = SurveyUnitUpdateDocumentMapper.INSTANCE.listDtoToListDocument(suListDto);
 		mongoRepository.insert(suList);
-		log.info("Survey units updates saved");
 	}
 
 	@Override
