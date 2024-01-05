@@ -8,7 +8,6 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -21,7 +20,7 @@ import java.util.List;
 
 /**
  * This class is used to read large lunatic XML files
- * It iterates through the file instead of store the entire file into memory
+ * It iterates through the file instead of storing the entire file into memory
  */
 public class LunaticXmlDataSequentialParser{
     private final LocalDateTime fileDate;
@@ -36,21 +35,43 @@ public class LunaticXmlDataSequentialParser{
 
          reader = factory.createXMLEventReader(stream);
      }
-    public String getCampaignId() throws XMLStreamException {
+
+    /**
+     * Gets the Campaign Information from the file
+     * @return the Campaign
+     */
+     public LunaticXmlCampaign getCampaign() throws XMLStreamException {
+        LunaticXmlCampaign campaign = new LunaticXmlCampaign();
+
         while (reader.hasNext()) {
             XMLEvent event = reader.nextEvent();
-            if (event.isStartElement() && event.asStartElement().getName().getLocalPart().equals(Constants.CAMPAIGN_NODE_NAME)) {
-                while (reader.hasNext()) {
-                    event = reader.nextEvent();
-                    if (event.isStartElement() && event.asStartElement().getName().getLocalPart().equals(Constants.CAMPAIGN_ID_NODE_NAME)) {
-                        return reader.getElementText();
-                    }
+
+            if (event.isStartElement() && event.asStartElement().getName().getLocalPart().equals(Constants.SURVEY_UNITS_NODE_NAME)) {
+                return campaign;
+            }
+
+            if(event.isStartElement()) {
+                final StartElement element = event.asStartElement();
+                final String elementName = element.getName().getLocalPart();
+
+                switch (elementName){
+                    case Constants.CAMPAIGN_ID_ELEMENT_NAME:
+                        campaign.setIdCampaign(reader.getElementText());
+                        break;
+                    case Constants.CAMPAIGN_LABEL_ELEMENT_NAME:
+                        campaign.setLabel(reader.getElementText());
+                        break;
+                    default:
                 }
             }
         }
         return null;
-    }
+     }
 
+    /**
+     * Read the next SurveyUnit from the file
+     * @return the SurveyUnit
+     */
     public LunaticXmlSurveyUnit readNextSurveyUnit() throws XMLStreamException {
              while (reader.hasNext()) {
                  final XMLEvent event = reader.nextEvent();
@@ -85,10 +106,10 @@ public class LunaticXmlDataSequentialParser{
                 final String elementName = element.getName().getLocalPart();
 
                 switch (elementName){
-                    case Constants.SURVEYUNIT_ID_NODE_NAME:
+                    case Constants.SURVEYUNIT_ID_ELEMENT_NAME:
                         xmlSurveyUnit.setId(reader.getElementText());
                         break;
-                    case Constants.SURVEYUNIT_SURVEYMODELID_NODE_NAME:
+                    case Constants.SURVEYUNIT_SURVEYMODELID_ELEMENT_NAME:
                         xmlSurveyUnit.setQuestionnaireModelId(reader.getElementText());
                         break;
                     case Constants.SURVEYUNIT_DATA_COLLECTED_NODE_NAME:
@@ -117,12 +138,15 @@ public class LunaticXmlDataSequentialParser{
                 return lunaticXmlCollectedDataList;
             }
 
-            final StartElement element = event.asStartElement();
-            final String variableName = element.getName().getLocalPart();
 
-            LunaticXmlCollectedData variable = readNextCollectedVariable(reader, variableName);
+            if(event.isStartElement()){
+                final StartElement element = event.asStartElement();
+                final String variableName = element.getName().getLocalPart();
 
-            lunaticXmlCollectedDataList.add(variable);
+                LunaticXmlCollectedData variable = readNextCollectedVariable(reader, variableName);
+
+                lunaticXmlCollectedDataList.add(variable);
+            }
         }
 
         return lunaticXmlCollectedDataList;
@@ -139,30 +163,31 @@ public class LunaticXmlDataSequentialParser{
                 return variable;
             }
 
-            final StartElement element = event.asStartElement();
-            final String stateName = element.getName().getLocalPart();
+            if(event.isStartElement()) {
+                final StartElement element = event.asStartElement();
+                final String stateName = element.getName().getLocalPart();
 
-            List<ValueType> values = readValues(reader, stateName);
+                List<ValueType> values = readValues(reader, stateName);
 
-            switch (stateName){
-                case "COLLECTED":
-                    variable.setCollected(values);
-                    break;
-                case "EDITED":
-                    variable.setEdited(values);
-                    break;
-                case "INPUTED":
-                    variable.setInputed(values);
-                    break;
-                case "FORCED":
-                    variable.setForced(values);
-                    break;
-                case "PREVIOUS":
-                    variable.setPrevious(values);
-                    break;
-                default:
+                switch (stateName) {
+                    case "COLLECTED":
+                        variable.setCollected(values);
+                        break;
+                    case "EDITED":
+                        variable.setEdited(values);
+                        break;
+                    case "INPUTED":
+                        variable.setInputed(values);
+                        break;
+                    case "FORCED":
+                        variable.setForced(values);
+                        break;
+                    case "PREVIOUS":
+                        variable.setPrevious(values);
+                        break;
+                    default:
+                }
             }
-
         }
 
         return variable;
@@ -180,13 +205,14 @@ public class LunaticXmlDataSequentialParser{
                 // End of calculated or external data part
                 return lunaticXmlOtherDataList;
             }
+            if(event.isStartElement()) {
+                final StartElement element = event.asStartElement();
+                final String variableName = element.getName().getLocalPart();
 
-            final StartElement element = event.asStartElement();
-            final String variableName = element.getName().getLocalPart();
+                LunaticXmlOtherData variable = readNextCalculatedOrExternalVariable(reader, variableName);
 
-            LunaticXmlOtherData variable = readNextCalculatedOrExternalVariable(reader, variableName);
-
-            lunaticXmlOtherDataList.add(variable);
+                lunaticXmlOtherDataList.add(variable);
+            }
         }
 
         return lunaticXmlOtherDataList;
@@ -203,13 +229,15 @@ public class LunaticXmlDataSequentialParser{
                 return variable;
             }
 
-            final StartElement element = event.asStartElement();
-            String type = element.getAttributeByName(new QName("type")).getValue();
-            String value = reader.getElementText();
+            if(event.isStartElement()){
+                final StartElement element = event.asStartElement();
+                String type = element.getAttributeByName(new QName("type")).getValue();
+                String value = reader.getElementText();
 
-            List<ValueType> values = new ArrayList<>();
-            values.add(new ValueType(value,type));
-            variable.setValues(values);
+                List<ValueType> values = new ArrayList<>();
+                values.add(new ValueType(value, type));
+                variable.setValues(values);
+            }
         }
 
         return variable;
@@ -227,12 +255,14 @@ public class LunaticXmlDataSequentialParser{
                 return values;
             }
 
-            final StartElement element = event.asStartElement();
+            if(event.isStartElement()) {
+                final StartElement element = event.asStartElement();
 
-            String type = element.getAttributeByName(new QName("type")).getValue();
-            String value = reader.getElementText();
+                String type = element.getAttributeByName(new QName("type")).getValue();
+                String value = reader.getElementText();
 
-            values.add(new ValueType(value,type));
+                values.add(new ValueType(value, type));
+            }
         }
 
         return values;

@@ -68,11 +68,11 @@ public class ResponseController {
 
         log.info(String.format("Try to read Xml file : %s", xmlFile));
         Path filepath = Paths.get(xmlFile);
+        LunaticXmlCampaign campaign;
 
         if(filepath.toFile().length()/1024/1024 <= Constants.MAX_FILE_SIZE_UNTIL_SEQUENTIAL){
             // DOM method
             LunaticXmlDataParser parser = new LunaticXmlDataParser();
-            LunaticXmlCampaign campaign;
             try {
                 campaign = parser.parseDataFile(filepath);
             } catch (GenesisException e) {
@@ -95,11 +95,11 @@ public class ResponseController {
                 LunaticXmlDataSequentialParser parser = new LunaticXmlDataSequentialParser(filepath,stream);
 
 
-                String campaignId = parser.getCampaignId();
+                campaign = parser.getCampaign();
                 LunaticXmlSurveyUnit su = parser.readNextSurveyUnit();
 
                 while(su != null){
-                    List<SurveyUnitUpdateDto> suDtos = new ArrayList<>(LunaticXmlAdapter.convert(su, variablesMap, campaignId));
+                    List<SurveyUnitUpdateDto> suDtos = new ArrayList<>(LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign()));
 
                     surveyUnitQualityService.verifySurveyUnits(suDtos,variablesMap);
                     surveyUnitService.saveSurveyUnits(suDtos);
