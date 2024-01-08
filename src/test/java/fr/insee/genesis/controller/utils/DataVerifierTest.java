@@ -22,7 +22,7 @@ class DataVerifierTest {
     static VariablesMap variablesMap;
 
     // Parameters
-    static int EXPECTED_VOLUMETRY = 21;
+    static int EXPECTED_VOLUMETRY = 22;
 
     // Given
     @BeforeAll
@@ -1022,16 +1022,15 @@ class DataVerifierTest {
     }
 
     @Test
-    @DisplayName("Case 7 : COLLECTED valid and EDITED invalid, 1 FORCED with COLLECTED value")
+    @DisplayName("Case 7 : COLLECTED valid and EDITED invalid, 1 FORCED")
     void editedInvalidTest(){
         assertThat(testSurveyUnitUpdateDtos).filteredOn(surveyUnit ->
                         surveyUnit.getIdUE().equals("TestUE7")
                                 && surveyUnit.getState() == DataState.FORCED)
                 .hasSize(1);
-//TODO à valider
         assertThat(testSurveyUnitUpdateDtos.stream().filter(surveyUnit ->
                 surveyUnit.getIdUE().equals("TestUE7")
-                        && surveyUnit.getState() == DataState.FORCED).findFirst().get().getCollectedVariables().get(0).getValues().get(0)).isEqualTo("1");
+                        && surveyUnit.getState() == DataState.FORCED).findFirst().get().getCollectedVariables().get(0).getValues().get(0)).isEqualTo("");
     }
 
     @Test
@@ -1053,12 +1052,15 @@ class DataVerifierTest {
     }
 
     @Test
-    @DisplayName("Case 10 : INPUTED (non-concerned) invalid, no forced")
+    @DisplayName("Case 10 : INPUTED invalid, 1 forced")
     void inputedTest(){
         assertThat(testSurveyUnitUpdateDtos).filteredOn(surveyUnit ->
                         surveyUnit.getIdUE().equals("TestUE10")
                                 && surveyUnit.getState() == DataState.FORCED)
-                .isEmpty();
+                .hasSize(1);
+        assertThat(testSurveyUnitUpdateDtos.stream().filter(surveyUnit ->
+                surveyUnit.getIdUE().equals("TestUE10")
+                        && surveyUnit.getState() == DataState.FORCED).findFirst().get().getCollectedVariables().get(0).getValues().get(0)).isEqualTo("");
     }
 
 }

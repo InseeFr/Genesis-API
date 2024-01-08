@@ -11,11 +11,9 @@ import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -23,8 +21,15 @@ import java.util.regex.Pattern;
 @Slf4j
 public class DataVerifier {
 
-    //Concerned DataStates
-    static final List<DataState> concernedDataStates = Arrays.asList(DataState.COLLECTED, DataState.EDITED);
+    //DataStates priority
+    static final EnumMap<DataState,Integer> dataStatesPriority = new EnumMap<>(DataState.class);
+    static {
+        dataStatesPriority.put(DataState.INPUTED, 1);
+        dataStatesPriority.put(DataState.EDITED, 2);
+        dataStatesPriority.put(DataState.FORCED, 3);
+        dataStatesPriority.put(DataState.COLLECTED, 4);
+        dataStatesPriority.put(DataState.PREVIOUS, 5);
+    }
 
     private DataVerifier() {
         throw new IllegalStateException("Utility class");
@@ -38,45 +43,63 @@ public class DataVerifier {
      * @param variablesMap VariablesMap containing definitions of each variable
      */
     public static void verifySurveyUnits(List<SurveyUnitUpdateDto> suDtosList, VariablesMap variablesMap){
-        List<SurveyUnitUpdateDto> suDtosListForced = new ArrayList<>();
+        List<SurveyUnitUpdateDto> suDtosListForced = new ArrayList<>(); // Created FORCED SU DTOs
 
-        for(SurveyUnitUpdateDto suDto : suDtosList){
-            if(concernedDataStates.contains(suDto.getState())){
-                //Pairs(variable name, incorrect value index)
-                List<String[]> incorrectCollectedVariablesTuples = verifyVariables(suDto.getCollectedVariables(), variablesMap);
-                List<String[]> incorrectExternalVariablesTuples = verifyVariables(suDto.getExternalVariables(), variablesMap);
 
-                // If variable has at least 1 incorrect value
-                // create new survey unit
-                // change the incorrect value to empty if multiple value
-                // exclude variable if only value
-                if(incorrectCollectedVariablesTuples.size() + incorrectExternalVariablesTuples.size() > 0
-                        && suDtosListForced.stream().filter(surveyUnitUpdateDto -> surveyUnitUpdateDto.getIdUE().equals(suDto.getIdUE())).findFirst().isEmpty()
-                ){
-                    SurveyUnitUpdateDto newSuDtoForced = suDto.buildForcedSurveyUnitUpdate();
+        //Only verify most priority datastate
+        for(SurveyUnitUpdateDto suDto : getConcernedSuDtos(suDtosList)){
+            //Pairs(variable name, incorrect value index)
+            List<String[]> incorrectCollectedVariablesTuples = verifyVariables(suDto.getCollectedVariables(), variablesMap);
+            List<String[]> incorrectExternalVariablesTuples = verifyVariables(suDto.getExternalVariables(), variablesMap);
 
-                    if (!incorrectCollectedVariablesTuples.isEmpty())
-                        collectedVariablesManagement(suDto, newSuDtoForced, incorrectCollectedVariablesTuples);
+            // If variable has at least 1 incorrect value
+            // create new survey unit
+            // change the incorrect value to empty if multiple value
+            // exclude variable if only value
+            if(incorrectCollectedVariablesTuples.size() + incorrectExternalVariablesTuples.size() > 0
+                    && suDtosListForced.stream().filter(surveyUnitUpdateDto -> surveyUnitUpdateDto.getIdUE().equals(suDto.getIdUE())).findFirst().isEmpty()
+            ){
+                SurveyUnitUpdateDto newSuDtoForced = suDto.buildForcedSurveyUnitUpdate();
 
-                    if (!incorrectExternalVariablesTuples.isEmpty())
-                        externalVariablesManagement(suDto, newSuDtoForced, incorrectExternalVariablesTuples);
+                if (!incorrectCollectedVariablesTuples.isEmpty())
+                    collectedVariablesManagement(suDto, newSuDtoForced, incorrectCollectedVariablesTuples);
 
-                    suDtosListForced.add(newSuDtoForced);
-                }
-                if(incorrectCollectedVariablesTuples.size() + incorrectExternalVariablesTuples.size() == 0
-                        && suDto.getState().equals(DataState.EDITED)) {
-                    // Don't create FORCED if EDITED is valid
-                    suDtosListForced.removeIf(surveyUnitUpdateDto -> surveyUnitUpdateDto.getIdUE().equals(suDto.getIdUE()));
-                }
+                if (!incorrectExternalVariablesTuples.isEmpty())
+                    externalVariablesManagement(suDto, newSuDtoForced, incorrectExternalVariablesTuples);
+
+                suDtosListForced.add(newSuDtoForced);
             }
         }
         suDtosList.addAll(suDtosListForced);
     }
 
+    private static List<SurveyUnitUpdateDto> getConcernedSuDtos(List<SurveyUnitUpdateDto> suDtosList) {
+        List<SurveyUnitUpdateDto> concernedSuDtos = new ArrayList<>(); //SU DTOs concerned by data verification
+
+        for(SurveyUnitUpdateDto suDto : suDtosList){
+            List<SurveyUnitUpdateDto> suDtosOfSU = suDtosList.stream().filter(
+                    surveyUnitUpdateDto -> surveyUnitUpdateDto.getIdUE().equals(suDto.getIdUE())
+            ).toList();
+
+            //If priority DTO not already found and put in concernedSuDtos
+            if(concernedSuDtos.stream().filter(surveyUnitUpdateDto -> surveyUnitUpdateDto.getIdUE().equals(suDto.getIdUE())).toList().isEmpty()){
+                SurveyUnitUpdateDto priorityDTO = null;
+                for(SurveyUnitUpdateDto suDtoOfSU : suDtosOfSU){
+                    if(priorityDTO == null || dataStatesPriority.get(priorityDTO.getState()) > dataStatesPriority.get(suDtoOfSU.getState()))
+                        priorityDTO = suDtoOfSU;
+                }
+
+                concernedSuDtos.add(priorityDTO);
+            }
+        }
+
+        return concernedSuDtos;
+    }
+
     /**
      * @param variablesToVerify variables to verify
      * @param variablesMap variable definitions
-     * @return a list of pairs (variable name, index) TODO A VALIDER triplet variable name, index, correct value)
+     * @return a list of pairs (variable name, index)
      */
     private static List<String[]> verifyVariables(List<? extends VariableDto> variablesToVerify, VariablesMap variablesMap){
         // List of tuples
@@ -167,7 +190,6 @@ public class DataVerifier {
                         .values(new ArrayList<>(variable.getValues()))
                         .build();
                 //Change incorrect value(s) to empty
-                //TODO Use COLLECTED variable if correct
                 for(int incorrectValueIndex : getIncorrectValuesIndexes(incorrectCollectedVariablesTuples, variable.getIdVar()))
                     newVariable.getValues().set(incorrectValueIndex,"");
                 destinationSurveyUnitUpdateDto.getCollectedVariables().add(newVariable);
