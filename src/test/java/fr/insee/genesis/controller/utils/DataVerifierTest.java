@@ -1030,7 +1030,7 @@ class DataVerifierTest {
                 .hasSize(1);
         assertThat(testSurveyUnitUpdateDtos.stream().filter(surveyUnit ->
                 surveyUnit.getIdUE().equals("TestUE7")
-                        && surveyUnit.getState() == DataState.FORCED).findFirst().get().getCollectedVariables().get(0).getValues().get(0)).isEqualTo("");
+                        && surveyUnit.getState() == DataState.FORCED).findFirst().get().getCollectedVariables().get(0).getValues().get(0)).isEmpty();
     }
 
     @Test
@@ -1060,7 +1060,7 @@ class DataVerifierTest {
                 .hasSize(1);
         assertThat(testSurveyUnitUpdateDtos.stream().filter(surveyUnit ->
                 surveyUnit.getIdUE().equals("TestUE10")
-                        && surveyUnit.getState() == DataState.FORCED).findFirst().get().getCollectedVariables().get(0).getValues().get(0)).isEqualTo("");
+                        && surveyUnit.getState() == DataState.FORCED).findFirst().get().getCollectedVariables().get(0).getValues().get(0)).isEmpty();
     }
 
 }
