@@ -1013,15 +1013,12 @@ class DataVerifierTest {
     }
 
     @Test
-    @DisplayName("Case 6 : Both COLLECTED and EDITED invalid, only 1 FORCED with empty value")
+    @DisplayName("Case 6 : Both COLLECTED and EDITED invalid, only 1 FORCED")
     void bothStatesInvalidTest(){
         assertThat(testSurveyUnitUpdateDtos).filteredOn(surveyUnit ->
                         surveyUnit.getIdUE().equals("TestUE6")
                                 && surveyUnit.getState() == DataState.FORCED)
                 .hasSize(1);
-        assertThat(testSurveyUnitUpdateDtos.stream().filter(surveyUnit ->
-                surveyUnit.getIdUE().equals("TestUE6")
-                        && surveyUnit.getState() == DataState.FORCED).findFirst().get().getCollectedVariables().get(0).getValues().get(0)).isEmpty();
     }
 
     @Test

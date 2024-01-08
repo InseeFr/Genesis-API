@@ -12,8 +12,10 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -37,13 +39,8 @@ public class DataVerifier {
      */
     public static void verifySurveyUnits(List<SurveyUnitUpdateDto> suDtosList, VariablesMap variablesMap){
         List<SurveyUnitUpdateDto> suDtosListForced = new ArrayList<>();
-        SurveyUnitUpdateDto collectedSuDto = null;
-        List<String[]> incorrectCOLLECTEDCollectedVariablesTuples = null;
 
         for(SurveyUnitUpdateDto suDto : suDtosList){
-            if (suDto.getState().equals(DataState.COLLECTED)){
-                collectedSuDto = suDto;
-            }
             if(concernedDataStates.contains(suDto.getState())){
                 //Pairs(variable name, incorrect value index)
                 List<String[]> incorrectCollectedVariablesTuples = verifyVariables(suDto.getCollectedVariables(), variablesMap);
@@ -51,20 +48,15 @@ public class DataVerifier {
 
                 // If variable has at least 1 incorrect value
                 // create new survey unit
-                // change the incorrect value to COLLECTED if multiple value
-                // exclude variable or change to COLLECTED if only value
+                // change the incorrect value to empty if multiple value
+                // exclude variable if only value
                 if(incorrectCollectedVariablesTuples.size() + incorrectExternalVariablesTuples.size() > 0
                         && suDtosListForced.stream().filter(surveyUnitUpdateDto -> surveyUnitUpdateDto.getIdUE().equals(suDto.getIdUE())).findFirst().isEmpty()
                 ){
                     SurveyUnitUpdateDto newSuDtoForced = suDto.buildForcedSurveyUnitUpdate();
 
-                    if (!incorrectCollectedVariablesTuples.isEmpty()) {
-                        if(suDto.getState() == DataState.COLLECTED) {
-                            incorrectCOLLECTEDCollectedVariablesTuples = incorrectCollectedVariablesTuples;
-                            collectedVariablesManagement(suDto, newSuDtoForced, incorrectCollectedVariablesTuples, null, null);
-                        }else
-                            collectedVariablesManagement(suDto, newSuDtoForced, incorrectCollectedVariablesTuples, collectedSuDto , incorrectCOLLECTEDCollectedVariablesTuples);
-                    }
+                    if (!incorrectCollectedVariablesTuples.isEmpty())
+                        collectedVariablesManagement(suDto, newSuDtoForced, incorrectCollectedVariablesTuples);
 
                     if (!incorrectExternalVariablesTuples.isEmpty())
                         externalVariablesManagement(suDto, newSuDtoForced, incorrectExternalVariablesTuples);
@@ -84,7 +76,7 @@ public class DataVerifier {
     /**
      * @param variablesToVerify variables to verify
      * @param variablesMap variable definitions
-     * @return a list of pairs (variable name, index)
+     * @return a list of pairs (variable name, index) TODO A VALIDER triplet variable name, index, correct value)
      */
     private static List<String[]> verifyVariables(List<? extends VariableDto> variablesToVerify, VariablesMap variablesMap){
         // List of tuples
@@ -152,25 +144,19 @@ public class DataVerifier {
 
     /**
      * Changes values flagged as incorrect in update variables from source and fill the destination's update variables
-     * A third survey unit can be used to replace the incorrect variable from source by the correct one from the third
      * @param sourceSurveyUnitUpdateDto source Survey Unit
      * @param destinationSurveyUnitUpdateDto destination Survey Unit
      * @param incorrectCollectedVariablesTuples (incorrect variable name, incorrect value index) pairs
-     * @param replacementSurveyUnitUpdateDto the Survey Unit used for incorrect variable replacement
-     * @param incorrectReplacementCollectedVariablesTuples incorrect variable tuples for the replacement survey unit
      */
     private static void collectedVariablesManagement(
             SurveyUnitUpdateDto sourceSurveyUnitUpdateDto
             ,SurveyUnitUpdateDto destinationSurveyUnitUpdateDto
             ,List<String[]> incorrectCollectedVariablesTuples
-            ,SurveyUnitUpdateDto replacementSurveyUnitUpdateDto
-            ,List<String[]> incorrectReplacementCollectedVariablesTuples
     ){
         //Variable names extraction
         Set<String> incorrectVariablesNames = new HashSet<>();
         getIncorrectVariableNames(incorrectCollectedVariablesTuples, incorrectVariablesNames);
 
-        int collectedVariableIndex = 0;
         for (CollectedVariableDto variable : sourceSurveyUnitUpdateDto.getCollectedVariables()){
             if(incorrectVariablesNames.contains(variable.getIdVar())){
                 //Copy variable
@@ -181,17 +167,11 @@ public class DataVerifier {
                         .values(new ArrayList<>(variable.getValues()))
                         .build();
                 //Change incorrect value(s) to empty
-                for(int incorrectValueIndex : getIncorrectValuesIndexes(incorrectCollectedVariablesTuples, variable.getIdVar())){
-                    if(replacementSurveyUnitUpdateDto == null
-                        || !getIncorrectValuesIndexes(incorrectReplacementCollectedVariablesTuples, variable.getIdVar()).contains(incorrectValueIndex)
-                    )
-                        newVariable.getValues().set(incorrectValueIndex,"");
-                    else
-                        newVariable.getValues().set(incorrectValueIndex, replacementSurveyUnitUpdateDto.getCollectedVariables().get(collectedVariableIndex).getValues().get(incorrectValueIndex));
-                }
+                //TODO Use COLLECTED variable if correct
+                for(int incorrectValueIndex : getIncorrectValuesIndexes(incorrectCollectedVariablesTuples, variable.getIdVar()))
+                    newVariable.getValues().set(incorrectValueIndex,"");
                 destinationSurveyUnitUpdateDto.getCollectedVariables().add(newVariable);
             }
-            collectedVariableIndex++;
         }
     }
 
