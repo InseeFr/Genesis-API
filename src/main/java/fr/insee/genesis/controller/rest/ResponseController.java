@@ -1,6 +1,8 @@
 package fr.insee.genesis.controller.rest;
 
+import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.adapter.LunaticXmlAdapter;
+import fr.insee.genesis.controller.sources.xml.LunaticXmlDataSequentialParser;
 import fr.insee.genesis.domain.dtos.SurveyUnitId;
 import fr.insee.genesis.controller.responses.SurveyUnitUpdateSimplified;
 import fr.insee.genesis.controller.sources.ddi.DDIReader;
@@ -24,6 +26,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -52,14 +56,7 @@ public class ResponseController {
     public ResponseEntity<Object> saveResponsesFromXmlFile(     @RequestParam("pathLunaticXml") String xmlFile,
                                                                 @RequestParam("pathDDI") String ddiFile)
             throws Exception {
-        log.info(String.format("Try to read Xml file : %s", xmlFile));
-        LunaticXmlDataParser parser = new LunaticXmlDataParser();
-        LunaticXmlCampaign campaign;
-        try {
-            campaign = parser.parseDataFile(Paths.get(xmlFile));
-        } catch (GenesisException e) {
-            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
-        }
+
         log.info(String.format("Try to read DDI file : %s", ddiFile));
         Path ddiFilePath = Paths.get(ddiFile);
         VariablesMap variablesMap;
@@ -68,14 +65,60 @@ public class ResponseController {
         } catch (GenesisException e) {
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
         }
-        List<SurveyUnitUpdateDto> suDtos = new ArrayList<>();
-        for (LunaticXmlSurveyUnit su : campaign.getSurveyUnits()) {
-            suDtos.addAll(LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign()));
+
+        log.info(String.format("Try to read Xml file : %s", xmlFile));
+        Path filepath = Paths.get(xmlFile);
+        LunaticXmlCampaign campaign;
+
+        if(filepath.toFile().length()/1024/1024 <= Constants.MAX_FILE_SIZE_UNTIL_SEQUENTIAL){
+            // DOM method
+            LunaticXmlDataParser parser = new LunaticXmlDataParser();
+            try {
+                campaign = parser.parseDataFile(filepath);
+            } catch (GenesisException e) {
+                return ResponseEntity.status(e.getStatus()).body(e.getMessage());
+            }
+
+            List<SurveyUnitUpdateDto> suDtos = new ArrayList<>();
+            for (LunaticXmlSurveyUnit su : campaign.getSurveyUnits()) {
+                suDtos.addAll(LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign()));
+            }
+            surveyUnitQualityService.verifySurveyUnits(suDtos,variablesMap);
+
+            log.info("Saving {} survey units updates", suDtos.size());
+            surveyUnitService.saveSurveyUnits(suDtos);
+            log.info("Survey units updates saved");
+
+            log.info("File {} treated", xmlFile);
+            return new ResponseEntity<>("Test", HttpStatus.OK);
+
+        }else{
+            //Sequential method
+            log.warn("File size > " + Constants.MAX_FILE_SIZE_UNTIL_SEQUENTIAL + "MB! Parsing XML file using sequential method...");
+            try(final InputStream stream = new FileInputStream(filepath.toFile())){
+                LunaticXmlDataSequentialParser parser = new LunaticXmlDataSequentialParser(filepath,stream);
+                int suCount = 0;
+
+                campaign = parser.getCampaign();
+                LunaticXmlSurveyUnit su = parser.readNextSurveyUnit();
+
+                while(su != null){
+                    List<SurveyUnitUpdateDto> suDtos = new ArrayList<>(LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign()));
+
+                    surveyUnitQualityService.verifySurveyUnits(suDtos,variablesMap);
+                    surveyUnitService.saveSurveyUnits(suDtos);
+                    suCount++;
+
+                    su = parser.readNextSurveyUnit();
+                }
+
+                log.info("Saving {} survey units updates", suCount);
+                log.info("Survey units updates saved");
+            }
+
+            log.info("File {} treated", xmlFile);
+            return new ResponseEntity<>("Test", HttpStatus.OK);
         }
-        surveyUnitQualityService.verifySurveyUnits(suDtos,variablesMap);
-        surveyUnitService.saveSurveyUnits(suDtos);
-        log.info("File {} treated", xmlFile);
-        return new ResponseEntity<>("Test", HttpStatus.OK);
     }
 
     @Operation(summary = "Save multiples files in Genesis Database")
@@ -84,7 +127,6 @@ public class ResponseController {
                                                                      @RequestParam(value = "mode", required = false) Mode modeSpecified)
             throws Exception {
         log.info("Try to import data for campaign : {}", campaignName);
-        LunaticXmlDataParser parser = new LunaticXmlDataParser();
         List<Mode> modesList;
         try {
             modesList = controllerUtils.getModesList(campaignName, modeSpecified);
@@ -93,6 +135,7 @@ public class ResponseController {
         }
 
         List<GenesisError> errors = new ArrayList<>();
+
         for(Mode currentMode : modesList) {
             log.info("Try to import data for mode : {}", currentMode.getModeName());
             String dataFolder = fileUtils.getDataFolder(campaignName, currentMode.getFolder());
@@ -103,9 +146,11 @@ public class ResponseController {
                 log.info("No data file found in folder " + dataFolder);
             }
             for (String fileName : dataFiles.stream().filter(s -> s.endsWith(".xml")).toList()) {
-                String pathFile = String.format("%s/%s", dataFolder, fileName);
+                String filepathString = String.format("%s/%s", dataFolder, fileName);
+                Path filepath = Paths.get(filepathString);
                 log.info("Try to read Xml file : {}", fileName);
-                LunaticXmlCampaign campaign = parser.parseDataFile(Paths.get(pathFile));
+
+                LunaticXmlCampaign campaign;
                 VariablesMap variablesMap;
                 try {
                     Path ddiFilePath = fileUtils.findDDIFile(campaignName, currentMode.getModeName());
@@ -115,12 +160,45 @@ public class ResponseController {
                 } catch(Exception e) {
                     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
                 }
-                List<SurveyUnitUpdateDto> suDtos = new ArrayList<>();
-                for (LunaticXmlSurveyUnit su : campaign.getSurveyUnits()) {
-                    suDtos.addAll(LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign()));
+
+                if(filepath.toFile().length()/1024/1024 <= Constants.MAX_FILE_SIZE_UNTIL_SEQUENTIAL){
+                    //DOM method
+                    LunaticXmlDataParser parser = new LunaticXmlDataParser();
+                    campaign = parser.parseDataFile(Paths.get(filepathString));
+
+                    List<SurveyUnitUpdateDto> suDtos = new ArrayList<>();
+                    for (LunaticXmlSurveyUnit su : campaign.getSurveyUnits()) {
+                        suDtos.addAll(LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign()));
+                    }
+                    surveyUnitQualityService.verifySurveyUnits(suDtos,variablesMap);
+
+                    log.info("Saving {} survey units updates", suDtos.size());
+                    surveyUnitService.saveSurveyUnits(suDtos);
+                    log.info("Survey units updates saved");
+                }else{
+                    //Sequential method
+                    log.warn("File size > " + Constants.MAX_FILE_SIZE_UNTIL_SEQUENTIAL + "MB! Parsing XML file using sequential method...");
+                    try(final InputStream stream = new FileInputStream(filepath.toFile())){
+                        LunaticXmlDataSequentialParser parser = new LunaticXmlDataSequentialParser(filepath,stream);
+                        int suCount = 0;
+
+                        campaign = parser.getCampaign();
+                        LunaticXmlSurveyUnit su = parser.readNextSurveyUnit();
+
+                        while(su != null){
+                            List<SurveyUnitUpdateDto> suDtos = new ArrayList<>(LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign()));
+
+                            surveyUnitQualityService.verifySurveyUnits(suDtos,variablesMap);
+                            surveyUnitService.saveSurveyUnits(suDtos);
+                            suCount++;
+
+                            su = parser.readNextSurveyUnit();
+                        }
+
+                        log.info("Saving {} survey units updates", suCount);
+                        log.info("Survey units updates saved");
+                    }
                 }
-                surveyUnitQualityService.verifySurveyUnits(suDtos,variablesMap);
-                surveyUnitService.saveSurveyUnits(suDtos);
                 log.info("File {} saved", fileName);
                 fileUtils.moveDataFile(campaignName, currentMode.getFolder(), fileName);
             }
