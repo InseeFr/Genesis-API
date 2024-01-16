@@ -13,12 +13,12 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class DataVerifierTest {
     static List<SurveyUnitUpdateDto> testSurveyUnitUpdateDtos = new ArrayList<>();
-    static int initialSize = 0;
     static VariablesMap variablesMap;
 
     // Given
@@ -26,1279 +26,304 @@ class DataVerifierTest {
     static void setUp() {
         //Variable definitions
         variablesMap = new VariablesMap();
-        Variable var1 = new Variable("testString", variablesMap.getRootGroup(), VariableType.STRING, "10");
-        Variable var2 = new Variable("testInteger", variablesMap.getRootGroup(), VariableType.INTEGER, "10");
-        Variable var3 = new Variable("testNumber", variablesMap.getRootGroup(), VariableType.NUMBER, "10");
-        Variable var4 = new Variable("testBoolean", variablesMap.getRootGroup(), VariableType.BOOLEAN, "10");
-        Variable var5 = new Variable("testDate", variablesMap.getRootGroup(), VariableType.DATE, "20");
-        Variable var6 = new Variable("testStringExt", variablesMap.getRootGroup(), VariableType.STRING, "10");
-        Variable var7 = new Variable("testIntegerExt", variablesMap.getRootGroup(), VariableType.INTEGER, "10");
-        Variable var8 = new Variable("testNumberExt", variablesMap.getRootGroup(), VariableType.NUMBER, "10");
-        Variable var9 = new Variable("testBooleanExt", variablesMap.getRootGroup(), VariableType.BOOLEAN, "10");
-        Variable var10 = new Variable("testDateExt", variablesMap.getRootGroup(), VariableType.DATE, "20");
-        Variable var11 = new Variable("testInteger2", variablesMap.getRootGroup(), VariableType.INTEGER, "10");
-        variablesMap.putVariable(var1);
-        variablesMap.putVariable(var2);
-        variablesMap.putVariable(var3);
-        variablesMap.putVariable(var4);
-        variablesMap.putVariable(var5);
-        variablesMap.putVariable(var6);
-        variablesMap.putVariable(var7);
-        variablesMap.putVariable(var8);
-        variablesMap.putVariable(var9);
-        variablesMap.putVariable(var10);
-        variablesMap.putVariable(var11);
 
-        //Case 1 : Correct variables types
-        List<CollectedVariableDto> variableUpdates = new ArrayList<>();
+        //Invalid Collected Variables only
+        //1 Variable 1 State 1 Value
+        createCase(1,1,1,true,false,"TestUE1",testSurveyUnitUpdateDtos,variablesMap);
 
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testString")
-                .values(new ArrayList<>(List.of(new String[]{"test"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testInteger")
-                .values(new ArrayList<>(List.of(new String[]{"1"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testNumber")
-                .values(new ArrayList<>(List.of(new String[]{"1.1"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testBoolean")
-                .values(new ArrayList<>(List.of(new String[]{"true"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testDate")
-                .values(new ArrayList<>(List.of(new String[]{"2001-01-01"})))
-                .build()
-        );
+        //1 Variable 1 State 2 Values
+        createCase(1,1,2,true,false,"TestUE2",testSurveyUnitUpdateDtos,variablesMap);
 
-        List<VariableDto> externalVariables = new ArrayList<>();
-        externalVariables.add(VariableDto.builder()
-                .idVar("testStringExt")
-                .values(new ArrayList<>(List.of(new String[]{"test"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testIntegerExt")
-                .values(new ArrayList<>(List.of(new String[]{"1"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testNumberExt")
-                .values(new ArrayList<>(List.of(new String[]{"1.1"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testBooleanExt")
-                .values(new ArrayList<>(List.of(new String[]{"true"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testDateExt")
-                .values(new ArrayList<>(List.of(new String[]{"2001-01-01"})))
-                .build()
-        );
+        //1 Variable 2 States 1 Value
+        createCase(1,2,1,true,false,"TestUE3",testSurveyUnitUpdateDtos,variablesMap);
 
-        SurveyUnitUpdateDto correctSurveyUnitUpdateDto = SurveyUnitUpdateDto.builder()
-                .idQuest("IdQuest1")
-                .idCampaign("IdCampaign1")
-                .idUE("TestUE1")
-                .state(DataState.COLLECTED)
-                .mode(Mode.WEB)
-                .recordDate(LocalDateTime.now())
-                .collectedVariables(new ArrayList<>(variableUpdates))
-                .externalVariables(new ArrayList<>(externalVariables))
-                .build();
+        //1 Variable 2 States 2 Values
+        createCase(1,2,2,true,false,"TestUE4",testSurveyUnitUpdateDtos,variablesMap);
 
-        testSurveyUnitUpdateDtos.add(correctSurveyUnitUpdateDto);
-        variableUpdates.clear();
-        externalVariables.clear();
+        //2 Variables 1 State 1 Value
+        createCase(2,1,1,true,false,"TestUE5",testSurveyUnitUpdateDtos,variablesMap);
 
-        //Case 2 : Incorrect update variable type (1 value)
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testString")
-                .values(new ArrayList<>(List.of(new String[]{"test"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testInteger")
-                .values(new ArrayList<>(List.of(new String[]{"?"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testDate")
-                .values(new ArrayList<>(List.of(new String[]{"2000-99-99"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testIntegerExt")
-                .values(new ArrayList<>(List.of(new String[]{"1"})))
-                .build()
-        );
+        //2 Variables 1 State 2 Values
+        createCase(2,1,2,true,false,"TestUE6",testSurveyUnitUpdateDtos,variablesMap);
 
-        SurveyUnitUpdateDto invalidUpdateVariableSurveyUnitUpdateDto = SurveyUnitUpdateDto.builder()
-                .idQuest("IdQuest1")
-                .idCampaign("IdCampaign1")
-                .idUE("TestUE2")
-                .state(DataState.COLLECTED)
-                .mode(Mode.WEB)
-                .recordDate(LocalDateTime.now())
-                .collectedVariables(new ArrayList<>(variableUpdates))
-                .externalVariables(new ArrayList<>(externalVariables))
-                .build();
+        //2 Variables 2 States 1 Value
+        createCase(2,2,1,true,false,"TestUE7",testSurveyUnitUpdateDtos,variablesMap);
 
-        testSurveyUnitUpdateDtos.add(invalidUpdateVariableSurveyUnitUpdateDto);
-        variableUpdates.clear();
-        externalVariables.clear();
+        //2 Variables 2 State 2 Value
+        createCase(2,2,2,true,false,"TestUE8",testSurveyUnitUpdateDtos,variablesMap);
 
 
-        //Case 3 : Incorrect update variable type (2 values)
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testString")
-                .values(new ArrayList<>(List.of(new String[]{"test"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testInteger")
-                .values(new ArrayList<>(List.of(new String[]{"1","?"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testIntegerExt")
-                .values(new ArrayList<>(List.of(new String[]{"1"})))
-                .build()
-        );
+        //With invalid ExternalVariables
+        createCase(1,1,1,true,true,"TestUE9",testSurveyUnitUpdateDtos,variablesMap);
 
-        invalidUpdateVariableSurveyUnitUpdateDto = SurveyUnitUpdateDto.builder()
-                .idQuest("IdQuest1")
-                .idCampaign("IdCampaign1")
-                .idUE("TestUE3")
-                .state(DataState.COLLECTED)
-                .mode(Mode.WEB)
-                .recordDate(LocalDateTime.now())
-                .collectedVariables(new ArrayList<>(variableUpdates))
-                .externalVariables(new ArrayList<>(externalVariables))
-                .build();
+        //1 Variable 1 State 2 Values
+        createCase(1,1,2,true,true,"TestUE10",testSurveyUnitUpdateDtos,variablesMap);
 
-        testSurveyUnitUpdateDtos.add(invalidUpdateVariableSurveyUnitUpdateDto);
-        variableUpdates.clear();
-        externalVariables.clear();
+        //1 Variable 2 States 1 Value
+        createCase(1,2,1,true,true,"TestUE11",testSurveyUnitUpdateDtos,variablesMap);
 
+        //1 Variable 2 States 2 Values
+        createCase(1,2,2,true,true,"TestUE12",testSurveyUnitUpdateDtos,variablesMap);
 
+        //2 Variables 1 State 1 Value
+        createCase(2,1,1,true,true,"TestUE13",testSurveyUnitUpdateDtos,variablesMap);
 
-        // Case 4 : Incorrect external variable type (1 value)
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testString")
-                .values(new ArrayList<>(List.of(new String[]{"test"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testInteger")
-                .values(new ArrayList<>(List.of(new String[]{"1"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testIntegerExt")
-                .values(new ArrayList<>(List.of(new String[]{"?"})))
-                .build()
-        );
+        //2 Variables 1 State 2 Values
+        createCase(2,1,2,true,true,"TestUE14",testSurveyUnitUpdateDtos,variablesMap);
 
-        externalVariables.add(VariableDto.builder()
-                .idVar("testDateExt")
-                .values(new ArrayList<>(List.of(new String[]{"2000-99-99"})))
-                .build()
-        );
+        //2 Variables 2 States 1 Value
+        createCase(2,2,1,true,true,"TestUE15",testSurveyUnitUpdateDtos,variablesMap);
 
-        SurveyUnitUpdateDto invalidExternalVariableSurveyUnitUpdateDto = SurveyUnitUpdateDto.builder()
-                .idQuest("IdQuest1")
-                .idCampaign("IdCampaign1")
-                .idUE("TestUE4")
-                .state(DataState.COLLECTED)
-                .mode(Mode.WEB)
-                .recordDate(LocalDateTime.now())
-                .collectedVariables(new ArrayList<>(variableUpdates))
-                .externalVariables(new ArrayList<>(externalVariables))
-                .build();
+        //2 Variables 2 State 2 Value
+        createCase(2,2,2,true,true,"TestUE16",testSurveyUnitUpdateDtos,variablesMap);
 
-        testSurveyUnitUpdateDtos.add(invalidExternalVariableSurveyUnitUpdateDto);
-        variableUpdates.clear();
-        externalVariables.clear();
 
-        // Case 5 : Incorrect external variable type (2 values)
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testString")
-                .values(new ArrayList<>(List.of(new String[]{"test"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testInteger")
-                .values(new ArrayList<>(List.of(new String[]{"1"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testIntegerExt")
-                .values(new ArrayList<>(List.of(new String[]{"1","?"})))
-                .build()
-        );
+        //Valid variables only
+        createCase(1,1,1,false,true,"TestUE17",testSurveyUnitUpdateDtos,variablesMap);
+        createCase(2,2,2,false,true,"TestUE18",testSurveyUnitUpdateDtos,variablesMap);
 
-        invalidExternalVariableSurveyUnitUpdateDto = SurveyUnitUpdateDto.builder()
-                .idQuest("IdQuest1")
-                .idCampaign("IdCampaign1")
-                .idUE("TestUE5")
-                .state(DataState.COLLECTED)
-                .mode(Mode.WEB)
-                .recordDate(LocalDateTime.now())
-                .collectedVariables(new ArrayList<>(variableUpdates))
-                .externalVariables(new ArrayList<>(externalVariables))
-                .build();
+        //Manual modifications
+        //Valid 2nd variable on 5th and 13th case
+        SurveyUnitUpdateDto suDto = testSurveyUnitUpdateDtos.stream().filter(surveyUnitUpdateDto ->
+                surveyUnitUpdateDto.getIdUE().equals("TestUE5")
+        ).toList().get(0);
 
-        testSurveyUnitUpdateDtos.add(invalidExternalVariableSurveyUnitUpdateDto);
-        variableUpdates.clear();
-        externalVariables.clear();
+        suDto.getCollectedVariables().get(1).getValues().set(0,"1");
 
-        //Assert correct order for the 5 first survey units
-        for(int i = 0; i < testSurveyUnitUpdateDtos.size(); i++)
-            assertThat(testSurveyUnitUpdateDtos.get(i).getIdUE()).isEqualTo("TestUE" + (i+1));
+        suDto = testSurveyUnitUpdateDtos.stream().filter(surveyUnitUpdateDto ->
+                surveyUnitUpdateDto.getIdUE().equals("TestUE13")
+        ).toList().get(0);
 
-        // for DataStates tests
+        suDto.getCollectedVariables().get(1).getValues().set(0,"1");
+        suDto.getExternalVariables().get(1).getValues().set(0,"1");
 
-        // Case 6 : Both COLLECTED and EDITED invalid
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testString")
-                .values(new ArrayList<>(List.of(new String[]{"test"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testInteger")
-                .values(new ArrayList<>(List.of(new String[]{"?"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testNumber")
-                .values(new ArrayList<>(List.of(new String[]{"1.1"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testBoolean")
-                .values(new ArrayList<>(List.of(new String[]{"true"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testDate")
-                .values(new ArrayList<>(List.of(new String[]{"2001-01-01"})))
-                .build()
-        );
 
-        externalVariables = new ArrayList<>();
-        externalVariables.add(VariableDto.builder()
-                .idVar("testStringExt")
-                .values(new ArrayList<>(List.of(new String[]{"test"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testIntegerExt")
-                .values(new ArrayList<>(List.of(new String[]{"?"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testNumberExt")
-                .values(new ArrayList<>(List.of(new String[]{"1.1"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testBooleanExt")
-                .values(new ArrayList<>(List.of(new String[]{"true"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testDateExt")
-                .values(new ArrayList<>(List.of(new String[]{"2001-01-01"})))
-                .build()
-        );
+        //Valid EDITED variables on 3rd and 7th case for priority test
+        SurveyUnitUpdateDto suDtoEdited = testSurveyUnitUpdateDtos.stream().filter(surveyUnitUpdateDto ->
+                surveyUnitUpdateDto.getIdUE().equals("TestUE3")
+                && surveyUnitUpdateDto.getState().equals(DataState.EDITED)
+                ).toList().get(0);
 
-        SurveyUnitUpdateDto invalidSurveyUnitUpdateDtoCollected = SurveyUnitUpdateDto.builder()
-                .idQuest("IdQuest1")
-                .idCampaign("IdCampaign1")
-                .idUE("TestUE6")
-                .state(DataState.COLLECTED)
-                .mode(Mode.WEB)
-                .recordDate(LocalDateTime.now())
-                .collectedVariables(new ArrayList<>(variableUpdates))
-                .externalVariables(new ArrayList<>(externalVariables))
-                .build();
+        suDtoEdited.getCollectedVariables().get(0).getValues().set(0,"1");
 
-        testSurveyUnitUpdateDtos.add(invalidSurveyUnitUpdateDtoCollected);
-        variableUpdates.clear();
-        externalVariables.clear();
+        suDtoEdited = testSurveyUnitUpdateDtos.stream().filter(surveyUnitUpdateDto ->
+                surveyUnitUpdateDto.getIdUE().equals("TestUE7")
+                        && surveyUnitUpdateDto.getState().equals(DataState.EDITED)
+        ).toList().get(0);
 
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testString")
-                .values(new ArrayList<>(List.of(new String[]{"test"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testInteger")
-                .values(new ArrayList<>(List.of(new String[]{"?"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testNumber")
-                .values(new ArrayList<>(List.of(new String[]{"1.1"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testBoolean")
-                .values(new ArrayList<>(List.of(new String[]{"true"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testDate")
-                .values(new ArrayList<>(List.of(new String[]{"2001-01-01"})))
-                .build()
-        );
+        suDtoEdited.getCollectedVariables().get(0).getValues().set(0,"1");
+        suDtoEdited.getCollectedVariables().get(1).getValues().set(0,"1");
 
-        externalVariables = new ArrayList<>();
-        externalVariables.add(VariableDto.builder()
-                .idVar("testStringExt")
-                .values(new ArrayList<>(List.of(new String[]{"test"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testIntegerExt")
-                .values(new ArrayList<>(List.of(new String[]{"?"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testNumberExt")
-                .values(new ArrayList<>(List.of(new String[]{"1.1"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testBooleanExt")
-                .values(new ArrayList<>(List.of(new String[]{"true"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testDateExt")
-                .values(new ArrayList<>(List.of(new String[]{"2001-01-01"})))
-                .build()
-        );
+        //Remove EDITED variable on 8th case
+        suDtoEdited = testSurveyUnitUpdateDtos.stream().filter(surveyUnitUpdateDto ->
+                surveyUnitUpdateDto.getIdUE().equals("TestUE8")
+                        && surveyUnitUpdateDto.getState().equals(DataState.EDITED)
+        ).toList().get(0);
 
-        SurveyUnitUpdateDto invalidSurveyUnitUpdateDtoEdited = SurveyUnitUpdateDto.builder()
-                .idQuest("IdQuest1")
-                .idCampaign("IdCampaign1")
-                .idUE("TestUE6")
-                .state(DataState.EDITED)
-                .mode(Mode.WEB)
-                .recordDate(LocalDateTime.now())
-                .collectedVariables(new ArrayList<>(variableUpdates))
-                .externalVariables(new ArrayList<>(externalVariables))
-                .build();
-
-        testSurveyUnitUpdateDtos.add(invalidSurveyUnitUpdateDtoEdited);
-        variableUpdates.clear();
-        externalVariables.clear();
-
-        // Case 7 : COLLECTED valid and EDITED invalid
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testString")
-                .values(new ArrayList<>(List.of(new String[]{"test"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testInteger")
-                .values(new ArrayList<>(List.of(new String[]{"1"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testNumber")
-                .values(new ArrayList<>(List.of(new String[]{"1.1"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testBoolean")
-                .values(new ArrayList<>(List.of(new String[]{"true"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testDate")
-                .values(new ArrayList<>(List.of(new String[]{"2001-01-01"})))
-                .build()
-        );
-
-        externalVariables = new ArrayList<>();
-        externalVariables.add(VariableDto.builder()
-                .idVar("testStringExt")
-                .values(new ArrayList<>(List.of(new String[]{"test"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testIntegerExt")
-                .values(new ArrayList<>(List.of(new String[]{"1"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testNumberExt")
-                .values(new ArrayList<>(List.of(new String[]{"1.1"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testBooleanExt")
-                .values(new ArrayList<>(List.of(new String[]{"true"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testDateExt")
-                .values(new ArrayList<>(List.of(new String[]{"2001-01-01"})))
-                .build()
-        );
-
-        SurveyUnitUpdateDto validSurveyUnitUpdateDtoCollected = SurveyUnitUpdateDto.builder()
-                .idQuest("IdQuest1")
-                .idCampaign("IdCampaign1")
-                .idUE("TestUE7")
-                .state(DataState.COLLECTED)
-                .mode(Mode.WEB)
-                .recordDate(LocalDateTime.now())
-                .collectedVariables(new ArrayList<>(variableUpdates))
-                .externalVariables(new ArrayList<>(externalVariables))
-                .build();
-
-        testSurveyUnitUpdateDtos.add(validSurveyUnitUpdateDtoCollected);
-        variableUpdates.clear();
-        externalVariables.clear();
-
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testString")
-                .values(new ArrayList<>(List.of(new String[]{"test"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testInteger")
-                .values(new ArrayList<>(List.of(new String[]{"?"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testNumber")
-                .values(new ArrayList<>(List.of(new String[]{"1.1"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testBoolean")
-                .values(new ArrayList<>(List.of(new String[]{"true"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testDate")
-                .values(new ArrayList<>(List.of(new String[]{"2001-01-01"})))
-                .build()
-        );
-
-        externalVariables = new ArrayList<>();
-        externalVariables.add(VariableDto.builder()
-                .idVar("testStringExt")
-                .values(new ArrayList<>(List.of(new String[]{"test"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testIntegerExt")
-                .values(new ArrayList<>(List.of(new String[]{"?"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testNumberExt")
-                .values(new ArrayList<>(List.of(new String[]{"1.1"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testBooleanExt")
-                .values(new ArrayList<>(List.of(new String[]{"true"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testDateExt")
-                .values(new ArrayList<>(List.of(new String[]{"2001-01-01"})))
-                .build()
-        );
-
-        invalidSurveyUnitUpdateDtoEdited = SurveyUnitUpdateDto.builder()
-                .idQuest("IdQuest1")
-                .idCampaign("IdCampaign1")
-                .idUE("TestUE7")
-                .state(DataState.EDITED)
-                .mode(Mode.WEB)
-                .recordDate(LocalDateTime.now())
-                .collectedVariables(new ArrayList<>(variableUpdates))
-                .externalVariables(new ArrayList<>(externalVariables))
-                .build();
-
-        testSurveyUnitUpdateDtos.add(invalidSurveyUnitUpdateDtoEdited);
-        variableUpdates.clear();
-        externalVariables.clear();
-
-
-        // Case 8 : COLLECTED invalid and EDITED valid
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testString")
-                .values(new ArrayList<>(List.of(new String[]{"test"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testInteger")
-                .values(new ArrayList<>(List.of(new String[]{"?"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testNumber")
-                .values(new ArrayList<>(List.of(new String[]{"1.1"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testBoolean")
-                .values(new ArrayList<>(List.of(new String[]{"true"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testDate")
-                .values(new ArrayList<>(List.of(new String[]{"2001-01-01"})))
-                .build()
-        );
-
-        externalVariables = new ArrayList<>();
-        externalVariables.add(VariableDto.builder()
-                .idVar("testStringExt")
-                .values(new ArrayList<>(List.of(new String[]{"test"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testIntegerExt")
-                .values(new ArrayList<>(List.of(new String[]{"1"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testNumberExt")
-                .values(new ArrayList<>(List.of(new String[]{"1.1"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testBooleanExt")
-                .values(new ArrayList<>(List.of(new String[]{"true"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testDateExt")
-                .values(new ArrayList<>(List.of(new String[]{"2001-01-01"})))
-                .build()
-        );
-
-        invalidSurveyUnitUpdateDtoCollected = SurveyUnitUpdateDto.builder()
-                .idQuest("IdQuest1")
-                .idCampaign("IdCampaign1")
-                .idUE("TestUE8")
-                .state(DataState.COLLECTED)
-                .mode(Mode.WEB)
-                .recordDate(LocalDateTime.now())
-                .collectedVariables(new ArrayList<>(variableUpdates))
-                .externalVariables(new ArrayList<>(externalVariables))
-                .build();
-
-        testSurveyUnitUpdateDtos.add(invalidSurveyUnitUpdateDtoCollected);
-        variableUpdates.clear();
-        externalVariables.clear();
-
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testString")
-                .values(new ArrayList<>(List.of(new String[]{"test"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testInteger")
-                .values(new ArrayList<>(List.of(new String[]{"1"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testNumber")
-                .values(new ArrayList<>(List.of(new String[]{"1.1"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testBoolean")
-                .values(new ArrayList<>(List.of(new String[]{"true"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testDate")
-                .values(new ArrayList<>(List.of(new String[]{"2001-01-01"})))
-                .build()
-        );
-
-        externalVariables = new ArrayList<>();
-        externalVariables.add(VariableDto.builder()
-                .idVar("testStringExt")
-                .values(new ArrayList<>(List.of(new String[]{"test"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testIntegerExt")
-                .values(new ArrayList<>(List.of(new String[]{"1"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testNumberExt")
-                .values(new ArrayList<>(List.of(new String[]{"1.1"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testBooleanExt")
-                .values(new ArrayList<>(List.of(new String[]{"true"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testDateExt")
-                .values(new ArrayList<>(List.of(new String[]{"2001-01-01"})))
-                .build()
-        );
-
-        SurveyUnitUpdateDto validSurveyUnitUpdateDtoEdited = SurveyUnitUpdateDto.builder()
-                .idQuest("IdQuest1")
-                .idCampaign("IdCampaign1")
-                .idUE("TestUE8")
-                .state(DataState.EDITED)
-                .mode(Mode.WEB)
-                .recordDate(LocalDateTime.now())
-                .collectedVariables(new ArrayList<>(variableUpdates))
-                .externalVariables(new ArrayList<>(externalVariables))
-                .build();
-
-        testSurveyUnitUpdateDtos.add(validSurveyUnitUpdateDtoEdited);
-        variableUpdates.clear();
-        externalVariables.clear();
-
-        // Case 9 : both COLLECTED and EDITED valid
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testString")
-                .values(new ArrayList<>(List.of(new String[]{"test"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testInteger")
-                .values(new ArrayList<>(List.of(new String[]{"1"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testNumber")
-                .values(new ArrayList<>(List.of(new String[]{"1.1"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testBoolean")
-                .values(new ArrayList<>(List.of(new String[]{"true"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testDate")
-                .values(new ArrayList<>(List.of(new String[]{"2001-01-01"})))
-                .build()
-        );
-
-        externalVariables = new ArrayList<>();
-        externalVariables.add(VariableDto.builder()
-                .idVar("testStringExt")
-                .values(new ArrayList<>(List.of(new String[]{"test"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testIntegerExt")
-                .values(new ArrayList<>(List.of(new String[]{"1"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testNumberExt")
-                .values(new ArrayList<>(List.of(new String[]{"1.1"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testBooleanExt")
-                .values(new ArrayList<>(List.of(new String[]{"true"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testDateExt")
-                .values(new ArrayList<>(List.of(new String[]{"2001-01-01"})))
-                .build()
-        );
-
-        validSurveyUnitUpdateDtoCollected = SurveyUnitUpdateDto.builder()
-                .idQuest("IdQuest1")
-                .idCampaign("IdCampaign1")
-                .idUE("TestUE9")
-                .state(DataState.COLLECTED)
-                .mode(Mode.WEB)
-                .recordDate(LocalDateTime.now())
-                .collectedVariables(new ArrayList<>(variableUpdates))
-                .externalVariables(new ArrayList<>(externalVariables))
-                .build();
-
-        testSurveyUnitUpdateDtos.add(validSurveyUnitUpdateDtoCollected);
-        variableUpdates.clear();
-        externalVariables.clear();
-
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testString")
-                .values(new ArrayList<>(List.of(new String[]{"test"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testInteger")
-                .values(new ArrayList<>(List.of(new String[]{"1"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testNumber")
-                .values(new ArrayList<>(List.of(new String[]{"1.1"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testBoolean")
-                .values(new ArrayList<>(List.of(new String[]{"true"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testDate")
-                .values(new ArrayList<>(List.of(new String[]{"2001-01-01"})))
-                .build()
-        );
-
-        externalVariables = new ArrayList<>();
-        externalVariables.add(VariableDto.builder()
-                .idVar("testStringExt")
-                .values(new ArrayList<>(List.of(new String[]{"test"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testIntegerExt")
-                .values(new ArrayList<>(List.of(new String[]{"1"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testNumberExt")
-                .values(new ArrayList<>(List.of(new String[]{"1.1"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testBooleanExt")
-                .values(new ArrayList<>(List.of(new String[]{"true"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testDateExt")
-                .values(new ArrayList<>(List.of(new String[]{"2001-01-01"})))
-                .build()
-        );
-
-        validSurveyUnitUpdateDtoEdited = SurveyUnitUpdateDto.builder()
-                .idQuest("IdQuest1")
-                .idCampaign("IdCampaign1")
-                .idUE("TestUE9")
-                .state(DataState.EDITED)
-                .mode(Mode.WEB)
-                .recordDate(LocalDateTime.now())
-                .collectedVariables(new ArrayList<>(variableUpdates))
-                .externalVariables(new ArrayList<>(externalVariables))
-                .build();
-
-        testSurveyUnitUpdateDtos.add(validSurveyUnitUpdateDtoEdited);
-        variableUpdates.clear();
-        externalVariables.clear();
-
-        // Case 10 : INPUTED (non-concerned) invalid
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testString")
-                .values(new ArrayList<>(List.of(new String[]{"test"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testInteger")
-                .values(new ArrayList<>(List.of(new String[]{"1"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testNumber")
-                .values(new ArrayList<>(List.of(new String[]{"1.1"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testBoolean")
-                .values(new ArrayList<>(List.of(new String[]{"true"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testDate")
-                .values(new ArrayList<>(List.of(new String[]{"2001-01-01"})))
-                .build()
-        );
-
-        externalVariables = new ArrayList<>();
-        externalVariables.add(VariableDto.builder()
-                .idVar("testStringExt")
-                .values(new ArrayList<>(List.of(new String[]{"test"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testIntegerExt")
-                .values(new ArrayList<>(List.of(new String[]{"1"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testNumberExt")
-                .values(new ArrayList<>(List.of(new String[]{"1.1"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testBooleanExt")
-                .values(new ArrayList<>(List.of(new String[]{"true"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testDateExt")
-                .values(new ArrayList<>(List.of(new String[]{"2001-01-01"})))
-                .build()
-        );
-
-        validSurveyUnitUpdateDtoCollected = SurveyUnitUpdateDto.builder()
-                .idQuest("IdQuest1")
-                .idCampaign("IdCampaign1")
-                .idUE("TestUE10")
-                .state(DataState.COLLECTED)
-                .mode(Mode.WEB)
-                .recordDate(LocalDateTime.now())
-                .collectedVariables(new ArrayList<>(variableUpdates))
-                .externalVariables(new ArrayList<>(externalVariables))
-                .build();
-
-        testSurveyUnitUpdateDtos.add(validSurveyUnitUpdateDtoCollected);
-        variableUpdates.clear();
-        externalVariables.clear();
-
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testString")
-                .values(new ArrayList<>(List.of(new String[]{"test"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testInteger")
-                .values(new ArrayList<>(List.of(new String[]{"?"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testNumber")
-                .values(new ArrayList<>(List.of(new String[]{"1.1"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testBoolean")
-                .values(new ArrayList<>(List.of(new String[]{"true"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testDate")
-                .values(new ArrayList<>(List.of(new String[]{"2001-01-01"})))
-                .build()
-        );
-
-        externalVariables = new ArrayList<>();
-        externalVariables.add(VariableDto.builder()
-                .idVar("testStringExt")
-                .values(new ArrayList<>(List.of(new String[]{"test"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testIntegerExt")
-                .values(new ArrayList<>(List.of(new String[]{"?"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testNumberExt")
-                .values(new ArrayList<>(List.of(new String[]{"1.1"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testBooleanExt")
-                .values(new ArrayList<>(List.of(new String[]{"true"})))
-                .build()
-        );
-        externalVariables.add(VariableDto.builder()
-                .idVar("testDateExt")
-                .values(new ArrayList<>(List.of(new String[]{"2001-01-01"})))
-                .build()
-        );
-
-        SurveyUnitUpdateDto invalidSurveyUnitUpdateDtoInputed = SurveyUnitUpdateDto.builder()
-                .idQuest("IdQuest1")
-                .idCampaign("IdCampaign1")
-                .idUE("TestUE10")
-                .state(DataState.INPUTED)
-                .mode(Mode.WEB)
-                .recordDate(LocalDateTime.now())
-                .collectedVariables(new ArrayList<>(variableUpdates))
-                .externalVariables(new ArrayList<>(externalVariables))
-                .build();
-
-        testSurveyUnitUpdateDtos.add(invalidSurveyUnitUpdateDtoInputed);
-        variableUpdates.clear();
-        externalVariables.clear();
-
-        //Case 11 : VAR1 : Invalid in both COLLECTED and EDITED, VAR2: invalid COLLECTED only, 1 FORCED with both variables
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testInteger")
-                .values(new ArrayList<>(List.of(new String[]{"?"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testInteger2")
-                .values(new ArrayList<>(List.of(new String[]{"?"})))
-                .build()
-        );
-
-        invalidSurveyUnitUpdateDtoCollected = SurveyUnitUpdateDto.builder()
-                .idQuest("IdQuest1")
-                .idCampaign("IdCampaign1")
-                .idUE("TestUE11")
-                .state(DataState.COLLECTED)
-                .mode(Mode.WEB)
-                .recordDate(LocalDateTime.now())
-                .collectedVariables(new ArrayList<>(variableUpdates))
-                .externalVariables(new ArrayList<>(externalVariables))
-                .build();
-
-        testSurveyUnitUpdateDtos.add(invalidSurveyUnitUpdateDtoCollected);
-        variableUpdates.clear();
-
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testInteger")
-                .values(new ArrayList<>(List.of(new String[]{"?"})))
-                .build()
-        );
-
-        invalidSurveyUnitUpdateDtoEdited = SurveyUnitUpdateDto.builder()
-                .idQuest("IdQuest1")
-                .idCampaign("IdCampaign1")
-                .idUE("TestUE11")
-                .state(DataState.EDITED)
-                .mode(Mode.WEB)
-                .recordDate(LocalDateTime.now())
-                .collectedVariables(new ArrayList<>(variableUpdates))
-                .externalVariables(new ArrayList<>(externalVariables))
-                .build();
-
-        testSurveyUnitUpdateDtos.add(invalidSurveyUnitUpdateDtoEdited);
-        variableUpdates.clear();
-
-        //Case 12 : VAR1 : invalid COLLECTED and valid EDITED, VAR2: invalid COLLECTED only, 1 FORCED with var2 empty
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testInteger")
-                .values(new ArrayList<>(List.of(new String[]{"?"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testInteger2")
-                .values(new ArrayList<>(List.of(new String[]{"?"})))
-                .build()
-        );
-
-        invalidSurveyUnitUpdateDtoCollected = SurveyUnitUpdateDto.builder()
-                .idQuest("IdQuest1")
-                .idCampaign("IdCampaign1")
-                .idUE("TestUE12")
-                .state(DataState.COLLECTED)
-                .mode(Mode.WEB)
-                .recordDate(LocalDateTime.now())
-                .collectedVariables(new ArrayList<>(variableUpdates))
-                .externalVariables(new ArrayList<>(externalVariables))
-                .build();
-
-        testSurveyUnitUpdateDtos.add(invalidSurveyUnitUpdateDtoCollected);
-        variableUpdates.clear();
-
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testInteger")
-                .values(new ArrayList<>(List.of(new String[]{"1"})))
-                .build()
-        );
-
-        validSurveyUnitUpdateDtoEdited = SurveyUnitUpdateDto.builder()
-                .idQuest("IdQuest1")
-                .idCampaign("IdCampaign1")
-                .idUE("TestUE12")
-                .state(DataState.EDITED)
-                .mode(Mode.WEB)
-                .recordDate(LocalDateTime.now())
-                .collectedVariables(new ArrayList<>(variableUpdates))
-                .externalVariables(new ArrayList<>(externalVariables))
-                .build();
-
-        testSurveyUnitUpdateDtos.add(validSurveyUnitUpdateDtoEdited);
-        variableUpdates.clear();
-
-        //Case 13 : VAR1 : valid COLLECTED and invalid EDITED, VAR2: invalid COLLECTED only, 1 FORCED with var1 COLLECTED and var2 empty
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testInteger")
-                .values(new ArrayList<>(List.of(new String[]{"1"})))
-                .build()
-        );
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testInteger2")
-                .values(new ArrayList<>(List.of(new String[]{"?"})))
-                .build()
-        );
-
-        invalidSurveyUnitUpdateDtoCollected = SurveyUnitUpdateDto.builder()
-                .idQuest("IdQuest1")
-                .idCampaign("IdCampaign1")
-                .idUE("TestUE13")
-                .state(DataState.COLLECTED)
-                .mode(Mode.WEB)
-                .recordDate(LocalDateTime.now())
-                .collectedVariables(new ArrayList<>(variableUpdates))
-                .externalVariables(new ArrayList<>(externalVariables))
-                .build();
-
-        testSurveyUnitUpdateDtos.add(invalidSurveyUnitUpdateDtoCollected);
-        variableUpdates.clear();
-
-        variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
-                .idVar("testInteger")
-                .values(new ArrayList<>(List.of(new String[]{"?"})))
-                .build()
-        );
-
-        invalidSurveyUnitUpdateDtoEdited = SurveyUnitUpdateDto.builder()
-                .idQuest("IdQuest1")
-                .idCampaign("IdCampaign1")
-                .idUE("TestUE13")
-                .state(DataState.EDITED)
-                .mode(Mode.WEB)
-                .recordDate(LocalDateTime.now())
-                .collectedVariables(new ArrayList<>(variableUpdates))
-                .externalVariables(new ArrayList<>(externalVariables))
-                .build();
-
-        testSurveyUnitUpdateDtos.add(invalidSurveyUnitUpdateDtoEdited);
-        variableUpdates.clear();
-
-        initialSize = testSurveyUnitUpdateDtos.size();
+        suDtoEdited.getCollectedVariables().remove(1);
 
         //When
         DataVerifier.verifySurveyUnits(testSurveyUnitUpdateDtos,variablesMap);
     }
 
+    private static void createCase(int variableNumber, int stateNumber, int valueNumber, boolean hasIncorrectValues, boolean hasExternalVariables, String idUE, List<SurveyUnitUpdateDto> testSurveyUnitUpdateDtos, VariablesMap variablesMap) {
+        for(int stateIndex = 0; stateIndex < stateNumber; stateIndex++){
+            List<CollectedVariableDto> variableUpdates = new ArrayList<>();
+            List<VariableDto> externalVariables = new ArrayList<>();
+
+            for(int variableIndex = 0; variableIndex < variableNumber; variableIndex++){
+                List<String> values = new ArrayList<>();
+
+                if(!variablesMap.hasVariable("testInteger" + variableIndex)) {
+                    Variable var = new Variable("testInteger" + variableIndex, variablesMap.getRootGroup(), VariableType.INTEGER, "10");
+                    variablesMap.putVariable(var);
+                }
+
+                for(int valueIndex = 0; valueIndex < valueNumber; valueIndex++){
+                    values.add(hasIncorrectValues
+                            && valueIndex % 2 == 0  // Only 1 wrong value if multiple
+                            ? "?" : String.valueOf(valueIndex + 1));
+                }
+
+                variableUpdates.add(CollectedVariableDto.collectedVariableBuilder()
+                        .idVar("testInteger" + variableIndex)
+                        .values(new ArrayList<>(values))
+                        .build()
+                );
+
+                if(hasExternalVariables){
+                    externalVariables.add(VariableDto.builder()
+                            .idVar("testInteger" + variableIndex)
+                            .values(new ArrayList<>(values))
+                            .build()
+                    );
+                }
+            }
+
+            SurveyUnitUpdateDto surveyUnitUpdateDto = SurveyUnitUpdateDto.builder()
+                    .idQuest("IdQuest1")
+                    .idCampaign("IdCampaign1")
+                    .idUE(idUE)
+                    .state(stateIndex % 2 == 0 ? DataState.COLLECTED : DataState.EDITED)
+                    .mode(Mode.WEB)
+                    .recordDate(LocalDateTime.now())
+                    .collectedVariables(new ArrayList<>(variableUpdates))
+                    .externalVariables(new ArrayList<>(externalVariables))
+                    .build();
+
+            variableUpdates.clear();
+            externalVariables.clear();
+
+            testSurveyUnitUpdateDtos.add(surveyUnitUpdateDto);
+        }
+    }
+
     //Then
-    @Test
-    @DisplayName("Case 1 : Correct variables types, don't create FORCED Survey Unit if correct")
-    void correctUpdateVariableTest(){
-        assertThat(testSurveyUnitUpdateDtos).filteredOn(surveyUnit ->
-                surveyUnit.getIdUE().equals("TestUE1")
-                && surveyUnit.getState() == DataState.FORCED)
-            .isEmpty();
-    }
-
-    @Test
-    @DisplayName("Case 2 : Incorrect update variable type (1 value), incorrect variable kept with empty value (except dates)")
-    void incorrectUpdateVariable1Test(){
-        assertThat(testSurveyUnitUpdateDtos).filteredOn(surveyUnit ->
-                surveyUnit.getIdUE().equals("TestUE2")
-                        && surveyUnit.getState() == DataState.FORCED).isNotEmpty();
-
-        //Variable content check
-        //Integer assert
-        assertThat(testSurveyUnitUpdateDtos.stream().filter(surveyUnit ->
-                surveyUnit.getIdUE().equals("TestUE2")
-                        && surveyUnit.getState() == DataState.FORCED).findFirst().get().getCollectedVariables().get(0).getValues().get(0)).isEmpty();
-        //Date assert
-        assertThat(testSurveyUnitUpdateDtos.stream().filter(surveyUnit ->
-                surveyUnit.getIdUE().equals("TestUE2")
-                        && surveyUnit.getState() == DataState.FORCED).findFirst().get().getCollectedVariables()).hasSize(1);
-    }
-
-    @Test
-    @DisplayName("Case 3 : Incorrect update variable type (2 values), incorrect value set to empty")
-    void incorrectUpdateVariable2Test(){
-        assertThat(testSurveyUnitUpdateDtos).filteredOn(surveyUnit ->
-                surveyUnit.getIdUE().equals("TestUE3")
-                        && surveyUnit.getState() == DataState.FORCED).isNotEmpty();
-
-        assertThat(testSurveyUnitUpdateDtos.stream().filter(surveyUnit ->
-                surveyUnit.getIdUE().equals("TestUE3")
-                        && surveyUnit.getState() == DataState.FORCED).findFirst().get().getCollectedVariables().get(0).getValues()).hasSize(2).contains("");
-
-    }
-
-    @Test
-    @DisplayName("Case 4 : Incorrect external variable type (1 value), incorrect variable kept with empty value (except dates)")
-    void incorrectExternalVariable1Test(){
-        assertThat(testSurveyUnitUpdateDtos).filteredOn(surveyUnit ->
-                surveyUnit.getIdUE().equals("TestUE4")
-                        && surveyUnit.getState() == DataState.FORCED).isNotEmpty();
-
-        //Integer assert
-        assertThat(testSurveyUnitUpdateDtos.stream().filter(surveyUnit ->
-                surveyUnit.getIdUE().equals("TestUE4")
-                        && surveyUnit.getState() == DataState.FORCED).findFirst().get().getExternalVariables().get(0).getValues().get(0)).isEmpty();
-        //Date assert
-        assertThat(testSurveyUnitUpdateDtos.stream().filter(surveyUnit ->
-                surveyUnit.getIdUE().equals("TestUE4")
-                        && surveyUnit.getState() == DataState.FORCED).findFirst().get().getExternalVariables()).hasSize(1);
-    }
-
-    @Test
-    @DisplayName("Case 5 : Incorrect external variable type (2 values), incorrect value set to null")
-    void incorrectExternalVariable2Test(){
-        assertThat(testSurveyUnitUpdateDtos).filteredOn(surveyUnit ->
-                surveyUnit.getIdUE().equals("TestUE5")
-                        && surveyUnit.getState() == DataState.FORCED).isNotEmpty();
-
-        assertThat(testSurveyUnitUpdateDtos.stream().filter(surveyUnit ->
-                surveyUnit.getIdUE().equals("TestUE5")
-                        && surveyUnit.getState() == DataState.FORCED).findFirst().get().getExternalVariables()).hasSize(1);
-
-        assertThat(testSurveyUnitUpdateDtos.stream().filter(surveyUnit ->
-                surveyUnit.getIdUE().equals("TestUE5")
-                        && surveyUnit.getState() == DataState.FORCED).findFirst().get().getExternalVariables().get(0).getValues()).hasSize(2).contains("");
-    }
-
-    @Test
-    @DisplayName("Case 6 : Both COLLECTED and EDITED invalid, only 1 FORCED")
-    void bothStatesInvalidTest(){
-        assertThat(testSurveyUnitUpdateDtos).filteredOn(surveyUnit ->
-                        surveyUnit.getIdUE().equals("TestUE6")
-                                && surveyUnit.getState() == DataState.FORCED)
-                .hasSize(1);
-    }
-
-    @Test
-    @DisplayName("Case 7 : COLLECTED valid and EDITED invalid, 1 FORCED with COLLECTED value")
-    void editedInvalidTest(){
-        assertThat(testSurveyUnitUpdateDtos).filteredOn(surveyUnit ->
-                        surveyUnit.getIdUE().equals("TestUE7")
-                                && surveyUnit.getState() == DataState.FORCED)
-                .hasSize(1);
-        assertThat(testSurveyUnitUpdateDtos.stream().filter(surveyUnit ->
-                surveyUnit.getIdUE().equals("TestUE7")
-                        && surveyUnit.getState() == DataState.FORCED).findFirst().get().getCollectedVariables().get(0).getValues().get(0)).contains("1");
-    }
-
-    @Test
-    @DisplayName("Case 8 : COLLECTED invalid and EDITED valid, no FORCED")
-    void collectedInvalidTest(){
-        assertThat(testSurveyUnitUpdateDtos).filteredOn(surveyUnit ->
-                        surveyUnit.getIdUE().equals("TestUE8")
-                                && surveyUnit.getState() == DataState.FORCED)
+    //Assertions
+    private void assertForcedExistence(List<SurveyUnitUpdateDto> testSurveyUnitUpdateDtos, String idUE, boolean hasToExist) {
+        if(hasToExist)
+            assertThat(testSurveyUnitUpdateDtos).filteredOn(surveyUnit ->
+                            surveyUnit.getIdUE().equals(idUE)
+                                    && surveyUnit.getState() == DataState.FORCED)
+                    .hasSize(1);
+        else
+            assertThat(testSurveyUnitUpdateDtos).filteredOn(surveyUnit ->
+                            surveyUnit.getIdUE().equals(idUE)
+                                    && surveyUnit.getState() == DataState.FORCED)
                 .isEmpty();
     }
 
+    private void assertCollectedVariableContent(List<SurveyUnitUpdateDto> testSurveyUnitUpdateDtos, String idUE, String variableName, int valueIndex, String expectedContent) {
+        assertForcedExistence(testSurveyUnitUpdateDtos,idUE,true);
+
+        Optional<SurveyUnitUpdateDto> suDtoOpt = testSurveyUnitUpdateDtos.stream().filter(surveyUnit ->
+                        surveyUnit.getIdUE().equals(idUE)
+                                && surveyUnit.getState() == DataState.FORCED).findFirst();
+
+        assertThat(suDtoOpt).isPresent();
+
+
+        SurveyUnitUpdateDto suDto = suDtoOpt.get();
+
+        assertThat(suDto.getCollectedVariables().stream().filter(collectedVariableDto ->
+                collectedVariableDto.getIdVar().equals(variableName)
+                )).isNotEmpty();
+
+        assertThat(suDto.getCollectedVariables().stream().filter(collectedVariableDto ->
+                collectedVariableDto.getIdVar().equals(variableName)
+        ).findFirst()).isPresent();
+
+        assertThat(suDto.getCollectedVariables().stream().filter(collectedVariableDto ->
+                collectedVariableDto.getIdVar().equals(variableName)
+        ).findFirst().get().getValues().get(valueIndex)).isEqualTo(expectedContent);
+    }
+
+    private void assertForcedCollectedVariableExistence(List<SurveyUnitUpdateDto> testSurveyUnitUpdateDtos, String idUE, String variableName, boolean hasToExist) {
+        assertForcedExistence(testSurveyUnitUpdateDtos,idUE, true);
+        Optional<SurveyUnitUpdateDto> suDtoOpt = testSurveyUnitUpdateDtos.stream().filter(surveyUnit ->
+                surveyUnit.getIdUE().equals(idUE)
+                        && surveyUnit.getState() == DataState.FORCED).findFirst();
+        assertThat(suDtoOpt).isPresent();
+
+        SurveyUnitUpdateDto suDto = suDtoOpt.get();
+
+        if(hasToExist)
+            assertThat(suDto.getCollectedVariables().stream().filter(collectedVariableDto -> collectedVariableDto.getIdVar().equals(variableName)).toList()).isNotEmpty();
+        else
+            assertThat(suDto.getCollectedVariables().stream().filter(collectedVariableDto -> collectedVariableDto.getIdVar().equals(variableName)).toList()).isEmpty();
+    }
+
+    private void assertForcedExternalVariableExistence(List<SurveyUnitUpdateDto> testSurveyUnitUpdateDtos, String idUE, String variableName, boolean hasToExist) {
+        assertForcedExistence(testSurveyUnitUpdateDtos,idUE, true);
+        Optional<SurveyUnitUpdateDto> suDtoOpt = testSurveyUnitUpdateDtos.stream().filter(surveyUnit ->
+                surveyUnit.getIdUE().equals(idUE)
+                        && surveyUnit.getState() == DataState.FORCED).findFirst();
+        assertThat(suDtoOpt).isPresent();
+
+        SurveyUnitUpdateDto suDto = suDtoOpt.get();
+
+        if(hasToExist)
+            assertThat(suDto.getExternalVariables().stream().filter(variableDto -> variableDto.getIdVar().equals(variableName)).toList()).isNotEmpty();
+        else
+            assertThat(suDto.getExternalVariables().stream().filter(variableDto -> variableDto.getIdVar().equals(variableName)).toList()).isEmpty();
+    }
+
+    private void assertExternalVariableContent(List<SurveyUnitUpdateDto> testSurveyUnitUpdateDtos, String idUE, String variableName, int valueIndex, String expectedContent) {
+        assertForcedExistence(testSurveyUnitUpdateDtos,idUE,true);
+
+        Optional<SurveyUnitUpdateDto> suDtoOpt = testSurveyUnitUpdateDtos.stream().filter(surveyUnit ->
+                surveyUnit.getIdUE().equals(idUE)
+                        && surveyUnit.getState() == DataState.FORCED).findFirst();
+
+        assertThat(suDtoOpt).isPresent();
+
+
+        SurveyUnitUpdateDto suDto = suDtoOpt.get();
+
+        assertThat(suDto.getExternalVariables().stream().filter(variableDto ->
+                variableDto.getIdVar().equals(variableName)
+        )).isNotEmpty();
+
+        assertThat(suDto.getExternalVariables().stream().filter(variableDto ->
+                variableDto.getIdVar().equals(variableName)
+        ).findFirst()).isPresent();
+
+        assertThat(suDto.getExternalVariables().stream().filter(variableDto ->
+                variableDto.getIdVar().equals(variableName)
+        ).findFirst().get().getValues().get(valueIndex)).isEqualTo(expectedContent);
+    }
+
+    //Tests
     @Test
-    @DisplayName("Case 9 : both COLLECTED and EDITED valid, no FORCED")
-    void bothvalidTest(){
-        assertThat(testSurveyUnitUpdateDtos).filteredOn(surveyUnit ->
-                        surveyUnit.getIdUE().equals("TestUE9")
-                                && surveyUnit.getState() == DataState.FORCED)
-                .isEmpty();
+    @DisplayName("If there is invalid values, there must be one FORCED document")
+    void forcedExistenceTest(){
+        assertForcedExistence(testSurveyUnitUpdateDtos, "TestUE1", true);
     }
 
     @Test
-    @DisplayName("Case 10 : COLLECTED valid, INPUTED invalid, 1 forced with COLLECTED value")
-    void inputedTest(){
-        assertThat(testSurveyUnitUpdateDtos).filteredOn(surveyUnit ->
-                        surveyUnit.getIdUE().equals("TestUE10")
-                                && surveyUnit.getState() == DataState.FORCED)
-                .hasSize(1);
-        assertThat(testSurveyUnitUpdateDtos.stream().filter(surveyUnit ->
-                surveyUnit.getIdUE().equals("TestUE10")
-                        && surveyUnit.getState() == DataState.FORCED).findFirst().get().getCollectedVariables().get(0).getValues().get(0)).contains("1");
+    @DisplayName("If there is no invalid values, there must be one FORCED document")
+    void forcedNoExistenceTest(){
+        assertForcedExistence(testSurveyUnitUpdateDtos, "TestUE17", false);
     }
 
     @Test
-    @DisplayName("Case 11 : VAR1 : Invalid in both COLLECTED and EDITED, VAR2: invalid COLLECTED only, 1 FORCED with both variables")
-    void invalidVariableNotPresentTest(){
-        assertThat(testSurveyUnitUpdateDtos).filteredOn(surveyUnit ->
-                        surveyUnit.getIdUE().equals("TestUE11")
-                                && surveyUnit.getState() == DataState.FORCED)
-                .hasSize(1);
+    @DisplayName("The invalid values must be replaced by empty string")
+    void invalidValueReplaceTest(){
+        assertCollectedVariableContent(testSurveyUnitUpdateDtos,"TestUE1","testInteger0",0,"");
+        assertCollectedVariableContent(testSurveyUnitUpdateDtos,"TestUE2","testInteger0",0,"");
+        assertCollectedVariableContent(testSurveyUnitUpdateDtos,"TestUE6","testInteger0",0,"");
 
-        //Variables count
-        assertThat(
-                testSurveyUnitUpdateDtos.stream().filter(
-                surveyUnit ->
-                        surveyUnit.getIdUE().equals("TestUE11")
-                                && surveyUnit.getState() == DataState.FORCED).findFirst().get().getCollectedVariables()
-        ).hasSize(2);
+        assertExternalVariableContent(testSurveyUnitUpdateDtos,"TestUE9","testInteger0",0,"");
+        assertExternalVariableContent(testSurveyUnitUpdateDtos,"TestUE10","testInteger0",0,"");
+        assertExternalVariableContent(testSurveyUnitUpdateDtos,"TestUE14","testInteger0",0,"");
 
-        //Values
-        assertThat(testSurveyUnitUpdateDtos.stream().filter(surveyUnit ->
-                surveyUnit.getIdUE().equals("TestUE11")
-                        && surveyUnit.getState() == DataState.FORCED).findFirst().get().getCollectedVariables().get(0).getValues().get(0)).isEmpty();
-
-        assertThat(testSurveyUnitUpdateDtos.stream().filter(surveyUnit ->
-                surveyUnit.getIdUE().equals("TestUE11")
-                        && surveyUnit.getState() == DataState.FORCED).findFirst().get().getCollectedVariables().get(1).getValues().get(0)).isEmpty();
     }
 
     @Test
-    @DisplayName("Case 12 : VAR1 : invalid COLLECTED and valid EDITED, VAR2: invalid COLLECTED only, 1 FORCED with var2 empty")
-    void variablePriorityTest(){
-        assertThat(testSurveyUnitUpdateDtos).filteredOn(surveyUnit ->
-                        surveyUnit.getIdUE().equals("TestUE12")
-                                && surveyUnit.getState() == DataState.FORCED)
-                .hasSize(1);
+    @DisplayName("The FORCED document must contain only the invalid variables")
+    void variableCountTest(){
+        //Collected
+        //5 à 8
+        assertForcedCollectedVariableExistence(testSurveyUnitUpdateDtos, "TestUE5", "testInteger0", true);
+        assertForcedCollectedVariableExistence(testSurveyUnitUpdateDtos, "TestUE5", "testInteger1", false);
 
-        assertThat(
-                testSurveyUnitUpdateDtos.stream().filter(
-                        surveyUnit ->
-                                surveyUnit.getIdUE().equals("TestUE12")
-                                        && surveyUnit.getState() == DataState.FORCED).findFirst().get().getCollectedVariables()
-        ).hasSize(1);
-
-        assertThat(testSurveyUnitUpdateDtos.stream().filter(surveyUnit ->
-                surveyUnit.getIdUE().equals("TestUE12")
-                        && surveyUnit.getState() == DataState.FORCED).findFirst().get().getCollectedVariables().get(0).getValues().get(0)).isEmpty();
+        //External
+        //13 à 16
+        assertForcedExternalVariableExistence(testSurveyUnitUpdateDtos, "TestUE13", "testInteger0", true);
+        assertForcedExternalVariableExistence(testSurveyUnitUpdateDtos, "TestUE13", "testInteger1", false);
     }
 
     @Test
-    @DisplayName("Case 13 : VAR1 : valid COLLECTED and invalid EDITED, VAR2: invalid COLLECTED only, 1 FORCED with var1 COLLECTED and var2 empty")
-    void variablePriorityTest2(){
-        assertThat(testSurveyUnitUpdateDtos).filteredOn(surveyUnit ->
-                        surveyUnit.getIdUE().equals("TestUE13")
-                                && surveyUnit.getState() == DataState.FORCED)
-                .hasSize(1);
-
-        assertThat(
-                testSurveyUnitUpdateDtos.stream().filter(
-                        surveyUnit ->
-                                surveyUnit.getIdUE().equals("TestUE13")
-                                        && surveyUnit.getState() == DataState.FORCED).findFirst().get().getCollectedVariables()
-        ).hasSize(2);
-
-        //TestInteger must be valid value from COLLECTED
-        assertThat(
-                testSurveyUnitUpdateDtos.stream().filter(surveyUnit ->
-                    surveyUnit.getIdUE().equals("TestUE13")
-                        && surveyUnit.getState() == DataState.FORCED).findFirst().get().getCollectedVariables().stream().filter(
-                                collectedVariableDto -> collectedVariableDto.getIdVar().equals("testInteger")).toList().get(0).getValues()
-        ).contains("1");
-
-        //TestInteger2 must be empty
-        assertThat(
-                testSurveyUnitUpdateDtos.stream().filter(surveyUnit ->
-                        surveyUnit.getIdUE().equals("TestUE13")
-                                && surveyUnit.getState() == DataState.FORCED).findFirst().get().getCollectedVariables().stream().filter(
-                        collectedVariableDto -> collectedVariableDto.getIdVar().equals("testInteger2")).toList().get(0).getValues()
-        ).contains("");
+    @DisplayName("The dataverifier must verify only the most priority variables")
+    void priorityTest(){
+        assertForcedExistence(testSurveyUnitUpdateDtos, "TestUE3",false);
+        assertForcedExistence(testSurveyUnitUpdateDtos, "TestUE7",false);
     }
 
+    @Test
+    @DisplayName("If a variable is absent in more priority variable but invalid in less priority," +
+                        "the variable must be present in FORCED")
+    void priorityVariableAbsenceTest(){
+        assertForcedCollectedVariableExistence(testSurveyUnitUpdateDtos,"TestUE8","testInteger1",true);
+    }
 }
