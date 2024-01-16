@@ -20,7 +20,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @Slf4j
 public class DataVerifier {
@@ -133,7 +132,7 @@ public class DataVerifier {
         List<CollectedVariableDto> variablesToVerify = new ArrayList<>();
 
         //Sort from more priority to less
-        List<SurveyUnitUpdateDto> sortedSuDtos = srcSuDtosOfIdUE.stream().sorted(Comparator.comparing(surveyUnitUpdateDto -> dataStatesPriority.get(surveyUnitUpdateDto.getState()))).collect(Collectors.toList());
+        List<SurveyUnitUpdateDto> sortedSuDtos = srcSuDtosOfIdUE.stream().sorted(Comparator.comparing(surveyUnitUpdateDto -> dataStatesPriority.get(surveyUnitUpdateDto.getState()))).toList();
 
         //Get more priority variables to verify
         for(SurveyUnitUpdateDto srcSuDto : sortedSuDtos){
