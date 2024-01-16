@@ -133,7 +133,6 @@ public class DataVerifier {
         List<CollectedVariableDto> variablesToVerify = new ArrayList<>();
 
         //Sort from more priority to less
-        //TODO FIX
         List<SurveyUnitUpdateDto> sortedSuDtos = srcSuDtosOfIdUE.stream().sorted(Comparator.comparing(surveyUnitUpdateDto -> dataStatesPriority.get(surveyUnitUpdateDto.getState()))).collect(Collectors.toList());
 
         //Get more priority variables to verify
