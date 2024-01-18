@@ -25,4 +25,6 @@ public interface SurveyUnitUpdateApiPort {
     List<SurveyUnitId> findDistinctIdUEsByIdQuestionnaire(String idQuestionnaire);
 
     List<Mode> findModesByIdQuestionnaire(String idQuestionnaire);
+
+    Long deleteByIdQuestionnaire(String idQuestionnaire);
 }

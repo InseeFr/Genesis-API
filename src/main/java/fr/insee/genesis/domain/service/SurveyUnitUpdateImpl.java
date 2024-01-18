@@ -113,6 +113,11 @@ public class SurveyUnitUpdateImpl implements SurveyUnitUpdateApiPort {
         return sources.stream().distinct().toList();
     }
 
+    @Override
+    public Long deleteByIdQuestionnaire(String idQuestionnaire) {
+        return surveyUnitUpdatePersistencePort.deleteByIdQuestionnaire(idQuestionnaire);
+    }
+
     private static List<Mode> getDistinctsModes(List<SurveyUnitUpdateDto> surveyUnits) {
         List<Mode> sources = new ArrayList<>();
         surveyUnits.forEach(surveyUnitDto -> sources.add(surveyUnitDto.getMode()));

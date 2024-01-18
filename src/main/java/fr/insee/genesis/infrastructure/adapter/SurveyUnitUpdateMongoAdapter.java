@@ -58,8 +58,15 @@ public class SurveyUnitUpdateMongoAdapter implements SurveyUnitUpdatePersistence
 		return surveyUnitsUpdate.isEmpty() ? null : SurveyUnitUpdateDocumentMapper.INSTANCE.listDocumentToListDto(surveyUnitsUpdate);
 	}
 
+	@Override
+	public Long deleteByIdQuestionnaire(String idQuestionnaire) {
+		return mongoRepository.deleteByIdQuestionnaire(idQuestionnaire);
+	}
+
 	public List<SurveyUnitDto> findIdUEsByIdQuestionnaire(String idQuestionnaire) {
 		List<SurveyUnitDocument> surveyUnits = mongoRepository.findIdUEsByIdQuestionnaire(idQuestionnaire);
 		return surveyUnits.isEmpty() ? null : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListDto(surveyUnits);
 	}
+
+
 }

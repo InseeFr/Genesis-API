@@ -80,4 +80,9 @@ public class SurveyUnitUpdatePersistencePortStub implements SurveyUnitUpdatePers
 
         return surveyUnitDtoList;
     }
+
+    @Override
+    public Long deleteByIdQuestionnaire(String idQuestionnaire) {
+        return null;
+    }
 }
