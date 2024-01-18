@@ -47,11 +47,11 @@ public class ResponseController {
         this.controllerUtils = controllerUtils;
     }
 
-    @Operation(summary = "Save responses from XML Lunatic in Genesis Database")
+    @Operation(summary = "Save one file of responses in Genesis Database with its path")
     @PutMapping(path = "/save/lunatic-xml/one-file")
     public ResponseEntity<Object> saveResponsesFromXmlFile(     @RequestParam("pathLunaticXml") String xmlFile,
                                                                 @RequestParam("pathDDI") String ddiFile,
-                                                                @RequestParam(value = "mode", required = false) Mode modeSpecified)
+                                                                @RequestParam(value = "mode", required = true) Mode modeSpecified)
             throws Exception {
         log.info(String.format("Try to read Xml file : %s", xmlFile));
         LunaticXmlDataParser parser = new LunaticXmlDataParser();
