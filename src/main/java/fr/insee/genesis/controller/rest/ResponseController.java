@@ -50,7 +50,8 @@ public class ResponseController {
     @Operation(summary = "Save responses from XML Lunatic in Genesis Database")
     @PutMapping(path = "/save/lunatic-xml/one-file")
     public ResponseEntity<Object> saveResponsesFromXmlFile(     @RequestParam("pathLunaticXml") String xmlFile,
-                                                                @RequestParam("pathDDI") String ddiFile)
+                                                                @RequestParam("pathDDI") String ddiFile,
+                                                                @RequestParam(value = "mode", required = false) Mode modeSpecified)
             throws Exception {
         log.info(String.format("Try to read Xml file : %s", xmlFile));
         LunaticXmlDataParser parser = new LunaticXmlDataParser();
@@ -70,7 +71,7 @@ public class ResponseController {
         }
         List<SurveyUnitUpdateDto> suDtos = new ArrayList<>();
         for (LunaticXmlSurveyUnit su : campaign.getSurveyUnits()) {
-            suDtos.addAll(LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign(), Mode.WEB));
+            suDtos.addAll(LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign(), modeSpecified));
         }
         surveyUnitQualityService.verifySurveyUnits(suDtos,variablesMap);
         surveyUnitService.saveSurveyUnits(suDtos);
