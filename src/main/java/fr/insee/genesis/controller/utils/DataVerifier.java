@@ -5,19 +5,35 @@ import fr.insee.genesis.controller.sources.ddi.Variable;
 import fr.insee.genesis.controller.sources.ddi.VariableType;
 import fr.insee.genesis.controller.sources.ddi.VariablesMap;
 import fr.insee.genesis.domain.dtos.CollectedVariableDto;
-import fr.insee.genesis.domain.dtos.VariableDto;
+import fr.insee.genesis.domain.dtos.DataState;
 import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
+import fr.insee.genesis.domain.dtos.VariableDto;
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Slf4j
 public class DataVerifier {
+
+    //DataStates priority
+    static final EnumMap<DataState,Integer> dataStatesPriority = new EnumMap<>(DataState.class);
+    static {
+        dataStatesPriority.put(DataState.INPUTED, 1);
+        dataStatesPriority.put(DataState.EDITED, 2);
+        dataStatesPriority.put(DataState.FORCED, 3);
+        dataStatesPriority.put(DataState.COLLECTED, 4);
+        dataStatesPriority.put(DataState.PREVIOUS, 5);
+    }
+
     private DataVerifier() {
         throw new IllegalStateException("Utility class");
     }
@@ -30,55 +46,181 @@ public class DataVerifier {
      * @param variablesMap VariablesMap containing definitions of each variable
      */
     public static void verifySurveyUnits(List<SurveyUnitUpdateDto> suDtosList, VariablesMap variablesMap){
-        List<SurveyUnitUpdateDto> suDtosListForced = new ArrayList<>();
+        List<SurveyUnitUpdateDto> suDtosListForced = new ArrayList<>(); // Created FORCED SU DTOs
 
-        for(SurveyUnitUpdateDto suDto : suDtosList){
-            //Pairs(variable name, incorrect value index)
-            List<String[]> incorrectCollectedVariablesTuples = verifyVariables(suDto.getCollectedVariables(), variablesMap);
-            List<String[]> incorrectExternalVariablesTuples = verifyVariables(suDto.getExternalVariables(), variablesMap);
+        for(String idUE : getIdUEs(suDtosList)) { // For each id of the list
+            List<SurveyUnitUpdateDto> srcSuDtosOfIdUE = suDtosList.stream().filter(element -> element.getIdUE().equals(idUE)).toList();
+            List<CollectedVariableDto> correctedCollectedVariables = new ArrayList<>();
+            List<VariableDto> correctedExternalVariables = new ArrayList<>();
 
-            // If variable has at least 1 incorrect value
-            // create new survey unit
-            // change the incorrect value to empty if multiple value
-            // exclude variable if only value
-            if(incorrectCollectedVariablesTuples.size() + incorrectExternalVariablesTuples.size() > 0) {
-                SurveyUnitUpdateDto newSuDtoForced = suDto.buildForcedSurveyUnitUpdate();
+            //Get corrected variables
+            collectedVariablesManagement(srcSuDtosOfIdUE, variablesMap, correctedCollectedVariables);
+            externalVariablesManagement(srcSuDtosOfIdUE, variablesMap, correctedExternalVariables);
 
-                if(!incorrectCollectedVariablesTuples.isEmpty())
-                    collectedVariablesManagement(suDto,newSuDtoForced,incorrectCollectedVariablesTuples);
-
-                if(!incorrectExternalVariablesTuples.isEmpty())
-                    externalVariablesManagement(suDto,newSuDtoForced,incorrectExternalVariablesTuples);
-
-                suDtosListForced.add(newSuDtoForced);
+            //Create FORCED if any corrected variable
+            if(!correctedCollectedVariables.isEmpty() || !correctedExternalVariables.isEmpty()){
+                SurveyUnitUpdateDto newForcedSuDto = createForcedDto(suDtosList, idUE, correctedCollectedVariables, correctedExternalVariables);
+                suDtosListForced.add(newForcedSuDto);
             }
         }
         suDtosList.addAll(suDtosListForced);
     }
 
+    private static SurveyUnitUpdateDto createForcedDto(
+            List<SurveyUnitUpdateDto> suDtosList,
+            String idUE,
+            List<CollectedVariableDto> correctedCollectedVariables,
+            List<VariableDto> correctedExternalVariables
+    ) {
+        SurveyUnitUpdateDto sampleSuDto = suDtosList.stream().filter(element -> element.getIdUE().equals(idUE)).toList().get(0);
+        SurveyUnitUpdateDto newForcedSuDto = SurveyUnitUpdateDto.builder()
+                .idQuest(sampleSuDto.getIdQuest())
+                .idCampaign(sampleSuDto.getIdCampaign())
+                .idUE(idUE)
+                .state(DataState.FORCED)
+                .mode(sampleSuDto.getMode())
+                .recordDate(LocalDateTime.now())
+                .fileDate(sampleSuDto.getFileDate())
+                .collectedVariables(new ArrayList<>())
+                .externalVariables(new ArrayList<>())
+                .build();
+
+        for(CollectedVariableDto correctedCollectedVariable : correctedCollectedVariables){
+            newForcedSuDto.getCollectedVariables().add(
+                    new CollectedVariableDto(correctedCollectedVariable.getIdVar(),
+                            correctedCollectedVariable.getValues()
+                            ,correctedCollectedVariable.getIdLoop()
+                            ,correctedCollectedVariable.getIdParent()
+                    )
+            );
+        }
+
+        for(VariableDto correctedExternalVariable : correctedExternalVariables){
+            newForcedSuDto.getExternalVariables().add(
+                    VariableDto.builder()
+                            .idVar(correctedExternalVariable.getIdVar())
+                            .values(correctedExternalVariable.getValues())
+                            .build()
+            );
+        }
+        return newForcedSuDto;
+    }
+
     /**
-     * @param variablesToVerify variables to verify
-     * @param variablesMap variable definitions
-     * @return a list of pairs (variable name, index)
+     * Fetch individual IdUEs of variable from the list
+     * @param suDtosList source list
+     * @return a set of IdUEs
      */
-    private static List<String[]> verifyVariables(List<? extends VariableDto> variablesToVerify, VariablesMap variablesMap){
-        // List of tuples
-        List<String[]> incorrectVariables = new ArrayList<>();
-        if(variablesToVerify != null){
-            for (VariableDto variable : variablesToVerify){
-                if (variablesMap.getVariable(variable.getIdVar()) != null) {
-                    Variable variableDefinition = variablesMap.getVariable(variable.getIdVar());
-                    int valueIndex = 0;
-                    for (String value : variable.getValues()) {
-                        if(isParseError(value, variableDefinition.getType())){
-                            incorrectVariables.add(new String[]{variable.getIdVar(), Integer.toString(valueIndex)});
-                        }
-                        valueIndex++;
-                    }
+
+    private static Set<String> getIdUEs(List<SurveyUnitUpdateDto> suDtosList) {
+        Set<String> idUEs = new HashSet<>();
+        for(SurveyUnitUpdateDto surveyUnitUpdateDto : suDtosList){
+            idUEs.add(surveyUnitUpdateDto.getIdUE());
+        }
+
+        return idUEs;
+    }
+
+    /**
+     * Adds the collected variables for the FORCED document
+     * @param srcSuDtosOfIdUE source Survey Unit documents associated with IdUE
+     * @param variablesMap variables definitions
+     * @param correctedCollectedVariables FORCED document variables
+     */
+    private static void collectedVariablesManagement(List<SurveyUnitUpdateDto> srcSuDtosOfIdUE, VariablesMap variablesMap, List<CollectedVariableDto> correctedCollectedVariables){
+        Set<String> variableNames = new HashSet<>();
+        List<CollectedVariableDto> variablesToVerify = new ArrayList<>();
+
+        //Sort from more priority to less
+        List<SurveyUnitUpdateDto> sortedSuDtos = srcSuDtosOfIdUE.stream().sorted(Comparator.comparing(surveyUnitUpdateDto -> dataStatesPriority.get(surveyUnitUpdateDto.getState()))).toList();
+
+        //Get more priority variables to verify
+        for(SurveyUnitUpdateDto srcSuDto : sortedSuDtos){
+            for(CollectedVariableDto collectedVariableDto : srcSuDto.getCollectedVariables()){
+                if(!variableNames.contains(collectedVariableDto.getIdVar())){
+                    variableNames.add(collectedVariableDto.getIdVar());
+                    variablesToVerify.add(collectedVariableDto);
                 }
             }
         }
-        return incorrectVariables;
+
+        //Verify variables
+        for(CollectedVariableDto collectedVariableToVerify : variablesToVerify){
+            CollectedVariableDto correctedCollectedVariable = verifyCollectedVariable(
+                    collectedVariableToVerify,
+                    variablesMap.getVariable(collectedVariableToVerify.getIdVar())
+            );
+
+            if(correctedCollectedVariable != null){
+                correctedCollectedVariables.add(correctedCollectedVariable);
+            }
+        }
+    }
+
+    private static CollectedVariableDto verifyCollectedVariable(CollectedVariableDto collectedVariable, Variable variableDefinition) {
+        List<String> newValues = new ArrayList<>();
+        boolean isInvalid = false;
+
+        for (String value : collectedVariable.getValues()){
+            if(isParseError(value, variableDefinition.getType())){
+                isInvalid = true;
+                newValues.add("");
+            }else{
+                newValues.add(value);
+            }
+        }
+
+        return isInvalid ? new CollectedVariableDto(
+                collectedVariable.getIdVar(),
+                newValues,
+                collectedVariable.getIdLoop(),
+                collectedVariable.getIdParent()
+                ) : null;
+    }
+
+    private static void externalVariablesManagement(List<SurveyUnitUpdateDto> srcSuDtosOfIdUE, VariablesMap variablesMap, List<VariableDto> correctedExternalVariables) {
+        //COLLECTED only
+        Optional<SurveyUnitUpdateDto> collectedSuDtoOpt = srcSuDtosOfIdUE.stream().filter(
+                suDto -> suDto.getState().equals(DataState.COLLECTED)
+        ).findFirst();
+
+        //Verify variables
+        if(collectedSuDtoOpt.isPresent()){
+            for(VariableDto variable: collectedSuDtoOpt.get().getExternalVariables()){
+                VariableDto correctedExternalVariable = verifyExternalVariable(
+                        variable,
+                        variablesMap.getVariable(variable.getIdVar())
+                );
+                if (correctedExternalVariable != null) {
+                    correctedExternalVariables.add(correctedExternalVariable);
+                }
+            }
+        }
+    }
+
+    /**
+     * Verify one external variable
+     * @param externalVariable external variable DTO to verify
+     * @param variableDefinition variable definition of the variable
+     * @return a corrected external variable if there is any parsing error, null otherwise
+     */
+    private static VariableDto verifyExternalVariable(VariableDto externalVariable, Variable variableDefinition) {
+        List<String> newValues = new ArrayList<>();
+        boolean isInvalid = false;
+
+        for (String value : externalVariable.getValues()){
+            if(isParseError(value, variableDefinition.getType())){
+                isInvalid = true;
+                newValues.add("");
+            }else{
+                newValues.add(value);
+            }
+        }
+
+        return isInvalid ? VariableDto.builder()
+                .idVar(externalVariable.getIdVar())
+                .values(newValues)
+                .build() : null;
     }
 
     /**
@@ -124,93 +266,4 @@ public class DataVerifier {
         }
         return false;
     }
-
-    /**
-     * Changes values flagged as incorrect in update variables from source and fill the destination's update variables
-     * @param sourceSurveyUnitUpdateDto source Survey Unit
-     * @param destinationSurveyUnitUpdateDto destination Survey Unit
-     * @param incorrectCollectedVariablesTuples (incorrect variable name, incorrect value index) pairs
-     */
-    private static void collectedVariablesManagement(
-            SurveyUnitUpdateDto sourceSurveyUnitUpdateDto
-            ,SurveyUnitUpdateDto destinationSurveyUnitUpdateDto
-            ,List<String[]> incorrectCollectedVariablesTuples
-    ){
-        //Variable names extraction
-        Set<String> incorrectVariablesNames = new HashSet<>();
-        getIncorrectVariableNames(incorrectCollectedVariablesTuples, incorrectVariablesNames);
-
-        for (CollectedVariableDto variable : sourceSurveyUnitUpdateDto.getCollectedVariables()){
-            if(incorrectVariablesNames.contains(variable.getIdVar())){
-                //Copy variable
-                CollectedVariableDto newVariable = CollectedVariableDto.collectedVariableBuilder()
-                        .idVar(variable.getIdVar())
-                        .idLoop(variable.getIdLoop())
-                        .idParent(variable.getIdParent())
-                        .values(new ArrayList<>(variable.getValues()))
-                        .build();
-                //Change incorrect value(s) to empty
-                for(int incorrectValueIndex : getIncorrectValuesIndexes(incorrectCollectedVariablesTuples, variable.getIdVar()))
-                    newVariable.getValues().set(incorrectValueIndex,"");
-                destinationSurveyUnitUpdateDto.getCollectedVariables().add(newVariable);
-            }
-        }
-    }
-
-    /**
-     * changes values flagged as incorrect in update variables from source and fill the destination's external variables
-     * @param sourceSurveyUnitUpdateDto source Survey Unit
-     * @param destinationSurveyUnitUpdateDto destination Survey Unit
-     * @param incorrectExternalVariablesTuples (incorrect variable name, incorrect value index) pairs
-     */
-    private static void externalVariablesManagement(
-            SurveyUnitUpdateDto sourceSurveyUnitUpdateDto
-            ,SurveyUnitUpdateDto destinationSurveyUnitUpdateDto
-            ,List<String[]> incorrectExternalVariablesTuples
-    ){
-        //Variable names extraction
-        Set<String> incorrectVariablesNames = new HashSet<>();
-        getIncorrectVariableNames(incorrectExternalVariablesTuples, incorrectVariablesNames);
-
-        for (VariableDto variable : sourceSurveyUnitUpdateDto.getExternalVariables()){
-            if(incorrectVariablesNames.contains(variable.getIdVar())){
-                //Copy variable
-                VariableDto newVariable = VariableDto.builder()
-                        .idVar(variable.getIdVar())
-                        .values(new ArrayList<>(variable.getValues()))
-                        .build();
-                //Change incorrect value(s) to empty
-                for(int incorrectValueIndex : getIncorrectValuesIndexes(incorrectExternalVariablesTuples, variable.getIdVar()))
-                    newVariable.getValues().set(incorrectValueIndex,"");
-                destinationSurveyUnitUpdateDto.getExternalVariables().add(newVariable);
-            }
-        }
-    }
-
-    /**
-     * Go through a list of tuples(variable name, incorrect value index) and add variable names to a set
-     * @param incorrectVariablesPairs tuples to iterate through
-     * @param incorrectVariablesNames set to add to
-     */
-    private static void getIncorrectVariableNames(List<String[]> incorrectVariablesPairs, Set<String> incorrectVariablesNames) {
-        for(String[] tuple : incorrectVariablesPairs){
-            incorrectVariablesNames.add(tuple[0]);
-        }
-    }
-
-    /**
-     * @param incorrectVariablesPairs tuples to iterate through
-     * @param incorrectVariableName name of the variable to look for
-     * @return the indexes of incorrect values
-     */
-    private static List<Integer> getIncorrectValuesIndexes(List<String[]> incorrectVariablesPairs, String incorrectVariableName) {
-        List<Integer> incorrectValuesIndexes = new ArrayList<>();
-        for(String[] tuple : incorrectVariablesPairs){
-            if(tuple[0].equals(incorrectVariableName)){
-                incorrectValuesIndexes.add(Integer.valueOf(tuple[1]));
-            }
-        }
-        return incorrectValuesIndexes;
-    }
-
 }
