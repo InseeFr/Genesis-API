@@ -8,10 +8,7 @@ import fr.insee.genesis.controller.sources.ddi.VariablesMap;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlCampaign;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlDataParser;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
-import fr.insee.genesis.domain.dtos.CollectedVariableDto;
-import fr.insee.genesis.domain.dtos.DataState;
-import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
-import fr.insee.genesis.domain.dtos.VariableDto;
+import fr.insee.genesis.domain.dtos.*;
 import fr.insee.genesis.exceptions.GenesisException;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -54,7 +51,7 @@ public class MainDefinitions {
             VariablesMap variablesMap = DDIReader.getVariablesFromDDI(ddiFilePath.toFile().toURI().toURL());
             List<SurveyUnitUpdateDto> suDtos = new ArrayList<>();
             for (LunaticXmlSurveyUnit su : campaign.getSurveyUnits()) {
-                suDtos.addAll(LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign()));
+                suDtos.addAll(LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign(), Mode.WEB));
             }
             surveyUnitQualityService.verifySurveyUnits(suDtos,variablesMap);
             surveyUnitUpdateDtos = suDtos;

@@ -6,7 +6,6 @@ import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
 import fr.insee.genesis.controller.sources.xml.ValueType;
 import fr.insee.genesis.controller.utils.LoopIdentifier;
 import fr.insee.genesis.domain.dtos.*;
-import lombok.Value;
 import lombok.experimental.UtilityClass;
 
 import java.time.LocalDateTime;
@@ -23,25 +22,25 @@ public class LunaticXmlAdapter {
      * @param idCampaign survey id
      * @return a genesis survey unit DTO
      */
-    public static List<SurveyUnitUpdateDto> convert(LunaticXmlSurveyUnit su, VariablesMap variablesMap, String idCampaign){
+    public static List<SurveyUnitUpdateDto> convert(LunaticXmlSurveyUnit su, VariablesMap variablesMap, String idCampaign, Mode mode){
         //Get COLLECTED Data and external variables
         List<SurveyUnitUpdateDto> surveyUnitUpdateDtoList = new ArrayList<>();
-        SurveyUnitUpdateDto surveyUnitUpdateDto = getStateDataFromSurveyUnit(su, variablesMap, idCampaign, DataState.COLLECTED);
+        SurveyUnitUpdateDto surveyUnitUpdateDto = getStateDataFromSurveyUnit(su, variablesMap, idCampaign, DataState.COLLECTED, mode);
         getExternalDataFromSurveyUnit(su,surveyUnitUpdateDto);
 
         surveyUnitUpdateDtoList.add(surveyUnitUpdateDto);
 
         //Get data from other states
-        SurveyUnitUpdateDto editedSurveyUnitUpdateDto = getStateDataFromSurveyUnit(su, variablesMap, idCampaign, DataState.EDITED);
+        SurveyUnitUpdateDto editedSurveyUnitUpdateDto = getStateDataFromSurveyUnit(su, variablesMap, idCampaign, DataState.EDITED,mode);
         if(editedSurveyUnitUpdateDto != null) surveyUnitUpdateDtoList.add(editedSurveyUnitUpdateDto);
 
-        SurveyUnitUpdateDto inputedSurveyUnitUpdateDto = getStateDataFromSurveyUnit(su, variablesMap, idCampaign, DataState.INPUTED);
+        SurveyUnitUpdateDto inputedSurveyUnitUpdateDto = getStateDataFromSurveyUnit(su, variablesMap, idCampaign, DataState.INPUTED,mode);
         if(inputedSurveyUnitUpdateDto != null) surveyUnitUpdateDtoList.add(inputedSurveyUnitUpdateDto);
 
-        SurveyUnitUpdateDto forcedSurveyUnitUpdateDto = getStateDataFromSurveyUnit(su, variablesMap, idCampaign, DataState.FORCED);
+        SurveyUnitUpdateDto forcedSurveyUnitUpdateDto = getStateDataFromSurveyUnit(su, variablesMap, idCampaign, DataState.FORCED,mode);
         if(forcedSurveyUnitUpdateDto != null) surveyUnitUpdateDtoList.add(forcedSurveyUnitUpdateDto);
 
-        SurveyUnitUpdateDto previousSurveyUnitUpdateDto = getStateDataFromSurveyUnit(su, variablesMap, idCampaign, DataState.PREVIOUS);
+        SurveyUnitUpdateDto previousSurveyUnitUpdateDto = getStateDataFromSurveyUnit(su, variablesMap, idCampaign, DataState.PREVIOUS,mode);
         if(previousSurveyUnitUpdateDto != null) surveyUnitUpdateDtoList.add(previousSurveyUnitUpdateDto);
 
 
@@ -56,13 +55,13 @@ public class LunaticXmlAdapter {
      * @param dataState state of the DTO to generate
      * @return Survey Unit DTO with a specific state
      */
-    private static SurveyUnitUpdateDto getStateDataFromSurveyUnit(LunaticXmlSurveyUnit su, VariablesMap variablesMap, String idCampaign, DataState dataState) {
+    private static SurveyUnitUpdateDto getStateDataFromSurveyUnit(LunaticXmlSurveyUnit su, VariablesMap variablesMap, String idCampaign, DataState dataState,Mode mode) {
         SurveyUnitUpdateDto surveyUnitUpdateDto = SurveyUnitUpdateDto.builder()
                 .idQuest(su.getQuestionnaireModelId())
                 .idCampaign(idCampaign)
                 .idUE(su.getId())
                 .state(dataState)
-                .mode(Mode.WEB)
+                .mode(mode)
                 .recordDate(LocalDateTime.now())
                 .fileDate(su.getFileDate())
                 .build();

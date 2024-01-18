@@ -51,10 +51,11 @@ public class ResponseController {
         this.controllerUtils = controllerUtils;
     }
 
-    @Operation(summary = "Save responses from XML Lunatic in Genesis Database")
+    @Operation(summary = "Save one file of responses in Genesis Database with its path")
     @PutMapping(path = "/save/lunatic-xml/one-file")
     public ResponseEntity<Object> saveResponsesFromXmlFile(     @RequestParam("pathLunaticXml") String xmlFile,
-                                                                @RequestParam("pathDDI") String ddiFile)
+                                                                @RequestParam("pathDDI") String ddiFile,
+                                                                @RequestParam(value = "mode", required = true) Mode modeSpecified)
             throws Exception {
 
         log.info(String.format("Try to read DDI file : %s", ddiFile));
@@ -81,7 +82,7 @@ public class ResponseController {
 
             List<SurveyUnitUpdateDto> suDtos = new ArrayList<>();
             for (LunaticXmlSurveyUnit su : campaign.getSurveyUnits()) {
-                suDtos.addAll(LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign()));
+                suDtos.addAll(LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign(),modeSpecified));
             }
             surveyUnitQualityService.verifySurveyUnits(suDtos,variablesMap);
 
@@ -103,7 +104,7 @@ public class ResponseController {
                 LunaticXmlSurveyUnit su = parser.readNextSurveyUnit();
 
                 while(su != null){
-                    List<SurveyUnitUpdateDto> suDtos = new ArrayList<>(LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign()));
+                    List<SurveyUnitUpdateDto> suDtos = new ArrayList<>(LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign(),modeSpecified));
 
                     surveyUnitQualityService.verifySurveyUnits(suDtos,variablesMap);
                     surveyUnitService.saveSurveyUnits(suDtos);
@@ -145,21 +146,21 @@ public class ResponseController {
                 errors.add(new NoDataError("No data file found",Mode.getEnumFromModeName(currentMode.getModeName())));
                 log.info("No data file found in folder " + dataFolder);
             }
+            VariablesMap variablesMap;
+            try {
+                Path ddiFilePath = fileUtils.findDDIFile(campaignName, currentMode.getModeName());
+                variablesMap = DDIReader.getVariablesFromDDI(ddiFilePath.toFile().toURI().toURL());
+            } catch (GenesisException e) {
+                return ResponseEntity.status(e.getStatus()).body(e.getMessage());
+            } catch(Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+            }
             for (String fileName : dataFiles.stream().filter(s -> s.endsWith(".xml")).toList()) {
                 String filepathString = String.format("%s/%s", dataFolder, fileName);
                 Path filepath = Paths.get(filepathString);
                 log.info("Try to read Xml file : {}", fileName);
 
                 LunaticXmlCampaign campaign;
-                VariablesMap variablesMap;
-                try {
-                    Path ddiFilePath = fileUtils.findDDIFile(campaignName, currentMode.getModeName());
-                    variablesMap = DDIReader.getVariablesFromDDI(ddiFilePath.toFile().toURI().toURL());
-                } catch (GenesisException e) {
-                    return ResponseEntity.status(e.getStatus()).body(e.getMessage());
-                } catch(Exception e) {
-                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-                }
 
                 if(filepath.toFile().length()/1024/1024 <= Constants.MAX_FILE_SIZE_UNTIL_SEQUENTIAL){
                     //DOM method
@@ -168,7 +169,7 @@ public class ResponseController {
 
                     List<SurveyUnitUpdateDto> suDtos = new ArrayList<>();
                     for (LunaticXmlSurveyUnit su : campaign.getSurveyUnits()) {
-                        suDtos.addAll(LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign()));
+                        suDtos.addAll(LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign(),currentMode));
                     }
                     surveyUnitQualityService.verifySurveyUnits(suDtos,variablesMap);
 
@@ -186,7 +187,7 @@ public class ResponseController {
                         LunaticXmlSurveyUnit su = parser.readNextSurveyUnit();
 
                         while(su != null){
-                            List<SurveyUnitUpdateDto> suDtos = new ArrayList<>(LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign()));
+                            List<SurveyUnitUpdateDto> suDtos = new ArrayList<>(LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign(),currentMode));
 
                             surveyUnitQualityService.verifySurveyUnits(suDtos,variablesMap);
                             surveyUnitService.saveSurveyUnits(suDtos);
