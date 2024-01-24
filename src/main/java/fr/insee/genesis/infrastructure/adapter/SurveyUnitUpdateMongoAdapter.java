@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Slf4j
@@ -31,13 +32,13 @@ public class SurveyUnitUpdateMongoAdapter implements SurveyUnitUpdatePersistence
 	@Override
 	public List<SurveyUnitUpdateDto> findByIds(String idUE, String idQuest) {
 		List<SurveyUnitUpdateDocument> surveyUnitsUpdate = mongoRepository.findByIdUEAndIdQuestionnaire(idUE, idQuest);
-		return surveyUnitsUpdate.isEmpty() ? null : SurveyUnitUpdateDocumentMapper.INSTANCE.listDocumentToListDto(surveyUnitsUpdate);
+		return surveyUnitsUpdate.isEmpty() ? Collections.emptyList() : SurveyUnitUpdateDocumentMapper.INSTANCE.listDocumentToListDto(surveyUnitsUpdate);
 	}
 
 	@Override
 	public List<SurveyUnitUpdateDto> findByIdUE(String idUE) {
 		List<SurveyUnitUpdateDocument> surveyUnitsUpdate = mongoRepository.findByIdUE(idUE);
-		return surveyUnitsUpdate.isEmpty() ? null : SurveyUnitUpdateDocumentMapper.INSTANCE.listDocumentToListDto(surveyUnitsUpdate);
+		return surveyUnitsUpdate.isEmpty() ? Collections.emptyList() : SurveyUnitUpdateDocumentMapper.INSTANCE.listDocumentToListDto(surveyUnitsUpdate);
 	}
 
 	@Override
@@ -48,18 +49,18 @@ public class SurveyUnitUpdateMongoAdapter implements SurveyUnitUpdatePersistence
 			List<SurveyUnitUpdateDocument> docs = mongoRepository.findByIdUEAndIdQuestionnaire(su.getIdUE(), idQuestionnaire);
 			surveyUnitsUpdate.addAll(docs);
 		});
-		return surveyUnitsUpdate.isEmpty() ? null : SurveyUnitUpdateDocumentMapper.INSTANCE.listDocumentToListDto(surveyUnitsUpdate);
+		return surveyUnitsUpdate.isEmpty() ? Collections.emptyList() : SurveyUnitUpdateDocumentMapper.INSTANCE.listDocumentToListDto(surveyUnitsUpdate);
 	}
 
 
 	@Override
 	public List<SurveyUnitUpdateDto> findByIdQuestionnaire(String idQuestionnaire) {
 		List<SurveyUnitUpdateDocument> surveyUnitsUpdate = mongoRepository.findByIdQuestionnaire(idQuestionnaire);
-		return surveyUnitsUpdate.isEmpty() ? null : SurveyUnitUpdateDocumentMapper.INSTANCE.listDocumentToListDto(surveyUnitsUpdate);
+		return surveyUnitsUpdate.isEmpty() ? Collections.emptyList() : SurveyUnitUpdateDocumentMapper.INSTANCE.listDocumentToListDto(surveyUnitsUpdate);
 	}
 
 	public List<SurveyUnitDto> findIdUEsByIdQuestionnaire(String idQuestionnaire) {
 		List<SurveyUnitDocument> surveyUnits = mongoRepository.findIdUEsByIdQuestionnaire(idQuestionnaire);
-		return surveyUnits.isEmpty() ? null : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListDto(surveyUnits);
+		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListDto(surveyUnits);
 	}
 }
