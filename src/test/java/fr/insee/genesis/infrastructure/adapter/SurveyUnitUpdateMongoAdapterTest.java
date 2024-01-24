@@ -84,13 +84,13 @@ class SurveyUnitUpdateMongoAdapterTest {
 	}
 
 	@Test
-	void shouldReturnNull_IfIdsNotFoundInDataBase() {
+	void shouldReturnEmptyList_IfIdsNotFoundInDataBase() {
 		//Given
 		when(mongoRepository.findByIdUEAndIdQuestionnaire(any(String.class), any(String.class))).thenReturn(List.of());
 		// When
 		List< SurveyUnitUpdateDto> updates = surveyUnitUpdateMongoAdapter.findByIds("UE1100000001", "TEST2023X01");
 		// Then
-		Assertions.assertThat(updates).isNull();
+		Assertions.assertThat(updates).isEmpty();
 	}
 
 	@Test
@@ -108,13 +108,13 @@ class SurveyUnitUpdateMongoAdapterTest {
 	}
 
 	@Test
-	void shouldReturnNull_IfIdUENotFoundInDataBase() {
+	void shouldReturnEmptyList_IfIdUENotFoundInDataBase() {
 		//Given
 		when(mongoRepository.findByIdUE(any(String.class))).thenReturn(List.of());
 		// When
 		List< SurveyUnitUpdateDto> updates = surveyUnitUpdateMongoAdapter.findByIdUE("UE1100000001");
 		// Then
-		Assertions.assertThat(updates).isNull();
+		Assertions.assertThat(updates).isEmpty();
 	}
 
 	@Test
@@ -133,13 +133,13 @@ class SurveyUnitUpdateMongoAdapterTest {
 	}
 
 	@Test
-	void shouldReturnNull_IfIdQuestionnaireNotFoundInDataBase() {
+	void shouldReturnEmptyList_IfIdQuestionnaireNotFoundInDataBase() {
 		//Given
 		when(mongoRepository.findByIdQuestionnaire(any(String.class))).thenReturn(List.of());
 		// When
 		List< SurveyUnitUpdateDto> updates = surveyUnitUpdateMongoAdapter.findByIdQuestionnaire("TEST2023X01");
 		// Then
-		Assertions.assertThat(updates).isNull();
+		Assertions.assertThat(updates).isEmpty();
 	}
 
 	@Test
@@ -163,7 +163,7 @@ class SurveyUnitUpdateMongoAdapterTest {
 	}
 
 	@Test
-	void shouldReturnNull_IfIdUEsNotFoundInDataBase() {
+	void shouldReturnEmptyList_IfIdUEsNotFoundInDataBase() {
 		//Given
 		when(mongoRepository.findByIdUEAndIdQuestionnaire(any(String.class),any(String.class))).thenReturn(List.of());
 		SurveyUnitDto id1 = SurveyUnitDto.builder().idUE("UE1100000001").build();
@@ -172,7 +172,7 @@ class SurveyUnitUpdateMongoAdapterTest {
 		// When
 		List< SurveyUnitUpdateDto> updates = surveyUnitUpdateMongoAdapter.findByIdUEsAndIdQuestionnaire(ids, "TEST2023X01");
 		// Then
-		Assertions.assertThat(updates).isNull();
+		Assertions.assertThat(updates).isEmpty();
 	}
 
 }
