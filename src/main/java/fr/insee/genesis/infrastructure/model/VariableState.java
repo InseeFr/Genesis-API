@@ -1,11 +1,10 @@
 package fr.insee.genesis.infrastructure.model;
 
-import fr.insee.genesis.domain.dtos.DataType;
-import lombok.Data;
-
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
+
+import lombok.Data;
 
 @Data
 public class VariableState implements Serializable {
