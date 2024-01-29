@@ -4,12 +4,7 @@ import cucumber.TestConstants;
 import fr.insee.genesis.controller.responses.SurveyUnitUpdateSimplified;
 import fr.insee.genesis.controller.service.SurveyUnitQualityService;
 import fr.insee.genesis.controller.utils.ControllerUtils;
-import fr.insee.genesis.domain.dtos.CollectedVariableDto;
-import fr.insee.genesis.domain.dtos.DataState;
-import fr.insee.genesis.domain.dtos.Mode;
-import fr.insee.genesis.domain.dtos.SurveyUnitId;
-import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
-import fr.insee.genesis.domain.dtos.VariableDto;
+import fr.insee.genesis.domain.dtos.*;
 import fr.insee.genesis.domain.ports.api.SurveyUnitUpdateApiPort;
 import fr.insee.genesis.domain.service.SurveyUnitUpdateImpl;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
@@ -20,6 +15,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.FileSystemUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -156,11 +152,18 @@ class ResponseControllerTest {
 
     @Test
     void findAllResponsesByQuestionnaireTest(){
-        ResponseEntity<List<SurveyUnitUpdateDto>> response = responseControllerStatic.findAllResponsesByQuestionnaire("TESTIDQUESTIONNAIRE");
+        ResponseEntity<Path> response = responseControllerStatic.findAllResponsesByQuestionnaire("TESTIDQUESTIONNAIRE");
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
-        Assertions.assertThat(response.getBody().get(0).getIdQuest()).isEqualTo("TESTIDQUESTIONNAIRE");
+        Assertions.assertThat(response.getBody()).isNotNull();
+        Path path = Path.of(TestConstants.TEST_RESOURCES_DIRECTORY,"OUT", "TESTIDQUESTIONNAIRE");
+        Assertions.assertThat(Files.exists(path)).isTrue();
+        File dir = new File(String.valueOf(path));
+        File[] dir_contents = dir.listFiles();
+        Assertions.assertThat(dir_contents).hasSize(1);
+        Assertions.assertThat(dir_contents[0].length()).isPositive().isNotNull();
+        FileSystemUtils.deleteRecursively(dir);
+        dir.deleteOnExit();
     }
 
     //TODO refaire pour répondre à la logique du call

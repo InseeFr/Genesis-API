@@ -2,18 +2,17 @@ package fr.insee.genesis.controller.rest;
 
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.adapter.LunaticXmlAdapter;
-import fr.insee.genesis.controller.sources.xml.LunaticXmlDataSequentialParser;
-import fr.insee.genesis.domain.dtos.SurveyUnitId;
 import fr.insee.genesis.controller.responses.SurveyUnitUpdateSimplified;
+import fr.insee.genesis.controller.service.SurveyUnitQualityService;
 import fr.insee.genesis.controller.sources.ddi.DDIReader;
 import fr.insee.genesis.controller.sources.ddi.VariablesMap;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlCampaign;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlDataParser;
+import fr.insee.genesis.controller.sources.xml.LunaticXmlDataSequentialParser;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.dtos.*;
 import fr.insee.genesis.domain.ports.api.SurveyUnitUpdateApiPort;
-import fr.insee.genesis.controller.service.SurveyUnitQualityService;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.exceptions.NoDataError;
@@ -30,6 +29,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -165,7 +165,7 @@ public class ResponseController {
                 if(filepath.toFile().length()/1024/1024 <= Constants.MAX_FILE_SIZE_UNTIL_SEQUENTIAL){
                     //DOM method
                     LunaticXmlDataParser parser = new LunaticXmlDataParser();
-                    campaign = parser.parseDataFile(Paths.get(filepathString));
+                    campaign = parser.parseDataFile(filepath);
 
                     List<SurveyUnitUpdateDto> suDtos = new ArrayList<>();
                     for (LunaticXmlSurveyUnit su : campaign.getSurveyUnits()) {
@@ -217,11 +217,14 @@ public class ResponseController {
 
     @Operation(summary = "Retrieve all responses of one questionnaire")
     @GetMapping(path = "/get-responses/by-questionnaire")
-    public ResponseEntity<List<SurveyUnitUpdateDto>> findAllResponsesByQuestionnaire(@RequestParam("idQuestionnaire") String idQuestionnaire) {
+    public ResponseEntity<Path> findAllResponsesByQuestionnaire(@RequestParam("idQuestionnaire") String idQuestionnaire) {
         log.info("Try to find all responses of questionnaire : " + idQuestionnaire);
         List<SurveyUnitUpdateDto> responses = surveyUnitService.findByIdQuestionnaire(idQuestionnaire);
         log.info("Responses found : " + responses.size());
-        return new ResponseEntity<>(responses, HttpStatus.OK);
+        String filepathString = String.format("OUT/%s/OUT_ALL_%s.json", idQuestionnaire, LocalDateTime.now().toString().replace(":",""));
+        Path filepath = Paths.get(filepathString);
+        fileUtils.writeFile(filepath , responses.toString());
+        return new ResponseEntity<>(filepath, HttpStatus.OK);
     }
 
     @Operation(summary = "Retrieve responses latest state with IdUE and IdQuestionnaire")
