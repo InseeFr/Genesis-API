@@ -2,11 +2,15 @@ package fr.insee.genesis.infrastructure.utils;
 
 import fr.insee.genesis.configuration.Config;
 import lombok.extern.slf4j.Slf4j;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -176,6 +180,36 @@ public class FileUtils {
 			log.info(String.format("Text file: %s successfully written", filePath));
 		} catch (IOException e) {
 			log.warn(String.format("Error occurred when trying to write file: %s", filePath), e);
+		}
+	}
+
+	/**
+	 * Appends a JSON object into file.
+	 * @param filePath Path to the file.
+	 * @param jsonArray JSON objects array to add
+	 */
+	public void appendJSONFile(Path filePath, JSONArray jsonArray) {
+		String content = jsonArray.toJSONString();
+		Path path = Path.of(dataFolderSource, filePath.toString());
+        File myFile;
+		try {
+			Files.createDirectories(path.getParent());
+			myFile = path.toFile();
+
+			try (RandomAccessFile raf = new RandomAccessFile(myFile, "rw")) {
+				if(myFile.length() == 0)
+					raf.write("[]".getBytes(StandardCharsets.UTF_8));
+
+				raf.seek(myFile.length()-1);
+
+				if(myFile.length() != 2)
+					raf.write(",".getBytes(StandardCharsets.UTF_8));
+
+				raf.write(content.substring(1,content.length()-1).getBytes(StandardCharsets.UTF_8));
+				raf.write("]".getBytes(StandardCharsets.UTF_8));
+			}
+		}catch (IOException e) {
+			log.warn(String.format("Error occurred when trying to append into file: %s", filePath), e);
 		}
 	}
 }

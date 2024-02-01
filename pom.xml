@@ -140,6 +140,18 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- JSON libraries -->
+        <!-- json-simple -->
+        <!--
+        https://mvnrepository.com/artifact/com.googlecode.json-simple/json-simple -->
+        <dependency>
+            <groupId>com.googlecode.json-simple</groupId>
+            <artifactId>json-simple</artifactId>
+            <version>1.1.1</version>
+        </dependency>
+        <!-- jackson TODO -->
+        <!-- (imported with Trevas) -->
+
     </dependencies>
 
     <build>

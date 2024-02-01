@@ -22,6 +22,8 @@ public interface SurveyUnitUpdateApiPort {
 
     List<SurveyUnitUpdateDto> findLatestByIdAndByMode(String idUE, String idQuest);
 
+    List<SurveyUnitDto> findIdUEsAndModesByIdQuestionnaire(String idQuestionnaire);
+
     List<SurveyUnitId> findDistinctIdUEsByIdQuestionnaire(String idQuestionnaire);
 
     List<Mode> findModesByIdQuestionnaire(String idQuestionnaire);
