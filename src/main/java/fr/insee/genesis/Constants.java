@@ -34,7 +34,7 @@ public class Constants {
 
 
     // Data extraction parameters
-    public static final int BATCH_SIZE = 1000; //TODO Adapt to avoid OutOfMemoryException
+    public static final int BATCH_SIZE = 200; //TODO Adapt to avoid OutOfMemoryException
 
     private Constants() {
         throw new IllegalStateException("Constants class");
