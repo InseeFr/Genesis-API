@@ -3,7 +3,6 @@ package fr.insee.genesis.infrastructure.utils;
 import fr.insee.genesis.configuration.Config;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -184,9 +183,10 @@ public class FileUtils {
 	}
 
 	/**
-	 * Appends a JSON object into file.
+	 * Appends a JSON object array into file.
+	 * Creates the files if it doesn't exist
 	 * @param filePath Path to the file.
-	 * @param jsonArray JSON objects array to add
+	 * @param jsonArray JSON objects to write
 	 */
 	public void appendJSONFile(Path filePath, JSONArray jsonArray) {
 		String content = jsonArray.toJSONString();
@@ -205,8 +205,7 @@ public class FileUtils {
 				if(myFile.length() != 2)
 					raf.write(",".getBytes(StandardCharsets.UTF_8));
 
-				raf.write(content.substring(1,content.length()-1).getBytes(StandardCharsets.UTF_8));
-				raf.write("]".getBytes(StandardCharsets.UTF_8));
+				raf.write(content.substring(1).getBytes(StandardCharsets.UTF_8));
 			}
 		}catch (IOException e) {
 			log.warn(String.format("Error occurred when trying to append into file: %s", filePath), e);

@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-
 class ResponseControllerTest {
     //Given
     static ResponseController responseControllerStatic;
@@ -163,12 +162,12 @@ class ResponseControllerTest {
         File[] dir_contents = dir.listFiles();
         Assertions.assertThat(dir_contents).hasSize(1);
         Assertions.assertThat(dir_contents[0].length()).isPositive().isNotNull();
-        //FileSystemUtils.deleteRecursively(dir);
-        //dir.deleteOnExit();
+        FileSystemUtils.deleteRecursively(dir);
+        dir.deleteOnExit();
     }
 
     @Test
-    void getAllResponsesByQuestionnaireTestSequential(){
+    void getAllResponsesByQuestionnaireTestSequential() throws IOException {
         //MongoDB stub management
         surveyUnitUpdatePersistencePortStub.getMongoStub().clear();
 
@@ -198,7 +197,10 @@ class ResponseControllerTest {
         ResponseEntity<Path> response = responseControllerStatic.findAllResponsesByQuestionnaire("TESTIDQUESTIONNAIRE");
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        Assertions.assertThat(response.getBody()).isNotNull();
         Assertions.assertThat(response.getBody().toFile()).isNotNull().exists();
+
+        Files.deleteIfExists(response.getBody());
     }
 
 

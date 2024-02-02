@@ -19,6 +19,5 @@ class CollectedVariableDtoTest {
         Assertions.assertThat(collectedVariableDto.toJSONObject().toJSONString()).isEqualTo(
                 "{\"values\":[\"V1\",\"V2\"],\"idVar\":\"TESTIDVAR\",\"idLoop\":\"TESTIDLOOP\",\"idParent\":\"TESTIDPARENT\"}"
         );
-
     }
 }

@@ -21,7 +21,6 @@ import fr.insee.genesis.infrastructure.utils.JSONUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -223,23 +222,23 @@ public class ResponseController {
     public ResponseEntity<Path> findAllResponsesByQuestionnaire(@RequestParam("idQuestionnaire") String idQuestionnaire) {
         log.info("Try to find all responses of questionnaire : " + idQuestionnaire);
 
-        //Get all IdUEs
+        //Get all IdUEs/modes of the survey
         List<SurveyUnitDto> idUEsResponses = surveyUnitService.findIdUEsAndModesByIdQuestionnaire(idQuestionnaire);
         List<SurveyUnitDto> surveyUnitDtos = new ArrayList<>(idUEsResponses);
         log.info("Responses found : " + idUEsResponses.size());
+
         String filepathString = String.format("OUT/%s/OUT_ALL_%s.json", idQuestionnaire, LocalDateTime.now().toString().replace(":",""));
         Path filepath = Paths.get(filepathString);
 
         if(surveyUnitDtos.size() <= Constants.BATCH_SIZE){
             List<SurveyUnitUpdateDto> responses = surveyUnitService.findByIdQuestionnaire(idQuestionnaire);
-
             JSONArray jsonResponses = JSONUtils.getJSONArrayFromResponses(responses);
             fileUtils.appendJSONFile(filepath, jsonResponses);
         }else{
             log.info("More than " + Constants.BATCH_SIZE + " responses ! Using sequential extraction method to save RAM...");
 
             while(!surveyUnitDtos.isEmpty()){
-                //Extract idUEs
+                //Extract idUEs and build batch
                 List<SurveyUnitDto> idUEsToTreat = new ArrayList<>();
                 while(!surveyUnitDtos.isEmpty() && idUEsToTreat.size() < Constants.BATCH_SIZE){
                     idUEsToTreat.add(surveyUnitDtos.get(0));

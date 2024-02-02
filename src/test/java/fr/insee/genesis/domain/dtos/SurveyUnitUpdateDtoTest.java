@@ -2,7 +2,6 @@ package fr.insee.genesis.domain.dtos;
 
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
-import org.junit.jupiter.api.BeforeEach;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
