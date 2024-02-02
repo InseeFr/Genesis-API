@@ -168,7 +168,7 @@ class ResponseControllerTest {
 
     @Test
     void getAllResponsesByQuestionnaireTestSequential() throws IOException {
-        //MongoDB stub management
+        //Given
         surveyUnitUpdatePersistencePortStub.getMongoStub().clear();
 
         for(int i = 0; i < Constants.BATCH_SIZE + 2; i++){
@@ -193,18 +193,21 @@ class ResponseControllerTest {
                     .build());
         }
 
-
+        //When
         ResponseEntity<Path> response = responseControllerStatic.findAllResponsesByQuestionnaire("TESTIDQUESTIONNAIRE");
 
+        //Then
+        Assertions.assertThat(response).isNotNull();
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull();
-        Assertions.assertThat(response.getBody().toFile()).isNotNull().exists();
 
-        Files.deleteIfExists(response.getBody());
+        Path outFilePath = Path.of(TestConstants.TEST_RESOURCES_DIRECTORY,response.getBody().toString());
+        Assertions.assertThat(outFilePath).isNotNull();
+        Assertions.assertThat(outFilePath.toFile()).isNotNull().exists();
+
+        Files.deleteIfExists(outFilePath);
     }
 
-
-    //TODO refaire pour répondre à la logique du call
     @Test
     void getLatestByUETest(){
         addAdditionnalDtoToMongoStub();
