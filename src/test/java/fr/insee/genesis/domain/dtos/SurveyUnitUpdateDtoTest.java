@@ -33,7 +33,7 @@ public class SurveyUnitUpdateDtoTest {
         Assertions.assertThat(surveyUnitUpdateDto).isNotNull();
 
         Assertions.assertThat(surveyUnitUpdateDto.toJSONObject().toJSONString()).isEqualTo(
-                "{\"mode\":\"WEB\",\"idCampaign\":\"TESTIDCAMPAIGN\",\"externalVariables\":[],\"collectedVariables\":[{\"values\":[\"V1\",\"V2\"],\"idVar\":\"TESTIDVAR\",\"idLoop\":\"TESTIDLOOP\",\"idParent\":\"TESTIDPARENT\"},{\"values\":[\"V1\",\"V2\"],\"idVar\":\"TESTIDVAR\"}],\"idQuest\":\"TESTIDQUEST\",\"recordDate\":\"2000-01-01T00:00\",\"idUE\":\"TESTIDUE\",\"state\":\"COLLECTED\",\"fileDate\":\"2000-01-01T00:00\"}"
+                "{\"mode\":\"WEB\",\"idCampaign\":\"TESTIDCAMPAIGN\",\"externalVariables\":[{\"values\":[\"V1\",\"V2\"],\"idVar\":\"TESTIDVAR\"}],\"collectedVariables\":[{\"values\":[\"V1\",\"V2\"],\"idVar\":\"TESTIDVAR\",\"idLoop\":\"TESTIDLOOP\",\"idParent\":\"TESTIDPARENT\"}],\"idQuest\":\"TESTIDQUEST\",\"recordDate\":\"2000-01-01T00:00\",\"idUE\":\"TESTIDUE\",\"state\":\"COLLECTED\",\"fileDate\":\"2000-01-01T00:00\"}"
         );
     }
 
