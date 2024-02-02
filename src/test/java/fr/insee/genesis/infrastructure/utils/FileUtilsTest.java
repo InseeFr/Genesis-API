@@ -58,10 +58,8 @@ class FileUtilsTest {
 	void appendFileTest() throws IOException {
 		//Given + When
 		Path testFilePath = Path.of(TestConstants.TEST_RESOURCES_DIRECTORY,"test.json");
-
 		Files.deleteIfExists(testFilePath);
 
-		testFilePath = Path.of("test.json");
 		JSONArray jsonArray = new JSONArray();
 		JSONObject jsonObject = new JSONObject();
 		jsonObject.put("id", 1);
@@ -82,8 +80,6 @@ class FileUtilsTest {
 		jsonObject.put("id", 4);
 		jsonArray.add(jsonObject);
 		fileUtils.appendJSONFile(testFilePath, jsonArray);
-
-		testFilePath = Path.of(TestConstants.TEST_RESOURCES_DIRECTORY,"test.json");
 
 		//Then
 		Assertions.assertThat(testFilePath.toFile()).exists();

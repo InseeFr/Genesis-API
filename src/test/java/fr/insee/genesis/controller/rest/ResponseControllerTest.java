@@ -152,13 +152,15 @@ class ResponseControllerTest {
 
     @Test
     void findAllResponsesByQuestionnaireTest(){
+        Path path = Path.of(TestConstants.TEST_RESOURCES_DIRECTORY,"OUT", "TESTIDQUESTIONNAIRE");
+        File dir = new File(String.valueOf(path));
+        FileSystemUtils.deleteRecursively(dir);
+
         ResponseEntity<Path> response = responseControllerStatic.findAllResponsesByQuestionnaire("TESTIDQUESTIONNAIRE");
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull();
-        Path path = Path.of(TestConstants.TEST_RESOURCES_DIRECTORY,"OUT", "TESTIDQUESTIONNAIRE");
         Assertions.assertThat(Files.exists(path)).isTrue();
-        File dir = new File(String.valueOf(path));
         File[] dir_contents = dir.listFiles();
         Assertions.assertThat(dir_contents).hasSize(1);
         Assertions.assertThat(dir_contents[0].length()).isPositive().isNotNull();
@@ -201,11 +203,10 @@ class ResponseControllerTest {
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull();
 
-        Path outFilePath = Path.of(TestConstants.TEST_RESOURCES_DIRECTORY,response.getBody().toString());
-        Assertions.assertThat(outFilePath).isNotNull();
-        Assertions.assertThat(outFilePath.toFile()).isNotNull().exists();
+        Assertions.assertThat(response.getBody()).isNotNull();
+        Assertions.assertThat(response.getBody().toFile()).isNotNull().exists();
 
-        Files.deleteIfExists(outFilePath);
+        Files.deleteIfExists(response.getBody());
     }
 
     @Test

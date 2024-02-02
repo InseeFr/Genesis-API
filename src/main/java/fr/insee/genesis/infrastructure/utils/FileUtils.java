@@ -1,6 +1,7 @@
 package fr.insee.genesis.infrastructure.utils;
 
 import fr.insee.genesis.configuration.Config;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONArray;
 import org.springframework.stereotype.Component;
@@ -21,6 +22,7 @@ import java.util.stream.Stream;
 @Component
 public class FileUtils {
 
+	@Getter
 	private final String dataFolderSource;
 
 	private final String specFolderSource;
@@ -190,11 +192,10 @@ public class FileUtils {
 	 */
 	public void appendJSONFile(Path filePath, JSONArray jsonArray) {
 		String content = jsonArray.toJSONString();
-		Path path = Path.of(dataFolderSource, filePath.toString());
         File myFile;
 		try {
-			Files.createDirectories(path.getParent());
-			myFile = path.toFile();
+			Files.createDirectories(filePath.getParent());
+			myFile = filePath.toFile();
 
 			try (RandomAccessFile raf = new RandomAccessFile(myFile, "rw")) {
 				if(myFile.length() == 0)

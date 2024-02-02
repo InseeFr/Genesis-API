@@ -228,7 +228,7 @@ public class ResponseController {
         log.info("Responses found : " + idUEsResponses.size());
 
         String filepathString = String.format("OUT/%s/OUT_ALL_%s.json", idQuestionnaire, LocalDateTime.now().toString().replace(":",""));
-        Path filepath = Paths.get(filepathString);
+        Path filepath = Path.of(fileUtils.getDataFolderSource(), filepathString);
 
         if(surveyUnitDtos.size() <= Constants.BATCH_SIZE){
             List<SurveyUnitUpdateDto> responses = surveyUnitService.findByIdQuestionnaire(idQuestionnaire);
