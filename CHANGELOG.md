@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.4 - [2024-02-08]
+
+### Fixed
+- Missing logging info for termination of extraction endpoint
+
 ## 1.0.3 - [2024-02-08]
 
 ### Added

@@ -224,7 +224,7 @@ public class ResponseController {
         //Get all IdUEs/modes of the survey
         List<SurveyUnitDto> idUEsResponses = surveyUnitService.findIdUEsAndModesByIdQuestionnaire(idQuestionnaire);
         List<SurveyUnitDto> surveyUnitDtos = new ArrayList<>(idUEsResponses);
-        log.info("Responses found : " + idUEsResponses.size());
+        log.info("Responses found : {}", idUEsResponses.size());
 
         String filepathString = String.format("OUT/%s/OUT_ALL_%s.json", idQuestionnaire, LocalDateTime.now().toString().replace(":",""));
         Path filepath = Path.of(fileUtils.getDataFolderSource(), filepathString);
@@ -252,7 +252,7 @@ public class ResponseController {
                 idUEsToTreat.clear();
             }
         }
-
+        log.info("End of extraction, responses extracted : {}", idUEsResponses.size());
         return new ResponseEntity<>(filepath, HttpStatus.OK);
     }
 
