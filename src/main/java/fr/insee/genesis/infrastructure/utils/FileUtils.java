@@ -198,14 +198,14 @@ public class FileUtils {
 			myFile = filePath.toFile();
 
 			try (RandomAccessFile raf = new RandomAccessFile(myFile, "rw")) {
-				if(myFile.length() == 0)
+				if(myFile.length() == 0) {
 					raf.write("[]".getBytes(StandardCharsets.UTF_8));
-
+				}
 				raf.seek(myFile.length()-1);
 
-				if(myFile.length() != 2)
+				if(myFile.length() != 2) {
 					raf.write(",".getBytes(StandardCharsets.UTF_8));
-
+				}
 				raf.write(content.substring(1).getBytes(StandardCharsets.UTF_8));
 			}
 		}catch (IOException e) {

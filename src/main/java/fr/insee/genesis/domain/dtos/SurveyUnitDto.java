@@ -19,8 +19,12 @@ public class SurveyUnitDto {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+		if (this == o){
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
 		SurveyUnitDto that = (SurveyUnitDto) o;
 		return Objects.equals(idUE, that.idUE) && Objects.equals(mode, that.mode);
 	}

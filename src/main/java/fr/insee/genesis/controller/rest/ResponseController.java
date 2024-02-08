@@ -115,8 +115,7 @@ public class ResponseController {
                     su = parser.readNextSurveyUnit();
                 }
 
-                log.info("Saving {} survey units updates", suCount);
-                log.info("Survey units updates saved");
+                log.info("Saved {} survey units updates", suCount);
             }
 
             log.info("File {} treated", xmlFile);
@@ -235,7 +234,7 @@ public class ResponseController {
             JSONArray jsonResponses = JSONUtils.getJSONArrayFromResponses(responses);
             fileUtils.appendJSONFile(filepath, jsonResponses);
         }else{
-            log.info("More than " + Constants.BATCH_SIZE + " responses ! Using sequential extraction method to save RAM...");
+            log.info("More than {} responses ! Using sequential extraction method to save RAM...", Constants.BATCH_SIZE);
 
             while(!surveyUnitDtos.isEmpty()){
                 //Extract idUEs and build batch

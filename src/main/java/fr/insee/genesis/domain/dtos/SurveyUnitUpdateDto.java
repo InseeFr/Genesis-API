@@ -33,14 +33,18 @@ public class SurveyUnitUpdateDto {
         jsonObject.put("fileDate",fileDate.toString());
 
         JSONArray collectedVariablesJSONArray = new JSONArray();
-        if(collectedVariables != null)
-            for(CollectedVariableDto collectedVariableDto : collectedVariables)
+        if(collectedVariables != null){
+            for(CollectedVariableDto collectedVariableDto : collectedVariables){
                 collectedVariablesJSONArray.add(collectedVariableDto.toJSONObject());
+            }
+        }
 
         JSONArray externalVariablesJSONArray = new JSONArray();
-        if(externalVariables != null)
-            for (VariableDto variableDto : externalVariables)
+        if(externalVariables != null) {
+            for (VariableDto variableDto : externalVariables){
                 externalVariablesJSONArray.add(variableDto.toJSONObject());
+            }
+        }
 
         jsonObject.put("collectedVariables",collectedVariablesJSONArray);
         jsonObject.put("externalVariables",externalVariablesJSONArray);
