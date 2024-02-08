@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Objects;
+
 @Builder
 @Data
 @NoArgsConstructor
@@ -15,4 +17,20 @@ public class SurveyUnitDto {
 
 	private Mode mode;
 
+	@Override
+	public boolean equals(Object o) {
+		if (this == o){
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		SurveyUnitDto that = (SurveyUnitDto) o;
+		return Objects.equals(idUE, that.idUE) && Objects.equals(mode, that.mode);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(idUE) + Objects.hash(mode);
+	}
 }

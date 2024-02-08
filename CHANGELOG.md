@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.3 - [2024-02-08]
+
+### Added
+- End point to get all the data for a specific questionnaire written in a json file in the output directory
+
 ## 1.0.2 - [2024-01-29]
 
 ### Fixed

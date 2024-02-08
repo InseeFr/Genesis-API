@@ -1,11 +1,16 @@
 package fr.insee.genesis.infrastructure.utils;
 
 import fr.insee.genesis.configuration.Config;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.json.simple.JSONArray;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -17,6 +22,7 @@ import java.util.stream.Stream;
 @Component
 public class FileUtils {
 
+	@Getter
 	private final String dataFolderSource;
 
 	private final String specFolderSource;
@@ -151,5 +157,59 @@ public class FileUtils {
 	 */
 	public String getDoneFolder(String campaign, String dataSource) {
 		return  String.format("%s/%s/%s/%s", dataFolderSource, "DONE", dataSource, campaign);
+	}
+
+	/**
+	 * Write a text file.
+	 * @param filePath Path to the file.
+	 * @param fileContent Content of the text file.
+	 */
+	public void writeFile(Path filePath, String fileContent) {
+		Path path = Path.of(dataFolderSource, filePath.toString());
+		boolean fileCreated = false;
+		File myFile = null;
+		try {
+			Files.createDirectories(path.getParent());
+			myFile = path.toFile();
+			fileCreated = myFile.createNewFile();
+		} catch (IOException e) {
+			log.error("Permission refused to create folder: " + path.getParent(), e);
+		}
+		if (!fileCreated){return ;}
+		try (FileWriter myWriter = new FileWriter(myFile)) {
+			myWriter.write(fileContent);
+			log.info(String.format("Text file: %s successfully written", filePath));
+		} catch (IOException e) {
+			log.warn(String.format("Error occurred when trying to write file: %s", filePath), e);
+		}
+	}
+
+	/**
+	 * Appends a JSON object array into file.
+	 * Creates the files if it doesn't exist
+	 * @param filePath Path to the file.
+	 * @param jsonArray JSON objects to write
+	 */
+	public void appendJSONFile(Path filePath, JSONArray jsonArray) {
+		String content = jsonArray.toJSONString();
+        File myFile;
+		try {
+			Files.createDirectories(filePath.getParent());
+			myFile = filePath.toFile();
+
+			try (RandomAccessFile raf = new RandomAccessFile(myFile, "rw")) {
+				if(myFile.length() == 0) {
+					raf.write("[]".getBytes(StandardCharsets.UTF_8));
+				}
+				raf.seek(myFile.length()-1);
+
+				if(myFile.length() != 2) {
+					raf.write(",".getBytes(StandardCharsets.UTF_8));
+				}
+				raf.write(content.substring(1).getBytes(StandardCharsets.UTF_8));
+			}
+		}catch (IOException e) {
+			log.warn(String.format("Error occurred when trying to append into file: %s", filePath), e);
+		}
 	}
 }

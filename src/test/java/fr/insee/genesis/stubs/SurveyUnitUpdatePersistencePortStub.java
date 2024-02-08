@@ -1,17 +1,12 @@
 package fr.insee.genesis.stubs;
 
-import fr.insee.genesis.domain.dtos.CollectedVariableDto;
-import fr.insee.genesis.domain.dtos.DataState;
-import fr.insee.genesis.domain.dtos.Mode;
-import fr.insee.genesis.domain.dtos.SurveyUnitDto;
-import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
-import fr.insee.genesis.domain.dtos.VariableDto;
-import fr.insee.genesis.domain.ports.spi.SurveyUnitUpdatePersistencePort;
-import lombok.Getter;
-
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import fr.insee.genesis.domain.dtos.SurveyUnitDto;
+import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
+import fr.insee.genesis.domain.ports.spi.SurveyUnitUpdatePersistencePort;
+import lombok.Getter;
 
 @Getter
 public class SurveyUnitUpdatePersistencePortStub implements SurveyUnitUpdatePersistencePort {

@@ -32,6 +32,10 @@ public class Constants {
     public static final String CALCULATED_NODE_NAME = "CALCULATED";
     public static final String EXTERNAL_NODE_NAME = "EXTERNAL";
 
+
+    // Data extraction parameters
+    public static final int BATCH_SIZE = 200; //TODO Adapt to avoid OutOfMemoryException
+
     private Constants() {
         throw new IllegalStateException("Constants class");
     }

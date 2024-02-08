@@ -6,6 +6,7 @@ import fr.insee.genesis.domain.ports.api.SurveyUnitUpdateApiPort;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitUpdatePersistencePort;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 public class SurveyUnitUpdateImpl implements SurveyUnitUpdateApiPort {
@@ -103,6 +104,12 @@ public class SurveyUnitUpdateImpl implements SurveyUnitUpdateApiPort {
         List<SurveyUnitId> suIds = new ArrayList<>();
         surveyUnits.forEach(surveyUnitDto -> suIds.add(new SurveyUnitId(surveyUnitDto.getIdUE())));
         return suIds.stream().distinct().toList();
+    }
+
+    @Override
+    public List<SurveyUnitDto> findIdUEsAndModesByIdQuestionnaire(String idQuestionnaire) {
+        List<SurveyUnitDto> surveyUnits = surveyUnitUpdatePersistencePort.findIdUEsByIdQuestionnaire(idQuestionnaire);
+        return surveyUnits.stream().distinct().toList();
     }
 
     @Override

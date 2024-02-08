@@ -1,15 +1,11 @@
 package fr.insee.genesis.controller.rest;
 
 import cucumber.TestConstants;
+import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.responses.SurveyUnitUpdateSimplified;
 import fr.insee.genesis.controller.service.SurveyUnitQualityService;
 import fr.insee.genesis.controller.utils.ControllerUtils;
-import fr.insee.genesis.domain.dtos.CollectedVariableDto;
-import fr.insee.genesis.domain.dtos.DataState;
-import fr.insee.genesis.domain.dtos.Mode;
-import fr.insee.genesis.domain.dtos.SurveyUnitId;
-import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
-import fr.insee.genesis.domain.dtos.VariableDto;
+import fr.insee.genesis.domain.dtos.*;
 import fr.insee.genesis.domain.ports.api.SurveyUnitUpdateApiPort;
 import fr.insee.genesis.domain.service.SurveyUnitUpdateImpl;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
@@ -20,6 +16,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.FileSystemUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,7 +27,6 @@ import java.time.Month;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-
 
 class ResponseControllerTest {
     //Given
@@ -156,14 +152,63 @@ class ResponseControllerTest {
 
     @Test
     void findAllResponsesByQuestionnaireTest(){
-        ResponseEntity<List<SurveyUnitUpdateDto>> response = responseControllerStatic.findAllResponsesByQuestionnaire("TESTIDQUESTIONNAIRE");
+        Path path = Path.of(TestConstants.TEST_RESOURCES_DIRECTORY,"OUT", "TESTIDQUESTIONNAIRE");
+        File dir = new File(String.valueOf(path));
+        FileSystemUtils.deleteRecursively(dir);
+
+        ResponseEntity<Path> response = responseControllerStatic.findAllResponsesByQuestionnaire("TESTIDQUESTIONNAIRE");
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
-        Assertions.assertThat(response.getBody().get(0).getIdQuest()).isEqualTo("TESTIDQUESTIONNAIRE");
+        Assertions.assertThat(response.getBody()).isNotNull();
+        Assertions.assertThat(Files.exists(path)).isTrue();
+        File[] dir_contents = dir.listFiles();
+        Assertions.assertThat(dir_contents).hasSize(1);
+        Assertions.assertThat(dir_contents[0].length()).isPositive().isNotNull();
+        FileSystemUtils.deleteRecursively(dir);
+        dir.deleteOnExit();
     }
 
-    //TODO refaire pour répondre à la logique du call
+    @Test
+    void getAllResponsesByQuestionnaireTestSequential() throws IOException {
+        //Given
+        surveyUnitUpdatePersistencePortStub.getMongoStub().clear();
+
+        for(int i = 0; i < Constants.BATCH_SIZE + 2; i++){
+            List<VariableDto> externalVariableDtoList = new ArrayList<>();
+            VariableDto variableDto = VariableDto.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
+            externalVariableDtoList.add(variableDto);
+
+            List<CollectedVariableDto> collectedVariableDtoList = new ArrayList<>();
+            CollectedVariableDto collectedVariableDto = new CollectedVariableDto("TESTIDVAR", List.of(new String[]{"V1", "V2"}),"TESTIDLOOP","TESTIDPARENT");
+            collectedVariableDtoList.add(collectedVariableDto);
+
+            surveyUnitUpdatePersistencePortStub.getMongoStub().add(SurveyUnitUpdateDto.builder()
+                    .idCampaign("TESTIDCAMPAIGN")
+                    .mode(Mode.WEB)
+                    .idUE("TESTIDUE" + i)
+                    .idQuest("TESTIDQUESTIONNAIRE")
+                    .state(DataState.COLLECTED)
+                    .fileDate(LocalDateTime.of(2023,1,1,0,0,0))
+                    .recordDate(LocalDateTime.of(2024,1,1,0,0,0))
+                    .externalVariables(externalVariableDtoList)
+                    .collectedVariables(collectedVariableDtoList)
+                    .build());
+        }
+
+        //When
+        ResponseEntity<Path> response = responseControllerStatic.findAllResponsesByQuestionnaire("TESTIDQUESTIONNAIRE");
+
+        //Then
+        Assertions.assertThat(response).isNotNull();
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        Assertions.assertThat(response.getBody()).isNotNull();
+
+        Assertions.assertThat(response.getBody()).isNotNull();
+        Assertions.assertThat(response.getBody().toFile()).isNotNull().exists();
+
+        Files.deleteIfExists(response.getBody());
+    }
+
     @Test
     void getLatestByUETest(){
         addAdditionnalDtoToMongoStub();
@@ -236,5 +281,4 @@ class ResponseControllerTest {
                 .build();
         surveyUnitUpdatePersistencePortStub.getMongoStub().add(recentDTO);
     }
-
 }
