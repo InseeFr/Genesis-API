@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.5 - [2024-02-08]
+
+### Fixed
+- Change batch size for extraction endpoint : writing 100 survey units at a time
+
 ## 1.0.4 - [2024-02-08]
 
 ### Fixed
