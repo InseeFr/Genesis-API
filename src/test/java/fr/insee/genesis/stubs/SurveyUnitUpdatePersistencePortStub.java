@@ -2,6 +2,7 @@ package fr.insee.genesis.stubs;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import fr.insee.genesis.domain.dtos.SurveyUnitDto;
 import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
@@ -53,14 +54,14 @@ public class SurveyUnitUpdatePersistencePortStub implements SurveyUnitUpdatePers
     }
 
     @Override
-    public List<SurveyUnitUpdateDto> findByIdQuestionnaire(String idQuestionnaire) {
+    public Stream<SurveyUnitUpdateDto> findByIdQuestionnaire(String idQuestionnaire) {
         List<SurveyUnitUpdateDto> surveyUnitUpdateDtoList = new ArrayList<>();
         for(SurveyUnitUpdateDto surveyUnitUpdateDto : mongoStub){
             if(surveyUnitUpdateDto.getIdQuest().equals(idQuestionnaire))
                 surveyUnitUpdateDtoList.add(surveyUnitUpdateDto);
         }
 
-        return surveyUnitUpdateDtoList;
+        return surveyUnitUpdateDtoList.stream();
     }
 
     @Override

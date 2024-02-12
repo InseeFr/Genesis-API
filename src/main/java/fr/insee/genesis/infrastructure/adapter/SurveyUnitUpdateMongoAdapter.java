@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -54,9 +55,10 @@ public class SurveyUnitUpdateMongoAdapter implements SurveyUnitUpdatePersistence
 
 
 	@Override
-	public List<SurveyUnitUpdateDto> findByIdQuestionnaire(String idQuestionnaire) {
-		List<SurveyUnitUpdateDocument> surveyUnitsUpdate = mongoRepository.findByIdQuestionnaire(idQuestionnaire);
-		return surveyUnitsUpdate.isEmpty() ? Collections.emptyList() : SurveyUnitUpdateDocumentMapper.INSTANCE.listDocumentToListDto(surveyUnitsUpdate);
+	public Stream<SurveyUnitUpdateDto> findByIdQuestionnaire(String idQuestionnaire) {
+		Stream<SurveyUnitUpdateDocument> surveyUnitsUpdate = mongoRepository.findByIdQuestionnaire(idQuestionnaire);
+		return surveyUnitsUpdate.map(SurveyUnitUpdateDocumentMapper.INSTANCE::documentToDto);
+		//return surveyUnitsUpdate.isEmpty() ? Collections.emptyList() : SurveyUnitUpdateDocumentMapper.INSTANCE.listDocumentToListDto(surveyUnitsUpdate);
 	}
 
 	public List<SurveyUnitDto> findIdUEsByIdQuestionnaire(String idQuestionnaire) {

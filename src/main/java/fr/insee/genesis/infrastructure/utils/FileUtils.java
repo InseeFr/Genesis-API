@@ -1,15 +1,13 @@
 package fr.insee.genesis.infrastructure.utils;
 
 import fr.insee.genesis.configuration.Config;
+import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONArray;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -210,6 +208,30 @@ public class FileUtils {
 			}
 		}catch (IOException e) {
 			log.warn(String.format("Error occurred when trying to append into file: %s", filePath), e);
+		}
+	}
+
+	/**
+	 * Appends a JSON object array into file.
+	 * Creates the files if it doesn't exist
+	 * @param filePath Path to the file.
+	 * @param responsesStream Stream of SurveyUnitUpdateDto to write
+	 */
+	public void writeSuUpdatesInFile(Path filePath, Stream<SurveyUnitUpdateDto> responsesStream) throws IOException {
+		Files.createDirectories(filePath.getParent());
+		try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath.toFile(), true))) {
+			writer.write("[");
+			responsesStream.forEach(response -> {
+				try {
+					writer.write(response.toJSONObject().toJSONString());
+					writer.write(",");
+				} catch (IOException e) {
+					throw new UncheckedIOException(e);
+				}
+			});
+			writer.write("{}]");
+		} catch (UncheckedIOException e) {
+			throw e.getCause();
 		}
 	}
 }

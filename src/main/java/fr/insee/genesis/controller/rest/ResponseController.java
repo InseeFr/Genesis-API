@@ -27,13 +27,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.FileInputStream;
-import java.io.InputStream;
+import java.io.*;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 @RequestMapping(path = "/response")
 @Controller
@@ -223,34 +224,16 @@ public class ResponseController {
 
         //Get all IdUEs/modes of the survey
         List<SurveyUnitDto> idUEsResponses = surveyUnitService.findIdUEsAndModesByIdQuestionnaire(idQuestionnaire);
-        List<SurveyUnitDto> surveyUnitDtos = new ArrayList<>(idUEsResponses);
         log.info("Responses found : {}", idUEsResponses.size());
 
-        String filepathString = String.format("OUT/%s/OUT_ALL_%s.json", idQuestionnaire, LocalDateTime.now().toString().replace(":",""));
+        String filepathString = String.format("OUT/%s/OUT_ALL_%s.json", idQuestionnaire, LocalDateTime.now().toString().replace(":", ""));
         Path filepath = Path.of(fileUtils.getDataFolderSource(), filepathString);
 
-        if(surveyUnitDtos.size() <= Constants.BATCH_SIZE){
-            List<SurveyUnitUpdateDto> responses = surveyUnitService.findByIdQuestionnaire(idQuestionnaire);
-            JSONArray jsonResponses = JSONUtils.getJSONArrayFromResponses(responses);
-            fileUtils.appendJSONFile(filepath, jsonResponses);
-        }else{
-            log.info("More than {} responses ! Using sequential extraction method to save RAM...", Constants.BATCH_SIZE);
-
-            while(!surveyUnitDtos.isEmpty()){
-                //Extract idUEs and build batch
-                List<SurveyUnitDto> idUEsToTreat = new ArrayList<>();
-                while(!surveyUnitDtos.isEmpty() && idUEsToTreat.size() < Constants.BATCH_SIZE){
-                    idUEsToTreat.add(surveyUnitDtos.get(0));
-                    surveyUnitDtos.remove(0);
-                }
-
-                //Get responses to write
-                List<SurveyUnitUpdateDto> responses = surveyUnitService.findByIdUEsAndIdQuestionnaire(idUEsToTreat,idQuestionnaire);
-                JSONArray jsonResponses = JSONUtils.getJSONArrayFromResponses(responses);
-                fileUtils.appendJSONFile(filepath, jsonResponses);
-
-                idUEsToTreat.clear();
-            }
+        try (Stream<SurveyUnitUpdateDto> responsesStream = surveyUnitService.findByIdQuestionnaire(idQuestionnaire);) {
+            fileUtils.writeSuUpdatesInFile(filepath, responsesStream);
+        } catch (IOException e) {
+            log.error("Error while writing file", e);
+            return new ResponseEntity<>(filepath, HttpStatus.INTERNAL_SERVER_ERROR);
         }
         log.info("End of extraction, responses extracted : {}", idUEsResponses.size());
         return new ResponseEntity<>(filepath, HttpStatus.OK);

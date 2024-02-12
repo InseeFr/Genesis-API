@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.6 - [2024-02-12]
+
+### Fixed
+- Refactor of code in order to upgrade RAM management when retrieving survey units from database
+
 ## 1.0.5 - [2024-02-08]
 
 ### Fixed
