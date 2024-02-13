@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.7 - [2024-02-13]
+
+### Fixed
+- Fix batch size when querying database in order to save RAM
+
 ## 1.0.6 - [2024-02-12]
 
 ### Fixed
