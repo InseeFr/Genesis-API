@@ -5,6 +5,9 @@ import fr.insee.genesis.controller.sources.ddi.Variable;
 import fr.insee.genesis.controller.sources.ddi.VariablesMap;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Arrays;
+import java.util.List;
+
 @Slf4j
 public class LoopIdentifier {
 
@@ -15,10 +18,16 @@ public class LoopIdentifier {
 	public static String getLoopIdentifier(String variableName, VariablesMap variablesMap, int index) {
 		Variable variable = variablesMap.getVariable(variableName);
 		if (variable == null) {
-			if(variableName.contains(Constants.VARIABLE_NAME_DELIMITER)
-					&& variablesMap.getVariableNames().contains(variableName.split(Constants.VARIABLE_NAME_DELIMITER)[0])
+			if(variableName.startsWith(Constants.FILTER_RESULT_PREFIX)
+					&& variablesMap.hasVariable(variableName.replace(Constants.FILTER_RESULT_PREFIX,""))
 			){
-				Variable parentVariable = variablesMap.getVariable(variableName.split(Constants.VARIABLE_NAME_DELIMITER)[0]);
+				Variable parentVariable = variablesMap.getVariable(variableName.replace(Constants.FILTER_RESULT_PREFIX,""));
+				return parentVariable.getGroupName();
+			}
+			if(variableName.endsWith(Constants.MISSING_SUFFIX)
+					&& variablesMap.hasVariable(variableName.replace(Constants.MISSING_SUFFIX,""))
+			){
+				Variable parentVariable = variablesMap.getVariable(variableName.replace(Constants.MISSING_SUFFIX,""));
 				return parentVariable.getGroupName();
 			}
 			log.debug("Variable {} not found in variablesMap and assigned in root group", variableName);
@@ -32,12 +41,21 @@ public class LoopIdentifier {
 
 	public static String getParentGroupName(String variableName, VariablesMap variablesMap) {
 		Variable variable = variablesMap.getVariable(variableName);
-
+		List<String> varsEno = Arrays.asList(Constants.getEnoVariables());
 		if ( variable == null ) {
-			if(variableName.contains(Constants.VARIABLE_NAME_DELIMITER)
-				&& variablesMap.getVariableNames().contains(variableName.split(Constants.VARIABLE_NAME_DELIMITER)[0])
-			) {
-				return variableName.split(Constants.VARIABLE_NAME_DELIMITER)[0];
+			if(varsEno.contains(variableName))
+			{
+				return Constants.ROOT_GROUP_NAME;
+			}
+			if(variableName.startsWith(Constants.FILTER_RESULT_PREFIX)
+					&& variablesMap.hasVariable(variableName.replace(Constants.FILTER_RESULT_PREFIX,""))
+			){
+				return variableName.replace(Constants.FILTER_RESULT_PREFIX,"");
+			}
+			if(variableName.endsWith(Constants.MISSING_SUFFIX)
+					&& variablesMap.hasVariable(variableName.replace(Constants.MISSING_SUFFIX,""))
+			){
+				return variableName.replace(Constants.MISSING_SUFFIX,"");
 			}
 			return null;
 		}
