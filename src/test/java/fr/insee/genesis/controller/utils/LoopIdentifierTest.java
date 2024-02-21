@@ -62,4 +62,18 @@ class LoopIdentifierTest {
 		Assertions.assertThat(LoopIdentifier.getParentGroupName("var2", variablesMap)).isNull();
 	}
 
+	@Test
+	@DisplayName("Should return var1 group if delimiter")
+	void test06(){
+		//When + Then
+		Assertions.assertThat(LoopIdentifier.getLoopIdentifier("var1_MISSING", variablesMap,1)).isEqualTo(LOOP_NAME);
+	}
+
+	@Test
+	@DisplayName("Should return var1 as parent if delimiter")
+	void test07(){
+		//When + Then
+		Assertions.assertThat(LoopIdentifier.getParentGroupName("var1_MISSING", variablesMap)).isEqualTo("var1");
+	}
+
 }

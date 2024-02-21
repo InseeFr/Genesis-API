@@ -8,6 +8,7 @@ public class Constants {
     public static final String METADATA_SEPARATOR = ".";
     public static final String DATE_REGEX = "(^([0-9]{4})[\\-\\/]([0-9]|1[0-2]|0[1-9])[\\-\\/]([0-9]|[0-2][0-9]|3[0-1])$)|" +
             "(^([0-9]|[0-2][0-9]|3[0-1])[\\-\\/]([0-9]|1[0-2]|0[1-9])[\\-\\/]([0-9]{4})$)";
+    public static final String VARIABLE_NAME_DELIMITER = "_";
 
 
    // XML sequential reading parameters
