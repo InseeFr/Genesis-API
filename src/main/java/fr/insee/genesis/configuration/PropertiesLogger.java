@@ -16,7 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class PropertiesLogger implements ApplicationListener<ApplicationEnvironmentPreparedEvent> {
 
-    private static final Set<String> hiddenWords = Set.of("password", "pwd", "jeton", "token", "secret");
+    private static final Set<String> hiddenWords = Set.of("password", "pwd", "jeton", "token", "secret","uri");
 
     @Override
     public void onApplicationEvent(@NonNull ApplicationEnvironmentPreparedEvent event) {

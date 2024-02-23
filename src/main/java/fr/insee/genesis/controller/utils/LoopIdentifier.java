@@ -15,7 +15,7 @@ public class LoopIdentifier {
 	public static String getLoopIdentifier(String variableName, VariablesMap variablesMap, int index) {
 		Variable variable = variablesMap.getVariable(variableName);
 		if (variable == null) {
-			log.warn("Variable {} not found in variablesMap and assigned in root group", variableName);
+			log.debug("Variable {} not found in variablesMap and assigned in root group", variableName);
 			return Constants.ROOT_GROUP_NAME;
 		}
 		if (variable.getGroup().isRoot()) {

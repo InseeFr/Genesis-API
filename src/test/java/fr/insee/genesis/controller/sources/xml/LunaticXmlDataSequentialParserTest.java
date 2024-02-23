@@ -42,6 +42,7 @@ class LunaticXmlDataSequentialParserTest {
     void hasOneUE() throws Exception {
         Assertions.assertThat(surveyUnit).isNotNull();
         Assertions.assertThat(surveyUnit.getId()).isEqualTo("UE0000000001");
+        Assertions.assertThat(surveyUnit.getQuestionnaireModelId()).isEqualTo("TEST2023X01");
     }
 
     @Test

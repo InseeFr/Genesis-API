@@ -146,13 +146,16 @@ public class DataVerifier {
 
         //Verify variables
         for(CollectedVariableDto collectedVariableToVerify : variablesToVerify){
-            CollectedVariableDto correctedCollectedVariable = verifyCollectedVariable(
-                    collectedVariableToVerify,
-                    variablesMap.getVariable(collectedVariableToVerify.getIdVar())
-            );
+            if(variablesMap.hasVariable(collectedVariableToVerify.getIdVar()))
+            {
+                CollectedVariableDto correctedCollectedVariable = verifyCollectedVariable(
+                        collectedVariableToVerify,
+                        variablesMap.getVariable(collectedVariableToVerify.getIdVar())
+                );
 
-            if(correctedCollectedVariable != null){
-                correctedCollectedVariables.add(correctedCollectedVariable);
+                if(correctedCollectedVariable != null){
+                    correctedCollectedVariables.add(correctedCollectedVariable);
+                }
             }
         }
     }
@@ -187,12 +190,14 @@ public class DataVerifier {
         //Verify variables
         if(collectedSuDtoOpt.isPresent()){
             for(VariableDto variable: collectedSuDtoOpt.get().getExternalVariables()){
-                VariableDto correctedExternalVariable = verifyExternalVariable(
-                        variable,
-                        variablesMap.getVariable(variable.getIdVar())
-                );
-                if (correctedExternalVariable != null) {
-                    correctedExternalVariables.add(correctedExternalVariable);
+                if(variablesMap.hasVariable(variable.getIdVar())) {
+                    VariableDto correctedExternalVariable = verifyExternalVariable(
+                            variable,
+                            variablesMap.getVariable(variable.getIdVar())
+                    );
+                    if (correctedExternalVariable != null) {
+                        correctedExternalVariables.add(correctedExternalVariable);
+                    }
                 }
             }
         }
@@ -243,7 +248,7 @@ public class DataVerifier {
                 Matcher matcher = pattern.matcher(value);
                 if(!matcher.find()){
                     // We only monitor parsing date errors, so we always return false
-                    log.warn("Can't parse date " + value);
+                    log.debug("Can't parse date " + value);
                     return false;
                 }
                 break;

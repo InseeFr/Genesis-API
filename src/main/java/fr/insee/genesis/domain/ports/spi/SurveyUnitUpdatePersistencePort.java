@@ -4,6 +4,7 @@ import fr.insee.genesis.domain.dtos.SurveyUnitDto;
 import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 public interface SurveyUnitUpdatePersistencePort {
 
@@ -15,7 +16,7 @@ public interface SurveyUnitUpdatePersistencePort {
 
     List<SurveyUnitUpdateDto> findByIdUEsAndIdQuestionnaire(List<SurveyUnitDto> idUEs, String idQuestionnaire);
 
-    List<SurveyUnitUpdateDto> findByIdQuestionnaire(String idQuestionnaire);
+    Stream<SurveyUnitUpdateDto> findByIdQuestionnaire(String idQuestionnaire);
 
     List<SurveyUnitDto> findIdUEsByIdQuestionnaire(String idQuestionnaire);
 

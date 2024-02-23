@@ -21,7 +21,7 @@ public class Constants {
     public static final String SURVEY_UNIT_ELEMENT_NAME = "SurveyUnit";
 
     public static final String SURVEYUNIT_ID_ELEMENT_NAME = "Id";
-    public static final String SURVEYUNIT_SURVEYMODELID_ELEMENT_NAME = "questionnaireModelId";
+    public static final String SURVEYUNIT_SURVEYMODELID_ELEMENT_NAME = "QuestionnaireModelId";
     public static final String SURVEYUNIT_DATA_COLLECTED_NODE_NAME = "COLLECTED";
     public static final String SURVEYUNIT_DATA_CALCULATED_NODE_NAME = "CALCULATED";
     public static final String SURVEYUNIT_DATA_EXTERNAL_NODE_NAME = "EXTERNAL";
@@ -31,6 +31,10 @@ public class Constants {
     public static final String COLLECTED_NODE_NAME = "COLLECTED";
     public static final String CALCULATED_NODE_NAME = "CALCULATED";
     public static final String EXTERNAL_NODE_NAME = "EXTERNAL";
+
+
+    // Data extraction parameters
+    public static final int BATCH_SIZE = 100; //TODO Adapt to avoid OutOfMemoryException
 
     private Constants() {
         throw new IllegalStateException("Constants class");

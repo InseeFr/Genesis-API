@@ -6,6 +6,7 @@ import fr.insee.genesis.domain.dtos.SurveyUnitDto;
 import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 
 public interface SurveyUnitUpdateApiPort {
@@ -18,9 +19,11 @@ public interface SurveyUnitUpdateApiPort {
 
     List<SurveyUnitUpdateDto> findByIdUEsAndIdQuestionnaire(List<SurveyUnitDto> idUEs, String idQuestionnaire);
 
-    List<SurveyUnitUpdateDto> findByIdQuestionnaire(String idQuestionnaire);
+    Stream<SurveyUnitUpdateDto> findByIdQuestionnaire(String idQuestionnaire);
 
     List<SurveyUnitUpdateDto> findLatestByIdAndByMode(String idUE, String idQuest);
+
+    List<SurveyUnitDto> findIdUEsAndModesByIdQuestionnaire(String idQuestionnaire);
 
     List<SurveyUnitId> findDistinctIdUEsByIdQuestionnaire(String idQuestionnaire);
 
