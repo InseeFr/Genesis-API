@@ -209,6 +209,15 @@ public class ResponseController {
         return new ResponseEntity<>("Data saved", HttpStatus.OK);
     }
 
+    @Operation(summary = "Delete all responses of one questionnaire")
+    @DeleteMapping(path = "/delete-responses/by-questionnaire")
+    public ResponseEntity<Object> deleteAllResponsesByQuestionnaire(@RequestParam("idQuestionnaire") String idQuestionnaire) {
+        log.info("Try to delete all responses of questionnaire : " + idQuestionnaire);
+        Long ndDocuments = surveyUnitService.deleteByIdQuestionnaire(idQuestionnaire);
+        log.info("{} responses deleted",ndDocuments);
+        return new ResponseEntity<>(String.format("%d responses deleted",ndDocuments), HttpStatus.OK);
+    }
+
     @Operation(summary = "Retrieve responses with IdUE and IdQuestionnaire from Genesis Database")
     @GetMapping(path = "/get-responses/by-ue-and-questionnaire")
     public ResponseEntity<List<SurveyUnitUpdateDto>> findResponsesByUEAndQuestionnaire(     @RequestParam("idUE") String idUE,

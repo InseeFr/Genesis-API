@@ -22,6 +22,7 @@ public interface SurveyUnitUpdateMongoDBRepository extends MongoRepository<Surve
 	@Query(value = "{ 'idQuestionnaire' : ?0 }", fields="{ 'idUE' : 1, 'mode' :  1}")
 	List<SurveyUnitDocument> findIdUEsByIdQuestionnaire(String idQuestionnaire);
 
+	Long deleteByIdQuestionnaire(String idQuestionnaire);
+
 	@Meta(cursorBatchSize = 20)
 	Stream<SurveyUnitUpdateDocument> findByIdQuestionnaire(String idQuestionnaire);
-}
