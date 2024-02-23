@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.0 - [2024-02-23]
+
+### Fixed
+- Upgrade to Java 21
+
+### Added
+- End point to delete all responses of one questionnaire
+
 ## 1.0.7 - [2024-02-13]
 
 ### Fixed
