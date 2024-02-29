@@ -19,7 +19,6 @@
         <springdoc.version>2.3.0</springdoc.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
         <cucumber.version>7.15.0</cucumber.version>
-        <karate.version>1.4.0.RC3</karate.version>
         <!-- Proprietes sonar -->
         <jacoco.version>0.8.11</jacoco.version>
         <sonar.core.codeCoveragePlugin>jacoco</sonar.core.codeCoveragePlugin>
@@ -29,6 +28,7 @@
         <!-- Pi Test-->
         <pitest.version>1.15.8</pitest.version>
         <pitest.junit.version>1.2.1</pitest.junit.version>
+        <jackson.version>2.16.1</jackson.version>
     </properties>
     <dependencies>
         <dependency>
@@ -85,11 +85,6 @@
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
             <version>${springdoc.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <scope>runtime</scope>
-        </dependency>
 
         <!-- XML libraries -->
         <!-- XML-XSLT with Saxon -->
@@ -99,12 +94,14 @@
             <version>12.4</version>
         </dependency>
 
+        <!-- JSON -->
         <dependency>
-            <groupId>com.googlecode.json-simple</groupId>
-            <artifactId>json-simple</artifactId>
-            <version>1.1.1</version>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
         </dependency>
 
+        <!-- generate implementation auto -->
         <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
@@ -131,14 +128,6 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- Karate -->
-        <!-- https://www.baeldung.com/karate-rest-api-testing -->
-        <dependency>
-            <groupId>com.intuit.karate</groupId>
-            <artifactId>karate-junit4</artifactId>
-            <version>${karate.version}</version>
-            <scope>test</scope>
-        </dependency>
 
         <dependency>
             <groupId>org.junit.vintage</groupId>

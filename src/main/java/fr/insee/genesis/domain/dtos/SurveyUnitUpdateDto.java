@@ -1,12 +1,11 @@
 package fr.insee.genesis.domain.dtos;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Data;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Builder
 @Data
@@ -17,38 +16,11 @@ public class SurveyUnitUpdateDto {
     private String idUE;
     private DataState state;
     private Mode mode;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'hh:mm")
     private LocalDateTime recordDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'hh:mm")
     private LocalDateTime fileDate;
     private List<CollectedVariableDto> collectedVariables;
     private List<VariableDto> externalVariables;
 
-    public JSONObject toJSONObject(){
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("idQuest",idQuest);
-        jsonObject.put("idCampaign",idCampaign);
-        jsonObject.put("idUE",idUE);
-        jsonObject.put("state",state.toString());
-        jsonObject.put("mode",mode.getModeName());
-        jsonObject.put("recordDate",recordDate.toString());
-        jsonObject.put("fileDate",fileDate.toString());
-
-        JSONArray collectedVariablesJSONArray = new JSONArray();
-        if(collectedVariables != null){
-            for(CollectedVariableDto collectedVariableDto : collectedVariables){
-                collectedVariablesJSONArray.add(collectedVariableDto.toJSONObject());
-            }
-        }
-
-        JSONArray externalVariablesJSONArray = new JSONArray();
-        if(externalVariables != null) {
-            for (VariableDto variableDto : externalVariables){
-                externalVariablesJSONArray.add(variableDto.toJSONObject());
-            }
-        }
-
-        jsonObject.put("collectedVariables",collectedVariablesJSONArray);
-        jsonObject.put("externalVariables",externalVariablesJSONArray);
-
-        return jsonObject;
-    }
 }

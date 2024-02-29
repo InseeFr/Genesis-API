@@ -17,18 +17,17 @@ import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.exceptions.NoDataError;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
-import fr.insee.genesis.infrastructure.utils.JSONUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
-import org.json.simple.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.*;
-import java.nio.file.Files;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
@@ -269,9 +268,9 @@ public class ResponseController {
             outputExternalVariables.addAll(response.getExternalVariables());
         });
         return new ResponseEntity<>(SurveyUnitUpdateSimplified.builder()
-                .idQuest(responses.get(0).getIdQuest())
-                .idCampaign(responses.get(0).getIdCampaign())
-                .idUE(responses.get(0).getIdUE())
+                .idQuest(responses.getFirst().getIdQuest())
+                .idCampaign(responses.getFirst().getIdCampaign())
+                .idUE(responses.getFirst().getIdUE())
                 .variablesUpdate(outputVariables)
                 .externalVariables(outputExternalVariables)
                 .build(), HttpStatus.OK);
@@ -297,9 +296,9 @@ public class ResponseController {
                 });
                 if (!outputVariables.isEmpty() || !outputExternalVariables.isEmpty()) {
                     results.add(SurveyUnitUpdateSimplified.builder()
-                            .idQuest(responses.get(0).getIdQuest())
-                            .idCampaign(responses.get(0).getIdCampaign())
-                            .idUE(responses.get(0).getIdUE())
+                            .idQuest(responses.getFirst().getIdQuest())
+                            .idCampaign(responses.getFirst().getIdCampaign())
+                            .idUE(responses.getFirst().getIdUE())
                             .mode(mode)
                             .variablesUpdate(outputVariables)
                             .externalVariables(outputExternalVariables)
