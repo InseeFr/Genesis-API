@@ -1,7 +1,9 @@
 package fr.insee.genesis.domain.dtos;
 
-import org.assertj.core.api.Assertions;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -9,7 +11,7 @@ import java.util.List;
 
 public class SurveyUnitUpdateDtoTest {
     @Test
-    public void toJSONTest(){
+    public void toJSONTest() throws JsonProcessingException {
         List<VariableDto> externalVariableDtoList = new ArrayList<>();
         VariableDto variableDto = VariableDto.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
         externalVariableDtoList.add(variableDto);
@@ -30,10 +32,13 @@ public class SurveyUnitUpdateDtoTest {
                 .externalVariables(externalVariableDtoList)
                 .build();
 
-        Assertions.assertThat(surveyUnitUpdateDto).isNotNull();
+        Assertions.assertNotNull(surveyUnitUpdateDto);
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.findAndRegisterModules();
 
-        Assertions.assertThat(surveyUnitUpdateDto.toJSONObject().toJSONString()).isEqualTo(
-                "{\"mode\":\"WEB\",\"idCampaign\":\"TESTIDCAMPAIGN\",\"externalVariables\":[{\"values\":[\"V1\",\"V2\"],\"idVar\":\"TESTIDVAR\"}],\"collectedVariables\":[{\"values\":[\"V1\",\"V2\"],\"idVar\":\"TESTIDVAR\",\"idLoop\":\"TESTIDLOOP\",\"idParent\":\"TESTIDPARENT\"}],\"idQuest\":\"TESTIDQUEST\",\"recordDate\":\"2000-01-01T00:00\",\"idUE\":\"TESTIDUE\",\"state\":\"COLLECTED\",\"fileDate\":\"2000-01-01T00:00\"}"
+        Assertions.assertEquals(
+                objectMapper.readTree("{\"idQuest\":\"TESTIDQUEST\",\"idCampaign\":\"TESTIDCAMPAIGN\",\"idUE\":\"TESTIDUE\",\"state\":\"COLLECTED\",\"mode\":\"WEB\",\"recordDate\":\"2000-01-01T12:00\",\"fileDate\":\"2000-01-01T12:00\",\"collectedVariables\":[{\"idVar\":\"TESTIDVAR\",\"values\":[\"V1\",\"V2\"],\"idLoop\":\"TESTIDLOOP\",\"idParent\":\"TESTIDPARENT\"}],\"externalVariables\":[{\"idVar\":\"TESTIDVAR\",\"values\":[\"V1\",\"V2\"]}]}"),
+                objectMapper.readTree(objectMapper.writeValueAsString(surveyUnitUpdateDto))
         );
     }
 
