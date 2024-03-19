@@ -8,6 +8,9 @@ public class Constants {
     public static final String METADATA_SEPARATOR = ".";
     public static final String DATE_REGEX = "(^([0-9]{4})[\\-\\/]([0-9]|1[0-2]|0[1-9])[\\-\\/]([0-9]|[0-2][0-9]|3[0-1])$)|" +
             "(^([0-9]|[0-2][0-9]|3[0-1])[\\-\\/]([0-9]|1[0-2]|0[1-9])[\\-\\/]([0-9]{4})$)";
+    public static final String FILTER_RESULT_PREFIX = "FILTER_RESULT_";
+    public static final String MISSING_SUFFIX = "_MISSING";
+    private static final String[] ENO_VARIABLES = {"COMMENT_QE","COMMENT_UE","HEURE_REMPL","MIN_REMPL"};
 
 
    // XML sequential reading parameters
@@ -40,4 +43,8 @@ public class Constants {
         throw new IllegalStateException("Constants class");
     }
 
+
+    public static String[] getEnoVariables() {
+        return ENO_VARIABLES;
+    }
 }
