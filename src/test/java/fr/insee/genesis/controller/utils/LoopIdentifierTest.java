@@ -49,14 +49,14 @@ class LoopIdentifierTest {
 	}
 
 	@Test
-	@DisplayName("Should return the root group as parent")
+	@DisplayName("Should return the root group as related")
 	void test04(){
 		//When + Then
 		Assertions.assertThat(LoopIdentifier.getRelatedVariableName("var1", variablesMap)).isEqualTo(Constants.ROOT_GROUP_NAME);
 	}
 
 	@Test
-	@DisplayName("Should return null as parent")
+	@DisplayName("Should return null as related")
 	void test05(){
 		//When + Then
 		Assertions.assertThat(LoopIdentifier.getRelatedVariableName("var2", variablesMap)).isNull();
@@ -70,7 +70,7 @@ class LoopIdentifierTest {
 	}
 
 	@Test
-	@DisplayName("Should return var1 as parent if missing suffix")
+	@DisplayName("Should return var1 as related if missing suffix")
 	void test07(){
 		//When + Then
 		Assertions.assertThat(LoopIdentifier.getRelatedVariableName("var1_MISSING", variablesMap)).isEqualTo("var1");
@@ -84,14 +84,14 @@ class LoopIdentifierTest {
 	}
 
 	@Test
-	@DisplayName("Should return var1 as parent if filter result prefix")
+	@DisplayName("Should return var1 as related if filter result prefix")
 	void test09(){
 		//When + Then
 		Assertions.assertThat(LoopIdentifier.getRelatedVariableName("FILTER_RESULT_var1", variablesMap)).isEqualTo("var1");
 	}
 
 	@Test
-	@DisplayName("Should return root as parent if eno variable")
+	@DisplayName("Should return root as related if eno variable")
 	void test10(){
 		//When + Then
 		Assertions.assertThat(LoopIdentifier.getRelatedVariableName(Constants.getEnoVariables()[0], variablesMap)).isEqualTo(Constants.ROOT_GROUP_NAME);

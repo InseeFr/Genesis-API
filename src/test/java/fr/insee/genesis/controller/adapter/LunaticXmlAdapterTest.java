@@ -305,7 +305,7 @@ class LunaticXmlAdapterTest {
     }
 
     @Test
-    @DisplayName("If a variable A not present in DDI and is the extension of a known variable B, then the variable A has B as parent and is in the same group")
+    @DisplayName("If a variable A not present in DDI and is the extension of a known variable B, then the variable A has B as related and is in the same group")
     void test10() {
         // When
         List<SurveyUnitUpdateDto> suDtos = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit7, variablesMap, ID_CAMPAIGN, Mode.WEB);
