@@ -20,5 +20,7 @@ public interface SurveyUnitUpdatePersistencePort {
 
     List<SurveyUnitDto> findIdUEsByIdQuestionnaire(String idQuestionnaire);
 
+    Long deleteByIdQuestionnaire(String idQuestionnaire);
+
 
 }

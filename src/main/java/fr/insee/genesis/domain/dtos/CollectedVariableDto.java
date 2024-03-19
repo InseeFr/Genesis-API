@@ -1,7 +1,8 @@
 package fr.insee.genesis.domain.dtos;
 
-import lombok.*;
-import org.json.simple.JSONObject;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 
@@ -18,14 +19,6 @@ public class CollectedVariableDto extends VariableDto{
         super(idVar, values);
         this.idLoop = idLoop;
         this.idParent = idParent;
-    }
-
-    public JSONObject toJSONObject(){
-        JSONObject jsonObject = super.toJSONObject();
-        jsonObject.put("idLoop", idLoop);
-        jsonObject.put("idParent", idParent);
-
-        return jsonObject;
     }
 
 }

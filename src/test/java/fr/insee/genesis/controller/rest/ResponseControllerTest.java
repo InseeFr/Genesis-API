@@ -146,8 +146,8 @@ class ResponseControllerTest {
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
-        Assertions.assertThat(response.getBody().get(0).getIdUE()).isEqualTo("TESTIDUE");
-        Assertions.assertThat(response.getBody().get(0).getIdQuest()).isEqualTo("TESTIDQUESTIONNAIRE");
+        Assertions.assertThat(response.getBody().getFirst().getIdUE()).isEqualTo("TESTIDUE");
+        Assertions.assertThat(response.getBody().getFirst().getIdQuest()).isEqualTo("TESTIDQUESTIONNAIRE");
     }
 
     @Test
@@ -238,7 +238,7 @@ class ResponseControllerTest {
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
-        Assertions.assertThat(response.getBody().get(0).getIdUE()).isEqualTo("TESTIDUE");
+        Assertions.assertThat(response.getBody().getFirst().getIdUE()).isEqualTo("TESTIDUE");
     }
 
     @Test
@@ -247,7 +247,7 @@ class ResponseControllerTest {
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
-        Assertions.assertThat(response.getBody().get(0).getIdUE()).isEqualTo("TESTIDUE");
+        Assertions.assertThat(response.getBody().getFirst().getIdUE()).isEqualTo("TESTIDUE");
     }
 
     @Test
@@ -256,7 +256,7 @@ class ResponseControllerTest {
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().hasSize(1);
-        Assertions.assertThat(response.getBody().get(0)).isEqualTo(Mode.WEB);
+        Assertions.assertThat(response.getBody().getFirst()).isEqualTo(Mode.WEB);
     }
 
     private void addAdditionnalDtoToMongoStub(){

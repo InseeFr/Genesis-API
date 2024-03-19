@@ -1,6 +1,8 @@
 package fr.insee.genesis.domain.dtos;
 
-import org.assertj.core.api.Assertions;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -8,7 +10,7 @@ import java.util.List;
 
 class CollectedVariableDtoTest {
     @Test
-    void toJSONTest(){
+    void toJSONTest() throws JsonProcessingException {
         CollectedVariableDto collectedVariableDto = CollectedVariableDto.collectedVariableBuilder()
                 .idVar("TESTIDVAR")
                 .idParent("TESTIDPARENT")
@@ -16,8 +18,11 @@ class CollectedVariableDtoTest {
                 .values(new ArrayList<>(List.of(new String[]{"V1", "V2"})))
                 .build();
 
-        Assertions.assertThat(collectedVariableDto.toJSONObject().toJSONString()).isEqualTo(
-                "{\"values\":[\"V1\",\"V2\"],\"idVar\":\"TESTIDVAR\",\"idLoop\":\"TESTIDLOOP\",\"idParent\":\"TESTIDPARENT\"}"
-        );
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.findAndRegisterModules();
+
+        Assertions.assertEquals(objectMapper.readTree(objectMapper.writeValueAsString(collectedVariableDto)),
+                objectMapper.readTree("{\"values\":[\"V1\",\"V2\"],\"idVar\":\"TESTIDVAR\",\"idLoop\":\"TESTIDLOOP\",\"idParent\":\"TESTIDPARENT\"}"));
+
     }
 }
