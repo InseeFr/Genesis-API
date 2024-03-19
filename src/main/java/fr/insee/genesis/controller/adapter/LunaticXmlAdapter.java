@@ -106,7 +106,7 @@ public class LunaticXmlAdapter {
                                 .idVar(lunaticXmlCollectedData.getVariableName())
                                 .values(variableValues)
                                 .idLoop(LoopIdentifier.getLoopIdentifier(lunaticXmlCollectedData.getVariableName(), variablesMap, i))
-                                .idParent(LoopIdentifier.getParentName(lunaticXmlCollectedData.getVariableName(), variablesMap))
+                                .idParent(LoopIdentifier.getRelatedVariableName(lunaticXmlCollectedData.getVariableName(), variablesMap))
                                 .build());
                         dataCount++;
                     }

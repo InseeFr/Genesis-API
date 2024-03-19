@@ -21,12 +21,12 @@ public class LoopIdentifier {
 			if(variableName.startsWith(Constants.FILTER_RESULT_PREFIX)
 					&& variablesMap.hasVariable(variableName.replace(Constants.FILTER_RESULT_PREFIX,""))
 			){
-				return getParentGroupName(variablesMap, variableName, Constants.FILTER_RESULT_PREFIX);
+				return getRelatedVariableGroupName(variablesMap, variableName, Constants.FILTER_RESULT_PREFIX);
 			}
 			if(variableName.endsWith(Constants.MISSING_SUFFIX)
 					&& variablesMap.hasVariable(variableName.replace(Constants.MISSING_SUFFIX,""))
 			){
-				return getParentGroupName(variablesMap, variableName, Constants.MISSING_SUFFIX);
+				return getRelatedVariableGroupName(variablesMap, variableName, Constants.MISSING_SUFFIX);
 			}
 			log.debug("Variable {} not found in variablesMap and assigned in root group", variableName);
 			return Constants.ROOT_GROUP_NAME;
@@ -37,12 +37,12 @@ public class LoopIdentifier {
 		return String.format("%s_%d", variable.getGroup().getName() ,index);
 	}
 
-	private static String getParentGroupName(VariablesMap variablesMap, String variableName, String constantToReplace) {
-		Variable parentVariable = variablesMap.getVariable(variableName.replace(constantToReplace, ""));
-		return parentVariable.getGroupName();
+	private static String getRelatedVariableGroupName(VariablesMap variablesMap, String variableName, String constantToReplace) {
+		Variable relatedVariable = variablesMap.getVariable(variableName.replace(constantToReplace, ""));
+		return relatedVariable.getGroupName();
 	}
 
-	public static String getParentName(String variableName, VariablesMap variablesMap) {
+	public static String getRelatedVariableName(String variableName, VariablesMap variablesMap) {
 		Variable variable = variablesMap.getVariable(variableName);
 		List<String> varsEno = Arrays.asList(Constants.getEnoVariables());
 		if ( variable == null ) {
