@@ -12,9 +12,6 @@ import java.util.List;
 public interface ScheduleMongoDBRepository extends MongoRepository<ScheduleDocument, String>{
     List<ScheduleDocument> findAll();
 
-    @Query(value = "{ 'surveyName' : ?0,  'serviceToCall' : ?1 }")
-    List<ScheduleDocument> findBySurveyNameAndServiceToCall(String surveyName, ServiceToCall serviceToCall);
-
     @Query(value = "{ 'surveyName' : ?0 }")
     List<ScheduleDocument> findBySurveyName(String surveyName);
 }

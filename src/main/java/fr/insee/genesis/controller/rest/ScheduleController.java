@@ -1,6 +1,7 @@
 package fr.insee.genesis.controller.rest;
 
 import fr.insee.genesis.domain.ports.api.ScheduleApiPort;
+import fr.insee.genesis.exceptions.InvalidCronExpressionException;
 import fr.insee.genesis.exceptions.NotFoundException;
 import fr.insee.genesis.infrastructure.model.document.schedule.ScheduleDocument;
 import fr.insee.genesis.infrastructure.model.document.schedule.ServiceToCall;
@@ -54,8 +55,15 @@ public class ScheduleController {
             @Parameter(description = "Fréquence sous format spring cron. \n Exemple : 0 0 6 * * *") @RequestParam("frequency") String frequency,
             @Parameter(example = "2023-06-16T12:00:00") @RequestParam("scheduleBeginDate") LocalDateTime scheduleBeginDate,
             @Parameter(example = "2023-06-17T12:00:00") @RequestParam("scheduleEndDate") LocalDateTime scheduleEndDate
-    ) {
-        scheduleApiPort.addSchedule(surveyName, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate);
+    ){
+        try {
+            log.info("New schedule request for survey " + surveyName);
+            scheduleApiPort.addSchedule(surveyName, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate);
+        }catch (InvalidCronExpressionException e){
+            log.warn("Returned error for wrong frequency : " + frequency);
+            return new ResponseEntity<>("Wrong frequency syntax",HttpStatus.BAD_REQUEST);
+        }
+        log.info("New schedule created for survey " + surveyName);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -65,8 +73,10 @@ public class ScheduleController {
             @RequestBody String surveyName
     ) {
         try {
+            log.info("Got update last execution on " + surveyName);
             scheduleApiPort.updateLastExecutionName(surveyName);
         }catch (NotFoundException e){
+            log.warn("Survey " + surveyName + " not found !");
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         return new ResponseEntity<>(HttpStatus.OK);

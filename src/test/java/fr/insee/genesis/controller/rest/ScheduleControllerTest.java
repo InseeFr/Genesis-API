@@ -1,5 +1,6 @@
 package fr.insee.genesis.controller.rest;
 
+import fr.insee.genesis.exceptions.InvalidCronExpressionException;
 import fr.insee.genesis.infrastructure.model.document.schedule.ScheduleDocument;
 import fr.insee.genesis.infrastructure.model.document.schedule.ServiceToCall;
 import fr.insee.genesis.stubs.ScheduleApiPortStub;
@@ -30,12 +31,10 @@ class ScheduleControllerTest {
 
         //Then
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-
-        System.out.println(response.getBody());
     }
 
     @Test
-    void addSurveyTest() {
+    void addSurveyTest() throws InvalidCronExpressionException {
         //When
         String surveyName = "TESTADDSURVEY";
         ServiceToCall serviceToCall = ServiceToCall.MAIN;
@@ -61,7 +60,7 @@ class ScheduleControllerTest {
     }
 
     @Test
-    void addScheduleTest() {
+    void addScheduleTest() throws InvalidCronExpressionException {
         //When
         String surveyName = "TESTSURVEY"; //Already exists in stub
         ServiceToCall serviceToCall = ServiceToCall.MAIN;
@@ -95,5 +94,25 @@ class ScheduleControllerTest {
         List<ScheduleDocument> mongoStubFiltered = scheduleApiPortStub.mongoStub.stream().filter(scheduleDocument ->
                 scheduleDocument.getSurveyName().equals("TESTSURVEY")).toList();
         Assertions.assertThat(mongoStubFiltered.getFirst().getLastExecution()).isNotNull();
+    }
+
+    @Test
+    void wrongFrequencyTest(){
+        //When+Then
+        String surveyName = "TESTSURVEY"; //Already exists in stub
+        ServiceToCall serviceToCall = ServiceToCall.MAIN;
+        String frequency = "ERROR";
+        LocalDateTime scheduleBeginDate = LocalDateTime.now();
+        LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
+
+        ResponseEntity<Object> response = scheduleController.addSchedule(surveyName,serviceToCall,frequency,scheduleBeginDate,scheduleEndDate);
+        Assertions.assertThat(response.getStatusCode().is4xxClientError()).isTrue();
+    }
+
+    @Test
+    void notFoundTest(){
+        //When+Then
+        ResponseEntity<Object> response = scheduleController.updateSurveyLastExecution("ERROR");
+        Assertions.assertThat(response.getStatusCode().is4xxClientError()).isTrue();
     }
 }

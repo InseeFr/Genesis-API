@@ -1,5 +1,6 @@
 package fr.insee.genesis.domain.ports.api;
 
+import fr.insee.genesis.exceptions.InvalidCronExpressionException;
 import fr.insee.genesis.exceptions.NotFoundException;
 import fr.insee.genesis.infrastructure.model.document.schedule.ScheduleDocument;
 import fr.insee.genesis.infrastructure.model.document.schedule.ServiceToCall;
@@ -14,7 +15,7 @@ public interface ScheduleApiPort {
                      ServiceToCall serviceToCall,
                      String frequency,
                      LocalDateTime scheduleBeginDateString,
-                     LocalDateTime scheduleEndDateString);
+                     LocalDateTime scheduleEndDateString) throws InvalidCronExpressionException;
 
     void updateLastExecutionName(String surveyName) throws NotFoundException;
 }
