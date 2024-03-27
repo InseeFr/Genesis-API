@@ -35,7 +35,9 @@ public class ScheduleController {
         this.scheduleApiPort = scheduleApiPort;
     }
 
-    @Operation(summary = "Get all Bangles schedules")
+    //TODO French traduction for users
+
+    @Operation(summary = "Fetch all schedules (for Bangles only)")
     @GetMapping(path = "/all")
     public ResponseEntity<Object> getAllSchedules() {
         log.info("Got GET all schedules request");
@@ -47,14 +49,14 @@ public class ScheduleController {
         return new ResponseEntity<>(scheduleDocuments, HttpStatus.OK);
     }
 
-    @Operation(summary = "Create a Bangles schedule")
+    @Operation(summary = "Schedule a Kraftwerk execution")
     @PutMapping(path = "/create")
     public ResponseEntity<Object> addSchedule(
-            @RequestParam("surveyName") String surveyName,
-            @RequestParam("serviceTocall") ServiceToCall serviceToCall,
-            @Parameter(description = "Fréquence sous format spring cron. \n Exemple : 0 0 6 * * *") @RequestParam("frequency") String frequency,
-            @Parameter(example = "2023-06-16T12:00:00") @RequestParam("scheduleBeginDate") LocalDateTime scheduleBeginDate,
-            @Parameter(example = "2023-06-17T12:00:00") @RequestParam("scheduleEndDate") LocalDateTime scheduleEndDate
+            @Parameter(description = "Survey name to call Kraftwerk on") @RequestParam("surveyName") String surveyName,
+            @Parameter(description = "Kraftwerk endpoint") @RequestParam("serviceTocall") ServiceToCall serviceToCall,
+            @Parameter(description = "Frequency in Spring cron format. \n Example : 0 0 6 * * *") @RequestParam("frequency") String frequency,
+            @Parameter(description = "Schedule effective date and time", example = "2023-06-16T12:00:00") @RequestParam("scheduleBeginDate") LocalDateTime scheduleBeginDate,
+            @Parameter(description = "Schedule end date and time", example = "2023-06-17T12:00:00") @RequestParam("scheduleEndDate") LocalDateTime scheduleEndDate
     ){
         try {
             log.info("New schedule request for survey " + surveyName);
@@ -67,10 +69,10 @@ public class ScheduleController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @Operation(summary = "Update last execution date to now")
+    @Operation(summary = "Update last execution date (for Bangles only)")
     @PostMapping(path = "/update")
     public ResponseEntity<Object> updateSurveyLastExecution(
-            @RequestBody String surveyName
+            @Parameter(description = "Survey name to call Kraftwerk on") @RequestBody String surveyName
     ) {
         try {
             log.info("Got update last execution on " + surveyName);
