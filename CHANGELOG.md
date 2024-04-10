@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.0 - [2024-04-10]
+
+### Added
+- Bangles schedule support
+
 ## 1.1.0 - [2024-02-23]
 
 ### Fixed
