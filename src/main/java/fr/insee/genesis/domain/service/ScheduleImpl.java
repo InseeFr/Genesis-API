@@ -33,13 +33,12 @@ public class ScheduleImpl implements ScheduleApiPort {
 
     @Override
     public void addSchedule(String surveyName, ServiceToCall serviceToCall, String frequency, LocalDateTime scheduleBeginDate, LocalDateTime scheduleEndDate) throws InvalidCronExpressionException{
-        List<StoredSurveySchedule> storedSurveySchedules = scheduleMongoDBRepository.findBySurveyName(surveyName);
-
         //Fequency format check
         if(!CronExpression.isValidExpression(frequency)) {
             throw new InvalidCronExpressionException();
         }
-
+        
+        List<StoredSurveySchedule> storedSurveySchedules = scheduleMongoDBRepository.findBySurveyName(surveyName);
 
         StoredSurveySchedule storedSurveySchedule;
         if (storedSurveySchedules.isEmpty()) {
