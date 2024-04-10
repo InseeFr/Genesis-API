@@ -48,6 +48,8 @@ public class ScheduleImpl implements ScheduleApiPort {
         }
         ScheduleUnicityService scheduleUnicityService = new ScheduleUnicityService();
         storedSurveySchedule = scheduleUnicityService.deduplicateSurveySchedules(surveyName, storedSurveySchedules);
+        storedSurveySchedules.clear();
+        storedSurveySchedules.add(storedSurveySchedule);
         storedSurveySchedule.getKraftwerkExecutionScheduleList().add(
                 new KraftwerkExecutionSchedule(
                         frequency,
@@ -56,7 +58,7 @@ public class ScheduleImpl implements ScheduleApiPort {
                         scheduleEndDate
                 )
         );
-
+        scheduleMongoDBRepository.deleteBySurveyName(surveyName);
         scheduleMongoDBRepository.saveAll(storedSurveySchedules);
     }
 

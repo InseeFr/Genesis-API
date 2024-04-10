@@ -1,6 +1,8 @@
 package fr.insee.genesis.controller.rest;
 
+import fr.insee.genesis.domain.service.ScheduleUnicityService;
 import fr.insee.genesis.exceptions.InvalidCronExpressionException;
+import fr.insee.genesis.infrastructure.model.document.schedule.KraftwerkExecutionSchedule;
 import fr.insee.genesis.infrastructure.model.document.schedule.StoredSurveySchedule;
 import fr.insee.genesis.infrastructure.model.document.schedule.ServiceToCall;
 import fr.insee.genesis.stubs.ScheduleApiPortStub;
@@ -10,6 +12,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
+import java.time.Month;
+import java.util.ArrayList;
 import java.util.List;
 
 class ScheduleControllerTest {
@@ -61,6 +65,55 @@ class ScheduleControllerTest {
 
     @Test
     void addScheduleTest() throws InvalidCronExpressionException {
+        //When
+        String surveyName = "TESTSURVEY"; //Already exists in stub
+        ServiceToCall serviceToCall = ServiceToCall.MAIN;
+        String frequency = "0 0 6 * * *";
+        LocalDateTime scheduleBeginDate = LocalDateTime.now();
+        LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
+
+
+        scheduleController.addSchedule(surveyName, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate);
+
+        //Then
+        Assertions.assertThat(scheduleApiPortStub.mongoStub).filteredOn(scheduleDocument ->
+                scheduleDocument.getSurveyName().equals(surveyName)
+        ).isNotEmpty().hasSize(1);
+
+        List<StoredSurveySchedule> mongoStubFiltered = scheduleApiPortStub.mongoStub.stream().filter(scheduleDocument ->
+                scheduleDocument.getSurveyName().equals(surveyName)).toList();
+
+        StoredSurveySchedule storedSurveySchedule = mongoStubFiltered.getFirst();
+        Assertions.assertThat(storedSurveySchedule.getLastExecution()).isNull();
+
+        Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList()).isNotEmpty();
+        Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList().getFirst().getFrequency()).isEqualTo(frequency);
+    }
+
+    @Test
+    void addScheduleDedupTest() throws InvalidCronExpressionException {
+        //Given 2
+        StoredSurveySchedule storedSurveyScheduleTest = new StoredSurveySchedule(
+                "TESTSURVEY",
+                new ArrayList<>()
+        );
+        KraftwerkExecutionSchedule kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
+                "0 0 6 * * *",
+                ServiceToCall.MAIN,
+                LocalDateTime.of(2023, Month.JANUARY, 1, 1, 1, 1),
+                LocalDateTime.of(2023, Month.DECEMBER, 1, 1, 1, 1)
+        );
+        storedSurveyScheduleTest.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
+        kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
+                "0 0 6 * * *",
+                ServiceToCall.MAIN,
+                LocalDateTime.of(2023, Month.FEBRUARY, 1, 1, 1, 1),
+                LocalDateTime.of(2023, Month.DECEMBER, 1, 1, 1, 1)
+        );
+        storedSurveyScheduleTest.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
+
+        scheduleApiPortStub.mongoStub.add(storedSurveyScheduleTest);
+
         //When
         String surveyName = "TESTSURVEY"; //Already exists in stub
         ServiceToCall serviceToCall = ServiceToCall.MAIN;

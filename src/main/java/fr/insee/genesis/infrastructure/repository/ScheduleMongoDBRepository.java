@@ -13,4 +13,7 @@ public interface ScheduleMongoDBRepository extends MongoRepository<StoredSurveyS
 
     @Query(value = "{ 'surveyName' : ?0 }")
     List<StoredSurveySchedule> findBySurveyName(String surveyName);
+
+    @Query(value = "{ 'surveyName' : ?0 }", delete = true)
+    void deleteBySurveyName(String surveyName);
 }

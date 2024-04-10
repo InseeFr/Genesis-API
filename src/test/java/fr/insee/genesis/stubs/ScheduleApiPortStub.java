@@ -1,6 +1,7 @@
 package fr.insee.genesis.stubs;
 
 import fr.insee.genesis.domain.ports.api.ScheduleApiPort;
+import fr.insee.genesis.domain.service.ScheduleUnicityService;
 import fr.insee.genesis.exceptions.InvalidCronExpressionException;
 import fr.insee.genesis.exceptions.NotFoundException;
 import fr.insee.genesis.infrastructure.model.document.schedule.KraftwerkExecutionSchedule;
@@ -46,14 +47,16 @@ public class ScheduleApiPortStub implements ScheduleApiPort {
         if(!CronExpression.isValidExpression(frequency)) throw new InvalidCronExpressionException();
 
         List<StoredSurveySchedule> mongoStubFiltered = mongoStub.stream().filter(scheduleDocument ->
-                scheduleDocument.getSurveyName().equals(surveyName)).toList();
+                scheduleDocument.getSurveyName().equals(surveyName)).toList(); //Equivalent to findBySurveyname
 
         if(mongoStubFiltered.isEmpty()){
+            //Create survey schedule
             StoredSurveySchedule storedSurveySchedule = new StoredSurveySchedule(
                     surveyName,
                     new ArrayList<>()
             );
 
+            //Add execution schedule
             KraftwerkExecutionSchedule kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
                   frequency,
                     serviceToCall,
@@ -64,15 +67,22 @@ public class ScheduleApiPortStub implements ScheduleApiPort {
 
             mongoStub.add(storedSurveySchedule);
         }else{
-            StoredSurveySchedule storedSurveySchedule = mongoStubFiltered.getFirst();
+            ScheduleUnicityService scheduleUnicityService = new ScheduleUnicityService();
+            StoredSurveySchedule deduplicatedSurveySchedule = scheduleUnicityService.deduplicateSurveySchedules(surveyName,mongoStubFiltered);
 
+            //Add execution schedule
             KraftwerkExecutionSchedule kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
                     frequency,
                     serviceToCall,
                     scheduleBeginDate,
                     scheduleEndDate
             );
-            storedSurveySchedule.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
+            deduplicatedSurveySchedule.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
+
+            mongoStub.removeIf(storedSurveySchedule ->
+                    storedSurveySchedule.getSurveyName().equals(surveyName)); //deleteBySurveyName
+
+            mongoStub.add(deduplicatedSurveySchedule);
         }
     }
 
