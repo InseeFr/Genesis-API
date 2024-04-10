@@ -4,7 +4,7 @@ import fr.insee.genesis.domain.ports.api.ScheduleApiPort;
 import fr.insee.genesis.exceptions.InvalidCronExpressionException;
 import fr.insee.genesis.exceptions.NotFoundException;
 import fr.insee.genesis.infrastructure.model.document.schedule.KraftwerkExecutionSchedule;
-import fr.insee.genesis.infrastructure.model.document.schedule.ScheduleDocument;
+import fr.insee.genesis.infrastructure.model.document.schedule.StoredSurveySchedule;
 import fr.insee.genesis.infrastructure.model.document.schedule.ServiceToCall;
 import org.springframework.scheduling.support.CronExpression;
 
@@ -16,12 +16,12 @@ import java.util.List;
 
 public class ScheduleApiPortStub implements ScheduleApiPort {
 
-    public List<ScheduleDocument> mongoStub;
+    public List<StoredSurveySchedule> mongoStub;
 
     public ScheduleApiPortStub() {
         mongoStub = new ArrayList<>();
 
-        ScheduleDocument scheduleDocumentTest = new ScheduleDocument(
+        StoredSurveySchedule storedSurveyScheduleTest = new StoredSurveySchedule(
                 "TESTSURVEY",
                 new ArrayList<>()
         );
@@ -31,13 +31,13 @@ public class ScheduleApiPortStub implements ScheduleApiPort {
                 LocalDateTime.of(2023, Month.JANUARY, 1, 1, 1, 1),
                 LocalDateTime.of(2023, Month.DECEMBER, 1, 1, 1, 1)
         );
-        scheduleDocumentTest.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
+        storedSurveyScheduleTest.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
 
-        mongoStub.add(scheduleDocumentTest);
+        mongoStub.add(storedSurveyScheduleTest);
     }
 
     @Override
-    public List<ScheduleDocument> getAllSchedules() {
+    public List<StoredSurveySchedule> getAllSchedules() {
         return mongoStub;
     }
 
@@ -45,11 +45,11 @@ public class ScheduleApiPortStub implements ScheduleApiPort {
     public void addSchedule(String surveyName, ServiceToCall serviceToCall, String frequency, LocalDateTime scheduleBeginDate, LocalDateTime scheduleEndDate) throws InvalidCronExpressionException {
         if(!CronExpression.isValidExpression(frequency)) throw new InvalidCronExpressionException();
 
-        List<ScheduleDocument> mongoStubFiltered = mongoStub.stream().filter(scheduleDocument ->
+        List<StoredSurveySchedule> mongoStubFiltered = mongoStub.stream().filter(scheduleDocument ->
                 scheduleDocument.getSurveyName().equals(surveyName)).toList();
 
         if(mongoStubFiltered.isEmpty()){
-            ScheduleDocument scheduleDocument = new ScheduleDocument(
+            StoredSurveySchedule storedSurveySchedule = new StoredSurveySchedule(
                     surveyName,
                     new ArrayList<>()
             );
@@ -60,11 +60,11 @@ public class ScheduleApiPortStub implements ScheduleApiPort {
                     scheduleBeginDate,
                     scheduleEndDate
             );
-            scheduleDocument.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
+            storedSurveySchedule.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
 
-            mongoStub.add(scheduleDocument);
+            mongoStub.add(storedSurveySchedule);
         }else{
-            ScheduleDocument scheduleDocument = mongoStubFiltered.getFirst();
+            StoredSurveySchedule storedSurveySchedule = mongoStubFiltered.getFirst();
 
             KraftwerkExecutionSchedule kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
                     frequency,
@@ -72,17 +72,17 @@ public class ScheduleApiPortStub implements ScheduleApiPort {
                     scheduleBeginDate,
                     scheduleEndDate
             );
-            scheduleDocument.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
+            storedSurveySchedule.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
         }
     }
 
     @Override
     public void updateLastExecutionName(String surveyName) throws NotFoundException {
-        List<ScheduleDocument> mongoStubFiltered = mongoStub.stream().filter(scheduleDocument ->
+        List<StoredSurveySchedule> mongoStubFiltered = mongoStub.stream().filter(scheduleDocument ->
                 scheduleDocument.getSurveyName().equals(surveyName)).toList();
         if(!mongoStubFiltered.isEmpty()) {
-            ScheduleDocument scheduleDocument = mongoStubFiltered.getFirst();
-            scheduleDocument.setLastExecution(LocalDateTime.now());
+            StoredSurveySchedule storedSurveySchedule = mongoStubFiltered.getFirst();
+            storedSurveySchedule.setLastExecution(LocalDateTime.now());
         }else throw new NotFoundException();
     }
 }

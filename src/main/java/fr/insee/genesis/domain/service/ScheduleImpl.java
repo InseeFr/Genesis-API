@@ -4,7 +4,7 @@ import fr.insee.genesis.domain.ports.api.ScheduleApiPort;
 import fr.insee.genesis.exceptions.InvalidCronExpressionException;
 import fr.insee.genesis.exceptions.NotFoundException;
 import fr.insee.genesis.infrastructure.model.document.schedule.KraftwerkExecutionSchedule;
-import fr.insee.genesis.infrastructure.model.document.schedule.ScheduleDocument;
+import fr.insee.genesis.infrastructure.model.document.schedule.StoredSurveySchedule;
 import fr.insee.genesis.infrastructure.model.document.schedule.ServiceToCall;
 import fr.insee.genesis.infrastructure.repository.ScheduleMongoDBRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -27,25 +27,29 @@ public class ScheduleImpl implements ScheduleApiPort {
     }
 
     @Override
-    public List<ScheduleDocument> getAllSchedules() {
+    public List<StoredSurveySchedule> getAllSchedules() {
         return scheduleMongoDBRepository.findAll();
     }
 
     @Override
-    public void addSchedule(String surveyName, ServiceToCall serviceToCall, String frequency, LocalDateTime scheduleBeginDate, LocalDateTime scheduleEndDate) throws InvalidCronExpressionException {
-        List<ScheduleDocument> scheduleDocuments = scheduleMongoDBRepository.findBySurveyName(surveyName);
+    public void addSchedule(String surveyName, ServiceToCall serviceToCall, String frequency, LocalDateTime scheduleBeginDate, LocalDateTime scheduleEndDate) throws InvalidCronExpressionException{
+        List<StoredSurveySchedule> storedSurveySchedules = scheduleMongoDBRepository.findBySurveyName(surveyName);
 
         //Fequency format check
-        if(!CronExpression.isValidExpression(frequency)) throw new InvalidCronExpressionException();
+        if(!CronExpression.isValidExpression(frequency)) {
+            throw new InvalidCronExpressionException();
+        }
 
-        ScheduleDocument scheduleDocument;
-        if (scheduleDocuments.isEmpty()) {
+
+        StoredSurveySchedule storedSurveySchedule;
+        if (storedSurveySchedules.isEmpty()) {
             //Create if not exists
             log.info("Creation of new survey document for survey " + surveyName);
-            scheduleDocuments.add(new ScheduleDocument(surveyName, new ArrayList<>()));
+            storedSurveySchedules.add(new StoredSurveySchedule(surveyName, new ArrayList<>()));
         }
-        scheduleDocument = scheduleDocuments.getFirst();
-        scheduleDocument.getKraftwerkExecutionScheduleList().add(
+        ScheduleUnicityService scheduleUnicityService = new ScheduleUnicityService();
+        storedSurveySchedule = scheduleUnicityService.deduplicateSurveySchedules(surveyName, storedSurveySchedules);
+        storedSurveySchedule.getKraftwerkExecutionScheduleList().add(
                 new KraftwerkExecutionSchedule(
                         frequency,
                         serviceToCall,
@@ -54,16 +58,18 @@ public class ScheduleImpl implements ScheduleApiPort {
                 )
         );
 
-        scheduleMongoDBRepository.saveAll(scheduleDocuments);
+        scheduleMongoDBRepository.saveAll(storedSurveySchedules);
     }
 
     @Override
     public void updateLastExecutionName(String surveyName) throws NotFoundException {
-        List<ScheduleDocument> scheduleDocuments = scheduleMongoDBRepository.findBySurveyName(surveyName);
+        List<StoredSurveySchedule> storedSurveySchedules = scheduleMongoDBRepository.findBySurveyName(surveyName);
 
-        if (!scheduleDocuments.isEmpty()) {
-            scheduleDocuments.getFirst().setLastExecution(LocalDateTime.now());
-            scheduleMongoDBRepository.saveAll(scheduleDocuments);
+        if (!storedSurveySchedules.isEmpty()) {
+            for(StoredSurveySchedule surveySchedule : storedSurveySchedules){
+                surveySchedule.setLastExecution(LocalDateTime.now());
+            }
+            scheduleMongoDBRepository.saveAll(storedSurveySchedules);
         }else{
             throw new NotFoundException();
         }

@@ -39,6 +39,9 @@ public class Constants {
     // Data extraction parameters
     public static final int BATCH_SIZE = 100; //TODO Adapt to avoid OutOfMemoryException
 
+    // Kraftwerk service path parameters
+    public static final String KRAFTWERK_MAIN_ENDPOINT = "";
+
     private Constants() {
         throw new IllegalStateException("Constants class");
     }

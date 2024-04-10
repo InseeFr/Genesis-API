@@ -1,13 +1,13 @@
 package fr.insee.genesis.controller.rest;
 
+import fr.insee.genesis.Constants;
 import fr.insee.genesis.domain.ports.api.ScheduleApiPort;
 import fr.insee.genesis.exceptions.InvalidCronExpressionException;
 import fr.insee.genesis.exceptions.NotFoundException;
-import fr.insee.genesis.infrastructure.model.document.schedule.ScheduleDocument;
+import fr.insee.genesis.infrastructure.model.document.schedule.StoredSurveySchedule;
 import fr.insee.genesis.infrastructure.model.document.schedule.ServiceToCall;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -40,20 +40,20 @@ public class ScheduleController {
     @Operation(summary = "Fetch all schedules (for Bangles only)")
     @GetMapping(path = "/all")
     public ResponseEntity<Object> getAllSchedules() {
-        log.info("Got GET all schedules request");
+        log.debug("Got GET all schedules request");
 
-        List<ScheduleDocument> scheduleDocuments = scheduleApiPort.getAllSchedules();
+        List<StoredSurveySchedule> storedSurveySchedules = scheduleApiPort.getAllSchedules();
 
-        log.info("Returning " + scheduleDocuments.size() + " schedule documents...");
+        log.info("Returning " + storedSurveySchedules.size() + " schedule documents...");
 
-        return new ResponseEntity<>(scheduleDocuments, HttpStatus.OK);
+        return new ResponseEntity<>(storedSurveySchedules, HttpStatus.OK);
     }
 
     @Operation(summary = "Schedule a Kraftwerk execution")
     @PutMapping(path = "/create")
     public ResponseEntity<Object> addSchedule(
             @Parameter(description = "Survey name to call Kraftwerk on") @RequestParam("surveyName") String surveyName,
-            @Parameter(description = "Kraftwerk endpoint") @RequestParam("serviceTocall") ServiceToCall serviceToCall,
+            @Parameter(description = "Kraftwerk endpoint") @RequestParam(value = "serviceTocall", defaultValue = Constants.KRAFTWERK_MAIN_ENDPOINT) ServiceToCall serviceToCall,
             @Parameter(description = "Frequency in Spring cron format. \n Example : 0 0 6 * * *") @RequestParam("frequency") String frequency,
             @Parameter(description = "Schedule effective date and time", example = "2023-06-16T12:00:00") @RequestParam("scheduleBeginDate") LocalDateTime scheduleBeginDate,
             @Parameter(description = "Schedule end date and time", example = "2023-06-17T12:00:00") @RequestParam("scheduleEndDate") LocalDateTime scheduleEndDate
@@ -70,13 +70,14 @@ public class ScheduleController {
     }
 
     @Operation(summary = "Update last execution date (for Bangles only)")
-    @PostMapping(path = "/update")
+    @PostMapping(path = "/updateLastExecutionDate")
     public ResponseEntity<Object> updateSurveyLastExecution(
             @Parameter(description = "Survey name to call Kraftwerk on") @RequestBody String surveyName
     ) {
         try {
-            log.info("Got update last execution on " + surveyName);
+            log.debug("Got update last execution on " + surveyName);
             scheduleApiPort.updateLastExecutionName(surveyName);
+            log.info(surveyName + " last execution updated !");
         }catch (NotFoundException e){
             log.warn("Survey " + surveyName + " not found !");
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
