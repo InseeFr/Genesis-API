@@ -6,7 +6,6 @@ import fr.insee.genesis.domain.ports.api.SurveyUnitUpdateApiPort;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitUpdatePersistencePort;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Stream;
 
