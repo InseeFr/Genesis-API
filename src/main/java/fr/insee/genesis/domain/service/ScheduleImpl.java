@@ -75,12 +75,15 @@ public class ScheduleImpl implements ScheduleApiPort {
 
         //Path checks
         if(inputCipherPath == null){
+            log.warn("Returned error for null input path specified");
             throw new GenesisException(HttpStatus.BAD_REQUEST.value(), "No input path specified");
         }
         if(!inputCipherPath.toFile().exists()){
+            log.warn("Returned error for input path not found");
             throw new GenesisException(HttpStatus.BAD_REQUEST.value(), "Input path not found");
         }
         if(outputCipherPath != null && !outputCipherPath.toString().isEmpty() && !outputCipherPath.toFile().isDirectory()){
+            log.warn("Returned error for output path not a folder");
             throw new GenesisException(HttpStatus.BAD_REQUEST.value(), "Output path is not a existing directory");
         }
 

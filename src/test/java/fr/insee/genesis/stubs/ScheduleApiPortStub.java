@@ -8,6 +8,7 @@ import fr.insee.genesis.exceptions.NotFoundException;
 import fr.insee.genesis.infrastructure.model.document.schedule.KraftwerkExecutionSchedule;
 import fr.insee.genesis.infrastructure.model.document.schedule.StoredSurveySchedule;
 import fr.insee.genesis.infrastructure.model.document.schedule.ServiceToCall;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.support.CronExpression;
 
@@ -17,7 +18,7 @@ import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
 
-
+@Slf4j
 public class ScheduleApiPortStub implements ScheduleApiPort {
 
     public List<StoredSurveySchedule> mongoStub;
@@ -95,13 +96,16 @@ public class ScheduleApiPortStub implements ScheduleApiPort {
         if(!CronExpression.isValidExpression(frequency)) throw new InvalidCronExpressionException();
         //Path checks
         if(inputCipherPath == null){
+            log.warn("Returned error for null input path specified");
             throw new GenesisException(HttpStatus.BAD_REQUEST.value(), "No input path specified");
         }
         if(!inputCipherPath.toFile().exists()){
+            log.warn("Returned error for input path not found");
             throw new GenesisException(HttpStatus.BAD_REQUEST.value(), "Input path not found");
         }
         if(outputCipherPath != null && !outputCipherPath.toString().isEmpty() && !outputCipherPath.toFile().isDirectory()){
-            throw new GenesisException(HttpStatus.BAD_REQUEST.value(), "Output path is not a directory");
+            log.warn("Returned error for output path not a folder");
+            throw new GenesisException(HttpStatus.BAD_REQUEST.value(), "Output path is not a existing directory");
         }
 
         List<StoredSurveySchedule> mongoStubFiltered = mongoStub.stream().filter(scheduleDocument ->

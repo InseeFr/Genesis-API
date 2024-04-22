@@ -62,7 +62,7 @@ public class ScheduleController {
             @Parameter(description = "Schedule end date and time", example = "2023-06-17T12:00:00") @RequestParam("scheduleEndDate") LocalDateTime scheduleEndDate
     ){
         try {
-            log.info("New schedule request for survey " + surveyName);
+            log.debug("New schedule request for survey " + surveyName);
             scheduleApiPort.addSchedule(surveyName, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate);
         }catch (InvalidCronExpressionException e){
             log.warn("Returned error for wrong frequency : " + frequency);
