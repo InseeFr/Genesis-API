@@ -2,13 +2,16 @@ package fr.insee.genesis.stubs;
 
 import fr.insee.genesis.domain.ports.api.ScheduleApiPort;
 import fr.insee.genesis.domain.service.ScheduleUnicityService;
+import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.exceptions.InvalidCronExpressionException;
 import fr.insee.genesis.exceptions.NotFoundException;
 import fr.insee.genesis.infrastructure.model.document.schedule.KraftwerkExecutionSchedule;
 import fr.insee.genesis.infrastructure.model.document.schedule.StoredSurveySchedule;
 import fr.insee.genesis.infrastructure.model.document.schedule.ServiceToCall;
+import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.support.CronExpression;
 
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.ArrayList;
@@ -76,6 +79,65 @@ public class ScheduleApiPortStub implements ScheduleApiPort {
                     serviceToCall,
                     scheduleBeginDate,
                     scheduleEndDate
+            );
+            deduplicatedSurveySchedule.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
+
+            mongoStub.removeIf(storedSurveySchedule ->
+                    storedSurveySchedule.getSurveyName().equals(surveyName)); //deleteBySurveyName
+
+            mongoStub.add(deduplicatedSurveySchedule);
+        }
+    }
+
+    //Schedule with cipher
+    @Override
+    public void addSchedule(String surveyName, ServiceToCall serviceToCall, String frequency, LocalDateTime scheduleBeginDate, LocalDateTime scheduleEndDate, Path inputCipherPath, Path outputCipherPath) throws InvalidCronExpressionException, GenesisException {
+        if(!CronExpression.isValidExpression(frequency)) throw new InvalidCronExpressionException();
+        //Path checks
+        if(inputCipherPath == null){
+            throw new GenesisException(HttpStatus.BAD_REQUEST.value(), "No input path specified");
+        }
+        if(!inputCipherPath.toFile().exists()){
+            throw new GenesisException(HttpStatus.BAD_REQUEST.value(), "Input path not found");
+        }
+        if(outputCipherPath != null && !outputCipherPath.toString().isEmpty() && !outputCipherPath.toFile().isDirectory()){
+            throw new GenesisException(HttpStatus.BAD_REQUEST.value(), "Output path is not a directory");
+        }
+
+        List<StoredSurveySchedule> mongoStubFiltered = mongoStub.stream().filter(scheduleDocument ->
+                scheduleDocument.getSurveyName().equals(surveyName)).toList(); //Equivalent to findBySurveyname
+
+        if(mongoStubFiltered.isEmpty()){
+            //Create survey schedule
+            StoredSurveySchedule storedSurveySchedule = new StoredSurveySchedule(
+                    surveyName,
+                    new ArrayList<>()
+            );
+
+            //Add execution schedule
+            KraftwerkExecutionSchedule kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
+                    frequency,
+                    serviceToCall,
+                    scheduleBeginDate,
+                    scheduleEndDate,
+                    inputCipherPath,
+                    outputCipherPath
+            );
+            storedSurveySchedule.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
+
+            mongoStub.add(storedSurveySchedule);
+        }else{
+            ScheduleUnicityService scheduleUnicityService = new ScheduleUnicityService();
+            StoredSurveySchedule deduplicatedSurveySchedule = scheduleUnicityService.deduplicateSurveySchedules(surveyName,mongoStubFiltered);
+
+            //Add execution schedule
+            KraftwerkExecutionSchedule kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
+                    frequency,
+                    serviceToCall,
+                    scheduleBeginDate,
+                    scheduleEndDate,
+                    inputCipherPath,
+                    outputCipherPath
             );
             deduplicatedSurveySchedule.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
 

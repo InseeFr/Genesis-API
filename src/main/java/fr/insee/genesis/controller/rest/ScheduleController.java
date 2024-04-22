@@ -2,6 +2,7 @@ package fr.insee.genesis.controller.rest;
 
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.domain.ports.api.ScheduleApiPort;
+import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.exceptions.InvalidCronExpressionException;
 import fr.insee.genesis.exceptions.NotFoundException;
 import fr.insee.genesis.infrastructure.model.document.schedule.StoredSurveySchedule;
@@ -11,6 +12,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -66,6 +69,30 @@ public class ScheduleController {
             return new ResponseEntity<>("Wrong frequency syntax",HttpStatus.BAD_REQUEST);
         }
         log.info("New schedule created for survey " + surveyName);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @Operation(summary = "Schedule a Kraftwerk execution with cipher")
+    @PutMapping(path = "/create-with-cipher")
+    public ResponseEntity<Object> addSchedule(
+            @Parameter(description = "Survey name to call Kraftwerk on") @RequestParam("surveyName") String surveyName,
+            @Parameter(description = "Kraftwerk endpoint") @RequestParam(value = "serviceTocall", defaultValue = Constants.KRAFTWERK_MAIN_ENDPOINT) ServiceToCall serviceToCall,
+            @Parameter(description = "Frequency in Spring cron format. \n Example : 0 0 6 * * *") @RequestParam("frequency") String frequency,
+            @Parameter(description = "Schedule effective date and time", example = "2023-06-16T12:00:00") @RequestParam("scheduleBeginDate") LocalDateTime scheduleBeginDate,
+            @Parameter(description = "Schedule end date and time", example = "2023-06-17T12:00:00") @RequestParam("scheduleEndDate") LocalDateTime scheduleEndDate,
+            @Parameter(description = "Kraftwerk output file path", example = "//path/to/output/files") @RequestParam("inputCipherPath") Path inputCipherPath,
+            @Parameter(description = "Ciphered files path") @RequestParam(value = "outputCipherPath", defaultValue = "${fr.insee.genesis.cipher.defaultoutputpath}") Path outputCipherPath
+    ){
+        try {
+            log.debug("New schedule request with cipher for survey " + surveyName);
+            scheduleApiPort.addSchedule(surveyName, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate, inputCipherPath, outputCipherPath);
+        }catch (InvalidCronExpressionException e){
+            log.warn("Returned error for wrong frequency : " + frequency);
+            return new ResponseEntity<>("Wrong frequency syntax",HttpStatus.BAD_REQUEST);
+        }catch (GenesisException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatusCode.valueOf(e.getStatus()));
+        }
+        log.info("New schedule with cipher created for survey " + surveyName);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
