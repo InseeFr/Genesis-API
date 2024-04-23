@@ -3,11 +3,13 @@ package fr.insee.genesis.infrastructure.model.document.schedule;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 
 @Data
+@NoArgsConstructor
 @AllArgsConstructor
 public class KraftwerkExecutionSchedule {
 
@@ -27,6 +29,6 @@ public class KraftwerkExecutionSchedule {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'hh:mm:ss")
     private LocalDateTime scheduleEndDate;
 
-    private Path cipherInputPath;
-    private Path cipherOutputPath;
+    private String cipherInputPath;
+    private String cipherOutputPath;
 }

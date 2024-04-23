@@ -92,20 +92,24 @@ public class ScheduleApiPortStub implements ScheduleApiPort {
 
     //Schedule with cipher
     @Override
-    public void addSchedule(String surveyName, ServiceToCall serviceToCall, String frequency, LocalDateTime scheduleBeginDate, LocalDateTime scheduleEndDate, Path inputCipherPath, Path outputCipherPath) throws InvalidCronExpressionException, GenesisException {
+    public void addSchedule(String surveyName, ServiceToCall serviceToCall, String frequency, LocalDateTime scheduleBeginDate, LocalDateTime scheduleEndDate, String inputCipherPathString, String outputCipherPathString) throws InvalidCronExpressionException, GenesisException {
         if(!CronExpression.isValidExpression(frequency)) throw new InvalidCronExpressionException();
         //Path checks
-        if(inputCipherPath == null){
+        if(inputCipherPathString == null){
             log.warn("Returned error for null input path specified");
             throw new GenesisException(HttpStatus.BAD_REQUEST.value(), "No input path specified");
         }
+        Path inputCipherPath = Path.of(inputCipherPathString);
         if(!inputCipherPath.toFile().exists()){
             log.warn("Returned error for input path not found");
             throw new GenesisException(HttpStatus.BAD_REQUEST.value(), "Input path not found");
         }
-        if(outputCipherPath != null && !outputCipherPath.toString().isEmpty() && !outputCipherPath.toFile().isDirectory()){
-            log.warn("Returned error for output path not a folder");
-            throw new GenesisException(HttpStatus.BAD_REQUEST.value(), "Output path is not a existing directory");
+        if(outputCipherPathString != null && !outputCipherPathString.isEmpty()){
+            Path outputCipherPath = Path.of(outputCipherPathString);
+            if(!outputCipherPath.toFile().isDirectory()){
+                log.warn("Returned error for output path not a folder");
+                throw new GenesisException(HttpStatus.BAD_REQUEST.value(), "Output path is not a existing directory");
+            }
         }
 
         List<StoredSurveySchedule> mongoStubFiltered = mongoStub.stream().filter(scheduleDocument ->
@@ -124,8 +128,8 @@ public class ScheduleApiPortStub implements ScheduleApiPort {
                     serviceToCall,
                     scheduleBeginDate,
                     scheduleEndDate,
-                    inputCipherPath,
-                    outputCipherPath
+                    inputCipherPathString,
+                    outputCipherPathString
             );
             storedSurveySchedule.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
 
@@ -140,8 +144,8 @@ public class ScheduleApiPortStub implements ScheduleApiPort {
                     serviceToCall,
                     scheduleBeginDate,
                     scheduleEndDate,
-                    inputCipherPath,
-                    outputCipherPath
+                    inputCipherPathString,
+                    outputCipherPathString
             );
             deduplicatedSurveySchedule.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
 

@@ -24,8 +24,8 @@ public interface ScheduleApiPort {
                      String frequency,
                      LocalDateTime scheduleBeginDateString,
                      LocalDateTime scheduleEndDateString,
-                     Path inputCipherPath,
-                     Path outputCipherPath) throws InvalidCronExpressionException, GenesisException;
+                     String inputCipherPath,
+                     String outputCipherPath) throws InvalidCronExpressionException, GenesisException;
 
     void updateLastExecutionName(String surveyName) throws NotFoundException;
 }

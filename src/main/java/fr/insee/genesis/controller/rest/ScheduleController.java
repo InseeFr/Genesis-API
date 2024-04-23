@@ -80,8 +80,8 @@ public class ScheduleController {
             @Parameter(description = "Frequency in Spring cron format. \n Example : 0 0 6 * * *") @RequestParam("frequency") String frequency,
             @Parameter(description = "Schedule effective date and time", example = "2023-06-16T12:00:00") @RequestParam("scheduleBeginDate") LocalDateTime scheduleBeginDate,
             @Parameter(description = "Schedule end date and time", example = "2023-06-17T12:00:00") @RequestParam("scheduleEndDate") LocalDateTime scheduleEndDate,
-            @Parameter(description = "Kraftwerk output file path", example = "//path/to/output/files") @RequestParam("inputCipherPath") Path inputCipherPath,
-            @Parameter(description = "Ciphered files path") @RequestParam(value = "outputCipherPath", defaultValue = "${fr.insee.genesis.cipher.defaultoutputpath}") Path outputCipherPath
+            @Parameter(description = "Kraftwerk output file path", example = "//path/to/output/files") @RequestParam("inputCipherPath") String inputCipherPath,
+            @Parameter(description = "Ciphered files path") @RequestParam(value = "outputCipherPath", defaultValue = "${fr.insee.genesis.cipher.defaultoutputpath}") String outputCipherPath
     ){
         try {
             log.debug("New schedule request with cipher for survey " + surveyName);

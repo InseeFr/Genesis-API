@@ -184,11 +184,11 @@ class ScheduleControllerTest {
         String frequency = "0 0 6 * * *";
         LocalDateTime scheduleBeginDate = LocalDateTime.now();
         LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
-        Path cipherInputPath = Path.of(TestConstants.TEST_RESOURCES_DIRECTORY,"OUTKWK/TESTSURVEY");
-        Path cipherOutputPath = Path.of(TestConstants.TEST_RESOURCES_DIRECTORY,"OUTCIPHER/TESTSURVEY");
+        String cipherInputPathString = TestConstants.TEST_RESOURCES_DIRECTORY + "/OUTKWK/TESTSURVEY";
+        String cipherOutputPathString = TestConstants.TEST_RESOURCES_DIRECTORY + "/OUTCIPHER/TESTSURVEY";
 
 
-        ResponseEntity<Object> response = scheduleController.addSchedule(surveyName, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate, cipherInputPath, cipherOutputPath);
+        ResponseEntity<Object> response = scheduleController.addSchedule(surveyName, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate, cipherInputPathString, cipherOutputPathString);
 
         //Then
         if(!response.getStatusCode().is2xxSuccessful()){
@@ -208,8 +208,8 @@ class ScheduleControllerTest {
         Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList()).isNotEmpty();
         Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList().getFirst().getFrequency()).isEqualTo(frequency);
 
-        Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList().getFirst().getCipherInputPath()).isEqualTo(cipherInputPath);
-        Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList().getFirst().getCipherOutputPath()).isEqualTo(cipherOutputPath);
+        Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList().getFirst().getCipherInputPath()).isEqualTo(cipherInputPathString);
+        Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList().getFirst().getCipherOutputPath()).isEqualTo(cipherOutputPathString);
     }
 
     @Test
@@ -223,11 +223,11 @@ class ScheduleControllerTest {
         String frequency = "0 0 6 * * *";
         LocalDateTime scheduleBeginDate = LocalDateTime.now();
         LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
-        Path cipherInputPath = Path.of(TestConstants.TEST_RESOURCES_DIRECTORY,"OUTKWK/TESTSURVEY/test.csv");
-        Path cipherOutputPath = Path.of(TestConstants.TEST_RESOURCES_DIRECTORY,"OUTCIPHER/TESTSURVEY");
+        String cipherInputPathString = TestConstants.TEST_RESOURCES_DIRECTORY + "/OUTKWK/TESTSURVEY";
+        String cipherOutputPathString = TestConstants.TEST_RESOURCES_DIRECTORY + "/OUTCIPHER/TESTSURVEY";
 
 
-        ResponseEntity<Object> response = scheduleController.addSchedule(surveyName, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate, cipherInputPath, cipherOutputPath);
+        ResponseEntity<Object> response = scheduleController.addSchedule(surveyName, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate, cipherInputPathString, cipherOutputPathString);
 
         //Then
         if(!response.getStatusCode().is2xxSuccessful()){
@@ -247,8 +247,8 @@ class ScheduleControllerTest {
         Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList()).isNotEmpty();
         Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList().getFirst().getFrequency()).isEqualTo(frequency);
 
-        Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList().getFirst().getCipherInputPath()).isEqualTo(cipherInputPath);
-        Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList().getFirst().getCipherOutputPath()).isEqualTo(cipherOutputPath);
+        Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList().getFirst().getCipherInputPath()).isEqualTo(cipherInputPathString);
+        Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList().getFirst().getCipherOutputPath()).isEqualTo(cipherOutputPathString);
     }
 
     @Test
@@ -262,10 +262,10 @@ class ScheduleControllerTest {
         String frequency = "0 0 6 * * *";
         LocalDateTime scheduleBeginDate = LocalDateTime.now();
         LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
-        Path cipherInputPath = Path.of(TestConstants.TEST_RESOURCES_DIRECTORY,"OUTKWK/TESTSURVEY");
+        String cipherInputPathString = TestConstants.TEST_RESOURCES_DIRECTORY + "/OUTKWK/TESTSURVEY";
 
 
-        ResponseEntity<Object> response = scheduleController.addSchedule(surveyName, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate, cipherInputPath, null);
+        ResponseEntity<Object> response = scheduleController.addSchedule(surveyName, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate, cipherInputPathString, null);
 
         //Then
         if(!response.getStatusCode().is2xxSuccessful()){
@@ -285,7 +285,7 @@ class ScheduleControllerTest {
         Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList()).isNotEmpty();
         Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList().getFirst().getFrequency()).isEqualTo(frequency);
 
-        Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList().getFirst().getCipherInputPath()).isEqualTo(cipherInputPath);
+        Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList().getFirst().getCipherInputPath()).isEqualTo(cipherInputPathString);
         Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList().getFirst().getCipherOutputPath()).isNull();
     }
 
@@ -320,11 +320,11 @@ class ScheduleControllerTest {
         String frequency = "0 0 6 * * *";
         LocalDateTime scheduleBeginDate = LocalDateTime.now();
         LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
-        Path cipherInputPath = Path.of(TestConstants.TEST_RESOURCES_DIRECTORY,"OUTKWK/TESTSURVEY/wrong.csv");
-        Path cipherOutputPath = Path.of(TestConstants.TEST_RESOURCES_DIRECTORY,"OUTCIPHER/TESTSURVEY");
+        String cipherInputPathString = TestConstants.TEST_RESOURCES_DIRECTORY + "/OUTKWK/TESTSURVEY/wrong.csv";
+        String cipherOutputPathString = TestConstants.TEST_RESOURCES_DIRECTORY + "/OUTCIPHER/TESTSURVEY";
 
 
-        ResponseEntity<Object> response = scheduleController.addSchedule(surveyName, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate, cipherInputPath, cipherOutputPath);
+        ResponseEntity<Object> response = scheduleController.addSchedule(surveyName, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate, cipherInputPathString, cipherOutputPathString);
 
         //Then
         Assertions.assertThat(response.getStatusCode().is4xxClientError()).isTrue();
@@ -346,7 +346,7 @@ class ScheduleControllerTest {
         Path cipherOutputPath = Path.of(TestConstants.TEST_RESOURCES_DIRECTORY,"OUTCIPHER/TESTSURVEY/test.enc");
 
 
-        ResponseEntity<Object> response = scheduleController.addSchedule(surveyName, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate, cipherInputPath, cipherOutputPath);
+        ResponseEntity<Object> response = scheduleController.addSchedule(surveyName, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate, cipherInputPath.toString(), cipherOutputPath.toString());
 
         //Then
         Assertions.assertThat(response.getStatusCode().is4xxClientError()).isTrue();

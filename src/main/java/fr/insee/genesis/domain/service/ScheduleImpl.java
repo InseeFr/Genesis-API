@@ -11,7 +11,6 @@ import fr.insee.genesis.infrastructure.repository.ScheduleMongoDBRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Service;
 
@@ -67,24 +66,28 @@ public class ScheduleImpl implements ScheduleApiPort {
     }
 
     @Override
-    public void addSchedule(String surveyName, ServiceToCall serviceToCall, String frequency, LocalDateTime scheduleBeginDate, LocalDateTime scheduleEndDate, Path inputCipherPath, Path outputCipherPath) throws InvalidCronExpressionException, GenesisException {
+    public void addSchedule(String surveyName, ServiceToCall serviceToCall, String frequency, LocalDateTime scheduleBeginDate, LocalDateTime scheduleEndDate, String inputCipherPathString, String outputCipherPathString) throws InvalidCronExpressionException, GenesisException {
         //Frequency format check
         if(!CronExpression.isValidExpression(frequency)) {
             throw new InvalidCronExpressionException();
         }
 
         //Path checks
-        if(inputCipherPath == null){
+        if(inputCipherPathString == null){
             log.warn("Returned error for null input path specified");
             throw new GenesisException(HttpStatus.BAD_REQUEST.value(), "No input path specified");
         }
+        Path inputCipherPath = Path.of(inputCipherPathString);
         if(!inputCipherPath.toFile().exists()){
             log.warn("Returned error for input path not found");
             throw new GenesisException(HttpStatus.BAD_REQUEST.value(), "Input path not found");
         }
-        if(outputCipherPath != null && !outputCipherPath.toString().isEmpty() && !outputCipherPath.toFile().isDirectory()){
-            log.warn("Returned error for output path not a folder");
-            throw new GenesisException(HttpStatus.BAD_REQUEST.value(), "Output path is not a existing directory");
+        if(outputCipherPathString != null && !outputCipherPathString.isEmpty()){
+            Path outputCipherPath = Path.of(outputCipherPathString);
+            if(!outputCipherPath.toFile().isDirectory()){
+                log.warn("Returned error for output path not a folder");
+                throw new GenesisException(HttpStatus.BAD_REQUEST.value(), "Output path is not a existing directory");
+            }
         }
 
         List<StoredSurveySchedule> storedSurveySchedules = scheduleMongoDBRepository.findBySurveyName(surveyName);
@@ -105,8 +108,8 @@ public class ScheduleImpl implements ScheduleApiPort {
                         serviceToCall,
                         scheduleBeginDate,
                         scheduleEndDate,
-                        inputCipherPath,
-                        outputCipherPath
+                        inputCipherPathString,
+                        outputCipherPathString
                 )
         );
         scheduleMongoDBRepository.deleteBySurveyName(surveyName);
