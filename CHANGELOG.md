@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.2.0.1 - [2024-04-24]
+## 1.2.1 - [2024-04-24]
 First production version
 
 ### Fixed
