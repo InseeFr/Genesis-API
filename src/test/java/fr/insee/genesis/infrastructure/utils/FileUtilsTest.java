@@ -33,7 +33,7 @@ class FileUtilsTest {
 
 	@Test
 	void getSpecFolderTest(){
-		assertEquals(TestConstants.TEST_RESOURCES_DIRECTORY + "/IN/specs/TEST",
+		assertEquals(TestConstants.TEST_RESOURCES_DIRECTORY + "/specs/TEST",
 				fileUtils.getSpecFolder("TEST"));
 	}
 

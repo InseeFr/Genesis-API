@@ -46,3 +46,4 @@ hs_err_pid*
 
 # test generated files
 src/test/resources/OUT/*
+/src/test/resources/DONE/*

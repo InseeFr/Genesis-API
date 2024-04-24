@@ -1,35 +1,31 @@
 package fr.insee.genesis.controller.rest;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.info.BuildProperties;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Optional;
-
 @RequestMapping("/health-check")
 @RestController
 public class HealthCheckController {
+    @Value("${fr.insee.genesis.version}")
+    private String projectVersion;
 
-        @Autowired(required = false)
-        private Optional<BuildProperties> buildProperties;
-
-        @GetMapping("")
-        public ResponseEntity<String> healthcheck(){
-                return ResponseEntity.ok(
-                    """
-                         OK
-                         
-                         Version %s
-                         User %s
-                    """
+    @GetMapping("")
+    public ResponseEntity<String> healthcheck() {
+        return ResponseEntity.ok(
+                """
+                             OK
+                             
+                             Version %s
+                             User %s
+                        """
                         .formatted(
-                            buildProperties.map(BuildProperties::getVersion).orElse("n.a"),
-                            SecurityContextHolder.getContext().getAuthentication().getName()
-                        )                );
-        }
+                                projectVersion,
+                                SecurityContextHolder.getContext().getAuthentication().getName()
+                        ));
+    }
 
 }

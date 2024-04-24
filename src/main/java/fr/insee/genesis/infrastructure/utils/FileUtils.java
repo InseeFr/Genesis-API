@@ -139,7 +139,15 @@ public class FileUtils {
 
 	/**
 	 * Get the path of the folder where the specifications files are stored
-	 * @param campaign
+	 * @return Path of the specifications folder
+	 */
+	public String getSpecFolder() {
+		return  String.format("%s/%s", specFolderSource, "specs");
+	}
+
+	/**
+	 * Get the path of the folder where the specifications files are stored for specific campaign
+	 * @param campaign name of campaign
 	 * @return Path of the specifications folder
 	 */
 	public String getSpecFolder(String campaign) {
@@ -205,5 +213,23 @@ public class FileUtils {
 		} catch (UncheckedIOException e) {
 			throw e.getCause();
 		}
+	}
+
+	/**
+	 * List all folders in the specs folder
+	 * @return List of specs folders
+	 */
+	public List<String> listAllSpecsFolders() {
+			List<String> folders = new ArrayList<>();
+			File[] objs = new File(getSpecFolder()).listFiles();
+			if (objs == null) {
+				return List.of();
+			}
+			for (File file : objs) {
+				if (file.isDirectory()) {
+					folders.add(file.getName());
+				}
+			}
+			return folders;
 	}
 }

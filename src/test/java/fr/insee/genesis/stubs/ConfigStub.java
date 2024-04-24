@@ -7,7 +7,7 @@ public class ConfigStub extends Config {
 
 	private static final String DATA_SOURCE = TestConstants.TEST_RESOURCES_DIRECTORY;
 
-	private static final String SPEC_SOURCE = TestConstants.TEST_RESOURCES_DIRECTORY + "/IN";
+	private static final String SPEC_SOURCE = TestConstants.TEST_RESOURCES_DIRECTORY;
 
 
 
