@@ -30,4 +30,6 @@ public interface SurveyUnitUpdateApiPort {
     List<Mode> findModesByIdQuestionnaire(String idQuestionnaire);
 
     Long deleteByIdQuestionnaire(String idQuestionnaire);
+
+    long countResponses();
 }

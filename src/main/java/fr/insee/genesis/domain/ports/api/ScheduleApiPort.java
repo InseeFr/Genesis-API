@@ -19,4 +19,6 @@ public interface ScheduleApiPort {
                      LocalDateTime scheduleEndDateString) throws InvalidCronExpressionException;
 
     void updateLastExecutionName(String surveyName) throws NotFoundException;
+
+    long countSchedules();
 }
