@@ -11,6 +11,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -219,17 +220,13 @@ public class FileUtils {
 	 * List all folders in the specs folder
 	 * @return List of specs folders
 	 */
-	public List<String> listAllSpecsFolders() {
-			List<String> folders = new ArrayList<>();
-			File[] objs = new File(getSpecFolder()).listFiles();
-			if (objs == null) {
-				return List.of();
-			}
-			for (File file : objs) {
-				if (file.isDirectory()) {
-					folders.add(file.getName());
-				}
-			}
-			return folders;
+	public List<File> listAllSpecsFolders() {
+        File[] objs = new File(getSpecFolder()).listFiles();
+        if (objs == null) {
+            return List.of();
+        }
+        return Arrays.stream(objs)
+            .filter(File::isDirectory)
+            .toList();
 	}
 }

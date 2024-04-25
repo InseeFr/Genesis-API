@@ -39,6 +39,7 @@ import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLStreamException;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -117,13 +118,14 @@ public class ResponseController {
     @PutMapping(path = "/save/lunatic-xml/all-campaigns")
     public ResponseEntity<Object> saveResponsesFromAllCampaignFolders(){
         List<GenesisError> errors = new ArrayList<>();
-        List<String> campaignFolders = fileUtils.listAllSpecsFolders();
+        List<File> campaignFolders = fileUtils.listAllSpecsFolders();
 
         if (campaignFolders.isEmpty()) {
             return ResponseEntity.ok("No campaign to save");
         }
 
-        for (String campaignName : campaignFolders) {
+        for (File  campaignFolder: campaignFolders) {
+            String campaignName = campaignFolder.getName();
             log.info("Try to import data for campaign : {}", campaignName);
 
             try {
@@ -176,7 +178,7 @@ public class ResponseController {
             fileUtils.writeSuUpdatesInFile(filepath, responsesStream);
         } catch (IOException e) {
             log.error("Error while writing file", e);
-            return new ResponseEntity<>(filepath, HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.internalServerError().body(filepath);
         }
         log.info("End of extraction, responses extracted : {}", idUEsResponses.size());
         return ResponseEntity.ok(filepath);
@@ -267,12 +269,12 @@ public class ResponseController {
         log.info("Numbers of files to load in folder {} : {}", dataFolder, dataFiles.size());
         if (dataFiles.isEmpty()) {
             errors.add(new NoDataError("No data file found", Mode.getEnumFromModeName(mode.getModeName())));
-            log.info("No data file found in folder " + dataFolder);
+            log.info("No data file found in folder {}", dataFolder);
         }
         VariablesMap variablesMap;
         try {
             Path ddiFilePath = fileUtils.findDDIFile(campaignName, mode.getModeName());
-            variablesMap = DDIReader.getVariablesFromDDI(ddiFilePath.toFile().toURI().toURL());
+            variablesMap = DDIReader.getVariablesFromDDI(ddiFilePath.toUri().toURL());
         } catch (Exception e) {
             errors.add(new GenesisError(e.getMessage()));
             return;
@@ -287,7 +289,7 @@ public class ResponseController {
             } else {
                 treatXmlFileSequentially(filepath, mode, variablesMap);
             }
-            log.info("File {} saved", fileName);
+            log.debug("File {} saved", fileName);
             fileUtils.moveDataFile(campaignName, mode.getFolder(), fileName);
         }
     }
@@ -308,12 +310,12 @@ public class ResponseController {
         }
         surveyUnitQualityService.verifySurveyUnits(suDtos, variablesMap);
 
-        log.info("Saving {} survey units updates", suDtos.size());
+        log.debug("Saving {} survey units updates", suDtos.size());
         surveyUnitService.saveSurveyUnits(suDtos);
-        log.info("Survey units updates saved");
+        log.debug("Survey units updates saved");
 
-        log.info("File {} treated", filepath.getFileName());
-        return new ResponseEntity<>("Test", HttpStatus.OK);
+        log.info("File {} treated with {} survey units", filepath.getFileName(), suDtos.size());
+        return ResponseEntity.ok().build();
     }
 
     private ResponseEntity<Object> treatXmlFileSequentially(Path filepath, Mode modeSpecified, VariablesMap variablesMap) throws IOException, XMLStreamException {
@@ -341,6 +343,6 @@ public class ResponseController {
         }
 
         log.info("File {} treated", filepath.getFileName());
-        return new ResponseEntity<>("Test", HttpStatus.OK);
+        return ResponseEntity.ok().build();
     }
 }
