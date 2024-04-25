@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.2 - [NOT-YET-RELEASED]
+### Added
+- Treat all campaigns endpoint
+### Fixed
+- Fixed health check always returning version n.a
+
 ## 1.2.1 - [2024-04-24]
 First production version
 

@@ -81,4 +81,11 @@ public class SurveyUnitUpdatePersistencePortStub implements SurveyUnitUpdatePers
     public Long deleteByIdQuestionnaire(String idQuestionnaire) {
         return null;
     }
+
+    @Override
+    public long count() {
+        return mongoStub.size();
+    }
+
+
 }

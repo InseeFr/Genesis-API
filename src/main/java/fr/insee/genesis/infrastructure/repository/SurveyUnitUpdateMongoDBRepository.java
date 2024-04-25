@@ -25,4 +25,5 @@ public interface SurveyUnitUpdateMongoDBRepository extends MongoRepository<Surve
 	@Meta(cursorBatchSize = 20)
 	Stream<SurveyUnitUpdateDocument> findByIdQuestionnaire(String idQuestionnaire);
 
+	long count();
 }

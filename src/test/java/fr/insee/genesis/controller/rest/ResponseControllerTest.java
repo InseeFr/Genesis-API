@@ -5,7 +5,12 @@ import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.responses.SurveyUnitUpdateSimplified;
 import fr.insee.genesis.controller.service.SurveyUnitQualityService;
 import fr.insee.genesis.controller.utils.ControllerUtils;
-import fr.insee.genesis.domain.dtos.*;
+import fr.insee.genesis.domain.dtos.CollectedVariableDto;
+import fr.insee.genesis.domain.dtos.DataState;
+import fr.insee.genesis.domain.dtos.Mode;
+import fr.insee.genesis.domain.dtos.SurveyUnitId;
+import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
+import fr.insee.genesis.domain.dtos.VariableDto;
 import fr.insee.genesis.domain.ports.api.SurveyUnitUpdateApiPort;
 import fr.insee.genesis.domain.service.SurveyUnitUpdateImpl;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
@@ -36,16 +41,16 @@ class ResponseControllerTest {
     static List<SurveyUnitId> surveyUnitIdList;
 
     @BeforeAll
-    static void init(){
+    static void init() {
         surveyUnitUpdatePersistencePortStub = new SurveyUnitUpdatePersistencePortStub();
         SurveyUnitUpdateApiPort surveyUnitUpdateApiPort = new SurveyUnitUpdateImpl(surveyUnitUpdatePersistencePortStub);
 
         FileUtils fileUtils = new FileUtils(new ConfigStub());
         responseControllerStatic = new ResponseController(
                 surveyUnitUpdateApiPort
-                ,new SurveyUnitQualityService()
-                ,fileUtils
-                ,new ControllerUtils(fileUtils)
+                , new SurveyUnitQualityService()
+                , fileUtils
+                , new ControllerUtils(fileUtils)
         );
 
         surveyUnitIdList = new ArrayList<>();
@@ -62,7 +67,7 @@ class ResponseControllerTest {
         externalVariableDtoList.add(variableDto);
 
         List<CollectedVariableDto> collectedVariableDtoList = new ArrayList<>();
-        CollectedVariableDto collectedVariableDto = new CollectedVariableDto("TESTIDVAR", List.of(new String[]{"V1", "V2"}),"TESTIDLOOP","TESTIDPARENT");
+        CollectedVariableDto collectedVariableDto = new CollectedVariableDto("TESTIDVAR", List.of(new String[]{"V1", "V2"}), "TESTIDLOOP", "TESTIDPARENT");
         collectedVariableDtoList.add(collectedVariableDto);
         surveyUnitUpdatePersistencePortStub.getMongoStub().add(SurveyUnitUpdateDto.builder()
                 .idCampaign("TESTIDCAMPAIGN")
@@ -70,49 +75,101 @@ class ResponseControllerTest {
                 .idUE("TESTIDUE")
                 .idQuest("TESTIDQUESTIONNAIRE")
                 .state(DataState.COLLECTED)
-                .fileDate(LocalDateTime.of(2023,1,1,0,0,0))
-                .recordDate(LocalDateTime.of(2024,1,1,0,0,0))
+                .fileDate(LocalDateTime.of(2023, 1, 1, 0, 0, 0))
+                .recordDate(LocalDateTime.of(2024, 1, 1, 0, 0, 0))
                 .externalVariables(externalVariableDtoList)
                 .collectedVariables(collectedVariableDtoList)
                 .build());
 
-
         //Test file management
-        if(Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("DONE").toFile().exists())
+        //Clean DONE folder
+        if (Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("DONE").toFile().exists())
             Files.walk(Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("DONE"))
                     .sorted(Comparator.reverseOrder())
                     .map(Path::toFile)
                     .forEach(File::delete);
 
-        if(!Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
+        //Recreate data files
+        //SAMPLETEST-PARADATA-v1
+        if (!Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
                 .resolve("IN")
                 .resolve("WEB")
                 .resolve("SAMPLETEST-PARADATA-v1")
                 .resolve("data.complete.validated.STPDv1.20231122164209.xml")
                 .toFile().exists()
-        )
+        ){
             Files.copy(
-                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
-                    .resolve("IN")
-                    .resolve("WEB")
-                    .resolve("SAMPLETEST-PARADATA-v1")
-                    .resolve("reponse-platine")
-                    .resolve("data.complete.validated.STPDv1.20231122164209.xml")
-                ,Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
-                    .resolve("IN")
-                    .resolve("WEB")
-                    .resolve("SAMPLETEST-PARADATA-v1")
-                    .resolve("data.complete.validated.STPDv1.20231122164209.xml")
+                    Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
+                            .resolve("IN")
+                            .resolve("WEB")
+                            .resolve("SAMPLETEST-PARADATA-v1")
+                            .resolve("reponse-platine")
+                            .resolve("data.complete.partial.STPDv1.20231122164209.xml")
+                    , Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
+                            .resolve("IN")
+                            .resolve("WEB")
+                            .resolve("SAMPLETEST-PARADATA-v1")
+                            .resolve("data.complete.partial.STPDv1.20231122164209.xml")
             );
+            Files.copy(
+                    Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
+                            .resolve("IN")
+                            .resolve("WEB")
+                            .resolve("SAMPLETEST-PARADATA-v1")
+                            .resolve("reponse-platine")
+                            .resolve("data.complete.validated.STPDv1.20231122164209.xml")
+                    , Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
+                            .resolve("IN")
+                            .resolve("WEB")
+                            .resolve("SAMPLETEST-PARADATA-v1")
+                            .resolve("data.complete.validated.STPDv1.20231122164209.xml")
+            );
+        }
+        //SAMPLETEST-PARADATA-v2
+        if (!Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
+                .resolve("IN")
+                .resolve("WEB")
+                .resolve("SAMPLETEST-PARADATA-v2")
+                .resolve("data.complete.validated.STPDv2.20231122164209.xml")
+                .toFile().exists()
+        ){
+            Files.copy(
+                    Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
+                            .resolve("IN")
+                            .resolve("WEB")
+                            .resolve("SAMPLETEST-PARADATA-v2")
+                            .resolve("reponse-platine")
+                            .resolve("data.complete.partial.STPDv2.20231122164209.xml")
+                    , Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
+                            .resolve("IN")
+                            .resolve("WEB")
+                            .resolve("SAMPLETEST-PARADATA-v2")
+                            .resolve("data.complete.partial.STPDv2.20231122164209.xml")
+            );
+            Files.copy(
+                    Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
+                            .resolve("IN")
+                            .resolve("WEB")
+                            .resolve("SAMPLETEST-PARADATA-v2")
+                            .resolve("reponse-platine")
+                            .resolve("data.complete.validated.STPDv2.20231122164209.xml")
+                    , Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
+                            .resolve("IN")
+                            .resolve("WEB")
+                            .resolve("SAMPLETEST-PARADATA-v2")
+                            .resolve("data.complete.validated.STPDv2.20231122164209.xml")
+            );
+        }
     }
+
 
     //When + Then
     @Test
     void saveResponseFromXMLFileTest() throws Exception {
         responseControllerStatic.saveResponsesFromXmlFile(
-                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY,"IN/WEB/SAMPLETEST-PARADATA-v1/reponse-platine/data.complete.validated.STPDv1.20231122164209.xml").toString()
-                ,Path.of(TestConstants.TEST_RESOURCES_DIRECTORY,"IN/specs/SAMPLETEST-PARADATA-v1/ddi-SAMPLETEST-PARADATA-v1.xml").toString()
-                ,Mode.WEB
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY, "IN/WEB/SAMPLETEST-PARADATA-v1/reponse-platine/data.complete.validated.STPDv1.20231122164209.xml").toString()
+                , Path.of(TestConstants.TEST_RESOURCES_DIRECTORY, "specs/SAMPLETEST-PARADATA-v1/ddi-SAMPLETEST-PARADATA-v1.xml").toString()
+                , Mode.WEB
         );
 
         Assertions.assertThat(surveyUnitUpdatePersistencePortStub.getMongoStub()).isNotEmpty();
@@ -122,7 +179,7 @@ class ResponseControllerTest {
     void saveResponsesFromXmlCampaignFolderTest() throws Exception {
         responseControllerStatic.saveResponsesFromXmlCampaignFolder(
                 "SAMPLETEST-PARADATA-v1"
-                ,Mode.WEB
+                , Mode.WEB
         );
 
         Assertions.assertThat(surveyUnitUpdatePersistencePortStub.getMongoStub()).isNotEmpty();
@@ -134,15 +191,23 @@ class ResponseControllerTest {
 
         responseControllerStatic.saveResponsesFromXmlCampaignFolder(
                 "TESTNODATA"
-                ,Mode.WEB
+                , Mode.WEB
         );
 
         Assertions.assertThat(surveyUnitUpdatePersistencePortStub.getMongoStub()).isEmpty();
     }
 
     @Test
-    void findResponsesByUEAndQuestionnaireTest(){
-        ResponseEntity<List<SurveyUnitUpdateDto>> response = responseControllerStatic.findResponsesByUEAndQuestionnaire("TESTIDUE","TESTIDQUESTIONNAIRE");
+    void saveResponsesFromAllCampaignFoldersTests(){
+        surveyUnitUpdatePersistencePortStub.getMongoStub().clear();
+        responseControllerStatic.saveResponsesFromAllCampaignFolders();
+
+        Assertions.assertThat(surveyUnitUpdatePersistencePortStub.getMongoStub()).isNotEmpty();
+    }
+
+    @Test
+    void findResponsesByUEAndQuestionnaireTest() {
+        ResponseEntity<List<SurveyUnitUpdateDto>> response = responseControllerStatic.findResponsesByUEAndQuestionnaire("TESTIDUE", "TESTIDQUESTIONNAIRE");
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
@@ -151,8 +216,8 @@ class ResponseControllerTest {
     }
 
     @Test
-    void findAllResponsesByQuestionnaireTest(){
-        Path path = Path.of(TestConstants.TEST_RESOURCES_DIRECTORY,"OUT", "TESTIDQUESTIONNAIRE");
+    void findAllResponsesByQuestionnaireTest() {
+        Path path = Path.of(TestConstants.TEST_RESOURCES_DIRECTORY, "OUT", "TESTIDQUESTIONNAIRE");
         File dir = new File(String.valueOf(path));
         FileSystemUtils.deleteRecursively(dir);
 
@@ -173,13 +238,13 @@ class ResponseControllerTest {
         //Given
         surveyUnitUpdatePersistencePortStub.getMongoStub().clear();
 
-        for(int i = 0; i < Constants.BATCH_SIZE + 2; i++){
+        for (int i = 0; i < Constants.BATCH_SIZE + 2; i++) {
             List<VariableDto> externalVariableDtoList = new ArrayList<>();
             VariableDto variableDto = VariableDto.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
             externalVariableDtoList.add(variableDto);
 
             List<CollectedVariableDto> collectedVariableDtoList = new ArrayList<>();
-            CollectedVariableDto collectedVariableDto = new CollectedVariableDto("TESTIDVAR", List.of(new String[]{"V1", "V2"}),"TESTIDLOOP","TESTIDPARENT");
+            CollectedVariableDto collectedVariableDto = new CollectedVariableDto("TESTIDVAR", List.of(new String[]{"V1", "V2"}), "TESTIDLOOP", "TESTIDPARENT");
             collectedVariableDtoList.add(collectedVariableDto);
 
             surveyUnitUpdatePersistencePortStub.getMongoStub().add(SurveyUnitUpdateDto.builder()
@@ -188,8 +253,8 @@ class ResponseControllerTest {
                     .idUE("TESTIDUE" + i)
                     .idQuest("TESTIDQUESTIONNAIRE")
                     .state(DataState.COLLECTED)
-                    .fileDate(LocalDateTime.of(2023,1,1,0,0,0))
-                    .recordDate(LocalDateTime.of(2024,1,1,0,0,0))
+                    .fileDate(LocalDateTime.of(2023, 1, 1, 0, 0, 0))
+                    .recordDate(LocalDateTime.of(2024, 1, 1, 0, 0, 0))
                     .externalVariables(externalVariableDtoList)
                     .collectedVariables(collectedVariableDtoList)
                     .build());
@@ -210,10 +275,10 @@ class ResponseControllerTest {
     }
 
     @Test
-    void getLatestByUETest(){
+    void getLatestByUETest() {
         addAdditionnalDtoToMongoStub();
 
-        ResponseEntity<List<SurveyUnitUpdateDto>> response = responseControllerStatic.getLatestByUE("TESTIDUE","TESTIDQUESTIONNAIRE");
+        ResponseEntity<List<SurveyUnitUpdateDto>> response = responseControllerStatic.getLatestByUE("TESTIDUE", "TESTIDQUESTIONNAIRE");
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
@@ -223,8 +288,8 @@ class ResponseControllerTest {
     }
 
     @Test
-    void getLatestByUEOneObjectTest(){
-        ResponseEntity<SurveyUnitUpdateSimplified> response = responseControllerStatic.getLatestByUEOneObject("TESTIDUE","TESTIDQUESTIONNAIRE", Mode.WEB);
+    void getLatestByUEOneObjectTest() {
+        ResponseEntity<SurveyUnitUpdateSimplified> response = responseControllerStatic.getLatestByUEOneObject("TESTIDUE", "TESTIDQUESTIONNAIRE", Mode.WEB);
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull();
@@ -233,8 +298,8 @@ class ResponseControllerTest {
     }
 
     @Test
-    void getLatestForUEListTest(){
-        ResponseEntity<List<SurveyUnitUpdateSimplified>> response = responseControllerStatic.getLatestForUEList("TESTIDQUESTIONNAIRE",surveyUnitIdList);
+    void getLatestForUEListTest() {
+        ResponseEntity<List<SurveyUnitUpdateSimplified>> response = responseControllerStatic.getLatestForUEList("TESTIDQUESTIONNAIRE", surveyUnitIdList);
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
@@ -242,7 +307,7 @@ class ResponseControllerTest {
     }
 
     @Test
-    void getAllIdUEsByQuestionnaireTest(){
+    void getAllIdUEsByQuestionnaireTest() {
         ResponseEntity<List<SurveyUnitId>> response = responseControllerStatic.getAllIdUEsByQuestionnaire("TESTIDQUESTIONNAIRE");
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
@@ -251,7 +316,7 @@ class ResponseControllerTest {
     }
 
     @Test
-    void getModesByQuestionnaireTest(){
+    void getModesByQuestionnaireTest() {
         ResponseEntity<List<Mode>> response = responseControllerStatic.getModesByQuestionnaire("TESTIDQUESTIONNAIRE");
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
@@ -259,13 +324,14 @@ class ResponseControllerTest {
         Assertions.assertThat(response.getBody().getFirst()).isEqualTo(Mode.WEB);
     }
 
-    private void addAdditionnalDtoToMongoStub(){
+    // Utilities
+    private void addAdditionnalDtoToMongoStub() {
         List<VariableDto> externalVariableDtoList = new ArrayList<>();
         VariableDto variableDto = VariableDto.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
         externalVariableDtoList.add(variableDto);
 
         List<CollectedVariableDto> collectedVariableDtoList = new ArrayList<>();
-        CollectedVariableDto collectedVariableDto = new CollectedVariableDto("TESTIDVAR", List.of(new String[]{"V1", "V2"}),"TESTIDLOOP","TESTIDPARENT");
+        CollectedVariableDto collectedVariableDto = new CollectedVariableDto("TESTIDVAR", List.of(new String[]{"V1", "V2"}), "TESTIDLOOP", "TESTIDPARENT");
         collectedVariableDtoList.add(collectedVariableDto);
 
         SurveyUnitUpdateDto recentDTO = SurveyUnitUpdateDto.builder()
@@ -274,8 +340,8 @@ class ResponseControllerTest {
                 .idUE("TESTIDUE")
                 .idQuest("TESTIDQUESTIONNAIRE")
                 .state(DataState.COLLECTED)
-                .fileDate(LocalDateTime.of(2023,2,2,0,0,0))
-                .recordDate(LocalDateTime.of(2024,2,2,0,0,0))
+                .fileDate(LocalDateTime.of(2023, 2, 2, 0, 0, 0))
+                .recordDate(LocalDateTime.of(2024, 2, 2, 0, 0, 0))
                 .externalVariables(externalVariableDtoList)
                 .collectedVariables(collectedVariableDtoList)
                 .build();

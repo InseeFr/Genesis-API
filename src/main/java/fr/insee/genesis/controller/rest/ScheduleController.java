@@ -10,7 +10,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -45,8 +44,7 @@ public class ScheduleController {
         List<StoredSurveySchedule> storedSurveySchedules = scheduleApiPort.getAllSchedules();
 
         log.info("Returning " + storedSurveySchedules.size() + " schedule documents...");
-
-        return new ResponseEntity<>(storedSurveySchedules, HttpStatus.OK);
+        return ResponseEntity.ok(storedSurveySchedules);
     }
 
     @Operation(summary = "Schedule a Kraftwerk execution")
@@ -63,10 +61,10 @@ public class ScheduleController {
             scheduleApiPort.addSchedule(surveyName, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate);
         }catch (InvalidCronExpressionException e){
             log.warn("Returned error for wrong frequency : " + frequency);
-            return new ResponseEntity<>("Wrong frequency syntax",HttpStatus.BAD_REQUEST);
+            return ResponseEntity.badRequest().body("Wrong frequency syntax");
         }
         log.info("New schedule created for survey " + surveyName);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return ResponseEntity.ok().build();
     }
 
     @Operation(summary = "Update last execution date (for Bangles only)", hidden = true)
@@ -80,8 +78,8 @@ public class ScheduleController {
             log.info(surveyName + " last execution updated !");
         }catch (NotFoundException e){
             log.warn("Survey " + surveyName + " not found !");
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.notFound().build();
         }
-        return new ResponseEntity<>(HttpStatus.OK);
+        return ResponseEntity.ok().build();
     }
 }
