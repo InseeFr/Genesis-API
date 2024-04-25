@@ -109,9 +109,8 @@ public class ResponseController {
             }
         } catch (GenesisException e) {
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
-
         }
-        return new ResponseEntity<>("Data saved", HttpStatus.OK);
+        return ResponseEntity.ok("Data saved");
     }
 
     @Operation(summary = "Save all files in Genesis Database")
@@ -121,7 +120,7 @@ public class ResponseController {
         List<String> campaignFolders = fileUtils.listAllSpecsFolders();
 
         if (campaignFolders.isEmpty()) {
-            return new ResponseEntity<>("No campaign to save", HttpStatus.OK);
+            return ResponseEntity.ok("No campaign to save");
         }
 
         for (String campaignName : campaignFolders) {
@@ -138,9 +137,9 @@ public class ResponseController {
             }
         }
         if (errors.isEmpty()) {
-            return new ResponseEntity<>("Data saved", HttpStatus.OK);
+            return ResponseEntity.ok("Data saved");
         } else {
-            return new ResponseEntity<>("Data saved with " + errors.size() + " errors", HttpStatus.OK);
+            return ResponseEntity.status(209).body("Data saved with " + errors.size() + " errors");
         }
     }
 
@@ -150,7 +149,7 @@ public class ResponseController {
         log.info("Try to delete all responses of questionnaire : " + idQuestionnaire);
         Long ndDocuments = surveyUnitService.deleteByIdQuestionnaire(idQuestionnaire);
         log.info("{} responses deleted", ndDocuments);
-        return new ResponseEntity<>(String.format("%d responses deleted", ndDocuments), HttpStatus.OK);
+        return ResponseEntity.ok(String.format("%d responses deleted", ndDocuments));
     }
 
     @Operation(summary = "Retrieve responses with IdUE and IdQuestionnaire from Genesis Database")
@@ -158,7 +157,7 @@ public class ResponseController {
     public ResponseEntity<List<SurveyUnitUpdateDto>> findResponsesByUEAndQuestionnaire(@RequestParam("idUE") String idUE,
                                                                                        @RequestParam("idQuestionnaire") String idQuestionnaire) {
         List<SurveyUnitUpdateDto> responses = surveyUnitService.findByIdsUEAndQuestionnaire(idUE, idQuestionnaire);
-        return new ResponseEntity<>(responses, HttpStatus.OK);
+        return ResponseEntity.ok(responses);
     }
 
     @Operation(summary = "Retrieve all responses of one questionnaire")
@@ -180,7 +179,7 @@ public class ResponseController {
             return new ResponseEntity<>(filepath, HttpStatus.INTERNAL_SERVER_ERROR);
         }
         log.info("End of extraction, responses extracted : {}", idUEsResponses.size());
-        return new ResponseEntity<>(filepath, HttpStatus.OK);
+        return ResponseEntity.ok(filepath);
     }
 
     @Operation(summary = "Retrieve responses latest state with IdUE and IdQuestionnaire")
@@ -188,7 +187,7 @@ public class ResponseController {
     public ResponseEntity<List<SurveyUnitUpdateDto>> getLatestByUE(@RequestParam("idUE") String idUE,
                                                                    @RequestParam("idQuestionnaire") String idQuestionnaire) {
         List<SurveyUnitUpdateDto> responses = surveyUnitService.findLatestByIdAndByMode(idUE, idQuestionnaire);
-        return new ResponseEntity<>(responses, HttpStatus.OK);
+        return ResponseEntity.ok(responses);
     }
 
     @Operation(summary = "Retrieve response latest state with IdUE and IdQuestionnaire in one object in the output")
@@ -203,13 +202,13 @@ public class ResponseController {
             outputVariables.addAll(response.getCollectedVariables());
             outputExternalVariables.addAll(response.getExternalVariables());
         });
-        return new ResponseEntity<>(SurveyUnitUpdateSimplified.builder()
+        return ResponseEntity.ok(SurveyUnitUpdateSimplified.builder()
                 .idQuest(responses.getFirst().getIdQuest())
                 .idCampaign(responses.getFirst().getIdCampaign())
                 .idUE(responses.getFirst().getIdUE())
                 .variablesUpdate(outputVariables)
                 .externalVariables(outputExternalVariables)
-                .build(), HttpStatus.OK);
+                .build());
     }
 
 
@@ -242,21 +241,21 @@ public class ResponseController {
                 }
             });
         });
-        return new ResponseEntity<>(results, HttpStatus.OK);
+        return ResponseEntity.ok(results);
     }
 
     @Operation(summary = "Retrieve all IdUEs for a given questionnaire")
     @GetMapping(path = "/get-idUEs/by-questionnaire")
     public ResponseEntity<List<SurveyUnitId>> getAllIdUEsByQuestionnaire(@RequestParam("idQuestionnaire") String idQuestionnaire) {
         List<SurveyUnitId> responses = surveyUnitService.findDistinctIdUEsByIdQuestionnaire(idQuestionnaire);
-        return new ResponseEntity<>(responses, HttpStatus.OK);
+        return ResponseEntity.ok(responses);
     }
 
     @Operation(summary = "List sources used for a given questionnaire")
     @GetMapping(path = "/get-modes/by-questionnaire")
     public ResponseEntity<List<Mode>> getModesByQuestionnaire(@RequestParam("idQuestionnaire") String idQuestionnaire) {
         List<Mode> modes = surveyUnitService.findModesByIdQuestionnaire(idQuestionnaire);
-        return new ResponseEntity<>(modes, HttpStatus.OK);
+        return ResponseEntity.ok(modes);
     }
 
     //Utilities

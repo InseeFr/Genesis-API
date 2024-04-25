@@ -3,7 +3,6 @@ package fr.insee.genesis.controller.rest;
 import fr.insee.genesis.controller.utils.XMLSplitter;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -24,6 +23,6 @@ public class UtilsController {
 			throws Exception {
 		log.info("Split XML file : " + filename + " into " + nbSU + " SU by file");
 		XMLSplitter.split(inputFolder, filename, outputFolder, "SurveyUnit", nbSU);
-		return new ResponseEntity<>("Test", HttpStatus.OK);
+		return ResponseEntity.ok("Test");
 	}
 }
