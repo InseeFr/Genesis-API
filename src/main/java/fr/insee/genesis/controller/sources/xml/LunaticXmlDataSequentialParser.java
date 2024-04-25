@@ -6,6 +6,7 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 import java.io.IOException;
@@ -168,16 +169,11 @@ public class LunaticXmlDataSequentialParser{
                 final String stateName = element.getName().getLocalPart();
 
                 List<ValueType> values = new ArrayList<>();
-                if(element.isStartElement()
-                        && event.asStartElement().getName().getLocalPart().equals(stateName)
-                        && event.asStartElement().getAttributeByName(new QName("type")) != null
-                ){
+                if(element.isStartElement() && getType(element) != null && !getType(element).getValue().equals("null")){
                     //If only 1 value (determined by presence of type)
-                    String type = element.getAttributeByName(new QName("type")).getValue();
-                    if(!type.equals("null")){
-                        String value = reader.getElementText();
-                        values.add(new ValueType(value, type));
-                    }
+                    String type = getType(element).getValue();
+                    String value = reader.getElementText();
+                    values.add(new ValueType(value, type));
                 }else{
                     //If multiple value
                     values = readValues(reader, stateName);
@@ -207,6 +203,10 @@ public class LunaticXmlDataSequentialParser{
         return variable;
     }
 
+	private static Attribute getType(StartElement element) {
+		return element.getAttributeByName(new QName("type"));
+	}
+
     private List<ValueType> readValues(XMLEventReader reader, String stateName) throws XMLStreamException {
         List<ValueType> values = new ArrayList<>();
 
@@ -222,7 +222,7 @@ public class LunaticXmlDataSequentialParser{
             if(event.isStartElement()) {
                 final StartElement element = event.asStartElement();
 
-                String type = element.getAttributeByName(new QName("type")).getValue();
+                String type = getType(element).getValue();
                 String value = reader.getElementText();
 
                 values.add(new ValueType(value, type));
