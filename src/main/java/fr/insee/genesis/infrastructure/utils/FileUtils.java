@@ -221,12 +221,12 @@ public class FileUtils {
 	 * @return List of specs folders
 	 */
 	public List<File> listAllSpecsFolders() {
-        File[] objs = new File(getSpecFolder()).listFiles();
-        if (objs == null) {
-            return List.of();
-        }
-        return Arrays.stream(objs)
-            .filter(File::isDirectory)
-            .toList();
+		File[] objs = new File(getSpecFolder()).listFiles();
+		if (objs == null) {
+			return List.of();
+		}
+		return Arrays.stream(objs)
+			.filter(File::isDirectory)
+			.toList();
 	}
 }
