@@ -95,4 +95,9 @@ public class ScheduleApiPortStub implements ScheduleApiPort {
             storedSurveySchedule.setLastExecution(LocalDateTime.now());
         }else throw new NotFoundException();
     }
+
+    @Override
+    public long countSchedules() {
+        return mongoStub.size();
+    }
 }

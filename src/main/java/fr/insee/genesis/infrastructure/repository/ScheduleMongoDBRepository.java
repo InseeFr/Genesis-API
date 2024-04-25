@@ -16,4 +16,6 @@ public interface ScheduleMongoDBRepository extends MongoRepository<StoredSurveyS
 
     @Query(value = "{ 'surveyName' : ?0 }", delete = true)
     void deleteBySurveyName(String surveyName);
+
+    long count();
 }

@@ -75,5 +75,12 @@ public class ScheduleImpl implements ScheduleApiPort {
             throw new NotFoundException();
         }
 
+
+
+    }
+
+    @Override
+    public long countSchedules() {
+        return scheduleMongoDBRepository.count();
     }
 }

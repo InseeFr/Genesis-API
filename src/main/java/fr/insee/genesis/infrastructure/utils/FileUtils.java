@@ -11,6 +11,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -139,7 +140,15 @@ public class FileUtils {
 
 	/**
 	 * Get the path of the folder where the specifications files are stored
-	 * @param campaign
+	 * @return Path of the specifications folder
+	 */
+	public String getSpecFolder() {
+		return  String.format("%s/%s", specFolderSource, "specs");
+	}
+
+	/**
+	 * Get the path of the folder where the specifications files are stored for specific campaign
+	 * @param campaign name of campaign
 	 * @return Path of the specifications folder
 	 */
 	public String getSpecFolder(String campaign) {
@@ -205,5 +214,19 @@ public class FileUtils {
 		} catch (UncheckedIOException e) {
 			throw e.getCause();
 		}
+	}
+
+	/**
+	 * List all folders in the specs folder
+	 * @return List of specs folders
+	 */
+	public List<File> listAllSpecsFolders() {
+		File[] objs = new File(getSpecFolder()).listFiles();
+		if (objs == null) {
+			return List.of();
+		}
+		return Arrays.stream(objs)
+			.filter(File::isDirectory)
+			.toList();
 	}
 }

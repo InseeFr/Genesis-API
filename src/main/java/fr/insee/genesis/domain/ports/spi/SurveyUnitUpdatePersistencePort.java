@@ -22,5 +22,5 @@ public interface SurveyUnitUpdatePersistencePort {
 
     Long deleteByIdQuestionnaire(String idQuestionnaire);
 
-
+    long count();
 }
