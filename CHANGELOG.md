@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.2.2 - [NOT-YET-RELEASED]
+## 1.2.2 - [NOT YET RELEASED]
 ### Added
 - Treat all campaigns endpoint
 ### Fixed
