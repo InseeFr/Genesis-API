@@ -126,7 +126,6 @@ public class LunaticXmlDataSequentialParser{
                 }
             }
         }
-
         return xmlSurveyUnit;
     }
 
@@ -139,13 +138,10 @@ public class LunaticXmlDataSequentialParser{
                 return lunaticXmlCollectedDataList;
             }
 
-
             if(event.isStartElement()){
                 final StartElement element = event.asStartElement();
                 final String variableName = element.getName().getLocalPart();
-
                 LunaticXmlCollectedData variable = readNextCollectedVariable(reader, variableName);
-
                 lunaticXmlCollectedDataList.add(variable);
             }
         }
@@ -210,7 +206,6 @@ public class LunaticXmlDataSequentialParser{
     private List<ValueType> readValues(XMLEventReader reader, String stateName) throws XMLStreamException {
         List<ValueType> values = new ArrayList<>();
 
-
         while(reader.hasNext()){
             final XMLEvent event = reader.nextEvent();
 
@@ -251,7 +246,7 @@ public class LunaticXmlDataSequentialParser{
                 LunaticXmlOtherData variable = new LunaticXmlOtherData();
                 variable.setVariableName(variableName);
 
-                String type = element.getAttributeByName(new QName("type")).getValue();
+                String type = getType(element).getValue();
                 String value = reader.getElementText();
 
                 List<ValueType> values = new ArrayList<>();
