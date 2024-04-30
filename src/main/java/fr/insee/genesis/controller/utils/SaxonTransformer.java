@@ -1,9 +1,6 @@
 package fr.insee.genesis.controller.utils;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.nio.file.Path;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
@@ -11,8 +8,10 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
-
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.nio.file.Path;
 
 @Slf4j
 public class SaxonTransformer {
@@ -34,10 +33,8 @@ public class SaxonTransformer {
         }
 
         // Get the XSL file
-        StreamSource xslSource;
-        InputStream xslInput;
-        xslInput = SaxonTransformer.class.getClassLoader().getResourceAsStream(inputXslPath);
-        xslSource = new StreamSource(xslInput);
+        InputStream xslInput = SaxonTransformer.class.getClassLoader().getResourceAsStream(inputXslPath);
+        StreamSource xslSource = new StreamSource(xslInput);
         xslSource.setSystemId(inputXslPath);
 
         // Instantiation of the XSL transformer factory
@@ -56,8 +53,10 @@ public class SaxonTransformer {
 
         try {
             xmlInput.close();
-            xslInput.close();
-        } catch (IOException e) {
+			if (xslInput != null) {
+				xslInput.close();
+			}
+		} catch (IOException e) {
             log.error("IOException occurred when trying to close the streams after XSL transformation.", e);
         }
 
