@@ -1,5 +1,6 @@
 package fr.insee.genesis.domain.ports.spi;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import fr.insee.genesis.domain.dtos.SurveyUnitDto;
 import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
 
@@ -23,4 +24,6 @@ public interface SurveyUnitUpdatePersistencePort {
     Long deleteByIdQuestionnaire(String idQuestionnaire);
 
     long count();
+
+    List<String> findIdQuestionnairesByIdCampaign(String idCampaign);
 }

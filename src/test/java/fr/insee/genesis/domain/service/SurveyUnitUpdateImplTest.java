@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
 import java.time.Month;
@@ -153,6 +154,14 @@ class SurveyUnitUpdateImplTest {
         ).isNotEmpty();
     }
 
+    @Test
+    void getQuestionnairesByCampaignTest() {
+        addAdditionnalDtoToMongoStub("TESTQUESTIONNAIRE2");
+
+        Assertions.assertThat(surveyUnitUpdateImplStatic.findIdQuestionnairesByIdCampaign("TESTIDCAMPAIGN")).isNotEmpty().hasSize(2);
+
+    }
+
     private void addAdditionnalDtoToMongoStub(){
         List<VariableDto> externalVariableDtoList = new ArrayList<>();
         VariableDto variableDto = VariableDto.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
@@ -170,6 +179,29 @@ class SurveyUnitUpdateImplTest {
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2023,2,2,0,0,0))
                 .recordDate(LocalDateTime.of(2024,2,2,0,0,0))
+                .externalVariables(externalVariableDtoList)
+                .collectedVariables(collectedVariableDtoList)
+                .build();
+        surveyUnitUpdatePersistencePortStub.getMongoStub().add(recentDTO);
+    }
+
+    private void addAdditionnalDtoToMongoStub(String idQuestionnaire) {
+        List<VariableDto> externalVariableDtoList = new ArrayList<>();
+        VariableDto variableDto = VariableDto.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
+        externalVariableDtoList.add(variableDto);
+
+        List<CollectedVariableDto> collectedVariableDtoList = new ArrayList<>();
+        CollectedVariableDto collectedVariableDto = new CollectedVariableDto("TESTIDVAR", List.of(new String[]{"V1", "V2"}), "TESTIDLOOP", "TESTIDPARENT");
+        collectedVariableDtoList.add(collectedVariableDto);
+
+        SurveyUnitUpdateDto recentDTO = SurveyUnitUpdateDto.builder()
+                .idCampaign("TESTIDCAMPAIGN")
+                .mode(Mode.WEB)
+                .idUE("TESTIDUE")
+                .idQuest(idQuestionnaire)
+                .state(DataState.COLLECTED)
+                .fileDate(LocalDateTime.of(2023, 2, 2, 0, 0, 0))
+                .recordDate(LocalDateTime.of(2024, 2, 2, 0, 0, 0))
                 .externalVariables(externalVariableDtoList)
                 .collectedVariables(collectedVariableDtoList)
                 .build();

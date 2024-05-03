@@ -1,7 +1,9 @@
 package fr.insee.genesis.stubs;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import fr.insee.genesis.domain.dtos.SurveyUnitDto;
@@ -87,5 +89,14 @@ public class SurveyUnitUpdatePersistencePortStub implements SurveyUnitUpdatePers
         return mongoStub.size();
     }
 
+    @Override
+    public List<String> findIdQuestionnairesByIdCampaign(String idCampaign) {
+        Set<String> idQuestionnaireSet = new HashSet<>();
+        for(SurveyUnitUpdateDto surveyUnitUpdateDto : mongoStub){
+            if(surveyUnitUpdateDto.getIdCampaign().equals(idCampaign))
+                idQuestionnaireSet.add(surveyUnitUpdateDto.getIdQuest());
+        }
 
+        return idQuestionnaireSet.stream().toList();
+    }
 }

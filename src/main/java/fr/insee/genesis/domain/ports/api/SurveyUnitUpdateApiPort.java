@@ -32,4 +32,6 @@ public interface SurveyUnitUpdateApiPort {
     Long deleteByIdQuestionnaire(String idQuestionnaire);
 
     long countResponses();
+
+    List<String> findIdQuestionnairesByIdCampaign(String idCampaign);
 }

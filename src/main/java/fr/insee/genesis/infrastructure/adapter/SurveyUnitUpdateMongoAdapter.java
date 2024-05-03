@@ -1,5 +1,8 @@
 package fr.insee.genesis.infrastructure.adapter;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.insee.genesis.domain.dtos.SurveyUnitDto;
 import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitUpdatePersistencePort;
@@ -69,6 +72,25 @@ public class SurveyUnitUpdateMongoAdapter implements SurveyUnitUpdatePersistence
 	@Override
 	public long count() {
 		return mongoRepository.count();
+	}
+
+	@Override
+	public List<String> findIdQuestionnairesByIdCampaign(String idCampaign){
+		List<String> mongoResponse = mongoRepository.findIdQuestionnairesByIdCampaign(idCampaign).stream().distinct().toList();
+
+		//Extract idQuestionnaires from JSON response
+		List<String> idQuestionnaires = new ArrayList<>();
+		for(String line : mongoResponse){
+			ObjectMapper objectMapper = new ObjectMapper();
+			try{
+				JsonNode jsonNode = objectMapper.readTree(line);
+				idQuestionnaires.add(jsonNode.get("idQuestionnaire").asText());
+			}catch (JsonProcessingException e){
+				log.error(e.getMessage());
+			}
+		}
+
+		return idQuestionnaires;
 	}
 
 	public List<SurveyUnitDto> findIdUEsByIdQuestionnaire(String idQuestionnaire) {
