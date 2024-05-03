@@ -25,5 +25,5 @@ public interface SurveyUnitUpdatePersistencePort {
 
     long count();
 
-    List<String> findIdQuestionnairesByIdCampaign(String idCampaign) throws JsonProcessingException;
+    List<String> findIdQuestionnairesByIdCampaign(String idCampaign);
 }

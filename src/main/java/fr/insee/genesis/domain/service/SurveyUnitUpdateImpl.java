@@ -1,17 +1,14 @@
 package fr.insee.genesis.domain.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import fr.insee.genesis.domain.dtos.SurveyUnitId;
 import fr.insee.genesis.domain.dtos.*;
 import fr.insee.genesis.domain.ports.api.SurveyUnitUpdateApiPort;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitUpdatePersistencePort;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-@Slf4j
 public class SurveyUnitUpdateImpl implements SurveyUnitUpdateApiPort {
 
     private final SurveyUnitUpdatePersistencePort surveyUnitUpdatePersistencePort;
@@ -135,13 +132,8 @@ public class SurveyUnitUpdateImpl implements SurveyUnitUpdateApiPort {
 
     @Override
     public List<String> findIdQuestionnairesByIdCampaign(String idCampaign) {
-        try{
             List<String> idQuestionnaireList = surveyUnitUpdatePersistencePort.findIdQuestionnairesByIdCampaign(idCampaign);
             return idQuestionnaireList.stream().distinct().toList();
-        }catch (JsonProcessingException e){
-            log.error(e.getMessage());
-        }
-        return new ArrayList<>();
     }
 
     private static List<Mode> getDistinctsModes(List<SurveyUnitUpdateDto> surveyUnits) {

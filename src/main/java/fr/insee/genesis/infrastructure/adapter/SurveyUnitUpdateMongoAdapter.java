@@ -75,15 +75,19 @@ public class SurveyUnitUpdateMongoAdapter implements SurveyUnitUpdatePersistence
 	}
 
 	@Override
-	public List<String> findIdQuestionnairesByIdCampaign(String idCampaign) throws JsonProcessingException {
+	public List<String> findIdQuestionnairesByIdCampaign(String idCampaign){
 		List<String> mongoResponse = mongoRepository.findIdQuestionnairesByIdCampaign(idCampaign).stream().distinct().toList();
 
 		//Extract idQuestionnaires from JSON response
 		List<String> idQuestionnaires = new ArrayList<>();
 		for(String line : mongoResponse){
 			ObjectMapper objectMapper = new ObjectMapper();
-			JsonNode jsonNode = objectMapper.readTree(line);
-			idQuestionnaires.add(jsonNode.get("idQuestionnaire").asText());
+			try{
+				JsonNode jsonNode = objectMapper.readTree(line);
+				idQuestionnaires.add(jsonNode.get("idQuestionnaire").asText());
+			}catch (JsonProcessingException e){
+				log.error(e.getMessage());
+			}
 		}
 
 		return idQuestionnaires;
