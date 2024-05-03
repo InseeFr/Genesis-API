@@ -260,6 +260,13 @@ public class ResponseController {
         return ResponseEntity.ok(modes);
     }
 
+    @Operation(summary = "List questionnaires used for a given campaign")
+    @GetMapping(path = "/get-questionnaires/by-campaign")
+    public ResponseEntity<List<String>> getQuestionnairesByCampaign(@RequestParam("idCampaign") String idCampaign) {
+        List<String> questionnaires = surveyUnitService.findIdQuestionnairesByIdCampaign(idCampaign);
+        return ResponseEntity.ok(questionnaires);
+    }
+
     //Utilities
 
     private void treatCampaignWithMode(String campaignName, Mode mode, List<GenesisError> errors) throws IOException, ParserConfigurationException, SAXException, XMLStreamException {
