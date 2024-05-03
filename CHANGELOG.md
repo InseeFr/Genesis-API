@@ -1,4 +1,7 @@
 # Changelog
+## 1.2.3 - [2024-05-03]
+### Added
+- Get idQuestionnaires by IdCampaign endpoint
 
 ## 1.2.2 - [2024-05-03]
 ### Added
