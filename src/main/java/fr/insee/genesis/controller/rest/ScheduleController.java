@@ -34,9 +34,7 @@ public class ScheduleController {
         this.scheduleApiPort = scheduleApiPort;
     }
 
-    //TODO French traduction for users
-
-    @Operation(summary = "Fetch all schedules (for Bangles only)", hidden = true)
+    @Operation(summary = "Fetch all schedules")
     @GetMapping(path = "/all")
     public ResponseEntity<Object> getAllSchedules() {
         log.debug("Got GET all schedules request");
@@ -67,7 +65,7 @@ public class ScheduleController {
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "Update last execution date (for Bangles only)", hidden = true)
+    @Operation(summary = "Update last execution date with now")
     @PostMapping(path = "/updateLastExecutionDate")
     public ResponseEntity<Object> updateSurveyLastExecution(
             @Parameter(description = "Survey name to call Kraftwerk on") @RequestBody String surveyName
