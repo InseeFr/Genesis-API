@@ -1,10 +1,9 @@
 package fr.insee.genesis.controller.rest;
 
-import fr.insee.genesis.domain.service.ScheduleUnicityService;
 import fr.insee.genesis.exceptions.InvalidCronExpressionException;
 import fr.insee.genesis.infrastructure.model.document.schedule.KraftwerkExecutionSchedule;
-import fr.insee.genesis.infrastructure.model.document.schedule.StoredSurveySchedule;
 import fr.insee.genesis.infrastructure.model.document.schedule.ServiceToCall;
+import fr.insee.genesis.infrastructure.model.document.schedule.StoredSurveySchedule;
 import fr.insee.genesis.stubs.ScheduleApiPortStub;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -147,6 +146,29 @@ class ScheduleControllerTest {
         List<StoredSurveySchedule> mongoStubFiltered = scheduleApiPortStub.mongoStub.stream().filter(scheduleDocument ->
                 scheduleDocument.getSurveyName().equals("TESTSURVEY")).toList();
         Assertions.assertThat(mongoStubFiltered.getFirst().getLastExecution()).isNotNull();
+    }
+
+    @Test
+    void setLastExecutionTestToNull(){
+        //When
+        scheduleController.setSurveyLastExecution("TESTSURVEY", null);
+
+        //Then
+        List<StoredSurveySchedule> mongoStubFiltered = scheduleApiPortStub.mongoStub.stream().filter(scheduleDocument ->
+                scheduleDocument.getSurveyName().equals("TESTSURVEY")).toList();
+        Assertions.assertThat(mongoStubFiltered.getFirst().getLastExecution()).isNull();
+    }
+
+    @Test
+    void setLastExecutionTest(){
+        LocalDateTime date = LocalDateTime.now();
+        //When
+        scheduleController.setSurveyLastExecution("TESTSURVEY", date);
+
+        //Then
+        List<StoredSurveySchedule> mongoStubFiltered = scheduleApiPortStub.mongoStub.stream().filter(scheduleDocument ->
+                scheduleDocument.getSurveyName().equals("TESTSURVEY")).toList();
+        Assertions.assertThat(mongoStubFiltered.getFirst().getLastExecution()).isEqualTo(date);
     }
 
     @Test
