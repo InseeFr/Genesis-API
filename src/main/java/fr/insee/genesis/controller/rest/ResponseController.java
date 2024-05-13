@@ -25,7 +25,6 @@ import fr.insee.genesis.infrastructure.utils.FileUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -277,6 +276,7 @@ public class ResponseController {
         if (dataFiles.isEmpty()) {
             errors.add(new NoDataError("No data file found", Mode.getEnumFromModeName(mode.getModeName())));
             log.info("No data file found in folder {}", dataFolder);
+            return;
         }
         VariablesMap variablesMap;
         try {

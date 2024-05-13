@@ -78,7 +78,7 @@ public class DDIReader {
 
                     // Store the group
                     Group group;
-                    if (parentGroupName == null || StringUtils.isEmpty(parentGroupName)) {
+                    if (!groupElement.hasAttribute("parent") || StringUtils.isEmpty(parentGroupName)) {
                         rootGroupName = groupName;
                         group = variablesMap.getRootGroup();
 
@@ -186,8 +186,9 @@ public class DDIReader {
 
     private static Node getFirstChildNode(Element variableElement, String childTagName) {
         NodeList children = variableElement.getElementsByTagName(childTagName);
-        if (children == null)
+        if (children.getLength() == 0){
             return null;
+        }
         return children.item(0);
     }
 
