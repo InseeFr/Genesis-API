@@ -11,12 +11,7 @@ import fr.insee.genesis.controller.sources.xml.LunaticXmlDataParser;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlDataSequentialParser;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
 import fr.insee.genesis.controller.utils.ControllerUtils;
-import fr.insee.genesis.domain.dtos.CollectedVariableDto;
-import fr.insee.genesis.domain.dtos.Mode;
-import fr.insee.genesis.domain.dtos.SurveyUnitDto;
-import fr.insee.genesis.domain.dtos.SurveyUnitId;
-import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
-import fr.insee.genesis.domain.dtos.VariableDto;
+import fr.insee.genesis.domain.dtos.*;
 import fr.insee.genesis.domain.ports.api.SurveyUnitUpdateApiPort;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
@@ -25,16 +20,9 @@ import fr.insee.genesis.infrastructure.utils.FileUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -270,6 +258,7 @@ public class ResponseController {
         if (dataFiles.isEmpty()) {
             errors.add(new NoDataError("No data file found", Mode.getEnumFromModeName(mode.getModeName())));
             log.info("No data file found in folder {}", dataFolder);
+            return;
         }
         VariablesMap variablesMap;
         try {
