@@ -51,8 +51,8 @@ public class ScheduleController {
             @Parameter(description = "Survey name to call Kraftwerk on") @RequestParam("surveyName") String surveyName,
             @Parameter(description = "Kraftwerk endpoint") @RequestParam(value = "serviceTocall", defaultValue = Constants.KRAFTWERK_MAIN_ENDPOINT) ServiceToCall serviceToCall,
             @Parameter(description = "Frequency in Spring cron format. \n Example : 0 0 6 * * *") @RequestParam("frequency") String frequency,
-            @Parameter(description = "Schedule effective date and time", example = "2023-06-16T12:00:00") @RequestParam("scheduleBeginDate") LocalDateTime scheduleBeginDate,
-            @Parameter(description = "Schedule end date and time", example = "2023-06-17T12:00:00") @RequestParam("scheduleEndDate") LocalDateTime scheduleEndDate
+            @Parameter(description = "Schedule effective date and time", example = "2024-01-01T12:00:00") @RequestParam("scheduleBeginDate") LocalDateTime scheduleBeginDate,
+            @Parameter(description = "Schedule end date and time", example = "2024-01-01T12:00:00") @RequestParam("scheduleEndDate") LocalDateTime scheduleEndDate
     ){
         try {
             log.info("New schedule request for survey " + surveyName);
