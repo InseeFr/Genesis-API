@@ -41,7 +41,7 @@ public class ScheduleController {
 
         List<StoredSurveySchedule> storedSurveySchedules = scheduleApiPort.getAllSchedules();
 
-        log.info("Returning " + storedSurveySchedules.size() + " schedule documents...");
+        log.info("Returning {} schedule documents...", storedSurveySchedules.size());
         return ResponseEntity.ok(storedSurveySchedules);
     }
 
@@ -55,29 +55,13 @@ public class ScheduleController {
             @Parameter(description = "Schedule end date and time", example = "2024-01-01T12:00:00") @RequestParam("scheduleEndDate") LocalDateTime scheduleEndDate
     ){
         try {
-            log.info("New schedule request for survey " + surveyName);
+            log.info("New schedule request for survey {}", surveyName);
             scheduleApiPort.addSchedule(surveyName, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate);
         }catch (InvalidCronExpressionException e){
-            log.warn("Returned error for wrong frequency : " + frequency);
+            log.warn("Returned error for wrong frequency : {}", frequency);
             return ResponseEntity.badRequest().body("Wrong frequency syntax");
         }
-        log.info("New schedule created for survey " + surveyName);
-        return ResponseEntity.ok().build();
-    }
-
-    @Operation(summary = "Update last execution date with now")
-    @PostMapping(path = "/updateLastExecutionDate")
-    public ResponseEntity<Object> updateSurveyLastExecution(
-            @Parameter(description = "Survey name to call Kraftwerk on") @RequestBody String surveyName
-    ) {
-        try {
-            log.debug("Got update last execution on {}", surveyName);
-            scheduleApiPort.updateLastExecutionName(surveyName, LocalDateTime.now());
-            log.info("{} last execution updated !", surveyName);
-        }catch (NotFoundException e){
-            log.warn("Survey {} not found !", surveyName);
-            return ResponseEntity.notFound().build();
-        }
+        log.info("New schedule created for survey {}", surveyName);
         return ResponseEntity.ok().build();
     }
 

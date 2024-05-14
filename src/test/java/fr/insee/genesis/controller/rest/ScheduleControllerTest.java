@@ -140,7 +140,7 @@ class ScheduleControllerTest {
     @Test
     void updateLastExecutionTest(){
         //When
-        scheduleController.updateSurveyLastExecution("TESTSURVEY");
+        scheduleController.setSurveyLastExecution("TESTSURVEY", LocalDateTime.now());
 
         //Then
         List<StoredSurveySchedule> mongoStubFiltered = scheduleApiPortStub.mongoStub.stream().filter(scheduleDocument ->
@@ -187,7 +187,7 @@ class ScheduleControllerTest {
     @Test
     void notFoundTest(){
         //When+Then
-        ResponseEntity<Object> response = scheduleController.updateSurveyLastExecution("ERROR");
+        ResponseEntity<Object> response = scheduleController.setSurveyLastExecution("ERROR", LocalDateTime.now());
         Assertions.assertThat(response.getStatusCode().is4xxClientError()).isTrue();
     }
 }
