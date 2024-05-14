@@ -4,8 +4,8 @@ import fr.insee.genesis.Constants;
 import fr.insee.genesis.domain.ports.api.ScheduleApiPort;
 import fr.insee.genesis.exceptions.InvalidCronExpressionException;
 import fr.insee.genesis.exceptions.NotFoundException;
-import fr.insee.genesis.infrastructure.model.document.schedule.StoredSurveySchedule;
 import fr.insee.genesis.infrastructure.model.document.schedule.ServiceToCall;
+import fr.insee.genesis.infrastructure.model.document.schedule.StoredSurveySchedule;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +41,7 @@ public class ScheduleController {
 
         List<StoredSurveySchedule> storedSurveySchedules = scheduleApiPort.getAllSchedules();
 
-        log.info("Returning " + storedSurveySchedules.size() + " schedule documents...");
+        log.info("Returning {} schedule documents...", storedSurveySchedules.size());
         return ResponseEntity.ok(storedSurveySchedules);
     }
 
@@ -55,27 +55,28 @@ public class ScheduleController {
             @Parameter(description = "Schedule end date and time", example = "2024-01-01T12:00:00") @RequestParam("scheduleEndDate") LocalDateTime scheduleEndDate
     ){
         try {
-            log.info("New schedule request for survey " + surveyName);
+            log.info("New schedule request for survey {}", surveyName);
             scheduleApiPort.addSchedule(surveyName, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate);
         }catch (InvalidCronExpressionException e){
-            log.warn("Returned error for wrong frequency : " + frequency);
+            log.warn("Returned error for wrong frequency : {}", frequency);
             return ResponseEntity.badRequest().body("Wrong frequency syntax");
         }
-        log.info("New schedule created for survey " + surveyName);
+        log.info("New schedule created for survey {}", surveyName);
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "Update last execution date with now")
-    @PostMapping(path = "/updateLastExecutionDate")
-    public ResponseEntity<Object> updateSurveyLastExecution(
-            @Parameter(description = "Survey name to call Kraftwerk on") @RequestBody String surveyName
-    ) {
+    @Operation(summary = "Set last execution date with new date or empty")
+    @PostMapping(path = "/setLastExecutionDate")
+    public ResponseEntity<Object> setSurveyLastExecution(
+            @Parameter(description = "Survey name to call Kraftwerk on") @RequestBody String surveyName,
+            @Parameter(description = "Date to save as last execution date", example = "2024-01-01T12:00:00") @RequestParam("newDate") LocalDateTime newDate
+            ) {
         try {
-            log.debug("Got update last execution on " + surveyName);
-            scheduleApiPort.updateLastExecutionName(surveyName);
-            log.info(surveyName + " last execution updated !");
+            log.debug("Got update last execution on {} with data param {}", surveyName, newDate);
+            scheduleApiPort.updateLastExecutionName(surveyName, newDate);
+            log.info("{} last execution updated at {} !", surveyName, newDate);
         }catch (NotFoundException e){
-            log.warn("Survey " + surveyName + " not found !");
+            log.warn("Survey {} not found !", surveyName);
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok().build();

@@ -5,8 +5,8 @@ import fr.insee.genesis.domain.service.ScheduleUnicityService;
 import fr.insee.genesis.exceptions.InvalidCronExpressionException;
 import fr.insee.genesis.exceptions.NotFoundException;
 import fr.insee.genesis.infrastructure.model.document.schedule.KraftwerkExecutionSchedule;
-import fr.insee.genesis.infrastructure.model.document.schedule.StoredSurveySchedule;
 import fr.insee.genesis.infrastructure.model.document.schedule.ServiceToCall;
+import fr.insee.genesis.infrastructure.model.document.schedule.StoredSurveySchedule;
 import org.springframework.scheduling.support.CronExpression;
 
 import java.time.LocalDateTime;
@@ -87,12 +87,12 @@ public class ScheduleApiPortStub implements ScheduleApiPort {
     }
 
     @Override
-    public void updateLastExecutionName(String surveyName) throws NotFoundException {
+    public void updateLastExecutionName(String surveyName, LocalDateTime newDate) throws NotFoundException {
         List<StoredSurveySchedule> mongoStubFiltered = mongoStub.stream().filter(scheduleDocument ->
                 scheduleDocument.getSurveyName().equals(surveyName)).toList();
         if(!mongoStubFiltered.isEmpty()) {
             StoredSurveySchedule storedSurveySchedule = mongoStubFiltered.getFirst();
-            storedSurveySchedule.setLastExecution(LocalDateTime.now());
+            storedSurveySchedule.setLastExecution(newDate);
         }else throw new NotFoundException();
     }
 

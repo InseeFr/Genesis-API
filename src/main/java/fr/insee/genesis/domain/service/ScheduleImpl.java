@@ -63,12 +63,12 @@ public class ScheduleImpl implements ScheduleApiPort {
     }
 
     @Override
-    public void updateLastExecutionName(String surveyName) throws NotFoundException {
+    public void updateLastExecutionName(String surveyName, LocalDateTime newDate) throws NotFoundException {
         List<StoredSurveySchedule> storedSurveySchedules = scheduleMongoDBRepository.findBySurveyName(surveyName);
 
         if (!storedSurveySchedules.isEmpty()) {
             for(StoredSurveySchedule surveySchedule : storedSurveySchedules){
-                surveySchedule.setLastExecution(LocalDateTime.now());
+                surveySchedule.setLastExecution(newDate);
             }
             scheduleMongoDBRepository.saveAll(storedSurveySchedules);
         }else{
