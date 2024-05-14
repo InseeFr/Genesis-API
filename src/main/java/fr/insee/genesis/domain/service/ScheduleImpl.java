@@ -4,8 +4,8 @@ import fr.insee.genesis.domain.ports.api.ScheduleApiPort;
 import fr.insee.genesis.exceptions.InvalidCronExpressionException;
 import fr.insee.genesis.exceptions.NotFoundException;
 import fr.insee.genesis.infrastructure.model.document.schedule.KraftwerkExecutionSchedule;
-import fr.insee.genesis.infrastructure.model.document.schedule.StoredSurveySchedule;
 import fr.insee.genesis.infrastructure.model.document.schedule.ServiceToCall;
+import fr.insee.genesis.infrastructure.model.document.schedule.StoredSurveySchedule;
 import fr.insee.genesis.infrastructure.repository.ScheduleMongoDBRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,12 +63,12 @@ public class ScheduleImpl implements ScheduleApiPort {
     }
 
     @Override
-    public void updateLastExecutionName(String surveyName) throws NotFoundException {
+    public void updateLastExecutionName(String surveyName, LocalDateTime newDate) throws NotFoundException {
         List<StoredSurveySchedule> storedSurveySchedules = scheduleMongoDBRepository.findBySurveyName(surveyName);
 
         if (!storedSurveySchedules.isEmpty()) {
             for(StoredSurveySchedule surveySchedule : storedSurveySchedules){
-                surveySchedule.setLastExecution(LocalDateTime.now());
+                surveySchedule.setLastExecution(newDate);
             }
             scheduleMongoDBRepository.saveAll(storedSurveySchedules);
         }else{
