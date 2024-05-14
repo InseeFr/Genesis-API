@@ -325,6 +325,15 @@ class ResponseControllerTest {
     }
 
     @Test
+    void getModesByCampaignTest() {
+        ResponseEntity<List<Mode>> response = responseControllerStatic.getModesByCampaign("TESTIDCAMPAIGN");
+
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().hasSize(1);
+        Assertions.assertThat(response.getBody().getFirst()).isEqualTo(Mode.WEB);
+    }
+
+    @Test
     void getQuestionnairesByCampaignTest() {
         addAdditionnalDtoToMongoStub("TESTQUESTIONNAIRE2");
 

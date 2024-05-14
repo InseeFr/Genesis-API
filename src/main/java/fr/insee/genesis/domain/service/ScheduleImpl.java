@@ -4,8 +4,8 @@ import fr.insee.genesis.domain.ports.api.ScheduleApiPort;
 import fr.insee.genesis.exceptions.InvalidCronExpressionException;
 import fr.insee.genesis.exceptions.NotFoundException;
 import fr.insee.genesis.infrastructure.model.document.schedule.KraftwerkExecutionSchedule;
-import fr.insee.genesis.infrastructure.model.document.schedule.StoredSurveySchedule;
 import fr.insee.genesis.infrastructure.model.document.schedule.ServiceToCall;
+import fr.insee.genesis.infrastructure.model.document.schedule.StoredSurveySchedule;
 import fr.insee.genesis.infrastructure.repository.ScheduleMongoDBRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +33,7 @@ public class ScheduleImpl implements ScheduleApiPort {
 
     @Override
     public void addSchedule(String surveyName, ServiceToCall serviceToCall, String frequency, LocalDateTime scheduleBeginDate, LocalDateTime scheduleEndDate) throws InvalidCronExpressionException{
-        //Fequency format check
+        //Frequency format check
         if(!CronExpression.isValidExpression(frequency)) {
             throw new InvalidCronExpressionException();
         }
@@ -43,7 +43,7 @@ public class ScheduleImpl implements ScheduleApiPort {
         StoredSurveySchedule storedSurveySchedule;
         if (storedSurveySchedules.isEmpty()) {
             //Create if not exists
-            log.info("Creation of new survey document for survey " + surveyName);
+            log.info("Creation of new survey document for survey {}", surveyName);
             storedSurveySchedules.add(new StoredSurveySchedule(surveyName, new ArrayList<>()));
         }
         ScheduleUnicityService scheduleUnicityService = new ScheduleUnicityService();

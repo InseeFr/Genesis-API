@@ -1,10 +1,8 @@
 package fr.insee.genesis.controller.rest;
 
-import fr.insee.genesis.domain.service.ScheduleUnicityService;
-import fr.insee.genesis.exceptions.InvalidCronExpressionException;
 import fr.insee.genesis.infrastructure.model.document.schedule.KraftwerkExecutionSchedule;
-import fr.insee.genesis.infrastructure.model.document.schedule.StoredSurveySchedule;
 import fr.insee.genesis.infrastructure.model.document.schedule.ServiceToCall;
+import fr.insee.genesis.infrastructure.model.document.schedule.StoredSurveySchedule;
 import fr.insee.genesis.stubs.ScheduleApiPortStub;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,7 +36,7 @@ class ScheduleControllerTest {
     }
 
     @Test
-    void addSurveyTest() throws InvalidCronExpressionException {
+    void addSurveyTest() {
         //When
         String surveyName = "TESTADDSURVEY";
         ServiceToCall serviceToCall = ServiceToCall.MAIN;
@@ -64,7 +62,7 @@ class ScheduleControllerTest {
     }
 
     @Test
-    void addScheduleTest() throws InvalidCronExpressionException {
+    void addScheduleTest() {
         //When
         String surveyName = "TESTSURVEY"; //Already exists in stub
         ServiceToCall serviceToCall = ServiceToCall.MAIN;
@@ -91,7 +89,7 @@ class ScheduleControllerTest {
     }
 
     @Test
-    void addScheduleDedupTest() throws InvalidCronExpressionException {
+    void addScheduleDedupTest()  {
         //Given 2
         StoredSurveySchedule storedSurveyScheduleTest = new StoredSurveySchedule(
                 "TESTSURVEY",
