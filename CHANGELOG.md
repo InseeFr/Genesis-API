@@ -1,4 +1,14 @@
 # Changelog
+## 1.2.4 - [2024-05-16]
+### Added
+- Service to set last execution date
+- Service to get modes by campaign
+- Remove input data file if already present in done folder to avoid duplications
+- Stop treatment when no data file in folder
+
+### Removed
+- Update last execution date service
+
 ## 1.2.3 - [2024-05-03]
 ### Added
 - Get idQuestionnaires by IdCampaign endpoint
