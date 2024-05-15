@@ -100,7 +100,7 @@ public class ResponseController {
             throws Exception {
         List<GenesisError> errors = new ArrayList<>();
 
-        log.info("Try to import data for campaign : {}", campaignName);
+        log.info("Try to import XML data for campaign : {}", campaignName);
 
         try {
             List<Mode> modesList = controllerUtils.getModesList(campaignName, modeSpecified);
@@ -133,7 +133,7 @@ public class ResponseController {
                     treatCampaignWithMode(campaignName, currentMode, errors);
                 }
             } catch (Exception e) {
-                log.warn("Error for campaign " + campaignName + ": " + e.getMessage());
+                log.warn("Error for campaign {} : {}", campaignName , e.getMessage());
                 errors.add(new GenesisError(e.getMessage()));
             }
         }
@@ -147,7 +147,7 @@ public class ResponseController {
     @Operation(summary = "Delete all responses of one questionnaire")
     @DeleteMapping(path = "/delete-responses/by-questionnaire")
     public ResponseEntity<Object> deleteAllResponsesByQuestionnaire(@RequestParam("idQuestionnaire") String idQuestionnaire) {
-        log.info("Try to delete all responses of questionnaire : " + idQuestionnaire);
+        log.info("Try to delete all responses of questionnaire : {}", idQuestionnaire);
         Long ndDocuments = surveyUnitService.deleteByIdQuestionnaire(idQuestionnaire);
         log.info("{} responses deleted", ndDocuments);
         return ResponseEntity.ok(String.format("%d responses deleted", ndDocuments));
@@ -164,7 +164,7 @@ public class ResponseController {
     @Operation(summary = "Retrieve all responses of one questionnaire")
     @GetMapping(path = "/get-responses/by-questionnaire")
     public ResponseEntity<Path> findAllResponsesByQuestionnaire(@RequestParam("idQuestionnaire") String idQuestionnaire) {
-        log.info("Try to find all responses of questionnaire : " + idQuestionnaire);
+        log.info("Try to find all responses of questionnaire : {}", idQuestionnaire);
 
         //Get all IdUEs/modes of the survey
         List<SurveyUnitDto> idUEsResponses = surveyUnitService.findIdUEsAndModesByIdQuestionnaire(idQuestionnaire);
@@ -258,6 +258,14 @@ public class ResponseController {
         List<Mode> modes = surveyUnitService.findModesByIdQuestionnaire(idQuestionnaire);
         return ResponseEntity.ok(modes);
     }
+
+    @Operation(summary = "List sources used for a given campaign")
+    @GetMapping(path = "/get-modes/by-campaign")
+    public ResponseEntity<List<Mode>> getModesByCampaign(@RequestParam("idCampaign") String idCampaign) {
+        List<Mode> modes = surveyUnitService.findModesByIdCampaign(idCampaign);
+        return ResponseEntity.ok(modes);
+    }
+
 
     @Operation(summary = "List questionnaires used for a given campaign")
     @GetMapping(path = "/get-questionnaires/by-campaign")

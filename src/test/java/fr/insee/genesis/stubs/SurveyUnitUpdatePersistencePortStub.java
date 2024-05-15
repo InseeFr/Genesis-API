@@ -1,15 +1,15 @@
 package fr.insee.genesis.stubs;
 
+import fr.insee.genesis.domain.dtos.SurveyUnitDto;
+import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
+import fr.insee.genesis.domain.ports.spi.SurveyUnitUpdatePersistencePort;
+import lombok.Getter;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
-
-import fr.insee.genesis.domain.dtos.SurveyUnitDto;
-import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
-import fr.insee.genesis.domain.ports.spi.SurveyUnitUpdatePersistencePort;
-import lombok.Getter;
 
 @Getter
 public class SurveyUnitUpdatePersistencePortStub implements SurveyUnitUpdatePersistencePort {
@@ -71,6 +71,19 @@ public class SurveyUnitUpdatePersistencePortStub implements SurveyUnitUpdatePers
         List<SurveyUnitDto> surveyUnitDtoList = new ArrayList<>();
         for(SurveyUnitUpdateDto surveyUnitUpdateDto : mongoStub){
             if(surveyUnitUpdateDto.getIdQuest().equals(idQuestionnaire))
+                surveyUnitDtoList.add(
+                        new SurveyUnitDto(surveyUnitUpdateDto.getIdUE(),surveyUnitUpdateDto.getMode())
+                );
+        }
+
+        return surveyUnitDtoList;
+    }
+
+    @Override
+    public List<SurveyUnitDto> findIdUEsByIdCampaign(String idCampaign) {
+        List<SurveyUnitDto> surveyUnitDtoList = new ArrayList<>();
+        for(SurveyUnitUpdateDto surveyUnitUpdateDto : mongoStub){
+            if(surveyUnitUpdateDto.getIdCampaign().equals(idCampaign))
                 surveyUnitDtoList.add(
                         new SurveyUnitDto(surveyUnitUpdateDto.getIdUE(),surveyUnitUpdateDto.getMode())
                 );

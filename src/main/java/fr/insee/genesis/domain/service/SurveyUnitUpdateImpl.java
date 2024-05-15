@@ -1,6 +1,11 @@
 package fr.insee.genesis.domain.service;
 
-import fr.insee.genesis.domain.dtos.*;
+import fr.insee.genesis.domain.dtos.CollectedVariableDto;
+import fr.insee.genesis.domain.dtos.Mode;
+import fr.insee.genesis.domain.dtos.SurveyUnitDto;
+import fr.insee.genesis.domain.dtos.SurveyUnitId;
+import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
+import fr.insee.genesis.domain.dtos.VariableDto;
 import fr.insee.genesis.domain.ports.api.SurveyUnitUpdateApiPort;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitUpdatePersistencePort;
 
@@ -32,11 +37,6 @@ public class SurveyUnitUpdateImpl implements SurveyUnitUpdateApiPort {
     }
 
     @Override
-    public List<SurveyUnitUpdateDto> findByIdUEsAndIdQuestionnaire(List<SurveyUnitDto> idUEs, String idQuestionnaire) {
-        return surveyUnitUpdatePersistencePort.findByIdUEsAndIdQuestionnaire(idUEs, idQuestionnaire);
-    }
-
-    @Override
     public Stream<SurveyUnitUpdateDto> findByIdQuestionnaire(String idQuestionnaire) {
         return surveyUnitUpdatePersistencePort.findByIdQuestionnaire(idQuestionnaire);
     }
@@ -45,9 +45,9 @@ public class SurveyUnitUpdateImpl implements SurveyUnitUpdateApiPort {
      * In this method we want to get the latest update for each variable of a survey unit
      * But we need to separate the updates by mode
      * So we will calculate the latest state for a given collection mode
-     * @param idUE
-     * @param idQuest
-     * @return
+     * @param idUE : Survey unit id
+     * @param idQuest : Questionnaire id
+     * @return the latest update for each variable of a survey unit
      */
     @Override
     public List<SurveyUnitUpdateDto> findLatestByIdAndByMode(String idUE, String idQuest) {
@@ -116,6 +116,14 @@ public class SurveyUnitUpdateImpl implements SurveyUnitUpdateApiPort {
     @Override
     public List<Mode> findModesByIdQuestionnaire(String idQuestionnaire) {
         List<SurveyUnitDto> surveyUnits = surveyUnitUpdatePersistencePort.findIdUEsByIdQuestionnaire(idQuestionnaire);
+        List<Mode> sources = new ArrayList<>();
+        surveyUnits.forEach(surveyUnitDto -> sources.add(surveyUnitDto.getMode()));
+        return sources.stream().distinct().toList();
+    }
+
+    @Override
+    public List<Mode> findModesByIdCampaign(String idCampaign) {
+        List<SurveyUnitDto> surveyUnits = surveyUnitUpdatePersistencePort.findIdUEsByIdCampaign(idCampaign);
         List<Mode> sources = new ArrayList<>();
         surveyUnits.forEach(surveyUnitDto -> sources.add(surveyUnitDto.getMode()));
         return sources.stream().distinct().toList();

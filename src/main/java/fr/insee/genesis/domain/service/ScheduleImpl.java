@@ -33,7 +33,7 @@ public class ScheduleImpl implements ScheduleApiPort {
 
     @Override
     public void addSchedule(String surveyName, ServiceToCall serviceToCall, String frequency, LocalDateTime scheduleBeginDate, LocalDateTime scheduleEndDate) throws InvalidCronExpressionException{
-        //Fequency format check
+        //Frequency format check
         if(!CronExpression.isValidExpression(frequency)) {
             throw new InvalidCronExpressionException();
         }
@@ -43,7 +43,7 @@ public class ScheduleImpl implements ScheduleApiPort {
         StoredSurveySchedule storedSurveySchedule;
         if (storedSurveySchedules.isEmpty()) {
             //Create if not exists
-            log.info("Creation of new survey document for survey " + surveyName);
+            log.info("Creation of new survey document for survey {}", surveyName);
             storedSurveySchedules.add(new StoredSurveySchedule(surveyName, new ArrayList<>()));
         }
         ScheduleUnicityService scheduleUnicityService = new ScheduleUnicityService();
