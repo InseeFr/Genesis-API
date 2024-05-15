@@ -42,6 +42,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
@@ -133,7 +134,7 @@ public class ResponseController {
                     treatCampaignWithMode(campaignName, currentMode, errors);
                 }
             } catch (Exception e) {
-                log.warn("Error for campaign {} : {}", campaignName , e.getMessage());
+                log.warn("Error for campaign {} : {}", campaignName, e.toString());
                 errors.add(new GenesisError(e.getMessage()));
             }
         }
@@ -283,30 +284,42 @@ public class ResponseController {
         log.info("Numbers of files to load in folder {} : {}", dataFolder, dataFiles.size());
         if (dataFiles.isEmpty()) {
             errors.add(new NoDataError("No data file found", Mode.getEnumFromModeName(mode.getModeName())));
-            log.info("No data file found in folder {}", dataFolder);
+            log.warn("No data file found in folder {}", dataFolder);
             return;
         }
+        //Read DDI
         VariablesMap variablesMap;
         try {
             Path ddiFilePath = fileUtils.findDDIFile(campaignName, mode.getModeName());
             variablesMap = DDIReader.getVariablesFromDDI(ddiFilePath.toUri().toURL());
         } catch (Exception e) {
-            errors.add(new GenesisError(e.getMessage()));
+            errors.add(new GenesisError(e.toString()));
             return;
         }
+        //For each XML data file
         for (String fileName : dataFiles.stream().filter(s -> s.endsWith(".xml")).toList()) {
             String filepathString = String.format("%s/%s", dataFolder, fileName);
             Path filepath = Paths.get(filepathString);
-            log.info("Try to read Xml file : {}", fileName);
-
-            if (filepath.toFile().length() / 1024 / 1024 <= Constants.MAX_FILE_SIZE_UNTIL_SEQUENTIAL) {
-                treatXmlFileWithMemory(filepath, mode, variablesMap);
-            } else {
-                treatXmlFileSequentially(filepath, mode, variablesMap);
+            //Check if file not in done folder, delete if true
+            if(isDataFileInDoneFolder(filepath, campaignName, mode.getFolder())){
+                log.warn("File {} already exists in DONE folder ! Deleting...", fileName);
+                Files.deleteIfExists(filepath);
+            }else{
+                //Read file
+                log.info("Try to read Xml file : {}", fileName);
+                if (filepath.toFile().length() / 1024 / 1024 <= Constants.MAX_FILE_SIZE_UNTIL_SEQUENTIAL) {
+                    treatXmlFileWithMemory(filepath, mode, variablesMap);
+                } else {
+                    treatXmlFileSequentially(filepath, mode, variablesMap);
+                }
+                log.debug("File {} saved", fileName);
+                fileUtils.moveDataFile(campaignName, mode.getFolder(), fileName);
             }
-            log.debug("File {} saved", fileName);
-            fileUtils.moveDataFile(campaignName, mode.getFolder(), fileName);
         }
+    }
+
+    private boolean isDataFileInDoneFolder(Path filepath, String campaignName, String modeFolder) {
+        return Path.of(fileUtils.getDoneFolder(campaignName, modeFolder)).resolve(filepath.getFileName()).toFile().exists();
     }
 
     private ResponseEntity<Object> treatXmlFileWithMemory(Path filepath, Mode modeSpecified, VariablesMap variablesMap) throws IOException, ParserConfigurationException, SAXException {
