@@ -27,7 +27,6 @@ public class StoredSurveySchedule {
 
     private String surveyName;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'hh:mm:ss")
     private LocalDateTime lastExecution;
 
     List<KraftwerkExecutionSchedule> kraftwerkExecutionScheduleList;

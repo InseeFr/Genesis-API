@@ -13,8 +13,6 @@ public class KraftwerkExecutionSchedule {
 
     private ServiceToCall serviceToCall;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'hh:mm:ss")
     private LocalDateTime scheduleBeginDate;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'hh:mm:ss")
     private LocalDateTime scheduleEndDate;
 }
