@@ -1,4 +1,10 @@
 # Changelog
+## 1.2.5 - [2024-05-17]
+### Added
+- More explicit documentation on schedule frequency
+### Fixed
+- Fix last execution date not in 24h UTC format
+
 ## 1.2.4 - [2024-05-16]
 ### Added
 - Service to set last execution date
