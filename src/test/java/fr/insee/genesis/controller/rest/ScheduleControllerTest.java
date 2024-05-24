@@ -190,4 +190,15 @@ class ScheduleControllerTest {
         ResponseEntity<Object> response = scheduleController.setSurveyLastExecution("ERROR", LocalDateTime.now());
         Assertions.assertThat(response.getStatusCode().is4xxClientError()).isTrue();
     }
+
+    @Test
+    void deleteScheduleTest(){
+        //When
+        scheduleController.deleteSchedule("TESTSURVEY");
+
+        //Then
+        Assertions.assertThat(scheduleApiPortStub.mongoStub).filteredOn(scheduleDocument ->
+                scheduleDocument.getSurveyName().equals("TESTSURVEY")
+        ).isEmpty();
+    }
 }
