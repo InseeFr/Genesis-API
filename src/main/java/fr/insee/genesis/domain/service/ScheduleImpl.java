@@ -63,6 +63,11 @@ public class ScheduleImpl implements ScheduleApiPort {
     }
 
     @Override
+    public void deleteSchedule(String surveyName) throws NotFoundException {
+        scheduleMongoDBRepository.deleteBySurveyName(surveyName);
+    }
+
+    @Override
     public void updateLastExecutionName(String surveyName, LocalDateTime newDate) throws NotFoundException {
         List<StoredSurveySchedule> storedSurveySchedules = scheduleMongoDBRepository.findBySurveyName(surveyName);
 
