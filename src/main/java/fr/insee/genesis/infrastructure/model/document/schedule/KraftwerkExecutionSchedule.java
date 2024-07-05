@@ -2,7 +2,6 @@ package fr.insee.genesis.infrastructure.model.document.schedule;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.springframework.lang.Nullable;
 
 import java.time.LocalDateTime;
 
