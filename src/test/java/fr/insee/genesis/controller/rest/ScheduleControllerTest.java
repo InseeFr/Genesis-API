@@ -61,7 +61,7 @@ class ScheduleControllerTest {
 
         Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList()).isNotEmpty();
         Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList().getFirst().getFrequency()).isEqualTo(frequency);
-        Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList().getFirst().isUseTrustEncryption()).isTrue();
+        Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList().getFirst().getUseTrustEncryption()).isTrue();
     }
 
     @Test
