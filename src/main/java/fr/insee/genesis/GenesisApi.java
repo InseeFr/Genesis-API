@@ -13,7 +13,7 @@ public class GenesisApi {
                 configureApplicationBuilder(new SpringApplicationBuilder()).build().run(args);        }
 
         public static SpringApplicationBuilder configureApplicationBuilder(SpringApplicationBuilder springApplicationBuilder){
-                return springApplicationBuilder.sources(GenesisApi.class).profiles("dev")
+                return springApplicationBuilder.sources(GenesisApi.class)
                     .listeners(new PropertiesLogger());
         }
 
