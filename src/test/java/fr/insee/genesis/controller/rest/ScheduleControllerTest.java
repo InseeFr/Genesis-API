@@ -46,7 +46,7 @@ class ScheduleControllerTest {
         LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
 
 
-        scheduleController.addSchedule(surveyName, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate);
+        scheduleController.addSchedule(surveyName, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate, false);
 
         //Then
         Assertions.assertThat(scheduleApiPortStub.mongoStub).filteredOn(scheduleDocument ->
@@ -72,7 +72,7 @@ class ScheduleControllerTest {
         LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
 
 
-        scheduleController.addSchedule(surveyName, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate);
+        scheduleController.addSchedule(surveyName, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate, false);
 
         //Then
         Assertions.assertThat(scheduleApiPortStub.mongoStub).filteredOn(scheduleDocument ->
@@ -121,7 +121,7 @@ class ScheduleControllerTest {
         LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
 
 
-        scheduleController.addSchedule(surveyName, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate);
+        scheduleController.addSchedule(surveyName, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate, false);
 
         //Then
         Assertions.assertThat(scheduleApiPortStub.mongoStub).filteredOn(scheduleDocument ->
@@ -180,7 +180,7 @@ class ScheduleControllerTest {
         LocalDateTime scheduleBeginDate = LocalDateTime.now();
         LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
 
-        ResponseEntity<Object> response = scheduleController.addSchedule(surveyName,serviceToCall,frequency,scheduleBeginDate,scheduleEndDate);
+        ResponseEntity<Object> response = scheduleController.addSchedule(surveyName,serviceToCall,frequency,scheduleBeginDate,scheduleEndDate, false);
         Assertions.assertThat(response.getStatusCode().is4xxClientError()).isTrue();
     }
 

@@ -43,7 +43,7 @@ public class ScheduleApiPortStub implements ScheduleApiPort {
     }
 
     @Override
-    public void addSchedule(String surveyName, ServiceToCall serviceToCall, String frequency, LocalDateTime scheduleBeginDate, LocalDateTime scheduleEndDate) throws InvalidCronExpressionException {
+    public void addSchedule(String surveyName, ServiceToCall serviceToCall, String frequency, LocalDateTime scheduleBeginDate, LocalDateTime scheduleEndDate, boolean useTrustEncryption) throws InvalidCronExpressionException {
         if(!CronExpression.isValidExpression(frequency)) throw new InvalidCronExpressionException();
 
         List<StoredSurveySchedule> mongoStubFiltered = mongoStub.stream().filter(scheduleDocument ->

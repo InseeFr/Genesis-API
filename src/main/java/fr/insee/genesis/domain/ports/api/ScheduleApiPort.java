@@ -15,7 +15,9 @@ public interface ScheduleApiPort {
                      ServiceToCall serviceToCall,
                      String frequency,
                      LocalDateTime scheduleBeginDateString,
-                     LocalDateTime scheduleEndDateString) throws InvalidCronExpressionException;
+                     LocalDateTime scheduleEndDateString,
+                     boolean useTrustEncryption
+                     ) throws InvalidCronExpressionException;
 
     void deleteSchedule(String surveyName) throws NotFoundException;
 
