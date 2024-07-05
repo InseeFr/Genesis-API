@@ -30,7 +30,8 @@ public class ScheduleApiPortStub implements ScheduleApiPort {
                 "0 0 6 * * *",
                 ServiceToCall.MAIN,
                 LocalDateTime.of(2023, Month.JANUARY, 1, 1, 1, 1),
-                LocalDateTime.of(2023, Month.DECEMBER, 1, 1, 1, 1)
+                LocalDateTime.of(2023, Month.DECEMBER, 1, 1, 1, 1),
+                false
         );
         storedSurveyScheduleTest.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
 
@@ -61,7 +62,8 @@ public class ScheduleApiPortStub implements ScheduleApiPort {
                   frequency,
                     serviceToCall,
                     scheduleBeginDate,
-                    scheduleEndDate
+                    scheduleEndDate,
+                    useTrustEncryption
             );
             storedSurveySchedule.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
 
@@ -75,7 +77,8 @@ public class ScheduleApiPortStub implements ScheduleApiPort {
                     frequency,
                     serviceToCall,
                     scheduleBeginDate,
-                    scheduleEndDate
+                    scheduleEndDate,
+                    useTrustEncryption
             );
             deduplicatedSurveySchedule.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
 

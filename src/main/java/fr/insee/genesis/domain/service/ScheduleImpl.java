@@ -55,7 +55,8 @@ public class ScheduleImpl implements ScheduleApiPort {
                         frequency,
                         serviceToCall,
                         scheduleBeginDate,
-                        scheduleEndDate
+                        scheduleEndDate,
+                        useTrustEncryption
                 )
         );
         scheduleMongoDBRepository.deleteBySurveyName(surveyName);
