@@ -2,6 +2,7 @@ package fr.insee.genesis.infrastructure.model.document.schedule;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.springframework.lang.Nullable;
 
 import java.time.LocalDateTime;
 
@@ -15,5 +16,5 @@ public class KraftwerkExecutionSchedule {
     private LocalDateTime scheduleBeginDate;
     private LocalDateTime scheduleEndDate;
 
-    private boolean useTrustEncryption;
+    private Boolean useTrustEncryption;
 }
