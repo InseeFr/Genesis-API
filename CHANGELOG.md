@@ -1,4 +1,12 @@
 # Changelog
+
+## 1.2.6 - [2024-07-11]
+### Added
+- Add endpoint to delete schedule
+
+### Updated
+- Update dependencies
+
 ## 1.2.5 - [2024-05-17]
 ### Added
 - More explicit documentation on schedule frequency
