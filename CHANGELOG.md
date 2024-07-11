@@ -4,6 +4,9 @@
 ### Added
 - Add endpoint to delete schedule
 
+### Fixed
+- Spring profile management
+
 ### Updated
 - Update dependencies
 
