@@ -170,6 +170,7 @@ class ResponseControllerTest {
                 Path.of(TestConstants.TEST_RESOURCES_DIRECTORY, "IN/WEB/SAMPLETEST-PARADATA-v1/reponse-platine/data.complete.validated.STPDv1.20231122164209.xml").toString()
                 , Path.of(TestConstants.TEST_RESOURCES_DIRECTORY, "specs/SAMPLETEST-PARADATA-v1/ddi-SAMPLETEST-PARADATA-v1.xml").toString()
                 , Mode.WEB
+                , true
         );
 
         Assertions.assertThat(surveyUnitUpdatePersistencePortStub.getMongoStub()).isNotEmpty();
@@ -180,6 +181,7 @@ class ResponseControllerTest {
         responseControllerStatic.saveResponsesFromXmlCampaignFolder(
                 "SAMPLETEST-PARADATA-v1"
                 , Mode.WEB
+                , true
         );
 
         Assertions.assertThat(surveyUnitUpdatePersistencePortStub.getMongoStub()).isNotEmpty();
@@ -192,6 +194,7 @@ class ResponseControllerTest {
         responseControllerStatic.saveResponsesFromXmlCampaignFolder(
                 "TESTNODATA"
                 , Mode.WEB
+                , true
         );
 
         Assertions.assertThat(surveyUnitUpdatePersistencePortStub.getMongoStub()).isEmpty();

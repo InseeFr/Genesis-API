@@ -1,6 +1,8 @@
-package fr.insee.genesis.controller.sources.ddi;
+package fr.insee.genesis.controller.sources.metadata.ddi;
 
 import fr.insee.genesis.Constants;
+import fr.insee.genesis.controller.sources.metadata.ddi.DDIReader;
+import fr.insee.genesis.controller.sources.metadata.VariablesMap;
 import fr.insee.genesis.exceptions.GenesisException;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;

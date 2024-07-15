@@ -1,6 +1,12 @@
-package fr.insee.genesis.controller.sources.ddi;
+package fr.insee.genesis.controller.sources.metadata.ddi;
 
 import fr.insee.genesis.Constants;
+import fr.insee.genesis.controller.sources.metadata.Group;
+import fr.insee.genesis.controller.sources.metadata.McqVariable;
+import fr.insee.genesis.controller.sources.metadata.UcqVariable;
+import fr.insee.genesis.controller.sources.metadata.Variable;
+import fr.insee.genesis.controller.sources.metadata.VariableType;
+import fr.insee.genesis.controller.sources.metadata.VariablesMap;
 import fr.insee.genesis.controller.utils.SaxonTransformer;
 import fr.insee.genesis.exceptions.GenesisException;
 import lombok.extern.slf4j.Slf4j;

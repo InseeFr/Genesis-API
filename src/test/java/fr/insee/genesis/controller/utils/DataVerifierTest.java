@@ -1,9 +1,9 @@
 package fr.insee.genesis.controller.utils;
 
 
-import fr.insee.genesis.controller.sources.ddi.Variable;
-import fr.insee.genesis.controller.sources.ddi.VariableType;
-import fr.insee.genesis.controller.sources.ddi.VariablesMap;
+import fr.insee.genesis.controller.sources.metadata.Variable;
+import fr.insee.genesis.controller.sources.metadata.VariableType;
+import fr.insee.genesis.controller.sources.metadata.VariablesMap;
 import fr.insee.genesis.domain.dtos.*;
 import fr.insee.genesis.domain.dtos.VariableDto;
 import org.junit.jupiter.api.BeforeAll;

@@ -1,10 +1,10 @@
 package fr.insee.genesis.controller.adapter;
 
 import fr.insee.genesis.Constants;
-import fr.insee.genesis.controller.sources.ddi.Group;
-import fr.insee.genesis.controller.sources.ddi.Variable;
-import fr.insee.genesis.controller.sources.ddi.VariableType;
-import fr.insee.genesis.controller.sources.ddi.VariablesMap;
+import fr.insee.genesis.controller.sources.metadata.Group;
+import fr.insee.genesis.controller.sources.metadata.Variable;
+import fr.insee.genesis.controller.sources.metadata.VariableType;
+import fr.insee.genesis.controller.sources.metadata.VariablesMap;
 import fr.insee.genesis.controller.sources.xml.*;
 import fr.insee.genesis.domain.dtos.CollectedVariableDto;
 import fr.insee.genesis.domain.dtos.DataState;
