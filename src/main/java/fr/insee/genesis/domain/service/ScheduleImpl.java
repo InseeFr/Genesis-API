@@ -32,7 +32,7 @@ public class ScheduleImpl implements ScheduleApiPort {
     }
 
     @Override
-    public void addSchedule(String surveyName, ServiceToCall serviceToCall, String frequency, LocalDateTime scheduleBeginDate, LocalDateTime scheduleEndDate) throws InvalidCronExpressionException{
+    public void addSchedule(String surveyName, ServiceToCall serviceToCall, String frequency, LocalDateTime scheduleBeginDate, LocalDateTime scheduleEndDate, boolean useTrustEncryption) throws InvalidCronExpressionException{
         //Frequency format check
         if(!CronExpression.isValidExpression(frequency)) {
             throw new InvalidCronExpressionException();
@@ -55,7 +55,8 @@ public class ScheduleImpl implements ScheduleApiPort {
                         frequency,
                         serviceToCall,
                         scheduleBeginDate,
-                        scheduleEndDate
+                        scheduleEndDate,
+                        useTrustEncryption
                 )
         );
         scheduleMongoDBRepository.deleteBySurveyName(surveyName);
