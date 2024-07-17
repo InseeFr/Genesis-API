@@ -4,6 +4,7 @@ import cucumber.TestConstants;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.responses.SurveyUnitUpdateSimplified;
 import fr.insee.genesis.controller.service.SurveyUnitQualityService;
+import fr.insee.genesis.controller.service.VolumetryLogService;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.dtos.CollectedVariableDto;
 import fr.insee.genesis.domain.dtos.DataState;
@@ -49,6 +50,7 @@ class ResponseControllerTest {
         responseControllerStatic = new ResponseController(
                 surveyUnitUpdateApiPort
                 , new SurveyUnitQualityService()
+                , new VolumetryLogService(new ConfigStub())
                 , fileUtils
                 , new ControllerUtils(fileUtils)
         );
@@ -341,6 +343,23 @@ class ResponseControllerTest {
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().hasSize(2);
+    }
+
+    @Test
+    void saveVolumetryTest() throws IOException {
+        //WHEN
+        ResponseEntity<Object> response = responseControllerStatic.saveVolumetry();
+
+        //THEN
+        Path logFilePath = Path.of(
+                        new ConfigStub().getLogFolder())
+                        .resolve(Constants.VOLUMETRY_FOLDER_NAME)
+                        .resolve("TESTIDCAMPAIGN" + Constants.VOLUMETRY_FILE_SUFFIX + ".csv");
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains(";1");
+
+        //CLEAN
+        Files.deleteIfExists(logFilePath);
     }
 
     // Utilities

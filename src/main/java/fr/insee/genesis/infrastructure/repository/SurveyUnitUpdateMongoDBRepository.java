@@ -33,4 +33,5 @@ public interface SurveyUnitUpdateMongoDBRepository extends MongoRepository<Surve
 	@Query(value = "{ 'idCampaign' : ?0 }", fields = "{ _id : 0, 'idQuestionnaire' : 1 }")
 	List<String> findIdQuestionnairesByIdCampaign(String idCampaign);
 
+	long countByIdCampaign(String idCampaign);
 }

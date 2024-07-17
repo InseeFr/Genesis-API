@@ -1,5 +1,6 @@
 package fr.insee.genesis.domain.service;
 
+import com.mongodb.client.DistinctIterable;
 import fr.insee.genesis.domain.dtos.CollectedVariableDto;
 import fr.insee.genesis.domain.dtos.Mode;
 import fr.insee.genesis.domain.dtos.SurveyUnitDto;
@@ -10,7 +11,9 @@ import fr.insee.genesis.domain.ports.api.SurveyUnitUpdateApiPort;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitUpdatePersistencePort;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 public class SurveyUnitUpdateImpl implements SurveyUnitUpdateApiPort {
@@ -143,6 +146,16 @@ public class SurveyUnitUpdateImpl implements SurveyUnitUpdateApiPort {
     public List<String> findIdQuestionnairesByIdCampaign(String idCampaign) {
             List<String> idQuestionnaireList = surveyUnitUpdatePersistencePort.findIdQuestionnairesByIdCampaign(idCampaign);
             return idQuestionnaireList.stream().distinct().toList();
+    }
+
+    @Override
+    public Set<String> findDistinctIdCampaigns() {
+        return surveyUnitUpdatePersistencePort.findDistinctIdCampaigns();
+    }
+
+    @Override
+    public long countResponsesByIdCampaign(String idCampaign){
+        return surveyUnitUpdatePersistencePort.countByIdCampaign(idCampaign);
     }
 
     private static List<Mode> getDistinctsModes(List<SurveyUnitUpdateDto> surveyUnits) {

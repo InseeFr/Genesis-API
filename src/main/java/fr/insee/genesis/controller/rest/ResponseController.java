@@ -4,6 +4,7 @@ import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.adapter.LunaticXmlAdapter;
 import fr.insee.genesis.controller.responses.SurveyUnitUpdateSimplified;
 import fr.insee.genesis.controller.service.SurveyUnitQualityService;
+import fr.insee.genesis.controller.service.VolumetryLogService;
 import fr.insee.genesis.controller.sources.ddi.DDIReader;
 import fr.insee.genesis.controller.sources.ddi.VariablesMap;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlCampaign;
@@ -57,13 +58,15 @@ public class ResponseController {
 
     private final SurveyUnitUpdateApiPort surveyUnitService;
     private final SurveyUnitQualityService surveyUnitQualityService;
+    private final VolumetryLogService volumetryLogService;
     private final FileUtils fileUtils;
     private final ControllerUtils controllerUtils;
 
     @Autowired
-    public ResponseController(SurveyUnitUpdateApiPort surveyUnitService, SurveyUnitQualityService surveyUnitQualityService, FileUtils fileUtils, ControllerUtils controllerUtils) {
+    public ResponseController(SurveyUnitUpdateApiPort surveyUnitService, SurveyUnitQualityService surveyUnitQualityService, VolumetryLogService volumetryLogService, FileUtils fileUtils, ControllerUtils controllerUtils) {
         this.surveyUnitService = surveyUnitService;
         this.surveyUnitQualityService = surveyUnitQualityService;
+        this.volumetryLogService = volumetryLogService;
         this.fileUtils = fileUtils;
         this.controllerUtils = controllerUtils;
     }
@@ -143,6 +146,13 @@ public class ResponseController {
         } else {
             return ResponseEntity.status(209).body("Data saved with " + errors.size() + " errors");
         }
+    }
+
+    @Operation(summary = "Write volumetries of each campaign in a folder")
+    @PutMapping(path = "/save-volumetry/all-campaigns")
+    public ResponseEntity<Object> saveVolumetry() throws IOException {
+        volumetryLogService.writeVolumetries(surveyUnitService);
+        return ResponseEntity.ok("Volumetry saved");
     }
 
     @Operation(summary = "Delete all responses of one questionnaire")

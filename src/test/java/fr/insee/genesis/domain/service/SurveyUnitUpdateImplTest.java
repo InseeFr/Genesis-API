@@ -162,6 +162,11 @@ class SurveyUnitUpdateImplTest {
 
     }
 
+    @Test
+    void getAllCampaignsTest() {
+        Assertions.assertThat(surveyUnitUpdateImplStatic.findDistinctIdCampaigns()).contains("TESTIDCAMPAIGN");
+    }
+
     private void addAdditionnalDtoToMongoStub(){
         List<VariableDto> externalVariableDtoList = new ArrayList<>();
         VariableDto variableDto = VariableDto.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
