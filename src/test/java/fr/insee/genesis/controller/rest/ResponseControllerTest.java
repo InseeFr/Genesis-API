@@ -367,6 +367,48 @@ class ResponseControllerTest {
     }
 
     @Test
+    void saveVolumetryTest_additionnal_campaign() throws IOException {
+        //Given
+        addAdditionnalDtoToMongoStub("TESTIDCAMPAIGN2","TESTQUEST2");
+
+        //WHEN
+        ResponseEntity<Object> response = responseControllerStatic.saveVolumetry();
+
+        //THEN
+        Path logFilePath = Path.of(
+                        new ConfigStub().getLogFolder())
+                .resolve(Constants.VOLUMETRY_FOLDER_NAME)
+                .resolve(LocalDate.now().format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
+                        + Constants.VOLUMETRY_FILE_SUFFIX + ".csv");
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TESTIDCAMPAIGN;1").contains("TESTIDCAMPAIGN2;1");
+
+        //CLEAN
+        Files.deleteIfExists(logFilePath);
+    }
+    @Test
+    void saveVolumetryTest_additionnal_campaign_and_document() throws IOException {
+        //Given
+        addAdditionnalDtoToMongoStub("TESTQUEST");
+        addAdditionnalDtoToMongoStub("TESTIDCAMPAIGN2","TESTQUEST2");
+
+        //WHEN
+        ResponseEntity<Object> response = responseControllerStatic.saveVolumetry();
+
+        //THEN
+        Path logFilePath = Path.of(
+                        new ConfigStub().getLogFolder())
+                .resolve(Constants.VOLUMETRY_FOLDER_NAME)
+                .resolve(LocalDate.now().format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
+                        + Constants.VOLUMETRY_FILE_SUFFIX + ".csv");
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TESTIDCAMPAIGN;2").contains("TESTIDCAMPAIGN2;1");
+
+        //CLEAN
+        Files.deleteIfExists(logFilePath);
+    }
+
+    @Test
     void cleanOldVolumetryLogFiles() throws IOException {
         //GIVEN
         Path oldLogFilePath = Path.of(
