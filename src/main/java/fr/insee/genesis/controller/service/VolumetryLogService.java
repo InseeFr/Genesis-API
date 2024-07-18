@@ -30,10 +30,11 @@ public class VolumetryLogService {
                         LocalDate.now().format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
                                 + Constants.VOLUMETRY_FILE_SUFFIX + ".csv");
         Files.createDirectories(logFilePath.getParent());
-        //Create log file with header if not exists
-        if (!Files.exists(logFilePath)) {
-            Files.writeString(logFilePath, "campaign;volumetry\n");
+        //Overwrite log file with header if exists
+        if (Files.exists(logFilePath)){
+            Files.delete(logFilePath);
         }
+        Files.writeString(logFilePath, "campaign;volumetry\n");
 
         //Write lines
         Set<String> campaigns = surveyUnitUpdateApiPort.findDistinctIdCampaigns();

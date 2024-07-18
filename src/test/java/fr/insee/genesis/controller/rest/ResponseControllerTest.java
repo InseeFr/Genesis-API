@@ -367,6 +367,25 @@ class ResponseControllerTest {
     }
 
     @Test
+    void saveVolumetryTest_overwrite() throws IOException {
+        //WHEN
+        responseControllerStatic.saveVolumetry();
+        ResponseEntity<Object> response = responseControllerStatic.saveVolumetry();
+
+        //THEN
+        Path logFilePath = Path.of(
+                        new ConfigStub().getLogFolder())
+                .resolve(Constants.VOLUMETRY_FOLDER_NAME)
+                .resolve(LocalDate.now().format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
+                        + Constants.VOLUMETRY_FILE_SUFFIX + ".csv");
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TESTIDCAMPAIGN;1").doesNotContain("TESTIDCAMPAIGN;1\nTESTIDCAMPAIGN;1");
+
+        //CLEAN
+        Files.deleteIfExists(logFilePath);
+    }
+
+    @Test
     void saveVolumetryTest_additionnal_campaign() throws IOException {
         //Given
         addAdditionnalDtoToMongoStub("TESTIDCAMPAIGN2","TESTQUEST2");
