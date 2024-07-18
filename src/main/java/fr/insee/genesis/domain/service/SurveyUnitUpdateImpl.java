@@ -1,6 +1,5 @@
 package fr.insee.genesis.domain.service;
 
-import com.mongodb.client.DistinctIterable;
 import fr.insee.genesis.domain.dtos.CollectedVariableDto;
 import fr.insee.genesis.domain.dtos.Mode;
 import fr.insee.genesis.domain.dtos.SurveyUnitDto;
@@ -11,7 +10,6 @@ import fr.insee.genesis.domain.ports.api.SurveyUnitUpdateApiPort;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitUpdatePersistencePort;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -53,7 +51,7 @@ public class SurveyUnitUpdateImpl implements SurveyUnitUpdateApiPort {
      * @return the latest update for each variable of a survey unit
      */
     @Override
-    public List<SurveyUnitUpdateDto> findLatestByIdAndByMode(String idUE, String idQuest) {
+    public List<SurveyUnitUpdateDto> findLatestByIdAndByIdQuestionnaire(String idUE, String idQuest) {
         List<SurveyUnitUpdateDto> latestUpdatesbyVariables = new ArrayList<>();
         List<SurveyUnitUpdateDto> surveyUnitUpdateDtos = surveyUnitUpdatePersistencePort.findByIds(idUE, idQuest);
         List<Mode> modes = getDistinctsModes(surveyUnitUpdateDtos);

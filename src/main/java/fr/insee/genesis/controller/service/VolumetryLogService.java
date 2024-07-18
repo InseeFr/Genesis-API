@@ -6,15 +6,12 @@ import fr.insee.genesis.domain.ports.api.SurveyUnitUpdateApiPort;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -51,8 +48,8 @@ public class VolumetryLogService {
     }
 
     public void cleanOldFiles() throws IOException {
-        try (Stream<Path> pathStream = Files.walk(Path.of(config.getLogFolder()))){
-            for (Path logFilePath : pathStream.toList()){
+        try (Stream<Path> pathStream = Files.walk(Path.of(config.getLogFolder()).resolve(Constants.VOLUMETRY_FOLDER_NAME))){
+            for (Path logFilePath : pathStream.filter(path -> path.getFileName().toString().endsWith(".csv")).toList()){
                 //If older than x months
                 if (LocalDate.parse(
                         logFilePath.getFileName().toString().replace(Constants.VOLUMETRY_FILE_SUFFIX + ".csv", ""),

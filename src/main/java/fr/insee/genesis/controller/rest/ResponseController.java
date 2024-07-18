@@ -199,7 +199,7 @@ public class ResponseController {
     @GetMapping(path = "/get-responses/by-ue-and-questionnaire/latest")
     public ResponseEntity<List<SurveyUnitUpdateDto>> getLatestByUE(@RequestParam("idUE") String idUE,
                                                                    @RequestParam("idQuestionnaire") String idQuestionnaire) {
-        List<SurveyUnitUpdateDto> responses = surveyUnitService.findLatestByIdAndByMode(idUE, idQuestionnaire);
+        List<SurveyUnitUpdateDto> responses = surveyUnitService.findLatestByIdAndByIdQuestionnaire(idUE, idQuestionnaire);
         return ResponseEntity.ok(responses);
     }
 
@@ -208,7 +208,7 @@ public class ResponseController {
     public ResponseEntity<SurveyUnitUpdateSimplified> getLatestByUEOneObject(@RequestParam("idUE") String idUE,
                                                                              @RequestParam("idQuestionnaire") String idQuestionnaire,
                                                                              @RequestParam("mode") Mode mode) {
-        List<SurveyUnitUpdateDto> responses = surveyUnitService.findLatestByIdAndByMode(idUE, idQuestionnaire);
+        List<SurveyUnitUpdateDto> responses = surveyUnitService.findLatestByIdAndByIdQuestionnaire(idUE, idQuestionnaire);
         List<CollectedVariableDto> outputVariables = new ArrayList<>();
         List<VariableDto> outputExternalVariables = new ArrayList<>();
         responses.stream().filter(rep -> rep.getMode().equals(mode)).forEach(response -> {
@@ -234,7 +234,7 @@ public class ResponseController {
         List<SurveyUnitUpdateSimplified> results = new ArrayList<>();
         List<Mode> modes = surveyUnitService.findModesByIdQuestionnaire(idQuestionnaire);
         idUEs.forEach(idUE -> {
-            List<SurveyUnitUpdateDto> responses = surveyUnitService.findLatestByIdAndByMode(idUE.getIdUE(), idQuestionnaire);
+            List<SurveyUnitUpdateDto> responses = surveyUnitService.findLatestByIdAndByIdQuestionnaire(idUE.getIdUE(), idQuestionnaire);
             modes.forEach(mode -> {
                 List<CollectedVariableDto> outputVariables = new ArrayList<>();
                 List<VariableDto> outputExternalVariables = new ArrayList<>();

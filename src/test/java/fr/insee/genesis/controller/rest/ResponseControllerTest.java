@@ -35,6 +35,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Stream;
 
 class ResponseControllerTest {
     //Given
@@ -365,6 +366,35 @@ class ResponseControllerTest {
         Files.deleteIfExists(logFilePath);
     }
 
+    @Test
+    void cleanOldVolumetryLogFiles() throws IOException {
+        //GIVEN
+        Path oldLogFilePath = Path.of(
+                        new ConfigStub().getLogFolder())
+                .resolve(Constants.VOLUMETRY_FOLDER_NAME)
+                .resolve(LocalDate.of(2000,1,1).format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
+                        + Constants.VOLUMETRY_FILE_SUFFIX + ".csv");
+
+        Files.createDirectories(oldLogFilePath.getParent());
+        Files.write(oldLogFilePath, "test".getBytes());
+
+        //WHEN
+        ResponseEntity<Object> response = responseControllerStatic.saveVolumetry();
+
+        //THEN
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        Assertions.assertThat(oldLogFilePath).doesNotExist();
+
+        //CLEAN
+        try(Stream<Path> stream = Files.walk(oldLogFilePath.getParent())){
+            for(Path filePath : stream.filter(path -> path.getFileName().toString().endsWith(".csv")).toList()){
+                Files.deleteIfExists(filePath);
+            }
+        }
+    }
+
+
+
     // Utilities
     private void addAdditionnalDtoToMongoStub() {
         List<VariableDto> externalVariableDtoList = new ArrayList<>();
@@ -400,6 +430,29 @@ class ResponseControllerTest {
 
         SurveyUnitUpdateDto recentDTO = SurveyUnitUpdateDto.builder()
                 .idCampaign("TESTIDCAMPAIGN")
+                .mode(Mode.WEB)
+                .idUE("TESTIDUE")
+                .idQuest(idQuestionnaire)
+                .state(DataState.COLLECTED)
+                .fileDate(LocalDateTime.of(2023, 2, 2, 0, 0, 0))
+                .recordDate(LocalDateTime.of(2024, 2, 2, 0, 0, 0))
+                .externalVariables(externalVariableDtoList)
+                .collectedVariables(collectedVariableDtoList)
+                .build();
+        surveyUnitUpdatePersistencePortStub.getMongoStub().add(recentDTO);
+    }
+
+    private void addAdditionnalDtoToMongoStub(String idCampaign, String idQuestionnaire) {
+        List<VariableDto> externalVariableDtoList = new ArrayList<>();
+        VariableDto variableDto = VariableDto.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
+        externalVariableDtoList.add(variableDto);
+
+        List<CollectedVariableDto> collectedVariableDtoList = new ArrayList<>();
+        CollectedVariableDto collectedVariableDto = new CollectedVariableDto("TESTIDVAR", List.of(new String[]{"V1", "V2"}), "TESTIDLOOP", "TESTIDPARENT");
+        collectedVariableDtoList.add(collectedVariableDto);
+
+        SurveyUnitUpdateDto recentDTO = SurveyUnitUpdateDto.builder()
+                .idCampaign(idCampaign)
                 .mode(Mode.WEB)
                 .idUE("TESTIDUE")
                 .idQuest(idQuestionnaire)

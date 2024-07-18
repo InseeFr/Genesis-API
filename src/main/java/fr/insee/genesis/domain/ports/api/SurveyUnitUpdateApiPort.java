@@ -20,7 +20,7 @@ public interface SurveyUnitUpdateApiPort {
 
     Stream<SurveyUnitUpdateDto> findByIdQuestionnaire(String idQuestionnaire);
 
-    List<SurveyUnitUpdateDto> findLatestByIdAndByMode(String idUE, String idQuest);
+    List<SurveyUnitUpdateDto> findLatestByIdAndByIdQuestionnaire(String idUE, String idQuest);
 
     List<SurveyUnitDto> findIdUEsAndModesByIdQuestionnaire(String idQuestionnaire);
 
