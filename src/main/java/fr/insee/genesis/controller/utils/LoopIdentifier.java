@@ -1,8 +1,8 @@
 package fr.insee.genesis.controller.utils;
 
 import fr.insee.genesis.Constants;
-import fr.insee.genesis.controller.sources.ddi.Variable;
-import fr.insee.genesis.controller.sources.ddi.VariablesMap;
+import fr.insee.metadataparserlib.metadata.model.Variable;
+import fr.insee.metadataparserlib.metadata.model.VariablesMap;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;

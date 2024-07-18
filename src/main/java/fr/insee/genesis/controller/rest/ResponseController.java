@@ -4,8 +4,6 @@ import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.adapter.LunaticXmlAdapter;
 import fr.insee.genesis.controller.responses.SurveyUnitUpdateSimplified;
 import fr.insee.genesis.controller.service.SurveyUnitQualityService;
-import fr.insee.genesis.controller.sources.ddi.DDIReader;
-import fr.insee.genesis.controller.sources.ddi.VariablesMap;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlCampaign;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlDataParser;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlDataSequentialParser;
@@ -22,9 +20,16 @@ import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.exceptions.NoDataError;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
+
+import fr.insee.metadataparserlib.exceptions.MetadataParserException;
+import fr.insee.metadataparserlib.metadata.model.VariablesMap;
+import fr.insee.metadataparserlib.metadata.reader.ddi.DDIReader;
+
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -79,9 +84,11 @@ public class ResponseController {
         Path ddiFilePath = Paths.get(ddiFile);
         VariablesMap variablesMap;
         try {
-            variablesMap = DDIReader.getVariablesFromDDI(ddiFilePath.toFile().toURI().toURL());
-        } catch (GenesisException e) {
-            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
+            variablesMap =
+                    DDIReader.getMetadataFromDDI(ddiFilePath.toFile().toURI().toURL().toString(),
+                            new FileInputStream(ddiFilePath.toFile())).getVariables();
+        } catch (MetadataParserException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
 
         log.info(String.format("Try to read Xml file : %s", xmlFile));
@@ -291,7 +298,8 @@ public class ResponseController {
         VariablesMap variablesMap;
         try {
             Path ddiFilePath = fileUtils.findDDIFile(campaignName, mode.getModeName());
-            variablesMap = DDIReader.getVariablesFromDDI(ddiFilePath.toUri().toURL());
+            variablesMap = DDIReader.getMetadataFromDDI(ddiFilePath.toUri().toURL().toString(),
+                    new FileInputStream(ddiFilePath.toFile())).getVariables();
         } catch (Exception e) {
             errors.add(new GenesisError(e.toString()));
             return;
