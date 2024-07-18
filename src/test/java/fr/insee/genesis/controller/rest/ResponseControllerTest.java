@@ -28,8 +28,10 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -354,9 +356,10 @@ class ResponseControllerTest {
         Path logFilePath = Path.of(
                         new ConfigStub().getLogFolder())
                         .resolve(Constants.VOLUMETRY_FOLDER_NAME)
-                        .resolve("TESTIDCAMPAIGN" + Constants.VOLUMETRY_FILE_SUFFIX + ".csv");
+                        .resolve(LocalDate.now().format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
+                                + Constants.VOLUMETRY_FILE_SUFFIX + ".csv");
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains(";1");
+        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TESTIDCAMPAIGN;1");
 
         //CLEAN
         Files.deleteIfExists(logFilePath);

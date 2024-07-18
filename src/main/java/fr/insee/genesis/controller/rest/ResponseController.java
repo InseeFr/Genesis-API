@@ -152,6 +152,7 @@ public class ResponseController {
     @PutMapping(path = "/save-volumetry/all-campaigns")
     public ResponseEntity<Object> saveVolumetry() throws IOException {
         volumetryLogService.writeVolumetries(surveyUnitService);
+        volumetryLogService.cleanOldFiles();
         return ResponseEntity.ok("Volumetry saved");
     }
 
