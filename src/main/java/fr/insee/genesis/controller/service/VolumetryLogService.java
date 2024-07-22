@@ -3,6 +3,7 @@ package fr.insee.genesis.controller.service;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.domain.ports.api.SurveyUnitUpdateApiPort;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +17,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 @Service
+@Slf4j
 public class VolumetryLogService {
     private final Config config;
 
@@ -58,6 +60,7 @@ public class VolumetryLogService {
                 ).isBefore(LocalDate.now().minusDays(Constants.VOLUMETRY_FILE_EXPIRATION_DAYS))
                 ) {
                     Files.deleteIfExists(logFilePath);
+                    log.info("Deleted {}", logFilePath);
                 }
             }
         }

@@ -5,6 +5,8 @@ import org.springframework.context.annotation.Configuration;
 
 import lombok.Getter;
 
+import java.nio.file.Path;
+
 @Configuration
 @Getter
 public class Config {
@@ -19,7 +21,15 @@ public class Config {
 	@Value("${fr.insee.genesis.sourcefolder.specifications}")
 	private String specFolderSource;
 
-	@Value("${fr.insee.genesis.logfolder}")
-	private String logFolder;
+	private final String logFolder;
 
+	//Extract log folder from log filename property
+	public Config(@Value("${fr.insee.properties.log.filename}") String logFileName) {
+		Path logFileNamePath = Path.of(logFileName);
+		if(logFileNamePath.getFileName().toString().contains(".")){
+			this.logFolder = logFileNamePath.getParent().toString();
+		}else{
+			this.logFolder = logFileName;
+		}
+	}
 }

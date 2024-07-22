@@ -10,6 +10,9 @@ public class ConfigStub extends Config {
 	private static final String SPEC_SOURCE = TestConstants.TEST_RESOURCES_DIRECTORY;
 	private static final String LOG_FOLDER = TestConstants.TEST_RESOURCES_DIRECTORY;
 
+	public ConfigStub() {
+		super(LOG_FOLDER);
+	}
 
 
 	@Override
