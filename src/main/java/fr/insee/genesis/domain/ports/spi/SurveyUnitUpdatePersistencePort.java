@@ -4,6 +4,7 @@ import fr.insee.genesis.domain.dtos.SurveyUnitDto;
 import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 public interface SurveyUnitUpdatePersistencePort {
@@ -28,5 +29,7 @@ public interface SurveyUnitUpdatePersistencePort {
 
     List<String> findIdQuestionnairesByIdCampaign(String idCampaign);
 
+    Set<String> findDistinctIdCampaigns();
 
+    long countByIdCampaign(String idCampaign);
 }

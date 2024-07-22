@@ -11,6 +11,7 @@ import fr.insee.genesis.domain.ports.spi.SurveyUnitUpdatePersistencePort;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 public class SurveyUnitUpdateImpl implements SurveyUnitUpdateApiPort {
@@ -50,7 +51,7 @@ public class SurveyUnitUpdateImpl implements SurveyUnitUpdateApiPort {
      * @return the latest update for each variable of a survey unit
      */
     @Override
-    public List<SurveyUnitUpdateDto> findLatestByIdAndByMode(String idUE, String idQuest) {
+    public List<SurveyUnitUpdateDto> findLatestByIdAndByIdQuestionnaire(String idUE, String idQuest) {
         List<SurveyUnitUpdateDto> latestUpdatesbyVariables = new ArrayList<>();
         List<SurveyUnitUpdateDto> surveyUnitUpdateDtos = surveyUnitUpdatePersistencePort.findByIds(idUE, idQuest);
         List<Mode> modes = getDistinctsModes(surveyUnitUpdateDtos);
@@ -143,6 +144,16 @@ public class SurveyUnitUpdateImpl implements SurveyUnitUpdateApiPort {
     public List<String> findIdQuestionnairesByIdCampaign(String idCampaign) {
             List<String> idQuestionnaireList = surveyUnitUpdatePersistencePort.findIdQuestionnairesByIdCampaign(idCampaign);
             return idQuestionnaireList.stream().distinct().toList();
+    }
+
+    @Override
+    public Set<String> findDistinctIdCampaigns() {
+        return surveyUnitUpdatePersistencePort.findDistinctIdCampaigns();
+    }
+
+    @Override
+    public long countResponsesByIdCampaign(String idCampaign){
+        return surveyUnitUpdatePersistencePort.countByIdCampaign(idCampaign);
     }
 
     private static List<Mode> getDistinctsModes(List<SurveyUnitUpdateDto> surveyUnits) {

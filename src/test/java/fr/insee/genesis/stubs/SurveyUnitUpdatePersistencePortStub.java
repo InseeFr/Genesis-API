@@ -112,4 +112,25 @@ public class SurveyUnitUpdatePersistencePortStub implements SurveyUnitUpdatePers
 
         return idQuestionnaireSet.stream().toList();
     }
+
+    @Override
+    public Set<String> findDistinctIdCampaigns() {
+        Set<String> campaignIds = new HashSet<>();
+        for(SurveyUnitUpdateDto surveyUnitUpdateDto : mongoStub){
+            campaignIds.add(surveyUnitUpdateDto.getIdCampaign());
+        }
+
+        return campaignIds;
+    }
+
+    @Override
+    public long countByIdCampaign(String idCampaign) {
+        long count = 0;
+        for(SurveyUnitUpdateDto ignored : mongoStub.stream().filter(
+                surveyUnitUpdateDto -> surveyUnitUpdateDto.getIdCampaign().equals(idCampaign)).toList()
+        ){
+            count++;
+        }
+        return count;
+    }
 }

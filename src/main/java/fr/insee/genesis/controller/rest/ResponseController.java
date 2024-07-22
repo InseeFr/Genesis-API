@@ -4,6 +4,7 @@ import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.adapter.LunaticXmlAdapter;
 import fr.insee.genesis.controller.responses.SurveyUnitUpdateSimplified;
 import fr.insee.genesis.controller.service.SurveyUnitQualityService;
+import fr.insee.genesis.controller.service.VolumetryLogService;
 import fr.insee.genesis.controller.sources.ddi.DDIReader;
 import fr.insee.genesis.controller.sources.ddi.VariablesMap;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlCampaign;
@@ -57,13 +58,15 @@ public class ResponseController {
 
     private final SurveyUnitUpdateApiPort surveyUnitService;
     private final SurveyUnitQualityService surveyUnitQualityService;
+    private final VolumetryLogService volumetryLogService;
     private final FileUtils fileUtils;
     private final ControllerUtils controllerUtils;
 
     @Autowired
-    public ResponseController(SurveyUnitUpdateApiPort surveyUnitService, SurveyUnitQualityService surveyUnitQualityService, FileUtils fileUtils, ControllerUtils controllerUtils) {
+    public ResponseController(SurveyUnitUpdateApiPort surveyUnitService, SurveyUnitQualityService surveyUnitQualityService, VolumetryLogService volumetryLogService, FileUtils fileUtils, ControllerUtils controllerUtils) {
         this.surveyUnitService = surveyUnitService;
         this.surveyUnitQualityService = surveyUnitQualityService;
+        this.volumetryLogService = volumetryLogService;
         this.fileUtils = fileUtils;
         this.controllerUtils = controllerUtils;
     }
@@ -145,6 +148,14 @@ public class ResponseController {
         }
     }
 
+    @Operation(summary = "Write volumetries of each campaign in a folder")
+    @PutMapping(path = "/save-volumetry/all-campaigns")
+    public ResponseEntity<Object> saveVolumetry() throws IOException {
+        volumetryLogService.writeVolumetries(surveyUnitService);
+        volumetryLogService.cleanOldFiles();
+        return ResponseEntity.ok("Volumetry saved");
+    }
+
     @Operation(summary = "Delete all responses of one questionnaire")
     @DeleteMapping(path = "/delete-responses/by-questionnaire")
     public ResponseEntity<Object> deleteAllResponsesByQuestionnaire(@RequestParam("idQuestionnaire") String idQuestionnaire) {
@@ -188,7 +199,7 @@ public class ResponseController {
     @GetMapping(path = "/get-responses/by-ue-and-questionnaire/latest")
     public ResponseEntity<List<SurveyUnitUpdateDto>> getLatestByUE(@RequestParam("idUE") String idUE,
                                                                    @RequestParam("idQuestionnaire") String idQuestionnaire) {
-        List<SurveyUnitUpdateDto> responses = surveyUnitService.findLatestByIdAndByMode(idUE, idQuestionnaire);
+        List<SurveyUnitUpdateDto> responses = surveyUnitService.findLatestByIdAndByIdQuestionnaire(idUE, idQuestionnaire);
         return ResponseEntity.ok(responses);
     }
 
@@ -197,7 +208,7 @@ public class ResponseController {
     public ResponseEntity<SurveyUnitUpdateSimplified> getLatestByUEOneObject(@RequestParam("idUE") String idUE,
                                                                              @RequestParam("idQuestionnaire") String idQuestionnaire,
                                                                              @RequestParam("mode") Mode mode) {
-        List<SurveyUnitUpdateDto> responses = surveyUnitService.findLatestByIdAndByMode(idUE, idQuestionnaire);
+        List<SurveyUnitUpdateDto> responses = surveyUnitService.findLatestByIdAndByIdQuestionnaire(idUE, idQuestionnaire);
         List<CollectedVariableDto> outputVariables = new ArrayList<>();
         List<VariableDto> outputExternalVariables = new ArrayList<>();
         responses.stream().filter(rep -> rep.getMode().equals(mode)).forEach(response -> {
@@ -223,7 +234,7 @@ public class ResponseController {
         List<SurveyUnitUpdateSimplified> results = new ArrayList<>();
         List<Mode> modes = surveyUnitService.findModesByIdQuestionnaire(idQuestionnaire);
         idUEs.forEach(idUE -> {
-            List<SurveyUnitUpdateDto> responses = surveyUnitService.findLatestByIdAndByMode(idUE.getIdUE(), idQuestionnaire);
+            List<SurveyUnitUpdateDto> responses = surveyUnitService.findLatestByIdAndByIdQuestionnaire(idUE.getIdUE(), idQuestionnaire);
             modes.forEach(mode -> {
                 List<CollectedVariableDto> outputVariables = new ArrayList<>();
                 List<VariableDto> outputExternalVariables = new ArrayList<>();
