@@ -49,6 +49,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -286,6 +287,14 @@ public class ResponseController {
         return ResponseEntity.ok(questionnaires);
     }
 
+
+    @Operation(summary = "List questionnaires in database with their campaigns")
+    @GetMapping(path = "/get-questionnaires/with-campaigns")
+    public ResponseEntity<Map<String, List<String>>> getQuestionnairesWithCampaigns() {
+        Map<String, List<String>> campaignsByQuestionnaires = surveyUnitService.findQuestionnairesWithCampaigns();
+        return ResponseEntity.ok(campaignsByQuestionnaires);
+    }
+
     @Operation(summary = "List questionnaires used for a given campaign")
     @GetMapping(path = "/get-questionnaires/by-campaign")
     public ResponseEntity<List<String>> getQuestionnairesByCampaign(@RequestParam("idCampaign") String idCampaign) {
@@ -298,6 +307,13 @@ public class ResponseController {
     public ResponseEntity<Set<String>> getCampaigns() {
         Set<String> campaigns = surveyUnitService.findDistinctIdCampaigns();
         return ResponseEntity.ok(campaigns);
+    }
+
+    @Operation(summary = "List campaigns in database with their questionnaires")
+    @GetMapping(path = "/get-campaigns/with-questionnaires")
+    public ResponseEntity<Map<String, List<String>>> getCampaignsWithQuestionnaires() {
+        Map<String, List<String>> questionnairesByCampaigns = surveyUnitService.findCampaignsWithQuestionnaires();
+        return ResponseEntity.ok(questionnairesByCampaigns);
     }
 
     //Utilities

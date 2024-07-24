@@ -35,6 +35,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -371,6 +372,40 @@ class ResponseControllerTest {
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().containsExactly(
                 "TESTIDQUESTIONNAIRE","TESTQUESTIONNAIRE2");
+    }
+
+    @Test
+    void getCampaignsWithQuestionnairesTest() {
+        addAdditionnalDtoToMongoStub("TESTQUESTIONNAIRE2");
+        addAdditionnalDtoToMongoStub("TESTCAMPAIGN2","TESTQUESTIONNAIRE2");
+
+        ResponseEntity<Map<String,List<String>>> response = responseControllerStatic.getCampaignsWithQuestionnaires();
+
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().containsKeys("TESTIDCAMPAIGN",
+                "TESTCAMPAIGN2");
+        Assertions.assertThat(response.getBody().get("TESTIDCAMPAIGN")).isNotNull().isNotEmpty().containsExactly(
+                "TESTIDQUESTIONNAIRE",
+                "TESTQUESTIONNAIRE2");
+        Assertions.assertThat(response.getBody().get("TESTCAMPAIGN2")).isNotNull().isNotEmpty().containsExactly(
+                "TESTQUESTIONNAIRE2");
+    }
+
+    @Test
+    void getQuestionnairesWithCampaignsTest() {
+        addAdditionnalDtoToMongoStub("TESTQUESTIONNAIRE2");
+        addAdditionnalDtoToMongoStub("TESTCAMPAIGN2","TESTQUESTIONNAIRE2");
+
+        ResponseEntity<Map<String,List<String>>> response = responseControllerStatic.getQuestionnairesWithCampaigns();
+
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().containsKeys("TESTIDQUESTIONNAIRE",
+                "TESTQUESTIONNAIRE2");
+        Assertions.assertThat(response.getBody().get("TESTIDQUESTIONNAIRE")).isNotNull().isNotEmpty().containsExactly(
+                "TESTIDCAMPAIGN");
+        Assertions.assertThat(response.getBody().get("TESTQUESTIONNAIRE2")).isNotNull().isNotEmpty().containsExactly(
+                "TESTIDCAMPAIGN",
+                        "TESTCAMPAIGN2");
     }
 
     @Test

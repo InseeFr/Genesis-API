@@ -6,6 +6,7 @@ import fr.insee.genesis.domain.dtos.SurveyUnitId;
 import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -41,4 +42,10 @@ public interface SurveyUnitUpdateApiPort {
     long countResponsesByIdCampaign(String idCampaign);
 
     Set<String> findDistinctIdQuestionnaires();
+
+    Map<String, List<String>> findCampaignsWithQuestionnaires();
+
+    List<String> findIdCampaignsByIdQuestionnaire(String idQuestionnaire);
+
+    Map<String, List<String>> findQuestionnairesWithCampaigns();
 }

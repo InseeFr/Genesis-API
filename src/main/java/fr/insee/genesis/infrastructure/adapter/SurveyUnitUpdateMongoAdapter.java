@@ -138,4 +138,24 @@ public class SurveyUnitUpdateMongoAdapter implements SurveyUnitUpdatePersistence
 		}
 		return idQuestionnaires;
 	}
+
+	@Override
+	public List<String> findIdCampaignsByIdQuestionnaire(String idQuestionnaire) {
+		List<String> mongoResponse =
+				mongoRepository.findIdCampaignsByIdQuestionnaire(idQuestionnaire).stream().distinct().toList();
+
+		//Extract idCampagigns from JSON response
+		List<String> idCampaigns = new ArrayList<>();
+		for(String line : mongoResponse){
+			ObjectMapper objectMapper = new ObjectMapper();
+			try{
+				JsonNode jsonNode = objectMapper.readTree(line);
+				idCampaigns.add(jsonNode.get("idCampaign").asText());
+			}catch (JsonProcessingException e){
+				log.error(e.getMessage());
+			}
+		}
+
+		return idCampaigns;
+	}
 }

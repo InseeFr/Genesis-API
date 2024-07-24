@@ -10,7 +10,9 @@ import fr.insee.genesis.domain.ports.api.SurveyUnitUpdateApiPort;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitUpdatePersistencePort;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -152,6 +154,22 @@ public class SurveyUnitUpdateImpl implements SurveyUnitUpdateApiPort {
     }
 
     @Override
+    public Map<String, List<String>> findCampaignsWithQuestionnaires() {
+        Map<String, List<String>> campaignsWithQuestionnaires = new HashMap<>();
+        for(String idCampaign : findDistinctIdCampaigns()){
+            List<String> questionnaires = findIdQuestionnairesByIdCampaign(idCampaign);
+            campaignsWithQuestionnaires.put(idCampaign, questionnaires);
+        }
+        return campaignsWithQuestionnaires;
+    }
+
+    @Override
+    public List<String> findIdCampaignsByIdQuestionnaire(String idQuestionnaire) {
+        List<String> idCampaignList = surveyUnitUpdatePersistencePort.findIdCampaignsByIdQuestionnaire(idQuestionnaire);
+        return idCampaignList.stream().distinct().toList();
+    }
+
+    @Override
     public long countResponsesByIdCampaign(String idCampaign){
         return surveyUnitUpdatePersistencePort.countByIdCampaign(idCampaign);
     }
@@ -159,6 +177,16 @@ public class SurveyUnitUpdateImpl implements SurveyUnitUpdateApiPort {
     @Override
     public Set<String> findDistinctIdQuestionnaires() {
         return surveyUnitUpdatePersistencePort.findDistinctIdQuestionnaires();
+    }
+
+    @Override
+    public Map<String, List<String>> findQuestionnairesWithCampaigns() {
+        Map<String, List<String>> questionnairesWithCampaigns = new HashMap<>();
+        for(String idQuestionnaire : findDistinctIdQuestionnaires()){
+            List<String> campaigns = surveyUnitUpdatePersistencePort.findIdCampaignsByIdQuestionnaire(idQuestionnaire);
+            questionnairesWithCampaigns.put(idQuestionnaire, campaigns);
+        }
+        return questionnairesWithCampaigns;
     }
 
     private static List<Mode> getDistinctsModes(List<SurveyUnitUpdateDto> surveyUnits) {

@@ -34,4 +34,6 @@ public interface SurveyUnitUpdatePersistencePort {
     long countByIdCampaign(String idCampaign);
 
     Set<String> findDistinctIdQuestionnaires();
+
+    List<String> findIdCampaignsByIdQuestionnaire(String idQuestionnaire);
 }
