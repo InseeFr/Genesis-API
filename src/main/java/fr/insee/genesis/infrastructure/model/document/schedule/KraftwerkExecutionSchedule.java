@@ -14,4 +14,6 @@ public class KraftwerkExecutionSchedule {
 
     private LocalDateTime scheduleBeginDate;
     private LocalDateTime scheduleEndDate;
+
+    private Boolean useTrustEncryption;
 }

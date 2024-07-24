@@ -48,7 +48,8 @@ class ScheduleUnicityServiceTest {
                         "0 0 0 * * *",
                         ServiceToCall.MAIN,
                         LocalDateTime.MIN,
-                        LocalDateTime.MAX
+                        LocalDateTime.MAX,
+                        false
                 )
         );
 
@@ -74,7 +75,8 @@ class ScheduleUnicityServiceTest {
                         "0 0 0 * * *",
                         ServiceToCall.MAIN,
                         LocalDateTime.MIN,
-                        LocalDateTime.MAX
+                        LocalDateTime.MAX,
+                        false
                 )
         );
         storedSurveySchedules.add(surveySchedule);
@@ -88,7 +90,8 @@ class ScheduleUnicityServiceTest {
                         "0 0 6 * * *",
                         ServiceToCall.MAIN,
                         LocalDateTime.now(),
-                        LocalDateTime.MAX
+                        LocalDateTime.MAX,
+                        false
                 )
         );
         storedSurveySchedules.add(surveySchedule);
@@ -116,7 +119,8 @@ class ScheduleUnicityServiceTest {
                         "0 0 0 * * *",
                         ServiceToCall.MAIN,
                         LocalDateTime.MIN,
-                        LocalDateTime.MAX
+                        LocalDateTime.MAX,
+                        false
                 )
         );
         surveySchedule.getKraftwerkExecutionScheduleList().add(
@@ -124,7 +128,8 @@ class ScheduleUnicityServiceTest {
                         "0 0 6 * * *",
                         ServiceToCall.MAIN,
                         LocalDateTime.now(),
-                        LocalDateTime.MAX
+                        LocalDateTime.MAX,
+                        false
                 )
         );
         storedSurveySchedules.add(surveySchedule);
@@ -138,7 +143,8 @@ class ScheduleUnicityServiceTest {
                         "0 0 0 * * *",
                         ServiceToCall.MAIN,
                         LocalDateTime.MIN,
-                        LocalDateTime.MAX
+                        LocalDateTime.MAX,
+                        false
                 )
         );
         storedSurveySchedules.add(surveySchedule);

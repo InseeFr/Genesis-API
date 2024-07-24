@@ -47,11 +47,12 @@ public class ScheduleController {
             @Parameter(description = "Kraftwerk endpoint") @RequestParam(value = "serviceTocall", defaultValue = Constants.KRAFTWERK_MAIN_ENDPOINT) ServiceToCall serviceToCall,
             @Parameter(description = "Frequency in Spring cron format (6 inputs, go to https://crontab.cronhub.io/ for generator)  \n Example : 0 0 6 * * *") @RequestParam("frequency") String frequency,
             @Parameter(description = "Schedule effective date and time", example = "2024-01-01T12:00:00") @RequestParam("scheduleBeginDate") LocalDateTime scheduleBeginDate,
-            @Parameter(description = "Schedule end date and time", example = "2024-01-01T12:00:00") @RequestParam("scheduleEndDate") LocalDateTime scheduleEndDate
+            @Parameter(description = "Schedule end date and time", example = "2024-01-01T12:00:00") @RequestParam("scheduleEndDate") LocalDateTime scheduleEndDate,
+            @Parameter(description = "Encrypt after process ?") @RequestParam(value = "useTrustEncryption", defaultValue = "false") boolean useTrustEncryption
     ){
         try {
             log.info("New schedule request for survey {}", surveyName);
-            scheduleApiPort.addSchedule(surveyName, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate);
+            scheduleApiPort.addSchedule(surveyName, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate, useTrustEncryption);
         }catch (InvalidCronExpressionException e){
             log.warn("Returned error for wrong frequency : {}", frequency);
             return ResponseEntity.badRequest().body("Wrong frequency syntax");

@@ -3,6 +3,8 @@ package fr.insee.genesis.infrastructure.adapter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import fr.insee.genesis.Constants;
 import fr.insee.genesis.domain.dtos.SurveyUnitDto;
 import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitUpdatePersistencePort;
@@ -13,11 +15,14 @@ import fr.insee.genesis.infrastructure.model.document.SurveyUnitUpdateDocument;
 import fr.insee.genesis.infrastructure.repository.SurveyUnitUpdateMongoDBRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -26,6 +31,9 @@ public class SurveyUnitUpdateMongoAdapter implements SurveyUnitUpdatePersistence
 
 	@Autowired
 	private SurveyUnitUpdateMongoDBRepository mongoRepository;
+
+	@Autowired
+	MongoTemplate mongoTemplate;
 
 	@Override
 	public void saveAll(List<SurveyUnitUpdateDto> suListDto) {
@@ -94,6 +102,16 @@ public class SurveyUnitUpdateMongoAdapter implements SurveyUnitUpdatePersistence
 	}
 
 	@Override
+	public Set<String> findDistinctIdCampaigns() {
+		Set<String> idCampaigns = new HashSet<>();
+		for(String idCampaign : mongoTemplate.getCollection(Constants.MONGODB_RESPONSE_COLLECTION_NAME).distinct("idCampaign",
+				String.class)){
+			idCampaigns.add(idCampaign);
+		}
+		return idCampaigns;
+	}
+
+	@Override
 	public List<SurveyUnitDto> findIdUEsByIdQuestionnaire(String idQuestionnaire) {
 		List<SurveyUnitDocument> surveyUnits = mongoRepository.findIdUEsByIdQuestionnaire(idQuestionnaire);
 		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListDto(surveyUnits);
@@ -106,5 +124,7 @@ public class SurveyUnitUpdateMongoAdapter implements SurveyUnitUpdatePersistence
 
 	}
 
-
+	public long countByIdCampaign(String idCampaign){
+		return mongoRepository.countByIdCampaign(idCampaign);
+	}
 }

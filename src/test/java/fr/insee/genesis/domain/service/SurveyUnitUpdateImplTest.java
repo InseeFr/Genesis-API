@@ -11,7 +11,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
 import java.time.Month;
@@ -131,7 +130,7 @@ class SurveyUnitUpdateImplTest {
     void findLatestByIdAndByModeTest(){
         addAdditionnalDtoToMongoStub();
 
-        Assertions.assertThat(surveyUnitUpdateImplStatic.findLatestByIdAndByMode("TESTIDUE","TESTIDQUESTIONNAIRE")).filteredOn(
+        Assertions.assertThat(surveyUnitUpdateImplStatic.findLatestByIdAndByIdQuestionnaire("TESTIDUE","TESTIDQUESTIONNAIRE")).filteredOn(
                 surveyUnitUpdateDto -> surveyUnitUpdateDto.getIdUE().equals("TESTIDUE")
                 && surveyUnitUpdateDto.getIdQuest().equals("TESTIDQUESTIONNAIRE")
                 && surveyUnitUpdateDto.getFileDate().getMonth().equals(Month.FEBRUARY)
@@ -160,6 +159,11 @@ class SurveyUnitUpdateImplTest {
 
         Assertions.assertThat(surveyUnitUpdateImplStatic.findIdQuestionnairesByIdCampaign("TESTIDCAMPAIGN")).isNotEmpty().hasSize(2);
 
+    }
+
+    @Test
+    void getAllCampaignsTest() {
+        Assertions.assertThat(surveyUnitUpdateImplStatic.findDistinctIdCampaigns()).contains("TESTIDCAMPAIGN");
     }
 
     private void addAdditionnalDtoToMongoStub(){
