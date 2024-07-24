@@ -133,4 +133,13 @@ public class SurveyUnitUpdatePersistencePortStub implements SurveyUnitUpdatePers
         }
         return count;
     }
+
+    @Override
+    public Set<String> findDistinctIdQuestionnaires() {
+        Set<String> questionnaireIds = new HashSet<>();
+        for(SurveyUnitUpdateDto surveyUnitUpdateDto : mongoStub){
+            questionnaireIds.add(surveyUnitUpdateDto.getIdQuest());
+        }
+        return questionnaireIds;
+    }
 }

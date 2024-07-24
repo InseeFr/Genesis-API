@@ -127,4 +127,15 @@ public class SurveyUnitUpdateMongoAdapter implements SurveyUnitUpdatePersistence
 	public long countByIdCampaign(String idCampaign){
 		return mongoRepository.countByIdCampaign(idCampaign);
 	}
+
+	@Override
+	public Set<String> findDistinctIdQuestionnaires() {
+		Set<String> idQuestionnaires = new HashSet<>();
+		for(String idQuestionnaire : mongoTemplate.getCollection(Constants.MONGODB_RESPONSE_COLLECTION_NAME).distinct(
+				"idQuestionnaire",
+				String.class)){
+			idQuestionnaires.add(idQuestionnaire);
+		}
+		return idQuestionnaires;
+	}
 }

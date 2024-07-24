@@ -35,6 +35,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 class ResponseControllerTest {
@@ -88,15 +89,16 @@ class ResponseControllerTest {
 
         //Test file management
         //Clean DONE folder
-        if (Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("DONE").toFile().exists())
-            Files.walk(Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("DONE"))
+        Path testResourcesPath = Path.of(TestConstants.TEST_RESOURCES_DIRECTORY);
+        if (testResourcesPath.resolve("DONE").toFile().exists())
+            Files.walk(testResourcesPath.resolve("DONE"))
                     .sorted(Comparator.reverseOrder())
                     .map(Path::toFile)
                     .forEach(File::delete);
 
         //Recreate data files
         //SAMPLETEST-PARADATA-v1
-        if (!Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
+        if (!testResourcesPath
                 .resolve("IN")
                 .resolve("WEB")
                 .resolve("SAMPLETEST-PARADATA-v1")
@@ -104,26 +106,26 @@ class ResponseControllerTest {
                 .toFile().exists()
         ){
             Files.copy(
-                    Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
+                    testResourcesPath
                             .resolve("IN")
                             .resolve("WEB")
                             .resolve("SAMPLETEST-PARADATA-v1")
                             .resolve("reponse-platine")
                             .resolve("data.complete.partial.STPDv1.20231122164209.xml")
-                    , Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
+                    , testResourcesPath
                             .resolve("IN")
                             .resolve("WEB")
                             .resolve("SAMPLETEST-PARADATA-v1")
                             .resolve("data.complete.partial.STPDv1.20231122164209.xml")
             );
             Files.copy(
-                    Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
+                    testResourcesPath
                             .resolve("IN")
                             .resolve("WEB")
                             .resolve("SAMPLETEST-PARADATA-v1")
                             .resolve("reponse-platine")
                             .resolve("data.complete.validated.STPDv1.20231122164209.xml")
-                    , Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
+                    , testResourcesPath
                             .resolve("IN")
                             .resolve("WEB")
                             .resolve("SAMPLETEST-PARADATA-v1")
@@ -131,7 +133,7 @@ class ResponseControllerTest {
             );
         }
         //SAMPLETEST-PARADATA-v2
-        if (!Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
+        if (!testResourcesPath
                 .resolve("IN")
                 .resolve("WEB")
                 .resolve("SAMPLETEST-PARADATA-v2")
@@ -139,26 +141,26 @@ class ResponseControllerTest {
                 .toFile().exists()
         ){
             Files.copy(
-                    Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
+                    testResourcesPath
                             .resolve("IN")
                             .resolve("WEB")
                             .resolve("SAMPLETEST-PARADATA-v2")
                             .resolve("reponse-platine")
                             .resolve("data.complete.partial.STPDv2.20231122164209.xml")
-                    , Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
+                    , testResourcesPath
                             .resolve("IN")
                             .resolve("WEB")
                             .resolve("SAMPLETEST-PARADATA-v2")
                             .resolve("data.complete.partial.STPDv2.20231122164209.xml")
             );
             Files.copy(
-                    Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
+                    testResourcesPath
                             .resolve("IN")
                             .resolve("WEB")
                             .resolve("SAMPLETEST-PARADATA-v2")
                             .resolve("reponse-platine")
                             .resolve("data.complete.validated.STPDv2.20231122164209.xml")
-                    , Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
+                    , testResourcesPath
                             .resolve("IN")
                             .resolve("WEB")
                             .resolve("SAMPLETEST-PARADATA-v2")
@@ -287,9 +289,9 @@ class ResponseControllerTest {
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
-        Assertions.assertThat(response.getBody().get(0).getIdUE()).isEqualTo("TESTIDUE");
-        Assertions.assertThat(response.getBody().get(0).getIdQuest()).isEqualTo("TESTIDQUESTIONNAIRE");
-        Assertions.assertThat(response.getBody().get(0).getFileDate()).hasMonth(Month.FEBRUARY);
+        Assertions.assertThat(response.getBody().getFirst().getIdUE()).isEqualTo("TESTIDUE");
+        Assertions.assertThat(response.getBody().getFirst().getIdQuest()).isEqualTo("TESTIDQUESTIONNAIRE");
+        Assertions.assertThat(response.getBody().getFirst().getFileDate()).hasMonth(Month.FEBRUARY);
     }
 
     @Test
@@ -339,13 +341,36 @@ class ResponseControllerTest {
     }
 
     @Test
+    void getCampaignsTest() {
+        addAdditionnalDtoToMongoStub("TESTCAMPAIGN2","TESTQUESTIONNAIRE2");
+
+        ResponseEntity<Set<String>> response = responseControllerStatic.getCampaigns();
+
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().containsExactly(
+                "TESTIDCAMPAIGN","TESTCAMPAIGN2");
+    }
+
+    @Test
+    void getQuestionnairesTest() {
+        addAdditionnalDtoToMongoStub("TESTQUESTIONNAIRE2");
+
+        ResponseEntity<Set<String>> response = responseControllerStatic.getQuestionnaires();
+
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().containsExactly(
+                "TESTIDQUESTIONNAIRE","TESTQUESTIONNAIRE2");
+    }
+
+    @Test
     void getQuestionnairesByCampaignTest() {
         addAdditionnalDtoToMongoStub("TESTQUESTIONNAIRE2");
 
         ResponseEntity<List<String>> response = responseControllerStatic.getQuestionnairesByCampaign("TESTIDCAMPAIGN");
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().hasSize(2);
+        Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().containsExactly(
+                "TESTIDQUESTIONNAIRE","TESTQUESTIONNAIRE2");
     }
 
     @Test
