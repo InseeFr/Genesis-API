@@ -27,9 +27,13 @@ public interface SurveyUnitUpdatePersistencePort {
 
     long count();
 
-    List<String> findIdQuestionnairesByIdCampaign(String idCampaign);
+    Set<String> findIdQuestionnairesByIdCampaign(String idCampaign);
 
     Set<String> findDistinctIdCampaigns();
 
     long countByIdCampaign(String idCampaign);
+
+    Set<String> findDistinctIdQuestionnaires();
+
+    Set<String> findIdCampaignsByIdQuestionnaire(String idQuestionnaire);
 }

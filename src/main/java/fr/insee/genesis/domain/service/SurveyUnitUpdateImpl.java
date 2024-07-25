@@ -1,7 +1,9 @@
 package fr.insee.genesis.domain.service;
 
+import fr.insee.genesis.domain.dtos.CampaignWithQuestionnaire;
 import fr.insee.genesis.domain.dtos.CollectedVariableDto;
 import fr.insee.genesis.domain.dtos.Mode;
+import fr.insee.genesis.domain.dtos.QuestionnaireWithCampaign;
 import fr.insee.genesis.domain.dtos.SurveyUnitDto;
 import fr.insee.genesis.domain.dtos.SurveyUnitId;
 import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
@@ -141,9 +143,8 @@ public class SurveyUnitUpdateImpl implements SurveyUnitUpdateApiPort {
     }
 
     @Override
-    public List<String> findIdQuestionnairesByIdCampaign(String idCampaign) {
-            List<String> idQuestionnaireList = surveyUnitUpdatePersistencePort.findIdQuestionnairesByIdCampaign(idCampaign);
-            return idQuestionnaireList.stream().distinct().toList();
+    public Set<String> findIdQuestionnairesByIdCampaign(String idCampaign) {
+            return surveyUnitUpdatePersistencePort.findIdQuestionnairesByIdCampaign(idCampaign);
     }
 
     @Override
@@ -152,8 +153,37 @@ public class SurveyUnitUpdateImpl implements SurveyUnitUpdateApiPort {
     }
 
     @Override
+    public List<CampaignWithQuestionnaire> findCampaignsWithQuestionnaires() {
+        List<CampaignWithQuestionnaire> campaignsWithQuestionnaireList = new ArrayList<>();
+        for(String idCampaign : findDistinctIdCampaigns()){
+            Set<String> questionnaires = findIdQuestionnairesByIdCampaign(idCampaign);
+            campaignsWithQuestionnaireList.add(new CampaignWithQuestionnaire(idCampaign,questionnaires));
+        }
+        return campaignsWithQuestionnaireList;
+    }
+
+    @Override
     public long countResponsesByIdCampaign(String idCampaign){
         return surveyUnitUpdatePersistencePort.countByIdCampaign(idCampaign);
+    }
+
+    @Override
+    public Set<String> findDistinctIdQuestionnaires() {
+        return surveyUnitUpdatePersistencePort.findDistinctIdQuestionnaires();
+    }
+
+    @Override
+    public List<QuestionnaireWithCampaign> findQuestionnairesWithCampaigns() {
+        List<QuestionnaireWithCampaign> questionnaireWithCampaignList = new ArrayList<>();
+        for(String idQuestionnaire : findDistinctIdQuestionnaires()){
+            Set<String> campaigns = surveyUnitUpdatePersistencePort.findIdCampaignsByIdQuestionnaire(idQuestionnaire);
+            questionnaireWithCampaignList.add(new QuestionnaireWithCampaign(
+                    idQuestionnaire,
+                    campaigns)
+            );
+
+        }
+        return questionnaireWithCampaignList;
     }
 
     private static List<Mode> getDistinctsModes(List<SurveyUnitUpdateDto> surveyUnits) {

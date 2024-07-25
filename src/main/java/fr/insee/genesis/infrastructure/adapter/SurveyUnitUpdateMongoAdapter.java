@@ -83,11 +83,12 @@ public class SurveyUnitUpdateMongoAdapter implements SurveyUnitUpdatePersistence
 	}
 
 	@Override
-	public List<String> findIdQuestionnairesByIdCampaign(String idCampaign){
-		List<String> mongoResponse = mongoRepository.findIdQuestionnairesByIdCampaign(idCampaign).stream().distinct().toList();
+	public Set<String> findIdQuestionnairesByIdCampaign(String idCampaign){
+		Set<String> mongoResponse =
+				mongoRepository.findIdQuestionnairesByIdCampaign(idCampaign);
 
 		//Extract idQuestionnaires from JSON response
-		List<String> idQuestionnaires = new ArrayList<>();
+		Set<String> idQuestionnaires = new HashSet<>();
 		for(String line : mongoResponse){
 			ObjectMapper objectMapper = new ObjectMapper();
 			try{
@@ -126,5 +127,36 @@ public class SurveyUnitUpdateMongoAdapter implements SurveyUnitUpdatePersistence
 
 	public long countByIdCampaign(String idCampaign){
 		return mongoRepository.countByIdCampaign(idCampaign);
+	}
+
+	@Override
+	public Set<String> findDistinctIdQuestionnaires() {
+		Set<String> idQuestionnaires = new HashSet<>();
+		for(String idQuestionnaire : mongoTemplate.getCollection(Constants.MONGODB_RESPONSE_COLLECTION_NAME).distinct(
+				"idQuestionnaire",
+				String.class)){
+			idQuestionnaires.add(idQuestionnaire);
+		}
+		return idQuestionnaires;
+	}
+
+	@Override
+	public Set<String> findIdCampaignsByIdQuestionnaire(String idQuestionnaire) {
+		List<String> mongoResponse =
+				mongoRepository.findIdCampaignsByIdQuestionnaire(idQuestionnaire).stream().distinct().toList();
+
+		//Extract idCampagigns from JSON response
+		Set<String> idCampaigns = new HashSet<>();
+		for(String line : mongoResponse){
+			ObjectMapper objectMapper = new ObjectMapper();
+			try{
+				JsonNode jsonNode = objectMapper.readTree(line);
+				idCampaigns.add(jsonNode.get("idCampaign").asText());
+			}catch (JsonProcessingException e){
+				log.error(e.getMessage());
+			}
+		}
+
+		return idCampaigns;
 	}
 }
