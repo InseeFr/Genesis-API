@@ -6,9 +6,11 @@ import fr.insee.genesis.controller.responses.SurveyUnitUpdateSimplified;
 import fr.insee.genesis.controller.service.SurveyUnitQualityService;
 import fr.insee.genesis.controller.service.VolumetryLogService;
 import fr.insee.genesis.controller.utils.ControllerUtils;
+import fr.insee.genesis.domain.dtos.CampaignWithQuestionnaire;
 import fr.insee.genesis.domain.dtos.CollectedVariableDto;
 import fr.insee.genesis.domain.dtos.DataState;
 import fr.insee.genesis.domain.dtos.Mode;
+import fr.insee.genesis.domain.dtos.QuestionnaireWithCampaign;
 import fr.insee.genesis.domain.dtos.SurveyUnitId;
 import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
 import fr.insee.genesis.domain.dtos.VariableDto;
@@ -35,7 +37,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -367,7 +368,7 @@ class ResponseControllerTest {
     void getQuestionnairesByCampaignTest() {
         addAdditionnalDtoToMongoStub("TESTQUESTIONNAIRE2");
 
-        ResponseEntity<List<String>> response = responseControllerStatic.getQuestionnairesByCampaign("TESTIDCAMPAIGN");
+        ResponseEntity<Set<String>> response = responseControllerStatic.getQuestionnairesByCampaign("TESTIDCAMPAIGN");
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().containsExactly(
@@ -379,16 +380,22 @@ class ResponseControllerTest {
         addAdditionnalDtoToMongoStub("TESTQUESTIONNAIRE2");
         addAdditionnalDtoToMongoStub("TESTCAMPAIGN2","TESTQUESTIONNAIRE2");
 
-        ResponseEntity<Map<String,List<String>>> response = responseControllerStatic.getCampaignsWithQuestionnaires();
+        ResponseEntity<List<CampaignWithQuestionnaire>> response = responseControllerStatic.getCampaignsWithQuestionnaires();
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().containsKeys("TESTIDCAMPAIGN",
-                "TESTCAMPAIGN2");
-        Assertions.assertThat(response.getBody().get("TESTIDCAMPAIGN")).isNotNull().isNotEmpty().containsExactly(
-                "TESTIDQUESTIONNAIRE",
-                "TESTQUESTIONNAIRE2");
-        Assertions.assertThat(response.getBody().get("TESTCAMPAIGN2")).isNotNull().isNotEmpty().containsExactly(
-                "TESTQUESTIONNAIRE2");
+        Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
+        Assertions.assertThat(response.getBody().stream().filter(campaignWithQuestionnaire ->
+                        campaignWithQuestionnaire.getIdCampaign().equals("TESTIDCAMPAIGN")
+                                || campaignWithQuestionnaire.getIdCampaign().equals("TESTCAMPAIGN2")
+        )).isNotNull().isNotEmpty().hasSize(2);
+
+        Assertions.assertThat(response.getBody().stream().filter(
+                campaignWithQuestionnaire -> campaignWithQuestionnaire.getIdCampaign().equals("TESTIDCAMPAIGN")
+        ).findFirst().get().getQuestionnaires()).containsExactly("TESTIDQUESTIONNAIRE", "TESTQUESTIONNAIRE2");
+
+        Assertions.assertThat(response.getBody().stream().filter(
+                campaignWithQuestionnaire -> campaignWithQuestionnaire.getIdCampaign().equals("TESTCAMPAIGN2")
+        ).findFirst().get().getQuestionnaires()).containsExactly("TESTQUESTIONNAIRE2");
     }
 
     @Test
@@ -396,16 +403,24 @@ class ResponseControllerTest {
         addAdditionnalDtoToMongoStub("TESTQUESTIONNAIRE2");
         addAdditionnalDtoToMongoStub("TESTCAMPAIGN2","TESTQUESTIONNAIRE2");
 
-        ResponseEntity<Map<String,List<String>>> response = responseControllerStatic.getQuestionnairesWithCampaigns();
+        ResponseEntity<List<QuestionnaireWithCampaign>> response = responseControllerStatic.getQuestionnairesWithCampaigns();
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().containsKeys("TESTIDQUESTIONNAIRE",
-                "TESTQUESTIONNAIRE2");
-        Assertions.assertThat(response.getBody().get("TESTIDQUESTIONNAIRE")).isNotNull().isNotEmpty().containsExactly(
-                "TESTIDCAMPAIGN");
-        Assertions.assertThat(response.getBody().get("TESTQUESTIONNAIRE2")).isNotNull().isNotEmpty().containsExactly(
-                "TESTIDCAMPAIGN",
-                        "TESTCAMPAIGN2");
+
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
+        Assertions.assertThat(response.getBody().stream().filter(questionnaireWithCampaign ->
+                questionnaireWithCampaign.getIdQuestionnaire().equals("TESTIDQUESTIONNAIRE")
+                        || questionnaireWithCampaign.getIdQuestionnaire().equals("TESTQUESTIONNAIRE2")
+        )).isNotNull().isNotEmpty().hasSize(2);
+
+        Assertions.assertThat(response.getBody().stream().filter(
+                questionnaireWithCampaign -> questionnaireWithCampaign.getIdQuestionnaire().equals("TESTIDQUESTIONNAIRE")
+        ).findFirst().get().getCampaigns()).containsExactly("TESTIDCAMPAIGN");
+
+        Assertions.assertThat(response.getBody().stream().filter(
+                questionnaireWithCampaign -> questionnaireWithCampaign.getIdQuestionnaire().equals("TESTQUESTIONNAIRE2")
+        ).findFirst().get().getCampaigns()).containsExactly("TESTIDCAMPAIGN", "TESTCAMPAIGN2");
     }
 
     @Test

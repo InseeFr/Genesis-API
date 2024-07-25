@@ -1,12 +1,13 @@
 package fr.insee.genesis.domain.ports.api;
 
+import fr.insee.genesis.domain.dtos.CampaignWithQuestionnaire;
 import fr.insee.genesis.domain.dtos.Mode;
+import fr.insee.genesis.domain.dtos.QuestionnaireWithCampaign;
 import fr.insee.genesis.domain.dtos.SurveyUnitDto;
 import fr.insee.genesis.domain.dtos.SurveyUnitId;
 import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -35,7 +36,7 @@ public interface SurveyUnitUpdateApiPort {
 
     long countResponses();
 
-    List<String> findIdQuestionnairesByIdCampaign(String idCampaign);
+    Set<String> findIdQuestionnairesByIdCampaign(String idCampaign);
 
     Set<String> findDistinctIdCampaigns();
 
@@ -43,9 +44,7 @@ public interface SurveyUnitUpdateApiPort {
 
     Set<String> findDistinctIdQuestionnaires();
 
-    Map<String, List<String>> findCampaignsWithQuestionnaires();
+    List<CampaignWithQuestionnaire> findCampaignsWithQuestionnaires();
 
-    List<String> findIdCampaignsByIdQuestionnaire(String idQuestionnaire);
-
-    Map<String, List<String>> findQuestionnairesWithCampaigns();
+    List<QuestionnaireWithCampaign> findQuestionnairesWithCampaigns();
 }

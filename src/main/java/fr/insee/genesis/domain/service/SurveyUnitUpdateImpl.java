@@ -1,7 +1,9 @@
 package fr.insee.genesis.domain.service;
 
+import fr.insee.genesis.domain.dtos.CampaignWithQuestionnaire;
 import fr.insee.genesis.domain.dtos.CollectedVariableDto;
 import fr.insee.genesis.domain.dtos.Mode;
+import fr.insee.genesis.domain.dtos.QuestionnaireWithCampaign;
 import fr.insee.genesis.domain.dtos.SurveyUnitDto;
 import fr.insee.genesis.domain.dtos.SurveyUnitId;
 import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
@@ -10,9 +12,7 @@ import fr.insee.genesis.domain.ports.api.SurveyUnitUpdateApiPort;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitUpdatePersistencePort;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -143,9 +143,8 @@ public class SurveyUnitUpdateImpl implements SurveyUnitUpdateApiPort {
     }
 
     @Override
-    public List<String> findIdQuestionnairesByIdCampaign(String idCampaign) {
-            List<String> idQuestionnaireList = surveyUnitUpdatePersistencePort.findIdQuestionnairesByIdCampaign(idCampaign);
-            return idQuestionnaireList.stream().distinct().toList();
+    public Set<String> findIdQuestionnairesByIdCampaign(String idCampaign) {
+            return surveyUnitUpdatePersistencePort.findIdQuestionnairesByIdCampaign(idCampaign);
     }
 
     @Override
@@ -154,19 +153,13 @@ public class SurveyUnitUpdateImpl implements SurveyUnitUpdateApiPort {
     }
 
     @Override
-    public Map<String, List<String>> findCampaignsWithQuestionnaires() {
-        Map<String, List<String>> campaignsWithQuestionnaires = new HashMap<>();
+    public List<CampaignWithQuestionnaire> findCampaignsWithQuestionnaires() {
+        List<CampaignWithQuestionnaire> campaignsWithQuestionnaireList = new ArrayList<>();
         for(String idCampaign : findDistinctIdCampaigns()){
-            List<String> questionnaires = findIdQuestionnairesByIdCampaign(idCampaign);
-            campaignsWithQuestionnaires.put(idCampaign, questionnaires);
+            Set<String> questionnaires = findIdQuestionnairesByIdCampaign(idCampaign);
+            campaignsWithQuestionnaireList.add(new CampaignWithQuestionnaire(idCampaign,questionnaires));
         }
-        return campaignsWithQuestionnaires;
-    }
-
-    @Override
-    public List<String> findIdCampaignsByIdQuestionnaire(String idQuestionnaire) {
-        List<String> idCampaignList = surveyUnitUpdatePersistencePort.findIdCampaignsByIdQuestionnaire(idQuestionnaire);
-        return idCampaignList.stream().distinct().toList();
+        return campaignsWithQuestionnaireList;
     }
 
     @Override
@@ -180,13 +173,17 @@ public class SurveyUnitUpdateImpl implements SurveyUnitUpdateApiPort {
     }
 
     @Override
-    public Map<String, List<String>> findQuestionnairesWithCampaigns() {
-        Map<String, List<String>> questionnairesWithCampaigns = new HashMap<>();
+    public List<QuestionnaireWithCampaign> findQuestionnairesWithCampaigns() {
+        List<QuestionnaireWithCampaign> questionnaireWithCampaignList = new ArrayList<>();
         for(String idQuestionnaire : findDistinctIdQuestionnaires()){
-            List<String> campaigns = surveyUnitUpdatePersistencePort.findIdCampaignsByIdQuestionnaire(idQuestionnaire);
-            questionnairesWithCampaigns.put(idQuestionnaire, campaigns);
+            Set<String> campaigns = surveyUnitUpdatePersistencePort.findIdCampaignsByIdQuestionnaire(idQuestionnaire);
+            questionnaireWithCampaignList.add(new QuestionnaireWithCampaign(
+                    idQuestionnaire,
+                    campaigns)
+            );
+
         }
-        return questionnairesWithCampaigns;
+        return questionnaireWithCampaignList;
     }
 
     private static List<Mode> getDistinctsModes(List<SurveyUnitUpdateDto> surveyUnits) {

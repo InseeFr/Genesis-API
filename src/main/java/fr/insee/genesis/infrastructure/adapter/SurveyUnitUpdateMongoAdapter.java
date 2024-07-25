@@ -83,11 +83,12 @@ public class SurveyUnitUpdateMongoAdapter implements SurveyUnitUpdatePersistence
 	}
 
 	@Override
-	public List<String> findIdQuestionnairesByIdCampaign(String idCampaign){
-		List<String> mongoResponse = mongoRepository.findIdQuestionnairesByIdCampaign(idCampaign).stream().distinct().toList();
+	public Set<String> findIdQuestionnairesByIdCampaign(String idCampaign){
+		Set<String> mongoResponse =
+				mongoRepository.findIdQuestionnairesByIdCampaign(idCampaign);
 
 		//Extract idQuestionnaires from JSON response
-		List<String> idQuestionnaires = new ArrayList<>();
+		Set<String> idQuestionnaires = new HashSet<>();
 		for(String line : mongoResponse){
 			ObjectMapper objectMapper = new ObjectMapper();
 			try{
@@ -140,12 +141,12 @@ public class SurveyUnitUpdateMongoAdapter implements SurveyUnitUpdatePersistence
 	}
 
 	@Override
-	public List<String> findIdCampaignsByIdQuestionnaire(String idQuestionnaire) {
+	public Set<String> findIdCampaignsByIdQuestionnaire(String idQuestionnaire) {
 		List<String> mongoResponse =
 				mongoRepository.findIdCampaignsByIdQuestionnaire(idQuestionnaire).stream().distinct().toList();
 
 		//Extract idCampagigns from JSON response
-		List<String> idCampaigns = new ArrayList<>();
+		Set<String> idCampaigns = new HashSet<>();
 		for(String line : mongoResponse){
 			ObjectMapper objectMapper = new ObjectMapper();
 			try{
