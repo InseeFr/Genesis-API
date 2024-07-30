@@ -103,13 +103,54 @@ public class SurveyUnitUpdatePersistencePortStub implements SurveyUnitUpdatePers
     }
 
     @Override
-    public List<String> findIdQuestionnairesByIdCampaign(String idCampaign) {
+    public Set<String> findIdQuestionnairesByIdCampaign(String idCampaign) {
         Set<String> idQuestionnaireSet = new HashSet<>();
         for(SurveyUnitUpdateDto surveyUnitUpdateDto : mongoStub){
             if(surveyUnitUpdateDto.getIdCampaign().equals(idCampaign))
                 idQuestionnaireSet.add(surveyUnitUpdateDto.getIdQuest());
         }
 
-        return idQuestionnaireSet.stream().toList();
+        return idQuestionnaireSet;
+    }
+
+    @Override
+    public Set<String> findDistinctIdCampaigns() {
+        Set<String> campaignIds = new HashSet<>();
+        for(SurveyUnitUpdateDto surveyUnitUpdateDto : mongoStub){
+            campaignIds.add(surveyUnitUpdateDto.getIdCampaign());
+        }
+
+        return campaignIds;
+    }
+
+    @Override
+    public long countByIdCampaign(String idCampaign) {
+        long count = 0;
+        for(SurveyUnitUpdateDto ignored : mongoStub.stream().filter(
+                surveyUnitUpdateDto -> surveyUnitUpdateDto.getIdCampaign().equals(idCampaign)).toList()
+        ){
+            count++;
+        }
+        return count;
+    }
+
+    @Override
+    public Set<String> findDistinctIdQuestionnaires() {
+        Set<String> questionnaireIds = new HashSet<>();
+        for(SurveyUnitUpdateDto surveyUnitUpdateDto : mongoStub){
+            questionnaireIds.add(surveyUnitUpdateDto.getIdQuest());
+        }
+        return questionnaireIds;
+    }
+
+    @Override
+    public Set<String> findIdCampaignsByIdQuestionnaire(String idQuestionnaire) {
+        Set<String> idCampaignSet = new HashSet<>();
+        for(SurveyUnitUpdateDto surveyUnitUpdateDto : mongoStub){
+            if(surveyUnitUpdateDto.getIdQuest().equals(idQuestionnaire))
+                idCampaignSet.add(surveyUnitUpdateDto.getIdCampaign());
+        }
+
+        return idCampaignSet;
     }
 }

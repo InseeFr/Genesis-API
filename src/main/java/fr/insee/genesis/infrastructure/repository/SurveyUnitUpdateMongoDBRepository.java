@@ -8,6 +8,7 @@ import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 @Repository
@@ -31,6 +32,10 @@ public interface SurveyUnitUpdateMongoDBRepository extends MongoRepository<Surve
 	long count();
 
 	@Query(value = "{ 'idCampaign' : ?0 }", fields = "{ _id : 0, 'idQuestionnaire' : 1 }")
-	List<String> findIdQuestionnairesByIdCampaign(String idCampaign);
+	Set<String> findIdQuestionnairesByIdCampaign(String idCampaign);
 
+	long countByIdCampaign(String idCampaign);
+
+	@Query(value = "{ 'idQuestionnaire' : ?0 }", fields = "{ _id : 0, 'idCampaign' : 1 }")
+	Set<String> findIdCampaignsByIdQuestionnaire(String idQuestionnaire);
 }

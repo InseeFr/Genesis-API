@@ -4,10 +4,13 @@ import cucumber.TestConstants;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.responses.SurveyUnitUpdateSimplified;
 import fr.insee.genesis.controller.service.SurveyUnitQualityService;
+import fr.insee.genesis.controller.service.VolumetryLogService;
 import fr.insee.genesis.controller.utils.ControllerUtils;
+import fr.insee.genesis.domain.dtos.CampaignWithQuestionnaire;
 import fr.insee.genesis.domain.dtos.CollectedVariableDto;
 import fr.insee.genesis.domain.dtos.DataState;
 import fr.insee.genesis.domain.dtos.Mode;
+import fr.insee.genesis.domain.dtos.QuestionnaireWithCampaign;
 import fr.insee.genesis.domain.dtos.SurveyUnitId;
 import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
 import fr.insee.genesis.domain.dtos.VariableDto;
@@ -27,11 +30,15 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Stream;
 
 class ResponseControllerTest {
     //Given
@@ -49,6 +56,7 @@ class ResponseControllerTest {
         responseControllerStatic = new ResponseController(
                 surveyUnitUpdateApiPort
                 , new SurveyUnitQualityService()
+                , new VolumetryLogService(new ConfigStub())
                 , fileUtils
                 , new ControllerUtils(fileUtils)
         );
@@ -83,15 +91,16 @@ class ResponseControllerTest {
 
         //Test file management
         //Clean DONE folder
-        if (Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("DONE").toFile().exists())
-            Files.walk(Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("DONE"))
+        Path testResourcesPath = Path.of(TestConstants.TEST_RESOURCES_DIRECTORY);
+        if (testResourcesPath.resolve("DONE").toFile().exists())
+            Files.walk(testResourcesPath.resolve("DONE"))
                     .sorted(Comparator.reverseOrder())
                     .map(Path::toFile)
                     .forEach(File::delete);
 
         //Recreate data files
         //SAMPLETEST-PARADATA-v1
-        if (!Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
+        if (!testResourcesPath
                 .resolve("IN")
                 .resolve("WEB")
                 .resolve("SAMPLETEST-PARADATA-v1")
@@ -99,26 +108,26 @@ class ResponseControllerTest {
                 .toFile().exists()
         ){
             Files.copy(
-                    Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
+                    testResourcesPath
                             .resolve("IN")
                             .resolve("WEB")
                             .resolve("SAMPLETEST-PARADATA-v1")
                             .resolve("reponse-platine")
                             .resolve("data.complete.partial.STPDv1.20231122164209.xml")
-                    , Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
+                    , testResourcesPath
                             .resolve("IN")
                             .resolve("WEB")
                             .resolve("SAMPLETEST-PARADATA-v1")
                             .resolve("data.complete.partial.STPDv1.20231122164209.xml")
             );
             Files.copy(
-                    Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
+                    testResourcesPath
                             .resolve("IN")
                             .resolve("WEB")
                             .resolve("SAMPLETEST-PARADATA-v1")
                             .resolve("reponse-platine")
                             .resolve("data.complete.validated.STPDv1.20231122164209.xml")
-                    , Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
+                    , testResourcesPath
                             .resolve("IN")
                             .resolve("WEB")
                             .resolve("SAMPLETEST-PARADATA-v1")
@@ -126,7 +135,7 @@ class ResponseControllerTest {
             );
         }
         //SAMPLETEST-PARADATA-v2
-        if (!Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
+        if (!testResourcesPath
                 .resolve("IN")
                 .resolve("WEB")
                 .resolve("SAMPLETEST-PARADATA-v2")
@@ -134,26 +143,26 @@ class ResponseControllerTest {
                 .toFile().exists()
         ){
             Files.copy(
-                    Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
+                    testResourcesPath
                             .resolve("IN")
                             .resolve("WEB")
                             .resolve("SAMPLETEST-PARADATA-v2")
                             .resolve("reponse-platine")
                             .resolve("data.complete.partial.STPDv2.20231122164209.xml")
-                    , Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
+                    , testResourcesPath
                             .resolve("IN")
                             .resolve("WEB")
                             .resolve("SAMPLETEST-PARADATA-v2")
                             .resolve("data.complete.partial.STPDv2.20231122164209.xml")
             );
             Files.copy(
-                    Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
+                    testResourcesPath
                             .resolve("IN")
                             .resolve("WEB")
                             .resolve("SAMPLETEST-PARADATA-v2")
                             .resolve("reponse-platine")
                             .resolve("data.complete.validated.STPDv2.20231122164209.xml")
-                    , Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
+                    , testResourcesPath
                             .resolve("IN")
                             .resolve("WEB")
                             .resolve("SAMPLETEST-PARADATA-v2")
@@ -282,9 +291,9 @@ class ResponseControllerTest {
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
-        Assertions.assertThat(response.getBody().get(0).getIdUE()).isEqualTo("TESTIDUE");
-        Assertions.assertThat(response.getBody().get(0).getIdQuest()).isEqualTo("TESTIDQUESTIONNAIRE");
-        Assertions.assertThat(response.getBody().get(0).getFileDate()).hasMonth(Month.FEBRUARY);
+        Assertions.assertThat(response.getBody().getFirst().getIdUE()).isEqualTo("TESTIDUE");
+        Assertions.assertThat(response.getBody().getFirst().getIdQuest()).isEqualTo("TESTIDQUESTIONNAIRE");
+        Assertions.assertThat(response.getBody().getFirst().getFileDate()).hasMonth(Month.FEBRUARY);
     }
 
     @Test
@@ -334,14 +343,193 @@ class ResponseControllerTest {
     }
 
     @Test
+    void getCampaignsTest() {
+        addAdditionnalDtoToMongoStub("TESTCAMPAIGN2","TESTQUESTIONNAIRE2");
+
+        ResponseEntity<Set<String>> response = responseControllerStatic.getCampaigns();
+
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().containsExactly(
+                "TESTIDCAMPAIGN","TESTCAMPAIGN2");
+    }
+
+    @Test
+    void getQuestionnairesTest() {
+        addAdditionnalDtoToMongoStub("TESTQUESTIONNAIRE2");
+
+        ResponseEntity<Set<String>> response = responseControllerStatic.getQuestionnaires();
+
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().containsExactly(
+                "TESTIDQUESTIONNAIRE","TESTQUESTIONNAIRE2");
+    }
+
+    @Test
     void getQuestionnairesByCampaignTest() {
         addAdditionnalDtoToMongoStub("TESTQUESTIONNAIRE2");
 
-        ResponseEntity<List<String>> response = responseControllerStatic.getQuestionnairesByCampaign("TESTIDCAMPAIGN");
+        ResponseEntity<Set<String>> response = responseControllerStatic.getQuestionnairesByCampaign("TESTIDCAMPAIGN");
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().hasSize(2);
+        Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().containsExactly(
+                "TESTIDQUESTIONNAIRE","TESTQUESTIONNAIRE2");
     }
+
+    @Test
+    void getCampaignsWithQuestionnairesTest() {
+        addAdditionnalDtoToMongoStub("TESTQUESTIONNAIRE2");
+        addAdditionnalDtoToMongoStub("TESTCAMPAIGN2","TESTQUESTIONNAIRE2");
+
+        ResponseEntity<List<CampaignWithQuestionnaire>> response = responseControllerStatic.getCampaignsWithQuestionnaires();
+
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
+        Assertions.assertThat(response.getBody().stream().filter(campaignWithQuestionnaire ->
+                        campaignWithQuestionnaire.getIdCampaign().equals("TESTIDCAMPAIGN")
+                                || campaignWithQuestionnaire.getIdCampaign().equals("TESTCAMPAIGN2")
+        )).isNotNull().isNotEmpty().hasSize(2);
+
+        Assertions.assertThat(response.getBody().stream().filter(
+                campaignWithQuestionnaire -> campaignWithQuestionnaire.getIdCampaign().equals("TESTIDCAMPAIGN")
+        ).findFirst().get().getQuestionnaires()).containsExactly("TESTIDQUESTIONNAIRE", "TESTQUESTIONNAIRE2");
+
+        Assertions.assertThat(response.getBody().stream().filter(
+                campaignWithQuestionnaire -> campaignWithQuestionnaire.getIdCampaign().equals("TESTCAMPAIGN2")
+        ).findFirst().get().getQuestionnaires()).containsExactly("TESTQUESTIONNAIRE2");
+    }
+
+    @Test
+    void getQuestionnairesWithCampaignsTest() {
+        addAdditionnalDtoToMongoStub("TESTQUESTIONNAIRE2");
+        addAdditionnalDtoToMongoStub("TESTCAMPAIGN2","TESTQUESTIONNAIRE2");
+
+        ResponseEntity<List<QuestionnaireWithCampaign>> response = responseControllerStatic.getQuestionnairesWithCampaigns();
+
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
+        Assertions.assertThat(response.getBody().stream().filter(questionnaireWithCampaign ->
+                questionnaireWithCampaign.getIdQuestionnaire().equals("TESTIDQUESTIONNAIRE")
+                        || questionnaireWithCampaign.getIdQuestionnaire().equals("TESTQUESTIONNAIRE2")
+        )).isNotNull().isNotEmpty().hasSize(2);
+
+        Assertions.assertThat(response.getBody().stream().filter(
+                questionnaireWithCampaign -> questionnaireWithCampaign.getIdQuestionnaire().equals("TESTIDQUESTIONNAIRE")
+        ).findFirst().get().getCampaigns()).containsExactly("TESTIDCAMPAIGN");
+
+        Assertions.assertThat(response.getBody().stream().filter(
+                questionnaireWithCampaign -> questionnaireWithCampaign.getIdQuestionnaire().equals("TESTQUESTIONNAIRE2")
+        ).findFirst().get().getCampaigns()).containsExactly("TESTIDCAMPAIGN", "TESTCAMPAIGN2");
+    }
+
+    @Test
+    void saveVolumetryTest() throws IOException {
+        //WHEN
+        ResponseEntity<Object> response = responseControllerStatic.saveVolumetry();
+
+        //THEN
+        Path logFilePath = Path.of(
+                        new ConfigStub().getLogFolder())
+                        .resolve(Constants.VOLUMETRY_FOLDER_NAME)
+                        .resolve(LocalDate.now().format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
+                                + Constants.VOLUMETRY_FILE_SUFFIX + ".csv");
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TESTIDCAMPAIGN;1");
+
+        //CLEAN
+        Files.deleteIfExists(logFilePath);
+    }
+
+    @Test
+    void saveVolumetryTest_overwrite() throws IOException {
+        //WHEN
+        responseControllerStatic.saveVolumetry();
+        ResponseEntity<Object> response = responseControllerStatic.saveVolumetry();
+
+        //THEN
+        Path logFilePath = Path.of(
+                        new ConfigStub().getLogFolder())
+                .resolve(Constants.VOLUMETRY_FOLDER_NAME)
+                .resolve(LocalDate.now().format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
+                        + Constants.VOLUMETRY_FILE_SUFFIX + ".csv");
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TESTIDCAMPAIGN;1").doesNotContain("TESTIDCAMPAIGN;1\nTESTIDCAMPAIGN;1");
+
+        //CLEAN
+        Files.deleteIfExists(logFilePath);
+    }
+
+    @Test
+    void saveVolumetryTest_additionnal_campaign() throws IOException {
+        //Given
+        addAdditionnalDtoToMongoStub("TESTIDCAMPAIGN2","TESTQUEST2");
+
+        //WHEN
+        ResponseEntity<Object> response = responseControllerStatic.saveVolumetry();
+
+        //THEN
+        Path logFilePath = Path.of(
+                        new ConfigStub().getLogFolder())
+                .resolve(Constants.VOLUMETRY_FOLDER_NAME)
+                .resolve(LocalDate.now().format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
+                        + Constants.VOLUMETRY_FILE_SUFFIX + ".csv");
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TESTIDCAMPAIGN;1").contains("TESTIDCAMPAIGN2;1");
+
+        //CLEAN
+        Files.deleteIfExists(logFilePath);
+    }
+    @Test
+    void saveVolumetryTest_additionnal_campaign_and_document() throws IOException {
+        //Given
+        addAdditionnalDtoToMongoStub("TESTQUEST");
+        addAdditionnalDtoToMongoStub("TESTIDCAMPAIGN2","TESTQUEST2");
+
+        //WHEN
+        ResponseEntity<Object> response = responseControllerStatic.saveVolumetry();
+
+        //THEN
+        Path logFilePath = Path.of(
+                        new ConfigStub().getLogFolder())
+                .resolve(Constants.VOLUMETRY_FOLDER_NAME)
+                .resolve(LocalDate.now().format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
+                        + Constants.VOLUMETRY_FILE_SUFFIX + ".csv");
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TESTIDCAMPAIGN;2").contains("TESTIDCAMPAIGN2;1");
+
+        //CLEAN
+        Files.deleteIfExists(logFilePath);
+    }
+
+    @Test
+    void cleanOldVolumetryLogFiles() throws IOException {
+        //GIVEN
+        Path oldLogFilePath = Path.of(
+                        new ConfigStub().getLogFolder())
+                .resolve(Constants.VOLUMETRY_FOLDER_NAME)
+                .resolve(LocalDate.of(2000,1,1).format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
+                        + Constants.VOLUMETRY_FILE_SUFFIX + ".csv");
+
+        Files.createDirectories(oldLogFilePath.getParent());
+        Files.write(oldLogFilePath, "test".getBytes());
+
+        //WHEN
+        ResponseEntity<Object> response = responseControllerStatic.saveVolumetry();
+
+        //THEN
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        Assertions.assertThat(oldLogFilePath).doesNotExist();
+
+        //CLEAN
+        try(Stream<Path> stream = Files.walk(oldLogFilePath.getParent())){
+            for(Path filePath : stream.filter(path -> path.getFileName().toString().endsWith(".csv")).toList()){
+                Files.deleteIfExists(filePath);
+            }
+        }
+    }
+
+
 
     // Utilities
     private void addAdditionnalDtoToMongoStub() {
@@ -378,6 +566,29 @@ class ResponseControllerTest {
 
         SurveyUnitUpdateDto recentDTO = SurveyUnitUpdateDto.builder()
                 .idCampaign("TESTIDCAMPAIGN")
+                .mode(Mode.WEB)
+                .idUE("TESTIDUE")
+                .idQuest(idQuestionnaire)
+                .state(DataState.COLLECTED)
+                .fileDate(LocalDateTime.of(2023, 2, 2, 0, 0, 0))
+                .recordDate(LocalDateTime.of(2024, 2, 2, 0, 0, 0))
+                .externalVariables(externalVariableDtoList)
+                .collectedVariables(collectedVariableDtoList)
+                .build();
+        surveyUnitUpdatePersistencePortStub.getMongoStub().add(recentDTO);
+    }
+
+    private void addAdditionnalDtoToMongoStub(String idCampaign, String idQuestionnaire) {
+        List<VariableDto> externalVariableDtoList = new ArrayList<>();
+        VariableDto variableDto = VariableDto.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
+        externalVariableDtoList.add(variableDto);
+
+        List<CollectedVariableDto> collectedVariableDtoList = new ArrayList<>();
+        CollectedVariableDto collectedVariableDto = new CollectedVariableDto("TESTIDVAR", List.of(new String[]{"V1", "V2"}), "TESTIDLOOP", "TESTIDPARENT");
+        collectedVariableDtoList.add(collectedVariableDto);
+
+        SurveyUnitUpdateDto recentDTO = SurveyUnitUpdateDto.builder()
+                .idCampaign(idCampaign)
                 .mode(Mode.WEB)
                 .idUE("TESTIDUE")
                 .idQuest(idQuestionnaire)

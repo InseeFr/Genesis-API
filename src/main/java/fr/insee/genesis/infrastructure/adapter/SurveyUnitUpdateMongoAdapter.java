@@ -3,6 +3,8 @@ package fr.insee.genesis.infrastructure.adapter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import fr.insee.genesis.Constants;
 import fr.insee.genesis.domain.dtos.SurveyUnitDto;
 import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitUpdatePersistencePort;
@@ -13,11 +15,14 @@ import fr.insee.genesis.infrastructure.model.document.SurveyUnitUpdateDocument;
 import fr.insee.genesis.infrastructure.repository.SurveyUnitUpdateMongoDBRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -26,6 +31,9 @@ public class SurveyUnitUpdateMongoAdapter implements SurveyUnitUpdatePersistence
 
 	@Autowired
 	private SurveyUnitUpdateMongoDBRepository mongoRepository;
+
+	@Autowired
+	MongoTemplate mongoTemplate;
 
 	@Override
 	public void saveAll(List<SurveyUnitUpdateDto> suListDto) {
@@ -75,11 +83,12 @@ public class SurveyUnitUpdateMongoAdapter implements SurveyUnitUpdatePersistence
 	}
 
 	@Override
-	public List<String> findIdQuestionnairesByIdCampaign(String idCampaign){
-		List<String> mongoResponse = mongoRepository.findIdQuestionnairesByIdCampaign(idCampaign).stream().distinct().toList();
+	public Set<String> findIdQuestionnairesByIdCampaign(String idCampaign){
+		Set<String> mongoResponse =
+				mongoRepository.findIdQuestionnairesByIdCampaign(idCampaign);
 
 		//Extract idQuestionnaires from JSON response
-		List<String> idQuestionnaires = new ArrayList<>();
+		Set<String> idQuestionnaires = new HashSet<>();
 		for(String line : mongoResponse){
 			ObjectMapper objectMapper = new ObjectMapper();
 			try{
@@ -91,6 +100,16 @@ public class SurveyUnitUpdateMongoAdapter implements SurveyUnitUpdatePersistence
 		}
 
 		return idQuestionnaires;
+	}
+
+	@Override
+	public Set<String> findDistinctIdCampaigns() {
+		Set<String> idCampaigns = new HashSet<>();
+		for(String idCampaign : mongoTemplate.getCollection(Constants.MONGODB_RESPONSE_COLLECTION_NAME).distinct("idCampaign",
+				String.class)){
+			idCampaigns.add(idCampaign);
+		}
+		return idCampaigns;
 	}
 
 	@Override
@@ -106,5 +125,38 @@ public class SurveyUnitUpdateMongoAdapter implements SurveyUnitUpdatePersistence
 
 	}
 
+	public long countByIdCampaign(String idCampaign){
+		return mongoRepository.countByIdCampaign(idCampaign);
+	}
 
+	@Override
+	public Set<String> findDistinctIdQuestionnaires() {
+		Set<String> idQuestionnaires = new HashSet<>();
+		for(String idQuestionnaire : mongoTemplate.getCollection(Constants.MONGODB_RESPONSE_COLLECTION_NAME).distinct(
+				"idQuestionnaire",
+				String.class)){
+			idQuestionnaires.add(idQuestionnaire);
+		}
+		return idQuestionnaires;
+	}
+
+	@Override
+	public Set<String> findIdCampaignsByIdQuestionnaire(String idQuestionnaire) {
+		List<String> mongoResponse =
+				mongoRepository.findIdCampaignsByIdQuestionnaire(idQuestionnaire).stream().distinct().toList();
+
+		//Extract idCampagigns from JSON response
+		Set<String> idCampaigns = new HashSet<>();
+		for(String line : mongoResponse){
+			ObjectMapper objectMapper = new ObjectMapper();
+			try{
+				JsonNode jsonNode = objectMapper.readTree(line);
+				idCampaigns.add(jsonNode.get("idCampaign").asText());
+			}catch (JsonProcessingException e){
+				log.error(e.getMessage());
+			}
+		}
+
+		return idCampaigns;
+	}
 }
