@@ -7,7 +7,11 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -122,9 +126,10 @@ public class FileUtils {
 	 * @throws IOException
 	 */
 	public Path findDDIFile(String campaign, String mode) throws IOException {
-		try (Stream<Path> files = Files.find(Path.of(String.format("%s/%s",getSpecFolder(campaign),mode)), 1, (path, basicFileAttributes) -> path.toFile().getName().matches("ddi[\\w,\\s-]+\\.xml"))) {
+		String ddiPath = String.format("%s/%s", getSpecFolder(campaign), mode);
+		try (Stream<Path> files = Files.find(Path.of(ddiPath), 1, (path, basicFileAttributes) -> path.toFile().getName().matches("ddi[\\w,\\s-]+\\.xml"))) {
 			return files.findFirst()
-					.orElseThrow(() -> new RuntimeException("No DDI file found in " + String.format("%s/%s",getSpecFolder(campaign),mode)));
+					.orElseThrow(() -> new RuntimeException("No DDI file found in " + ddiPath));
 		}
 	}
 

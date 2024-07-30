@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.7 - [2024-07-30]
+### Added
+- First version to manage encryption
+- Export files for volumetry
+- Add GET all campaigns and questionnaires endpoints
+
 ## 1.2.6 - [2024-07-11]
 ### Added
 - Add endpoint to delete schedule
