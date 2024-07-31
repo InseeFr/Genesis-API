@@ -1,4 +1,14 @@
 # Changelog
+## 1.2.8 - [2024-07-31]
+### Added
+- Alternative INPUTED syntaxes (INPUTTED & IMPUTED)
+
+### Changed
+- All campaigns integration endpoint now reads one specific folder (differential/data)
+
+### Fixed
+- File in error moved to done even if there is no responses added to database
+- No error log when file in error
 
 ## 1.2.7 - [2024-07-30]
 ### Added
