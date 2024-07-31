@@ -40,27 +40,25 @@ public class FileUtils {
 	 *                Example: /home/genesis/data/in/2021/2021-01-01
 	 * @param destination Path of the destination directory.
 	 *                Example: /home/genesis/data/done/2021/2021-01-01
-	 * @param filename Name of the file to move.
 	 */
-	public void moveFiles(String from, String destination ,String filename) throws IOException {
+	public void moveFiles(Path from, String destination) throws IOException {
 		if (!isFolderPresent(destination)) {
 			Files.createDirectories(Path.of(destination));
 		}
-		Files.move(Path.of(from+"/"+filename),Path.of(destination+"/"+filename));
-		log.info("File {} moved from {} to {}", filename, from, destination);
+		Files.move(from,Path.of(destination+"/"+ from.getFileName().toString()));
+		log.info("File {} moved from {} to {}", from.getFileName().toString(), from, destination);
 	}
 
 	/**
 	 * Move a data file to the folder done
 	 * @param campaign Name of the campaign (also folder name)
 	 * @param dataSource Application the data came from
-	 * @param filename Data file to move
+	 * @param dataFilePath Data file to move
 	 * @throws IOException
 	 */
-	public void moveDataFile(String campaign, String dataSource, String filename) throws IOException {
-		String from = getDataFolder(campaign, dataSource);
+	public void moveDataFile(String campaign, String dataSource, Path dataFilePath) throws IOException {
 		String destination = getDoneFolder(campaign, dataSource);
-		moveFiles(from, destination, filename);
+		moveFiles(dataFilePath, destination);
 	}
 
 	/**
@@ -127,7 +125,8 @@ public class FileUtils {
 	 */
 	public Path findDDIFile(String campaign, String mode) throws IOException {
 		String ddiPath = String.format("%s/%s", getSpecFolder(campaign), mode);
-		try (Stream<Path> files = Files.find(Path.of(ddiPath), 1, (path, basicFileAttributes) -> path.toFile().getName().matches("ddi[\\w,\\s-]+\\.xml"))) {
+		try (Stream<Path> files = Files.find(Path.of(ddiPath), 1,
+				(path, basicFileAttributes) -> path.toFile().getName().toLowerCase().matches("ddi[\\w,\\s-]+\\.xml"))) {
 			return files.findFirst()
 					.orElseThrow(() -> new RuntimeException("No DDI file found in " + ddiPath));
 		}
@@ -135,13 +134,25 @@ public class FileUtils {
 
 	/**
 	 * Get the path of the folder where the data files are stored
-	 * @param campaign
-	 * @param dataSource
+	 * @param campaign name of campaign
+	 * @param dataSource folder of the mode (ENQ, WEB...)
 	 * @return Path of the data folder
 	 */
 	public String getDataFolder(String campaign, String dataSource) {
 		return  String.format("%s/%s/%s/%s", dataFolderSource, "IN", dataSource, campaign);
 	}
+
+	/**
+	 * Get the path of the folder where the data files are stored
+	 * @param campaign name of campaign
+	 * @param dataSource folder of the mode (ENQ, WEB...)
+	 * @param rootDataFolder folder of data (ex: differential/complete)
+	 * @return Path of the data folder
+	 */
+	public String getDataFolder(String campaign, String dataSource, String rootDataFolder) {
+		return  String.format("%s/%s/%s/%s/%s", dataFolderSource, "IN", dataSource, campaign, rootDataFolder);
+	}
+
 
 	/**
 	 * Get the path of the folder where the specifications files are stored

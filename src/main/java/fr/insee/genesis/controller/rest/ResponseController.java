@@ -100,7 +100,7 @@ public class ResponseController {
         }
     }
 
-    @Operation(summary = "Save multiples files in Genesis Database")
+    @Operation(summary = "Save multiples files in Genesis Database from campaign root folder")
     @PutMapping(path = "/save/lunatic-xml")
     public ResponseEntity<Object> saveResponsesFromXmlCampaignFolder(@RequestParam("campaignName") String campaignName,
                                                                      @RequestParam(value = "mode", required = false) Mode modeSpecified)
@@ -112,7 +112,7 @@ public class ResponseController {
         try {
             List<Mode> modesList = controllerUtils.getModesList(campaignName, modeSpecified);
             for (Mode currentMode : modesList) {
-                treatCampaignWithMode(campaignName, currentMode, errors);
+                treatCampaignWithMode(campaignName, currentMode, errors, null);
             }
         } catch (GenesisException e) {
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
@@ -120,7 +120,7 @@ public class ResponseController {
         return ResponseEntity.ok("Data saved");
     }
 
-    @Operation(summary = "Save all files in Genesis Database")
+    @Operation(summary = "Save all files in Genesis Database (differential data folder only)")
     @PutMapping(path = "/save/lunatic-xml/all-campaigns")
     public ResponseEntity<Object> saveResponsesFromAllCampaignFolders(){
         List<GenesisError> errors = new ArrayList<>();
@@ -137,7 +137,7 @@ public class ResponseController {
             try {
                 List<Mode> modesList = controllerUtils.getModesList(campaignName, null); //modeSpecified null = all modes
                 for (Mode currentMode : modesList) {
-                    treatCampaignWithMode(campaignName, currentMode, errors);
+                    treatCampaignWithMode(campaignName, currentMode, errors, Constants.DIFFRENTIAL_DATA_FOLDER_NAME);
                 }
             } catch (Exception e) {
                 log.warn("Error for campaign {} : {}", campaignName, e.toString());
@@ -320,9 +320,13 @@ public class ResponseController {
 
     //Utilities
 
-    private void treatCampaignWithMode(String campaignName, Mode mode, List<GenesisError> errors) throws IOException, ParserConfigurationException, SAXException, XMLStreamException {
+    private void treatCampaignWithMode(String campaignName, Mode mode, List<GenesisError> errors,
+                                       String rootDataFolder) throws IOException, ParserConfigurationException,
+            SAXException, XMLStreamException {
         log.info("Try to import data for mode : {}", mode.getModeName());
-        String dataFolder = fileUtils.getDataFolder(campaignName, mode.getFolder());
+        String dataFolder = rootDataFolder == null ?
+                fileUtils.getDataFolder(campaignName, mode.getFolder())
+                : fileUtils.getDataFolder(campaignName, mode.getFolder(), rootDataFolder);
         List<String> dataFiles = fileUtils.listFiles(dataFolder);
         log.info("Numbers of files to load in folder {} : {}", dataFolder, dataFiles.size());
         if (dataFiles.isEmpty()) {
@@ -336,6 +340,7 @@ public class ResponseController {
             Path ddiFilePath = fileUtils.findDDIFile(campaignName, mode.getModeName());
             variablesMap = DDIReader.getVariablesFromDDI(ddiFilePath.toUri().toURL());
         } catch (Exception e) {
+            log.error(e.toString());
             errors.add(new GenesisError(e.toString()));
             return;
         }
@@ -356,7 +361,7 @@ public class ResponseController {
                     treatXmlFileSequentially(filepath, mode, variablesMap);
                 }
                 log.debug("File {} saved", fileName);
-                fileUtils.moveDataFile(campaignName, mode.getFolder(), fileName);
+                fileUtils.moveDataFile(campaignName, mode.getFolder(), filepath);
             }
         }
     }
