@@ -13,8 +13,10 @@ import fr.insee.genesis.controller.sources.xml.LunaticXmlDataParser;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlDataSequentialParser;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
 import fr.insee.genesis.controller.utils.ControllerUtils;
+import fr.insee.genesis.domain.dtos.CampaignWithQuestionnaire;
 import fr.insee.genesis.domain.dtos.CollectedVariableDto;
 import fr.insee.genesis.domain.dtos.Mode;
+import fr.insee.genesis.domain.dtos.QuestionnaireWithCampaign;
 import fr.insee.genesis.domain.dtos.SurveyUnitDto;
 import fr.insee.genesis.domain.dtos.SurveyUnitId;
 import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
@@ -27,6 +29,8 @@ import fr.insee.genesis.infrastructure.utils.FileUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -50,6 +54,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 @RequestMapping(path = "/response")
@@ -112,7 +117,7 @@ public class ResponseController {
         }
     }
 
-    @Operation(summary = "Save multiples files in Genesis Database")
+    @Operation(summary = "Save multiples files in Genesis Database from campaign root folder")
     @PutMapping(path = "/save/lunatic-xml")
     public ResponseEntity<Object> saveResponsesFromXmlCampaignFolder(@RequestParam("campaignName") String campaignName,
                                                                      @RequestParam(value = "mode", required = false) Mode modeSpecified,
@@ -125,7 +130,7 @@ public class ResponseController {
         try {
             List<Mode> modesList = controllerUtils.getModesList(campaignName, modeSpecified);
             for (Mode currentMode : modesList) {
-                treatCampaignWithMode(campaignName, currentMode, errors, withDDI);
+                treatCampaignWithMode(campaignName, currentMode, errors, null, withDDI);
             }
         } catch (GenesisException e) {
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
@@ -134,7 +139,7 @@ public class ResponseController {
     }
 
     //SAVE ALL
-    @Operation(summary = "Save all files in Genesis Database")
+    @Operation(summary = "Save all files in Genesis Database (differential data folder only)")
     @PutMapping(path = "/save/lunatic-xml/all-campaigns")
     public ResponseEntity<Object> saveResponsesFromAllCampaignFolders(){
         List<GenesisError> errors = new ArrayList<>();
@@ -151,7 +156,7 @@ public class ResponseController {
             try {
                 List<Mode> modesList = controllerUtils.getModesList(campaignName, null); //modeSpecified null = all modes
                 for (Mode currentMode : modesList) {
-                    treatCampaignWithMode(campaignName, currentMode, errors);
+                    treatCampaignWithMode(campaignName, currentMode, errors, Constants.DIFFRENTIAL_DATA_FOLDER_NAME);
                 }
             } catch (Exception e) {
                 log.warn("Error for campaign {} : {}", campaignName, e.toString());
@@ -297,12 +302,41 @@ public class ResponseController {
         return ResponseEntity.ok(modes);
     }
 
+    @Operation(summary = "List questionnaires in database")
+    @GetMapping(path = "/get-questionnaires")
+    public ResponseEntity<Set<String>> getQuestionnaires() {
+        Set<String> questionnaires = surveyUnitService.findDistinctIdQuestionnaires();
+        return ResponseEntity.ok(questionnaires);
+    }
+
+
+    @Operation(summary = "List questionnaires in database with their campaigns")
+    @GetMapping(path = "/get-questionnaires/with-campaigns")
+    public ResponseEntity<List<QuestionnaireWithCampaign>> getQuestionnairesWithCampaigns() {
+        List<QuestionnaireWithCampaign> questionnaireWithCampaignList =
+                surveyUnitService.findQuestionnairesWithCampaigns();
+        return ResponseEntity.ok(questionnaireWithCampaignList);
+    }
 
     @Operation(summary = "List questionnaires used for a given campaign")
     @GetMapping(path = "/get-questionnaires/by-campaign")
-    public ResponseEntity<List<String>> getQuestionnairesByCampaign(@RequestParam("idCampaign") String idCampaign) {
-        List<String> questionnaires = surveyUnitService.findIdQuestionnairesByIdCampaign(idCampaign);
+    public ResponseEntity<Set<String>> getQuestionnairesByCampaign(@RequestParam("idCampaign") String idCampaign) {
+        Set<String> questionnaires = surveyUnitService.findIdQuestionnairesByIdCampaign(idCampaign);
         return ResponseEntity.ok(questionnaires);
+    }
+
+    @Operation(summary = "List campaigns in database")
+    @GetMapping(path = "/get-campaigns")
+    public ResponseEntity<Set<String>> getCampaigns() {
+        Set<String> campaigns = surveyUnitService.findDistinctIdCampaigns();
+        return ResponseEntity.ok(campaigns);
+    }
+
+    @Operation(summary = "List campaigns in database with their questionnaires")
+    @GetMapping(path = "/get-campaigns/with-questionnaires")
+    public ResponseEntity<List<CampaignWithQuestionnaire>> getCampaignsWithQuestionnaires() {
+        List<CampaignWithQuestionnaire> questionnairesByCampaigns = surveyUnitService.findCampaignsWithQuestionnaires();
+        return ResponseEntity.ok(questionnairesByCampaigns);
     }
 
     //Utilities
@@ -328,6 +362,7 @@ public class ResponseController {
         }
     }
 
+
     /**
      * Treat a campaign with a specific mode
      * @param campaignName name of campaign
@@ -335,10 +370,13 @@ public class ResponseController {
      * @param errors error list to fill
      * @param withDDI true if it uses DDI, false if Lunatic
      */
-    private void treatCampaignWithMode(String campaignName, Mode mode, List<GenesisError> errors, boolean withDDI) throws IOException
-    , ParserConfigurationException, SAXException, XMLStreamException {
+    private void treatCampaignWithMode(String campaignName, Mode mode, List<GenesisError> errors,
+                                       String rootDataFolder, boolean withDDI) throws IOException, ParserConfigurationException,
+            SAXException, XMLStreamException {
         log.info("Try to import data for mode : {}", mode.getModeName());
-        String dataFolder = fileUtils.getDataFolder(campaignName, mode.getFolder());
+        String dataFolder = rootDataFolder == null ?
+                fileUtils.getDataFolder(campaignName, mode.getFolder())
+                : fileUtils.getDataFolder(campaignName, mode.getFolder(), rootDataFolder);
         List<String> dataFiles = fileUtils.listFiles(dataFolder);
         log.info("Numbers of files to load in folder {} : {}", dataFolder, dataFiles.size());
         if (dataFiles.isEmpty()) {
@@ -352,9 +390,10 @@ public class ResponseController {
             //Read DDI
             try {
                 Path ddiFilePath = fileUtils.findFile(String.format("%s/%s", fileUtils.getSpecFolder(campaignName),
-                        mode.getModeName()), "ddi[\\w," + "\\s-]+\\.xml");
+                            mode.getModeName()), "ddi[\\w," + "\\s-]+\\.xml");
                 variablesMap = DDIReader.getVariablesFromDDI(ddiFilePath.toUri().toURL());
             } catch (Exception e) {
+                log.error(e.toString());
                 errors.add(new GenesisError(e.toString()));
                 return;
             }
@@ -365,6 +404,7 @@ public class ResponseController {
                         mode.getModeName()), "lunatic[\\w," + "\\s-]+\\.json");
                 variablesMap = LunaticReader.getVariablesFromLunaticJson(lunaticFilePath);
             } catch (Exception e) {
+                log.error(e.toString());
                 errors.add(new GenesisError(e.toString()));
                 return;
             }
@@ -381,13 +421,18 @@ public class ResponseController {
             }else{
                 //Read file
                 log.info("Try to read Xml file : {}", fileName);
+                ResponseEntity<Object> response;
                 if (filepath.toFile().length() / 1024 / 1024 <= Constants.MAX_FILE_SIZE_UNTIL_SEQUENTIAL) {
-                    treatXmlFileWithMemory(filepath, mode, variablesMap);
+                    response = treatXmlFileWithMemory(filepath, mode, variablesMap);
                 } else {
-                    treatXmlFileSequentially(filepath, mode, variablesMap);
+                    response = treatXmlFileSequentially(filepath, mode, variablesMap);
                 }
                 log.debug("File {} saved", fileName);
-                fileUtils.moveDataFile(campaignName, mode.getFolder(), fileName);
+                if(response.getStatusCode() == HttpStatus.OK){
+                    fileUtils.moveDataFile(campaignName, mode.getFolder(), filepath);
+                }else{
+                    log.error("Error on file {}", fileName);
+                }
             }
         }
     }
@@ -403,6 +448,7 @@ public class ResponseController {
         try {
             campaign = parser.parseDataFile(filepath);
         } catch (GenesisException e) {
+            log.error(e.toString());
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
         }
 
