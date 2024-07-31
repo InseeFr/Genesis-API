@@ -30,7 +30,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -347,18 +346,18 @@ public class ResponseController {
      * @param currentMode mode of collected data
      * @param errors error list to fill
      */
-    private void treatCampaignWithMode(String campaignName, Mode currentMode, List<GenesisError> errors) throws IOException, ParserConfigurationException,
+    private void treatCampaignWithMode(String campaignName, Mode currentMode, List<GenesisError> errors, String rootDataFolder) throws IOException, ParserConfigurationException,
             SAXException, XMLStreamException {
         try {
             fileUtils.findFile(String.format("%s/%s", fileUtils.getSpecFolder(campaignName),currentMode), "ddi[\\w," +
                     "\\s-]+\\.xml");
             //DDI if DDI file found
-            treatCampaignWithMode(campaignName, currentMode, errors, true);
+            treatCampaignWithMode(campaignName, currentMode, errors, rootDataFolder, true);
         }catch (RuntimeException e){
             //Lunatic if no DDI
             log.info("No DDI File found for {}, {} mode. Will try to use Lunatic...", campaignName,
                     currentMode.getModeName());
-            treatCampaignWithMode(campaignName, currentMode, errors, false);
+            treatCampaignWithMode(campaignName, currentMode, errors, rootDataFolder, false);
         }
     }
 
@@ -385,30 +384,8 @@ public class ResponseController {
             return;
         }
 
-        VariablesMap variablesMap;
-        if(withDDI){
-            //Read DDI
-            try {
-                Path ddiFilePath = fileUtils.findFile(String.format("%s/%s", fileUtils.getSpecFolder(campaignName),
-                            mode.getModeName()), "ddi[\\w," + "\\s-]+\\.xml");
-                variablesMap = DDIReader.getVariablesFromDDI(ddiFilePath.toUri().toURL());
-            } catch (Exception e) {
-                log.error(e.toString());
-                errors.add(new GenesisError(e.toString()));
-                return;
-            }
-        }else{
-            //Read Lunatic
-            try {
-                Path lunaticFilePath = fileUtils.findFile(String.format("%s/%s", fileUtils.getSpecFolder(campaignName),
-                        mode.getModeName()), "lunatic[\\w," + "\\s-]+\\.json");
-                variablesMap = LunaticReader.getVariablesFromLunaticJson(lunaticFilePath);
-            } catch (Exception e) {
-                log.error(e.toString());
-                errors.add(new GenesisError(e.toString()));
-                return;
-            }
-        }
+        VariablesMap variablesMap = readMetadatas(campaignName, mode, errors, withDDI);
+        if (variablesMap == null) return;
 
         //For each XML data file
         for (String fileName : dataFiles.stream().filter(s -> s.endsWith(".xml")).toList()) {
@@ -435,6 +412,34 @@ public class ResponseController {
                 }
             }
         }
+    }
+
+    private VariablesMap readMetadatas(String campaignName, Mode mode, List<GenesisError> errors, boolean withDDI) {
+        VariablesMap variablesMap;
+        if(withDDI){
+            //Read DDI
+            try {
+                Path ddiFilePath = fileUtils.findFile(String.format("%s/%s", fileUtils.getSpecFolder(campaignName),
+                            mode.getModeName()), "ddi[\\w," + "\\s-]+\\.xml");
+                variablesMap = DDIReader.getVariablesFromDDI(ddiFilePath.toUri().toURL());
+            } catch (Exception e) {
+                log.error(e.toString());
+                errors.add(new GenesisError(e.toString()));
+                return null;
+            }
+        }else{
+            //Read Lunatic
+            try {
+                Path lunaticFilePath = fileUtils.findFile(String.format("%s/%s", fileUtils.getSpecFolder(campaignName),
+                        mode.getModeName()), "lunatic[\\w," + "\\s-]+\\.json");
+                variablesMap = LunaticReader.getVariablesFromLunaticJson(lunaticFilePath);
+            } catch (Exception e) {
+                log.error(e.toString());
+                errors.add(new GenesisError(e.toString()));
+                return null;
+            }
+        }
+        return variablesMap;
     }
 
     private boolean isDataFileInDoneFolder(Path filepath, String campaignName, String modeFolder) {
