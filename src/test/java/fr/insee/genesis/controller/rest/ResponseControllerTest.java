@@ -100,6 +100,7 @@ class ResponseControllerTest {
 
         //Recreate data files
         //SAMPLETEST-PARADATA-v1
+        //Root
         if (!testResourcesPath
                 .resolve("IN")
                 .resolve("WEB")
@@ -131,6 +132,47 @@ class ResponseControllerTest {
                             .resolve("IN")
                             .resolve("WEB")
                             .resolve("SAMPLETEST-PARADATA-v1")
+                            .resolve("data.complete.validated.STPDv1.20231122164209.xml")
+            );
+        }
+        //Differential data
+        if (!testResourcesPath
+                .resolve("IN")
+                .resolve("WEB")
+                .resolve("SAMPLETEST-PARADATA-v1")
+                .resolve("differential")
+                .resolve("data")
+                .resolve("data.complete.validated.STPDv1.20231122164209.xml")
+                .toFile().exists()
+        ) {
+            Files.copy(
+                    testResourcesPath
+                            .resolve("IN")
+                            .resolve("WEB")
+                            .resolve("SAMPLETEST-PARADATA-v1")
+                            .resolve("reponse-platine")
+                            .resolve("data.complete.partial.STPDv1.20231122164209.xml")
+                    , testResourcesPath
+                            .resolve("IN")
+                            .resolve("WEB")
+                            .resolve("SAMPLETEST-PARADATA-v1")
+                            .resolve("differential")
+                            .resolve("data")
+                            .resolve("data.complete.partial.STPDv1.20231122164209.xml")
+            );
+            Files.copy(
+                    testResourcesPath
+                            .resolve("IN")
+                            .resolve("WEB")
+                            .resolve("SAMPLETEST-PARADATA-v1")
+                            .resolve("reponse-platine")
+                            .resolve("data.complete.validated.STPDv1.20231122164209.xml")
+                    , testResourcesPath
+                            .resolve("IN")
+                            .resolve("WEB")
+                            .resolve("SAMPLETEST-PARADATA-v1")
+                            .resolve("differential")
+                            .resolve("data")
                             .resolve("data.complete.validated.STPDv1.20231122164209.xml")
             );
         }
