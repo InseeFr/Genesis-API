@@ -236,7 +236,7 @@ public class LunaticXmlDataParser {
             case "EDITED":
                 varData.setEdited(valueTypes);
                 break;
-            case "INPUTED":
+            case "INPUTED", "INPUTTED", "IMPUTED":
                 varData.setInputed(valueTypes);
                 break;
             case "FORCED":

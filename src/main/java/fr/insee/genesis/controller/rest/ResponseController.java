@@ -28,6 +28,8 @@ import fr.insee.genesis.infrastructure.utils.FileUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -355,13 +357,18 @@ public class ResponseController {
             }else{
                 //Read file
                 log.info("Try to read Xml file : {}", fileName);
+                ResponseEntity<Object> response;
                 if (filepath.toFile().length() / 1024 / 1024 <= Constants.MAX_FILE_SIZE_UNTIL_SEQUENTIAL) {
-                    treatXmlFileWithMemory(filepath, mode, variablesMap);
+                    response = treatXmlFileWithMemory(filepath, mode, variablesMap);
                 } else {
-                    treatXmlFileSequentially(filepath, mode, variablesMap);
+                    response = treatXmlFileSequentially(filepath, mode, variablesMap);
                 }
                 log.debug("File {} saved", fileName);
-                fileUtils.moveDataFile(campaignName, mode.getFolder(), filepath);
+                if(response.getStatusCode() == HttpStatus.OK){
+                    fileUtils.moveDataFile(campaignName, mode.getFolder(), filepath);
+                }else{
+                    log.error("Error on file {}", fileName);
+                }
             }
         }
     }
@@ -377,6 +384,7 @@ public class ResponseController {
         try {
             campaign = parser.parseDataFile(filepath);
         } catch (GenesisException e) {
+            log.error(e.toString());
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
         }
 
