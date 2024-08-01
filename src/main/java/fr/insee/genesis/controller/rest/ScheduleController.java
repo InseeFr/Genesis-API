@@ -1,7 +1,6 @@
 package fr.insee.genesis.controller.rest;
 
 import fr.insee.genesis.Constants;
-import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.domain.ports.api.ScheduleApiPort;
 import fr.insee.genesis.exceptions.InvalidCronExpressionException;
 import fr.insee.genesis.exceptions.NotFoundException;
@@ -16,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -26,12 +24,10 @@ import java.util.List;
 public class ScheduleController {
 
     private final ScheduleApiPort scheduleApiPort;
-    private final Config config;
 
     @Autowired
-    public ScheduleController(ScheduleApiPort scheduleApiPort, Config config) {
+    public ScheduleController(ScheduleApiPort scheduleApiPort) {
         this.scheduleApiPort = scheduleApiPort;
-        this.config = config;
     }
 
     @Operation(summary = "Fetch all schedules")
