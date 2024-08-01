@@ -1,4 +1,8 @@
 # Changelog
+## 1.2.9 - [2024-08-01]
+### Fixed
+- Wrong loop reading in data file
+
 ## 1.2.8 - [2024-07-31]
 ### Added
 - Alternative INPUTED syntaxes (INPUTTED & IMPUTED)
