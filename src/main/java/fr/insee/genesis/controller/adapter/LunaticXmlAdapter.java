@@ -100,8 +100,9 @@ public class LunaticXmlAdapter {
             }
             if(valueTypeList != null) {
                 for (int i = 1; i <= valueTypeList.size(); i++) {
-                    List<String> variableValues = getValuesFromValueTypeList(valueTypeList);
-                    if (!variableValues.isEmpty()) {
+                    List<String> variableValues = new ArrayList<>();
+                    if (valueTypeList.get(i-1).getValue()!=null) {
+                        variableValues.add(valueTypeList.get(i-1).getValue());
                         variablesUpdate.add(CollectedVariableDto.collectedVariableBuilder()
                                 .idVar(lunaticXmlCollectedData.getVariableName())
                                 .values(variableValues)
