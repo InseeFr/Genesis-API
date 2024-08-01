@@ -29,6 +29,7 @@ class LunaticXmlAdapterTest {
     LunaticXmlSurveyUnit lunaticXmlSurveyUnit5 = new LunaticXmlSurveyUnit();
     LunaticXmlSurveyUnit lunaticXmlSurveyUnit6 = new LunaticXmlSurveyUnit();
     LunaticXmlSurveyUnit lunaticXmlSurveyUnit7 = new LunaticXmlSurveyUnit();
+    LunaticXmlSurveyUnit lunaticXmlSurveyUnit8 = new LunaticXmlSurveyUnit();
     VariablesMap variablesMap = new VariablesMap();
 
     @BeforeEach
@@ -168,6 +169,22 @@ class LunaticXmlAdapterTest {
         lunaticXmlSurveyUnit7.setId("idUE1");
         lunaticXmlSurveyUnit7.setQuestionnaireModelId("idQuest1");
         lunaticXmlSurveyUnit7.setData(lunaticXmlData);
+
+        //SurveyUnit 8 : Only collected data
+        lunaticXmlData = new LunaticXmlData();
+        lunaticXmlCollectedData = new LunaticXmlCollectedData();
+        lunaticXmlCollectedData.setVariableName("var1");
+        lunaticXmlCollectedData.setCollected(List.of(new ValueType(null,"null"),new ValueType("1", "string"), new ValueType("2", "string")));
+        lunaticXmlCollectedData2 = new LunaticXmlCollectedData();
+        lunaticXmlCollectedData2.setVariableName("var2");
+        lunaticXmlCollectedData2.setCollected(List.of(new ValueType("4", "string")));
+        collected = List.of(lunaticXmlCollectedData, lunaticXmlCollectedData2);
+        lunaticXmlData.setCollected(collected);
+        external = List.of();
+        lunaticXmlData.setExternal(external);
+        lunaticXmlSurveyUnit8.setId("idUE1");
+        lunaticXmlSurveyUnit8.setQuestionnaireModelId("idQuest1");
+        lunaticXmlSurveyUnit8.setData(lunaticXmlData);
 
         //VariablesMap
         Group group = new Group(LOOP_NAME, Constants.ROOT_GROUP_NAME);
@@ -315,5 +332,24 @@ class LunaticXmlAdapterTest {
                 collectedVariableDto.getIdVar().equals("var1_MISSING")).toList().get(0).getIdParent()).isNotNull().isEqualTo("var1");
         Assertions.assertThat(suDtos.get(0).getCollectedVariables().stream().filter(collectedVariableDto ->
                 collectedVariableDto.getIdVar().equals("var1_MISSING")).toList().get(0).getIdLoop()).isNotEqualTo(Constants.ROOT_GROUP_NAME).isEqualTo(LOOP_NAME);
+    }
+
+    @Test
+    @DisplayName("Value should be affected in the good loop iteration")
+    void test11(){
+        // When
+        List<SurveyUnitUpdateDto> suDtos = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit8, variablesMap, ID_CAMPAIGN, Mode.WEB);
+        // Then
+        Assertions.assertThat(suDtos).hasSize(1);
+        Assertions.assertThat(suDtos.get(0).getCollectedVariables()).hasSize(3);
+        Assertions.assertThat(suDtos.get(0).getCollectedVariables()).filteredOn(collectedVariableDto ->
+                collectedVariableDto.getIdVar().equals("var1")).isNotEmpty();
+        Assertions.assertThat(suDtos.get(0).getCollectedVariables()).filteredOn(collectedVariableDto ->
+                collectedVariableDto.getIdLoop().equals("BOUCLE1_1")).isEmpty();
+        Assertions.assertThat(suDtos.get(0).getCollectedVariables().stream().filter(collectedVariableDto ->
+                collectedVariableDto.getIdLoop().equals("BOUCLE1_2")).toList().getFirst().getValues().getFirst()).isEqualTo("1");
+        Assertions.assertThat(suDtos.get(0).getCollectedVariables().stream().filter(collectedVariableDto ->
+                collectedVariableDto.getIdLoop().equals("BOUCLE1_3")).toList().getFirst().getValues().getFirst()).isEqualTo("2");
+
     }
 }
