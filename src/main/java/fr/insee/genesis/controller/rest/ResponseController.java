@@ -82,7 +82,7 @@ public class ResponseController {
     public ResponseEntity<Object> saveResponsesFromXmlFile(@RequestParam("pathLunaticXml") String xmlFile,
                                                            @RequestParam(value = "pathSpecFile") String metadataFilePath,
                                                            @RequestParam(value = "mode") Mode modeSpecified,
-                                                           @RequestParam(value = "withDDI") boolean withDDI
+                                                           @RequestParam(value = "withDDI", defaultValue = "true") boolean withDDI
     )throws Exception {
         VariablesMap variablesMap;
         if(withDDI) {
@@ -120,7 +120,7 @@ public class ResponseController {
     @PutMapping(path = "/save/lunatic-xml")
     public ResponseEntity<Object> saveResponsesFromXmlCampaignFolder(@RequestParam("campaignName") String campaignName,
                                                                      @RequestParam(value = "mode", required = false) Mode modeSpecified,
-                                                                     @RequestParam(value = "withDDI") boolean withDDI
+                                                                     @RequestParam(value = "withDDI", defaultValue = "true") boolean withDDI
     )throws Exception {
         List<GenesisError> errors = new ArrayList<>();
 
@@ -346,18 +346,25 @@ public class ResponseController {
      * @param currentMode mode of collected data
      * @param errors error list to fill
      */
-    private void treatCampaignWithMode(String campaignName, Mode currentMode, List<GenesisError> errors, String rootDataFolder) throws IOException, ParserConfigurationException,
+    private void treatCampaignWithMode(String campaignName, Mode currentMode, List<GenesisError> errors, String rootDataFolder) throws GenesisException,
             SAXException, XMLStreamException {
         try {
             fileUtils.findFile(String.format("%s/%s", fileUtils.getSpecFolder(campaignName),currentMode), "ddi[\\w," +
                     "\\s-]+\\.xml");
             //DDI if DDI file found
             treatCampaignWithMode(campaignName, currentMode, errors, rootDataFolder, true);
-        }catch (RuntimeException e){
+        }catch (RuntimeException re){
             //Lunatic if no DDI
             log.info("No DDI File found for {}, {} mode. Will try to use Lunatic...", campaignName,
                     currentMode.getModeName());
-            treatCampaignWithMode(campaignName, currentMode, errors, rootDataFolder, false);
+            try{
+                treatCampaignWithMode(campaignName, currentMode, errors, rootDataFolder, false);
+            } catch (IOException | ParserConfigurationException e) {
+                throw new GenesisException(500, e.toString());
+            }
+        }catch (IOException | ParserConfigurationException e){
+            log.error(e.toString());
+            throw new GenesisException(500, e.toString());
         }
     }
 
