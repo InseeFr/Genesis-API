@@ -1,6 +1,7 @@
 package fr.insee.genesis.controller.rest;
 
 
+import cucumber.TestConstants;
 import fr.insee.genesis.infrastructure.model.document.schedule.KraftwerkExecutionSchedule;
 import fr.insee.genesis.infrastructure.model.document.schedule.ServiceToCall;
 import fr.insee.genesis.infrastructure.model.document.schedule.StoredSurveySchedule;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
 
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.ArrayList;
@@ -37,17 +39,16 @@ class ScheduleControllerTest {
     }
 
     @Test
-    void addSurveyTest() {
+    void addScheduleWithoutEncryptionTest() {
         //When
         String surveyName = "TESTADDSURVEY";
         ServiceToCall serviceToCall = ServiceToCall.MAIN;
         String frequency = "0 0 6 * * *";
         LocalDateTime scheduleBeginDate = LocalDateTime.now();
         LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
-        boolean useTrustEncryption = true;
 
-
-        scheduleController.addSchedule(surveyName, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate, useTrustEncryption);
+        scheduleController.addSchedule(surveyName, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate,
+                false, "TEST", "TEST", "TEST", false);
 
         //Then
         Assertions.assertThat(scheduleApiPortStub.mongoStub).filteredOn(scheduleDocument ->
@@ -61,11 +62,50 @@ class ScheduleControllerTest {
 
         Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList()).isNotEmpty();
         Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList().getFirst().getFrequency()).isEqualTo(frequency);
-        Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList().getFirst().getUseTrustEncryption()).isTrue();
+        Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters()).isNull();
     }
 
     @Test
-    void addScheduleTest() {
+    void addScheduleWithEncryptionTest() {
+        //When
+        String surveyName = "TESTADDSURVEY";
+        ServiceToCall serviceToCall = ServiceToCall.MAIN;
+        String frequency = "0 0 6 * * *";
+        LocalDateTime scheduleBeginDate = LocalDateTime.now();
+        LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
+
+
+        scheduleController.addSchedule(surveyName, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate, true,
+                "testvault/testkey",
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("OUT").resolve(surveyName).toString(),
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("OUT_ENCRYPTED").resolve(surveyName).toString(),
+                false
+        );
+
+        //Then
+        Assertions.assertThat(scheduleApiPortStub.mongoStub).filteredOn(scheduleDocument ->
+                scheduleDocument.getSurveyName().equals(surveyName)
+        ).isNotEmpty();
+
+        List<StoredSurveySchedule> mongoStubFiltered = scheduleApiPortStub.mongoStub.stream().filter(scheduleDocument ->
+                scheduleDocument.getSurveyName().equals(surveyName)).toList();
+
+        StoredSurveySchedule storedSurveySchedule = mongoStubFiltered.getFirst();
+
+        Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList()).isNotEmpty();
+        Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList().getFirst().getFrequency()).isEqualTo(frequency);
+        Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters()).isNotNull();
+        Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters().getInputPath()).contains(
+                "TESTADDSURVEY");
+        Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters().getOutputFolder()).contains(
+                "TESTADDSURVEY");
+        Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters().getVaultPath()).isEqualTo(
+                "testvault/testkey");
+        Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters().isSigned()).isFalse();
+    }
+
+    @Test
+    void addAdditionnalScheduleTest() {
         //When
         String surveyName = "TESTSURVEY"; //Already exists in stub
         ServiceToCall serviceToCall = ServiceToCall.MAIN;
@@ -74,7 +114,8 @@ class ScheduleControllerTest {
         LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
 
 
-        scheduleController.addSchedule(surveyName, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate, false);
+        scheduleController.addSchedule(surveyName, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate,
+                false, "", "", "", false);
 
         //Then
         Assertions.assertThat(scheduleApiPortStub.mongoStub).filteredOn(scheduleDocument ->
@@ -103,7 +144,7 @@ class ScheduleControllerTest {
                 ServiceToCall.MAIN,
                 LocalDateTime.of(2023, Month.JANUARY, 1, 1, 1, 1),
                 LocalDateTime.of(2023, Month.DECEMBER, 1, 1, 1, 1),
-                false
+                null
         );
         storedSurveyScheduleTest.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
         kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
@@ -111,7 +152,7 @@ class ScheduleControllerTest {
                 ServiceToCall.MAIN,
                 LocalDateTime.of(2023, Month.FEBRUARY, 1, 1, 1, 1),
                 LocalDateTime.of(2023, Month.DECEMBER, 1, 1, 1, 1),
-                false
+                null
         );
         storedSurveyScheduleTest.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
 
@@ -125,8 +166,8 @@ class ScheduleControllerTest {
         LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
 
 
-        scheduleController.addSchedule(surveyName, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate, false);
-
+        scheduleController.addSchedule(surveyName, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate,
+                false, "", "", "", false);
         //Then
         Assertions.assertThat(scheduleApiPortStub.mongoStub).filteredOn(scheduleDocument ->
                 scheduleDocument.getSurveyName().equals(surveyName)
@@ -184,7 +225,8 @@ class ScheduleControllerTest {
         LocalDateTime scheduleBeginDate = LocalDateTime.now();
         LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
 
-        ResponseEntity<Object> response = scheduleController.addSchedule(surveyName,serviceToCall,frequency,scheduleBeginDate,scheduleEndDate, false);
+        ResponseEntity<Object> response = scheduleController.addSchedule(surveyName, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate,
+                false, "", "", "", false);
         Assertions.assertThat(response.getStatusCode().is4xxClientError()).isTrue();
     }
 
