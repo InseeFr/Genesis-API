@@ -7,6 +7,7 @@ import fr.insee.genesis.exceptions.NotFoundException;
 import fr.insee.genesis.infrastructure.model.document.schedule.ServiceToCall;
 import fr.insee.genesis.infrastructure.model.document.schedule.StoredSurveySchedule;
 import fr.insee.genesis.infrastructure.model.document.schedule.TrustParameters;
+import fr.insee.genesis.infrastructure.utils.FileUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.extern.slf4j.Slf4j;
@@ -24,10 +25,12 @@ import java.util.List;
 public class ScheduleController {
 
     private final ScheduleApiPort scheduleApiPort;
+    private final FileUtils fileUtils;
 
     @Autowired
-    public ScheduleController(ScheduleApiPort scheduleApiPort) {
+    public ScheduleController(ScheduleApiPort scheduleApiPort, FileUtils fileUtils) {
         this.scheduleApiPort = scheduleApiPort;
+        this.fileUtils = fileUtils;
     }
 
     @Operation(summary = "Fetch all schedules")
@@ -53,8 +56,6 @@ public class ScheduleController {
                     "useEncryption",
                     defaultValue = "false") boolean useEncryption,
             @Parameter(description = "(Encryption) vault path") @RequestParam(value = "encryptionVaultPath", defaultValue = "") String encryptionVaultPath,
-            @Parameter(description = "(Encryption) input folder") @RequestParam(value = "encryptionInputFolder",
-                    defaultValue = "") String encryptionInputFolder,
             @Parameter(description = "(Encryption) output folder") @RequestParam(value = "encryptionOutputFolder",
                     defaultValue = "") String encryptionOutputFolder,
             @Parameter(description = "(Encryption) Use signature system") @RequestParam(value = "useSignature", defaultValue = "false") boolean useSignature
@@ -62,7 +63,7 @@ public class ScheduleController {
         try {
             if(useEncryption){
                 TrustParameters trustParameters = new TrustParameters(
-                        encryptionInputFolder,
+                        fileUtils.getKraftwerkOutFolder(surveyName),
                         encryptionOutputFolder,
                         encryptionVaultPath,
                         useSignature
