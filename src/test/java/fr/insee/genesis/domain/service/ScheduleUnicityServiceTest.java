@@ -49,7 +49,7 @@ class ScheduleUnicityServiceTest {
                         ServiceToCall.MAIN,
                         LocalDateTime.MIN,
                         LocalDateTime.MAX,
-                        false
+                        null
                 )
         );
 
@@ -76,7 +76,7 @@ class ScheduleUnicityServiceTest {
                         ServiceToCall.MAIN,
                         LocalDateTime.MIN,
                         LocalDateTime.MAX,
-                        false
+                        null
                 )
         );
         storedSurveySchedules.add(surveySchedule);
@@ -91,7 +91,7 @@ class ScheduleUnicityServiceTest {
                         ServiceToCall.MAIN,
                         LocalDateTime.now(),
                         LocalDateTime.MAX,
-                        false
+                        null
                 )
         );
         storedSurveySchedules.add(surveySchedule);
@@ -120,7 +120,7 @@ class ScheduleUnicityServiceTest {
                         ServiceToCall.MAIN,
                         LocalDateTime.MIN,
                         LocalDateTime.MAX,
-                        false
+                        null
                 )
         );
         surveySchedule.getKraftwerkExecutionScheduleList().add(
@@ -129,7 +129,7 @@ class ScheduleUnicityServiceTest {
                         ServiceToCall.MAIN,
                         LocalDateTime.now(),
                         LocalDateTime.MAX,
-                        false
+                        null
                 )
         );
         storedSurveySchedules.add(surveySchedule);
@@ -144,7 +144,7 @@ class ScheduleUnicityServiceTest {
                         ServiceToCall.MAIN,
                         LocalDateTime.MIN,
                         LocalDateTime.MAX,
-                        false
+                        null
                 )
         );
         storedSurveySchedules.add(surveySchedule);

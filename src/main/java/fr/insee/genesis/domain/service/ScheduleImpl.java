@@ -6,6 +6,7 @@ import fr.insee.genesis.exceptions.NotFoundException;
 import fr.insee.genesis.infrastructure.model.document.schedule.KraftwerkExecutionSchedule;
 import fr.insee.genesis.infrastructure.model.document.schedule.ServiceToCall;
 import fr.insee.genesis.infrastructure.model.document.schedule.StoredSurveySchedule;
+import fr.insee.genesis.infrastructure.model.document.schedule.TrustParameters;
 import fr.insee.genesis.infrastructure.repository.ScheduleMongoDBRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +33,8 @@ public class ScheduleImpl implements ScheduleApiPort {
     }
 
     @Override
-    public void addSchedule(String surveyName, ServiceToCall serviceToCall, String frequency, LocalDateTime scheduleBeginDate, LocalDateTime scheduleEndDate, boolean useTrustEncryption) throws InvalidCronExpressionException{
+    public void addSchedule(String surveyName, ServiceToCall serviceToCall, String frequency,
+                            LocalDateTime scheduleBeginDate, LocalDateTime scheduleEndDate, TrustParameters trustParameters) throws InvalidCronExpressionException{
         //Frequency format check
         if(!CronExpression.isValidExpression(frequency)) {
             throw new InvalidCronExpressionException();
@@ -56,7 +58,7 @@ public class ScheduleImpl implements ScheduleApiPort {
                         serviceToCall,
                         scheduleBeginDate,
                         scheduleEndDate,
-                        useTrustEncryption
+                        trustParameters
                 )
         );
         scheduleMongoDBRepository.deleteBySurveyName(surveyName);
@@ -80,9 +82,6 @@ public class ScheduleImpl implements ScheduleApiPort {
         }else{
             throw new NotFoundException();
         }
-
-
-
     }
 
     @Override
