@@ -9,5 +9,5 @@ public class TrustParameters {
     private String inputPath;
     private String outputFolder;
     private String vaultPath;
-    private boolean isSigned;
+    private boolean useSignature;
 }

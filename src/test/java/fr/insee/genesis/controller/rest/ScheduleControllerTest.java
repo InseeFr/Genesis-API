@@ -102,7 +102,7 @@ class ScheduleControllerTest {
                 "TESTADDSURVEY");
         Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters().getVaultPath()).isEqualTo(
                 "testvault/testkey");
-        Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters().isSigned()).isFalse();
+        Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters().isUseSignature()).isFalse();
     }
 
     @Test
