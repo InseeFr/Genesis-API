@@ -1,13 +1,13 @@
 package fr.insee.genesis.controller.utils;
 
 import fr.insee.genesis.Constants;
-import fr.insee.genesis.controller.sources.ddi.Variable;
-import fr.insee.genesis.controller.sources.ddi.VariableType;
-import fr.insee.genesis.controller.sources.ddi.VariablesMap;
 import fr.insee.genesis.domain.dtos.CollectedVariableDto;
 import fr.insee.genesis.domain.dtos.DataState;
 import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
 import fr.insee.genesis.domain.dtos.VariableDto;
+import fr.insee.bpm.metadata.model.Variable;
+import fr.insee.bpm.metadata.model.VariableType;
+import fr.insee.bpm.metadata.model.VariablesMap;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
