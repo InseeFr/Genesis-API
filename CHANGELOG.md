@@ -1,4 +1,24 @@
 # Changelog
+## 1.2.9 - [2024-08-01]
+### Fixed
+- Wrong loop reading in data file
+
+## 1.2.8 - [2024-07-31]
+### Added
+- Alternative INPUTED syntaxes (INPUTTED & IMPUTED)
+
+### Changed
+- All campaigns integration endpoint now reads one specific folder (differential/data)
+
+### Fixed
+- File in error moved to done even if there is no responses added to database
+- No error log when file in error
+
+## 1.2.7 - [2024-07-30]
+### Added
+- First version to manage encryption
+- Export files for volumetry
+- Add GET all campaigns and questionnaires endpoints
 
 ## 1.2.6 - [2024-07-11]
 ### Added

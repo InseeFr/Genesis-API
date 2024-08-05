@@ -33,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -56,7 +57,6 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -108,7 +108,7 @@ public class ResponseController {
         }
     }
 
-    @Operation(summary = "Save multiples files in Genesis Database")
+    @Operation(summary = "Save multiples files in Genesis Database from campaign root folder")
     @PutMapping(path = "/save/lunatic-xml")
     public ResponseEntity<Object> saveResponsesFromXmlCampaignFolder(@RequestParam("campaignName") String campaignName,
                                                                      @RequestParam(value = "mode", required = false) Mode modeSpecified)
@@ -120,7 +120,7 @@ public class ResponseController {
         try {
             List<Mode> modesList = controllerUtils.getModesList(campaignName, modeSpecified);
             for (Mode currentMode : modesList) {
-                treatCampaignWithMode(campaignName, currentMode, errors);
+                treatCampaignWithMode(campaignName, currentMode, errors, null);
             }
         } catch (GenesisException e) {
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
@@ -128,7 +128,7 @@ public class ResponseController {
         return ResponseEntity.ok("Data saved");
     }
 
-    @Operation(summary = "Save all files in Genesis Database")
+    @Operation(summary = "Save all files in Genesis Database (differential data folder only)")
     @PutMapping(path = "/save/lunatic-xml/all-campaigns")
     public ResponseEntity<Object> saveResponsesFromAllCampaignFolders(){
         List<GenesisError> errors = new ArrayList<>();
@@ -145,7 +145,7 @@ public class ResponseController {
             try {
                 List<Mode> modesList = controllerUtils.getModesList(campaignName, null); //modeSpecified null = all modes
                 for (Mode currentMode : modesList) {
-                    treatCampaignWithMode(campaignName, currentMode, errors);
+                    treatCampaignWithMode(campaignName, currentMode, errors, Constants.DIFFRENTIAL_DATA_FOLDER_NAME);
                 }
             } catch (Exception e) {
                 log.warn("Error for campaign {} : {}", campaignName, e.toString());
@@ -328,9 +328,13 @@ public class ResponseController {
 
     //Utilities
 
-    private void treatCampaignWithMode(String campaignName, Mode mode, List<GenesisError> errors) throws IOException, ParserConfigurationException, SAXException, XMLStreamException {
+    private void treatCampaignWithMode(String campaignName, Mode mode, List<GenesisError> errors,
+                                       String rootDataFolder) throws IOException, ParserConfigurationException,
+            SAXException, XMLStreamException {
         log.info("Try to import data for mode : {}", mode.getModeName());
-        String dataFolder = fileUtils.getDataFolder(campaignName, mode.getFolder());
+        String dataFolder = rootDataFolder == null ?
+                fileUtils.getDataFolder(campaignName, mode.getFolder())
+                : fileUtils.getDataFolder(campaignName, mode.getFolder(), rootDataFolder);
         List<String> dataFiles = fileUtils.listFiles(dataFolder);
         log.info("Numbers of files to load in folder {} : {}", dataFolder, dataFiles.size());
         if (dataFiles.isEmpty()) {
@@ -345,6 +349,7 @@ public class ResponseController {
             variablesMap = DDIReader.getMetadataFromDDI(ddiFilePath.toUri().toURL().toString(),
                     new FileInputStream(ddiFilePath.toFile())).getVariables();
         } catch (Exception e) {
+            log.error(e.toString());
             errors.add(new GenesisError(e.toString()));
             return;
         }
@@ -359,13 +364,18 @@ public class ResponseController {
             }else{
                 //Read file
                 log.info("Try to read Xml file : {}", fileName);
+                ResponseEntity<Object> response;
                 if (filepath.toFile().length() / 1024 / 1024 <= Constants.MAX_FILE_SIZE_UNTIL_SEQUENTIAL) {
-                    treatXmlFileWithMemory(filepath, mode, variablesMap);
+                    response = treatXmlFileWithMemory(filepath, mode, variablesMap);
                 } else {
-                    treatXmlFileSequentially(filepath, mode, variablesMap);
+                    response = treatXmlFileSequentially(filepath, mode, variablesMap);
                 }
                 log.debug("File {} saved", fileName);
-                fileUtils.moveDataFile(campaignName, mode.getFolder(), fileName);
+                if(response.getStatusCode() == HttpStatus.OK){
+                    fileUtils.moveDataFile(campaignName, mode.getFolder(), filepath);
+                }else{
+                    log.error("Error on file {}", fileName);
+                }
             }
         }
     }
@@ -381,6 +391,7 @@ public class ResponseController {
         try {
             campaign = parser.parseDataFile(filepath);
         } catch (GenesisException e) {
+            log.error(e.toString());
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
         }
 

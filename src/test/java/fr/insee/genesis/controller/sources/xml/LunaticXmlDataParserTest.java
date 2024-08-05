@@ -1,10 +1,10 @@
 package fr.insee.genesis.controller.sources.xml;
 
-import java.nio.file.Path;
-
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import java.nio.file.Path;
 
 class LunaticXmlDataParserTest {
 
@@ -18,24 +18,24 @@ class LunaticXmlDataParserTest {
     }
 
     @Test
-    void campaignHasGoodLabelAndId() throws Exception {
+    void campaignHasGoodLabelAndId()  {
         Assertions.assertThat(campaign.getLabel()).isEqualTo("Enquête Test Unitaire");
         Assertions.assertThat(campaign.getIdCampaign()).isEqualTo("TEST2023X01");
     }
 
     @Test
-    void campaignHasOneUE() throws Exception {
+    void campaignHasOneUE() {
         Assertions.assertThat(campaign.getSurveyUnits()).hasSize(1);
     }
 
     @Test
-    void checkNumberOfCollectedVariables() throws Exception {
-        Assertions.assertThat(campaign.getSurveyUnits().get(0).getData().getCollected()).hasSize(26);
+    void checkNumberOfCollectedVariables() {
+        Assertions.assertThat(campaign.getSurveyUnits().getFirst().getData().getCollected()).hasSize(26);
     }
 
     @Test
-    void checkNumberOfExternalVariables() throws Exception {
-        Assertions.assertThat(campaign.getSurveyUnits().get(0).getData().getExternal()).hasSize(11);
+    void checkNumberOfExternalVariables()  {
+        Assertions.assertThat(campaign.getSurveyUnits().getFirst().getData().getExternal()).hasSize(11);
     }
 
 
