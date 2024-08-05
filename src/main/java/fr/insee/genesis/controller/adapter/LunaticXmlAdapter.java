@@ -10,7 +10,7 @@ import fr.insee.genesis.domain.dtos.DataState;
 import fr.insee.genesis.domain.dtos.Mode;
 import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
 import fr.insee.genesis.domain.dtos.VariableDto;
-import fr.insee.metadataparserlib.metadata.model.VariablesMap;
+import fr.insee.bpm.metadata.model.VariablesMap;
 import lombok.experimental.UtilityClass;
 
 import java.time.LocalDateTime;

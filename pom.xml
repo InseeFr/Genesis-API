@@ -133,13 +133,10 @@
         </dependency>
 
         <!-- METADATA PARSER -->
-        <!-- TODO USE NEXUS -->
         <dependency>
-            <groupId>fr.insee</groupId>
-            <artifactId>metadata-parser-lib</artifactId>
-            <version>1.0-SNAPSHOT</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/src/main/resources/metadata-parser-lib-1.0-SNAPSHOT.jar</systemPath>
+            <groupId>fr.insee.bpm</groupId>
+            <artifactId>bpm</artifactId>
+            <version>1.0.0</version>
         </dependency>
     </dependencies>
 

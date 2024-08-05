@@ -3,10 +3,10 @@ package fr.insee.genesis.controller.utils;
 
 import fr.insee.genesis.domain.dtos.*;
 import fr.insee.genesis.domain.dtos.VariableDto;
-import fr.insee.metadataparserlib.metadata.model.MetadataModel;
-import fr.insee.metadataparserlib.metadata.model.Variable;
-import fr.insee.metadataparserlib.metadata.model.VariableType;
-import fr.insee.metadataparserlib.metadata.model.VariablesMap;
+import fr.insee.bpm.metadata.model.MetadataModel;
+import fr.insee.bpm.metadata.model.Variable;
+import fr.insee.bpm.metadata.model.VariableType;
+import fr.insee.bpm.metadata.model.VariablesMap;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

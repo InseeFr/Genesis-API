@@ -24,16 +24,15 @@ import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.exceptions.NoDataError;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 
-import fr.insee.metadataparserlib.exceptions.MetadataParserException;
-import fr.insee.metadataparserlib.metadata.model.VariablesMap;
-import fr.insee.metadataparserlib.metadata.reader.ddi.DDIReader;
+import fr.insee.bpm.exceptions.MetadataParserException;
+import fr.insee.bpm.metadata.model.VariablesMap;
+import fr.insee.bpm.metadata.reader.ddi.DDIReader;
 
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;

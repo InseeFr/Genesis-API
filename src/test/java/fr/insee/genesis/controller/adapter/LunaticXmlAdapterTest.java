@@ -1,15 +1,18 @@
 package fr.insee.genesis.controller.adapter;
 
+
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.sources.xml.*;
 import fr.insee.genesis.domain.dtos.CollectedVariableDto;
 import fr.insee.genesis.domain.dtos.DataState;
 import fr.insee.genesis.domain.dtos.Mode;
 import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
-import fr.insee.metadataparserlib.metadata.model.Group;
-import fr.insee.metadataparserlib.metadata.model.MetadataModel;
-import fr.insee.metadataparserlib.metadata.model.Variable;
-import fr.insee.metadataparserlib.metadata.model.VariableType;
+
+import fr.insee.bpm.metadata.model.Group;
+import fr.insee.bpm.metadata.model.MetadataModel;
+import fr.insee.bpm.metadata.model.Variable;
+import fr.insee.bpm.metadata.model.VariableType;
+
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -31,7 +34,6 @@ class LunaticXmlAdapterTest {
     LunaticXmlSurveyUnit lunaticXmlSurveyUnit7 = new LunaticXmlSurveyUnit();
     MetadataModel metadataModel = new MetadataModel();
     LunaticXmlSurveyUnit lunaticXmlSurveyUnit8 = new LunaticXmlSurveyUnit();
-    VariablesMap variablesMap = new VariablesMap();
 
     @BeforeEach
     void setUp() {
@@ -339,7 +341,7 @@ class LunaticXmlAdapterTest {
     @DisplayName("Value should be affected in the good loop iteration")
     void test11(){
         // When
-        List<SurveyUnitUpdateDto> suDtos = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit8, variablesMap, ID_CAMPAIGN, Mode.WEB);
+        List<SurveyUnitUpdateDto> suDtos = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit8, metadataModel.getVariables(), ID_CAMPAIGN, Mode.WEB);
         // Then
         Assertions.assertThat(suDtos).hasSize(1);
         Assertions.assertThat(suDtos.get(0).getCollectedVariables()).hasSize(3);

@@ -1,10 +1,10 @@
 package fr.insee.genesis.controller.utils;
 
 import fr.insee.genesis.Constants;
-import fr.insee.metadataparserlib.metadata.model.Group;
-import fr.insee.metadataparserlib.metadata.model.MetadataModel;
-import fr.insee.metadataparserlib.metadata.model.Variable;
-import fr.insee.metadataparserlib.metadata.model.VariableType;
+import fr.insee.bpm.metadata.model.Group;
+import fr.insee.bpm.metadata.model.MetadataModel;
+import fr.insee.bpm.metadata.model.Variable;
+import fr.insee.bpm.metadata.model.VariableType;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

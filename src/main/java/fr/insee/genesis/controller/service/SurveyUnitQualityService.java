@@ -2,7 +2,7 @@ package fr.insee.genesis.controller.service;
 
 import fr.insee.genesis.controller.utils.DataVerifier;
 import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
-import fr.insee.metadataparserlib.metadata.model.VariablesMap;
+import fr.insee.bpm.metadata.model.VariablesMap;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
