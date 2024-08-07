@@ -1,9 +1,13 @@
 package fr.insee.genesis.controller.rest;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import fr.insee.genesis.Constants;
+import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.domain.ports.api.ScheduleApiPort;
 import fr.insee.genesis.exceptions.InvalidCronExpressionException;
 import fr.insee.genesis.exceptions.NotFoundException;
+import fr.insee.genesis.infrastructure.model.document.schedule.KraftwerkExecutionSchedule;
 import fr.insee.genesis.infrastructure.model.document.schedule.ServiceToCall;
 import fr.insee.genesis.infrastructure.model.document.schedule.StoredSurveySchedule;
 import io.swagger.v3.oas.annotations.Operation;
@@ -14,8 +18,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @RequestMapping(path = "/schedule")
 @Controller
@@ -23,10 +33,12 @@ import java.util.List;
 public class ScheduleController {
 
     private final ScheduleApiPort scheduleApiPort;
+    private final Config config;
 
     @Autowired
-    public ScheduleController(ScheduleApiPort scheduleApiPort) {
+    public ScheduleController(ScheduleApiPort scheduleApiPort, Config config) {
         this.scheduleApiPort = scheduleApiPort;
+        this.config = config;
     }
 
     @Operation(summary = "Fetch all schedules")
@@ -91,6 +103,38 @@ public class ScheduleController {
         }catch (NotFoundException e){
             log.warn("Survey {} not found !", surveyName);
             return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Delete expired schedules")
+    @DeleteMapping(path = "/delete/expired-schedules")
+    public ResponseEntity<Object> deleteExpiredSchedules() throws NotFoundException, IOException {
+        Set<String> storedSurveySchedulesNames = new HashSet<>();
+        for(StoredSurveySchedule surveySchedule : scheduleApiPort.getAllSchedules()){
+            storedSurveySchedulesNames.add(surveySchedule.getSurveyName());
+        }
+        for (String surveyScheduleName : storedSurveySchedulesNames) {
+            List<KraftwerkExecutionSchedule> deletedKraftwerkExecutionSchedules = scheduleApiPort.deleteExpiredSchedules(surveyScheduleName);
+            //Save in JSON log
+            if(!deletedKraftwerkExecutionSchedules.isEmpty()) {
+                Path jsonLogPath = Path.of(config.getLogFolder(), Constants.SCHEDULE_ARCHIVE_FOLDER_NAME,
+                        surveyScheduleName + ".json");
+                ObjectMapper objectMapper = new ObjectMapper();
+                objectMapper.registerModule(new JavaTimeModule());
+                String jsonToWrite = objectMapper.writeValueAsString(deletedKraftwerkExecutionSchedules);
+                if(Files.exists(jsonLogPath)){
+                    //Remove last ] and append survey
+                    StringBuilder content = new StringBuilder(Files.readString(jsonLogPath));
+                    content.setCharAt(content.length()-1, ',');
+                    content.append(jsonToWrite, 1, jsonToWrite.length()-1);
+                    content.append(']');
+                    Files.write(jsonLogPath, content.toString().getBytes(), StandardOpenOption.TRUNCATE_EXISTING);
+                }else {
+                    Files.createDirectories(jsonLogPath.getParent());
+                    Files.write(jsonLogPath, jsonToWrite.getBytes());
+                }
+            }
         }
         return ResponseEntity.ok().build();
     }
