@@ -100,6 +100,28 @@ public class ScheduleApiPortStub implements ScheduleApiPort {
     }
 
     @Override
+    public List<KraftwerkExecutionSchedule> deleteExpiredSchedules(String surveyName) throws NotFoundException {
+        List<StoredSurveySchedule> mongoStubFiltered = mongoStub.stream().filter(scheduleDocument ->
+                scheduleDocument.getSurveyName().equals(surveyName)).toList();
+        List<KraftwerkExecutionSchedule> deletedKraftwerkExecutionSchedules = new ArrayList<>();
+        if(!mongoStubFiltered.isEmpty()) {
+            for(StoredSurveySchedule surveySchedule : mongoStubFiltered){
+                deletedKraftwerkExecutionSchedules.addAll(surveySchedule.getKraftwerkExecutionScheduleList().stream().filter(
+                        kraftwerkExecutionSchedule1 ->
+                                kraftwerkExecutionSchedule1.getScheduleEndDate().isBefore(LocalDateTime.now())).toList());
+                surveySchedule.getKraftwerkExecutionScheduleList().removeIf(
+                        kraftwerkExecutionSchedule1 ->
+                                kraftwerkExecutionSchedule1.getScheduleEndDate().isBefore(LocalDateTime.now())
+                );
+                if(surveySchedule.getKraftwerkExecutionScheduleList().isEmpty()){
+                    mongoStub.remove(surveySchedule);
+                }
+            }
+        }else throw new NotFoundException();
+        return deletedKraftwerkExecutionSchedules;
+    }
+
+    @Override
     public void updateLastExecutionName(String surveyName, LocalDateTime newDate) throws NotFoundException {
         List<StoredSurveySchedule> mongoStubFiltered = mongoStub.stream().filter(scheduleDocument ->
                 scheduleDocument.getSurveyName().equals(surveyName)).toList();

@@ -11,11 +11,15 @@ public class Constants {
     public static final String FILTER_RESULT_PREFIX = "FILTER_RESULT_";
     public static final String MISSING_SUFFIX = "_MISSING";
     private static final String[] ENO_VARIABLES = {"COMMENT_QE","COMMENT_UE","HEURE_REMPL","MIN_REMPL"};
+
+    public static final String MONGODB_SCHEDULE_COLLECTION_NAME = "schedules";
     public static final String MONGODB_RESPONSE_COLLECTION_NAME = "responses";
     public static final String VOLUMETRY_FOLDER_NAME = "genesis_volumetries";
     public static final String VOLUMETRY_FILE_SUFFIX = "_VOLUMETRY";
     public static final String VOLUMETRY_FILE_DATE_FORMAT = "yyyy_MM_dd";
     public static final int VOLUMETRY_FILE_EXPIRATION_DAYS = 30;
+
+    public static final String SCHEDULE_ARCHIVE_FOLDER_NAME = "genesis_deleted_schedules";
 
 
    // XML sequential reading parameters
