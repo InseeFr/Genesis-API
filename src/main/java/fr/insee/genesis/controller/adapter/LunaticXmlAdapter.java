@@ -1,6 +1,6 @@
 package fr.insee.genesis.controller.adapter;
 
-import fr.insee.genesis.controller.sources.ddi.VariablesMap;
+import fr.insee.genesis.controller.sources.metadata.VariablesMap;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlCollectedData;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
 import fr.insee.genesis.controller.sources.xml.ValueType;

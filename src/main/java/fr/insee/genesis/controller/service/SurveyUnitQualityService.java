@@ -1,6 +1,6 @@
 package fr.insee.genesis.controller.service;
 
-import fr.insee.genesis.controller.sources.ddi.VariablesMap;
+import fr.insee.genesis.controller.sources.metadata.VariablesMap;
 import fr.insee.genesis.controller.utils.DataVerifier;
 import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
 import org.springframework.stereotype.Service;

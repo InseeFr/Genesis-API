@@ -1,4 +1,4 @@
-package fr.insee.genesis.controller.sources.ddi;
+package fr.insee.genesis.controller.sources.metadata;
 
 import lombok.Builder;
 import lombok.Getter;

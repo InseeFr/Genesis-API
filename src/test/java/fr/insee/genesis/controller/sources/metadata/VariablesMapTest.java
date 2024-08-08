@@ -1,4 +1,4 @@
-package fr.insee.genesis.controller.sources.ddi;
+package fr.insee.genesis.controller.sources.metadata;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -10,6 +10,12 @@ import java.util.List;
 import java.util.Set;
 
 import fr.insee.genesis.Constants;
+import fr.insee.genesis.controller.sources.metadata.Group;
+import fr.insee.genesis.controller.sources.metadata.McqVariable;
+import fr.insee.genesis.controller.sources.metadata.UcqVariable;
+import fr.insee.genesis.controller.sources.metadata.Variable;
+import fr.insee.genesis.controller.sources.metadata.VariableType;
+import fr.insee.genesis.controller.sources.metadata.VariablesMap;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import lombok.extern.log4j.Log4j2;

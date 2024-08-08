@@ -1,4 +1,4 @@
-package fr.insee.genesis.controller.sources.ddi;
+package fr.insee.genesis.controller.sources.metadata;
 
 
 import fr.insee.genesis.Constants;
