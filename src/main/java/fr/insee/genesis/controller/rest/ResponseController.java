@@ -1,12 +1,10 @@
 package fr.insee.genesis.controller.rest;
 
+import fr.insee.bpm.metadata.model.MetadataModel;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.adapter.LunaticXmlAdapter;
 import fr.insee.genesis.controller.responses.SurveyUnitUpdateSimplified;
 import fr.insee.genesis.controller.service.SurveyUnitQualityService;
-import fr.insee.genesis.controller.sources.metadata.ddi.DDIReader;
-import fr.insee.genesis.controller.sources.metadata.VariablesMap;
-import fr.insee.genesis.controller.sources.metadata.lunatic.LunaticReader;
 import fr.insee.genesis.controller.service.VolumetryLogService;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlCampaign;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlDataParser;
@@ -30,6 +28,7 @@ import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.bpm.exceptions.MetadataParserException;
 import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.bpm.metadata.reader.ddi.DDIReader;
+import fr.insee.bpm.metadata.reader.lunatic.LunaticReader;
 
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
@@ -94,22 +93,20 @@ public class ResponseController {
         if(withDDI) {
             //Parse DDI
             log.info(String.format("Try to read DDI file : %s", metadataFilePath));
-            Path ddiFilePath = Paths.get(metadataFilePath);
             try {
-                variablesMap = DDIReader.getVariablesFromDDI(ddiFilePath.toFile().toURI().toURL());
-            } catch (GenesisException e) {
-                return ResponseEntity.status(e.getStatus()).body(e.getMessage());
+                MetadataModel metadata =
+                        DDIReader.getMetadataFromDDI(Path.of(metadataFilePath).toFile().toURI().toURL().toString(),
+                        new FileInputStream(metadataFilePath));
+                variablesMap = metadata.getVariables();
+            } catch (MetadataParserException e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
             }
         }else{
             //Parse Lunatic
             log.info(String.format("Try to read lunatic file : %s", metadataFilePath));
-            Path lunaticFilePath = Paths.get(metadataFilePath);
 
-            try {
-                variablesMap = LunaticReader.getVariablesFromLunaticJson(lunaticFilePath);
-            } catch (MetadataParserException e) {
-                return ResponseEntity.status(e.getStatus()).body(e.getMessage());
-            }
+            MetadataModel metadata = LunaticReader.getMetadataFromLunatic(new FileInputStream(metadataFilePath));
+            variablesMap = metadata.getVariables();
         }
 
         log.info(String.format("Try to read Xml file : %s", xmlFile));
@@ -434,7 +431,9 @@ public class ResponseController {
             try {
                 Path ddiFilePath = fileUtils.findFile(String.format("%s/%s", fileUtils.getSpecFolder(campaignName),
                             mode.getModeName()), "ddi[\\w," + "\\s-]+\\.xml");
-                variablesMap = DDIReader.getVariablesFromDDI(ddiFilePath.toUri().toURL());
+                MetadataModel metadata = DDIReader.getMetadataFromDDI(ddiFilePath.toUri().toURL().toString(),
+                        new FileInputStream(ddiFilePath.toString()));
+                variablesMap = metadata.getVariables();
             } catch (Exception e) {
                 log.error(e.toString());
                 errors.add(new GenesisError(e.toString()));
@@ -445,7 +444,8 @@ public class ResponseController {
             try {
                 Path lunaticFilePath = fileUtils.findFile(String.format("%s/%s", fileUtils.getSpecFolder(campaignName),
                         mode.getModeName()), "lunatic[\\w," + "\\s-]+\\.json");
-                variablesMap = LunaticReader.getVariablesFromLunaticJson(lunaticFilePath);
+                MetadataModel metadata = LunaticReader.getMetadataFromLunatic(new FileInputStream(lunaticFilePath.toString()));
+                variablesMap = metadata.getVariables();
             } catch (Exception e) {
                 log.error(e.toString());
                 errors.add(new GenesisError(e.toString()));
