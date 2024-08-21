@@ -3,13 +3,14 @@ package cucumber.functional_tests;
 import cucumber.TestConstants;
 import fr.insee.genesis.controller.adapter.LunaticXmlAdapter;
 import fr.insee.genesis.controller.service.SurveyUnitQualityService;
-import fr.insee.genesis.controller.sources.metadata.ddi.DDIReader;
-import fr.insee.genesis.controller.sources.metadata.VariablesMap;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlCampaign;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlDataParser;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
 import fr.insee.genesis.domain.dtos.*;
 import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.bpm.exceptions.MetadataParserException;
+import fr.insee.bpm.metadata.model.VariablesMap;
+import fr.insee.bpm.metadata.reader.ddi.DDIReader;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
@@ -17,6 +18,7 @@ import org.assertj.core.api.Assertions;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -40,7 +42,7 @@ public class MainDefinitions {
     }
 
     @When("We create DTOs from file {string} with DDI {string}")
-    public void get_dtos(String fileName, String DDIName) throws IOException, ParserConfigurationException, SAXException, GenesisException {
+    public void get_dtos(String fileName, String DDIName) throws IOException, ParserConfigurationException, SAXException, GenesisException, MetadataParserException {
         Path filePath = inDirectory.resolve(fileName);
         Path ddiFilePath = ddiDirectory.resolve(directory).resolve(DDIName);
 
@@ -48,7 +50,10 @@ public class MainDefinitions {
             LunaticXmlDataParser parser = new LunaticXmlDataParser();
             LunaticXmlCampaign campaign;
             campaign = parser.parseDataFile(filePath);
-            VariablesMap variablesMap = DDIReader.getVariablesFromDDI(ddiFilePath.toFile().toURI().toURL());
+            VariablesMap variablesMap = DDIReader.getMetadataFromDDI(
+                    ddiFilePath.toFile().toURI().toURL().toString(),
+                    new FileInputStream(ddiFilePath.toFile())
+            ).getVariables();
             List<SurveyUnitUpdateDto> suDtos = new ArrayList<>();
             for (LunaticXmlSurveyUnit su : campaign.getSurveyUnits()) {
                 suDtos.addAll(LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign(), Mode.WEB));

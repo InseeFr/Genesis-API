@@ -1,11 +1,16 @@
 package fr.insee.genesis.controller.adapter;
 
-import fr.insee.genesis.controller.sources.metadata.VariablesMap;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlCollectedData;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
 import fr.insee.genesis.controller.sources.xml.ValueType;
 import fr.insee.genesis.controller.utils.LoopIdentifier;
-import fr.insee.genesis.domain.dtos.*;
+
+import fr.insee.genesis.domain.dtos.CollectedVariableDto;
+import fr.insee.genesis.domain.dtos.DataState;
+import fr.insee.genesis.domain.dtos.Mode;
+import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
+import fr.insee.genesis.domain.dtos.VariableDto;
+import fr.insee.bpm.metadata.model.VariablesMap;
 import lombok.experimental.UtilityClass;
 
 import java.time.LocalDateTime;
@@ -100,8 +105,9 @@ public class LunaticXmlAdapter {
             }
             if(valueTypeList != null) {
                 for (int i = 1; i <= valueTypeList.size(); i++) {
-                    List<String> variableValues = getValuesFromValueTypeList(valueTypeList);
-                    if (!variableValues.isEmpty()) {
+                    List<String> variableValues = new ArrayList<>();
+                    if (valueTypeList.get(i-1).getValue()!=null) {
+                        variableValues.add(valueTypeList.get(i-1).getValue());
                         variablesUpdate.add(CollectedVariableDto.collectedVariableBuilder()
                                 .idVar(lunaticXmlCollectedData.getVariableName())
                                 .values(variableValues)

@@ -1,11 +1,12 @@
 package fr.insee.genesis.controller.utils;
 
 
-import fr.insee.genesis.controller.sources.metadata.Variable;
-import fr.insee.genesis.controller.sources.metadata.VariableType;
-import fr.insee.genesis.controller.sources.metadata.VariablesMap;
 import fr.insee.genesis.domain.dtos.*;
 import fr.insee.genesis.domain.dtos.VariableDto;
+import fr.insee.bpm.metadata.model.MetadataModel;
+import fr.insee.bpm.metadata.model.Variable;
+import fr.insee.bpm.metadata.model.VariableType;
+import fr.insee.bpm.metadata.model.VariablesMap;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,68 +20,68 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class DataVerifierTest {
     static List<SurveyUnitUpdateDto> testSurveyUnitUpdateDtos = new ArrayList<>();
-    static VariablesMap variablesMap;
+    static MetadataModel metadataModel;
 
     // Given
     @BeforeAll
     static void setUp() {
         //Variable definitions
-        variablesMap = new VariablesMap();
+        metadataModel = new MetadataModel();
 
         //Invalid Collected Variables only
         //1 Variable 1 State 1 Value
-        createCase(1,1,1,true,false,"TestUE1",testSurveyUnitUpdateDtos,variablesMap);
+        createCase(1,1,1,true,false,"TestUE1",testSurveyUnitUpdateDtos,metadataModel.getVariables());
 
         //1 Variable 1 State 2 Values
-        createCase(1,1,2,true,false,"TestUE2",testSurveyUnitUpdateDtos,variablesMap);
+        createCase(1,1,2,true,false,"TestUE2",testSurveyUnitUpdateDtos,metadataModel.getVariables());
 
         //1 Variable 2 States 1 Value
-        createCase(1,2,1,true,false,"TestUE3",testSurveyUnitUpdateDtos,variablesMap);
+        createCase(1,2,1,true,false,"TestUE3",testSurveyUnitUpdateDtos,metadataModel.getVariables());
 
         //1 Variable 2 States 2 Values
-        createCase(1,2,2,true,false,"TestUE4",testSurveyUnitUpdateDtos,variablesMap);
+        createCase(1,2,2,true,false,"TestUE4",testSurveyUnitUpdateDtos,metadataModel.getVariables());
 
         //2 Variables 1 State 1 Value
-        createCase(2,1,1,true,false,"TestUE5",testSurveyUnitUpdateDtos,variablesMap);
+        createCase(2,1,1,true,false,"TestUE5",testSurveyUnitUpdateDtos,metadataModel.getVariables());
 
         //2 Variables 1 State 2 Values
-        createCase(2,1,2,true,false,"TestUE6",testSurveyUnitUpdateDtos,variablesMap);
+        createCase(2,1,2,true,false,"TestUE6",testSurveyUnitUpdateDtos,metadataModel.getVariables());
 
         //2 Variables 2 States 1 Value
-        createCase(2,2,1,true,false,"TestUE7",testSurveyUnitUpdateDtos,variablesMap);
+        createCase(2,2,1,true,false,"TestUE7",testSurveyUnitUpdateDtos,metadataModel.getVariables());
 
         //2 Variables 2 State 2 Value
-        createCase(2,2,2,true,false,"TestUE8",testSurveyUnitUpdateDtos,variablesMap);
+        createCase(2,2,2,true,false,"TestUE8",testSurveyUnitUpdateDtos,metadataModel.getVariables());
 
 
         //With invalid ExternalVariables
-        createCase(1,1,1,true,true,"TestUE9",testSurveyUnitUpdateDtos,variablesMap);
+        createCase(1,1,1,true,true,"TestUE9",testSurveyUnitUpdateDtos,metadataModel.getVariables());
 
         //1 Variable 1 State 2 Values
-        createCase(1,1,2,true,true,"TestUE10",testSurveyUnitUpdateDtos,variablesMap);
+        createCase(1,1,2,true,true,"TestUE10",testSurveyUnitUpdateDtos,metadataModel.getVariables());
 
         //1 Variable 2 States 1 Value
-        createCase(1,2,1,true,true,"TestUE11",testSurveyUnitUpdateDtos,variablesMap);
+        createCase(1,2,1,true,true,"TestUE11",testSurveyUnitUpdateDtos,metadataModel.getVariables());
 
         //1 Variable 2 States 2 Values
-        createCase(1,2,2,true,true,"TestUE12",testSurveyUnitUpdateDtos,variablesMap);
+        createCase(1,2,2,true,true,"TestUE12",testSurveyUnitUpdateDtos,metadataModel.getVariables());
 
         //2 Variables 1 State 1 Value
-        createCase(2,1,1,true,true,"TestUE13",testSurveyUnitUpdateDtos,variablesMap);
+        createCase(2,1,1,true,true,"TestUE13",testSurveyUnitUpdateDtos,metadataModel.getVariables());
 
         //2 Variables 1 State 2 Values
-        createCase(2,1,2,true,true,"TestUE14",testSurveyUnitUpdateDtos,variablesMap);
+        createCase(2,1,2,true,true,"TestUE14",testSurveyUnitUpdateDtos,metadataModel.getVariables());
 
         //2 Variables 2 States 1 Value
-        createCase(2,2,1,true,true,"TestUE15",testSurveyUnitUpdateDtos,variablesMap);
+        createCase(2,2,1,true,true,"TestUE15",testSurveyUnitUpdateDtos,metadataModel.getVariables());
 
         //2 Variables 2 State 2 Value
-        createCase(2,2,2,true,true,"TestUE16",testSurveyUnitUpdateDtos,variablesMap);
+        createCase(2,2,2,true,true,"TestUE16",testSurveyUnitUpdateDtos,metadataModel.getVariables());
 
 
         //Valid variables only
-        createCase(1,1,1,false,true,"TestUE17",testSurveyUnitUpdateDtos,variablesMap);
-        createCase(2,2,2,false,true,"TestUE18",testSurveyUnitUpdateDtos,variablesMap);
+        createCase(1,1,1,false,true,"TestUE17",testSurveyUnitUpdateDtos,metadataModel.getVariables());
+        createCase(2,2,2,false,true,"TestUE18",testSurveyUnitUpdateDtos,metadataModel.getVariables());
 
         //Manual modifications
         //Valid 2nd variable on 5th and 13th case
@@ -123,7 +124,7 @@ class DataVerifierTest {
         suDtoEdited.getCollectedVariables().remove(1);
 
         //When
-        DataVerifier.verifySurveyUnits(testSurveyUnitUpdateDtos,variablesMap);
+        DataVerifier.verifySurveyUnits(testSurveyUnitUpdateDtos,metadataModel.getVariables());
     }
 
     private static void createCase(int variableNumber, int stateNumber, int valueNumber, boolean hasIncorrectValues, boolean hasExternalVariables, String idUE, List<SurveyUnitUpdateDto> testSurveyUnitUpdateDtos, VariablesMap variablesMap) {
@@ -135,7 +136,7 @@ class DataVerifierTest {
                 List<String> values = new ArrayList<>();
 
                 if(!variablesMap.hasVariable("testInteger" + variableIndex)) {
-                    Variable var = new Variable("testInteger" + variableIndex, variablesMap.getRootGroup(), VariableType.INTEGER, "10");
+                    Variable var = new Variable("testInteger" + variableIndex, metadataModel.getRootGroup(), VariableType.INTEGER, "10");
                     variablesMap.putVariable(var);
                 }
 
