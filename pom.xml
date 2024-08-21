@@ -131,6 +131,13 @@
             <artifactId>junit-vintage-engine</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- METADATA PARSER -->
+        <dependency>
+            <groupId>fr.insee.bpm</groupId>
+            <artifactId>bpm</artifactId>
+            <version>1.0.0</version>
+        </dependency>
     </dependencies>
 
     <build>
