@@ -1,6 +1,5 @@
 package fr.insee.genesis.controller.rest;
 
-import fr.insee.bpm.metadata.model.MetadataModel;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.adapter.LunaticXmlAdapter;
 import fr.insee.genesis.controller.responses.SurveyUnitUpdateSimplified;
@@ -94,10 +93,9 @@ public class ResponseController {
             //Parse DDI
             log.info(String.format("Try to read DDI file : %s", metadataFilePath));
             try {
-                MetadataModel metadata =
+                variablesMap =
                         DDIReader.getMetadataFromDDI(Path.of(metadataFilePath).toFile().toURI().toURL().toString(),
-                        new FileInputStream(metadataFilePath));
-                variablesMap = metadata.getVariables();
+                                new FileInputStream(metadataFilePath)).getVariables();
             } catch (MetadataParserException e) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
             }
@@ -105,8 +103,7 @@ public class ResponseController {
             //Parse Lunatic
             log.info(String.format("Try to read lunatic file : %s", metadataFilePath));
 
-            MetadataModel metadata = LunaticReader.getMetadataFromLunatic(new FileInputStream(metadataFilePath));
-            variablesMap = metadata.getVariables();
+            variablesMap = LunaticReader.getMetadataFromLunatic(new FileInputStream(metadataFilePath)).getVariables();
         }
 
         log.info(String.format("Try to read Xml file : %s", xmlFile));
@@ -431,9 +428,8 @@ public class ResponseController {
             try {
                 Path ddiFilePath = fileUtils.findFile(String.format("%s/%s", fileUtils.getSpecFolder(campaignName),
                             mode.getModeName()), "ddi[\\w," + "\\s-]+\\.xml");
-                MetadataModel metadata = DDIReader.getMetadataFromDDI(ddiFilePath.toUri().toURL().toString(),
-                        new FileInputStream(ddiFilePath.toString()));
-                variablesMap = metadata.getVariables();
+                variablesMap = DDIReader.getMetadataFromDDI(ddiFilePath.toUri().toURL().toString(),
+                        new FileInputStream(ddiFilePath.toString())).getVariables();
             } catch (Exception e) {
                 log.error(e.toString());
                 errors.add(new GenesisError(e.toString()));
@@ -444,8 +440,7 @@ public class ResponseController {
             try {
                 Path lunaticFilePath = fileUtils.findFile(String.format("%s/%s", fileUtils.getSpecFolder(campaignName),
                         mode.getModeName()), "lunatic[\\w," + "\\s-]+\\.json");
-                MetadataModel metadata = LunaticReader.getMetadataFromLunatic(new FileInputStream(lunaticFilePath.toString()));
-                variablesMap = metadata.getVariables();
+                variablesMap = LunaticReader.getMetadataFromLunatic(new FileInputStream(lunaticFilePath.toString())).getVariables();
             } catch (Exception e) {
                 log.error(e.toString());
                 errors.add(new GenesisError(e.toString()));
