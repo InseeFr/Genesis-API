@@ -2,10 +2,10 @@ package fr.insee.genesis.exceptions;
 
 import lombok.Getter;
 
+@Getter
 public class GenesisError {
 
-	@Getter
-	private String message;
+	private final String message;
 
 	public GenesisError(String message) {
 		this.message = message;

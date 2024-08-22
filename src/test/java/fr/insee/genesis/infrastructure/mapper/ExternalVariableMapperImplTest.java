@@ -67,8 +67,8 @@ class ExternalVariableMapperImplTest {
         List<VariableDto> variableDtoList = externalVariableMapperStatic.listEntityToListDto(externalVariableList);
 
         Assertions.assertThat(variableDtoList).isNotNull().isNotEmpty();
-        Assertions.assertThat(variableDtoList.get(0).getIdVar()).isEqualTo("TESTIDVAR");
-        Assertions.assertThat(variableDtoList.get(0).getValues()).containsAll(List.of(new String[]{"V1", "V2"}));
+        Assertions.assertThat(variableDtoList.getFirst().getIdVar()).isEqualTo("TESTIDVAR");
+        Assertions.assertThat(variableDtoList.getFirst().getValues()).containsAll(List.of(new String[]{"V1", "V2"}));
     }
 
     @Test
@@ -80,7 +80,7 @@ class ExternalVariableMapperImplTest {
         List<ExternalVariable> externalVariableList = externalVariableMapperStatic.listDtoToListEntity(variableDtoList);
 
         Assertions.assertThat(externalVariableList).isNotNull().isNotEmpty();
-        Assertions.assertThat(externalVariableList.get(0).getIdVar()).isEqualTo("TESTIDVAR");
-        Assertions.assertThat(externalVariableList.get(0).getValues()).containsAll(List.of(new String[]{"V1", "V2"}));
+        Assertions.assertThat(externalVariableList.getFirst().getIdVar()).isEqualTo("TESTIDVAR");
+        Assertions.assertThat(externalVariableList.getFirst().getValues()).containsAll(List.of(new String[]{"V1", "V2"}));
     }
 }
