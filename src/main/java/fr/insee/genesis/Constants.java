@@ -13,6 +13,7 @@ public class Constants {
     private static final String[] ENO_VARIABLES = {"COMMENT_QE","COMMENT_UE","HEURE_REMPL","MIN_REMPL"};
 
     public static final String MONGODB_SCHEDULE_COLLECTION_NAME = "schedules";
+    public static final String LOOP_NAME_PREFIX = "BOUCLE";
     public static final String MONGODB_RESPONSE_COLLECTION_NAME = "responses";
     public static final String VOLUMETRY_FOLDER_NAME = "genesis_volumetries";
     public static final String VOLUMETRY_FILE_SUFFIX = "_VOLUMETRY";
