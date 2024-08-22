@@ -117,18 +117,16 @@ public class FileUtils {
 	}
 
 	/**
-	 * Find the DDI file in the folder of a campaign
-	 * @param campaign
-	 * @param mode
-	 * @return Path of the DDI file
+	 * Find the file in the folder
+	 * @param directory directory to look in
+	 * @param regex regex of the file to find
+	 * @return Path of the found file
 	 * @throws IOException
 	 */
-	public Path findDDIFile(String campaign, String mode) throws IOException {
-		String ddiPath = String.format("%s/%s", getSpecFolder(campaign), mode);
-		try (Stream<Path> files = Files.find(Path.of(ddiPath), 1,
-				(path, basicFileAttributes) -> path.toFile().getName().toLowerCase().matches("ddi[\\w,\\s-]+\\.xml"))) {
+	public Path findFile(String directory, String regex) throws IOException {
+		try (Stream<Path> files = Files.find(Path.of(directory), 1, (path, basicFileAttributes) -> path.toFile().getName().toLowerCase().matches(regex))) {
 			return files.findFirst()
-					.orElseThrow(() -> new RuntimeException("No DDI file found in " + ddiPath));
+					.orElseThrow(() -> new RuntimeException("No file (%s) found in ".formatted(regex) + directory));
 		}
 	}
 

@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>fr.insee.genesis</groupId>
     <artifactId>genesis-api</artifactId>
-    <version>1.2.8</version>
+    <version>1.2.9</version>
     <packaging>jar</packaging>
     <name>genesis-api</name>
 
@@ -17,7 +17,7 @@
     <properties>
         <java.version>21</java.version>
         <springdoc.version>2.6.0</springdoc.version>
-        <mapstruct.version>1.5.5.Final</mapstruct.version>
+        <mapstruct.version>1.6.0</mapstruct.version>
         <cucumber.version>7.18.1</cucumber.version>
         <!-- Proprietes sonar -->
         <jacoco.version>0.8.12</jacoco.version>
@@ -130,6 +130,13 @@
             <groupId>org.junit.vintage</groupId>
             <artifactId>junit-vintage-engine</artifactId>
             <scope>test</scope>
+        </dependency>
+
+        <!-- METADATA PARSER -->
+        <dependency>
+            <groupId>fr.insee.bpm</groupId>
+            <artifactId>bpm</artifactId>
+            <version>1.0.0</version>
         </dependency>
     </dependencies>
 
