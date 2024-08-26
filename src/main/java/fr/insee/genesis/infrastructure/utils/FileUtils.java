@@ -180,6 +180,15 @@ public class FileUtils {
 	}
 
 	/**
+	 * Get the path of the folder where the files are stored after Kraftwerk processing
+	 * @param campaign name of campaign
+	 * @return Path of the output folder
+	 */
+	public String getKraftwerkOutFolder(String campaign) {
+		return  String.format("%s/%s/%s", dataFolderSource, "out", campaign);
+	}
+
+	/**
 	 * Write a text file.
 	 * @param filePath Path to the file.
 	 * @param fileContent Content of the text file.
