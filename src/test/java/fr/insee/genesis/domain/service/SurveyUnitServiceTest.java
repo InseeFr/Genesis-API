@@ -17,9 +17,9 @@ import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
 
-class SurveyUnitImplTest {
+class SurveyUnitServiceTest {
     //Given
-    static SurveyUnitImpl surveyUnitImplStatic;
+    static SurveyUnitService surveyUnitServiceStatic;
     static SurveyUnitPersistencePortStub surveyUnitPersistencePortStub;
 
 
@@ -27,7 +27,7 @@ class SurveyUnitImplTest {
     static void init(){
         surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
 
-        surveyUnitImplStatic = new SurveyUnitImpl(surveyUnitPersistencePortStub);
+        surveyUnitServiceStatic = new SurveyUnitService(surveyUnitPersistencePortStub);
     }
 
     @BeforeEach
@@ -81,7 +81,7 @@ class SurveyUnitImplTest {
                         .build()
         );
 
-        surveyUnitImplStatic.saveSurveyUnits(newSurveyUnitDtoList);
+        surveyUnitServiceStatic.saveSurveyUnits(newSurveyUnitDtoList);
 
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).filteredOn(surveyUnitDto ->
                 surveyUnitDto.getIdCampaign().equals("TESTIDCAMPAIGN")
@@ -104,7 +104,7 @@ class SurveyUnitImplTest {
 
     @Test
     void findByIdsUEAndQuestionnaireTest(){
-        Assertions.assertThat(surveyUnitImplStatic.findByIdsUEAndQuestionnaire("TESTIDUE","TESTIDQUESTIONNAIRE")).filteredOn(
+        Assertions.assertThat(surveyUnitServiceStatic.findByIdsUEAndQuestionnaire("TESTIDUE","TESTIDQUESTIONNAIRE")).filteredOn(
                 surveyUnitDto ->
                         surveyUnitDto.getIdUE().equals("TESTIDUE")
                         && surveyUnitDto.getIdQuest().equals("TESTIDQUESTIONNAIRE")
@@ -113,7 +113,7 @@ class SurveyUnitImplTest {
 
     @Test
     void findByIdUETest(){
-        Assertions.assertThat(surveyUnitImplStatic.findByIdUE("TESTIDUE")).filteredOn(
+        Assertions.assertThat(surveyUnitServiceStatic.findByIdUE("TESTIDUE")).filteredOn(
                 surveyUnitDto ->
                         surveyUnitDto.getIdUE().equals("TESTIDUE")
         ).isNotEmpty();
@@ -121,7 +121,7 @@ class SurveyUnitImplTest {
 
     @Test
     void findByIdQuestionnaireTest(){
-        Assertions.assertThat(surveyUnitImplStatic.findByIdQuestionnaire("TESTIDQUESTIONNAIRE")).filteredOn(
+        Assertions.assertThat(surveyUnitServiceStatic.findByIdQuestionnaire("TESTIDQUESTIONNAIRE")).filteredOn(
                 surveyUnitDto -> surveyUnitDto.getIdQuest().equals("TESTIDQUESTIONNAIRE")
         ).isNotEmpty();
     }
@@ -130,7 +130,7 @@ class SurveyUnitImplTest {
     void findLatestByIdAndByModeTest(){
         addAdditionnalDtoToMongoStub();
 
-        Assertions.assertThat(surveyUnitImplStatic.findLatestByIdAndByIdQuestionnaire("TESTIDUE","TESTIDQUESTIONNAIRE")).filteredOn(
+        Assertions.assertThat(surveyUnitServiceStatic.findLatestByIdAndByIdQuestionnaire("TESTIDUE","TESTIDQUESTIONNAIRE")).filteredOn(
                 surveyUnitDto -> surveyUnitDto.getIdUE().equals("TESTIDUE")
                 && surveyUnitDto.getIdQuest().equals("TESTIDQUESTIONNAIRE")
                 && surveyUnitDto.getFileDate().getMonth().equals(Month.FEBRUARY)
@@ -141,14 +141,14 @@ class SurveyUnitImplTest {
     void findDistinctIdUEsByIdQuestionnaireTest(){
         addAdditionnalDtoToMongoStub();
 
-        Assertions.assertThat(surveyUnitImplStatic.findDistinctIdUEsByIdQuestionnaire("TESTIDQUESTIONNAIRE")).filteredOn(
+        Assertions.assertThat(surveyUnitServiceStatic.findDistinctIdUEsByIdQuestionnaire("TESTIDQUESTIONNAIRE")).filteredOn(
                 surveyUnitId -> surveyUnitId.getIdUE().equals("TESTIDUE")
         ).isNotEmpty().hasSize(1);
     }
 
     @Test
     void findIdUEsByIdQuestionnaireTest(){
-        Assertions.assertThat(surveyUnitImplStatic.findModesByIdQuestionnaire("TESTIDQUESTIONNAIRE")).filteredOn(
+        Assertions.assertThat(surveyUnitServiceStatic.findModesByIdQuestionnaire("TESTIDQUESTIONNAIRE")).filteredOn(
                 mode -> mode.equals(Mode.WEB)
         ).isNotEmpty();
     }
@@ -157,13 +157,13 @@ class SurveyUnitImplTest {
     void getQuestionnairesByCampaignTest() {
         addAdditionnalDtoToMongoStub("TESTQUESTIONNAIRE2");
 
-        Assertions.assertThat(surveyUnitImplStatic.findIdQuestionnairesByIdCampaign("TESTIDCAMPAIGN")).isNotEmpty().hasSize(2);
+        Assertions.assertThat(surveyUnitServiceStatic.findIdQuestionnairesByIdCampaign("TESTIDCAMPAIGN")).isNotEmpty().hasSize(2);
 
     }
 
     @Test
     void getAllCampaignsTest() {
-        Assertions.assertThat(surveyUnitImplStatic.findDistinctIdCampaigns()).contains("TESTIDCAMPAIGN");
+        Assertions.assertThat(surveyUnitServiceStatic.findDistinctIdCampaigns()).contains("TESTIDCAMPAIGN");
     }
 
     private void addAdditionnalDtoToMongoStub(){

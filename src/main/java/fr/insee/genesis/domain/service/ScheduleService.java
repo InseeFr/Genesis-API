@@ -1,13 +1,14 @@
 package fr.insee.genesis.domain.service;
 
 import fr.insee.genesis.domain.ports.api.ScheduleApiPort;
+import fr.insee.genesis.domain.ports.spi.SchedulePersistencePort;
 import fr.insee.genesis.exceptions.InvalidCronExpressionException;
 import fr.insee.genesis.exceptions.NotFoundException;
 import fr.insee.genesis.infrastructure.model.document.schedule.KraftwerkExecutionSchedule;
 import fr.insee.genesis.infrastructure.model.document.schedule.ServiceToCall;
 import fr.insee.genesis.infrastructure.model.document.schedule.StoredSurveySchedule;
 import fr.insee.genesis.infrastructure.model.document.schedule.TrustParameters;
-import fr.insee.genesis.infrastructure.repository.ScheduleMongoDBRepository;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.support.CronExpression;
@@ -19,17 +20,17 @@ import java.util.List;
 
 @Service
 @Slf4j
-public class ScheduleImpl implements ScheduleApiPort {
-    private final ScheduleMongoDBRepository scheduleMongoDBRepository;
+public class ScheduleService implements ScheduleApiPort {
+    private final SchedulePersistencePort schedulePersistencePort;
 
     @Autowired
-    public ScheduleImpl(ScheduleMongoDBRepository scheduleMongoDBRepository) {
-        this.scheduleMongoDBRepository = scheduleMongoDBRepository;
+    public ScheduleService(SchedulePersistencePort schedulePersistencePort) {
+        this.schedulePersistencePort = schedulePersistencePort;
     }
 
     @Override
     public List<StoredSurveySchedule> getAllSchedules() {
-        return scheduleMongoDBRepository.findAll();
+        return schedulePersistencePort.getAll();
     }
 
     @Override
@@ -40,7 +41,8 @@ public class ScheduleImpl implements ScheduleApiPort {
             throw new InvalidCronExpressionException();
         }
         
-        List<StoredSurveySchedule> storedSurveySchedules = scheduleMongoDBRepository.findBySurveyName(surveyName);
+        List<StoredSurveySchedule> storedSurveySchedules =
+                new ArrayList<>(schedulePersistencePort.findBySurveyName(surveyName));
 
         StoredSurveySchedule storedSurveySchedule;
         if (storedSurveySchedules.isEmpty()) {
@@ -61,24 +63,28 @@ public class ScheduleImpl implements ScheduleApiPort {
                         trustParameters
                 )
         );
-        scheduleMongoDBRepository.deleteBySurveyName(surveyName);
-        scheduleMongoDBRepository.saveAll(storedSurveySchedules);
+
+        schedulePersistencePort.deleteBySurveyName(surveyName);
+        schedulePersistencePort.saveAll(storedSurveySchedules);
     }
 
     @Override
     public void deleteSchedule(String surveyName) throws NotFoundException {
-        scheduleMongoDBRepository.deleteBySurveyName(surveyName);
+        if(schedulePersistencePort.findBySurveyName(surveyName).isEmpty()){
+            throw new NotFoundException();
+        }
+        schedulePersistencePort.deleteBySurveyName(surveyName);
     }
 
     @Override
     public void updateLastExecutionName(String surveyName, LocalDateTime newDate) throws NotFoundException {
-        List<StoredSurveySchedule> storedSurveySchedules = scheduleMongoDBRepository.findBySurveyName(surveyName);
+        List<StoredSurveySchedule> storedSurveySchedules = schedulePersistencePort.findBySurveyName(surveyName);
 
         if (!storedSurveySchedules.isEmpty()) {
             for(StoredSurveySchedule surveySchedule : storedSurveySchedules){
                 surveySchedule.setLastExecution(newDate);
             }
-            scheduleMongoDBRepository.saveAll(storedSurveySchedules);
+            schedulePersistencePort.saveAll(storedSurveySchedules);
         }else{
             throw new NotFoundException();
         }
@@ -86,6 +92,6 @@ public class ScheduleImpl implements ScheduleApiPort {
 
     @Override
     public long countSchedules() {
-        return scheduleMongoDBRepository.count();
+        return schedulePersistencePort.countSchedules();
     }
 }

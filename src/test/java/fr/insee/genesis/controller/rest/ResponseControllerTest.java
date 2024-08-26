@@ -15,7 +15,7 @@ import fr.insee.genesis.domain.dtos.SurveyUnitId;
 import fr.insee.genesis.domain.dtos.SurveyUnitDto;
 import fr.insee.genesis.domain.dtos.VariableDto;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
-import fr.insee.genesis.domain.service.SurveyUnitImpl;
+import fr.insee.genesis.domain.service.SurveyUnitService;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
@@ -50,7 +50,7 @@ class ResponseControllerTest {
     @BeforeAll
     static void init() {
         surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
-        SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitImpl(surveyUnitPersistencePortStub);
+        SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(surveyUnitPersistencePortStub);
 
         FileUtils fileUtils = new FileUtils(new ConfigStub());
         responseControllerStatic = new ResponseController(

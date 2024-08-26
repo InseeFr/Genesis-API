@@ -15,11 +15,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
-public class SurveyUnitImpl implements SurveyUnitApiPort {
+public class SurveyUnitService implements SurveyUnitApiPort {
 
     private final SurveyUnitPersistencePort surveyUnitPersistencePort;
 
-    public SurveyUnitImpl(SurveyUnitPersistencePort surveyUnitPersistencePort) {
+    public SurveyUnitService(SurveyUnitPersistencePort surveyUnitPersistencePort) {
         this.surveyUnitPersistencePort = surveyUnitPersistencePort;
     }
 

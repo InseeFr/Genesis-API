@@ -6,7 +6,7 @@ import fr.insee.genesis.domain.dtos.Mode;
 import fr.insee.genesis.domain.dtos.SurveyUnitDto;
 import fr.insee.genesis.domain.dtos.VariableDto;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
-import fr.insee.genesis.domain.service.SurveyUnitImpl;
+import fr.insee.genesis.domain.service.SurveyUnitService;
 import fr.insee.genesis.stubs.ScheduleApiPortStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +29,7 @@ class HealthCheckControllerTest {
     @BeforeAll
     static void init() {
         surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
-        SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitImpl(surveyUnitPersistencePortStub);
+        SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(surveyUnitPersistencePortStub);
         List<VariableDto> externalVariableDtoList = new ArrayList<>();
         VariableDto variableDto = VariableDto.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
         externalVariableDtoList.add(variableDto);
