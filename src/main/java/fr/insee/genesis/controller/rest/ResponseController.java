@@ -1,5 +1,9 @@
 package fr.insee.genesis.controller.rest;
 
+import fr.insee.bpm.exceptions.MetadataParserException;
+import fr.insee.bpm.metadata.model.VariablesMap;
+import fr.insee.bpm.metadata.reader.ddi.DDIReader;
+import fr.insee.bpm.metadata.reader.lunatic.LunaticReader;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.adapter.LunaticXmlAdapter;
 import fr.insee.genesis.controller.responses.SurveyUnitSimplified;
@@ -22,15 +26,8 @@ import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.exceptions.NoDataError;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
-
-import fr.insee.bpm.exceptions.MetadataParserException;
-import fr.insee.bpm.metadata.model.VariablesMap;
-import fr.insee.bpm.metadata.reader.ddi.DDIReader;
-import fr.insee.bpm.metadata.reader.lunatic.LunaticReader;
-
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -64,6 +61,8 @@ import java.util.stream.Stream;
 @Slf4j
 public class ResponseController {
 
+    private static final String DDI_REGEX = "ddi[\\w,\\s-]+\\.xml";
+    public static final String S_S = "%s/%s";
     private final SurveyUnitApiPort surveyUnitService;
     private final SurveyUnitQualityService surveyUnitQualityService;
     private final VolumetryLogService volumetryLogService;
@@ -348,8 +347,7 @@ public class ResponseController {
     private void treatCampaignWithMode(String campaignName, Mode currentMode, List<GenesisError> errors, String rootDataFolder) throws GenesisException,
             SAXException, XMLStreamException {
         try {
-            fileUtils.findFile(String.format("%s/%s", fileUtils.getSpecFolder(campaignName),currentMode), "ddi[\\w," +
-                    "\\s-]+\\.xml");
+            fileUtils.findFile(String.format(S_S, fileUtils.getSpecFolder(campaignName),currentMode), DDI_REGEX);
             //DDI if DDI file found
             treatCampaignWithMode(campaignName, currentMode, errors, rootDataFolder, true);
         }catch (RuntimeException re){
@@ -395,7 +393,7 @@ public class ResponseController {
 
         //For each XML data file
         for (String fileName : dataFiles.stream().filter(s -> s.endsWith(".xml")).toList()) {
-            String filepathString = String.format("%s/%s", dataFolder, fileName);
+            String filepathString = String.format(S_S, dataFolder, fileName);
             Path filepath = Paths.get(filepathString);
             //Check if file not in done folder, delete if true
             if(isDataFileInDoneFolder(filepath, campaignName, mode.getFolder())){
@@ -425,8 +423,8 @@ public class ResponseController {
         if(withDDI){
             //Read DDI
             try {
-                Path ddiFilePath = fileUtils.findFile(String.format("%s/%s", fileUtils.getSpecFolder(campaignName),
-                            mode.getModeName()), "ddi[\\w," + "\\s-]+\\.xml");
+                Path ddiFilePath = fileUtils.findFile(String.format(S_S, fileUtils.getSpecFolder(campaignName),
+                            mode.getModeName()), DDI_REGEX);
                 variablesMap = DDIReader.getMetadataFromDDI(ddiFilePath.toUri().toURL().toString(),
                         new FileInputStream(ddiFilePath.toString())).getVariables();
             } catch (Exception e) {
@@ -437,7 +435,7 @@ public class ResponseController {
         }else{
             //Read Lunatic
             try {
-                Path lunaticFilePath = fileUtils.findFile(String.format("%s/%s", fileUtils.getSpecFolder(campaignName),
+                Path lunaticFilePath = fileUtils.findFile(String.format(S_S, fileUtils.getSpecFolder(campaignName),
                         mode.getModeName()), "lunatic[\\w," + "\\s-]+\\.json");
                 variablesMap = LunaticReader.getMetadataFromLunatic(new FileInputStream(lunaticFilePath.toString())).getVariables();
             } catch (Exception e) {

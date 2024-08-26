@@ -30,7 +30,7 @@ public class LunaticXmlDataParser {
         File file = filePath.toFile();
         //Extraction of the file last modified date
         BasicFileAttributes attr = Files.readAttributes(filePath, BasicFileAttributes.class);
-        log.info("lastModifiedTime: " + attr.lastModifiedTime());
+        log.info("lastModifiedTime: {}", attr.lastModifiedTime());
 
         //Parse xml
         System.setProperty("javax.xml.parsers.DocumentBuilderFactory",

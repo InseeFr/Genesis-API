@@ -1,12 +1,15 @@
 package fr.insee.genesis.controller.utils;
 
 
-import fr.insee.genesis.domain.dtos.*;
-import fr.insee.genesis.domain.dtos.VariableDto;
 import fr.insee.bpm.metadata.model.MetadataModel;
 import fr.insee.bpm.metadata.model.Variable;
 import fr.insee.bpm.metadata.model.VariableType;
 import fr.insee.bpm.metadata.model.VariablesMap;
+import fr.insee.genesis.domain.dtos.CollectedVariableDto;
+import fr.insee.genesis.domain.dtos.DataState;
+import fr.insee.genesis.domain.dtos.Mode;
+import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
+import fr.insee.genesis.domain.dtos.VariableDto;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -136,8 +139,8 @@ class DataVerifierTest {
                 List<String> values = new ArrayList<>();
 
                 if(!variablesMap.hasVariable("testInteger" + variableIndex)) {
-                    Variable var = new Variable("testInteger" + variableIndex, metadataModel.getRootGroup(), VariableType.INTEGER, "10");
-                    variablesMap.putVariable(var);
+                    Variable varTest = new Variable("testInteger" + variableIndex, metadataModel.getRootGroup(), VariableType.INTEGER, "10");
+                    variablesMap.putVariable(varTest);
                 }
 
                 for(int valueIndex = 0; valueIndex < valueNumber; valueIndex++){

@@ -1,18 +1,20 @@
 package fr.insee.genesis.controller.adapter;
 
 
-import fr.insee.genesis.Constants;
-import fr.insee.genesis.controller.sources.xml.*;
-import fr.insee.genesis.domain.dtos.CollectedVariableDto;
-import fr.insee.genesis.domain.dtos.DataState;
-import fr.insee.genesis.domain.dtos.Mode;
-import fr.insee.genesis.domain.dtos.SurveyUnitDto;
-
 import fr.insee.bpm.metadata.model.Group;
 import fr.insee.bpm.metadata.model.MetadataModel;
 import fr.insee.bpm.metadata.model.Variable;
 import fr.insee.bpm.metadata.model.VariableType;
-
+import fr.insee.genesis.Constants;
+import fr.insee.genesis.controller.sources.xml.LunaticXmlCollectedData;
+import fr.insee.genesis.controller.sources.xml.LunaticXmlData;
+import fr.insee.genesis.controller.sources.xml.LunaticXmlOtherData;
+import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
+import fr.insee.genesis.controller.sources.xml.ValueType;
+import fr.insee.genesis.domain.dtos.CollectedVariableDto;
+import fr.insee.genesis.domain.dtos.DataState;
+import fr.insee.genesis.domain.dtos.Mode;
+import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

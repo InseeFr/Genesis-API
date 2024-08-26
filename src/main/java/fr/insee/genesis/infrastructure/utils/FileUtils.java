@@ -202,7 +202,7 @@ public class FileUtils {
 			myFile = path.toFile();
 			fileCreated = myFile.createNewFile();
 		} catch (IOException e) {
-			log.error("Permission refused to create folder: " + path.getParent(), e);
+			log.error(String.format("Permission refused to create folder: %s", path.getParent()), e);
 		}
 		if (!fileCreated){return ;}
 		try (FileWriter myWriter = new FileWriter(myFile)) {

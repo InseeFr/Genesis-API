@@ -248,7 +248,7 @@ public class DataVerifier {
                 Matcher matcher = pattern.matcher(value);
                 if(!matcher.find()){
                     // We only monitor parsing date errors, so we always return false
-                    log.debug("Can't parse date " + value);
+                    log.debug("Can't parse date {}", value);
                     return false;
                 }
                 break;

@@ -104,7 +104,7 @@ class SurveyUnitMongoAdapterTest {
 		List<SurveyUnitDto> updates = surveyUnitMongoAdapter.findByIdUE("UE1100000001");
 		// Then
 		Assertions.assertThat(updates).isNotNull().hasSize(2);
-		Assertions.assertThat(updates.get(0).getMode()).isEqualTo(Mode.WEB);
+		Assertions.assertThat(updates.getFirst().getMode()).isEqualTo(Mode.WEB);
 	}
 
 	@Test
@@ -128,18 +128,18 @@ class SurveyUnitMongoAdapterTest {
 		// When
 		Stream<SurveyUnitDto> updates = surveyUnitMongoAdapter.findByIdQuestionnaire("TEST2023X01");
 		// Then
-//		Assertions.assertThat(updates).isNotNull().hasSize(3);
-//		Assertions.assertThat(updates.get(2).getMode()).isEqualTo(Mode.WEB);
+		Assertions.assertThat(updates).isNotNull().hasSize(3);
+		//Assertions.assertThat(updates.get(2).getMode()).isEqualTo(Mode.WEB);
 	}
 
 	@Test
 	void shouldReturnEmptyList_IfIdQuestionnaireNotFoundInDataBase() {
 		//Given
-		//when(mongoRepository.findByIdQuestionnaire(any(String.class))).thenReturn(List.of());
+		when(mongoRepository.findByIdQuestionnaire(any(String.class))).thenReturn(Stream.empty());
 		// When
-		//List< SurveyUnitDto> updates = surveyUnitMongoAdapter.findByIdQuestionnaire("TEST2023X01");
+		List<SurveyUnitDto> updates = surveyUnitMongoAdapter.findByIdQuestionnaire("TEST2023X01");
 		// Then
-		//Assertions.assertThat(updates).isEmpty();
+		Assertions.assertThat(updates).isEmpty();
 	}
 
 	@Test
@@ -159,7 +159,7 @@ class SurveyUnitMongoAdapterTest {
 		List<SurveyUnitDto> updates = surveyUnitMongoAdapter.findByIdUEsAndIdQuestionnaire(ids, "TEST2023X01");
 		// Then
 		Assertions.assertThat(updates).isNotNull().hasSize(3);
-		Assertions.assertThat(updates.get(0).getMode()).isEqualTo(Mode.WEB);
+		Assertions.assertThat(updates.getFirst().getMode()).isEqualTo(Mode.WEB);
 	}
 
 	@Test
