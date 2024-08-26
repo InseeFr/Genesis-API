@@ -1,7 +1,6 @@
 package fr.insee.genesis.infrastructure.repository;
 
-import fr.insee.genesis.infrastructure.model.document.SurveyUnitDocument;
-import fr.insee.genesis.infrastructure.model.document.SurveyUnitUpdateDocument;
+import fr.insee.genesis.infrastructure.model.document.surveyunit.SurveyUnitDocument;
 import org.springframework.data.mongodb.repository.Meta;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
@@ -12,11 +11,11 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 @Repository
-public interface SurveyUnitUpdateMongoDBRepository extends MongoRepository<SurveyUnitUpdateDocument, String> {
+public interface SurveyUnitMongoDBRepository extends MongoRepository<SurveyUnitDocument, String> {
 
-	List<SurveyUnitUpdateDocument> findByIdUE(String idUE);
+	List<SurveyUnitDocument> findByIdUE(String idUE);
 
-	List<SurveyUnitUpdateDocument> findByIdUEAndIdQuestionnaire(String idUE, String idQuestionnaire);
+	List<SurveyUnitDocument> findByIdUEAndIdQuestionnaire(String idUE, String idQuestionnaire);
 
 	@Query(value = "{ 'idQuestionnaire' : ?0 }", fields = "{ 'idUE' : 1, 'mode' :  1 }")
 	List<SurveyUnitDocument> findIdUEsByIdQuestionnaire(String idQuestionnaire);
@@ -27,7 +26,7 @@ public interface SurveyUnitUpdateMongoDBRepository extends MongoRepository<Surve
 	Long deleteByIdQuestionnaire(String idQuestionnaire);
 
 	@Meta(cursorBatchSize = 20)
-	Stream<SurveyUnitUpdateDocument> findByIdQuestionnaire(String idQuestionnaire);
+	Stream<SurveyUnitDocument> findByIdQuestionnaire(String idQuestionnaire);
 
 	long count();
 

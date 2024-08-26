@@ -6,42 +6,41 @@ import fr.insee.genesis.domain.dtos.Mode;
 import fr.insee.genesis.domain.dtos.QuestionnaireWithCampaign;
 import fr.insee.genesis.domain.dtos.SurveyUnitDto;
 import fr.insee.genesis.domain.dtos.SurveyUnitId;
-import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
 import fr.insee.genesis.domain.dtos.VariableDto;
-import fr.insee.genesis.domain.ports.api.SurveyUnitUpdateApiPort;
-import fr.insee.genesis.domain.ports.spi.SurveyUnitUpdatePersistencePort;
+import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
+import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
-public class SurveyUnitUpdateImpl implements SurveyUnitUpdateApiPort {
+public class SurveyUnitImpl implements SurveyUnitApiPort {
 
-    private final SurveyUnitUpdatePersistencePort surveyUnitUpdatePersistencePort;
+    private final SurveyUnitPersistencePort surveyUnitPersistencePort;
 
-    public SurveyUnitUpdateImpl(SurveyUnitUpdatePersistencePort surveyUnitUpdatePersistencePort) {
-        this.surveyUnitUpdatePersistencePort = surveyUnitUpdatePersistencePort;
+    public SurveyUnitImpl(SurveyUnitPersistencePort surveyUnitPersistencePort) {
+        this.surveyUnitPersistencePort = surveyUnitPersistencePort;
     }
 
     @Override
-    public void saveSurveyUnits(List<SurveyUnitUpdateDto> suDtos) {
-        surveyUnitUpdatePersistencePort.saveAll(suDtos);
+    public void saveSurveyUnits(List<SurveyUnitDto> suDtos) {
+        surveyUnitPersistencePort.saveAll(suDtos);
     }
 
     @Override
-    public List<SurveyUnitUpdateDto> findByIdsUEAndQuestionnaire(String idUE, String idQuest) {
-        return surveyUnitUpdatePersistencePort.findByIds(idUE, idQuest);
+    public List<SurveyUnitDto> findByIdsUEAndQuestionnaire(String idUE, String idQuest) {
+        return surveyUnitPersistencePort.findByIds(idUE, idQuest);
     }
 
     @Override
-    public List<SurveyUnitUpdateDto> findByIdUE(String idUE) {
-        return surveyUnitUpdatePersistencePort.findByIdUE(idUE);
+    public List<SurveyUnitDto> findByIdUE(String idUE) {
+        return surveyUnitPersistencePort.findByIdUE(idUE);
     }
 
     @Override
-    public Stream<SurveyUnitUpdateDto> findByIdQuestionnaire(String idQuestionnaire) {
-        return surveyUnitUpdatePersistencePort.findByIdQuestionnaire(idQuestionnaire);
+    public Stream<SurveyUnitDto> findByIdQuestionnaire(String idQuestionnaire) {
+        return surveyUnitPersistencePort.findByIdQuestionnaire(idQuestionnaire);
     }
 
     /**
@@ -53,13 +52,13 @@ public class SurveyUnitUpdateImpl implements SurveyUnitUpdateApiPort {
      * @return the latest update for each variable of a survey unit
      */
     @Override
-    public List<SurveyUnitUpdateDto> findLatestByIdAndByIdQuestionnaire(String idUE, String idQuest) {
-        List<SurveyUnitUpdateDto> latestUpdatesbyVariables = new ArrayList<>();
-        List<SurveyUnitUpdateDto> surveyUnitUpdateDtos = surveyUnitUpdatePersistencePort.findByIds(idUE, idQuest);
-        List<Mode> modes = getDistinctsModes(surveyUnitUpdateDtos);
+    public List<SurveyUnitDto> findLatestByIdAndByIdQuestionnaire(String idUE, String idQuest) {
+        List<SurveyUnitDto> latestUpdatesbyVariables = new ArrayList<>();
+        List<SurveyUnitDto> surveyUnitDtos = surveyUnitPersistencePort.findByIds(idUE, idQuest);
+        List<Mode> modes = getDistinctsModes(surveyUnitDtos);
         modes.forEach(mode ->{
-            List<SurveyUnitUpdateDto> suByMode = surveyUnitUpdateDtos.stream()
-                    .filter(surveyUnitUpdateDto -> surveyUnitUpdateDto.getMode().equals(mode))
+            List<SurveyUnitDto> suByMode = surveyUnitDtos.stream()
+                    .filter(surveyUnitDto -> surveyUnitDto.getMode().equals(mode))
                     .sorted((o1, o2) -> o2.getRecordDate().compareTo(o1.getRecordDate())) //Sorting update by date (latest updates first by date of upload in database)
                     .toList();
 
@@ -67,23 +66,23 @@ public class SurveyUnitUpdateImpl implements SurveyUnitUpdateApiPort {
             latestUpdatesbyVariables.add(suByMode.getFirst());
             //We keep the name of already added variables to skip them in older updates
             List<String> addedVariables = new ArrayList<>();
-            SurveyUnitUpdateDto latestUpdate = suByMode.getFirst();
+            SurveyUnitDto latestUpdate = suByMode.getFirst();
 
             latestUpdate.getCollectedVariables().forEach(variableStateDto -> addedVariables.add(variableStateDto.getIdVar()));
             latestUpdate.getExternalVariables().forEach(externalVariableDto -> addedVariables.add(externalVariableDto.getIdVar()));
 
-            suByMode.forEach(surveyUnitUpdateDto -> {
+            suByMode.forEach(surveyUnitDto -> {
                 List<CollectedVariableDto> variablesToKeep = new ArrayList<>();
                 List<VariableDto> externalToKeep = new ArrayList<>();
                 // We iterate over the variables of the update and add them to the list if they are not already added
-                surveyUnitUpdateDto.getCollectedVariables().stream()
+                surveyUnitDto.getCollectedVariables().stream()
                         .filter(variableStateDto -> !addedVariables.contains(variableStateDto.getIdVar()))
                         .forEach(variableStateDto -> {
                            variablesToKeep.add(variableStateDto);
                            addedVariables.add(variableStateDto.getIdVar());
                         });
-                if (surveyUnitUpdateDto.getExternalVariables() != null){
-                    surveyUnitUpdateDto.getExternalVariables().stream()
+                if (surveyUnitDto.getExternalVariables() != null){
+                    surveyUnitDto.getExternalVariables().stream()
                          .filter(externalVariableDto -> !addedVariables.contains(externalVariableDto.getIdVar()))
                          .forEach(externalVariableDto -> {
                             externalToKeep.add(externalVariableDto);
@@ -93,9 +92,9 @@ public class SurveyUnitUpdateImpl implements SurveyUnitUpdateApiPort {
 
                 // If there are new variables, we add the update to the list of latest updates
                 if (!variablesToKeep.isEmpty() || !externalToKeep.isEmpty()){
-                    surveyUnitUpdateDto.setCollectedVariables(variablesToKeep);
-                    surveyUnitUpdateDto.setExternalVariables(externalToKeep);
-                    latestUpdatesbyVariables.add(surveyUnitUpdateDto);
+                    surveyUnitDto.setCollectedVariables(variablesToKeep);
+                    surveyUnitDto.setExternalVariables(externalToKeep);
+                    latestUpdatesbyVariables.add(surveyUnitDto);
                 }
             });
         });
@@ -104,7 +103,7 @@ public class SurveyUnitUpdateImpl implements SurveyUnitUpdateApiPort {
 
     @Override
     public List<SurveyUnitId> findDistinctIdUEsByIdQuestionnaire(String idQuestionnaire) {
-        List<SurveyUnitDto> surveyUnits = surveyUnitUpdatePersistencePort.findIdUEsByIdQuestionnaire(idQuestionnaire);
+        List<SurveyUnitDto> surveyUnits = surveyUnitPersistencePort.findIdUEsByIdQuestionnaire(idQuestionnaire);
         List<SurveyUnitId> suIds = new ArrayList<>();
         surveyUnits.forEach(surveyUnitDto -> suIds.add(new SurveyUnitId(surveyUnitDto.getIdUE())));
         return suIds.stream().distinct().toList();
@@ -112,13 +111,13 @@ public class SurveyUnitUpdateImpl implements SurveyUnitUpdateApiPort {
 
     @Override
     public List<SurveyUnitDto> findIdUEsAndModesByIdQuestionnaire(String idQuestionnaire) {
-        List<SurveyUnitDto> surveyUnits = surveyUnitUpdatePersistencePort.findIdUEsByIdQuestionnaire(idQuestionnaire);
+        List<SurveyUnitDto> surveyUnits = surveyUnitPersistencePort.findIdUEsByIdQuestionnaire(idQuestionnaire);
         return surveyUnits.stream().distinct().toList();
     }
 
     @Override
     public List<Mode> findModesByIdQuestionnaire(String idQuestionnaire) {
-        List<SurveyUnitDto> surveyUnits = surveyUnitUpdatePersistencePort.findIdUEsByIdQuestionnaire(idQuestionnaire);
+        List<SurveyUnitDto> surveyUnits = surveyUnitPersistencePort.findIdUEsByIdQuestionnaire(idQuestionnaire);
         List<Mode> sources = new ArrayList<>();
         surveyUnits.forEach(surveyUnitDto -> sources.add(surveyUnitDto.getMode()));
         return sources.stream().distinct().toList();
@@ -126,7 +125,7 @@ public class SurveyUnitUpdateImpl implements SurveyUnitUpdateApiPort {
 
     @Override
     public List<Mode> findModesByIdCampaign(String idCampaign) {
-        List<SurveyUnitDto> surveyUnits = surveyUnitUpdatePersistencePort.findIdUEsByIdCampaign(idCampaign);
+        List<SurveyUnitDto> surveyUnits = surveyUnitPersistencePort.findIdUEsByIdCampaign(idCampaign);
         List<Mode> sources = new ArrayList<>();
         surveyUnits.forEach(surveyUnitDto -> sources.add(surveyUnitDto.getMode()));
         return sources.stream().distinct().toList();
@@ -134,22 +133,22 @@ public class SurveyUnitUpdateImpl implements SurveyUnitUpdateApiPort {
 
     @Override
     public Long deleteByIdQuestionnaire(String idQuestionnaire) {
-        return surveyUnitUpdatePersistencePort.deleteByIdQuestionnaire(idQuestionnaire);
+        return surveyUnitPersistencePort.deleteByIdQuestionnaire(idQuestionnaire);
     }
 
     @Override
     public long countResponses() {
-        return surveyUnitUpdatePersistencePort.count();
+        return surveyUnitPersistencePort.count();
     }
 
     @Override
     public Set<String> findIdQuestionnairesByIdCampaign(String idCampaign) {
-            return surveyUnitUpdatePersistencePort.findIdQuestionnairesByIdCampaign(idCampaign);
+            return surveyUnitPersistencePort.findIdQuestionnairesByIdCampaign(idCampaign);
     }
 
     @Override
     public Set<String> findDistinctIdCampaigns() {
-        return surveyUnitUpdatePersistencePort.findDistinctIdCampaigns();
+        return surveyUnitPersistencePort.findDistinctIdCampaigns();
     }
 
     @Override
@@ -164,19 +163,19 @@ public class SurveyUnitUpdateImpl implements SurveyUnitUpdateApiPort {
 
     @Override
     public long countResponsesByIdCampaign(String idCampaign){
-        return surveyUnitUpdatePersistencePort.countByIdCampaign(idCampaign);
+        return surveyUnitPersistencePort.countByIdCampaign(idCampaign);
     }
 
     @Override
     public Set<String> findDistinctIdQuestionnaires() {
-        return surveyUnitUpdatePersistencePort.findDistinctIdQuestionnaires();
+        return surveyUnitPersistencePort.findDistinctIdQuestionnaires();
     }
 
     @Override
     public List<QuestionnaireWithCampaign> findQuestionnairesWithCampaigns() {
         List<QuestionnaireWithCampaign> questionnaireWithCampaignList = new ArrayList<>();
         for(String idQuestionnaire : findDistinctIdQuestionnaires()){
-            Set<String> campaigns = surveyUnitUpdatePersistencePort.findIdCampaignsByIdQuestionnaire(idQuestionnaire);
+            Set<String> campaigns = surveyUnitPersistencePort.findIdCampaignsByIdQuestionnaire(idQuestionnaire);
             questionnaireWithCampaignList.add(new QuestionnaireWithCampaign(
                     idQuestionnaire,
                     campaigns)
@@ -186,7 +185,7 @@ public class SurveyUnitUpdateImpl implements SurveyUnitUpdateApiPort {
         return questionnaireWithCampaignList;
     }
 
-    private static List<Mode> getDistinctsModes(List<SurveyUnitUpdateDto> surveyUnits) {
+    private static List<Mode> getDistinctsModes(List<SurveyUnitDto> surveyUnits) {
         List<Mode> sources = new ArrayList<>();
         surveyUnits.forEach(surveyUnitDto -> sources.add(surveyUnitDto.getMode()));
         return sources.stream().distinct().toList();

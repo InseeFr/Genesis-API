@@ -1,23 +1,22 @@
 package fr.insee.genesis.domain.ports.spi;
 
 import fr.insee.genesis.domain.dtos.SurveyUnitDto;
-import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
 
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
-public interface SurveyUnitUpdatePersistencePort {
+public interface SurveyUnitPersistencePort {
 
-    void saveAll(List<SurveyUnitUpdateDto> suList);
+    void saveAll(List<SurveyUnitDto> suList);
 
-    List<SurveyUnitUpdateDto> findByIds(String idUE, String idQuest);
+    List<SurveyUnitDto> findByIds(String idUE, String idQuest);
 
-    List<SurveyUnitUpdateDto> findByIdUE(String idUE);
+    List<SurveyUnitDto> findByIdUE(String idUE);
 
-    List<SurveyUnitUpdateDto> findByIdUEsAndIdQuestionnaire(List<SurveyUnitDto> idUEs, String idQuestionnaire);
+    List<SurveyUnitDto> findByIdUEsAndIdQuestionnaire(List<SurveyUnitDto> idUEs, String idQuestionnaire);
 
-    Stream<SurveyUnitUpdateDto> findByIdQuestionnaire(String idQuestionnaire);
+    Stream<SurveyUnitDto> findByIdQuestionnaire(String idQuestionnaire);
 
     List<SurveyUnitDto> findIdUEsByIdQuestionnaire(String idQuestionnaire);
 

@@ -2,11 +2,10 @@ package fr.insee.genesis.infrastructure.adapter;
 
 import fr.insee.genesis.domain.dtos.Mode;
 import fr.insee.genesis.domain.dtos.SurveyUnitDto;
-import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
 import fr.insee.genesis.infrastructure.model.ExternalVariable;
 import fr.insee.genesis.infrastructure.model.VariableState;
-import fr.insee.genesis.infrastructure.model.document.SurveyUnitUpdateDocument;
-import fr.insee.genesis.infrastructure.repository.SurveyUnitUpdateMongoDBRepository;
+import fr.insee.genesis.infrastructure.model.document.surveyunit.SurveyUnitDocument;
+import fr.insee.genesis.infrastructure.repository.SurveyUnitMongoDBRepository;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -24,22 +23,22 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class SurveyUnitUpdateMongoAdapterTest {
+class SurveyUnitMongoAdapterTest {
 
 	@Mock
-	SurveyUnitUpdateMongoDBRepository mongoRepository;
+	SurveyUnitMongoDBRepository mongoRepository;
 
 	@InjectMocks
-	static SurveyUnitUpdateMongoAdapter surveyUnitUpdateMongoAdapter;
+	static SurveyUnitMongoAdapter surveyUnitMongoAdapter;
 
-	static SurveyUnitUpdateDocument suDoc;
-	static SurveyUnitUpdateDocument suDoc2;
-	static SurveyUnitUpdateDocument suDoc3;
+	static SurveyUnitDocument suDoc;
+	static SurveyUnitDocument suDoc2;
+	static SurveyUnitDocument suDoc3;
 
 	@BeforeAll
 	static void setUp() {
-		surveyUnitUpdateMongoAdapter = new SurveyUnitUpdateMongoAdapter();
-		suDoc= new SurveyUnitUpdateDocument();
+		surveyUnitMongoAdapter = new SurveyUnitMongoAdapter();
+		suDoc= new SurveyUnitDocument();
 		suDoc.setIdCampaign("idCampaign");
 		suDoc.setIdUE("UE1100000001");
 		suDoc.setIdQuestionnaire("TEST2023X01");
@@ -49,7 +48,7 @@ class SurveyUnitUpdateMongoAdapterTest {
 		suDoc.setCollectedVariables(List.of(new VariableState()));
 		suDoc.setExternalVariables(List.of(new ExternalVariable()));
 
-		suDoc2= new SurveyUnitUpdateDocument();
+		suDoc2= new SurveyUnitDocument();
 		suDoc2.setIdCampaign("idCampaign");
 		suDoc2.setIdUE("UE1100000001");
 		suDoc2.setIdQuestionnaire("TEST2023X01");
@@ -59,7 +58,7 @@ class SurveyUnitUpdateMongoAdapterTest {
 		suDoc2.setCollectedVariables(List.of(new VariableState()));
 		suDoc2.setExternalVariables(List.of(new ExternalVariable()));
 
-		suDoc3= new SurveyUnitUpdateDocument();
+		suDoc3= new SurveyUnitDocument();
 		suDoc3.setIdCampaign("idCampaign");
 		suDoc3.setIdUE("UE1100000002");
 		suDoc3.setIdQuestionnaire("TEST2023X01");
@@ -71,17 +70,17 @@ class SurveyUnitUpdateMongoAdapterTest {
 	}
 
 	@Test
-	void shouldReturnListOfSurveyUnitUpdateDto_IfIdsFoundInDataBase() {
+	void shouldReturnListOfSurveyUnitDto_IfIdsFoundInDataBase() {
 		//Given
-		List<SurveyUnitUpdateDocument> responses = new ArrayList<>();
+		List<SurveyUnitDocument> responses = new ArrayList<>();
 		responses.add(suDoc);
 		responses.add(suDoc2);
 		when(mongoRepository.findByIdUEAndIdQuestionnaire(any(String.class), any(String.class))).thenReturn(responses);
 		// When
-		List< SurveyUnitUpdateDto> updates = surveyUnitUpdateMongoAdapter.findByIds("UE1100000001", "TEST2023X01");
+		List<SurveyUnitDto> updates = surveyUnitMongoAdapter.findByIds("UE1100000001", "TEST2023X01");
 		// Then
 		Assertions.assertThat(updates).isNotNull().hasSize(2);
-		Assertions.assertThat(updates.get(0).getMode()).isEqualTo(Mode.WEB);
+		Assertions.assertThat(updates.getFirst().getMode()).isEqualTo(Mode.WEB);
 	}
 
 	@Test
@@ -89,20 +88,20 @@ class SurveyUnitUpdateMongoAdapterTest {
 		//Given
 		when(mongoRepository.findByIdUEAndIdQuestionnaire(any(String.class), any(String.class))).thenReturn(List.of());
 		// When
-		List< SurveyUnitUpdateDto> updates = surveyUnitUpdateMongoAdapter.findByIds("UE1100000001", "TEST2023X01");
+		List<SurveyUnitDto> updates = surveyUnitMongoAdapter.findByIds("UE1100000001", "TEST2023X01");
 		// Then
 		Assertions.assertThat(updates).isEmpty();
 	}
 
 	@Test
-	void shouldReturnListOfSurveyUnitUpdateDto_IfIdUEFoundInDataBase() {
+	void shouldReturnListOfSurveyUnitDto_IfIdUEFoundInDataBase() {
 		//Given
-		List<SurveyUnitUpdateDocument> responses = new ArrayList<>();
+		List<SurveyUnitDocument> responses = new ArrayList<>();
 		responses.add(suDoc);
 		responses.add(suDoc2);
 		when(mongoRepository.findByIdUE(any(String.class))).thenReturn(responses);
 		// When
-		List< SurveyUnitUpdateDto> updates = surveyUnitUpdateMongoAdapter.findByIdUE("UE1100000001");
+		List<SurveyUnitDto> updates = surveyUnitMongoAdapter.findByIdUE("UE1100000001");
 		// Then
 		Assertions.assertThat(updates).isNotNull().hasSize(2);
 		Assertions.assertThat(updates.get(0).getMode()).isEqualTo(Mode.WEB);
@@ -113,21 +112,21 @@ class SurveyUnitUpdateMongoAdapterTest {
 		//Given
 		when(mongoRepository.findByIdUE(any(String.class))).thenReturn(List.of());
 		// When
-		List< SurveyUnitUpdateDto> updates = surveyUnitUpdateMongoAdapter.findByIdUE("UE1100000001");
+		List<SurveyUnitDto> updates = surveyUnitMongoAdapter.findByIdUE("UE1100000001");
 		// Then
 		Assertions.assertThat(updates).isEmpty();
 	}
 
 	@Test
-	void shouldReturnListOfSurveyUnitUpdateDto_IfIdQuestionnaireFoundInDataBase() {
+	void shouldReturnListOfSurveyUnitDto_IfIdQuestionnaireFoundInDataBase() {
 		//Given
-		List<SurveyUnitUpdateDocument> responses = new ArrayList<>();
+		List<SurveyUnitDocument> responses = new ArrayList<>();
 		responses.add(suDoc);
 		responses.add(suDoc2);
 		responses.add(suDoc3);
 		when(mongoRepository.findByIdQuestionnaire(any(String.class))).thenReturn(responses.stream());
 		// When
-		Stream< SurveyUnitUpdateDto> updates = surveyUnitUpdateMongoAdapter.findByIdQuestionnaire("TEST2023X01");
+		Stream<SurveyUnitDto> updates = surveyUnitMongoAdapter.findByIdQuestionnaire("TEST2023X01");
 		// Then
 //		Assertions.assertThat(updates).isNotNull().hasSize(3);
 //		Assertions.assertThat(updates.get(2).getMode()).isEqualTo(Mode.WEB);
@@ -138,18 +137,18 @@ class SurveyUnitUpdateMongoAdapterTest {
 		//Given
 		//when(mongoRepository.findByIdQuestionnaire(any(String.class))).thenReturn(List.of());
 		// When
-		//List< SurveyUnitUpdateDto> updates = surveyUnitUpdateMongoAdapter.findByIdQuestionnaire("TEST2023X01");
+		//List< SurveyUnitDto> updates = surveyUnitMongoAdapter.findByIdQuestionnaire("TEST2023X01");
 		// Then
 		//Assertions.assertThat(updates).isEmpty();
 	}
 
 	@Test
-	void shouldReturnListOfSurveyUnitUpdateDto_WhenGivenAListOfIdUEs() {
+	void shouldReturnListOfSurveyUnitDto_WhenGivenAListOfIdUEs() {
 		//Given
-		List<SurveyUnitUpdateDocument> responses1 = new ArrayList<>();
+		List<SurveyUnitDocument> responses1 = new ArrayList<>();
 		responses1.add(suDoc);
 		responses1.add(suDoc2);
-		List<SurveyUnitUpdateDocument> responses2 = new ArrayList<>();
+		List<SurveyUnitDocument> responses2 = new ArrayList<>();
 		responses2.add(suDoc3);
 		when(mongoRepository.findByIdUEAndIdQuestionnaire("UE1100000001", "TEST2023X01")).thenReturn(responses1);
 		when(mongoRepository.findByIdUEAndIdQuestionnaire("UE1100000002", "TEST2023X01")).thenReturn(responses2);
@@ -157,7 +156,7 @@ class SurveyUnitUpdateMongoAdapterTest {
 		SurveyUnitDto id2 = SurveyUnitDto.builder().idUE("UE1100000002").build();
 		List<SurveyUnitDto> ids = List.of(id1, id2);
 		// When
-		List< SurveyUnitUpdateDto> updates = surveyUnitUpdateMongoAdapter.findByIdUEsAndIdQuestionnaire(ids, "TEST2023X01");
+		List<SurveyUnitDto> updates = surveyUnitMongoAdapter.findByIdUEsAndIdQuestionnaire(ids, "TEST2023X01");
 		// Then
 		Assertions.assertThat(updates).isNotNull().hasSize(3);
 		Assertions.assertThat(updates.get(0).getMode()).isEqualTo(Mode.WEB);
@@ -171,7 +170,7 @@ class SurveyUnitUpdateMongoAdapterTest {
 		SurveyUnitDto id2 = SurveyUnitDto.builder().idUE("UE1100000002").build();
 		List<SurveyUnitDto> ids = List.of(id1, id2);
 		// When
-		List< SurveyUnitUpdateDto> updates = surveyUnitUpdateMongoAdapter.findByIdUEsAndIdQuestionnaire(ids, "TEST2023X01");
+		List<SurveyUnitDto> updates = surveyUnitMongoAdapter.findByIdUEsAndIdQuestionnaire(ids, "TEST2023X01");
 		// Then
 		Assertions.assertThat(updates).isEmpty();
 	}

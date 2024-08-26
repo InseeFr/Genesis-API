@@ -2,7 +2,7 @@ package fr.insee.genesis.controller.service;
 
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.configuration.Config;
-import fr.insee.genesis.domain.ports.api.SurveyUnitUpdateApiPort;
+import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,7 +26,7 @@ public class VolumetryLogService {
         this.config = config;
     }
 
-    public void writeVolumetries(SurveyUnitUpdateApiPort surveyUnitUpdateApiPort) throws IOException {
+    public void writeVolumetries(SurveyUnitApiPort surveyUnitApiPort) throws IOException {
         Path logFilePath = Path.of(config.getLogFolder()).resolve(Constants.VOLUMETRY_FOLDER_NAME)
                 .resolve(
                         LocalDate.now().format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
@@ -39,9 +39,9 @@ public class VolumetryLogService {
         Files.writeString(logFilePath, "campaign;volumetry\n");
 
         //Write lines
-        Set<String> campaigns = surveyUnitUpdateApiPort.findDistinctIdCampaigns();
+        Set<String> campaigns = surveyUnitApiPort.findDistinctIdCampaigns();
         for (String campaignId : campaigns) {
-            long countResult = surveyUnitUpdateApiPort.countResponsesByIdCampaign(campaignId);
+            long countResult = surveyUnitApiPort.countResponsesByIdCampaign(campaignId);
 
             String line = campaignId + ";" + countResult + "\n";
 

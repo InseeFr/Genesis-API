@@ -1,7 +1,7 @@
 package fr.insee.genesis.controller.rest;
 
 import fr.insee.genesis.domain.ports.api.ScheduleApiPort;
-import fr.insee.genesis.domain.ports.api.SurveyUnitUpdateApiPort;
+import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -13,14 +13,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/health-check")
 @RestController
 public class HealthCheckController {
-    private final SurveyUnitUpdateApiPort surveyUnitUpdateApiPort;
+    private final SurveyUnitApiPort surveyUnitApiPort;
     private final ScheduleApiPort scheduleApiPort;
     @Value("${fr.insee.genesis.version}")
     private String projectVersion;
 
     @Autowired
-    public HealthCheckController(SurveyUnitUpdateApiPort surveyUnitUpdateApiPort, ScheduleApiPort scheduleApiPort) {
-        this.surveyUnitUpdateApiPort = surveyUnitUpdateApiPort;
+    public HealthCheckController(SurveyUnitApiPort surveyUnitApiPort, ScheduleApiPort scheduleApiPort) {
+        this.surveyUnitApiPort = surveyUnitApiPort;
         this.scheduleApiPort = scheduleApiPort;
     }
 
@@ -49,7 +49,7 @@ public class HealthCheckController {
                              %s Schedules
                         """
                         .formatted(
-                                surveyUnitUpdateApiPort.countResponses(),
+                                surveyUnitApiPort.countResponses(),
                                 scheduleApiPort.countSchedules()
                         ));
     }

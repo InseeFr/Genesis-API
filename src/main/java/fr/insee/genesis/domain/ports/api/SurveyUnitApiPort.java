@@ -5,24 +5,23 @@ import fr.insee.genesis.domain.dtos.Mode;
 import fr.insee.genesis.domain.dtos.QuestionnaireWithCampaign;
 import fr.insee.genesis.domain.dtos.SurveyUnitDto;
 import fr.insee.genesis.domain.dtos.SurveyUnitId;
-import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
 
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
 
-public interface SurveyUnitUpdateApiPort {
+public interface SurveyUnitApiPort {
 
-    void saveSurveyUnits(List<SurveyUnitUpdateDto> suList);
+    void saveSurveyUnits(List<SurveyUnitDto> suList);
 
-    List<SurveyUnitUpdateDto> findByIdsUEAndQuestionnaire(String idUE, String idQuest);
+    List<SurveyUnitDto> findByIdsUEAndQuestionnaire(String idUE, String idQuest);
 
-    List<SurveyUnitUpdateDto> findByIdUE(String idUE);
+    List<SurveyUnitDto> findByIdUE(String idUE);
 
-    Stream<SurveyUnitUpdateDto> findByIdQuestionnaire(String idQuestionnaire);
+    Stream<SurveyUnitDto> findByIdQuestionnaire(String idQuestionnaire);
 
-    List<SurveyUnitUpdateDto> findLatestByIdAndByIdQuestionnaire(String idUE, String idQuest);
+    List<SurveyUnitDto> findLatestByIdAndByIdQuestionnaire(String idUE, String idQuest);
 
     List<SurveyUnitDto> findIdUEsAndModesByIdQuestionnaire(String idQuestionnaire);
 

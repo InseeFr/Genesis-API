@@ -10,7 +10,7 @@ import java.util.List;
 
 @Builder
 @Data
-public class SurveyUnitUpdateSimplified {
+public class SurveyUnitSimplified {
 
 	private String idQuest;
 	private String idCampaign;

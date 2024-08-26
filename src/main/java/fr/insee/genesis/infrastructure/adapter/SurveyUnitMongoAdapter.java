@@ -6,13 +6,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.domain.dtos.SurveyUnitDto;
-import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
-import fr.insee.genesis.domain.ports.spi.SurveyUnitUpdatePersistencePort;
+import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
 import fr.insee.genesis.infrastructure.mappers.SurveyUnitDocumentMapper;
-import fr.insee.genesis.infrastructure.mappers.SurveyUnitUpdateDocumentMapper;
-import fr.insee.genesis.infrastructure.model.document.SurveyUnitDocument;
-import fr.insee.genesis.infrastructure.model.document.SurveyUnitUpdateDocument;
-import fr.insee.genesis.infrastructure.repository.SurveyUnitUpdateMongoDBRepository;
+import fr.insee.genesis.infrastructure.model.document.surveyunit.SurveyUnitDocument;
+import fr.insee.genesis.infrastructure.repository.SurveyUnitMongoDBRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -27,49 +24,49 @@ import java.util.stream.Stream;
 
 @Slf4j
 @Service
-public class SurveyUnitUpdateMongoAdapter implements SurveyUnitUpdatePersistencePort {
+public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 
 	@Autowired
-	private SurveyUnitUpdateMongoDBRepository mongoRepository;
+	private SurveyUnitMongoDBRepository mongoRepository;
 
 	@Autowired
 	MongoTemplate mongoTemplate;
 
 	@Override
-	public void saveAll(List<SurveyUnitUpdateDto> suListDto) {
-		List<SurveyUnitUpdateDocument> suList = SurveyUnitUpdateDocumentMapper.INSTANCE.listDtoToListDocument(suListDto);
+	public void saveAll(List<SurveyUnitDto> suListDto) {
+		List<SurveyUnitDocument> suList = SurveyUnitDocumentMapper.INSTANCE.listDtoToListDocument(suListDto);
 		mongoRepository.insert(suList);
 	}
 
 	@Override
-	public List<SurveyUnitUpdateDto> findByIds(String idUE, String idQuest) {
-		List<SurveyUnitUpdateDocument> surveyUnitsUpdate = mongoRepository.findByIdUEAndIdQuestionnaire(idUE, idQuest);
-		return surveyUnitsUpdate.isEmpty() ? Collections.emptyList() : SurveyUnitUpdateDocumentMapper.INSTANCE.listDocumentToListDto(surveyUnitsUpdate);
+	public List<SurveyUnitDto> findByIds(String idUE, String idQuest) {
+		List<SurveyUnitDocument> surveyUnits = mongoRepository.findByIdUEAndIdQuestionnaire(idUE, idQuest);
+		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListDto(surveyUnits);
 	}
 
 	@Override
-	public List<SurveyUnitUpdateDto> findByIdUE(String idUE) {
-		List<SurveyUnitUpdateDocument> surveyUnitsUpdate = mongoRepository.findByIdUE(idUE);
-		return surveyUnitsUpdate.isEmpty() ? Collections.emptyList() : SurveyUnitUpdateDocumentMapper.INSTANCE.listDocumentToListDto(surveyUnitsUpdate);
+	public List<SurveyUnitDto> findByIdUE(String idUE) {
+		List<SurveyUnitDocument> surveyUnits = mongoRepository.findByIdUE(idUE);
+		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListDto(surveyUnits);
 	}
 
 	@Override
-	public List<SurveyUnitUpdateDto> findByIdUEsAndIdQuestionnaire(List<SurveyUnitDto> idUEs, String idQuestionnaire) {
-		List<SurveyUnitUpdateDocument> surveyUnitsUpdate= new ArrayList<>();
+	public List<SurveyUnitDto> findByIdUEsAndIdQuestionnaire(List<SurveyUnitDto> idUEs, String idQuestionnaire) {
+		List<SurveyUnitDocument> surveyUnits= new ArrayList<>();
 		// TODO: 18-10-2023 : find a way to do this in one query
 		idUEs.forEach(su -> {
-			List<SurveyUnitUpdateDocument> docs = mongoRepository.findByIdUEAndIdQuestionnaire(su.getIdUE(), idQuestionnaire);
-			surveyUnitsUpdate.addAll(docs);
+			List<SurveyUnitDocument> docs = mongoRepository.findByIdUEAndIdQuestionnaire(su.getIdUE(), idQuestionnaire);
+			surveyUnits.addAll(docs);
 		});
-		return surveyUnitsUpdate.isEmpty() ? Collections.emptyList() : SurveyUnitUpdateDocumentMapper.INSTANCE.listDocumentToListDto(surveyUnitsUpdate);
+		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListDto(surveyUnits);
 	}
 
 
 	@Override
-	public Stream<SurveyUnitUpdateDto> findByIdQuestionnaire(String idQuestionnaire) {
-		Stream<SurveyUnitUpdateDocument> surveyUnitsUpdate = mongoRepository.findByIdQuestionnaire(idQuestionnaire);
-		return surveyUnitsUpdate.map(SurveyUnitUpdateDocumentMapper.INSTANCE::documentToDto);
-		//return surveyUnitsUpdate.isEmpty() ? Collections.emptyList() : SurveyUnitUpdateDocumentMapper.INSTANCE.listDocumentToListDto(surveyUnitsUpdate);
+	public Stream<SurveyUnitDto> findByIdQuestionnaire(String idQuestionnaire) {
+		Stream<SurveyUnitDocument> surveyUnits = mongoRepository.findByIdQuestionnaire(idQuestionnaire);
+		return surveyUnits.map(SurveyUnitDocumentMapper.INSTANCE::documentToDto);
+		//return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListDto(surveyUnits);
 	}
 
 	@Override

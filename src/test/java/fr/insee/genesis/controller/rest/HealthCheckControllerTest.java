@@ -3,12 +3,12 @@ package fr.insee.genesis.controller.rest;
 import fr.insee.genesis.domain.dtos.CollectedVariableDto;
 import fr.insee.genesis.domain.dtos.DataState;
 import fr.insee.genesis.domain.dtos.Mode;
-import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
+import fr.insee.genesis.domain.dtos.SurveyUnitDto;
 import fr.insee.genesis.domain.dtos.VariableDto;
-import fr.insee.genesis.domain.ports.api.SurveyUnitUpdateApiPort;
-import fr.insee.genesis.domain.service.SurveyUnitUpdateImpl;
+import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
+import fr.insee.genesis.domain.service.SurveyUnitImpl;
 import fr.insee.genesis.stubs.ScheduleApiPortStub;
-import fr.insee.genesis.stubs.SurveyUnitUpdatePersistencePortStub;
+import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -23,13 +23,13 @@ import java.util.List;
 class HealthCheckControllerTest {
     static HealthCheckController healthCheckController;
 
-    static SurveyUnitUpdatePersistencePortStub surveyUnitUpdatePersistencePortStub;
+    static SurveyUnitPersistencePortStub surveyUnitPersistencePortStub;
     static ScheduleApiPortStub scheduleApiPortStub;
 
     @BeforeAll
     static void init() {
-        surveyUnitUpdatePersistencePortStub = new SurveyUnitUpdatePersistencePortStub();
-        SurveyUnitUpdateApiPort surveyUnitUpdateApiPort = new SurveyUnitUpdateImpl(surveyUnitUpdatePersistencePortStub);
+        surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
+        SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitImpl(surveyUnitPersistencePortStub);
         List<VariableDto> externalVariableDtoList = new ArrayList<>();
         VariableDto variableDto = VariableDto.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
         externalVariableDtoList.add(variableDto);
@@ -37,7 +37,7 @@ class HealthCheckControllerTest {
         List<CollectedVariableDto> collectedVariableDtoList = new ArrayList<>();
         CollectedVariableDto collectedVariableDto = new CollectedVariableDto("TESTIDVAR", List.of(new String[]{"V1", "V2"}), "TESTIDLOOP", "TESTIDPARENT");
         collectedVariableDtoList.add(collectedVariableDto);
-        surveyUnitUpdatePersistencePortStub.getMongoStub().add(SurveyUnitUpdateDto.builder()
+        surveyUnitPersistencePortStub.getMongoStub().add(SurveyUnitDto.builder()
                 .idCampaign("TESTIDCAMPAIGN")
                 .mode(Mode.WEB)
                 .idUE("TESTIDUE")
@@ -53,7 +53,7 @@ class HealthCheckControllerTest {
         scheduleApiPortStub = new ScheduleApiPortStub();
 
         healthCheckController = new HealthCheckController(
-                surveyUnitUpdateApiPort,
+                surveyUnitApiPort,
                 scheduleApiPortStub
         );
     }

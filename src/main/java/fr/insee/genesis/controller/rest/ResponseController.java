@@ -2,7 +2,7 @@ package fr.insee.genesis.controller.rest;
 
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.adapter.LunaticXmlAdapter;
-import fr.insee.genesis.controller.responses.SurveyUnitUpdateSimplified;
+import fr.insee.genesis.controller.responses.SurveyUnitSimplified;
 import fr.insee.genesis.controller.service.SurveyUnitQualityService;
 import fr.insee.genesis.controller.service.VolumetryLogService;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlCampaign;
@@ -16,9 +16,8 @@ import fr.insee.genesis.domain.dtos.Mode;
 import fr.insee.genesis.domain.dtos.QuestionnaireWithCampaign;
 import fr.insee.genesis.domain.dtos.SurveyUnitDto;
 import fr.insee.genesis.domain.dtos.SurveyUnitId;
-import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
 import fr.insee.genesis.domain.dtos.VariableDto;
-import fr.insee.genesis.domain.ports.api.SurveyUnitUpdateApiPort;
+import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.exceptions.NoDataError;
@@ -65,14 +64,14 @@ import java.util.stream.Stream;
 @Slf4j
 public class ResponseController {
 
-    private final SurveyUnitUpdateApiPort surveyUnitService;
+    private final SurveyUnitApiPort surveyUnitService;
     private final SurveyUnitQualityService surveyUnitQualityService;
     private final VolumetryLogService volumetryLogService;
     private final FileUtils fileUtils;
     private final ControllerUtils controllerUtils;
 
     @Autowired
-    public ResponseController(SurveyUnitUpdateApiPort surveyUnitService, SurveyUnitQualityService surveyUnitQualityService, VolumetryLogService volumetryLogService, FileUtils fileUtils, ControllerUtils controllerUtils) {
+    public ResponseController(SurveyUnitApiPort surveyUnitService, SurveyUnitQualityService surveyUnitQualityService, VolumetryLogService volumetryLogService, FileUtils fileUtils, ControllerUtils controllerUtils) {
         this.surveyUnitService = surveyUnitService;
         this.surveyUnitQualityService = surveyUnitQualityService;
         this.volumetryLogService = volumetryLogService;
@@ -190,9 +189,9 @@ public class ResponseController {
     //GET
     @Operation(summary = "Retrieve responses with IdUE and IdQuestionnaire from Genesis Database")
     @GetMapping(path = "/get-responses/by-ue-and-questionnaire")
-    public ResponseEntity<List<SurveyUnitUpdateDto>> findResponsesByUEAndQuestionnaire(@RequestParam("idUE") String idUE,
+    public ResponseEntity<List<SurveyUnitDto>> findResponsesByUEAndQuestionnaire(@RequestParam("idUE") String idUE,
                                                                                        @RequestParam("idQuestionnaire") String idQuestionnaire) {
-        List<SurveyUnitUpdateDto> responses = surveyUnitService.findByIdsUEAndQuestionnaire(idUE, idQuestionnaire);
+        List<SurveyUnitDto> responses = surveyUnitService.findByIdsUEAndQuestionnaire(idUE, idQuestionnaire);
         return ResponseEntity.ok(responses);
     }
 
@@ -208,7 +207,7 @@ public class ResponseController {
         String filepathString = String.format("OUT/%s/OUT_ALL_%s.json", idQuestionnaire, LocalDateTime.now().toString().replace(":", ""));
         Path filepath = Path.of(fileUtils.getDataFolderSource(), filepathString);
 
-        try (Stream<SurveyUnitUpdateDto> responsesStream = surveyUnitService.findByIdQuestionnaire(idQuestionnaire)) {
+        try (Stream<SurveyUnitDto> responsesStream = surveyUnitService.findByIdQuestionnaire(idQuestionnaire)) {
             fileUtils.writeSuUpdatesInFile(filepath, responsesStream);
         } catch (IOException e) {
             log.error("Error while writing file", e);
@@ -220,25 +219,25 @@ public class ResponseController {
 
     @Operation(summary = "Retrieve responses latest state with IdUE and IdQuestionnaire")
     @GetMapping(path = "/get-responses/by-ue-and-questionnaire/latest")
-    public ResponseEntity<List<SurveyUnitUpdateDto>> getLatestByUE(@RequestParam("idUE") String idUE,
+    public ResponseEntity<List<SurveyUnitDto>> getLatestByUE(@RequestParam("idUE") String idUE,
                                                                    @RequestParam("idQuestionnaire") String idQuestionnaire) {
-        List<SurveyUnitUpdateDto> responses = surveyUnitService.findLatestByIdAndByIdQuestionnaire(idUE, idQuestionnaire);
+        List<SurveyUnitDto> responses = surveyUnitService.findLatestByIdAndByIdQuestionnaire(idUE, idQuestionnaire);
         return ResponseEntity.ok(responses);
     }
 
     @Operation(summary = "Retrieve response latest state with IdUE and IdQuestionnaire in one object in the output")
     @GetMapping(path = "/get-simplified-response/by-ue-and-questionnaire/latest")
-    public ResponseEntity<SurveyUnitUpdateSimplified> getLatestByUEOneObject(@RequestParam("idUE") String idUE,
+    public ResponseEntity<SurveyUnitSimplified> getLatestByUEOneObject(@RequestParam("idUE") String idUE,
                                                                              @RequestParam("idQuestionnaire") String idQuestionnaire,
                                                                              @RequestParam("mode") Mode mode) {
-        List<SurveyUnitUpdateDto> responses = surveyUnitService.findLatestByIdAndByIdQuestionnaire(idUE, idQuestionnaire);
+        List<SurveyUnitDto> responses = surveyUnitService.findLatestByIdAndByIdQuestionnaire(idUE, idQuestionnaire);
         List<CollectedVariableDto> outputVariables = new ArrayList<>();
         List<VariableDto> outputExternalVariables = new ArrayList<>();
         responses.stream().filter(rep -> rep.getMode().equals(mode)).forEach(response -> {
             outputVariables.addAll(response.getCollectedVariables());
             outputExternalVariables.addAll(response.getExternalVariables());
         });
-        return ResponseEntity.ok(SurveyUnitUpdateSimplified.builder()
+        return ResponseEntity.ok(SurveyUnitSimplified.builder()
                 .idQuest(responses.getFirst().getIdQuest())
                 .idCampaign(responses.getFirst().getIdCampaign())
                 .idUE(responses.getFirst().getIdUE())
@@ -252,12 +251,12 @@ public class ResponseController {
             description = "Return the latest state for each variable for the given ids and a given questionnaire.<br>" +
                     "For a given id the endpoint returns a document by collection mode(if there is more than one).")
     @PostMapping(path = "/get-simplified-responses/by-ue-and-questionnaire/latest")
-    public ResponseEntity<List<SurveyUnitUpdateSimplified>> getLatestForUEList(@RequestParam("idQuestionnaire") String idQuestionnaire,
+    public ResponseEntity<List<SurveyUnitSimplified>> getLatestForUEList(@RequestParam("idQuestionnaire") String idQuestionnaire,
                                                                                @RequestBody List<SurveyUnitId> idUEs) {
-        List<SurveyUnitUpdateSimplified> results = new ArrayList<>();
+        List<SurveyUnitSimplified> results = new ArrayList<>();
         List<Mode> modes = surveyUnitService.findModesByIdQuestionnaire(idQuestionnaire);
         idUEs.forEach(idUE -> {
-            List<SurveyUnitUpdateDto> responses = surveyUnitService.findLatestByIdAndByIdQuestionnaire(idUE.getIdUE(), idQuestionnaire);
+            List<SurveyUnitDto> responses = surveyUnitService.findLatestByIdAndByIdQuestionnaire(idUE.getIdUE(), idQuestionnaire);
             modes.forEach(mode -> {
                 List<CollectedVariableDto> outputVariables = new ArrayList<>();
                 List<VariableDto> outputExternalVariables = new ArrayList<>();
@@ -266,7 +265,7 @@ public class ResponseController {
                     outputExternalVariables.addAll(response.getExternalVariables());
                 });
                 if (!outputVariables.isEmpty() || !outputExternalVariables.isEmpty()) {
-                    results.add(SurveyUnitUpdateSimplified.builder()
+                    results.add(SurveyUnitSimplified.builder()
                             .idQuest(responses.getFirst().getIdQuest())
                             .idCampaign(responses.getFirst().getIdCampaign())
                             .idUE(responses.getFirst().getIdUE())
@@ -465,7 +464,7 @@ public class ResponseController {
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
         }
 
-        List<SurveyUnitUpdateDto> suDtos = new ArrayList<>();
+        List<SurveyUnitDto> suDtos = new ArrayList<>();
         for (LunaticXmlSurveyUnit su : campaign.getSurveyUnits()) {
             suDtos.addAll(LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign(), modeSpecified));
         }
@@ -491,7 +490,7 @@ public class ResponseController {
             LunaticXmlSurveyUnit su = parser.readNextSurveyUnit();
 
             while (su != null) {
-                List<SurveyUnitUpdateDto> suDtos = new ArrayList<>(LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign(), modeSpecified));
+                List<SurveyUnitDto> suDtos = new ArrayList<>(LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign(), modeSpecified));
 
                 surveyUnitQualityService.verifySurveyUnits(suDtos, variablesMap);
                 surveyUnitService.saveSurveyUnits(suDtos);

@@ -1,9 +1,9 @@
 package fr.insee.genesis.configuration;
 
-import fr.insee.genesis.domain.ports.api.SurveyUnitUpdateApiPort;
-import fr.insee.genesis.domain.ports.spi.SurveyUnitUpdatePersistencePort;
-import fr.insee.genesis.domain.service.SurveyUnitUpdateImpl;
-import fr.insee.genesis.infrastructure.adapter.SurveyUnitUpdateMongoAdapter;
+import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
+import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
+import fr.insee.genesis.domain.service.SurveyUnitImpl;
+import fr.insee.genesis.infrastructure.adapter.SurveyUnitMongoAdapter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -11,13 +11,13 @@ import org.springframework.context.annotation.Configuration;
 public class PortConfig {
 
     @Bean
-    SurveyUnitUpdatePersistencePort surveyUnitUpdatePersistence(){
-        return new SurveyUnitUpdateMongoAdapter();
+    SurveyUnitPersistencePort surveyUnitPersistence(){
+        return new SurveyUnitMongoAdapter();
     }
 
     @Bean
-    SurveyUnitUpdateApiPort surveyUnitService(){
-        return new SurveyUnitUpdateImpl(surveyUnitUpdatePersistence());
+    SurveyUnitApiPort surveyUnitService(){
+        return new SurveyUnitImpl(surveyUnitPersistence());
     }
 
 }

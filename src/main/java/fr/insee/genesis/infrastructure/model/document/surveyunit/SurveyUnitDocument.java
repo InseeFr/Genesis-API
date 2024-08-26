@@ -1,19 +1,16 @@
-package fr.insee.genesis.infrastructure.model.document;
-
-import java.time.LocalDateTime;
-import java.util.List;
-
-import org.springframework.data.mongodb.core.mapping.Document;
+package fr.insee.genesis.infrastructure.model.document.surveyunit;
 
 import fr.insee.genesis.infrastructure.model.ExternalVariable;
 import fr.insee.genesis.infrastructure.model.VariableState;
 import lombok.Data;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Document(collection = "responses")
-public class SurveyUnitUpdateDocument {
-
-
+public class SurveyUnitDocument {
 	private String idCampaign;
 	private String idUE;
 	private String idQuestionnaire;
