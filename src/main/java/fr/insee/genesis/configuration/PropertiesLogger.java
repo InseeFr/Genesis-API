@@ -1,17 +1,16 @@
 package fr.insee.genesis.configuration;
 
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.Set;
-
+import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.Environment;
 
-import lombok.NonNull;
-import lombok.extern.slf4j.Slf4j;
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.Set;
 
 @Slf4j
 public class PropertiesLogger implements ApplicationListener<ApplicationEnvironmentPreparedEvent> {
@@ -30,7 +29,7 @@ public class PropertiesLogger implements ApplicationListener<ApplicationEnvironm
                 .map(ps -> ((EnumerablePropertySource<?>) ps).getPropertyNames()).flatMap(Arrays::stream).distinct()
                 .filter(Objects::nonNull)
                 .filter(ps -> ps.startsWith("fr.insee") || ps.startsWith("spring")).forEach(key -> log
-                        .info(key + " = " + hideProperties(key, environment)));
+                        .info("{} = {}",key,hideProperties(key, environment)));
         log.info("===============================================================================================");
 
     }

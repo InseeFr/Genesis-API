@@ -72,7 +72,7 @@ public class DataVerifier {
             List<CollectedVariableDto> correctedCollectedVariables,
             List<VariableDto> correctedExternalVariables
     ) {
-        SurveyUnitUpdateDto sampleSuDto = suDtosList.stream().filter(element -> element.getIdUE().equals(idUE)).toList().get(0);
+        SurveyUnitUpdateDto sampleSuDto = suDtosList.stream().filter(element -> element.getIdUE().equals(idUE)).toList().getFirst();
         SurveyUnitUpdateDto newForcedSuDto = SurveyUnitUpdateDto.builder()
                 .idQuest(sampleSuDto.getIdQuest())
                 .idCampaign(sampleSuDto.getIdCampaign())
@@ -248,7 +248,7 @@ public class DataVerifier {
                 Matcher matcher = pattern.matcher(value);
                 if(!matcher.find()){
                     // We only monitor parsing date errors, so we always return false
-                    log.debug("Can't parse date " + value);
+                    log.debug("Can't parse date {}", value);
                     return false;
                 }
                 break;

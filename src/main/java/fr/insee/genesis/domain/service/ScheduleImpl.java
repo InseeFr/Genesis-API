@@ -66,7 +66,7 @@ public class ScheduleImpl implements ScheduleApiPort {
     }
 
     @Override
-    public void deleteSchedule(String surveyName) throws NotFoundException {
+    public void deleteSchedule(String surveyName) {
         scheduleMongoDBRepository.deleteBySurveyName(surveyName);
     }
 

@@ -1,12 +1,15 @@
 package fr.insee.genesis.controller.utils;
 
 
-import fr.insee.genesis.domain.dtos.*;
-import fr.insee.genesis.domain.dtos.VariableDto;
 import fr.insee.bpm.metadata.model.MetadataModel;
 import fr.insee.bpm.metadata.model.Variable;
 import fr.insee.bpm.metadata.model.VariableType;
 import fr.insee.bpm.metadata.model.VariablesMap;
+import fr.insee.genesis.domain.dtos.CollectedVariableDto;
+import fr.insee.genesis.domain.dtos.DataState;
+import fr.insee.genesis.domain.dtos.Mode;
+import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
+import fr.insee.genesis.domain.dtos.VariableDto;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -87,13 +90,13 @@ class DataVerifierTest {
         //Valid 2nd variable on 5th and 13th case
         SurveyUnitUpdateDto suDto = testSurveyUnitUpdateDtos.stream().filter(surveyUnitUpdateDto ->
                 surveyUnitUpdateDto.getIdUE().equals("TestUE5")
-        ).toList().get(0);
+        ).toList().getFirst();
 
         suDto.getCollectedVariables().get(1).getValues().set(0,"1");
 
         suDto = testSurveyUnitUpdateDtos.stream().filter(surveyUnitUpdateDto ->
                 surveyUnitUpdateDto.getIdUE().equals("TestUE13")
-        ).toList().get(0);
+        ).toList().getFirst();
 
         suDto.getCollectedVariables().get(1).getValues().set(0,"1");
         suDto.getExternalVariables().get(1).getValues().set(0,"1");
@@ -103,14 +106,14 @@ class DataVerifierTest {
         SurveyUnitUpdateDto suDtoEdited = testSurveyUnitUpdateDtos.stream().filter(surveyUnitUpdateDto ->
                 surveyUnitUpdateDto.getIdUE().equals("TestUE3")
                 && surveyUnitUpdateDto.getState().equals(DataState.EDITED)
-                ).toList().get(0);
+                ).toList().getFirst();
 
-        suDtoEdited.getCollectedVariables().get(0).getValues().set(0,"1");
+        suDtoEdited.getCollectedVariables().getFirst().getValues().set(0,"1");
 
         suDtoEdited = testSurveyUnitUpdateDtos.stream().filter(surveyUnitUpdateDto ->
                 surveyUnitUpdateDto.getIdUE().equals("TestUE7")
                         && surveyUnitUpdateDto.getState().equals(DataState.EDITED)
-        ).toList().get(0);
+        ).toList().getFirst();
 
         suDtoEdited.getCollectedVariables().get(0).getValues().set(0,"1");
         suDtoEdited.getCollectedVariables().get(1).getValues().set(0,"1");
@@ -119,7 +122,7 @@ class DataVerifierTest {
         suDtoEdited = testSurveyUnitUpdateDtos.stream().filter(surveyUnitUpdateDto ->
                 surveyUnitUpdateDto.getIdUE().equals("TestUE8")
                         && surveyUnitUpdateDto.getState().equals(DataState.EDITED)
-        ).toList().get(0);
+        ).toList().getFirst();
 
         suDtoEdited.getCollectedVariables().remove(1);
 
@@ -136,8 +139,8 @@ class DataVerifierTest {
                 List<String> values = new ArrayList<>();
 
                 if(!variablesMap.hasVariable("testInteger" + variableIndex)) {
-                    Variable var = new Variable("testInteger" + variableIndex, metadataModel.getRootGroup(), VariableType.INTEGER, "10");
-                    variablesMap.putVariable(var);
+                    Variable varTest = new Variable("testInteger" + variableIndex, metadataModel.getRootGroup(), VariableType.INTEGER, "10");
+                    variablesMap.putVariable(varTest);
                 }
 
                 for(int valueIndex = 0; valueIndex < valueNumber; valueIndex++){

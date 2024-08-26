@@ -19,7 +19,7 @@ public class ScheduleUnicityService {
             return storedSurveySchedules.getFirst();
         }
 
-        log.info(storedSurveySchedules.size() + " survey descriptions found for " + surveyName + ", deduplicating...");
+        log.info("{} survey descriptions found for {}, deduplicating...",storedSurveySchedules.size(), surveyName);
 
         StoredSurveySchedule deduplicatedSurveySchedule = new StoredSurveySchedule(
                 surveyName,

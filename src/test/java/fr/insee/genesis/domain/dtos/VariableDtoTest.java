@@ -16,9 +16,6 @@ class VariableDtoTest {
         objectMapper.findAndRegisterModules();
         Assertions.assertEquals(objectMapper.readTree(objectMapper.writeValueAsString(variableDto)),
                 objectMapper.readTree("{\"values\":[\"V1\",\"V2\"],\"idVar\":\"TESTIDVAR\"}"));
-/*        Assertions.assertThat(objectMapper.writeValueAsString(variableDto)).isEqualTo(
-                "{\"values\":[\"V1\",\"V2\"],\"idVar\":\"TESTIDVAR\"}"
-        );
-*/
+
     }
 }

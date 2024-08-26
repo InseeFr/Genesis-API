@@ -1,18 +1,20 @@
 package fr.insee.genesis.controller.adapter;
 
 
-import fr.insee.genesis.Constants;
-import fr.insee.genesis.controller.sources.xml.*;
-import fr.insee.genesis.domain.dtos.CollectedVariableDto;
-import fr.insee.genesis.domain.dtos.DataState;
-import fr.insee.genesis.domain.dtos.Mode;
-import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
-
 import fr.insee.bpm.metadata.model.Group;
 import fr.insee.bpm.metadata.model.MetadataModel;
 import fr.insee.bpm.metadata.model.Variable;
 import fr.insee.bpm.metadata.model.VariableType;
-
+import fr.insee.genesis.Constants;
+import fr.insee.genesis.controller.sources.xml.LunaticXmlCollectedData;
+import fr.insee.genesis.controller.sources.xml.LunaticXmlData;
+import fr.insee.genesis.controller.sources.xml.LunaticXmlOtherData;
+import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
+import fr.insee.genesis.controller.sources.xml.ValueType;
+import fr.insee.genesis.domain.dtos.CollectedVariableDto;
+import fr.insee.genesis.domain.dtos.DataState;
+import fr.insee.genesis.domain.dtos.Mode;
+import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -212,7 +214,7 @@ class LunaticXmlAdapterTest {
         // When
         List<SurveyUnitUpdateDto> suDtos = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit1, metadataModel.getVariables(), ID_CAMPAIGN, Mode.WEB);
         // Then
-        Assertions.assertThat(suDtos.get(0).getIdQuest()).isEqualTo("idQuest1");
+        Assertions.assertThat(suDtos.getFirst().getIdQuest()).isEqualTo("idQuest1");
     }
 
     @Test
@@ -221,7 +223,7 @@ class LunaticXmlAdapterTest {
         // When
         List<SurveyUnitUpdateDto> suDtos = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit1, metadataModel.getVariables(), ID_CAMPAIGN, Mode.WEB);
         // Then
-        Assertions.assertThat(suDtos.get(0).getIdUE()).isEqualTo("idUE1");
+        Assertions.assertThat(suDtos.getFirst().getIdUE()).isEqualTo("idUE1");
     }
 
     @Test
@@ -230,7 +232,7 @@ class LunaticXmlAdapterTest {
         // When
         List<SurveyUnitUpdateDto> suDtos = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit1, metadataModel.getVariables(), ID_CAMPAIGN, Mode.WEB);
         // Then
-        Assertions.assertThat(suDtos.get(0).getCollectedVariables()).hasSize(4);
+        Assertions.assertThat(suDtos.getFirst().getCollectedVariables()).hasSize(4);
     }
 
     @Test
@@ -312,12 +314,12 @@ class LunaticXmlAdapterTest {
         // Then
         Assertions.assertThat(suDtos).hasSize(1);
 
-        Assertions.assertThat(suDtos.get(0).getCollectedVariables()).filteredOn(collectedVariableDto ->
+        Assertions.assertThat(suDtos.getFirst().getCollectedVariables()).filteredOn(collectedVariableDto ->
                 collectedVariableDto.getIdVar().equals("var3")).isNotEmpty();
-        Assertions.assertThat(suDtos.get(0).getCollectedVariables().stream().filter(collectedVariableDto ->
-                collectedVariableDto.getIdVar().equals("var3")).toList().get(0).getIdParent()).isNull();
-        Assertions.assertThat(suDtos.get(0).getCollectedVariables().stream().filter(collectedVariableDto ->
-                collectedVariableDto.getIdVar().equals("var3")).toList().get(0).getIdLoop()).isEqualTo(Constants.ROOT_GROUP_NAME);
+        Assertions.assertThat(suDtos.getFirst().getCollectedVariables().stream().filter(collectedVariableDto ->
+                collectedVariableDto.getIdVar().equals("var3")).toList().getFirst().getIdParent()).isNull();
+        Assertions.assertThat(suDtos.getFirst().getCollectedVariables().stream().filter(collectedVariableDto ->
+                collectedVariableDto.getIdVar().equals("var3")).toList().getFirst().getIdLoop()).isEqualTo(Constants.ROOT_GROUP_NAME);
     }
 
     @Test
@@ -329,12 +331,12 @@ class LunaticXmlAdapterTest {
         // Then
         Assertions.assertThat(suDtos).hasSize(1);
 
-        Assertions.assertThat(suDtos.get(0).getCollectedVariables()).filteredOn(collectedVariableDto ->
+        Assertions.assertThat(suDtos.getFirst().getCollectedVariables()).filteredOn(collectedVariableDto ->
                 collectedVariableDto.getIdVar().equals("var1_MISSING")).isNotEmpty();
-        Assertions.assertThat(suDtos.get(0).getCollectedVariables().stream().filter(collectedVariableDto ->
-                collectedVariableDto.getIdVar().equals("var1_MISSING")).toList().get(0).getIdParent()).isNotNull().isEqualTo("var1");
-        Assertions.assertThat(suDtos.get(0).getCollectedVariables().stream().filter(collectedVariableDto ->
-                collectedVariableDto.getIdVar().equals("var1_MISSING")).toList().get(0).getIdLoop()).isNotEqualTo(Constants.ROOT_GROUP_NAME).isEqualTo(LOOP_NAME);
+        Assertions.assertThat(suDtos.getFirst().getCollectedVariables().stream().filter(collectedVariableDto ->
+                collectedVariableDto.getIdVar().equals("var1_MISSING")).toList().getFirst().getIdParent()).isNotNull().isEqualTo("var1");
+        Assertions.assertThat(suDtos.getFirst().getCollectedVariables().stream().filter(collectedVariableDto ->
+                collectedVariableDto.getIdVar().equals("var1_MISSING")).toList().getFirst().getIdLoop()).isNotEqualTo(Constants.ROOT_GROUP_NAME).isEqualTo(LOOP_NAME);
     }
 
     @Test
@@ -344,14 +346,14 @@ class LunaticXmlAdapterTest {
         List<SurveyUnitUpdateDto> suDtos = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit8, metadataModel.getVariables(), ID_CAMPAIGN, Mode.WEB);
         // Then
         Assertions.assertThat(suDtos).hasSize(1);
-        Assertions.assertThat(suDtos.get(0).getCollectedVariables()).hasSize(3);
-        Assertions.assertThat(suDtos.get(0).getCollectedVariables()).filteredOn(collectedVariableDto ->
+        Assertions.assertThat(suDtos.getFirst().getCollectedVariables()).hasSize(3);
+        Assertions.assertThat(suDtos.getFirst().getCollectedVariables()).filteredOn(collectedVariableDto ->
                 collectedVariableDto.getIdVar().equals("var1")).isNotEmpty();
-        Assertions.assertThat(suDtos.get(0).getCollectedVariables()).filteredOn(collectedVariableDto ->
+        Assertions.assertThat(suDtos.getFirst().getCollectedVariables()).filteredOn(collectedVariableDto ->
                 collectedVariableDto.getIdLoop().equals("BOUCLE1_1")).isEmpty();
-        Assertions.assertThat(suDtos.get(0).getCollectedVariables().stream().filter(collectedVariableDto ->
+        Assertions.assertThat(suDtos.getFirst().getCollectedVariables().stream().filter(collectedVariableDto ->
                 collectedVariableDto.getIdLoop().equals("BOUCLE1_2")).toList().getFirst().getValues().getFirst()).isEqualTo("1");
-        Assertions.assertThat(suDtos.get(0).getCollectedVariables().stream().filter(collectedVariableDto ->
+        Assertions.assertThat(suDtos.getFirst().getCollectedVariables().stream().filter(collectedVariableDto ->
                 collectedVariableDto.getIdLoop().equals("BOUCLE1_3")).toList().getFirst().getValues().getFirst()).isEqualTo("2");
 
     }

@@ -1,16 +1,20 @@
 package cucumber.functional_tests;
 
 import cucumber.TestConstants;
+import fr.insee.bpm.exceptions.MetadataParserException;
+import fr.insee.bpm.metadata.model.VariablesMap;
+import fr.insee.bpm.metadata.reader.ddi.DDIReader;
 import fr.insee.genesis.controller.adapter.LunaticXmlAdapter;
 import fr.insee.genesis.controller.service.SurveyUnitQualityService;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlCampaign;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlDataParser;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
-import fr.insee.genesis.domain.dtos.*;
+import fr.insee.genesis.domain.dtos.CollectedVariableDto;
+import fr.insee.genesis.domain.dtos.DataState;
+import fr.insee.genesis.domain.dtos.Mode;
+import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
+import fr.insee.genesis.domain.dtos.VariableDto;
 import fr.insee.genesis.exceptions.GenesisException;
-import fr.insee.bpm.exceptions.MetadataParserException;
-import fr.insee.bpm.metadata.model.VariablesMap;
-import fr.insee.bpm.metadata.reader.ddi.DDIReader;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
@@ -29,7 +33,7 @@ import java.util.Optional;
 public class MainDefinitions {
     String directory;
     Path inDirectory = Paths.get(TestConstants.FUNCTIONAL_TESTS_WEB_DIRECTORY);
-    Path ddiDirectory = Paths.get(TestConstants.FUNCTIONAL_TESTS_DDI_DIRECTORY);
+    final Path ddiDirectory = Paths.get(TestConstants.FUNCTIONAL_TESTS_DDI_DIRECTORY);
 
     SurveyUnitQualityService surveyUnitQualityService = new SurveyUnitQualityService();
 

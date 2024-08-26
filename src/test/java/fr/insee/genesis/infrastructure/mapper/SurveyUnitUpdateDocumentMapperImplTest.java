@@ -143,19 +143,19 @@ class SurveyUnitUpdateDocumentMapperImplTest {
 
         List<SurveyUnitUpdateDto> surveyUnitUpdateDtoList = surveyUnitUpdateDocumentMapperImplStatic.listDocumentToListDto(surveyUnitUpdateDocumentList);
 
-        Assertions.assertThat(surveyUnitUpdateDtoList.get(0).getIdCampaign()).isEqualTo("TESTIDCAMPAIGN");
-        Assertions.assertThat(surveyUnitUpdateDtoList.get(0).getMode()).isEqualTo(Mode.WEB);
-        Assertions.assertThat(surveyUnitUpdateDtoList.get(0).getIdUE()).isEqualTo("TESTIDUE");
-        Assertions.assertThat(surveyUnitUpdateDtoList.get(0).getIdQuest()).isEqualTo("TESTIDQUESTIONNAIRE");
-        Assertions.assertThat(surveyUnitUpdateDtoList.get(0).getState()).isEqualTo(DataState.COLLECTED);
-        Assertions.assertThat(surveyUnitUpdateDtoList.get(0).getFileDate()).isEqualTo(LocalDateTime.of(2023,1,1,0,0,0));
+        Assertions.assertThat(surveyUnitUpdateDtoList.getFirst().getIdCampaign()).isEqualTo("TESTIDCAMPAIGN");
+        Assertions.assertThat(surveyUnitUpdateDtoList.getFirst().getMode()).isEqualTo(Mode.WEB);
+        Assertions.assertThat(surveyUnitUpdateDtoList.getFirst().getIdUE()).isEqualTo("TESTIDUE");
+        Assertions.assertThat(surveyUnitUpdateDtoList.getFirst().getIdQuest()).isEqualTo("TESTIDQUESTIONNAIRE");
+        Assertions.assertThat(surveyUnitUpdateDtoList.getFirst().getState()).isEqualTo(DataState.COLLECTED);
+        Assertions.assertThat(surveyUnitUpdateDtoList.getFirst().getFileDate()).isEqualTo(LocalDateTime.of(2023,1,1,0,0,0));
 
-        Assertions.assertThat(surveyUnitUpdateDtoList.get(0).getExternalVariables()).filteredOn(externalVariableDto ->
+        Assertions.assertThat(surveyUnitUpdateDtoList.getFirst().getExternalVariables()).filteredOn(externalVariableDto ->
                 externalVariableDto.getIdVar().equals("TESTIDVAR")
                         && externalVariableDto.getValues().containsAll(List.of(new String[]{"V1", "V2"}))
         ).isNotEmpty();
 
-        Assertions.assertThat(surveyUnitUpdateDtoList.get(0).getCollectedVariables()).filteredOn(variableStateDto ->
+        Assertions.assertThat(surveyUnitUpdateDtoList.getFirst().getCollectedVariables()).filteredOn(variableStateDto ->
                 variableStateDto.getIdVar().equals("TESTIDVAR")
                         && variableStateDto.getValues().containsAll(List.of(new String[]{"V1", "V2"}))
         ).isNotEmpty();
@@ -169,19 +169,19 @@ class SurveyUnitUpdateDocumentMapperImplTest {
 
         List<SurveyUnitUpdateDocument> surveyUnitUpdateDocumentList = surveyUnitUpdateDocumentMapperImplStatic.listDtoToListDocument(surveyUnitUpdateDtoList);
 
-        Assertions.assertThat(surveyUnitUpdateDocumentList.get(0).getIdCampaign()).isEqualTo("TESTIDCAMPAIGN");
-        Assertions.assertThat(surveyUnitUpdateDocumentList.get(0).getMode()).isEqualTo("WEB");
-        Assertions.assertThat(surveyUnitUpdateDocumentList.get(0).getIdUE()).isEqualTo("TESTIDUE");
-        Assertions.assertThat(surveyUnitUpdateDocumentList.get(0).getIdQuestionnaire()).isEqualTo("TESTIDQUESTIONNAIRE");
-        Assertions.assertThat(surveyUnitUpdateDocumentList.get(0).getState()).isEqualTo("COLLECTED");
-        Assertions.assertThat(surveyUnitUpdateDocumentList.get(0).getFileDate()).isEqualTo(LocalDateTime.of(2023,1,1,0,0,0));
+        Assertions.assertThat(surveyUnitUpdateDocumentList.getFirst().getIdCampaign()).isEqualTo("TESTIDCAMPAIGN");
+        Assertions.assertThat(surveyUnitUpdateDocumentList.getFirst().getMode()).isEqualTo("WEB");
+        Assertions.assertThat(surveyUnitUpdateDocumentList.getFirst().getIdUE()).isEqualTo("TESTIDUE");
+        Assertions.assertThat(surveyUnitUpdateDocumentList.getFirst().getIdQuestionnaire()).isEqualTo("TESTIDQUESTIONNAIRE");
+        Assertions.assertThat(surveyUnitUpdateDocumentList.getFirst().getState()).isEqualTo("COLLECTED");
+        Assertions.assertThat(surveyUnitUpdateDocumentList.getFirst().getFileDate()).isEqualTo(LocalDateTime.of(2023,1,1,0,0,0));
 
-        Assertions.assertThat(surveyUnitUpdateDocumentList.get(0).getExternalVariables()).filteredOn(externalVariableDto ->
+        Assertions.assertThat(surveyUnitUpdateDocumentList.getFirst().getExternalVariables()).filteredOn(externalVariableDto ->
                 externalVariableDto.getIdVar().equals("TESTIDVAR")
                         && externalVariableDto.getValues().containsAll(List.of(new String[]{"V1", "V2"}))
         ).isNotEmpty();
 
-        Assertions.assertThat(surveyUnitUpdateDocumentList.get(0).getCollectedVariables()).filteredOn(variableStateDto ->
+        Assertions.assertThat(surveyUnitUpdateDocumentList.getFirst().getCollectedVariables()).filteredOn(variableStateDto ->
                 variableStateDto.getIdVar().equals("TESTIDVAR")
                         && variableStateDto.getValues().containsAll(List.of(new String[]{"V1", "V2"}))
         ).isNotEmpty();

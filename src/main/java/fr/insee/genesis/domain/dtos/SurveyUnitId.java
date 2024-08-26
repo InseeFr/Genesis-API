@@ -1,22 +1,17 @@
 package fr.insee.genesis.domain.dtos;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Objects;
 
+@Setter
+@Getter
+@AllArgsConstructor
 public class SurveyUnitId {
 
-	public SurveyUnitId(String idUE) {
-		this.idUE = idUE;
-	}
-
-	public SurveyUnitId() {
-	}
-
-	@Getter
-	@Setter
 	@JsonProperty("idUE")
 	private String idUE;
 
