@@ -27,4 +27,6 @@ public interface ScheduleApiPort {
     void updateLastExecutionName(String surveyName, LocalDateTime newDate) throws NotFoundException;
 
     long countSchedules();
+
+    List<KraftwerkExecutionSchedule> removeExpiredSchedules(StoredSurveySchedule surveySchedule);
 }

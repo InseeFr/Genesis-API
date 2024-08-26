@@ -81,33 +81,24 @@ public class ScheduleImpl implements ScheduleApiPort {
 
     public List<KraftwerkExecutionSchedule> deleteExpiredSchedules(String surveyName) throws NotFoundException {
         List<StoredSurveySchedule> storedSurveySchedules = scheduleMongoDBRepository.findBySurveyName(surveyName);
-        if(storedSurveySchedules.isEmpty()){
+        if (storedSurveySchedules.isEmpty()) {
             throw new NotFoundException();
         }
         List<KraftwerkExecutionSchedule> deletedKraftwerkExecutionSchedules = new ArrayList<>();
-        for(StoredSurveySchedule surveySchedule : storedSurveySchedules) {
-            for (KraftwerkExecutionSchedule kraftwerkExecutionScheduleToRemove :
-                    surveySchedule.getKraftwerkExecutionScheduleList().stream().filter(
-                            kraftwerkExecutionSchedule -> kraftwerkExecutionSchedule.getScheduleEndDate().isBefore(LocalDateTime.now())
-                    ).toList()) {
-                Query query = Query.query(Criteria.where("scheduleEndDate").is(kraftwerkExecutionScheduleToRemove.getScheduleEndDate()));
-                mongoTemplate.updateMulti(Query.query(Criteria.where("surveyName").is(surveyName)), new Update().pull(
-                                "kraftwerkExecutionScheduleList", query),
-                        Constants.MONGODB_SCHEDULE_COLLECTION_NAME);
-                log.info("Removed kraftwerk execution schedule on {} because it is expired since {}", surveyName,
-                        kraftwerkExecutionScheduleToRemove.getScheduleEndDate());
-
-                deletedKraftwerkExecutionSchedules.add(kraftwerkExecutionScheduleToRemove);
-            }
+        for (StoredSurveySchedule surveySchedule : storedSurveySchedules) {
+            deletedKraftwerkExecutionSchedules.addAll(removeExpiredSchedules(surveySchedule));
+            //Delete schedule if empty kraftwerkExecutionScheduleList
+            scheduleMongoDBRepository.findBySurveyName(surveyName)
+                    .stream()
+                    .filter(storedSurveySchedule -> storedSurveySchedule.getKraftwerkExecutionScheduleList().isEmpty())
+                    .forEach(storedSurveySchedule -> {
+                        try {
+                            deleteSchedule(surveyName);
+                        } catch (NotFoundException e) {
+                            log.error("Tried to delete schedule for {} but wasn't found !", surveyName);
+                        }
+                    });
         }
-        //Delete schedule if empty kraftwerkExecutionScheduleList
-        storedSurveySchedules = scheduleMongoDBRepository.findBySurveyName(surveyName);
-        for(StoredSurveySchedule surveySchedule : storedSurveySchedules) {
-            if(surveySchedule.getKraftwerkExecutionScheduleList().isEmpty()){
-                deleteSchedule(surveyName);
-            }
-        }
-
         return deletedKraftwerkExecutionSchedules;
     }
 
@@ -128,5 +119,24 @@ public class ScheduleImpl implements ScheduleApiPort {
     @Override
     public long countSchedules() {
         return scheduleMongoDBRepository.count();
+    }
+
+    @Override
+    public List<KraftwerkExecutionSchedule> removeExpiredSchedules(StoredSurveySchedule surveySchedule) {
+        List<KraftwerkExecutionSchedule> deletedKraftwerkExecutionSchedules = new ArrayList<>();
+        for (KraftwerkExecutionSchedule kraftwerkExecutionScheduleToRemove :
+                surveySchedule.getKraftwerkExecutionScheduleList().stream().filter(
+                        kraftwerkExecutionSchedule -> kraftwerkExecutionSchedule.getScheduleEndDate().isBefore(LocalDateTime.now())
+                ).toList()) {
+            deletedKraftwerkExecutionSchedules.add(kraftwerkExecutionScheduleToRemove);
+            Query query =
+                    Query.query(Criteria.where("scheduleEndDate").is(kraftwerkExecutionScheduleToRemove.getScheduleEndDate()));
+            mongoTemplate.updateMulti(Query.query(Criteria.where("surveyName").is(surveySchedule.getSurveyName())), new Update().pull(
+                            "kraftwerkExecutionScheduleList", query),
+                    Constants.MONGODB_SCHEDULE_COLLECTION_NAME);
+            log.info("Removed kraftwerk execution schedule on {} because it is expired since {}", surveySchedule.getSurveyName(),
+                    kraftwerkExecutionScheduleToRemove.getScheduleEndDate());
+        }
+        return deletedKraftwerkExecutionSchedules;
     }
 }
