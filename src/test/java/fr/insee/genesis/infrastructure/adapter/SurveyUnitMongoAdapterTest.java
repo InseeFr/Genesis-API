@@ -137,7 +137,7 @@ class SurveyUnitMongoAdapterTest {
 		//Given
 		when(mongoRepository.findByIdQuestionnaire(any(String.class))).thenReturn(Stream.empty());
 		// When
-		List<SurveyUnitDto> updates = surveyUnitMongoAdapter.findByIdQuestionnaire("TEST2023X01");
+		List<SurveyUnitDto> updates = surveyUnitMongoAdapter.findByIdQuestionnaire("TEST2023X01").toList();
 		// Then
 		Assertions.assertThat(updates).isEmpty();
 	}
