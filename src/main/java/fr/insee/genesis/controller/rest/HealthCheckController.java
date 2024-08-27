@@ -29,10 +29,10 @@ public class HealthCheckController {
         return ResponseEntity.ok(
                 """
                              OK
-                             
+                            \s
                              Version %s
                              User %s
-                        """
+                       \s"""
                         .formatted(
                                 projectVersion,
                                 SecurityContextHolder.getContext().getAuthentication().getName()
@@ -44,10 +44,10 @@ public class HealthCheckController {
         return ResponseEntity.ok(
                 """
                              MongoDB OK
-                             
+                            \s
                              %s Responses
                              %s Schedules
-                        """
+                       \s"""
                         .formatted(
                                 surveyUnitApiPort.countResponses(),
                                 scheduleApiPort.countSchedules()

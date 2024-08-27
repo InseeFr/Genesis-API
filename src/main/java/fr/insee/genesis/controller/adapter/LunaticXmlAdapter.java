@@ -1,21 +1,21 @@
 package fr.insee.genesis.controller.adapter;
 
+import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlCollectedData;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
 import fr.insee.genesis.controller.sources.xml.ValueType;
 import fr.insee.genesis.controller.utils.LoopIdentifier;
-
 import fr.insee.genesis.domain.dtos.CollectedVariableDto;
 import fr.insee.genesis.domain.dtos.DataState;
 import fr.insee.genesis.domain.dtos.Mode;
 import fr.insee.genesis.domain.dtos.SurveyUnitDto;
 import fr.insee.genesis.domain.dtos.VariableDto;
-import fr.insee.bpm.metadata.model.VariablesMap;
 import lombok.experimental.UtilityClass;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @UtilityClass
 public class LunaticXmlAdapter {
@@ -37,16 +37,24 @@ public class LunaticXmlAdapter {
 
         //Get data from other states
         SurveyUnitDto editedSurveyUnitDto = getStateDataFromSurveyUnit(su, variablesMap, idCampaign, DataState.EDITED,mode);
-        if(editedSurveyUnitDto != null) surveyUnitDtoList.add(editedSurveyUnitDto);
+        if(editedSurveyUnitDto != null){
+            surveyUnitDtoList.add(editedSurveyUnitDto);
+        }
 
         SurveyUnitDto inputedSurveyUnitDto = getStateDataFromSurveyUnit(su, variablesMap, idCampaign, DataState.INPUTED,mode);
-        if(inputedSurveyUnitDto != null) surveyUnitDtoList.add(inputedSurveyUnitDto);
+        if(inputedSurveyUnitDto != null){
+            surveyUnitDtoList.add(inputedSurveyUnitDto);
+        }
 
         SurveyUnitDto forcedSurveyUnitDto = getStateDataFromSurveyUnit(su, variablesMap, idCampaign, DataState.FORCED,mode);
-        if(forcedSurveyUnitDto != null) surveyUnitDtoList.add(forcedSurveyUnitDto);
+        if(forcedSurveyUnitDto != null){
+            surveyUnitDtoList.add(forcedSurveyUnitDto);
+        }
 
         SurveyUnitDto previousSurveyUnitDto = getStateDataFromSurveyUnit(su, variablesMap, idCampaign, DataState.PREVIOUS,mode);
-        if(previousSurveyUnitDto != null) surveyUnitDtoList.add(previousSurveyUnitDto);
+        if(previousSurveyUnitDto != null){
+            surveyUnitDtoList.add(previousSurveyUnitDto);
+        }
 
 
         return surveyUnitDtoList;
@@ -90,16 +98,21 @@ public class LunaticXmlAdapter {
         for (LunaticXmlCollectedData lunaticXmlCollectedData : su.getData().getCollected()){
             List<ValueType> valueTypeList;
             switch (dataState){
-                case COLLECTED: valueTypeList = lunaticXmlCollectedData.getCollected();
-                break;
-                case EDITED : valueTypeList = lunaticXmlCollectedData.getEdited();
-                break;
-                case FORCED : valueTypeList = lunaticXmlCollectedData.getForced();
-                break;
-                case INPUTED: valueTypeList = lunaticXmlCollectedData.getInputed();
-                break;
-                case PREVIOUS: valueTypeList = lunaticXmlCollectedData.getPrevious();
-                break;
+                case COLLECTED:
+                    valueTypeList = lunaticXmlCollectedData.getCollected();
+                    break;
+                case EDITED :
+                    valueTypeList = lunaticXmlCollectedData.getEdited();
+                    break;
+                case FORCED :
+                    valueTypeList = lunaticXmlCollectedData.getForced();
+                    break;
+                case INPUTED:
+                    valueTypeList = lunaticXmlCollectedData.getInputed();
+                    break;
+                case PREVIOUS:
+                    valueTypeList = lunaticXmlCollectedData.getPrevious();
+                    break;
                 default:
                     return null;
             }
@@ -122,7 +135,9 @@ public class LunaticXmlAdapter {
         surveyUnitDto.setCollectedVariables(variablesUpdate);
 
         //Return null if no data and not COLLECTED
-        if(dataCount > 0 || dataState.equals(DataState.COLLECTED)) return surveyUnitDto;
+        if(dataCount > 0 || dataState.equals(DataState.COLLECTED)){
+            return surveyUnitDto;
+        }
         return null;
     }
 
@@ -146,12 +161,10 @@ public class LunaticXmlAdapter {
 
     private static List<String> getValuesFromValueTypeList(List<ValueType> valueTypeList) {
         if (!valueTypeList.isEmpty()){
-            List<String> values = new ArrayList<>();
-            for(ValueType valueType : valueTypeList)
-                if (valueType.getValue() != null) {
-                    values.add(valueType.getValue());
-                }
-            return values;
+            return valueTypeList.stream()
+                    .map(ValueType::getValue)
+                    .filter(Objects::nonNull)
+                    .toList();
         }
         return List.of();
     }

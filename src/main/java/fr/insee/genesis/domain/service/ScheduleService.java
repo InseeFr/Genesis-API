@@ -8,7 +8,6 @@ import fr.insee.genesis.infrastructure.model.document.schedule.KraftwerkExecutio
 import fr.insee.genesis.infrastructure.model.document.schedule.ServiceToCall;
 import fr.insee.genesis.infrastructure.model.document.schedule.StoredSurveySchedule;
 import fr.insee.genesis.infrastructure.model.document.schedule.TrustParameters;
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.support.CronExpression;
@@ -79,15 +78,13 @@ public class ScheduleService implements ScheduleApiPort {
     @Override
     public void updateLastExecutionName(String surveyName, LocalDateTime newDate) throws NotFoundException {
         List<StoredSurveySchedule> storedSurveySchedules = schedulePersistencePort.findBySurveyName(surveyName);
-
-        if (!storedSurveySchedules.isEmpty()) {
-            for(StoredSurveySchedule surveySchedule : storedSurveySchedules){
-                surveySchedule.setLastExecution(newDate);
-            }
-            schedulePersistencePort.saveAll(storedSurveySchedules);
-        }else{
+        if (storedSurveySchedules.isEmpty()) {
             throw new NotFoundException();
         }
+        for(StoredSurveySchedule surveySchedule : storedSurveySchedules){
+            surveySchedule.setLastExecution(newDate);
+        }
+        schedulePersistencePort.saveAll(storedSurveySchedules);
     }
 
     @Override

@@ -33,8 +33,7 @@ public class ScheduleUnicityService {
                     deduplicatedSurveySchedule.getKraftwerkExecutionScheduleList().add(storedExecutionSchedule);
                 }
                 if(deduplicatedSurveySchedule.getKraftwerkExecutionScheduleList().stream().filter(
-                        schedule -> areSchedulesEquals(schedule,storedExecutionSchedule)
-                ).toList().isEmpty()){
+                        schedule -> areSchedulesEquals(schedule,storedExecutionSchedule)).toList().isEmpty()){
                     deduplicatedSurveySchedule.getKraftwerkExecutionScheduleList().add(storedExecutionSchedule);
                 }
             }

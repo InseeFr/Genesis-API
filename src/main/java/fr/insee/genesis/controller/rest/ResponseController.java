@@ -373,9 +373,8 @@ public class ResponseController {
      * @param errors error list to fill
      * @param withDDI true if it uses DDI, false if Lunatic
      */
-    private void treatCampaignWithMode(String campaignName, Mode mode, List<GenesisError> errors,
-                                       String rootDataFolder, boolean withDDI) throws IOException, ParserConfigurationException,
-            SAXException, XMLStreamException {
+    private void treatCampaignWithMode(String campaignName, Mode mode, List<GenesisError> errors, String rootDataFolder, boolean withDDI)
+            throws IOException, ParserConfigurationException,SAXException, XMLStreamException {
         log.info("Try to import data for mode : {}", mode.getModeName());
         String dataFolder = rootDataFolder == null ?
                 fileUtils.getDataFolder(campaignName, mode.getFolder())
@@ -389,7 +388,9 @@ public class ResponseController {
         }
 
         VariablesMap variablesMap = readMetadatas(campaignName, mode, errors, withDDI);
-        if (variablesMap == null) return;
+        if (variablesMap == null){
+            return;
+        }
 
         //For each XML data file
         for (String fileName : dataFiles.stream().filter(s -> s.endsWith(".xml")).toList()) {
