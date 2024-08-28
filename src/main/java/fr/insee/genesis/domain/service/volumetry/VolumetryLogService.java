@@ -1,4 +1,4 @@
-package fr.insee.genesis.controller.service;
+package fr.insee.genesis.domain.service.volumetry;
 
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.configuration.Config;

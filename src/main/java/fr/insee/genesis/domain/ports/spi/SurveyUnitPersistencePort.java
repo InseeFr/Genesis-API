@@ -1,6 +1,6 @@
 package fr.insee.genesis.domain.ports.spi;
 
-import fr.insee.genesis.domain.dtos.SurveyUnitDto;
+import fr.insee.genesis.domain.model.surveyunit.SurveyUnit;
 
 import java.util.List;
 import java.util.Set;
@@ -8,19 +8,19 @@ import java.util.stream.Stream;
 
 public interface SurveyUnitPersistencePort {
 
-    void saveAll(List<SurveyUnitDto> suList);
+    void saveAll(List<SurveyUnit> suList);
 
-    List<SurveyUnitDto> findByIds(String idUE, String idQuest);
+    List<SurveyUnit> findByIds(String idUE, String idQuest);
 
-    List<SurveyUnitDto> findByIdUE(String idUE);
+    List<SurveyUnit> findByIdUE(String idUE);
 
-    List<SurveyUnitDto> findByIdUEsAndIdQuestionnaire(List<SurveyUnitDto> idUEs, String idQuestionnaire);
+    List<SurveyUnit> findByIdUEsAndIdQuestionnaire(List<SurveyUnit> idUEs, String idQuestionnaire);
 
-    Stream<SurveyUnitDto> findByIdQuestionnaire(String idQuestionnaire);
+    Stream<SurveyUnit> findByIdQuestionnaire(String idQuestionnaire);
 
-    List<SurveyUnitDto> findIdUEsByIdQuestionnaire(String idQuestionnaire);
+    List<SurveyUnit> findIdUEsByIdQuestionnaire(String idQuestionnaire);
 
-    List<SurveyUnitDto> findIdUEsByIdCampaign(String idCampaign);
+    List<SurveyUnit> findIdUEsByIdCampaign(String idCampaign);
 
     Long deleteByIdQuestionnaire(String idQuestionnaire);
 

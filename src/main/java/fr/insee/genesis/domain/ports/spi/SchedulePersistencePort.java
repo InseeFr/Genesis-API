@@ -1,15 +1,15 @@
 package fr.insee.genesis.domain.ports.spi;
 
-import fr.insee.genesis.infrastructure.model.document.schedule.StoredSurveySchedule;
+import fr.insee.genesis.infrastructure.model.document.schedule.SurveyScheduleDocument;
 
 import java.util.List;
 
 public interface SchedulePersistencePort {
-    List<StoredSurveySchedule> getAll();
+    List<SurveyScheduleDocument> getAll();
 
-    void saveAll(List<StoredSurveySchedule> storedSurveySchedules);
+    void saveAll(List<SurveyScheduleDocument> surveyScheduleDocuments);
 
-    List<StoredSurveySchedule> findBySurveyName(String surveyName);
+    List<SurveyScheduleDocument> findBySurveyName(String surveyName);
 
     void deleteBySurveyName(String surveyName);
 

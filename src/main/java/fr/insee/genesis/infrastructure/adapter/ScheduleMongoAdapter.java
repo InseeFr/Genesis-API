@@ -1,7 +1,7 @@
 package fr.insee.genesis.infrastructure.adapter;
 
 import fr.insee.genesis.domain.ports.spi.SchedulePersistencePort;
-import fr.insee.genesis.infrastructure.model.document.schedule.StoredSurveySchedule;
+import fr.insee.genesis.infrastructure.model.document.schedule.SurveyScheduleDocument;
 import fr.insee.genesis.infrastructure.repository.ScheduleMongoDBRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -13,17 +13,17 @@ public class ScheduleMongoAdapter implements SchedulePersistencePort {
 
 
     @Override
-    public List<StoredSurveySchedule> getAll() {
+    public List<SurveyScheduleDocument> getAll() {
         return scheduleMongoDBRepository.findAll();
     }
 
     @Override
-    public void saveAll(List<StoredSurveySchedule> storedSurveySchedules) {
-        scheduleMongoDBRepository.saveAll(storedSurveySchedules);
+    public void saveAll(List<SurveyScheduleDocument> surveyScheduleDocuments) {
+        scheduleMongoDBRepository.saveAll(surveyScheduleDocuments);
     }
 
     @Override
-    public List<StoredSurveySchedule> findBySurveyName(String surveyName) {
+    public List<SurveyScheduleDocument> findBySurveyName(String surveyName) {
         return scheduleMongoDBRepository.findBySurveyName(surveyName);
     }
 
@@ -34,6 +34,6 @@ public class ScheduleMongoAdapter implements SchedulePersistencePort {
 
     @Override
     public long countSchedules() {
-        return 0;
+        return scheduleMongoDBRepository.count();
     }
 }

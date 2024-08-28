@@ -1,7 +1,7 @@
 package fr.insee.genesis.infrastructure.mappers;
 
-import fr.insee.genesis.domain.dtos.VariableDto;
-import fr.insee.genesis.infrastructure.model.ExternalVariable;
+import fr.insee.genesis.domain.model.surveyunit.Variable;
+import fr.insee.genesis.infrastructure.model.document.surveyunit.ExternalVariable;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
@@ -12,11 +12,11 @@ public interface ExternalVariableMapper {
 
 	ExternalVariableMapper INSTANCE = Mappers.getMapper(ExternalVariableMapper.class);
 
-	VariableDto entityToDto(ExternalVariable externalVariable);
+	Variable entityToModel(ExternalVariable externalVariable);
 
-	ExternalVariable dtoToEntity(VariableDto externalVariableDto);
+	ExternalVariable modelToEntity(Variable externalVariable);
 
-	List<VariableDto> listEntityToListDto(List<ExternalVariable> externalVariables);
+	List<Variable> listEntityToListModel(List<ExternalVariable> externalVariables);
 
-	List<ExternalVariable> listDtoToListEntity(List<VariableDto> externalVariablesDto);
+	List<ExternalVariable> listModelToListEntity(List<Variable> externalVariablesDto);
 }

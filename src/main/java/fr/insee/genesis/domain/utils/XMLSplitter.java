@@ -1,4 +1,4 @@
-package fr.insee.genesis.controller.utils;
+package fr.insee.genesis.domain.utils;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;

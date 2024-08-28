@@ -1,10 +1,11 @@
 package fr.insee.genesis.domain.service;
 
+import fr.insee.genesis.domain.service.schedule.ScheduleService;
 import fr.insee.genesis.exceptions.InvalidCronExpressionException;
 import fr.insee.genesis.exceptions.NotFoundException;
 import fr.insee.genesis.infrastructure.model.document.schedule.KraftwerkExecutionSchedule;
 import fr.insee.genesis.infrastructure.model.document.schedule.ServiceToCall;
-import fr.insee.genesis.infrastructure.model.document.schedule.StoredSurveySchedule;
+import fr.insee.genesis.infrastructure.model.document.schedule.SurveyScheduleDocument;
 import fr.insee.genesis.stubs.SchedulePersistencePortStub;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -39,7 +40,7 @@ class ScheduleServiceTest {
                 LocalDateTime.MAX,
                 null
         ));
-        schedulePersistencePortStub.getMongoStub().add(new StoredSurveySchedule(
+        schedulePersistencePortStub.getMongoStub().add(new SurveyScheduleDocument(
                 "TEST",
                 kraftwerkExecutionScheduleList
         ));

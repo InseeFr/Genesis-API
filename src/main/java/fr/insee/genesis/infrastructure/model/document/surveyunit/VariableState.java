@@ -1,4 +1,4 @@
-package fr.insee.genesis.infrastructure.model;
+package fr.insee.genesis.infrastructure.model.document.surveyunit;
 
 import java.io.Serial;
 import java.io.Serializable;

@@ -1,4 +1,4 @@
-package fr.insee.genesis.domain.dtos;
+package fr.insee.genesis.domain.model.surveyunit;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -8,10 +8,10 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-class CollectedVariableDtoTest {
+class CollectedVariableTest {
     @Test
     void toJSONTest() throws JsonProcessingException {
-        CollectedVariableDto collectedVariableDto = CollectedVariableDto.collectedVariableBuilder()
+        CollectedVariable collectedVariable = CollectedVariable.collectedVariableBuilder()
                 .idVar("TESTIDVAR")
                 .idParent("TESTIDPARENT")
                 .idLoop("TESTIDLOOP")
@@ -21,7 +21,7 @@ class CollectedVariableDtoTest {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.findAndRegisterModules();
 
-        Assertions.assertEquals(objectMapper.readTree(objectMapper.writeValueAsString(collectedVariableDto)),
+        Assertions.assertEquals(objectMapper.readTree(objectMapper.writeValueAsString(collectedVariable)),
                 objectMapper.readTree("{\"values\":[\"V1\",\"V2\"],\"idVar\":\"TESTIDVAR\",\"idLoop\":\"TESTIDLOOP\",\"idParent\":\"TESTIDPARENT\"}"));
 
     }

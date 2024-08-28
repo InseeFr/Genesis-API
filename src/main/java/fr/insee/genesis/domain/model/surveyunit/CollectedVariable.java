@@ -1,4 +1,4 @@
-package fr.insee.genesis.domain.dtos;
+package fr.insee.genesis.domain.model.surveyunit;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -9,13 +9,13 @@ import java.util.List;
 
 @Getter
 @Setter
-public class CollectedVariableDto extends VariableDto{
+public class CollectedVariable extends Variable {
 
     private String idLoop;
     private String idParent;
 
     @Builder(builderMethodName = "collectedVariableBuilder")
-    public CollectedVariableDto(String idVar, List<String> values, String idLoop, String idParent) {
+    public CollectedVariable(String idVar, List<String> values, String idLoop, String idParent) {
         super(idVar, values);
         this.idLoop = idLoop;
         this.idParent = idParent;

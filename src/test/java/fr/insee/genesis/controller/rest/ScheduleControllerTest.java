@@ -4,7 +4,7 @@ package fr.insee.genesis.controller.rest;
 import cucumber.TestConstants;
 import fr.insee.genesis.infrastructure.model.document.schedule.KraftwerkExecutionSchedule;
 import fr.insee.genesis.infrastructure.model.document.schedule.ServiceToCall;
-import fr.insee.genesis.infrastructure.model.document.schedule.StoredSurveySchedule;
+import fr.insee.genesis.infrastructure.model.document.schedule.SurveyScheduleDocument;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.ScheduleApiPortStub;
@@ -57,14 +57,14 @@ class ScheduleControllerTest {
                 scheduleDocument.getSurveyName().equals(surveyName)
         ).isNotEmpty();
 
-        List<StoredSurveySchedule> mongoStubFiltered = scheduleApiPortStub.mongoStub.stream().filter(scheduleDocument ->
+        List<SurveyScheduleDocument> mongoStubFiltered = scheduleApiPortStub.mongoStub.stream().filter(scheduleDocument ->
                 scheduleDocument.getSurveyName().equals(surveyName)).toList();
 
-        StoredSurveySchedule storedSurveySchedule = mongoStubFiltered.getFirst();
+        SurveyScheduleDocument surveyScheduleDocument = mongoStubFiltered.getFirst();
 
-        Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList()).isNotEmpty();
-        Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList().getFirst().getFrequency()).isEqualTo(frequency);
-        Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters()).isNull();
+        Assertions.assertThat(surveyScheduleDocument.getKraftwerkExecutionScheduleList()).isNotEmpty();
+        Assertions.assertThat(surveyScheduleDocument.getKraftwerkExecutionScheduleList().getFirst().getFrequency()).isEqualTo(frequency);
+        Assertions.assertThat(surveyScheduleDocument.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters()).isNull();
     }
 
     @Test
@@ -88,21 +88,21 @@ class ScheduleControllerTest {
                 scheduleDocument.getSurveyName().equals(surveyName)
         ).isNotEmpty();
 
-        List<StoredSurveySchedule> mongoStubFiltered = scheduleApiPortStub.mongoStub.stream().filter(scheduleDocument ->
+        List<SurveyScheduleDocument> mongoStubFiltered = scheduleApiPortStub.mongoStub.stream().filter(scheduleDocument ->
                 scheduleDocument.getSurveyName().equals(surveyName)).toList();
 
-        StoredSurveySchedule storedSurveySchedule = mongoStubFiltered.getFirst();
+        SurveyScheduleDocument surveyScheduleDocument = mongoStubFiltered.getFirst();
 
-        Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList()).isNotEmpty();
-        Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList().getFirst().getFrequency()).isEqualTo(frequency);
-        Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters()).isNotNull();
-        Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters().getInputPath()).contains(
+        Assertions.assertThat(surveyScheduleDocument.getKraftwerkExecutionScheduleList()).isNotEmpty();
+        Assertions.assertThat(surveyScheduleDocument.getKraftwerkExecutionScheduleList().getFirst().getFrequency()).isEqualTo(frequency);
+        Assertions.assertThat(surveyScheduleDocument.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters()).isNotNull();
+        Assertions.assertThat(surveyScheduleDocument.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters().getInputPath()).contains(
                 "TESTADDSURVEY");
-        Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters().getOutputFolder()).contains(
+        Assertions.assertThat(surveyScheduleDocument.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters().getOutputFolder()).contains(
                 "TESTADDSURVEY");
-        Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters().getVaultPath()).isEqualTo(
+        Assertions.assertThat(surveyScheduleDocument.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters().getVaultPath()).isEqualTo(
                 "testvault/testkey");
-        Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters().isUseSignature()).isFalse();
+        Assertions.assertThat(surveyScheduleDocument.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters().isUseSignature()).isFalse();
     }
 
     @Test
@@ -123,20 +123,20 @@ class ScheduleControllerTest {
                 scheduleDocument.getSurveyName().equals(surveyName)
         ).isNotEmpty().hasSize(1);
 
-        List<StoredSurveySchedule> mongoStubFiltered = scheduleApiPortStub.mongoStub.stream().filter(scheduleDocument ->
+        List<SurveyScheduleDocument> mongoStubFiltered = scheduleApiPortStub.mongoStub.stream().filter(scheduleDocument ->
                 scheduleDocument.getSurveyName().equals(surveyName)).toList();
 
-        StoredSurveySchedule storedSurveySchedule = mongoStubFiltered.getFirst();
-        Assertions.assertThat(storedSurveySchedule.getLastExecution()).isNull();
+        SurveyScheduleDocument surveyScheduleDocument = mongoStubFiltered.getFirst();
+        Assertions.assertThat(surveyScheduleDocument.getLastExecution()).isNull();
 
-        Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList()).isNotEmpty();
-        Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList().getFirst().getFrequency()).isEqualTo(frequency);
+        Assertions.assertThat(surveyScheduleDocument.getKraftwerkExecutionScheduleList()).isNotEmpty();
+        Assertions.assertThat(surveyScheduleDocument.getKraftwerkExecutionScheduleList().getFirst().getFrequency()).isEqualTo(frequency);
     }
 
     @Test
     void addScheduleDedupTest()  {
         //Given 2
-        StoredSurveySchedule storedSurveyScheduleTest = new StoredSurveySchedule(
+        SurveyScheduleDocument surveyScheduleDocumentTest = new SurveyScheduleDocument(
                 "TESTSURVEY",
                 new ArrayList<>()
         );
@@ -147,7 +147,7 @@ class ScheduleControllerTest {
                 LocalDateTime.of(2023, Month.DECEMBER, 1, 1, 1, 1),
                 null
         );
-        storedSurveyScheduleTest.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
+        surveyScheduleDocumentTest.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
         kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
                 "0 0 6 * * *",
                 ServiceToCall.MAIN,
@@ -155,9 +155,9 @@ class ScheduleControllerTest {
                 LocalDateTime.of(2023, Month.DECEMBER, 1, 1, 1, 1),
                 null
         );
-        storedSurveyScheduleTest.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
+        surveyScheduleDocumentTest.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
 
-        scheduleApiPortStub.mongoStub.add(storedSurveyScheduleTest);
+        scheduleApiPortStub.mongoStub.add(surveyScheduleDocumentTest);
 
         //When
         String surveyName = "TESTSURVEY"; //Already exists in stub
@@ -174,14 +174,14 @@ class ScheduleControllerTest {
                 scheduleDocument.getSurveyName().equals(surveyName)
         ).isNotEmpty().hasSize(1);
 
-        List<StoredSurveySchedule> mongoStubFiltered = scheduleApiPortStub.mongoStub.stream().filter(scheduleDocument ->
+        List<SurveyScheduleDocument> mongoStubFiltered = scheduleApiPortStub.mongoStub.stream().filter(scheduleDocument ->
                 scheduleDocument.getSurveyName().equals(surveyName)).toList();
 
-        StoredSurveySchedule storedSurveySchedule = mongoStubFiltered.getFirst();
-        Assertions.assertThat(storedSurveySchedule.getLastExecution()).isNull();
+        SurveyScheduleDocument surveyScheduleDocument = mongoStubFiltered.getFirst();
+        Assertions.assertThat(surveyScheduleDocument.getLastExecution()).isNull();
 
-        Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList()).isNotEmpty();
-        Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList().getFirst().getFrequency()).isEqualTo(frequency);
+        Assertions.assertThat(surveyScheduleDocument.getKraftwerkExecutionScheduleList()).isNotEmpty();
+        Assertions.assertThat(surveyScheduleDocument.getKraftwerkExecutionScheduleList().getFirst().getFrequency()).isEqualTo(frequency);
     }
     @Test
     void updateLastExecutionTest(){
@@ -189,7 +189,7 @@ class ScheduleControllerTest {
         scheduleController.setSurveyLastExecution("TESTSURVEY", LocalDateTime.now());
 
         //Then
-        List<StoredSurveySchedule> mongoStubFiltered = scheduleApiPortStub.mongoStub.stream().filter(scheduleDocument ->
+        List<SurveyScheduleDocument> mongoStubFiltered = scheduleApiPortStub.mongoStub.stream().filter(scheduleDocument ->
                 scheduleDocument.getSurveyName().equals("TESTSURVEY")).toList();
         Assertions.assertThat(mongoStubFiltered.getFirst().getLastExecution()).isNotNull();
     }
@@ -200,7 +200,7 @@ class ScheduleControllerTest {
         scheduleController.setSurveyLastExecution("TESTSURVEY", null);
 
         //Then
-        List<StoredSurveySchedule> mongoStubFiltered = scheduleApiPortStub.mongoStub.stream().filter(scheduleDocument ->
+        List<SurveyScheduleDocument> mongoStubFiltered = scheduleApiPortStub.mongoStub.stream().filter(scheduleDocument ->
                 scheduleDocument.getSurveyName().equals("TESTSURVEY")).toList();
         Assertions.assertThat(mongoStubFiltered.getFirst().getLastExecution()).isNull();
     }
@@ -212,7 +212,7 @@ class ScheduleControllerTest {
         scheduleController.setSurveyLastExecution("TESTSURVEY", date);
 
         //Then
-        List<StoredSurveySchedule> mongoStubFiltered = scheduleApiPortStub.mongoStub.stream().filter(scheduleDocument ->
+        List<SurveyScheduleDocument> mongoStubFiltered = scheduleApiPortStub.mongoStub.stream().filter(scheduleDocument ->
                 scheduleDocument.getSurveyName().equals("TESTSURVEY")).toList();
         Assertions.assertThat(mongoStubFiltered.getFirst().getLastExecution()).isEqualTo(date);
     }

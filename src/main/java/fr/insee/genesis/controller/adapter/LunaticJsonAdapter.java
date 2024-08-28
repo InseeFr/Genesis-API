@@ -1,9 +1,9 @@
 package fr.insee.genesis.controller.adapter;
 
 import fr.insee.genesis.controller.sources.json.LunaticJsonSurveyUnit;
-import fr.insee.genesis.domain.dtos.DataState;
-import fr.insee.genesis.domain.dtos.Mode;
-import fr.insee.genesis.domain.dtos.SurveyUnitDto;
+import fr.insee.genesis.domain.model.surveyunit.DataState;
+import fr.insee.genesis.domain.model.surveyunit.Mode;
+import fr.insee.genesis.domain.model.surveyunit.SurveyUnit;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -11,8 +11,8 @@ import java.time.LocalDateTime;
 @Service
 public class LunaticJsonAdapter {
 
-    public SurveyUnitDto convert(LunaticJsonSurveyUnit su){
-        return SurveyUnitDto.builder()
+    public SurveyUnit convert(LunaticJsonSurveyUnit su){
+        return SurveyUnit.builder()
                 .idQuest(su.getIdQuest())
                 .idCampaign("")
                 .idUE(su.getIdUE())

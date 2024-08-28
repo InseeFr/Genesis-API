@@ -14,9 +14,9 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "schedules")
-public class StoredSurveySchedule {
+public class SurveyScheduleDocument {
 
-    public StoredSurveySchedule(String surveyName, List<KraftwerkExecutionSchedule> kraftwerkExecutionScheduleList) {
+    public SurveyScheduleDocument(String surveyName, List<KraftwerkExecutionSchedule> kraftwerkExecutionScheduleList) {
         this.surveyName = surveyName;
         this.kraftwerkExecutionScheduleList = kraftwerkExecutionScheduleList;
     }

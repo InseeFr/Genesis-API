@@ -1,4 +1,4 @@
-package fr.insee.genesis.controller.utils;
+package fr.insee.genesis.domain.utils;
 
 import fr.insee.genesis.Constants;
 import fr.insee.bpm.metadata.model.Variable;

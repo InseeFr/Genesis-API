@@ -1,9 +1,9 @@
 package fr.insee.genesis.infrastructure.adapter;
 
-import fr.insee.genesis.domain.dtos.Mode;
-import fr.insee.genesis.domain.dtos.SurveyUnitDto;
-import fr.insee.genesis.infrastructure.model.ExternalVariable;
-import fr.insee.genesis.infrastructure.model.VariableState;
+import fr.insee.genesis.domain.model.surveyunit.Mode;
+import fr.insee.genesis.domain.model.surveyunit.SurveyUnit;
+import fr.insee.genesis.infrastructure.model.document.surveyunit.ExternalVariable;
+import fr.insee.genesis.infrastructure.model.document.surveyunit.VariableState;
 import fr.insee.genesis.infrastructure.model.document.surveyunit.SurveyUnitDocument;
 import fr.insee.genesis.infrastructure.repository.SurveyUnitMongoDBRepository;
 import org.assertj.core.api.Assertions;
@@ -77,7 +77,7 @@ class SurveyUnitMongoAdapterTest {
 		responses.add(suDoc2);
 		when(mongoRepository.findByIdUEAndIdQuestionnaire(any(String.class), any(String.class))).thenReturn(responses);
 		// When
-		List<SurveyUnitDto> updates = surveyUnitMongoAdapter.findByIds("UE1100000001", "TEST2023X01");
+		List<SurveyUnit> updates = surveyUnitMongoAdapter.findByIds("UE1100000001", "TEST2023X01");
 		// Then
 		Assertions.assertThat(updates).isNotNull().hasSize(2);
 		Assertions.assertThat(updates.getFirst().getMode()).isEqualTo(Mode.WEB);
@@ -88,7 +88,7 @@ class SurveyUnitMongoAdapterTest {
 		//Given
 		when(mongoRepository.findByIdUEAndIdQuestionnaire(any(String.class), any(String.class))).thenReturn(List.of());
 		// When
-		List<SurveyUnitDto> updates = surveyUnitMongoAdapter.findByIds("UE1100000001", "TEST2023X01");
+		List<SurveyUnit> updates = surveyUnitMongoAdapter.findByIds("UE1100000001", "TEST2023X01");
 		// Then
 		Assertions.assertThat(updates).isEmpty();
 	}
@@ -101,7 +101,7 @@ class SurveyUnitMongoAdapterTest {
 		responses.add(suDoc2);
 		when(mongoRepository.findByIdUE(any(String.class))).thenReturn(responses);
 		// When
-		List<SurveyUnitDto> updates = surveyUnitMongoAdapter.findByIdUE("UE1100000001");
+		List<SurveyUnit> updates = surveyUnitMongoAdapter.findByIdUE("UE1100000001");
 		// Then
 		Assertions.assertThat(updates).isNotNull().hasSize(2);
 		Assertions.assertThat(updates.getFirst().getMode()).isEqualTo(Mode.WEB);
@@ -112,7 +112,7 @@ class SurveyUnitMongoAdapterTest {
 		//Given
 		when(mongoRepository.findByIdUE(any(String.class))).thenReturn(List.of());
 		// When
-		List<SurveyUnitDto> updates = surveyUnitMongoAdapter.findByIdUE("UE1100000001");
+		List<SurveyUnit> updates = surveyUnitMongoAdapter.findByIdUE("UE1100000001");
 		// Then
 		Assertions.assertThat(updates).isEmpty();
 	}
@@ -126,7 +126,7 @@ class SurveyUnitMongoAdapterTest {
 		responses.add(suDoc3);
 		when(mongoRepository.findByIdQuestionnaire(any(String.class))).thenReturn(responses.stream());
 		// When
-		Stream<SurveyUnitDto> updates = surveyUnitMongoAdapter.findByIdQuestionnaire("TEST2023X01");
+		Stream<SurveyUnit> updates = surveyUnitMongoAdapter.findByIdQuestionnaire("TEST2023X01");
 		// Then
 		Assertions.assertThat(updates).isNotNull().hasSize(3);
 		//Assertions.assertThat(updates.get(2).getMode()).isEqualTo(Mode.WEB);
@@ -137,7 +137,7 @@ class SurveyUnitMongoAdapterTest {
 		//Given
 		when(mongoRepository.findByIdQuestionnaire(any(String.class))).thenReturn(Stream.empty());
 		// When
-		List<SurveyUnitDto> updates = surveyUnitMongoAdapter.findByIdQuestionnaire("TEST2023X01").toList();
+		List<SurveyUnit> updates = surveyUnitMongoAdapter.findByIdQuestionnaire("TEST2023X01").toList();
 		// Then
 		Assertions.assertThat(updates).isEmpty();
 	}
@@ -152,11 +152,11 @@ class SurveyUnitMongoAdapterTest {
 		responses2.add(suDoc3);
 		when(mongoRepository.findByIdUEAndIdQuestionnaire("UE1100000001", "TEST2023X01")).thenReturn(responses1);
 		when(mongoRepository.findByIdUEAndIdQuestionnaire("UE1100000002", "TEST2023X01")).thenReturn(responses2);
-		SurveyUnitDto id1 = SurveyUnitDto.builder().idUE("UE1100000001").build();
-		SurveyUnitDto id2 = SurveyUnitDto.builder().idUE("UE1100000002").build();
-		List<SurveyUnitDto> ids = List.of(id1, id2);
+		SurveyUnit id1 = SurveyUnit.builder().idUE("UE1100000001").build();
+		SurveyUnit id2 = SurveyUnit.builder().idUE("UE1100000002").build();
+		List<SurveyUnit> ids = List.of(id1, id2);
 		// When
-		List<SurveyUnitDto> updates = surveyUnitMongoAdapter.findByIdUEsAndIdQuestionnaire(ids, "TEST2023X01");
+		List<SurveyUnit> updates = surveyUnitMongoAdapter.findByIdUEsAndIdQuestionnaire(ids, "TEST2023X01");
 		// Then
 		Assertions.assertThat(updates).isNotNull().hasSize(3);
 		Assertions.assertThat(updates.getFirst().getMode()).isEqualTo(Mode.WEB);
@@ -166,11 +166,11 @@ class SurveyUnitMongoAdapterTest {
 	void shouldReturnEmptyList_IfIdUEsNotFoundInDataBase() {
 		//Given
 		when(mongoRepository.findByIdUEAndIdQuestionnaire(any(String.class),any(String.class))).thenReturn(List.of());
-		SurveyUnitDto id1 = SurveyUnitDto.builder().idUE("UE1100000001").build();
-		SurveyUnitDto id2 = SurveyUnitDto.builder().idUE("UE1100000002").build();
-		List<SurveyUnitDto> ids = List.of(id1, id2);
+		SurveyUnit id1 = SurveyUnit.builder().idUE("UE1100000001").build();
+		SurveyUnit id2 = SurveyUnit.builder().idUE("UE1100000002").build();
+		List<SurveyUnit> ids = List.of(id1, id2);
 		// When
-		List<SurveyUnitDto> updates = surveyUnitMongoAdapter.findByIdUEsAndIdQuestionnaire(ids, "TEST2023X01");
+		List<SurveyUnit> updates = surveyUnitMongoAdapter.findByIdUEsAndIdQuestionnaire(ids, "TEST2023X01");
 		// Then
 		Assertions.assertThat(updates).isEmpty();
 	}

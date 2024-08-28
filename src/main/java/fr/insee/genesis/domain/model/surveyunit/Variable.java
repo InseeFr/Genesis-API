@@ -1,4 +1,4 @@
-package fr.insee.genesis.domain.dtos;
+package fr.insee.genesis.domain.model.surveyunit;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -9,7 +9,7 @@ import java.util.List;
 @Builder
 @Getter
 @Setter
-public class VariableDto {
+public class Variable {
 
 	private String idVar;
 	private List<String> values;

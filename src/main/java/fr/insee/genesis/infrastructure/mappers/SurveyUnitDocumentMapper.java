@@ -1,6 +1,6 @@
 package fr.insee.genesis.infrastructure.mappers;
 
-import fr.insee.genesis.domain.dtos.SurveyUnitDto;
+import fr.insee.genesis.domain.model.surveyunit.SurveyUnit;
 import fr.insee.genesis.infrastructure.model.document.surveyunit.SurveyUnitDocument;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -14,13 +14,13 @@ public interface SurveyUnitDocumentMapper {
 	SurveyUnitDocumentMapper INSTANCE = Mappers.getMapper(SurveyUnitDocumentMapper.class);
 
 	@Mapping(source = "idQuestionnaire", target = "idQuest")
-	SurveyUnitDto documentToDto(SurveyUnitDocument surveyUnit);
+	SurveyUnit documentToModel(SurveyUnitDocument surveyUnit);
 
 	@Mapping(source = "idQuest", target = "idQuestionnaire")
-	SurveyUnitDocument dtoToDocument(SurveyUnitDto surveyUnitDto);
+	SurveyUnitDocument modelToDocument(SurveyUnit surveyUnit);
 
-	List<SurveyUnitDto> listDocumentToListDto(List<SurveyUnitDocument> surveyUnits);
+	List<SurveyUnit> listDocumentToListModel(List<SurveyUnitDocument> surveyUnits);
 
-	List<SurveyUnitDocument> listDtoToListDocument(List<SurveyUnitDto> surveyUnitsDto);
+	List<SurveyUnitDocument> listModelToListDocument(List<SurveyUnit> surveyUnitsDto);
 
 }

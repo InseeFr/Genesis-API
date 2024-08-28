@@ -1,10 +1,10 @@
 package fr.insee.genesis.domain.ports.api;
 
-import fr.insee.genesis.domain.dtos.CampaignWithQuestionnaire;
-import fr.insee.genesis.domain.dtos.Mode;
-import fr.insee.genesis.domain.dtos.QuestionnaireWithCampaign;
-import fr.insee.genesis.domain.dtos.SurveyUnitDto;
-import fr.insee.genesis.domain.dtos.SurveyUnitId;
+import fr.insee.genesis.domain.model.surveyunit.CampaignWithQuestionnaire;
+import fr.insee.genesis.domain.model.surveyunit.Mode;
+import fr.insee.genesis.domain.model.surveyunit.QuestionnaireWithCampaign;
+import fr.insee.genesis.domain.model.surveyunit.SurveyUnit;
+import fr.insee.genesis.domain.model.surveyunit.SurveyUnitId;
 
 import java.util.List;
 import java.util.Set;
@@ -13,17 +13,17 @@ import java.util.stream.Stream;
 
 public interface SurveyUnitApiPort {
 
-    void saveSurveyUnits(List<SurveyUnitDto> suList);
+    void saveSurveyUnits(List<SurveyUnit> suList);
 
-    List<SurveyUnitDto> findByIdsUEAndQuestionnaire(String idUE, String idQuest);
+    List<SurveyUnit> findByIdsUEAndQuestionnaire(String idUE, String idQuest);
 
-    List<SurveyUnitDto> findByIdUE(String idUE);
+    List<SurveyUnit> findByIdUE(String idUE);
 
-    Stream<SurveyUnitDto> findByIdQuestionnaire(String idQuestionnaire);
+    Stream<SurveyUnit> findByIdQuestionnaire(String idQuestionnaire);
 
-    List<SurveyUnitDto> findLatestByIdAndByIdQuestionnaire(String idUE, String idQuest);
+    List<SurveyUnit> findLatestByIdAndByIdQuestionnaire(String idUE, String idQuest);
 
-    List<SurveyUnitDto> findIdUEsAndModesByIdQuestionnaire(String idQuestionnaire);
+    List<SurveyUnit> findIdUEsAndModesByIdQuestionnaire(String idQuestionnaire);
 
     List<SurveyUnitId> findDistinctIdUEsByIdQuestionnaire(String idQuestionnaire);
 

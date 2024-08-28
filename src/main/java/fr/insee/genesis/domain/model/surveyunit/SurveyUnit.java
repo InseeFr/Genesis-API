@@ -1,4 +1,4 @@
-package fr.insee.genesis.domain.dtos;
+package fr.insee.genesis.domain.model.surveyunit;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
@@ -14,7 +14,7 @@ import java.util.Objects;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SurveyUnitDto {
+public class SurveyUnit {
 
 	private String idQuest;
 	private String idCampaign;
@@ -26,10 +26,10 @@ public class SurveyUnitDto {
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'hh:mm")
 	private LocalDateTime fileDate;
 
-	private List<CollectedVariableDto> collectedVariables;
-	private List<VariableDto> externalVariables;
+	private List<CollectedVariable> collectedVariables;
+	private List<Variable> externalVariables;
 
-	public SurveyUnitDto(String idUE, Mode mode) {
+	public SurveyUnit(String idUE, Mode mode) {
 		this.idUE = idUE;
 		this.mode = mode;
 	}
@@ -42,7 +42,7 @@ public class SurveyUnitDto {
 		if (o == null || getClass() != o.getClass()) {
 			return false;
 		}
-		SurveyUnitDto that = (SurveyUnitDto) o;
+		SurveyUnit that = (SurveyUnit) o;
 		return Objects.equals(idUE, that.idUE) && Objects.equals(mode, that.mode);
 	}
 

@@ -2,7 +2,7 @@ package fr.insee.genesis.infrastructure.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.insee.genesis.configuration.Config;
-import fr.insee.genesis.domain.dtos.SurveyUnitDto;
+import fr.insee.genesis.domain.model.surveyunit.SurveyUnit;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -219,7 +219,7 @@ public class FileUtils {
 	 * @param filePath Path to the file.
 	 * @param responsesStream Stream of SurveyUnitDto to write
 	 */
-	public void writeSuUpdatesInFile(Path filePath, Stream<SurveyUnitDto> responsesStream) throws IOException {
+	public void writeSuUpdatesInFile(Path filePath, Stream<SurveyUnit> responsesStream) throws IOException {
 		Files.createDirectories(filePath.getParent());
 		ObjectMapper objectMapper = new ObjectMapper();
 		objectMapper.findAndRegisterModules();

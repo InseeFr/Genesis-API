@@ -1,14 +1,14 @@
 package fr.insee.genesis.infrastructure.mapper;
 
-import fr.insee.genesis.domain.dtos.CollectedVariableDto;
-import fr.insee.genesis.domain.dtos.DataState;
-import fr.insee.genesis.domain.dtos.Mode;
-import fr.insee.genesis.domain.dtos.SurveyUnitDto;
-import fr.insee.genesis.domain.dtos.VariableDto;
+import fr.insee.genesis.domain.model.surveyunit.CollectedVariable;
+import fr.insee.genesis.domain.model.surveyunit.DataState;
+import fr.insee.genesis.domain.model.surveyunit.Mode;
+import fr.insee.genesis.domain.model.surveyunit.SurveyUnit;
+import fr.insee.genesis.domain.model.surveyunit.Variable;
 import fr.insee.genesis.infrastructure.mappers.SurveyUnitDocumentMapper;
 import fr.insee.genesis.infrastructure.mappers.SurveyUnitDocumentMapperImpl;
-import fr.insee.genesis.infrastructure.model.ExternalVariable;
-import fr.insee.genesis.infrastructure.model.VariableState;
+import fr.insee.genesis.infrastructure.model.document.surveyunit.ExternalVariable;
+import fr.insee.genesis.infrastructure.model.document.surveyunit.VariableState;
 import fr.insee.genesis.infrastructure.model.document.surveyunit.SurveyUnitDocument;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -25,7 +25,7 @@ class SurveyUnitDocumentMapperImplTest {
     static SurveyUnitDocumentMapper surveyUnitDocumentMapperImplStatic;
     static SurveyUnitDocument surveyUnitDocumentStatic;
 
-    static SurveyUnitDto surveyUnitDtoStatic;
+    static SurveyUnit surveyUnitStatic;
 
     @BeforeAll
     static void init(){
@@ -53,16 +53,16 @@ class SurveyUnitDocumentMapperImplTest {
         variableStateList.add(variableState);
         surveyUnitDocumentStatic.setCollectedVariables(variableStateList);
 
-        List<VariableDto> externalVariableDtoList = new ArrayList<>();
-        VariableDto variableDto = VariableDto.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
-        externalVariableDtoList.add(variableDto);
+        List<Variable> externalVariableDtoList = new ArrayList<>();
+        Variable variable = Variable.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
+        externalVariableDtoList.add(variable);
 
-        List<CollectedVariableDto> collectedVariableDtoList = new ArrayList<>();
-        CollectedVariableDto collectedVariableDto = new CollectedVariableDto("TESTIDVAR", List.of(new String[]{"V1", "V2"}),"TESTIDLOOP","TESTIDPARENT");
-        collectedVariableDtoList.add(collectedVariableDto);
+        List<CollectedVariable> collectedVariableList = new ArrayList<>();
+        CollectedVariable collectedVariable = new CollectedVariable("TESTIDVAR", List.of(new String[]{"V1", "V2"}),"TESTIDLOOP","TESTIDPARENT");
+        collectedVariableList.add(collectedVariable);
 
 
-        surveyUnitDtoStatic = SurveyUnitDto.builder()
+        surveyUnitStatic = SurveyUnit.builder()
                 .idCampaign("TESTIDCAMPAIGN")
                 .mode(Mode.WEB)
                 .idUE("TESTIDUE")
@@ -71,7 +71,7 @@ class SurveyUnitDocumentMapperImplTest {
                 .fileDate(LocalDateTime.of(2023,1,1,0,0,0))
                 .recordDate(LocalDateTime.of(2024,1,1,0,0,0))
                 .externalVariables(externalVariableDtoList)
-                .collectedVariables(collectedVariableDtoList)
+                .collectedVariables(collectedVariableList)
                 .build();
 
     }
@@ -80,30 +80,30 @@ class SurveyUnitDocumentMapperImplTest {
     @Test
     @DisplayName("Should return null if null parameter")
     void shouldReturnNull(){
-        Assertions.assertThat(surveyUnitDocumentMapperImplStatic.documentToDto(null)).isNull();
-        Assertions.assertThat(surveyUnitDocumentMapperImplStatic.dtoToDocument(null)).isNull();
-        Assertions.assertThat(surveyUnitDocumentMapperImplStatic.listDocumentToListDto(null)).isNull();
-        Assertions.assertThat(surveyUnitDocumentMapperImplStatic.listDtoToListDocument(null)).isNull();
+        Assertions.assertThat(surveyUnitDocumentMapperImplStatic.documentToModel(null)).isNull();
+        Assertions.assertThat(surveyUnitDocumentMapperImplStatic.modelToDocument(null)).isNull();
+        Assertions.assertThat(surveyUnitDocumentMapperImplStatic.listDocumentToListModel(null)).isNull();
+        Assertions.assertThat(surveyUnitDocumentMapperImplStatic.listModelToListDocument(null)).isNull();
     }
 
     @Test
     @DisplayName("Should convert document to DTO")
     void shouldReturnDocumentDtoFromDocument(){
-        SurveyUnitDto surveyUnitDto = surveyUnitDocumentMapperImplStatic.documentToDto(surveyUnitDocumentStatic);
+        SurveyUnit surveyUnit = surveyUnitDocumentMapperImplStatic.documentToModel(surveyUnitDocumentStatic);
 
-        Assertions.assertThat(surveyUnitDto.getIdCampaign()).isEqualTo("TESTIDCAMPAIGN");
-        Assertions.assertThat(surveyUnitDto.getMode()).isEqualTo(Mode.WEB);
-        Assertions.assertThat(surveyUnitDto.getIdUE()).isEqualTo("TESTIDUE");
-        Assertions.assertThat(surveyUnitDto.getIdQuest()).isEqualTo("TESTIDQUESTIONNAIRE");
-        Assertions.assertThat(surveyUnitDto.getState()).isEqualTo(DataState.COLLECTED);
-        Assertions.assertThat(surveyUnitDto.getFileDate()).isEqualTo(LocalDateTime.of(2023,1,1,0,0,0));
+        Assertions.assertThat(surveyUnit.getIdCampaign()).isEqualTo("TESTIDCAMPAIGN");
+        Assertions.assertThat(surveyUnit.getMode()).isEqualTo(Mode.WEB);
+        Assertions.assertThat(surveyUnit.getIdUE()).isEqualTo("TESTIDUE");
+        Assertions.assertThat(surveyUnit.getIdQuest()).isEqualTo("TESTIDQUESTIONNAIRE");
+        Assertions.assertThat(surveyUnit.getState()).isEqualTo(DataState.COLLECTED);
+        Assertions.assertThat(surveyUnit.getFileDate()).isEqualTo(LocalDateTime.of(2023,1,1,0,0,0));
 
-        Assertions.assertThat(surveyUnitDto.getExternalVariables()).filteredOn(externalVariableDto ->
+        Assertions.assertThat(surveyUnit.getExternalVariables()).filteredOn(externalVariableDto ->
             externalVariableDto.getIdVar().equals("TESTIDVAR")
             && externalVariableDto.getValues().containsAll(List.of(new String[]{"V1", "V2"}))
         ).isNotEmpty();
 
-        Assertions.assertThat(surveyUnitDto.getCollectedVariables()).filteredOn(variableStateDto ->
+        Assertions.assertThat(surveyUnit.getCollectedVariables()).filteredOn(variableStateDto ->
                 variableStateDto.getIdVar().equals("TESTIDVAR")
                         && variableStateDto.getValues().containsAll(List.of(new String[]{"V1", "V2"}))
         ).isNotEmpty();
@@ -113,7 +113,7 @@ class SurveyUnitDocumentMapperImplTest {
     @Test
     @DisplayName("Should convert DTO to document")
     void shouldReturnDocumentFromDocumentDto(){
-        SurveyUnitDocument surveyUnitDocument = surveyUnitDocumentMapperImplStatic.dtoToDocument(surveyUnitDtoStatic);
+        SurveyUnitDocument surveyUnitDocument = surveyUnitDocumentMapperImplStatic.modelToDocument(surveyUnitStatic);
 
         Assertions.assertThat(surveyUnitDocument.getIdCampaign()).isEqualTo("TESTIDCAMPAIGN");
         Assertions.assertThat(surveyUnitDocument.getMode()).isEqualTo("WEB");
@@ -141,21 +141,21 @@ class SurveyUnitDocumentMapperImplTest {
         List<SurveyUnitDocument> surveyUnitDocumentList = new ArrayList<>();
         surveyUnitDocumentList.add(surveyUnitDocumentStatic);
 
-        List<SurveyUnitDto> surveyUnitDtoList = surveyUnitDocumentMapperImplStatic.listDocumentToListDto(surveyUnitDocumentList);
+        List<SurveyUnit> surveyUnitList = surveyUnitDocumentMapperImplStatic.listDocumentToListModel(surveyUnitDocumentList);
 
-        Assertions.assertThat(surveyUnitDtoList.getFirst().getIdCampaign()).isEqualTo("TESTIDCAMPAIGN");
-        Assertions.assertThat(surveyUnitDtoList.getFirst().getMode()).isEqualTo(Mode.WEB);
-        Assertions.assertThat(surveyUnitDtoList.getFirst().getIdUE()).isEqualTo("TESTIDUE");
-        Assertions.assertThat(surveyUnitDtoList.getFirst().getIdQuest()).isEqualTo("TESTIDQUESTIONNAIRE");
-        Assertions.assertThat(surveyUnitDtoList.getFirst().getState()).isEqualTo(DataState.COLLECTED);
-        Assertions.assertThat(surveyUnitDtoList.getFirst().getFileDate()).isEqualTo(LocalDateTime.of(2023,1,1,0,0,0));
+        Assertions.assertThat(surveyUnitList.getFirst().getIdCampaign()).isEqualTo("TESTIDCAMPAIGN");
+        Assertions.assertThat(surveyUnitList.getFirst().getMode()).isEqualTo(Mode.WEB);
+        Assertions.assertThat(surveyUnitList.getFirst().getIdUE()).isEqualTo("TESTIDUE");
+        Assertions.assertThat(surveyUnitList.getFirst().getIdQuest()).isEqualTo("TESTIDQUESTIONNAIRE");
+        Assertions.assertThat(surveyUnitList.getFirst().getState()).isEqualTo(DataState.COLLECTED);
+        Assertions.assertThat(surveyUnitList.getFirst().getFileDate()).isEqualTo(LocalDateTime.of(2023,1,1,0,0,0));
 
-        Assertions.assertThat(surveyUnitDtoList.getFirst().getExternalVariables()).filteredOn(externalVariableDto ->
+        Assertions.assertThat(surveyUnitList.getFirst().getExternalVariables()).filteredOn(externalVariableDto ->
                 externalVariableDto.getIdVar().equals("TESTIDVAR")
                         && externalVariableDto.getValues().containsAll(List.of(new String[]{"V1", "V2"}))
         ).isNotEmpty();
 
-        Assertions.assertThat(surveyUnitDtoList.getFirst().getCollectedVariables()).filteredOn(variableStateDto ->
+        Assertions.assertThat(surveyUnitList.getFirst().getCollectedVariables()).filteredOn(variableStateDto ->
                 variableStateDto.getIdVar().equals("TESTIDVAR")
                         && variableStateDto.getValues().containsAll(List.of(new String[]{"V1", "V2"}))
         ).isNotEmpty();
@@ -164,10 +164,10 @@ class SurveyUnitDocumentMapperImplTest {
     @Test
     @DisplayName("Should convert DTO list to document list")
     void shouldReturnDocumentListFromDocumentDtoList(){
-        List<SurveyUnitDto> surveyUnitDtoList = new ArrayList<>();
-        surveyUnitDtoList.add(surveyUnitDtoStatic);
+        List<SurveyUnit> surveyUnitList = new ArrayList<>();
+        surveyUnitList.add(surveyUnitStatic);
 
-        List<SurveyUnitDocument> surveyUnitDocumentList = surveyUnitDocumentMapperImplStatic.listDtoToListDocument(surveyUnitDtoList);
+        List<SurveyUnitDocument> surveyUnitDocumentList = surveyUnitDocumentMapperImplStatic.listModelToListDocument(surveyUnitList);
 
         Assertions.assertThat(surveyUnitDocumentList.getFirst().getIdCampaign()).isEqualTo("TESTIDCAMPAIGN");
         Assertions.assertThat(surveyUnitDocumentList.getFirst().getMode()).isEqualTo("WEB");

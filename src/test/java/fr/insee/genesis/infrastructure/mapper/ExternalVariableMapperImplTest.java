@@ -1,8 +1,8 @@
 package fr.insee.genesis.infrastructure.mapper;
 
-import fr.insee.genesis.domain.dtos.VariableDto;
+import fr.insee.genesis.domain.model.surveyunit.Variable;
 import fr.insee.genesis.infrastructure.mappers.ExternalVariableMapperImpl;
-import fr.insee.genesis.infrastructure.model.ExternalVariable;
+import fr.insee.genesis.infrastructure.model.document.surveyunit.ExternalVariable;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -14,7 +14,7 @@ import java.util.List;
 class ExternalVariableMapperImplTest {
     static ExternalVariableMapperImpl externalVariableMapperStatic;
     static ExternalVariable externalVariableStatic;
-    static VariableDto variableDtoStatic;
+    static Variable variableStatic;
 
 
     //Given
@@ -26,7 +26,7 @@ class ExternalVariableMapperImplTest {
         externalVariableStatic.setIdVar("TESTIDVAR");
         externalVariableStatic.setValues(List.of(new String[]{"V1", "V2"}));
 
-        variableDtoStatic = VariableDto.builder()
+        variableStatic = Variable.builder()
                 .idVar("TESTIDVAR")
                 .values(List.of(new String[]{"V1", "V2"}))
                 .build();
@@ -36,24 +36,24 @@ class ExternalVariableMapperImplTest {
     @Test
     @DisplayName("Should return null if null parameter")
     void shouldReturnNull(){
-        Assertions.assertThat(externalVariableMapperStatic.entityToDto(null)).isNull();
-        Assertions.assertThat(externalVariableMapperStatic.dtoToEntity(null)).isNull();
-        Assertions.assertThat(externalVariableMapperStatic.listEntityToListDto(null)).isNull();
-        Assertions.assertThat(externalVariableMapperStatic.listDtoToListEntity(null)).isNull();
+        Assertions.assertThat(externalVariableMapperStatic.entityToModel(null)).isNull();
+        Assertions.assertThat(externalVariableMapperStatic.modelToEntity(null)).isNull();
+        Assertions.assertThat(externalVariableMapperStatic.listEntityToListModel(null)).isNull();
+        Assertions.assertThat(externalVariableMapperStatic.listModelToListEntity(null)).isNull();
     }
 
     @Test
     @DisplayName("Should convert external variable to Variable DTO")
     void shouldReturnVariableDtoFromExternalVariable(){
-        VariableDto variableDto = externalVariableMapperStatic.entityToDto(externalVariableStatic);
-        Assertions.assertThat(variableDto.getIdVar()).isEqualTo("TESTIDVAR");
-        Assertions.assertThat(variableDto.getValues()).containsAll(List.of(new String[]{"V1", "V2"}));
+        Variable variable = externalVariableMapperStatic.entityToModel(externalVariableStatic);
+        Assertions.assertThat(variable.getIdVar()).isEqualTo("TESTIDVAR");
+        Assertions.assertThat(variable.getValues()).containsAll(List.of(new String[]{"V1", "V2"}));
     }
 
     @Test
     @DisplayName("Should convert external variable to Variable DTO")
     void shouldReturnExternalVariableFromVariableDto(){
-        ExternalVariable externalVariable = externalVariableMapperStatic.dtoToEntity(variableDtoStatic);
+        ExternalVariable externalVariable = externalVariableMapperStatic.modelToEntity(variableStatic);
         Assertions.assertThat(externalVariable.getIdVar()).isEqualTo("TESTIDVAR");
         Assertions.assertThat(externalVariable.getValues()).containsAll(List.of(new String[]{"V1", "V2"}));
     }
@@ -64,20 +64,20 @@ class ExternalVariableMapperImplTest {
         List<ExternalVariable> externalVariableList = new ArrayList<>();
         externalVariableList.add(externalVariableStatic);
 
-        List<VariableDto> variableDtoList = externalVariableMapperStatic.listEntityToListDto(externalVariableList);
+        List<Variable> variableList = externalVariableMapperStatic.listEntityToListModel(externalVariableList);
 
-        Assertions.assertThat(variableDtoList).isNotNull().isNotEmpty();
-        Assertions.assertThat(variableDtoList.getFirst().getIdVar()).isEqualTo("TESTIDVAR");
-        Assertions.assertThat(variableDtoList.getFirst().getValues()).containsAll(List.of(new String[]{"V1", "V2"}));
+        Assertions.assertThat(variableList).isNotNull().isNotEmpty();
+        Assertions.assertThat(variableList.getFirst().getIdVar()).isEqualTo("TESTIDVAR");
+        Assertions.assertThat(variableList.getFirst().getValues()).containsAll(List.of(new String[]{"V1", "V2"}));
     }
 
     @Test
     @DisplayName("Should convert list of external variable to list Variable DTO")
     void shouldReturnExternalVariableListFromVariableDtoList(){
-        List<VariableDto> variableDtoList = new ArrayList<>();
-        variableDtoList.add(variableDtoStatic);
+        List<Variable> variableList = new ArrayList<>();
+        variableList.add(variableStatic);
 
-        List<ExternalVariable> externalVariableList = externalVariableMapperStatic.listDtoToListEntity(variableDtoList);
+        List<ExternalVariable> externalVariableList = externalVariableMapperStatic.listModelToListEntity(variableList);
 
         Assertions.assertThat(externalVariableList).isNotNull().isNotEmpty();
         Assertions.assertThat(externalVariableList.getFirst().getIdVar()).isEqualTo("TESTIDVAR");

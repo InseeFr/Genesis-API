@@ -1,10 +1,11 @@
 package fr.insee.genesis.domain.service;
 
-import fr.insee.genesis.domain.dtos.CollectedVariableDto;
-import fr.insee.genesis.domain.dtos.DataState;
-import fr.insee.genesis.domain.dtos.Mode;
-import fr.insee.genesis.domain.dtos.SurveyUnitDto;
-import fr.insee.genesis.domain.dtos.VariableDto;
+import fr.insee.genesis.domain.model.surveyunit.CollectedVariable;
+import fr.insee.genesis.domain.model.surveyunit.DataState;
+import fr.insee.genesis.domain.model.surveyunit.Mode;
+import fr.insee.genesis.domain.model.surveyunit.SurveyUnit;
+import fr.insee.genesis.domain.model.surveyunit.Variable;
+import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -33,14 +34,14 @@ class SurveyUnitServiceTest {
     @BeforeEach
     void reset(){
         surveyUnitPersistencePortStub.getMongoStub().clear();
-        List<VariableDto> externalVariableDtoList = new ArrayList<>();
-        VariableDto variableDto = VariableDto.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
-        externalVariableDtoList.add(variableDto);
+        List<Variable> externalVariableList = new ArrayList<>();
+        Variable variable = Variable.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
+        externalVariableList.add(variable);
 
-        List<CollectedVariableDto> collectedVariableDtoList = new ArrayList<>();
-        CollectedVariableDto collectedVariableDto = new CollectedVariableDto("TESTIDVAR", List.of(new String[]{"V1", "V2"}),"TESTIDLOOP","TESTIDPARENT");
-        collectedVariableDtoList.add(collectedVariableDto);
-        surveyUnitPersistencePortStub.getMongoStub().add(SurveyUnitDto.builder()
+        List<CollectedVariable> collectedVariableList = new ArrayList<>();
+        CollectedVariable collectedVariable = new CollectedVariable("TESTIDVAR", List.of(new String[]{"V1", "V2"}),"TESTIDLOOP","TESTIDPARENT");
+        collectedVariableList.add(collectedVariable);
+        surveyUnitPersistencePortStub.getMongoStub().add(SurveyUnit.builder()
                 .idCampaign("TESTIDCAMPAIGN")
                 .mode(Mode.WEB)
                 .idUE("TESTIDUE")
@@ -48,8 +49,8 @@ class SurveyUnitServiceTest {
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2023,1,1,0,0,0))
                 .recordDate(LocalDateTime.of(2024,1,1,0,0,0))
-                .externalVariables(externalVariableDtoList)
-                .collectedVariables(collectedVariableDtoList)
+                .externalVariables(externalVariableList)
+                .collectedVariables(collectedVariableList)
                 .build());
     }
 
@@ -57,18 +58,18 @@ class SurveyUnitServiceTest {
     @Test
     @DisplayName("The survey unit should be saved into DB")
     void saveAllTest(){
-        List<SurveyUnitDto> newSurveyUnitDtoList = new ArrayList<>();
+        List<SurveyUnit> newSurveyUnitList = new ArrayList<>();
 
-        List<VariableDto> externalVariableDtoList = new ArrayList<>();
-        VariableDto variableDto = VariableDto.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
-        externalVariableDtoList.add(variableDto);
+        List<Variable> externalVariableList = new ArrayList<>();
+        Variable variable = Variable.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
+        externalVariableList.add(variable);
 
-        List<CollectedVariableDto> collectedVariableDtoList = new ArrayList<>();
-        CollectedVariableDto collectedVariableDto = new CollectedVariableDto("TESTIDVAR", List.of(new String[]{"V1", "V2"}),"TESTIDLOOP","TESTIDPARENT");
-        collectedVariableDtoList.add(collectedVariableDto);
+        List<CollectedVariable> collectedVariableList = new ArrayList<>();
+        CollectedVariable collectedVariableDto = new CollectedVariable("TESTIDVAR", List.of(new String[]{"V1", "V2"}),"TESTIDLOOP","TESTIDPARENT");
+        collectedVariableList.add(collectedVariableDto);
 
-        newSurveyUnitDtoList.add(
-                SurveyUnitDto.builder()
+        newSurveyUnitList.add(
+                SurveyUnit.builder()
                         .idCampaign("TESTIDCAMPAIGN")
                         .mode(Mode.WEB)
                         .idUE("TESTIDUE2")
@@ -76,12 +77,12 @@ class SurveyUnitServiceTest {
                         .state(DataState.COLLECTED)
                         .fileDate(LocalDateTime.of(2023,1,1,0,0,0))
                         .recordDate(LocalDateTime.of(2024,1,1,0,0,0))
-                        .externalVariables(externalVariableDtoList)
-                        .collectedVariables(collectedVariableDtoList)
+                        .externalVariables(externalVariableList)
+                        .collectedVariables(collectedVariableList)
                         .build()
         );
 
-        surveyUnitServiceStatic.saveSurveyUnits(newSurveyUnitDtoList);
+        surveyUnitServiceStatic.saveSurveyUnits(newSurveyUnitList);
 
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).filteredOn(surveyUnitDto ->
                 surveyUnitDto.getIdCampaign().equals("TESTIDCAMPAIGN")
@@ -167,15 +168,15 @@ class SurveyUnitServiceTest {
     }
 
     private void addAdditionnalDtoToMongoStub(){
-        List<VariableDto> externalVariableDtoList = new ArrayList<>();
-        VariableDto variableDto = VariableDto.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
-        externalVariableDtoList.add(variableDto);
+        List<Variable> externalVariableList = new ArrayList<>();
+        Variable variable = Variable.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
+        externalVariableList.add(variable);
 
-        List<CollectedVariableDto> collectedVariableDtoList = new ArrayList<>();
-        CollectedVariableDto collectedVariableDto = new CollectedVariableDto("TESTIDVAR", List.of(new String[]{"V1", "V2"}),"TESTIDLOOP","TESTIDPARENT");
-        collectedVariableDtoList.add(collectedVariableDto);
+        List<CollectedVariable> collectedVariableList = new ArrayList<>();
+        CollectedVariable collectedVariable = new CollectedVariable("TESTIDVAR", List.of(new String[]{"V1", "V2"}),"TESTIDLOOP","TESTIDPARENT");
+        collectedVariableList.add(collectedVariable);
 
-        SurveyUnitDto recentDTO = SurveyUnitDto.builder()
+        SurveyUnit recentDTO = SurveyUnit.builder()
                 .idCampaign("TESTIDCAMPAIGN")
                 .mode(Mode.WEB)
                 .idUE("TESTIDUE")
@@ -183,22 +184,22 @@ class SurveyUnitServiceTest {
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2023,2,2,0,0,0))
                 .recordDate(LocalDateTime.of(2024,2,2,0,0,0))
-                .externalVariables(externalVariableDtoList)
-                .collectedVariables(collectedVariableDtoList)
+                .externalVariables(externalVariableList)
+                .collectedVariables(collectedVariableList)
                 .build();
         surveyUnitPersistencePortStub.getMongoStub().add(recentDTO);
     }
 
     private void addAdditionnalDtoToMongoStub(String idQuestionnaire) {
-        List<VariableDto> externalVariableDtoList = new ArrayList<>();
-        VariableDto variableDto = VariableDto.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
-        externalVariableDtoList.add(variableDto);
+        List<Variable> externalVariableList = new ArrayList<>();
+        Variable variable = Variable.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
+        externalVariableList.add(variable);
 
-        List<CollectedVariableDto> collectedVariableDtoList = new ArrayList<>();
-        CollectedVariableDto collectedVariableDto = new CollectedVariableDto("TESTIDVAR", List.of(new String[]{"V1", "V2"}), "TESTIDLOOP", "TESTIDPARENT");
-        collectedVariableDtoList.add(collectedVariableDto);
+        List<CollectedVariable> collectedVariableList = new ArrayList<>();
+        CollectedVariable collectedVariable = new CollectedVariable("TESTIDVAR", List.of(new String[]{"V1", "V2"}), "TESTIDLOOP", "TESTIDPARENT");
+        collectedVariableList.add(collectedVariable);
 
-        SurveyUnitDto recentDTO = SurveyUnitDto.builder()
+        SurveyUnit recentDTO = SurveyUnit.builder()
                 .idCampaign("TESTIDCAMPAIGN")
                 .mode(Mode.WEB)
                 .idUE("TESTIDUE")
@@ -206,8 +207,8 @@ class SurveyUnitServiceTest {
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2023, 2, 2, 0, 0, 0))
                 .recordDate(LocalDateTime.of(2024, 2, 2, 0, 0, 0))
-                .externalVariables(externalVariableDtoList)
-                .collectedVariables(collectedVariableDtoList)
+                .externalVariables(externalVariableList)
+                .collectedVariables(collectedVariableList)
                 .build();
         surveyUnitPersistencePortStub.getMongoStub().add(recentDTO);
     }

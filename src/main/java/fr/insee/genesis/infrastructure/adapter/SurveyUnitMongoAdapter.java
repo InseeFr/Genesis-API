@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fr.insee.genesis.Constants;
-import fr.insee.genesis.domain.dtos.SurveyUnitDto;
+import fr.insee.genesis.domain.model.surveyunit.SurveyUnit;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
 import fr.insee.genesis.infrastructure.mappers.SurveyUnitDocumentMapper;
 import fr.insee.genesis.infrastructure.model.document.surveyunit.SurveyUnitDocument;
@@ -33,39 +33,39 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 	MongoTemplate mongoTemplate;
 
 	@Override
-	public void saveAll(List<SurveyUnitDto> suListDto) {
-		List<SurveyUnitDocument> suList = SurveyUnitDocumentMapper.INSTANCE.listDtoToListDocument(suListDto);
+	public void saveAll(List<SurveyUnit> suListDto) {
+		List<SurveyUnitDocument> suList = SurveyUnitDocumentMapper.INSTANCE.listModelToListDocument(suListDto);
 		mongoRepository.insert(suList);
 	}
 
 	@Override
-	public List<SurveyUnitDto> findByIds(String idUE, String idQuest) {
+	public List<SurveyUnit> findByIds(String idUE, String idQuest) {
 		List<SurveyUnitDocument> surveyUnits = mongoRepository.findByIdUEAndIdQuestionnaire(idUE, idQuest);
-		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListDto(surveyUnits);
+		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnits);
 	}
 
 	@Override
-	public List<SurveyUnitDto> findByIdUE(String idUE) {
+	public List<SurveyUnit> findByIdUE(String idUE) {
 		List<SurveyUnitDocument> surveyUnits = mongoRepository.findByIdUE(idUE);
-		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListDto(surveyUnits);
+		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnits);
 	}
 
 	@Override
-	public List<SurveyUnitDto> findByIdUEsAndIdQuestionnaire(List<SurveyUnitDto> idUEs, String idQuestionnaire) {
+	public List<SurveyUnit> findByIdUEsAndIdQuestionnaire(List<SurveyUnit> idUEs, String idQuestionnaire) {
 		List<SurveyUnitDocument> surveyUnits= new ArrayList<>();
 		// TODO: 18-10-2023 : find a way to do this in one query
 		idUEs.forEach(su -> {
 			List<SurveyUnitDocument> docs = mongoRepository.findByIdUEAndIdQuestionnaire(su.getIdUE(), idQuestionnaire);
 			surveyUnits.addAll(docs);
 		});
-		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListDto(surveyUnits);
+		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnits);
 	}
 
 
 	@Override
-	public Stream<SurveyUnitDto> findByIdQuestionnaire(String idQuestionnaire) {
+	public Stream<SurveyUnit> findByIdQuestionnaire(String idQuestionnaire) {
 		Stream<SurveyUnitDocument> surveyUnits = mongoRepository.findByIdQuestionnaire(idQuestionnaire);
-		return surveyUnits.map(SurveyUnitDocumentMapper.INSTANCE::documentToDto);
+		return surveyUnits.map(SurveyUnitDocumentMapper.INSTANCE::documentToModel);
 		//return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListDto(surveyUnits);
 	}
 
@@ -110,15 +110,15 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 	}
 
 	@Override
-	public List<SurveyUnitDto> findIdUEsByIdQuestionnaire(String idQuestionnaire) {
+	public List<SurveyUnit> findIdUEsByIdQuestionnaire(String idQuestionnaire) {
 		List<SurveyUnitDocument> surveyUnits = mongoRepository.findIdUEsByIdQuestionnaire(idQuestionnaire);
-		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListDto(surveyUnits);
+		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnits);
 	}
 
 	@Override
-	public List<SurveyUnitDto> findIdUEsByIdCampaign(String idCampaign) {
+	public List<SurveyUnit> findIdUEsByIdCampaign(String idCampaign) {
 		List<SurveyUnitDocument> surveyUnits = mongoRepository.findIdUEsByIdCampaign(idCampaign);
-		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListDto(surveyUnits);
+		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnits);
 
 	}
 
