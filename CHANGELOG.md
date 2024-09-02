@@ -1,4 +1,14 @@
 # Changelog
+
+## 1.2.10 - [2024-08-30]
+### Updated
+- Update dependencies (pitest, spring-boot, mapstruct)
+
+### Added
+- Improve encryption management
+- Accept data without DDI
+- Read metadata throw BPM
+
 ## 1.2.9 - [2024-08-01]
 ### Fixed
 - Wrong loop reading in data file
