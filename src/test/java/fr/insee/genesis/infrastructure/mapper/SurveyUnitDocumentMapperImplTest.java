@@ -3,7 +3,7 @@ package fr.insee.genesis.infrastructure.mapper;
 import fr.insee.genesis.domain.model.surveyunit.CollectedVariable;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
-import fr.insee.genesis.domain.model.surveyunit.SurveyUnit;
+import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.Variable;
 import fr.insee.genesis.infrastructure.mappers.SurveyUnitDocumentMapper;
 import fr.insee.genesis.infrastructure.mappers.SurveyUnitDocumentMapperImpl;
@@ -25,7 +25,7 @@ class SurveyUnitDocumentMapperImplTest {
     static SurveyUnitDocumentMapper surveyUnitDocumentMapperImplStatic;
     static SurveyUnitDocument surveyUnitDocumentStatic;
 
-    static SurveyUnit surveyUnitStatic;
+    static SurveyUnitModel surveyUnitStatic;
 
     @BeforeAll
     static void init(){
@@ -62,7 +62,7 @@ class SurveyUnitDocumentMapperImplTest {
         collectedVariableList.add(collectedVariable);
 
 
-        surveyUnitStatic = SurveyUnit.builder()
+        surveyUnitStatic = SurveyUnitModel.builder()
                 .idCampaign("TESTIDCAMPAIGN")
                 .mode(Mode.WEB)
                 .idUE("TESTIDUE")
@@ -89,7 +89,7 @@ class SurveyUnitDocumentMapperImplTest {
     @Test
     @DisplayName("Should convert document to DTO")
     void shouldReturnDocumentDtoFromDocument(){
-        SurveyUnit surveyUnit = surveyUnitDocumentMapperImplStatic.documentToModel(surveyUnitDocumentStatic);
+        SurveyUnitModel surveyUnit = surveyUnitDocumentMapperImplStatic.documentToModel(surveyUnitDocumentStatic);
 
         Assertions.assertThat(surveyUnit.getIdCampaign()).isEqualTo("TESTIDCAMPAIGN");
         Assertions.assertThat(surveyUnit.getMode()).isEqualTo(Mode.WEB);
@@ -141,7 +141,7 @@ class SurveyUnitDocumentMapperImplTest {
         List<SurveyUnitDocument> surveyUnitDocumentList = new ArrayList<>();
         surveyUnitDocumentList.add(surveyUnitDocumentStatic);
 
-        List<SurveyUnit> surveyUnitList = surveyUnitDocumentMapperImplStatic.listDocumentToListModel(surveyUnitDocumentList);
+        List<SurveyUnitModel> surveyUnitList = surveyUnitDocumentMapperImplStatic.listDocumentToListModel(surveyUnitDocumentList);
 
         Assertions.assertThat(surveyUnitList.getFirst().getIdCampaign()).isEqualTo("TESTIDCAMPAIGN");
         Assertions.assertThat(surveyUnitList.getFirst().getMode()).isEqualTo(Mode.WEB);
@@ -164,7 +164,7 @@ class SurveyUnitDocumentMapperImplTest {
     @Test
     @DisplayName("Should convert DTO list to document list")
     void shouldReturnDocumentListFromDocumentDtoList(){
-        List<SurveyUnit> surveyUnitList = new ArrayList<>();
+        List<SurveyUnitModel> surveyUnitList = new ArrayList<>();
         surveyUnitList.add(surveyUnitStatic);
 
         List<SurveyUnitDocument> surveyUnitDocumentList = surveyUnitDocumentMapperImplStatic.listModelToListDocument(surveyUnitList);

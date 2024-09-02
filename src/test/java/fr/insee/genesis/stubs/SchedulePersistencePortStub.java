@@ -1,7 +1,9 @@
 package fr.insee.genesis.stubs;
 
+import fr.insee.genesis.domain.model.schedule.ScheduleModel;
 import fr.insee.genesis.domain.ports.spi.SchedulePersistencePort;
-import fr.insee.genesis.infrastructure.model.document.schedule.SurveyScheduleDocument;
+import fr.insee.genesis.infrastructure.mappers.ScheduleDocumentMapper;
+import fr.insee.genesis.infrastructure.model.document.schedule.ScheduleDocument;
 import lombok.Getter;
 
 import java.util.ArrayList;
@@ -9,21 +11,21 @@ import java.util.List;
 
 @Getter
 public class SchedulePersistencePortStub implements SchedulePersistencePort {
-    List<SurveyScheduleDocument> mongoStub = new ArrayList<>();
+    List<ScheduleDocument> mongoStub = new ArrayList<>();
 
     @Override
-    public List<SurveyScheduleDocument> getAll() {
-        return mongoStub;
+    public List<ScheduleModel> getAll() {
+        return ScheduleDocumentMapper.INSTANCE.listDocumentToListModel(mongoStub);
     }
 
     @Override
-    public void saveAll(List<SurveyScheduleDocument> surveyScheduleDocuments) {
-        mongoStub.addAll(surveyScheduleDocuments);
+    public void saveAll(List<ScheduleModel> scheduleDocuments) {
+        mongoStub.addAll(ScheduleDocumentMapper.INSTANCE.listModelToListDocument(scheduleDocuments));
     }
 
     @Override
-    public List<SurveyScheduleDocument> findBySurveyName(String surveyName) {
-        return mongoStub.stream().filter(surveySchedule -> surveySchedule.getSurveyName().equals(surveyName)).toList();
+    public List<ScheduleModel> findBySurveyName(String surveyName) {
+        return ScheduleDocumentMapper.INSTANCE.listDocumentToListModel(mongoStub.stream().filter(surveySchedule -> surveySchedule.getSurveyName().equals(surveyName)).toList());
     }
 
     @Override

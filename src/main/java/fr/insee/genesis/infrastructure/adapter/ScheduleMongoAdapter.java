@@ -1,30 +1,36 @@
 package fr.insee.genesis.infrastructure.adapter;
 
+import fr.insee.genesis.domain.model.schedule.ScheduleModel;
 import fr.insee.genesis.domain.ports.spi.SchedulePersistencePort;
-import fr.insee.genesis.infrastructure.model.document.schedule.SurveyScheduleDocument;
+import fr.insee.genesis.infrastructure.mappers.ScheduleDocumentMapper;
 import fr.insee.genesis.infrastructure.repository.ScheduleMongoDBRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Service
 public class ScheduleMongoAdapter implements SchedulePersistencePort {
+    private final ScheduleMongoDBRepository scheduleMongoDBRepository;
+
     @Autowired
-    private ScheduleMongoDBRepository scheduleMongoDBRepository;
-
-
-    @Override
-    public List<SurveyScheduleDocument> getAll() {
-        return scheduleMongoDBRepository.findAll();
+    public ScheduleMongoAdapter(ScheduleMongoDBRepository scheduleMongoDBRepository) {
+        this.scheduleMongoDBRepository = scheduleMongoDBRepository;
     }
 
     @Override
-    public void saveAll(List<SurveyScheduleDocument> surveyScheduleDocuments) {
-        scheduleMongoDBRepository.saveAll(surveyScheduleDocuments);
+    public List<ScheduleModel> getAll() {
+        return ScheduleDocumentMapper.INSTANCE.listDocumentToListModel(scheduleMongoDBRepository.findAll());
     }
 
     @Override
-    public List<SurveyScheduleDocument> findBySurveyName(String surveyName) {
-        return scheduleMongoDBRepository.findBySurveyName(surveyName);
+    public void saveAll(List<ScheduleModel> scheduleModels) {
+        scheduleMongoDBRepository.saveAll(ScheduleDocumentMapper.INSTANCE.listModelToListDocument(scheduleModels));
+    }
+
+    @Override
+    public List<ScheduleModel> findBySurveyName(String surveyName) {
+        return ScheduleDocumentMapper.INSTANCE.listDocumentToListModel(scheduleMongoDBRepository.findBySurveyName(surveyName));
     }
 
     @Override

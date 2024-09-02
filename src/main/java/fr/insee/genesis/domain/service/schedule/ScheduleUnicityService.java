@@ -1,7 +1,7 @@
 package fr.insee.genesis.domain.service.schedule;
 
-import fr.insee.genesis.infrastructure.model.document.schedule.KraftwerkExecutionSchedule;
-import fr.insee.genesis.infrastructure.model.document.schedule.SurveyScheduleDocument;
+import fr.insee.genesis.domain.model.schedule.KraftwerkExecutionSchedule;
+import fr.insee.genesis.domain.model.schedule.ScheduleModel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -11,24 +11,24 @@ import java.util.List;
 @Service
 @Slf4j
 public class ScheduleUnicityService {
-    public SurveyScheduleDocument deduplicateSurveySchedules(String surveyName, List<SurveyScheduleDocument> surveyScheduleDocuments) {
-        if(surveyScheduleDocuments.isEmpty()) {
+    public ScheduleModel deduplicateSurveySchedules(String surveyName, List<ScheduleModel> scheduleModels) {
+        if(scheduleModels.isEmpty()) {
             return null;
         }
-        if(surveyScheduleDocuments.size() == 1) {
-            return surveyScheduleDocuments.getFirst();
+        if(scheduleModels.size() == 1) {
+            return scheduleModels.getFirst();
         }
 
-        log.info("{} survey descriptions found for {}, deduplicating...", surveyScheduleDocuments.size(), surveyName);
+        log.info("{} survey descriptions found for {}, deduplicating...", scheduleModels.size(), surveyName);
 
-        SurveyScheduleDocument deduplicatedSurveySchedule = new SurveyScheduleDocument(
-                surveyName,
-                new ArrayList<>()
-        );
+        ScheduleModel deduplicatedSurveySchedule = ScheduleModel.builder()
+                        .surveyName(surveyName)
+                        .kraftwerkExecutionScheduleList(new ArrayList<>())
+                        .build();
 
         //Add schedule in dedup if doesn't exists already
-        for(SurveyScheduleDocument surveyScheduleDocument : surveyScheduleDocuments){
-            for(KraftwerkExecutionSchedule storedExecutionSchedule : surveyScheduleDocument.getKraftwerkExecutionScheduleList()){
+        for(ScheduleModel scheduleModel : scheduleModels){
+            for(KraftwerkExecutionSchedule storedExecutionSchedule : scheduleModel.getKraftwerkExecutionScheduleList()){
                 if(deduplicatedSurveySchedule.getKraftwerkExecutionScheduleList().isEmpty()){
                     deduplicatedSurveySchedule.getKraftwerkExecutionScheduleList().add(storedExecutionSchedule);
                 }

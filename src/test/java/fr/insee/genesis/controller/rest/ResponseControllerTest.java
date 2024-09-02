@@ -3,6 +3,7 @@ package fr.insee.genesis.controller.rest;
 import cucumber.TestConstants;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.dto.SurveyUnitSimplified;
+import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.volumetry.VolumetryLogService;
 import fr.insee.genesis.controller.utils.ControllerUtils;
@@ -12,7 +13,6 @@ import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.QuestionnaireWithCampaign;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitId;
-import fr.insee.genesis.domain.model.surveyunit.SurveyUnit;
 import fr.insee.genesis.domain.model.surveyunit.Variable;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
@@ -77,7 +77,7 @@ class ResponseControllerTest {
         List<CollectedVariable> collectedVariableList = new ArrayList<>();
         CollectedVariable collectedVariable = new CollectedVariable("TESTIDVAR", List.of(new String[]{"V1", "V2"}), "TESTIDLOOP", "TESTIDPARENT");
         collectedVariableList.add(collectedVariable);
-        surveyUnitPersistencePortStub.getMongoStub().add(SurveyUnit.builder()
+        surveyUnitPersistencePortStub.getMongoStub().add(SurveyUnitModel.builder()
                 .idCampaign("TESTIDCAMPAIGN")
                 .mode(Mode.WEB)
                 .idUE("TESTIDUE")
@@ -261,7 +261,7 @@ class ResponseControllerTest {
 
     @Test
     void findResponsesByUEAndQuestionnaireTest() {
-        ResponseEntity<List<SurveyUnit>> response = responseControllerStatic.findResponsesByUEAndQuestionnaire("TESTIDUE", "TESTIDQUESTIONNAIRE");
+        ResponseEntity<List<SurveyUnitModel>> response = responseControllerStatic.findResponsesByUEAndQuestionnaire("TESTIDUE", "TESTIDQUESTIONNAIRE");
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
@@ -301,7 +301,7 @@ class ResponseControllerTest {
             CollectedVariable collectedVariable = new CollectedVariable("TESTIDVAR", List.of(new String[]{"V1", "V2"}), "TESTIDLOOP", "TESTIDPARENT");
             collectedVariableList.add(collectedVariable);
 
-            surveyUnitPersistencePortStub.getMongoStub().add(SurveyUnit.builder()
+            surveyUnitPersistencePortStub.getMongoStub().add(SurveyUnitModel.builder()
                     .idCampaign("TESTIDCAMPAIGN")
                     .mode(Mode.WEB)
                     .idUE("TESTIDUE" + i)
@@ -332,7 +332,7 @@ class ResponseControllerTest {
     void getLatestByUETest() {
         addAdditionnalDtoToMongoStub();
 
-        ResponseEntity<List<SurveyUnit>> response = responseControllerStatic.getLatestByUE("TESTIDUE", "TESTIDQUESTIONNAIRE");
+        ResponseEntity<List<SurveyUnitModel>> response = responseControllerStatic.getLatestByUE("TESTIDUE", "TESTIDQUESTIONNAIRE");
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
@@ -586,7 +586,7 @@ class ResponseControllerTest {
         CollectedVariable collectedVariable = new CollectedVariable("TESTIDVAR", List.of(new String[]{"V1", "V2"}), "TESTIDLOOP", "TESTIDPARENT");
         collectedVariableList.add(collectedVariable);
 
-        SurveyUnit recentDTO = SurveyUnit.builder()
+        SurveyUnitModel recentDTO = SurveyUnitModel.builder()
                 .idCampaign("TESTIDCAMPAIGN")
                 .mode(Mode.WEB)
                 .idUE("TESTIDUE")
@@ -609,7 +609,7 @@ class ResponseControllerTest {
         CollectedVariable collectedVariable = new CollectedVariable("TESTIDVAR", List.of(new String[]{"V1", "V2"}), "TESTIDLOOP", "TESTIDPARENT");
         collectedVariableList.add(collectedVariable);
 
-        SurveyUnit recentDTO = SurveyUnit.builder()
+        SurveyUnitModel recentDTO = SurveyUnitModel.builder()
                 .idCampaign("TESTIDCAMPAIGN")
                 .mode(Mode.WEB)
                 .idUE("TESTIDUE")
@@ -632,7 +632,7 @@ class ResponseControllerTest {
         CollectedVariable collectedVariable = new CollectedVariable("TESTIDVAR", List.of(new String[]{"V1", "V2"}), "TESTIDLOOP", "TESTIDPARENT");
         collectedVariableList.add(collectedVariable);
 
-        SurveyUnit recentDTO = SurveyUnit.builder()
+        SurveyUnitModel recentDTO = SurveyUnitModel.builder()
                 .idCampaign(idCampaign)
                 .mode(Mode.WEB)
                 .idUE("TESTIDUE")

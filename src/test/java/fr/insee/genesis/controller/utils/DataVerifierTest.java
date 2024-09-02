@@ -7,7 +7,7 @@ import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.domain.model.surveyunit.CollectedVariable;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
-import fr.insee.genesis.domain.model.surveyunit.SurveyUnit;
+import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.Variable;
 import fr.insee.genesis.domain.utils.DataVerifier;
 import org.junit.jupiter.api.BeforeAll;
@@ -22,7 +22,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class DataVerifierTest {
-    static List<SurveyUnit> testSurveyUnits = new ArrayList<>();
+    static List<SurveyUnitModel> testSurveyUnitModels = new ArrayList<>();
     static MetadataModel metadataModel;
 
     // Given
@@ -33,68 +33,68 @@ class DataVerifierTest {
 
         //Invalid Collected Variables only
         //1 Variable 1 State 1 Value
-        createCase(1,1,1,true,false,"TestUE1", testSurveyUnits,metadataModel.getVariables());
+        createCase(1,1,1,true,false,"TestUE1", testSurveyUnitModels,metadataModel.getVariables());
 
         //1 Variable 1 State 2 Values
-        createCase(1,1,2,true,false,"TestUE2", testSurveyUnits,metadataModel.getVariables());
+        createCase(1,1,2,true,false,"TestUE2", testSurveyUnitModels,metadataModel.getVariables());
 
         //1 Variable 2 States 1 Value
-        createCase(1,2,1,true,false,"TestUE3", testSurveyUnits,metadataModel.getVariables());
+        createCase(1,2,1,true,false,"TestUE3", testSurveyUnitModels,metadataModel.getVariables());
 
         //1 Variable 2 States 2 Values
-        createCase(1,2,2,true,false,"TestUE4", testSurveyUnits,metadataModel.getVariables());
+        createCase(1,2,2,true,false,"TestUE4", testSurveyUnitModels,metadataModel.getVariables());
 
         //2 Variables 1 State 1 Value
-        createCase(2,1,1,true,false,"TestUE5", testSurveyUnits,metadataModel.getVariables());
+        createCase(2,1,1,true,false,"TestUE5", testSurveyUnitModels,metadataModel.getVariables());
 
         //2 Variables 1 State 2 Values
-        createCase(2,1,2,true,false,"TestUE6", testSurveyUnits,metadataModel.getVariables());
+        createCase(2,1,2,true,false,"TestUE6", testSurveyUnitModels,metadataModel.getVariables());
 
         //2 Variables 2 States 1 Value
-        createCase(2,2,1,true,false,"TestUE7", testSurveyUnits,metadataModel.getVariables());
+        createCase(2,2,1,true,false,"TestUE7", testSurveyUnitModels,metadataModel.getVariables());
 
         //2 Variables 2 State 2 Value
-        createCase(2,2,2,true,false,"TestUE8", testSurveyUnits,metadataModel.getVariables());
+        createCase(2,2,2,true,false,"TestUE8", testSurveyUnitModels,metadataModel.getVariables());
 
 
         //With invalid ExternalVariables
-        createCase(1,1,1,true,true,"TestUE9", testSurveyUnits,metadataModel.getVariables());
+        createCase(1,1,1,true,true,"TestUE9", testSurveyUnitModels,metadataModel.getVariables());
 
         //1 Variable 1 State 2 Values
-        createCase(1,1,2,true,true,"TestUE10", testSurveyUnits,metadataModel.getVariables());
+        createCase(1,1,2,true,true,"TestUE10", testSurveyUnitModels,metadataModel.getVariables());
 
         //1 Variable 2 States 1 Value
-        createCase(1,2,1,true,true,"TestUE11", testSurveyUnits,metadataModel.getVariables());
+        createCase(1,2,1,true,true,"TestUE11", testSurveyUnitModels,metadataModel.getVariables());
 
         //1 Variable 2 States 2 Values
-        createCase(1,2,2,true,true,"TestUE12", testSurveyUnits,metadataModel.getVariables());
+        createCase(1,2,2,true,true,"TestUE12", testSurveyUnitModels,metadataModel.getVariables());
 
         //2 Variables 1 State 1 Value
-        createCase(2,1,1,true,true,"TestUE13", testSurveyUnits,metadataModel.getVariables());
+        createCase(2,1,1,true,true,"TestUE13", testSurveyUnitModels,metadataModel.getVariables());
 
         //2 Variables 1 State 2 Values
-        createCase(2,1,2,true,true,"TestUE14", testSurveyUnits,metadataModel.getVariables());
+        createCase(2,1,2,true,true,"TestUE14", testSurveyUnitModels,metadataModel.getVariables());
 
         //2 Variables 2 States 1 Value
-        createCase(2,2,1,true,true,"TestUE15", testSurveyUnits,metadataModel.getVariables());
+        createCase(2,2,1,true,true,"TestUE15", testSurveyUnitModels,metadataModel.getVariables());
 
         //2 Variables 2 State 2 Value
-        createCase(2,2,2,true,true,"TestUE16", testSurveyUnits,metadataModel.getVariables());
+        createCase(2,2,2,true,true,"TestUE16", testSurveyUnitModels,metadataModel.getVariables());
 
 
         //Valid variables only
-        createCase(1,1,1,false,true,"TestUE17", testSurveyUnits,metadataModel.getVariables());
-        createCase(2,2,2,false,true,"TestUE18", testSurveyUnits,metadataModel.getVariables());
+        createCase(1,1,1,false,true,"TestUE17", testSurveyUnitModels,metadataModel.getVariables());
+        createCase(2,2,2,false,true,"TestUE18", testSurveyUnitModels,metadataModel.getVariables());
 
         //Manual modifications
         //Valid 2nd variable on 5th and 13th case
-        SurveyUnit suDto = testSurveyUnits.stream().filter(surveyUnitDto ->
+        SurveyUnitModel suDto = testSurveyUnitModels.stream().filter(surveyUnitDto ->
                 surveyUnitDto.getIdUE().equals("TestUE5")
         ).toList().getFirst();
 
         suDto.getCollectedVariables().get(1).getValues().set(0,"1");
 
-        suDto = testSurveyUnits.stream().filter(surveyUnitDto ->
+        suDto = testSurveyUnitModels.stream().filter(surveyUnitDto ->
                 surveyUnitDto.getIdUE().equals("TestUE13")
         ).toList().getFirst();
 
@@ -103,14 +103,14 @@ class DataVerifierTest {
 
 
         //Valid EDITED variables on 3rd and 7th case for priority test
-        SurveyUnit suDtoEdited = testSurveyUnits.stream().filter(surveyUnitDto ->
+        SurveyUnitModel suDtoEdited = testSurveyUnitModels.stream().filter(surveyUnitDto ->
                 surveyUnitDto.getIdUE().equals("TestUE3")
                 && surveyUnitDto.getState().equals(DataState.EDITED)
                 ).toList().getFirst();
 
         suDtoEdited.getCollectedVariables().getFirst().getValues().set(0,"1");
 
-        suDtoEdited = testSurveyUnits.stream().filter(surveyUnitDto ->
+        suDtoEdited = testSurveyUnitModels.stream().filter(surveyUnitDto ->
                 surveyUnitDto.getIdUE().equals("TestUE7")
                         && surveyUnitDto.getState().equals(DataState.EDITED)
         ).toList().getFirst();
@@ -119,7 +119,7 @@ class DataVerifierTest {
         suDtoEdited.getCollectedVariables().get(1).getValues().set(0,"1");
 
         //Remove EDITED variable on 8th case
-        suDtoEdited = testSurveyUnits.stream().filter(surveyUnitDto ->
+        suDtoEdited = testSurveyUnitModels.stream().filter(surveyUnitDto ->
                 surveyUnitDto.getIdUE().equals("TestUE8")
                         && surveyUnitDto.getState().equals(DataState.EDITED)
         ).toList().getFirst();
@@ -127,10 +127,10 @@ class DataVerifierTest {
         suDtoEdited.getCollectedVariables().remove(1);
 
         //When
-        DataVerifier.verifySurveyUnits(testSurveyUnits,metadataModel.getVariables());
+        DataVerifier.verifySurveyUnits(testSurveyUnitModels,metadataModel.getVariables());
     }
 
-    private static void createCase(int variableNumber, int stateNumber, int valueNumber, boolean hasIncorrectValues, boolean hasExternalVariables, String idUE, List<SurveyUnit> testSurveyUnits, VariablesMap variablesMap) {
+    private static void createCase(int variableNumber, int stateNumber, int valueNumber, boolean hasIncorrectValues, boolean hasExternalVariables, String idUE, List<SurveyUnitModel> testSurveyUnitModels, VariablesMap variablesMap) {
         for(int stateIndex = 0; stateIndex < stateNumber; stateIndex++){
             List<CollectedVariable> variableUpdates = new ArrayList<>();
             List<Variable> externalVariables = new ArrayList<>();
@@ -164,7 +164,7 @@ class DataVerifierTest {
                 }
             }
 
-            SurveyUnit surveyUnit = SurveyUnit.builder()
+            SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
                     .idQuest("IdQuest1")
                     .idCampaign("IdCampaign1")
                     .idUE(idUE)
@@ -178,36 +178,36 @@ class DataVerifierTest {
             variableUpdates.clear();
             externalVariables.clear();
 
-            testSurveyUnits.add(surveyUnit);
+            testSurveyUnitModels.add(surveyUnitModel);
         }
     }
 
     //Then
     //Assertions
-    private void assertForcedExistence(List<SurveyUnit> testSurveyUnits, String idUE, boolean hasToExist) {
+    private void assertForcedExistence(List<SurveyUnitModel> testSurveyUnitModels, String idUE, boolean hasToExist) {
         if(hasToExist)
-            assertThat(testSurveyUnits).filteredOn(surveyUnit ->
+            assertThat(testSurveyUnitModels).filteredOn(surveyUnit ->
                             surveyUnit.getIdUE().equals(idUE)
                                     && surveyUnit.getState() == DataState.FORCED)
                     .hasSize(1);
         else
-            assertThat(testSurveyUnits).filteredOn(surveyUnit ->
+            assertThat(testSurveyUnitModels).filteredOn(surveyUnit ->
                             surveyUnit.getIdUE().equals(idUE)
                                     && surveyUnit.getState() == DataState.FORCED)
                 .isEmpty();
     }
 
-    private void assertCollectedVariableContent(List<SurveyUnit> testSurveyUnits, String idUE, String variableName, int valueIndex, String expectedContent) {
-        assertForcedExistence(testSurveyUnits,idUE,true);
+    private void assertCollectedVariableContent(List<SurveyUnitModel> testSurveyUnitModels, String idUE, String variableName, int valueIndex, String expectedContent) {
+        assertForcedExistence(testSurveyUnitModels,idUE,true);
 
-        Optional<SurveyUnit> suDtoOpt = testSurveyUnits.stream().filter(surveyUnit ->
+        Optional<SurveyUnitModel> suDtoOpt = testSurveyUnitModels.stream().filter(surveyUnit ->
                         surveyUnit.getIdUE().equals(idUE)
                                 && surveyUnit.getState() == DataState.FORCED).findFirst();
 
         assertThat(suDtoOpt).isPresent();
 
 
-        SurveyUnit suDto = suDtoOpt.get();
+        SurveyUnitModel suDto = suDtoOpt.get();
 
         assertThat(suDto.getCollectedVariables().stream().filter(collectedVariableDto ->
                 collectedVariableDto.getIdVar().equals(variableName)
@@ -222,14 +222,14 @@ class DataVerifierTest {
         ).findFirst().get().getValues().get(valueIndex)).isEqualTo(expectedContent);
     }
 
-    private void assertForcedCollectedVariableExistence(List<SurveyUnit> testSurveyUnits, String idUE, String variableName, boolean hasToExist) {
-        assertForcedExistence(testSurveyUnits,idUE, true);
-        Optional<SurveyUnit> suDtoOpt = testSurveyUnits.stream().filter(surveyUnit ->
+    private void assertForcedCollectedVariableExistence(List<SurveyUnitModel> testSurveyUnitModels, String idUE, String variableName, boolean hasToExist) {
+        assertForcedExistence(testSurveyUnitModels,idUE, true);
+        Optional<SurveyUnitModel> suDtoOpt = testSurveyUnitModels.stream().filter(surveyUnit ->
                 surveyUnit.getIdUE().equals(idUE)
                         && surveyUnit.getState() == DataState.FORCED).findFirst();
         assertThat(suDtoOpt).isPresent();
 
-        SurveyUnit suDto = suDtoOpt.get();
+        SurveyUnitModel suDto = suDtoOpt.get();
 
         if(hasToExist)
             assertThat(suDto.getCollectedVariables().stream().filter(collectedVariableDto -> collectedVariableDto.getIdVar().equals(variableName)).toList()).isNotEmpty();
@@ -237,14 +237,14 @@ class DataVerifierTest {
             assertThat(suDto.getCollectedVariables().stream().filter(collectedVariableDto -> collectedVariableDto.getIdVar().equals(variableName)).toList()).isEmpty();
     }
 
-    private void assertForcedExternalVariableExistence(List<SurveyUnit> testSurveyUnits, String idUE, String variableName, boolean hasToExist) {
-        assertForcedExistence(testSurveyUnits,idUE, true);
-        Optional<SurveyUnit> suDtoOpt = testSurveyUnits.stream().filter(surveyUnit ->
+    private void assertForcedExternalVariableExistence(List<SurveyUnitModel> testSurveyUnitModels, String idUE, String variableName, boolean hasToExist) {
+        assertForcedExistence(testSurveyUnitModels,idUE, true);
+        Optional<SurveyUnitModel> suDtoOpt = testSurveyUnitModels.stream().filter(surveyUnit ->
                 surveyUnit.getIdUE().equals(idUE)
                         && surveyUnit.getState() == DataState.FORCED).findFirst();
         assertThat(suDtoOpt).isPresent();
 
-        SurveyUnit suDto = suDtoOpt.get();
+        SurveyUnitModel suDto = suDtoOpt.get();
 
         if(hasToExist)
             assertThat(suDto.getExternalVariables().stream().filter(variableDto -> variableDto.getIdVar().equals(variableName)).toList()).isNotEmpty();
@@ -252,17 +252,17 @@ class DataVerifierTest {
             assertThat(suDto.getExternalVariables().stream().filter(variableDto -> variableDto.getIdVar().equals(variableName)).toList()).isEmpty();
     }
 
-    private void assertExternalVariableContent(List<SurveyUnit> testSurveyUnits, String idUE, String variableName, int valueIndex, String expectedContent) {
-        assertForcedExistence(testSurveyUnits,idUE,true);
+    private void assertExternalVariableContent(List<SurveyUnitModel> testSurveyUnitModels, String idUE, String variableName, int valueIndex, String expectedContent) {
+        assertForcedExistence(testSurveyUnitModels,idUE,true);
 
-        Optional<SurveyUnit> suDtoOpt = testSurveyUnits.stream().filter(surveyUnit ->
+        Optional<SurveyUnitModel> suDtoOpt = testSurveyUnitModels.stream().filter(surveyUnit ->
                 surveyUnit.getIdUE().equals(idUE)
                         && surveyUnit.getState() == DataState.FORCED).findFirst();
 
         assertThat(suDtoOpt).isPresent();
 
 
-        SurveyUnit suDto = suDtoOpt.get();
+        SurveyUnitModel suDto = suDtoOpt.get();
 
         assertThat(suDto.getExternalVariables().stream().filter(variableDto ->
                 variableDto.getIdVar().equals(variableName)
@@ -281,25 +281,25 @@ class DataVerifierTest {
     @Test
     @DisplayName("If there is invalid values, there must be one FORCED document")
     void forcedExistenceTest(){
-        assertForcedExistence(testSurveyUnits, "TestUE1", true);
+        assertForcedExistence(testSurveyUnitModels, "TestUE1", true);
     }
 
     @Test
     @DisplayName("If there is no invalid values, there must be one FORCED document")
     void forcedNoExistenceTest(){
-        assertForcedExistence(testSurveyUnits, "TestUE17", false);
+        assertForcedExistence(testSurveyUnitModels, "TestUE17", false);
     }
 
     @Test
     @DisplayName("The invalid values must be replaced by empty string")
     void invalidValueReplaceTest(){
-        assertCollectedVariableContent(testSurveyUnits,"TestUE1","testInteger0",0,"");
-        assertCollectedVariableContent(testSurveyUnits,"TestUE2","testInteger0",0,"");
-        assertCollectedVariableContent(testSurveyUnits,"TestUE6","testInteger0",0,"");
+        assertCollectedVariableContent(testSurveyUnitModels,"TestUE1","testInteger0",0,"");
+        assertCollectedVariableContent(testSurveyUnitModels,"TestUE2","testInteger0",0,"");
+        assertCollectedVariableContent(testSurveyUnitModels,"TestUE6","testInteger0",0,"");
 
-        assertExternalVariableContent(testSurveyUnits,"TestUE9","testInteger0",0,"");
-        assertExternalVariableContent(testSurveyUnits,"TestUE10","testInteger0",0,"");
-        assertExternalVariableContent(testSurveyUnits,"TestUE14","testInteger0",0,"");
+        assertExternalVariableContent(testSurveyUnitModels,"TestUE9","testInteger0",0,"");
+        assertExternalVariableContent(testSurveyUnitModels,"TestUE10","testInteger0",0,"");
+        assertExternalVariableContent(testSurveyUnitModels,"TestUE14","testInteger0",0,"");
 
     }
 
@@ -308,26 +308,26 @@ class DataVerifierTest {
     void variableCountTest(){
         //Collected
         //5 à 8
-        assertForcedCollectedVariableExistence(testSurveyUnits, "TestUE5", "testInteger0", true);
-        assertForcedCollectedVariableExistence(testSurveyUnits, "TestUE5", "testInteger1", false);
+        assertForcedCollectedVariableExistence(testSurveyUnitModels, "TestUE5", "testInteger0", true);
+        assertForcedCollectedVariableExistence(testSurveyUnitModels, "TestUE5", "testInteger1", false);
 
         //External
         //13 à 16
-        assertForcedExternalVariableExistence(testSurveyUnits, "TestUE13", "testInteger0", true);
-        assertForcedExternalVariableExistence(testSurveyUnits, "TestUE13", "testInteger1", false);
+        assertForcedExternalVariableExistence(testSurveyUnitModels, "TestUE13", "testInteger0", true);
+        assertForcedExternalVariableExistence(testSurveyUnitModels, "TestUE13", "testInteger1", false);
     }
 
     @Test
     @DisplayName("The dataverifier must verify only the most priority variables")
     void priorityTest(){
-        assertForcedExistence(testSurveyUnits, "TestUE3",false);
-        assertForcedExistence(testSurveyUnits, "TestUE7",false);
+        assertForcedExistence(testSurveyUnitModels, "TestUE3",false);
+        assertForcedExistence(testSurveyUnitModels, "TestUE7",false);
     }
 
     @Test
     @DisplayName("If a variable is absent in more priority variable but invalid in less priority," +
                         "the variable must be present in FORCED")
     void priorityVariableAbsenceTest(){
-        assertForcedCollectedVariableExistence(testSurveyUnits,"TestUE8","testInteger1",true);
+        assertForcedCollectedVariableExistence(testSurveyUnitModels,"TestUE8","testInteger1",true);
     }
 }

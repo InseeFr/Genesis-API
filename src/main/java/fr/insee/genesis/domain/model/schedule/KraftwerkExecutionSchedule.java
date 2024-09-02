@@ -1,8 +1,7 @@
-package fr.insee.genesis.infrastructure.model.document.schedule;
+package fr.insee.genesis.domain.model.schedule;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.springframework.lang.Nullable;
 
 import java.time.LocalDateTime;
 
@@ -16,6 +15,5 @@ public class KraftwerkExecutionSchedule {
     private LocalDateTime scheduleBeginDate;
     private LocalDateTime scheduleEndDate;
 
-    @Nullable
     private TrustParameters trustParameters;
 }

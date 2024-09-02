@@ -14,7 +14,7 @@ import java.util.Objects;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SurveyUnit {
+public class SurveyUnitModel {
 
 	private String idQuest;
 	private String idCampaign;
@@ -29,7 +29,7 @@ public class SurveyUnit {
 	private List<CollectedVariable> collectedVariables;
 	private List<Variable> externalVariables;
 
-	public SurveyUnit(String idUE, Mode mode) {
+	public SurveyUnitModel(String idUE, Mode mode) {
 		this.idUE = idUE;
 		this.mode = mode;
 	}
@@ -42,7 +42,7 @@ public class SurveyUnit {
 		if (o == null || getClass() != o.getClass()) {
 			return false;
 		}
-		SurveyUnit that = (SurveyUnit) o;
+		SurveyUnitModel that = (SurveyUnitModel) o;
 		return Objects.equals(idUE, that.idUE) && Objects.equals(mode, that.mode);
 	}
 

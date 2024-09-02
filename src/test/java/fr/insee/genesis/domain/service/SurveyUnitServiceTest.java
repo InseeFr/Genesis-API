@@ -3,7 +3,7 @@ package fr.insee.genesis.domain.service;
 import fr.insee.genesis.domain.model.surveyunit.CollectedVariable;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
-import fr.insee.genesis.domain.model.surveyunit.SurveyUnit;
+import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.Variable;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
@@ -41,7 +41,7 @@ class SurveyUnitServiceTest {
         List<CollectedVariable> collectedVariableList = new ArrayList<>();
         CollectedVariable collectedVariable = new CollectedVariable("TESTIDVAR", List.of(new String[]{"V1", "V2"}),"TESTIDLOOP","TESTIDPARENT");
         collectedVariableList.add(collectedVariable);
-        surveyUnitPersistencePortStub.getMongoStub().add(SurveyUnit.builder()
+        surveyUnitPersistencePortStub.getMongoStub().add(SurveyUnitModel.builder()
                 .idCampaign("TESTIDCAMPAIGN")
                 .mode(Mode.WEB)
                 .idUE("TESTIDUE")
@@ -58,7 +58,7 @@ class SurveyUnitServiceTest {
     @Test
     @DisplayName("The survey unit should be saved into DB")
     void saveAllTest(){
-        List<SurveyUnit> newSurveyUnitList = new ArrayList<>();
+        List<SurveyUnitModel> newSurveyUnitModelList = new ArrayList<>();
 
         List<Variable> externalVariableList = new ArrayList<>();
         Variable variable = Variable.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
@@ -68,8 +68,8 @@ class SurveyUnitServiceTest {
         CollectedVariable collectedVariableDto = new CollectedVariable("TESTIDVAR", List.of(new String[]{"V1", "V2"}),"TESTIDLOOP","TESTIDPARENT");
         collectedVariableList.add(collectedVariableDto);
 
-        newSurveyUnitList.add(
-                SurveyUnit.builder()
+        newSurveyUnitModelList.add(
+                SurveyUnitModel.builder()
                         .idCampaign("TESTIDCAMPAIGN")
                         .mode(Mode.WEB)
                         .idUE("TESTIDUE2")
@@ -82,7 +82,7 @@ class SurveyUnitServiceTest {
                         .build()
         );
 
-        surveyUnitServiceStatic.saveSurveyUnits(newSurveyUnitList);
+        surveyUnitServiceStatic.saveSurveyUnits(newSurveyUnitModelList);
 
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).filteredOn(surveyUnitDto ->
                 surveyUnitDto.getIdCampaign().equals("TESTIDCAMPAIGN")
@@ -176,7 +176,7 @@ class SurveyUnitServiceTest {
         CollectedVariable collectedVariable = new CollectedVariable("TESTIDVAR", List.of(new String[]{"V1", "V2"}),"TESTIDLOOP","TESTIDPARENT");
         collectedVariableList.add(collectedVariable);
 
-        SurveyUnit recentDTO = SurveyUnit.builder()
+        SurveyUnitModel recentDTO = SurveyUnitModel.builder()
                 .idCampaign("TESTIDCAMPAIGN")
                 .mode(Mode.WEB)
                 .idUE("TESTIDUE")
@@ -199,7 +199,7 @@ class SurveyUnitServiceTest {
         CollectedVariable collectedVariable = new CollectedVariable("TESTIDVAR", List.of(new String[]{"V1", "V2"}), "TESTIDLOOP", "TESTIDPARENT");
         collectedVariableList.add(collectedVariable);
 
-        SurveyUnit recentDTO = SurveyUnit.builder()
+        SurveyUnitModel recentDTO = SurveyUnitModel.builder()
                 .idCampaign("TESTIDCAMPAIGN")
                 .mode(Mode.WEB)
                 .idUE("TESTIDUE")

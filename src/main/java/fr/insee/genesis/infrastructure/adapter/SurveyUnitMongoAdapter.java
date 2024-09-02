@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fr.insee.genesis.Constants;
-import fr.insee.genesis.domain.model.surveyunit.SurveyUnit;
+import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
 import fr.insee.genesis.infrastructure.mappers.SurveyUnitDocumentMapper;
 import fr.insee.genesis.infrastructure.model.document.surveyunit.SurveyUnitDocument;
@@ -33,25 +33,25 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 	MongoTemplate mongoTemplate;
 
 	@Override
-	public void saveAll(List<SurveyUnit> suListDto) {
+	public void saveAll(List<SurveyUnitModel> suListDto) {
 		List<SurveyUnitDocument> suList = SurveyUnitDocumentMapper.INSTANCE.listModelToListDocument(suListDto);
 		mongoRepository.insert(suList);
 	}
 
 	@Override
-	public List<SurveyUnit> findByIds(String idUE, String idQuest) {
+	public List<SurveyUnitModel> findByIds(String idUE, String idQuest) {
 		List<SurveyUnitDocument> surveyUnits = mongoRepository.findByIdUEAndIdQuestionnaire(idUE, idQuest);
 		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnits);
 	}
 
 	@Override
-	public List<SurveyUnit> findByIdUE(String idUE) {
+	public List<SurveyUnitModel> findByIdUE(String idUE) {
 		List<SurveyUnitDocument> surveyUnits = mongoRepository.findByIdUE(idUE);
 		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnits);
 	}
 
 	@Override
-	public List<SurveyUnit> findByIdUEsAndIdQuestionnaire(List<SurveyUnit> idUEs, String idQuestionnaire) {
+	public List<SurveyUnitModel> findByIdUEsAndIdQuestionnaire(List<SurveyUnitModel> idUEs, String idQuestionnaire) {
 		List<SurveyUnitDocument> surveyUnits= new ArrayList<>();
 		// TODO: 18-10-2023 : find a way to do this in one query
 		idUEs.forEach(su -> {
@@ -63,7 +63,7 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 
 
 	@Override
-	public Stream<SurveyUnit> findByIdQuestionnaire(String idQuestionnaire) {
+	public Stream<SurveyUnitModel> findByIdQuestionnaire(String idQuestionnaire) {
 		Stream<SurveyUnitDocument> surveyUnits = mongoRepository.findByIdQuestionnaire(idQuestionnaire);
 		return surveyUnits.map(SurveyUnitDocumentMapper.INSTANCE::documentToModel);
 		//return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListDto(surveyUnits);
@@ -110,13 +110,13 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 	}
 
 	@Override
-	public List<SurveyUnit> findIdUEsByIdQuestionnaire(String idQuestionnaire) {
+	public List<SurveyUnitModel> findIdUEsByIdQuestionnaire(String idQuestionnaire) {
 		List<SurveyUnitDocument> surveyUnits = mongoRepository.findIdUEsByIdQuestionnaire(idQuestionnaire);
 		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnits);
 	}
 
 	@Override
-	public List<SurveyUnit> findIdUEsByIdCampaign(String idCampaign) {
+	public List<SurveyUnitModel> findIdUEsByIdCampaign(String idCampaign) {
 		List<SurveyUnitDocument> surveyUnits = mongoRepository.findIdUEsByIdCampaign(idCampaign);
 		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnits);
 

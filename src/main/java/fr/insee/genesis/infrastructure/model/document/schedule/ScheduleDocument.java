@@ -1,5 +1,6 @@
 package fr.insee.genesis.infrastructure.model.document.schedule;
 
+import fr.insee.genesis.domain.model.schedule.KraftwerkExecutionSchedule;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,13 +15,12 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "schedules")
-public class SurveyScheduleDocument {
+public class ScheduleDocument {
 
-    public SurveyScheduleDocument(String surveyName, List<KraftwerkExecutionSchedule> kraftwerkExecutionScheduleList) {
+    public ScheduleDocument(String surveyName, List<KraftwerkExecutionSchedule> kraftwerkExecutionScheduleList) {
         this.surveyName = surveyName;
         this.kraftwerkExecutionScheduleList = kraftwerkExecutionScheduleList;
     }
-
     @Id
     private ObjectId id;
 

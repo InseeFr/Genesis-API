@@ -1,11 +1,11 @@
 package fr.insee.genesis.domain.service;
 
+import fr.insee.genesis.domain.model.schedule.KraftwerkExecutionSchedule;
+import fr.insee.genesis.domain.model.schedule.ServiceToCall;
 import fr.insee.genesis.domain.service.schedule.ScheduleService;
 import fr.insee.genesis.exceptions.InvalidCronExpressionException;
 import fr.insee.genesis.exceptions.NotFoundException;
-import fr.insee.genesis.infrastructure.model.document.schedule.KraftwerkExecutionSchedule;
-import fr.insee.genesis.infrastructure.model.document.schedule.ServiceToCall;
-import fr.insee.genesis.infrastructure.model.document.schedule.SurveyScheduleDocument;
+import fr.insee.genesis.infrastructure.model.document.schedule.ScheduleDocument;
 import fr.insee.genesis.stubs.SchedulePersistencePortStub;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -40,7 +40,7 @@ class ScheduleServiceTest {
                 LocalDateTime.MAX,
                 null
         ));
-        schedulePersistencePortStub.getMongoStub().add(new SurveyScheduleDocument(
+        schedulePersistencePortStub.getMongoStub().add(new ScheduleDocument(
                 "TEST",
                 kraftwerkExecutionScheduleList
         ));
@@ -71,7 +71,7 @@ class ScheduleServiceTest {
         Assertions.assertThat(schedulePersistencePortStub.getMongoStub().get(1).getKraftwerkExecutionScheduleList().getFirst().getFrequency()).isEqualTo("0 0 6 * * *");
         Assertions.assertThat(schedulePersistencePortStub.getMongoStub().get(1).getKraftwerkExecutionScheduleList().getFirst().getScheduleBeginDate()).isEqualTo(LocalDateTime.MIN);
         Assertions.assertThat(schedulePersistencePortStub.getMongoStub().get(1).getKraftwerkExecutionScheduleList().getFirst().getScheduleEndDate()).isEqualTo(LocalDateTime.MAX);
-        Assertions.assertThat(schedulePersistencePortStub.getMongoStub().get(1).getKraftwerkExecutionScheduleList().getFirst().getServiceToCall().equals(ServiceToCall.GENESIS)).isTrue();
+        Assertions.assertThat(schedulePersistencePortStub.getMongoStub().get(1).getKraftwerkExecutionScheduleList().getFirst().getServiceToCall()).isEqualTo(ServiceToCall.GENESIS);
         Assertions.assertThat(schedulePersistencePortStub.getMongoStub().get(1).getKraftwerkExecutionScheduleList().getFirst().getTrustParameters()).isNull();
     }
 
@@ -117,6 +117,7 @@ class ScheduleServiceTest {
         scheduleService.updateLastExecutionName("TEST", localDateTime);
 
         //Then
+        Assertions.assertThat(schedulePersistencePortStub.getMongoStub()).hasSize(1);
         Assertions.assertThat(schedulePersistencePortStub.getMongoStub().getFirst().getLastExecution()).isNotNull().isEqualTo(localDateTime);
     }
 

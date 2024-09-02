@@ -1,13 +1,13 @@
 package fr.insee.genesis.domain.service.schedule;
 
+import fr.insee.genesis.domain.model.schedule.KraftwerkExecutionSchedule;
+import fr.insee.genesis.domain.model.schedule.ScheduleModel;
+import fr.insee.genesis.domain.model.schedule.ServiceToCall;
+import fr.insee.genesis.domain.model.schedule.TrustParameters;
 import fr.insee.genesis.domain.ports.api.ScheduleApiPort;
 import fr.insee.genesis.domain.ports.spi.SchedulePersistencePort;
 import fr.insee.genesis.exceptions.InvalidCronExpressionException;
 import fr.insee.genesis.exceptions.NotFoundException;
-import fr.insee.genesis.infrastructure.model.document.schedule.KraftwerkExecutionSchedule;
-import fr.insee.genesis.infrastructure.model.document.schedule.ServiceToCall;
-import fr.insee.genesis.infrastructure.model.document.schedule.SurveyScheduleDocument;
-import fr.insee.genesis.infrastructure.model.document.schedule.TrustParameters;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.support.CronExpression;
@@ -28,7 +28,7 @@ public class ScheduleService implements ScheduleApiPort {
     }
 
     @Override
-    public List<SurveyScheduleDocument> getAllSchedules() {
+    public List<ScheduleModel> getAllSchedules() {
         return schedulePersistencePort.getAll();
     }
 
@@ -40,20 +40,22 @@ public class ScheduleService implements ScheduleApiPort {
             throw new InvalidCronExpressionException();
         }
         
-        List<SurveyScheduleDocument> surveyScheduleDocuments =
-                new ArrayList<>(schedulePersistencePort.findBySurveyName(surveyName));
+        List<ScheduleModel> scheduleModels = schedulePersistencePort.findBySurveyName(surveyName);
 
-        SurveyScheduleDocument surveyScheduleDocument;
-        if (surveyScheduleDocuments.isEmpty()) {
+        ScheduleModel scheduleModel;
+        if (scheduleModels.isEmpty()) {
             //Create if not exists
             log.info("Creation of new survey document for survey {}", surveyName);
-            surveyScheduleDocuments.add(new SurveyScheduleDocument(surveyName, new ArrayList<>()));
+            scheduleModels.add(ScheduleModel.builder()
+                    .surveyName(surveyName)
+                    .kraftwerkExecutionScheduleList(new ArrayList<>())
+                    .build());
         }
         ScheduleUnicityService scheduleUnicityService = new ScheduleUnicityService();
-        surveyScheduleDocument = scheduleUnicityService.deduplicateSurveySchedules(surveyName, surveyScheduleDocuments);
-        surveyScheduleDocuments.clear();
-        surveyScheduleDocuments.add(surveyScheduleDocument);
-        surveyScheduleDocument.getKraftwerkExecutionScheduleList().add(
+        scheduleModel = scheduleUnicityService.deduplicateSurveySchedules(surveyName, scheduleModels);
+        scheduleModels.clear();
+        scheduleModels.add(scheduleModel);
+        scheduleModel.getKraftwerkExecutionScheduleList().add(
                 new KraftwerkExecutionSchedule(
                         frequency,
                         serviceToCall,
@@ -64,7 +66,7 @@ public class ScheduleService implements ScheduleApiPort {
         );
 
         schedulePersistencePort.deleteBySurveyName(surveyName);
-        schedulePersistencePort.saveAll(surveyScheduleDocuments);
+        schedulePersistencePort.saveAll(scheduleModels);
     }
 
     @Override
@@ -77,14 +79,15 @@ public class ScheduleService implements ScheduleApiPort {
 
     @Override
     public void updateLastExecutionName(String surveyName, LocalDateTime newDate) throws NotFoundException {
-        List<SurveyScheduleDocument> surveyScheduleDocuments = schedulePersistencePort.findBySurveyName(surveyName);
-        if (surveyScheduleDocuments.isEmpty()) {
+        List<ScheduleModel> scheduleModels = schedulePersistencePort.findBySurveyName(surveyName);
+        if (scheduleModels.isEmpty()) {
             throw new NotFoundException();
         }
-        for(SurveyScheduleDocument surveySchedule : surveyScheduleDocuments){
+        for(ScheduleModel surveySchedule : scheduleModels){
             surveySchedule.setLastExecution(newDate);
         }
-        schedulePersistencePort.saveAll(surveyScheduleDocuments);
+        schedulePersistencePort.deleteBySurveyName(surveyName);
+        schedulePersistencePort.saveAll(scheduleModels);
     }
 
     @Override

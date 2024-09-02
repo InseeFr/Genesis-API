@@ -1,4 +1,4 @@
-package fr.insee.genesis.infrastructure.model.document.schedule;
+package fr.insee.genesis.domain.model.schedule;
 
 import fr.insee.genesis.Constants;
 import lombok.AllArgsConstructor;
@@ -13,8 +13,4 @@ public enum ServiceToCall {
     ,FILE_BY_FILE("/file-by-file");
 
     private final String pathToService;
-
-    public static String getPathToService(ServiceToCall serviceToCall){
-        return serviceToCall.getPathToService();
-    }
 }

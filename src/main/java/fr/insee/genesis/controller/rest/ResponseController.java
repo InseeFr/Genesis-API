@@ -7,6 +7,7 @@ import fr.insee.bpm.metadata.reader.lunatic.LunaticReader;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.adapter.LunaticXmlAdapter;
 import fr.insee.genesis.controller.dto.SurveyUnitSimplified;
+import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.volumetry.VolumetryLogService;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlCampaign;
@@ -18,7 +19,6 @@ import fr.insee.genesis.domain.model.surveyunit.CampaignWithQuestionnaire;
 import fr.insee.genesis.domain.model.surveyunit.CollectedVariable;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.QuestionnaireWithCampaign;
-import fr.insee.genesis.domain.model.surveyunit.SurveyUnit;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitId;
 import fr.insee.genesis.domain.model.surveyunit.Variable;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
@@ -188,9 +188,9 @@ public class ResponseController {
     //GET
     @Operation(summary = "Retrieve responses with IdUE and IdQuestionnaire from Genesis Database")
     @GetMapping(path = "/get-responses/by-ue-and-questionnaire")
-    public ResponseEntity<List<SurveyUnit>> findResponsesByUEAndQuestionnaire(@RequestParam("idUE") String idUE,
-                                                                              @RequestParam("idQuestionnaire") String idQuestionnaire) {
-        List<SurveyUnit> responses = surveyUnitService.findByIdsUEAndQuestionnaire(idUE, idQuestionnaire);
+    public ResponseEntity<List<SurveyUnitModel>> findResponsesByUEAndQuestionnaire(@RequestParam("idUE") String idUE,
+                                                                                   @RequestParam("idQuestionnaire") String idQuestionnaire) {
+        List<SurveyUnitModel> responses = surveyUnitService.findByIdsUEAndQuestionnaire(idUE, idQuestionnaire);
         return ResponseEntity.ok(responses);
     }
 
@@ -200,13 +200,13 @@ public class ResponseController {
         log.info("Try to find all responses of questionnaire : {}", idQuestionnaire);
 
         //Get all IdUEs/modes of the survey
-        List<SurveyUnit> idUEsResponses = surveyUnitService.findIdUEsAndModesByIdQuestionnaire(idQuestionnaire);
+        List<SurveyUnitModel> idUEsResponses = surveyUnitService.findIdUEsAndModesByIdQuestionnaire(idQuestionnaire);
         log.info("Responses found : {}", idUEsResponses.size());
 
         String filepathString = String.format("OUT/%s/OUT_ALL_%s.json", idQuestionnaire, LocalDateTime.now().toString().replace(":", ""));
         Path filepath = Path.of(fileUtils.getDataFolderSource(), filepathString);
 
-        try (Stream<SurveyUnit> responsesStream = surveyUnitService.findByIdQuestionnaire(idQuestionnaire)) {
+        try (Stream<SurveyUnitModel> responsesStream = surveyUnitService.findByIdQuestionnaire(idQuestionnaire)) {
             fileUtils.writeSuUpdatesInFile(filepath, responsesStream);
         } catch (IOException e) {
             log.error("Error while writing file", e);
@@ -218,9 +218,9 @@ public class ResponseController {
 
     @Operation(summary = "Retrieve responses latest state with IdUE and IdQuestionnaire")
     @GetMapping(path = "/get-responses/by-ue-and-questionnaire/latest")
-    public ResponseEntity<List<SurveyUnit>> getLatestByUE(@RequestParam("idUE") String idUE,
-                                                          @RequestParam("idQuestionnaire") String idQuestionnaire) {
-        List<SurveyUnit> responses = surveyUnitService.findLatestByIdAndByIdQuestionnaire(idUE, idQuestionnaire);
+    public ResponseEntity<List<SurveyUnitModel>> getLatestByUE(@RequestParam("idUE") String idUE,
+                                                               @RequestParam("idQuestionnaire") String idQuestionnaire) {
+        List<SurveyUnitModel> responses = surveyUnitService.findLatestByIdAndByIdQuestionnaire(idUE, idQuestionnaire);
         return ResponseEntity.ok(responses);
     }
 
@@ -229,7 +229,7 @@ public class ResponseController {
     public ResponseEntity<SurveyUnitSimplified> getLatestByUEOneObject(@RequestParam("idUE") String idUE,
                                                                              @RequestParam("idQuestionnaire") String idQuestionnaire,
                                                                              @RequestParam("mode") Mode mode) {
-        List<SurveyUnit> responses = surveyUnitService.findLatestByIdAndByIdQuestionnaire(idUE, idQuestionnaire);
+        List<SurveyUnitModel> responses = surveyUnitService.findLatestByIdAndByIdQuestionnaire(idUE, idQuestionnaire);
         List<CollectedVariable> outputVariables = new ArrayList<>();
         List<Variable> outputExternalVariables = new ArrayList<>();
         responses.stream().filter(rep -> rep.getMode().equals(mode)).forEach(response -> {
@@ -255,7 +255,7 @@ public class ResponseController {
         List<SurveyUnitSimplified> results = new ArrayList<>();
         List<Mode> modes = surveyUnitService.findModesByIdQuestionnaire(idQuestionnaire);
         idUEs.forEach(idUE -> {
-            List<SurveyUnit> responses = surveyUnitService.findLatestByIdAndByIdQuestionnaire(idUE.getIdUE(), idQuestionnaire);
+            List<SurveyUnitModel> responses = surveyUnitService.findLatestByIdAndByIdQuestionnaire(idUE.getIdUE(), idQuestionnaire);
             modes.forEach(mode -> {
                 List<CollectedVariable> outputVariables = new ArrayList<>();
                 List<Variable> outputExternalVariables = new ArrayList<>();
@@ -463,7 +463,7 @@ public class ResponseController {
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
         }
 
-        List<SurveyUnit> suDtos = new ArrayList<>();
+        List<SurveyUnitModel> suDtos = new ArrayList<>();
         for (LunaticXmlSurveyUnit su : campaign.getSurveyUnits()) {
             suDtos.addAll(LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign(), modeSpecified));
         }
@@ -489,7 +489,7 @@ public class ResponseController {
             LunaticXmlSurveyUnit su = parser.readNextSurveyUnit();
 
             while (su != null) {
-                List<SurveyUnit> suDtos = new ArrayList<>(LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign(), modeSpecified));
+                List<SurveyUnitModel> suDtos = new ArrayList<>(LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign(), modeSpecified));
 
                 surveyUnitQualityService.verifySurveyUnits(suDtos, variablesMap);
                 surveyUnitService.saveSurveyUnits(suDtos);
