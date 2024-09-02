@@ -32,7 +32,7 @@ class ScheduleControllerTest {
     @BeforeEach
     void clean() throws IOException {
         scheduleApiPortStub = new ScheduleApiPortStub();
-        scheduleController = new ScheduleController(scheduleApiPortStub, new ConfigStub());
+        scheduleController = new ScheduleController(scheduleApiPortStub, new FileUtils(new ConfigStub()));
         //Clean genesis_deleted_schedules log folder
         if(Files.exists(Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
                 .resolve(Constants.SCHEDULE_ARCHIVE_FOLDER_NAME))) {
@@ -274,7 +274,7 @@ class ScheduleControllerTest {
                 ServiceToCall.MAIN,
                 LocalDateTime.of(2000, Month.JANUARY, 1, 1, 1, 1),
                 LocalDateTime.of(2000, Month.DECEMBER, 1, 1, 1, 1),
-                false
+                null
         );
         storedSurveyScheduleTest.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
         kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
@@ -282,7 +282,7 @@ class ScheduleControllerTest {
                 ServiceToCall.MAIN,
                 LocalDateTime.of(2023, Month.FEBRUARY, 1, 1, 1, 1),
                 LocalDateTime.of(5023, Month.DECEMBER, 1, 1, 1, 1),
-                false
+                null
         );
         storedSurveyScheduleTest.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
         scheduleApiPortStub.mongoStub.add(storedSurveyScheduleTest);
@@ -316,7 +316,7 @@ class ScheduleControllerTest {
                 ServiceToCall.MAIN,
                 LocalDateTime.of(2001, Month.JANUARY, 1, 1, 1, 1),
                 LocalDateTime.of(2001, Month.DECEMBER, 1, 1, 1, 1),
-                false
+                null
         );
         storedSurveyScheduleTest.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
         kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
@@ -324,7 +324,7 @@ class ScheduleControllerTest {
                 ServiceToCall.MAIN,
                 LocalDateTime.of(2002, Month.FEBRUARY, 1, 1, 1, 1),
                 LocalDateTime.of(2002, Month.DECEMBER, 1, 1, 1, 1),
-                false
+                null
         );
         storedSurveyScheduleTest.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
         scheduleApiPortStub.mongoStub.add(storedSurveyScheduleTest);
@@ -355,7 +355,7 @@ class ScheduleControllerTest {
                 ServiceToCall.MAIN,
                 LocalDateTime.of(2000, Month.JANUARY, 1, 1, 1, 1),
                 LocalDateTime.of(2000, Month.DECEMBER, 1, 1, 1, 1),
-                false
+                null
         );
         storedSurveyScheduleTest.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
         kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
@@ -363,7 +363,7 @@ class ScheduleControllerTest {
                 ServiceToCall.MAIN,
                 LocalDateTime.of(2023, Month.FEBRUARY, 1, 1, 1, 1),
                 LocalDateTime.of(5023, Month.DECEMBER, 1, 1, 1, 1),
-                false
+                null
         );
         storedSurveyScheduleTest.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
         scheduleApiPortStub.mongoStub.add(storedSurveyScheduleTest);
@@ -375,7 +375,7 @@ class ScheduleControllerTest {
                 ServiceToCall.MAIN,
                 LocalDateTime.of(2001, Month.FEBRUARY, 1, 1, 1, 1),
                 LocalDateTime.of(2001, Month.DECEMBER, 1, 1, 1, 1),
-                false
+                null
         );
         storedSurveyScheduleTest.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
         scheduleApiPortStub.mongoStub.add(storedSurveyScheduleTest);

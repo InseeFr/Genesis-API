@@ -29,9 +29,12 @@ public class FileUtils {
 
 	private final String specFolderSource;
 
+	private final String logFolderSource;
+
 	public FileUtils(Config config) {
 		this.dataFolderSource = config.getDataFolderSource();
 		this.specFolderSource = config.getSpecFolderSource();
+		this.logFolderSource = config.getLogFolder();
 	}
 
 	/**
@@ -186,6 +189,14 @@ public class FileUtils {
 	 */
 	public String getKraftwerkOutFolder(String campaign) {
 		return  String.format("%s/%s/%s", dataFolderSource, "out", campaign);
+	}
+
+	/**
+	 * Get the path of the folder where the log files are stored
+	 * @return Path of the output folder
+	 */
+	public String getLogFolder() {
+		return logFolderSource;
 	}
 
 	/**

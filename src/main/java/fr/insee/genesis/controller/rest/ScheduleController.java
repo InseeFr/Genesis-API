@@ -3,7 +3,6 @@ package fr.insee.genesis.controller.rest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import fr.insee.genesis.Constants;
-import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.domain.ports.api.ScheduleApiPort;
 import fr.insee.genesis.exceptions.InvalidCronExpressionException;
 import fr.insee.genesis.exceptions.NotFoundException;
@@ -146,7 +145,7 @@ public class ScheduleController {
             List<KraftwerkExecutionSchedule> deletedKraftwerkExecutionSchedules = scheduleApiPort.deleteExpiredSchedules(surveyScheduleName);
             //Save in JSON log
             if(!deletedKraftwerkExecutionSchedules.isEmpty()) {
-                Path jsonLogPath = Path.of(config.getLogFolder(), Constants.SCHEDULE_ARCHIVE_FOLDER_NAME,
+                Path jsonLogPath = Path.of(fileUtils.getLogFolder(), Constants.SCHEDULE_ARCHIVE_FOLDER_NAME,
                         surveyScheduleName + ".json");
                 ObjectMapper objectMapper = new ObjectMapper();
                 objectMapper.registerModule(new JavaTimeModule());
