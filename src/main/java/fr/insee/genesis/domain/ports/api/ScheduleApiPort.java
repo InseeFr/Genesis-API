@@ -5,6 +5,7 @@ import fr.insee.genesis.exceptions.NotFoundException;
 import fr.insee.genesis.infrastructure.model.document.schedule.KraftwerkExecutionSchedule;
 import fr.insee.genesis.infrastructure.model.document.schedule.ServiceToCall;
 import fr.insee.genesis.infrastructure.model.document.schedule.StoredSurveySchedule;
+import fr.insee.genesis.infrastructure.model.document.schedule.TrustParameters;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -17,7 +18,7 @@ public interface ScheduleApiPort {
                      String frequency,
                      LocalDateTime scheduleBeginDateString,
                      LocalDateTime scheduleEndDateString,
-                     boolean useTrustEncryption
+                     TrustParameters trustParameters
                      ) throws InvalidCronExpressionException;
 
     void deleteSchedule(String surveyName) throws NotFoundException;

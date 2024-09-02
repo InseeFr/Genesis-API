@@ -10,13 +10,21 @@ import fr.insee.genesis.exceptions.NotFoundException;
 import fr.insee.genesis.infrastructure.model.document.schedule.KraftwerkExecutionSchedule;
 import fr.insee.genesis.infrastructure.model.document.schedule.ServiceToCall;
 import fr.insee.genesis.infrastructure.model.document.schedule.StoredSurveySchedule;
+import fr.insee.genesis.infrastructure.model.document.schedule.TrustParameters;
+import fr.insee.genesis.infrastructure.utils.FileUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -33,12 +41,12 @@ import java.util.Set;
 public class ScheduleController {
 
     private final ScheduleApiPort scheduleApiPort;
-    private final Config config;
+    private final FileUtils fileUtils;
 
     @Autowired
-    public ScheduleController(ScheduleApiPort scheduleApiPort, Config config) {
+    public ScheduleController(ScheduleApiPort scheduleApiPort, FileUtils fileUtils) {
         this.scheduleApiPort = scheduleApiPort;
-        this.config = config;
+        this.fileUtils = fileUtils;
     }
 
     @Operation(summary = "Fetch all schedules")
@@ -60,11 +68,31 @@ public class ScheduleController {
             @Parameter(description = "Frequency in Spring cron format (6 inputs, go to https://crontab.cronhub.io/ for generator)  \n Example : 0 0 6 * * *") @RequestParam("frequency") String frequency,
             @Parameter(description = "Schedule effective date and time", example = "2024-01-01T12:00:00") @RequestParam("scheduleBeginDate") LocalDateTime scheduleBeginDate,
             @Parameter(description = "Schedule end date and time", example = "2024-01-01T12:00:00") @RequestParam("scheduleEndDate") LocalDateTime scheduleEndDate,
-            @Parameter(description = "Encrypt after process ?") @RequestParam(value = "useTrustEncryption", defaultValue = "false") boolean useTrustEncryption
+            @Parameter(description = "Encrypt after process ? Ignore next parameters if false") @RequestParam(value =
+                    "useEncryption",
+                    defaultValue = "false") boolean useEncryption,
+            @Parameter(description = "(Encryption) vault path") @RequestParam(value = "encryptionVaultPath", defaultValue = "") String encryptionVaultPath,
+            @Parameter(description = "(Encryption) output folder") @RequestParam(value = "encryptionOutputFolder",
+                    defaultValue = "") String encryptionOutputFolder,
+            @Parameter(description = "(Encryption) Use signature system") @RequestParam(value = "useSignature", defaultValue = "false") boolean useSignature
     ){
         try {
-            log.info("New schedule request for survey {}", surveyName);
-            scheduleApiPort.addSchedule(surveyName, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate, useTrustEncryption);
+            if(useEncryption){
+                TrustParameters trustParameters = new TrustParameters(
+                        fileUtils.getKraftwerkOutFolder(surveyName),
+                        encryptionOutputFolder,
+                        encryptionVaultPath,
+                        useSignature
+                );
+                log.info("New schedule request for survey {} with encryption", surveyName);
+                scheduleApiPort.addSchedule(surveyName, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate,
+                        trustParameters);
+            }else{
+                log.info("New schedule request for survey {}", surveyName);
+                scheduleApiPort.addSchedule(surveyName, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate,
+                        null);
+            }
+
         }catch (InvalidCronExpressionException e){
             log.warn("Returned error for wrong frequency : {}", frequency);
             return ResponseEntity.badRequest().body("Wrong frequency syntax");
@@ -82,7 +110,7 @@ public class ScheduleController {
             log.info("Delete schedule request for survey {}", surveyName);
             scheduleApiPort.deleteSchedule(surveyName);
         }catch (NotFoundException e){
-            log.warn("Survey {} not found !", surveyName);
+            log.warn("Survey {} not found for deletion !", surveyName);
             return ResponseEntity.notFound().build();
         }
         log.info("Schedule deleted for survey {}", surveyName);
@@ -101,7 +129,7 @@ public class ScheduleController {
             scheduleApiPort.updateLastExecutionName(surveyName, newDate);
             log.info("{} last execution updated at {} !", surveyName, newDate);
         }catch (NotFoundException e){
-            log.warn("Survey {} not found !", surveyName);
+            log.warn("Survey {} not found for setting last execution !", surveyName);
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok().build();

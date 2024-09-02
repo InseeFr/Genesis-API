@@ -7,6 +7,7 @@ import fr.insee.genesis.exceptions.NotFoundException;
 import fr.insee.genesis.infrastructure.model.document.schedule.KraftwerkExecutionSchedule;
 import fr.insee.genesis.infrastructure.model.document.schedule.ServiceToCall;
 import fr.insee.genesis.infrastructure.model.document.schedule.StoredSurveySchedule;
+import fr.insee.genesis.infrastructure.model.document.schedule.TrustParameters;
 import org.springframework.scheduling.support.CronExpression;
 
 import java.time.LocalDateTime;
@@ -31,7 +32,7 @@ public class ScheduleApiPortStub implements ScheduleApiPort {
                 ServiceToCall.MAIN,
                 LocalDateTime.of(2023, Month.JANUARY, 1, 1, 1, 1),
                 LocalDateTime.of(2023, Month.DECEMBER, 1, 1, 1, 1),
-                false
+                null
         );
         storedSurveyScheduleTest.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
 
@@ -44,7 +45,7 @@ public class ScheduleApiPortStub implements ScheduleApiPort {
     }
 
     @Override
-    public void addSchedule(String surveyName, ServiceToCall serviceToCall, String frequency, LocalDateTime scheduleBeginDate, LocalDateTime scheduleEndDate, boolean useTrustEncryption) throws InvalidCronExpressionException {
+    public void addSchedule(String surveyName, ServiceToCall serviceToCall, String frequency, LocalDateTime scheduleBeginDate, LocalDateTime scheduleEndDate, TrustParameters trustParameters) throws InvalidCronExpressionException {
         if(!CronExpression.isValidExpression(frequency)) throw new InvalidCronExpressionException();
 
         List<StoredSurveySchedule> mongoStubFiltered = mongoStub.stream().filter(scheduleDocument ->
@@ -63,7 +64,7 @@ public class ScheduleApiPortStub implements ScheduleApiPort {
                     serviceToCall,
                     scheduleBeginDate,
                     scheduleEndDate,
-                    useTrustEncryption
+                    trustParameters
             );
             storedSurveySchedule.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
 
@@ -78,7 +79,7 @@ public class ScheduleApiPortStub implements ScheduleApiPort {
                     serviceToCall,
                     scheduleBeginDate,
                     scheduleEndDate,
-                    useTrustEncryption
+                    trustParameters
             );
             deduplicatedSurveySchedule.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
 
