@@ -1,7 +1,6 @@
 package fr.insee.genesis.domain.ports.spi;
 
 import fr.insee.genesis.domain.model.schedule.ScheduleModel;
-import fr.insee.genesis.infrastructure.model.document.schedule.ScheduleDocument;
 
 import java.util.List;
 
