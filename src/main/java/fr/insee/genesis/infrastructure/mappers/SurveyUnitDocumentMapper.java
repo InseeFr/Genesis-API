@@ -8,7 +8,7 @@ import org.mapstruct.factory.Mappers;
 
 import java.util.List;
 
-@Mapper(uses = VariableStateMapper.class)
+@Mapper
 public interface SurveyUnitDocumentMapper {
 	SurveyUnitDocumentMapper INSTANCE = Mappers.getMapper(SurveyUnitDocumentMapper.class);
 

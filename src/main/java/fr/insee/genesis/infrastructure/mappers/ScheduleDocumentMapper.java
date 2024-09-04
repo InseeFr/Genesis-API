@@ -7,7 +7,7 @@ import org.mapstruct.factory.Mappers;
 
 import java.util.List;
 
-@Mapper(uses = VariableStateMapper.class)
+@Mapper
 public interface ScheduleDocumentMapper {
     ScheduleDocumentMapper INSTANCE = Mappers.getMapper(ScheduleDocumentMapper.class);
 
