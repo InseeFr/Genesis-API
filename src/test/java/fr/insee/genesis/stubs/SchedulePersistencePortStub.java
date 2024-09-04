@@ -3,7 +3,7 @@ package fr.insee.genesis.stubs;
 import fr.insee.genesis.domain.model.schedule.ScheduleModel;
 import fr.insee.genesis.domain.ports.spi.SchedulePersistencePort;
 import fr.insee.genesis.infrastructure.mappers.ScheduleDocumentMapper;
-import fr.insee.genesis.infrastructure.model.document.schedule.ScheduleDocument;
+import fr.insee.genesis.infrastructure.document.schedule.ScheduleDocument;
 import lombok.Getter;
 
 import java.util.ArrayList;

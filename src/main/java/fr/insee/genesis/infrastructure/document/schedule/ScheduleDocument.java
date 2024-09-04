@@ -1,4 +1,4 @@
-package fr.insee.genesis.infrastructure.model.document.schedule;
+package fr.insee.genesis.infrastructure.document.schedule;
 
 import fr.insee.genesis.domain.model.schedule.KraftwerkExecutionSchedule;
 import lombok.AllArgsConstructor;

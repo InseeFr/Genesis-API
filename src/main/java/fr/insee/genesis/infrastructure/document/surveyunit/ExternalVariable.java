@@ -1,4 +1,4 @@
-package fr.insee.genesis.infrastructure.model.document.surveyunit;
+package fr.insee.genesis.infrastructure.document.surveyunit;
 
 import lombok.Data;
 

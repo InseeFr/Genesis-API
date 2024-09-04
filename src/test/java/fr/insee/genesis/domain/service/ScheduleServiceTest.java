@@ -5,7 +5,7 @@ import fr.insee.genesis.domain.model.schedule.ServiceToCall;
 import fr.insee.genesis.domain.service.schedule.ScheduleService;
 import fr.insee.genesis.exceptions.InvalidCronExpressionException;
 import fr.insee.genesis.exceptions.NotFoundException;
-import fr.insee.genesis.infrastructure.model.document.schedule.ScheduleDocument;
+import fr.insee.genesis.infrastructure.document.schedule.ScheduleDocument;
 import fr.insee.genesis.stubs.SchedulePersistencePortStub;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;

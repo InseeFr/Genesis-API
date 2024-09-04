@@ -9,7 +9,7 @@ import fr.insee.genesis.domain.service.schedule.ScheduleUnicityService;
 import fr.insee.genesis.exceptions.InvalidCronExpressionException;
 import fr.insee.genesis.exceptions.NotFoundException;
 import fr.insee.genesis.infrastructure.mappers.ScheduleDocumentMapper;
-import fr.insee.genesis.infrastructure.model.document.schedule.ScheduleDocument;
+import fr.insee.genesis.infrastructure.document.schedule.ScheduleDocument;
 import org.springframework.scheduling.support.CronExpression;
 
 import java.time.LocalDateTime;

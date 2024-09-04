@@ -2,9 +2,9 @@ package fr.insee.genesis.infrastructure.adapter;
 
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
-import fr.insee.genesis.infrastructure.model.document.surveyunit.ExternalVariable;
-import fr.insee.genesis.infrastructure.model.document.surveyunit.VariableState;
-import fr.insee.genesis.infrastructure.model.document.surveyunit.SurveyUnitDocument;
+import fr.insee.genesis.infrastructure.document.surveyunit.ExternalVariable;
+import fr.insee.genesis.infrastructure.document.surveyunit.VariableState;
+import fr.insee.genesis.infrastructure.document.surveyunit.SurveyUnitDocument;
 import fr.insee.genesis.infrastructure.repository.SurveyUnitMongoDBRepository;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;

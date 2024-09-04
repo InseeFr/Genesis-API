@@ -5,7 +5,7 @@ import fr.insee.genesis.domain.model.schedule.ScheduleModel;
 import fr.insee.genesis.domain.model.schedule.ServiceToCall;
 import fr.insee.genesis.infrastructure.mappers.ScheduleDocumentMapper;
 import fr.insee.genesis.infrastructure.mappers.ScheduleDocumentMapperImpl;
-import fr.insee.genesis.infrastructure.model.document.schedule.ScheduleDocument;
+import fr.insee.genesis.infrastructure.document.schedule.ScheduleDocument;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;

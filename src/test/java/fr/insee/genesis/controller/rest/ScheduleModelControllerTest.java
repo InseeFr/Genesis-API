@@ -4,7 +4,7 @@ package fr.insee.genesis.controller.rest;
 import cucumber.TestConstants;
 import fr.insee.genesis.domain.model.schedule.KraftwerkExecutionSchedule;
 import fr.insee.genesis.domain.model.schedule.ServiceToCall;
-import fr.insee.genesis.infrastructure.model.document.schedule.ScheduleDocument;
+import fr.insee.genesis.infrastructure.document.schedule.ScheduleDocument;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.ScheduleApiPortStub;
