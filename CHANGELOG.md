@@ -1,4 +1,7 @@
 # Changelog
+## 1.2.11 - [2024-09-05]
+### Fixed
+- Fixed get simplified responses POST endpoint
 
 ## 1.2.10 - [2024-08-30]
 ### Updated
