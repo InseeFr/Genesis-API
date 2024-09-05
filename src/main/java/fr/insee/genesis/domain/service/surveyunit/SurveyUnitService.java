@@ -1,11 +1,11 @@
 package fr.insee.genesis.domain.service.surveyunit;
 
-import fr.insee.genesis.domain.model.surveyunit.CampaignWithQuestionnaire;
+import fr.insee.genesis.controller.dto.CampaignWithQuestionnaire;
 import fr.insee.genesis.domain.model.surveyunit.CollectedVariable;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
-import fr.insee.genesis.domain.model.surveyunit.QuestionnaireWithCampaign;
+import fr.insee.genesis.controller.dto.QuestionnaireWithCampaign;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
-import fr.insee.genesis.domain.model.surveyunit.SurveyUnitId;
+import fr.insee.genesis.controller.dto.SurveyUnitId;
 import fr.insee.genesis.domain.model.surveyunit.Variable;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;

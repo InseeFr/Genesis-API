@@ -1,10 +1,10 @@
 package fr.insee.genesis.domain.ports.api;
 
-import fr.insee.genesis.domain.model.surveyunit.CampaignWithQuestionnaire;
+import fr.insee.genesis.controller.dto.CampaignWithQuestionnaire;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
-import fr.insee.genesis.domain.model.surveyunit.QuestionnaireWithCampaign;
+import fr.insee.genesis.controller.dto.QuestionnaireWithCampaign;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
-import fr.insee.genesis.domain.model.surveyunit.SurveyUnitId;
+import fr.insee.genesis.controller.dto.SurveyUnitId;
 
 import java.util.List;
 import java.util.Set;

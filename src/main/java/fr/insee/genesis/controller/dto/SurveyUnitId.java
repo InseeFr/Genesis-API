@@ -1,4 +1,4 @@
-package fr.insee.genesis.domain.model.surveyunit;
+package fr.insee.genesis.controller.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
