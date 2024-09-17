@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Campaign>
+	<Id>NOCOLLECTED</Id>
+	<Label>Traiter - Questions Simples</Label>
+	<SurveyUnits>
+		<SurveyUnit>
+			<Id>00000001</Id>
+			<QuestionnaireModelId>NOCOLLECTED</QuestionnaireModelId>
+			<Data>
+				<CALCULATED/>
+				<EXTERNAL/>
+			</Data>
+		</SurveyUnit>
+	</SurveyUnits>
+</Campaign>
