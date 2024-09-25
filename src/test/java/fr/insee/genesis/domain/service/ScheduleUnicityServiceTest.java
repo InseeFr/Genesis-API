@@ -1,8 +1,9 @@
 package fr.insee.genesis.domain.service;
 
-import fr.insee.genesis.infrastructure.model.document.schedule.KraftwerkExecutionSchedule;
-import fr.insee.genesis.infrastructure.model.document.schedule.ServiceToCall;
-import fr.insee.genesis.infrastructure.model.document.schedule.StoredSurveySchedule;
+import fr.insee.genesis.domain.model.schedule.KraftwerkExecutionSchedule;
+import fr.insee.genesis.domain.model.schedule.ScheduleModel;
+import fr.insee.genesis.domain.model.schedule.ServiceToCall;
+import fr.insee.genesis.domain.service.schedule.ScheduleUnicityService;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,24 +26,24 @@ class ScheduleUnicityServiceTest {
     @Test
     void emptyListTest() {
         //Given
-        List<StoredSurveySchedule> storedSurveySchedules = new ArrayList<>();
+        List<ScheduleModel> scheduleModels = new ArrayList<>();
 
         //When
-        StoredSurveySchedule storedSurveySchedule = scheduleUnicityServiceToTest.deduplicateSurveySchedules(surveyName, storedSurveySchedules);
+        ScheduleModel scheduleModel = scheduleUnicityServiceToTest.deduplicateSurveySchedules(surveyName, scheduleModels);
 
         //Then
-        Assertions.assertThat(storedSurveySchedule).isNull();
+        Assertions.assertThat(scheduleModel).isNull();
     }
 
     @Test
     void oneElementListTest() {
         //Given
-        List<StoredSurveySchedule> storedSurveySchedules = new ArrayList<>();
-        StoredSurveySchedule surveySchedule = new StoredSurveySchedule(
-                surveyName,
-                new ArrayList<>()
-        );
-        storedSurveySchedules.add(surveySchedule);
+        List<ScheduleModel> scheduleModels = new ArrayList<>();
+        ScheduleModel surveySchedule = ScheduleModel.builder()
+                .surveyName(surveyName)
+                .kraftwerkExecutionScheduleList(new ArrayList<>())
+                .build();
+        scheduleModels.add(surveySchedule);
         surveySchedule.getKraftwerkExecutionScheduleList().add(
                 new KraftwerkExecutionSchedule(
                         "0 0 0 * * *",
@@ -54,22 +55,22 @@ class ScheduleUnicityServiceTest {
         );
 
         //When
-        StoredSurveySchedule storedSurveySchedule = scheduleUnicityServiceToTest.deduplicateSurveySchedules(surveyName, storedSurveySchedules);
+        ScheduleModel scheduleModel = scheduleUnicityServiceToTest.deduplicateSurveySchedules(surveyName, scheduleModels);
 
         //Then
-        Assertions.assertThat(storedSurveySchedule).isNotNull();
-        Assertions.assertThat(storedSurveySchedule.getSurveyName()).isEqualTo(surveyName);
-        Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList()).isNotEmpty();
+        Assertions.assertThat(scheduleModel).isNotNull();
+        Assertions.assertThat(scheduleModel.getSurveyName()).isEqualTo(surveyName);
+        Assertions.assertThat(scheduleModel.getKraftwerkExecutionScheduleList()).isNotEmpty();
     }
 
     @Test
     void multipleElementsListTest() {
         //Given
-        List<StoredSurveySchedule> storedSurveySchedules = new ArrayList<>();
-        StoredSurveySchedule surveySchedule = new StoredSurveySchedule(
-                surveyName,
-                new ArrayList<>()
-        );
+        List<ScheduleModel> scheduleModels = new ArrayList<>();
+        ScheduleModel surveySchedule = ScheduleModel.builder()
+                .surveyName(surveyName)
+                .kraftwerkExecutionScheduleList(new ArrayList<>())
+                .build();
         surveySchedule.getKraftwerkExecutionScheduleList().add(
                 new KraftwerkExecutionSchedule(
                         "0 0 0 * * *",
@@ -79,12 +80,12 @@ class ScheduleUnicityServiceTest {
                         null
                 )
         );
-        storedSurveySchedules.add(surveySchedule);
+        scheduleModels.add(surveySchedule);
 
-        surveySchedule = new StoredSurveySchedule(
-                surveyName,
-                new ArrayList<>()
-        );
+        surveySchedule = ScheduleModel.builder()
+                .surveyName(surveyName)
+                .kraftwerkExecutionScheduleList(new ArrayList<>())
+                .build();
         surveySchedule.getKraftwerkExecutionScheduleList().add(
                 new KraftwerkExecutionSchedule(
                         "0 0 6 * * *",
@@ -94,26 +95,26 @@ class ScheduleUnicityServiceTest {
                         null
                 )
         );
-        storedSurveySchedules.add(surveySchedule);
+        scheduleModels.add(surveySchedule);
 
 
         //When
-        StoredSurveySchedule storedSurveySchedule = scheduleUnicityServiceToTest.deduplicateSurveySchedules(surveyName, storedSurveySchedules);
+        ScheduleModel scheduleModel = scheduleUnicityServiceToTest.deduplicateSurveySchedules(surveyName, scheduleModels);
 
         //Then
-        Assertions.assertThat(storedSurveySchedule).isNotNull();
-        Assertions.assertThat(storedSurveySchedule.getSurveyName()).isEqualTo(surveyName);
-        Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList()).isNotEmpty().hasSize(2);
+        Assertions.assertThat(scheduleModel).isNotNull();
+        Assertions.assertThat(scheduleModel.getSurveyName()).isEqualTo(surveyName);
+        Assertions.assertThat(scheduleModel.getKraftwerkExecutionScheduleList()).isNotEmpty().hasSize(2);
     }
 
     @Test
     void duplicateSheduleListTest() {
         //Given
-        List<StoredSurveySchedule> storedSurveySchedules = new ArrayList<>();
-        StoredSurveySchedule surveySchedule = new StoredSurveySchedule(
-                surveyName,
-                new ArrayList<>()
-        );
+        List<ScheduleModel> scheduleModels = new ArrayList<>();
+        ScheduleModel surveySchedule = ScheduleModel.builder()
+                .surveyName(surveyName)
+                .kraftwerkExecutionScheduleList(new ArrayList<>())
+                .build();
         surveySchedule.getKraftwerkExecutionScheduleList().add(
                 new KraftwerkExecutionSchedule(
                         "0 0 0 * * *",
@@ -132,12 +133,12 @@ class ScheduleUnicityServiceTest {
                         null
                 )
         );
-        storedSurveySchedules.add(surveySchedule);
+        scheduleModels.add(surveySchedule);
 
-        surveySchedule = new StoredSurveySchedule(
-                surveyName,
-                new ArrayList<>()
-        );
+        surveySchedule = ScheduleModel.builder()
+                .surveyName(surveyName)
+                .kraftwerkExecutionScheduleList(new ArrayList<>())
+                .build();
         surveySchedule.getKraftwerkExecutionScheduleList().add(
                 new KraftwerkExecutionSchedule(
                         "0 0 0 * * *",
@@ -147,15 +148,15 @@ class ScheduleUnicityServiceTest {
                         null
                 )
         );
-        storedSurveySchedules.add(surveySchedule);
+        scheduleModels.add(surveySchedule);
 
         //When
-        StoredSurveySchedule storedSurveySchedule = scheduleUnicityServiceToTest.deduplicateSurveySchedules(surveyName, storedSurveySchedules);
+        ScheduleModel scheduleModel = scheduleUnicityServiceToTest.deduplicateSurveySchedules(surveyName, scheduleModels);
 
         //Then
-        Assertions.assertThat(storedSurveySchedule).isNotNull();
-        Assertions.assertThat(storedSurveySchedule.getSurveyName()).isEqualTo(surveyName);
-        Assertions.assertThat(storedSurveySchedule.getKraftwerkExecutionScheduleList()).isNotEmpty().hasSize(2);
+        Assertions.assertThat(scheduleModel).isNotNull();
+        Assertions.assertThat(scheduleModel.getSurveyName()).isEqualTo(surveyName);
+        Assertions.assertThat(scheduleModel.getKraftwerkExecutionScheduleList()).isNotEmpty().hasSize(2);
     }
 
 }

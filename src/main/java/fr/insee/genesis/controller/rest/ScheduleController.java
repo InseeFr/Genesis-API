@@ -1,12 +1,12 @@
 package fr.insee.genesis.controller.rest;
 
 import fr.insee.genesis.Constants;
+import fr.insee.genesis.domain.model.schedule.ScheduleModel;
+import fr.insee.genesis.domain.model.schedule.ServiceToCall;
+import fr.insee.genesis.domain.model.schedule.TrustParameters;
 import fr.insee.genesis.domain.ports.api.ScheduleApiPort;
 import fr.insee.genesis.exceptions.InvalidCronExpressionException;
 import fr.insee.genesis.exceptions.NotFoundException;
-import fr.insee.genesis.infrastructure.model.document.schedule.ServiceToCall;
-import fr.insee.genesis.infrastructure.model.document.schedule.StoredSurveySchedule;
-import fr.insee.genesis.infrastructure.model.document.schedule.TrustParameters;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -44,10 +44,10 @@ public class ScheduleController {
     public ResponseEntity<Object> getAllSchedules() {
         log.debug("Got GET all schedules request");
 
-        List<StoredSurveySchedule> storedSurveySchedules = scheduleApiPort.getAllSchedules();
+        List<ScheduleModel> surveyScheduleDocumentModels = scheduleApiPort.getAllSchedules();
 
-        log.info("Returning {} schedule documents...", storedSurveySchedules.size());
-        return ResponseEntity.ok(storedSurveySchedules);
+        log.info("Returning {} schedule documents...", surveyScheduleDocumentModels.size());
+        return ResponseEntity.ok(surveyScheduleDocumentModels);
     }
 
     @Operation(summary = "Schedule a Kraftwerk execution")

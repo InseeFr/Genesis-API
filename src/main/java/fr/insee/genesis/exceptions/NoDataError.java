@@ -1,6 +1,6 @@
 package fr.insee.genesis.exceptions;
 
-import fr.insee.genesis.domain.dtos.Mode;
+import fr.insee.genesis.domain.model.surveyunit.Mode;
 import lombok.Getter;
 
 @Getter
