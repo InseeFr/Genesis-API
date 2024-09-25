@@ -10,6 +10,7 @@ import fr.insee.genesis.domain.model.surveyunit.Variable;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -20,6 +21,7 @@ import java.util.stream.Stream;
 @Service
 public class SurveyUnitService implements SurveyUnitApiPort {
 
+    @Qualifier("SurveyUnitMongoAdapter")
     private final SurveyUnitPersistencePort surveyUnitPersistencePort;
 
     @Autowired
