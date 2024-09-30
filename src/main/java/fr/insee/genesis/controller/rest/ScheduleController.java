@@ -84,11 +84,19 @@ public class ScheduleController {
                         useSignature
                 );
                 log.info("New schedule request for survey {} with encryption", surveyName);
-                scheduleApiPort.addSchedule(surveyName, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate,
+                scheduleApiPort.addSchedule(surveyName,
+                        serviceToCall == null ? ServiceToCall.MAIN : serviceToCall,
+                        frequency,
+                        scheduleBeginDate,
+                        scheduleEndDate,
                         trustParameters);
             }else{
                 log.info("New schedule request for survey {}", surveyName);
-                scheduleApiPort.addSchedule(surveyName, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate,
+                scheduleApiPort.addSchedule(surveyName,
+                        serviceToCall == null ? ServiceToCall.MAIN : serviceToCall,
+                        frequency,
+                        scheduleBeginDate,
+                        scheduleEndDate,
                         null);
             }
 
