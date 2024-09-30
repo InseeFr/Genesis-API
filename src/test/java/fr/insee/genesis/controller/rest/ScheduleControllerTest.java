@@ -3,10 +3,12 @@ package fr.insee.genesis.controller.rest;
 
 import cucumber.TestConstants;
 import fr.insee.genesis.Constants;
-import fr.insee.genesis.exceptions.NotFoundException;
 import fr.insee.genesis.domain.model.schedule.KraftwerkExecutionSchedule;
+import fr.insee.genesis.domain.model.schedule.ScheduleModel;
 import fr.insee.genesis.domain.model.schedule.ServiceToCall;
+import fr.insee.genesis.exceptions.NotFoundException;
 import fr.insee.genesis.infrastructure.document.schedule.ScheduleDocument;
+import fr.insee.genesis.infrastructure.mappers.ScheduleDocumentMapper;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.ScheduleApiPortStub;
@@ -23,7 +25,7 @@ import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
 
-class ScheduleModelControllerTest {
+class ScheduleControllerTest {
     //Given
     private static ScheduleController scheduleController;
 
@@ -265,8 +267,9 @@ class ScheduleModelControllerTest {
     @Test
     void deleteExpiredScheduleTest_execution() throws NotFoundException, IOException {
         //Given
-        StoredSurveySchedule storedSurveyScheduleTest = new StoredSurveySchedule(
+        ScheduleModel scheduleModel = new ScheduleModel(
                 "TESTSURVEYADDED",
+                null,
                 new ArrayList<>()
         );
         KraftwerkExecutionSchedule kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
@@ -276,7 +279,7 @@ class ScheduleModelControllerTest {
                 LocalDateTime.of(2000, Month.DECEMBER, 1, 1, 1, 1),
                 null
         );
-        storedSurveyScheduleTest.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
+        scheduleModel.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
         kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
                 "0 0 6 * * *",
                 ServiceToCall.MAIN,
@@ -284,13 +287,14 @@ class ScheduleModelControllerTest {
                 LocalDateTime.of(5023, Month.DECEMBER, 1, 1, 1, 1),
                 null
         );
-        storedSurveyScheduleTest.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
-        scheduleApiPortStub.mongoStub.add(storedSurveyScheduleTest);
+        scheduleModel.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
+        scheduleApiPortStub.mongoStub.add(ScheduleDocumentMapper.INSTANCE.modelToDocument(scheduleModel));
 
         //When
         scheduleController.deleteExpiredSchedules();
 
         //Then
+        //Expired schedule deleted
         Assertions.assertThat(scheduleApiPortStub.mongoStub).filteredOn(scheduleDocument ->
                 scheduleDocument.getSurveyName().equals("TESTSURVEYADDED")
         ).isNotEmpty();
@@ -298,6 +302,7 @@ class ScheduleModelControllerTest {
                 scheduleDocument.getSurveyName().equals("TESTSURVEYADDED")).toList().getFirst().getKraftwerkExecutionScheduleList()
         ).isNotEmpty().hasSize(1);
 
+        //Expired schedule to log json file
         Assertions.assertThat(Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
                 .resolve(Constants.SCHEDULE_ARCHIVE_FOLDER_NAME)
                 .resolve("TESTSURVEYADDED.json")
@@ -307,8 +312,9 @@ class ScheduleModelControllerTest {
     @Test
     void deleteExpiredScheduleTest_wholeSurvey() throws NotFoundException, IOException {
         //Given
-        StoredSurveySchedule storedSurveyScheduleTest = new StoredSurveySchedule(
+        ScheduleModel scheduleModel = new ScheduleModel(
                 "TESTSURVEYADDED",
+                null,
                 new ArrayList<>()
         );
         KraftwerkExecutionSchedule kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
@@ -318,7 +324,7 @@ class ScheduleModelControllerTest {
                 LocalDateTime.of(2001, Month.DECEMBER, 1, 1, 1, 1),
                 null
         );
-        storedSurveyScheduleTest.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
+        scheduleModel.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
         kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
                 "0 0 6 * * *",
                 ServiceToCall.MAIN,
@@ -326,17 +332,19 @@ class ScheduleModelControllerTest {
                 LocalDateTime.of(2002, Month.DECEMBER, 1, 1, 1, 1),
                 null
         );
-        storedSurveyScheduleTest.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
-        scheduleApiPortStub.mongoStub.add(storedSurveyScheduleTest);
+        scheduleModel.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
+        scheduleApiPortStub.mongoStub.add(ScheduleDocumentMapper.INSTANCE.modelToDocument(scheduleModel));
 
         //When
         scheduleController.deleteExpiredSchedules();
 
         //Then
+        //Expired schedule document deleted
         Assertions.assertThat(scheduleApiPortStub.mongoStub).filteredOn(scheduleDocument ->
                 scheduleDocument.getSurveyName().equals("TESTSURVEYADDED")
         ).isEmpty();
 
+        //Expired schedule to log json file
         Assertions.assertThat(Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
                 .resolve(Constants.SCHEDULE_ARCHIVE_FOLDER_NAME)
                 .resolve("TESTSURVEYADDED.json")
@@ -346,8 +354,9 @@ class ScheduleModelControllerTest {
     @Test
     void deleteExpiredScheduleTest_appendLog() throws NotFoundException, IOException {
         //Given
-        StoredSurveySchedule storedSurveyScheduleTest = new StoredSurveySchedule(
+        ScheduleModel scheduleModel = new ScheduleModel(
                 "TESTSURVEYADDED2",
+                null,
                 new ArrayList<>()
         );
         KraftwerkExecutionSchedule kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
@@ -357,7 +366,7 @@ class ScheduleModelControllerTest {
                 LocalDateTime.of(2000, Month.DECEMBER, 1, 1, 1, 1),
                 null
         );
-        storedSurveyScheduleTest.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
+        scheduleModel.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
         kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
                 "0 0 6 * * *",
                 ServiceToCall.MAIN,
@@ -365,8 +374,8 @@ class ScheduleModelControllerTest {
                 LocalDateTime.of(5023, Month.DECEMBER, 1, 1, 1, 1),
                 null
         );
-        storedSurveyScheduleTest.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
-        scheduleApiPortStub.mongoStub.add(storedSurveyScheduleTest);
+        scheduleModel.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
+        scheduleApiPortStub.mongoStub.add(ScheduleDocumentMapper.INSTANCE.modelToDocument(scheduleModel));
 
         //When
         scheduleController.deleteExpiredSchedules();
@@ -377,11 +386,12 @@ class ScheduleModelControllerTest {
                 LocalDateTime.of(2001, Month.DECEMBER, 1, 1, 1, 1),
                 null
         );
-        storedSurveyScheduleTest.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
-        scheduleApiPortStub.mongoStub.add(storedSurveyScheduleTest);
+        scheduleModel.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
+        scheduleApiPortStub.mongoStub.add(ScheduleDocumentMapper.INSTANCE.modelToDocument(scheduleModel));
         scheduleController.deleteExpiredSchedules();
 
         //Then
+        //Expired schedules deleted
         Assertions.assertThat(scheduleApiPortStub.mongoStub).filteredOn(scheduleDocument ->
                 scheduleDocument.getSurveyName().equals("TESTSURVEYADDED2")
         ).isNotEmpty();
@@ -389,6 +399,7 @@ class ScheduleModelControllerTest {
                 scheduleDocument.getSurveyName().equals("TESTSURVEYADDED2")).toList().getFirst().getKraftwerkExecutionScheduleList()
         ).isNotEmpty().hasSize(1);
 
+        //Expired schedules to only one log json file
         Assertions.assertThat(Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
                 .resolve(Constants.SCHEDULE_ARCHIVE_FOLDER_NAME)
                 .resolve("TESTSURVEYADDED2.json")

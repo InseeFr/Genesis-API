@@ -127,4 +127,54 @@ class ScheduleServiceTest {
         Assertions.assertThat(scheduleService.countSchedules()).isEqualTo(1);
     }
 
+    @Test
+    void removeExpiredSchedules_test_existing_schedule() throws NotFoundException {
+        //Given
+        //Expired schedule
+        schedulePersistencePortStub.getMongoStub().getFirst().getKraftwerkExecutionScheduleList().add(new KraftwerkExecutionSchedule(
+                "0 0 6 * * *",
+                ServiceToCall.MAIN,
+                LocalDateTime.MIN,
+                LocalDateTime.of(2000,1,1,1,1,1),
+                null
+        ));
+
+        //When
+        scheduleService.deleteExpiredSchedules("TEST");
+
+        //Then
+        //Execution schedule deleted
+        Assertions.assertThat(schedulePersistencePortStub.getMongoStub()).hasSize(1);
+        Assertions.assertThat(schedulePersistencePortStub.getMongoStub().getFirst().getKraftwerkExecutionScheduleList()).hasSize(1);
+        Assertions.assertThat(schedulePersistencePortStub.getMongoStub().getFirst().getKraftwerkExecutionScheduleList().getFirst().getScheduleEndDate())
+                .isEqualTo(LocalDateTime.MAX);
+    }
+    @Test
+    void removeExpiredSchedules_test_delete_document() throws NotFoundException {
+        //Given
+        //Expired schedule + new survey
+        List<KraftwerkExecutionSchedule> kraftwerkExecutionScheduleList = new ArrayList<>();
+        kraftwerkExecutionScheduleList.add(new KraftwerkExecutionSchedule(
+                "0 0 6 * * *",
+                ServiceToCall.MAIN,
+                LocalDateTime.MIN,
+                LocalDateTime.of(2000,1,1,1,1,1),
+                null
+        ));
+        schedulePersistencePortStub.getMongoStub().add(new ScheduleDocument(
+                "TEST2",
+                kraftwerkExecutionScheduleList
+        ));
+
+        //When
+        scheduleService.deleteExpiredSchedules("TEST2");
+
+        //Then
+        //Survey schedule document deleted
+        Assertions.assertThat(schedulePersistencePortStub.getMongoStub()).hasSize(1);
+        Assertions.assertThat(schedulePersistencePortStub.getMongoStub().stream().filter(
+                scheduleDocument -> scheduleDocument.getSurveyName().equals("TEST2")
+        ).toList()).isEmpty();
+
+    }
 }

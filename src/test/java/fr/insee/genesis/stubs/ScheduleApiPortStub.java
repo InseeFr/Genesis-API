@@ -105,16 +105,16 @@ public class ScheduleApiPortStub implements ScheduleApiPort {
 
     @Override
     public List<KraftwerkExecutionSchedule> deleteExpiredSchedules(String surveyName) throws NotFoundException {
-        List<StoredSurveySchedule> mongoStubFiltered = mongoStub.stream().filter(scheduleDocument ->
+        List<ScheduleDocument> mongoStubFiltered = mongoStub.stream().filter(scheduleDocument ->
                 scheduleDocument.getSurveyName().equals(surveyName)).toList();
         if(mongoStubFiltered.isEmpty()){
             throw new NotFoundException();
         }
         List<KraftwerkExecutionSchedule> deletedKraftwerkExecutionSchedules = new ArrayList<>();
-        for(StoredSurveySchedule surveySchedule : mongoStubFiltered){
-            deletedKraftwerkExecutionSchedules.addAll(removeExpiredSchedules(surveySchedule));
-            if(surveySchedule.getKraftwerkExecutionScheduleList().isEmpty()){
-                mongoStub.remove(surveySchedule);
+        for(ScheduleDocument scheduleDocument : mongoStubFiltered){
+            deletedKraftwerkExecutionSchedules.addAll(removeExpiredSchedules(scheduleDocument));
+            if(scheduleDocument.getKraftwerkExecutionScheduleList().isEmpty()){
+                mongoStub.remove(scheduleDocument);
             }
         }
         return deletedKraftwerkExecutionSchedules;
@@ -135,14 +135,14 @@ public class ScheduleApiPortStub implements ScheduleApiPort {
         return mongoStub.size();
     }
 
-    @Override
-    public List<KraftwerkExecutionSchedule> removeExpiredSchedules(StoredSurveySchedule surveySchedule) {
+    public List<KraftwerkExecutionSchedule> removeExpiredSchedules(ScheduleDocument scheduleDocument) {
         List<KraftwerkExecutionSchedule> deletedKraftwerkExecutionSchedules = new ArrayList<>(
-                surveySchedule.getKraftwerkExecutionScheduleList().stream().filter(
+                scheduleDocument.getKraftwerkExecutionScheduleList().stream().filter(
                 kraftwerkExecutionSchedule1 ->
                         kraftwerkExecutionSchedule1.getScheduleEndDate().isBefore(LocalDateTime.now())).toList()
         );
-        surveySchedule.getKraftwerkExecutionScheduleList().removeIf(
+
+        scheduleDocument.getKraftwerkExecutionScheduleList().removeIf(
                 kraftwerkExecutionSchedule1 ->
                         kraftwerkExecutionSchedule1.getScheduleEndDate().isBefore(LocalDateTime.now())
         );

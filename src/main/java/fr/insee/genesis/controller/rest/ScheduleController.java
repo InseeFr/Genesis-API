@@ -3,6 +3,7 @@ package fr.insee.genesis.controller.rest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import fr.insee.genesis.Constants;
+import fr.insee.genesis.domain.model.schedule.KraftwerkExecutionSchedule;
 import fr.insee.genesis.domain.model.schedule.ScheduleModel;
 import fr.insee.genesis.domain.model.schedule.ServiceToCall;
 import fr.insee.genesis.domain.model.schedule.TrustParameters;
@@ -137,8 +138,8 @@ public class ScheduleController {
     @DeleteMapping(path = "/delete/expired-schedules")
     public ResponseEntity<Object> deleteExpiredSchedules() throws NotFoundException, IOException {
         Set<String> storedSurveySchedulesNames = new HashSet<>();
-        for(StoredSurveySchedule surveySchedule : scheduleApiPort.getAllSchedules()){
-            storedSurveySchedulesNames.add(surveySchedule.getSurveyName());
+        for(ScheduleModel scheduleModel : scheduleApiPort.getAllSchedules()){
+            storedSurveySchedulesNames.add(scheduleModel.getSurveyName());
         }
         for (String surveyScheduleName : storedSurveySchedulesNames) {
             List<KraftwerkExecutionSchedule> deletedKraftwerkExecutionSchedules = scheduleApiPort.deleteExpiredSchedules(surveyScheduleName);
