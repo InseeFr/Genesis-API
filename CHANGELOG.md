@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.2.13 - [2024-09-09]
+### Fixed
+- Fix conflict : xslt transformation is now in BPM library
+
+## 1.2.12 - [2024-09-06]
+### Fixed
+- Change to BPM version 1.0.1 (hot fix DDI Reader)
+
+## 1.2.11 - [2024-09-05]
+### Fixed
+- Fixed get simplified responses POST endpoint
+
 ## 1.2.10 - [2024-08-30]
 ### Updated
 - Update dependencies (pitest, spring-boot, mapstruct)

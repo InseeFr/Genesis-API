@@ -2,23 +2,23 @@ package fr.insee.genesis.controller.rest;
 
 import cucumber.TestConstants;
 import fr.insee.genesis.Constants;
-import fr.insee.genesis.controller.responses.SurveyUnitUpdateSimplified;
-import fr.insee.genesis.controller.service.SurveyUnitQualityService;
-import fr.insee.genesis.controller.service.VolumetryLogService;
+import fr.insee.genesis.controller.dto.SurveyUnitSimplified;
+import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
+import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
+import fr.insee.genesis.domain.service.volumetry.VolumetryLogService;
 import fr.insee.genesis.controller.utils.ControllerUtils;
-import fr.insee.genesis.domain.dtos.CampaignWithQuestionnaire;
-import fr.insee.genesis.domain.dtos.CollectedVariableDto;
-import fr.insee.genesis.domain.dtos.DataState;
-import fr.insee.genesis.domain.dtos.Mode;
-import fr.insee.genesis.domain.dtos.QuestionnaireWithCampaign;
-import fr.insee.genesis.domain.dtos.SurveyUnitId;
-import fr.insee.genesis.domain.dtos.SurveyUnitUpdateDto;
-import fr.insee.genesis.domain.dtos.VariableDto;
-import fr.insee.genesis.domain.ports.api.SurveyUnitUpdateApiPort;
-import fr.insee.genesis.domain.service.SurveyUnitUpdateImpl;
+import fr.insee.genesis.controller.dto.CampaignWithQuestionnaire;
+import fr.insee.genesis.domain.model.surveyunit.CollectedVariable;
+import fr.insee.genesis.domain.model.surveyunit.DataState;
+import fr.insee.genesis.domain.model.surveyunit.Mode;
+import fr.insee.genesis.controller.dto.QuestionnaireWithCampaign;
+import fr.insee.genesis.controller.dto.SurveyUnitId;
+import fr.insee.genesis.domain.model.surveyunit.Variable;
+import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
+import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
-import fr.insee.genesis.stubs.SurveyUnitUpdatePersistencePortStub;
+import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,18 +43,18 @@ import java.util.stream.Stream;
 class ResponseControllerTest {
     //Given
     static ResponseController responseControllerStatic;
-    static SurveyUnitUpdatePersistencePortStub surveyUnitUpdatePersistencePortStub;
+    static SurveyUnitPersistencePortStub surveyUnitPersistencePortStub;
 
     static List<SurveyUnitId> surveyUnitIdList;
 
     @BeforeAll
     static void init() {
-        surveyUnitUpdatePersistencePortStub = new SurveyUnitUpdatePersistencePortStub();
-        SurveyUnitUpdateApiPort surveyUnitUpdateApiPort = new SurveyUnitUpdateImpl(surveyUnitUpdatePersistencePortStub);
+        surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
+        SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(surveyUnitPersistencePortStub);
 
         FileUtils fileUtils = new FileUtils(new ConfigStub());
         responseControllerStatic = new ResponseController(
-                surveyUnitUpdateApiPort
+                surveyUnitApiPort
                 , new SurveyUnitQualityService()
                 , new VolumetryLogService(new ConfigStub())
                 , fileUtils
@@ -68,16 +68,16 @@ class ResponseControllerTest {
     @BeforeEach
     void reset() throws IOException {
         //MongoDB stub management
-        surveyUnitUpdatePersistencePortStub.getMongoStub().clear();
+        surveyUnitPersistencePortStub.getMongoStub().clear();
 
-        List<VariableDto> externalVariableDtoList = new ArrayList<>();
-        VariableDto variableDto = VariableDto.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
-        externalVariableDtoList.add(variableDto);
+        List<Variable> externalVariableList = new ArrayList<>();
+        Variable variable = Variable.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
+        externalVariableList.add(variable);
 
-        List<CollectedVariableDto> collectedVariableDtoList = new ArrayList<>();
-        CollectedVariableDto collectedVariableDto = new CollectedVariableDto("TESTIDVAR", List.of(new String[]{"V1", "V2"}), "TESTIDLOOP", "TESTIDPARENT");
-        collectedVariableDtoList.add(collectedVariableDto);
-        surveyUnitUpdatePersistencePortStub.getMongoStub().add(SurveyUnitUpdateDto.builder()
+        List<CollectedVariable> collectedVariableList = new ArrayList<>();
+        CollectedVariable collectedVariable = new CollectedVariable("TESTIDVAR", List.of(new String[]{"V1", "V2"}), "TESTIDLOOP", "TESTIDPARENT");
+        collectedVariableList.add(collectedVariable);
+        surveyUnitPersistencePortStub.getMongoStub().add(SurveyUnitModel.builder()
                 .idCampaign("TESTIDCAMPAIGN")
                 .mode(Mode.WEB)
                 .idUE("TESTIDUE")
@@ -85,8 +85,8 @@ class ResponseControllerTest {
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2023, 1, 1, 0, 0, 0))
                 .recordDate(LocalDateTime.of(2024, 1, 1, 0, 0, 0))
-                .externalVariables(externalVariableDtoList)
-                .collectedVariables(collectedVariableDtoList)
+                .externalVariables(externalVariableList)
+                .collectedVariables(collectedVariableList)
                 .build());
 
         //Test file management
@@ -224,7 +224,7 @@ class ResponseControllerTest {
                 , true
         );
 
-        Assertions.assertThat(surveyUnitUpdatePersistencePortStub.getMongoStub()).isNotEmpty();
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).isNotEmpty();
     }
 
     @Test
@@ -235,12 +235,12 @@ class ResponseControllerTest {
                 , true
         );
 
-        Assertions.assertThat(surveyUnitUpdatePersistencePortStub.getMongoStub()).isNotEmpty();
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).isNotEmpty();
     }
 
     @Test
     void saveResponsesFromXmlCampaignFolderTest_noData() throws Exception {
-        surveyUnitUpdatePersistencePortStub.getMongoStub().clear();
+        surveyUnitPersistencePortStub.getMongoStub().clear();
 
         responseControllerStatic.saveResponsesFromXmlCampaignFolder(
                 "TESTNODATA"
@@ -248,20 +248,20 @@ class ResponseControllerTest {
                 , true
         );
 
-        Assertions.assertThat(surveyUnitUpdatePersistencePortStub.getMongoStub()).isEmpty();
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).isEmpty();
     }
 
     @Test
     void saveResponsesFromAllCampaignFoldersTests(){
-        surveyUnitUpdatePersistencePortStub.getMongoStub().clear();
+        surveyUnitPersistencePortStub.getMongoStub().clear();
         responseControllerStatic.saveResponsesFromAllCampaignFolders();
 
-        Assertions.assertThat(surveyUnitUpdatePersistencePortStub.getMongoStub()).isNotEmpty();
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).isNotEmpty();
     }
 
     @Test
     void findResponsesByUEAndQuestionnaireTest() {
-        ResponseEntity<List<SurveyUnitUpdateDto>> response = responseControllerStatic.findResponsesByUEAndQuestionnaire("TESTIDUE", "TESTIDQUESTIONNAIRE");
+        ResponseEntity<List<SurveyUnitModel>> response = responseControllerStatic.findResponsesByUEAndQuestionnaire("TESTIDUE", "TESTIDQUESTIONNAIRE");
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
@@ -290,18 +290,18 @@ class ResponseControllerTest {
     @Test
     void getAllResponsesByQuestionnaireTestSequential() throws IOException {
         //Given
-        surveyUnitUpdatePersistencePortStub.getMongoStub().clear();
+        surveyUnitPersistencePortStub.getMongoStub().clear();
 
         for (int i = 0; i < Constants.BATCH_SIZE + 2; i++) {
-            List<VariableDto> externalVariableDtoList = new ArrayList<>();
-            VariableDto variableDto = VariableDto.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
-            externalVariableDtoList.add(variableDto);
+            List<Variable> externalVariableList = new ArrayList<>();
+            Variable variable = Variable.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
+            externalVariableList.add(variable);
 
-            List<CollectedVariableDto> collectedVariableDtoList = new ArrayList<>();
-            CollectedVariableDto collectedVariableDto = new CollectedVariableDto("TESTIDVAR", List.of(new String[]{"V1", "V2"}), "TESTIDLOOP", "TESTIDPARENT");
-            collectedVariableDtoList.add(collectedVariableDto);
+            List<CollectedVariable> collectedVariableList = new ArrayList<>();
+            CollectedVariable collectedVariable = new CollectedVariable("TESTIDVAR", List.of(new String[]{"V1", "V2"}), "TESTIDLOOP", "TESTIDPARENT");
+            collectedVariableList.add(collectedVariable);
 
-            surveyUnitUpdatePersistencePortStub.getMongoStub().add(SurveyUnitUpdateDto.builder()
+            surveyUnitPersistencePortStub.getMongoStub().add(SurveyUnitModel.builder()
                     .idCampaign("TESTIDCAMPAIGN")
                     .mode(Mode.WEB)
                     .idUE("TESTIDUE" + i)
@@ -309,8 +309,8 @@ class ResponseControllerTest {
                     .state(DataState.COLLECTED)
                     .fileDate(LocalDateTime.of(2023, 1, 1, 0, 0, 0))
                     .recordDate(LocalDateTime.of(2024, 1, 1, 0, 0, 0))
-                    .externalVariables(externalVariableDtoList)
-                    .collectedVariables(collectedVariableDtoList)
+                    .externalVariables(externalVariableList)
+                    .collectedVariables(collectedVariableList)
                     .build());
         }
 
@@ -332,7 +332,7 @@ class ResponseControllerTest {
     void getLatestByUETest() {
         addAdditionnalDtoToMongoStub();
 
-        ResponseEntity<List<SurveyUnitUpdateDto>> response = responseControllerStatic.getLatestByUE("TESTIDUE", "TESTIDQUESTIONNAIRE");
+        ResponseEntity<List<SurveyUnitModel>> response = responseControllerStatic.getLatestByUE("TESTIDUE", "TESTIDQUESTIONNAIRE");
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
@@ -343,7 +343,7 @@ class ResponseControllerTest {
 
     @Test
     void getLatestByUEOneObjectTest() {
-        ResponseEntity<SurveyUnitUpdateSimplified> response = responseControllerStatic.getLatestByUEOneObject("TESTIDUE", "TESTIDQUESTIONNAIRE", Mode.WEB);
+        ResponseEntity<SurveyUnitSimplified> response = responseControllerStatic.getLatestByUEOneObject("TESTIDUE", "TESTIDQUESTIONNAIRE", Mode.WEB);
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull();
@@ -353,7 +353,7 @@ class ResponseControllerTest {
 
     @Test
     void getLatestForUEListTest() {
-        ResponseEntity<List<SurveyUnitUpdateSimplified>> response = responseControllerStatic.getLatestForUEList("TESTIDQUESTIONNAIRE", surveyUnitIdList);
+        ResponseEntity<List<SurveyUnitSimplified>> response = responseControllerStatic.getLatestForUEList("TESTIDQUESTIONNAIRE", surveyUnitIdList);
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
@@ -578,15 +578,15 @@ class ResponseControllerTest {
 
     // Utilities
     private void addAdditionnalDtoToMongoStub() {
-        List<VariableDto> externalVariableDtoList = new ArrayList<>();
-        VariableDto variableDto = VariableDto.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
-        externalVariableDtoList.add(variableDto);
+        List<Variable> externalVariableList = new ArrayList<>();
+        Variable variable = Variable.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
+        externalVariableList.add(variable);
 
-        List<CollectedVariableDto> collectedVariableDtoList = new ArrayList<>();
-        CollectedVariableDto collectedVariableDto = new CollectedVariableDto("TESTIDVAR", List.of(new String[]{"V1", "V2"}), "TESTIDLOOP", "TESTIDPARENT");
-        collectedVariableDtoList.add(collectedVariableDto);
+        List<CollectedVariable> collectedVariableList = new ArrayList<>();
+        CollectedVariable collectedVariable = new CollectedVariable("TESTIDVAR", List.of(new String[]{"V1", "V2"}), "TESTIDLOOP", "TESTIDPARENT");
+        collectedVariableList.add(collectedVariable);
 
-        SurveyUnitUpdateDto recentDTO = SurveyUnitUpdateDto.builder()
+        SurveyUnitModel recentDTO = SurveyUnitModel.builder()
                 .idCampaign("TESTIDCAMPAIGN")
                 .mode(Mode.WEB)
                 .idUE("TESTIDUE")
@@ -594,22 +594,22 @@ class ResponseControllerTest {
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2023, 2, 2, 0, 0, 0))
                 .recordDate(LocalDateTime.of(2024, 2, 2, 0, 0, 0))
-                .externalVariables(externalVariableDtoList)
-                .collectedVariables(collectedVariableDtoList)
+                .externalVariables(externalVariableList)
+                .collectedVariables(collectedVariableList)
                 .build();
-        surveyUnitUpdatePersistencePortStub.getMongoStub().add(recentDTO);
+        surveyUnitPersistencePortStub.getMongoStub().add(recentDTO);
     }
 
     private void addAdditionnalDtoToMongoStub(String idQuestionnaire) {
-        List<VariableDto> externalVariableDtoList = new ArrayList<>();
-        VariableDto variableDto = VariableDto.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
-        externalVariableDtoList.add(variableDto);
+        List<Variable> externalVariableList = new ArrayList<>();
+        Variable variable = Variable.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
+        externalVariableList.add(variable);
 
-        List<CollectedVariableDto> collectedVariableDtoList = new ArrayList<>();
-        CollectedVariableDto collectedVariableDto = new CollectedVariableDto("TESTIDVAR", List.of(new String[]{"V1", "V2"}), "TESTIDLOOP", "TESTIDPARENT");
-        collectedVariableDtoList.add(collectedVariableDto);
+        List<CollectedVariable> collectedVariableList = new ArrayList<>();
+        CollectedVariable collectedVariable = new CollectedVariable("TESTIDVAR", List.of(new String[]{"V1", "V2"}), "TESTIDLOOP", "TESTIDPARENT");
+        collectedVariableList.add(collectedVariable);
 
-        SurveyUnitUpdateDto recentDTO = SurveyUnitUpdateDto.builder()
+        SurveyUnitModel recentDTO = SurveyUnitModel.builder()
                 .idCampaign("TESTIDCAMPAIGN")
                 .mode(Mode.WEB)
                 .idUE("TESTIDUE")
@@ -617,22 +617,22 @@ class ResponseControllerTest {
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2023, 2, 2, 0, 0, 0))
                 .recordDate(LocalDateTime.of(2024, 2, 2, 0, 0, 0))
-                .externalVariables(externalVariableDtoList)
-                .collectedVariables(collectedVariableDtoList)
+                .externalVariables(externalVariableList)
+                .collectedVariables(collectedVariableList)
                 .build();
-        surveyUnitUpdatePersistencePortStub.getMongoStub().add(recentDTO);
+        surveyUnitPersistencePortStub.getMongoStub().add(recentDTO);
     }
 
     private void addAdditionnalDtoToMongoStub(String idCampaign, String idQuestionnaire) {
-        List<VariableDto> externalVariableDtoList = new ArrayList<>();
-        VariableDto variableDto = VariableDto.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
-        externalVariableDtoList.add(variableDto);
+        List<Variable> externalVariableList = new ArrayList<>();
+        Variable variable = Variable.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
+        externalVariableList.add(variable);
 
-        List<CollectedVariableDto> collectedVariableDtoList = new ArrayList<>();
-        CollectedVariableDto collectedVariableDto = new CollectedVariableDto("TESTIDVAR", List.of(new String[]{"V1", "V2"}), "TESTIDLOOP", "TESTIDPARENT");
-        collectedVariableDtoList.add(collectedVariableDto);
+        List<CollectedVariable> collectedVariableList = new ArrayList<>();
+        CollectedVariable collectedVariable = new CollectedVariable("TESTIDVAR", List.of(new String[]{"V1", "V2"}), "TESTIDLOOP", "TESTIDPARENT");
+        collectedVariableList.add(collectedVariable);
 
-        SurveyUnitUpdateDto recentDTO = SurveyUnitUpdateDto.builder()
+        SurveyUnitModel recentDTO = SurveyUnitModel.builder()
                 .idCampaign(idCampaign)
                 .mode(Mode.WEB)
                 .idUE("TESTIDUE")
@@ -640,9 +640,9 @@ class ResponseControllerTest {
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2023, 2, 2, 0, 0, 0))
                 .recordDate(LocalDateTime.of(2024, 2, 2, 0, 0, 0))
-                .externalVariables(externalVariableDtoList)
-                .collectedVariables(collectedVariableDtoList)
+                .externalVariables(externalVariableList)
+                .collectedVariables(collectedVariableList)
                 .build();
-        surveyUnitUpdatePersistencePortStub.getMongoStub().add(recentDTO);
+        surveyUnitPersistencePortStub.getMongoStub().add(recentDTO);
     }
 }

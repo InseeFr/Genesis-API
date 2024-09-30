@@ -1,6 +1,6 @@
 package fr.insee.genesis.controller.rest;
 
-import fr.insee.genesis.controller.utils.XMLSplitter;
+import fr.insee.genesis.domain.utils.XMLSplitter;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

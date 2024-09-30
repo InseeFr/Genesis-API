@@ -3,7 +3,7 @@
   <Id>ENQUETE_TEST</Id>
   <Label />
   <SurveyUnits>
-    <SurveyUnit>
+    <SurveyUnitModel>
       <Id>TEST500001</Id>
       <QuestionnaireModelId>MODELE_ENQUETE_TEST</QuestionnaireModelId>
       <Data>
@@ -50,8 +50,8 @@
           <Value />
         </Variable>
       </Personalization>
-    </SurveyUnit>
-	<SurveyUnit>
+    </SurveyUnitModel>
+	<SurveyUnitModel>
       <Id>TEST500002</Id>
       <QuestionnaireModelId>MODELE_ENQUETE_TEST</QuestionnaireModelId>
       <Data>
@@ -90,8 +90,8 @@
           <Value>PRENOM3 NOM3</Value>
         </Variable>
       </Personalization>
-    </SurveyUnit>
-    <SurveyUnit>
+    </SurveyUnitModel>
+    <SurveyUnitModel>
       <Id>TEST500003</Id>
       <QuestionnaireModelId>MODELE_ENQUETE_TEST</QuestionnaireModelId>
       <Data>
@@ -138,8 +138,8 @@
           <Value />
         </Variable>
       </Personalization>
-    </SurveyUnit>
-    <SurveyUnit>
+    </SurveyUnitModel>
+    <SurveyUnitModel>
       <Id>TEST500004</Id>
       <QuestionnaireModelId>MODELE_ENQUETE_TEST</QuestionnaireModelId>
       <Data>
@@ -178,6 +178,6 @@
           <Value>PRENOM31 NOM31</Value>
         </Variable>
       </Personalization>
-    </SurveyUnit>
+    </SurveyUnitModel>
   </SurveyUnits>
 </Campaign>
