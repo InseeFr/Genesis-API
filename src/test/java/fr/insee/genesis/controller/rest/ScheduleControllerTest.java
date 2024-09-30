@@ -83,6 +83,34 @@ class ScheduleControllerTest {
     }
 
     @Test
+    void addScheduleWithoutEncryptionTest_nullServiceToCall() {
+        //When
+        String surveyName = "TESTADDSURVEY";
+        ServiceToCall serviceToCall = null;
+        String frequency = "0 0 6 * * *";
+        LocalDateTime scheduleBeginDate = LocalDateTime.now();
+        LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
+
+        scheduleController.addSchedule(surveyName, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate,
+                false, "TEST", "TEST", false);
+
+        //Then
+        Assertions.assertThat(scheduleApiPortStub.mongoStub).filteredOn(scheduleDocument ->
+                scheduleDocument.getSurveyName().equals(surveyName)
+        ).isNotEmpty();
+
+        List<ScheduleDocument> mongoStubFiltered = scheduleApiPortStub.mongoStub.stream().filter(scheduleDocument ->
+                scheduleDocument.getSurveyName().equals(surveyName)).toList();
+
+        ScheduleDocument scheduleDocument = mongoStubFiltered.getFirst();
+
+        Assertions.assertThat(scheduleDocument.getKraftwerkExecutionScheduleList()).isNotEmpty();
+        Assertions.assertThat(scheduleDocument.getKraftwerkExecutionScheduleList().getFirst().getServiceToCall()).isEqualTo(ServiceToCall.MAIN);
+        Assertions.assertThat(scheduleDocument.getKraftwerkExecutionScheduleList().getFirst().getFrequency()).isEqualTo(frequency);
+        Assertions.assertThat(scheduleDocument.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters()).isNull();
+    }
+
+    @Test
     void addScheduleWithEncryptionTest() {
         //When
         String surveyName = "TESTADDSURVEY";
