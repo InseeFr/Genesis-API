@@ -3,6 +3,7 @@ package fr.insee.genesis.controller.rest;
 import cucumber.TestConstants;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.dto.SurveyUnitSimplified;
+import fr.insee.genesis.controller.dto.perret.SurveyUnitPerret;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.volumetry.VolumetryLogService;
@@ -46,6 +47,9 @@ class ResponseControllerTest {
     static SurveyUnitPersistencePortStub surveyUnitPersistencePortStub;
 
     static List<SurveyUnitId> surveyUnitIdList;
+    //Constants
+    static final String defaultIdUE = "TESTIDUE";
+    static final String defaultIdQuest = "TESTIDQUESTIONNAIRE";
 
     @BeforeAll
     static void init() {
@@ -62,7 +66,7 @@ class ResponseControllerTest {
         );
 
         surveyUnitIdList = new ArrayList<>();
-        surveyUnitIdList.add(new SurveyUnitId("TESTIDUE"));
+        surveyUnitIdList.add(new SurveyUnitId(defaultIdUE));
     }
 
     @BeforeEach
@@ -80,8 +84,8 @@ class ResponseControllerTest {
         surveyUnitPersistencePortStub.getMongoStub().add(SurveyUnitModel.builder()
                 .idCampaign("TESTIDCAMPAIGN")
                 .mode(Mode.WEB)
-                .idUE("TESTIDUE")
-                .idQuest("TESTIDQUESTIONNAIRE")
+                .idUE(defaultIdUE)
+                .idQuest(defaultIdQuest)
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2023, 1, 1, 0, 0, 0))
                 .recordDate(LocalDateTime.of(2024, 1, 1, 0, 0, 0))
@@ -261,21 +265,21 @@ class ResponseControllerTest {
 
     @Test
     void findResponsesByUEAndQuestionnaireTest() {
-        ResponseEntity<List<SurveyUnitModel>> response = responseControllerStatic.findResponsesByUEAndQuestionnaire("TESTIDUE", "TESTIDQUESTIONNAIRE");
+        ResponseEntity<List<SurveyUnitModel>> response = responseControllerStatic.findResponsesByUEAndQuestionnaire(defaultIdUE, defaultIdQuest);
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
-        Assertions.assertThat(response.getBody().getFirst().getIdUE()).isEqualTo("TESTIDUE");
-        Assertions.assertThat(response.getBody().getFirst().getIdQuest()).isEqualTo("TESTIDQUESTIONNAIRE");
+        Assertions.assertThat(response.getBody().getFirst().getIdUE()).isEqualTo(defaultIdUE);
+        Assertions.assertThat(response.getBody().getFirst().getIdQuest()).isEqualTo(defaultIdQuest);
     }
 
     @Test
     void findAllResponsesByQuestionnaireTest() {
-        Path path = Path.of(TestConstants.TEST_RESOURCES_DIRECTORY, "OUT", "TESTIDQUESTIONNAIRE");
+        Path path = Path.of(TestConstants.TEST_RESOURCES_DIRECTORY, "OUT", defaultIdQuest);
         File dir = new File(String.valueOf(path));
         FileSystemUtils.deleteRecursively(dir);
 
-        ResponseEntity<Path> response = responseControllerStatic.findAllResponsesByQuestionnaire("TESTIDQUESTIONNAIRE");
+        ResponseEntity<Path> response = responseControllerStatic.findAllResponsesByQuestionnaire(defaultIdQuest);
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull();
@@ -304,8 +308,8 @@ class ResponseControllerTest {
             surveyUnitPersistencePortStub.getMongoStub().add(SurveyUnitModel.builder()
                     .idCampaign("TESTIDCAMPAIGN")
                     .mode(Mode.WEB)
-                    .idUE("TESTIDUE" + i)
-                    .idQuest("TESTIDQUESTIONNAIRE")
+                    .idUE(defaultIdUE + i)
+                    .idQuest(defaultIdQuest)
                     .state(DataState.COLLECTED)
                     .fileDate(LocalDateTime.of(2023, 1, 1, 0, 0, 0))
                     .recordDate(LocalDateTime.of(2024, 1, 1, 0, 0, 0))
@@ -315,7 +319,7 @@ class ResponseControllerTest {
         }
 
         //When
-        ResponseEntity<Path> response = responseControllerStatic.findAllResponsesByQuestionnaire("TESTIDQUESTIONNAIRE");
+        ResponseEntity<Path> response = responseControllerStatic.findAllResponsesByQuestionnaire(defaultIdQuest);
 
         //Then
         Assertions.assertThat(response).isNotNull();
@@ -332,46 +336,46 @@ class ResponseControllerTest {
     void getLatestByUETest() {
         addAdditionnalDtoToMongoStub();
 
-        ResponseEntity<List<SurveyUnitModel>> response = responseControllerStatic.getLatestByUE("TESTIDUE", "TESTIDQUESTIONNAIRE");
+        ResponseEntity<List<SurveyUnitModel>> response = responseControllerStatic.getLatestByUE(defaultIdUE, defaultIdQuest);
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
-        Assertions.assertThat(response.getBody().getFirst().getIdUE()).isEqualTo("TESTIDUE");
-        Assertions.assertThat(response.getBody().getFirst().getIdQuest()).isEqualTo("TESTIDQUESTIONNAIRE");
+        Assertions.assertThat(response.getBody().getFirst().getIdUE()).isEqualTo(defaultIdUE);
+        Assertions.assertThat(response.getBody().getFirst().getIdQuest()).isEqualTo(defaultIdQuest);
         Assertions.assertThat(response.getBody().getFirst().getFileDate()).hasMonth(Month.FEBRUARY);
     }
 
     @Test
     void getLatestByUEOneObjectTest() {
-        ResponseEntity<SurveyUnitSimplified> response = responseControllerStatic.getLatestByUEOneObject("TESTIDUE", "TESTIDQUESTIONNAIRE", Mode.WEB);
+        ResponseEntity<SurveyUnitSimplified> response = responseControllerStatic.getLatestByUEOneObject(defaultIdUE, defaultIdQuest, Mode.WEB);
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull();
-        Assertions.assertThat(response.getBody().getIdUE()).isEqualTo("TESTIDUE");
-        Assertions.assertThat(response.getBody().getIdQuest()).isEqualTo("TESTIDQUESTIONNAIRE");
+        Assertions.assertThat(response.getBody().getIdUE()).isEqualTo(defaultIdUE);
+        Assertions.assertThat(response.getBody().getIdQuest()).isEqualTo(defaultIdQuest);
     }
 
     @Test
     void getLatestForUEListTest() {
-        ResponseEntity<List<SurveyUnitSimplified>> response = responseControllerStatic.getLatestForUEList("TESTIDQUESTIONNAIRE", surveyUnitIdList);
+        ResponseEntity<List<SurveyUnitSimplified>> response = responseControllerStatic.getLatestForUEList(defaultIdQuest, surveyUnitIdList);
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
-        Assertions.assertThat(response.getBody().getFirst().getIdUE()).isEqualTo("TESTIDUE");
+        Assertions.assertThat(response.getBody().getFirst().getIdUE()).isEqualTo(defaultIdUE);
     }
 
     @Test
     void getAllIdUEsByQuestionnaireTest() {
-        ResponseEntity<List<SurveyUnitId>> response = responseControllerStatic.getAllIdUEsByQuestionnaire("TESTIDQUESTIONNAIRE");
+        ResponseEntity<List<SurveyUnitId>> response = responseControllerStatic.getAllIdUEsByQuestionnaire(defaultIdQuest);
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
-        Assertions.assertThat(response.getBody().getFirst().getIdUE()).isEqualTo("TESTIDUE");
+        Assertions.assertThat(response.getBody().getFirst().getIdUE()).isEqualTo(defaultIdUE);
     }
 
     @Test
     void getModesByQuestionnaireTest() {
-        ResponseEntity<List<Mode>> response = responseControllerStatic.getModesByQuestionnaire("TESTIDQUESTIONNAIRE");
+        ResponseEntity<List<Mode>> response = responseControllerStatic.getModesByQuestionnaire(defaultIdQuest);
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().hasSize(1);
@@ -406,7 +410,7 @@ class ResponseControllerTest {
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().containsExactly(
-                "TESTIDQUESTIONNAIRE","TESTQUESTIONNAIRE2");
+                defaultIdQuest,"TESTQUESTIONNAIRE2");
     }
 
     @Test
@@ -417,7 +421,7 @@ class ResponseControllerTest {
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().containsExactly(
-                "TESTIDQUESTIONNAIRE","TESTQUESTIONNAIRE2");
+                defaultIdQuest,"TESTQUESTIONNAIRE2");
     }
 
     @Test
@@ -436,7 +440,7 @@ class ResponseControllerTest {
 
         Assertions.assertThat(response.getBody().stream().filter(
                 campaignWithQuestionnaire -> campaignWithQuestionnaire.getIdCampaign().equals("TESTIDCAMPAIGN")
-        ).findFirst().get().getQuestionnaires()).containsExactly("TESTIDQUESTIONNAIRE", "TESTQUESTIONNAIRE2");
+        ).findFirst().get().getQuestionnaires()).containsExactly(defaultIdQuest, "TESTQUESTIONNAIRE2");
 
         Assertions.assertThat(response.getBody().stream().filter(
                 campaignWithQuestionnaire -> campaignWithQuestionnaire.getIdCampaign().equals("TESTCAMPAIGN2")
@@ -455,12 +459,12 @@ class ResponseControllerTest {
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
         Assertions.assertThat(response.getBody().stream().filter(questionnaireWithCampaign ->
-                questionnaireWithCampaign.getIdQuestionnaire().equals("TESTIDQUESTIONNAIRE")
+                questionnaireWithCampaign.getIdQuestionnaire().equals(defaultIdQuest)
                         || questionnaireWithCampaign.getIdQuestionnaire().equals("TESTQUESTIONNAIRE2")
         )).isNotNull().isNotEmpty().hasSize(2);
 
         Assertions.assertThat(response.getBody().stream().filter(
-                questionnaireWithCampaign -> questionnaireWithCampaign.getIdQuestionnaire().equals("TESTIDQUESTIONNAIRE")
+                questionnaireWithCampaign -> questionnaireWithCampaign.getIdQuestionnaire().equals(defaultIdQuest)
         ).findFirst().get().getCampaigns()).containsExactly("TESTIDCAMPAIGN");
 
         Assertions.assertThat(response.getBody().stream().filter(
@@ -574,6 +578,72 @@ class ResponseControllerTest {
         }
     }
 
+    // Perret tests
+    @Test
+    void getPerretSurveyDataTest(){
+        //GIVEN
+        //Recent Collected already in stub
+        //Old Collected
+        addAdditionnalDtoToMongoStub(DataState.COLLECTED,
+                "C OLD C", //<Collected/External> <NEW or OLD> <Collected/Edited>
+                "E OLD C",
+                LocalDateTime.of(1999,2,2,0,0,0),
+                LocalDateTime.of(1999,2,2,0,0,0)
+        );
+
+        //Recent Edited
+        addAdditionnalDtoToMongoStub(DataState.EDITED,
+                "C NEW E",
+                "E NEW E",
+                LocalDateTime.of(2025,2,2,0,0,0),
+                LocalDateTime.of(2025,2,2,0,0,0)
+        );
+
+        //Old Edited
+        addAdditionnalDtoToMongoStub(DataState.EDITED,
+                "C OLD E",
+                "E OLD E",
+                LocalDateTime.of(1999,2,2,0,0,0),
+                LocalDateTime.of(1999,2,2,0,0,0)
+        );
+
+
+        //WHEN
+        ResponseEntity<SurveyUnitPerret> response = responseControllerStatic.findResponsesByUEAndQuestionnairePerret(
+                defaultIdUE,
+                defaultIdQuest
+        );
+
+
+        //THEN
+        SurveyUnitPerret surveyUnitPerret = response.getBody();
+        Assertions.assertThat(surveyUnitPerret).isNotNull();
+
+        Assertions.assertThat(surveyUnitPerret.getSurveyUnitId()).isEqualTo(defaultIdUE);
+
+        Assertions.assertThat(surveyUnitPerret.getCollectedVariables().getFirst().getVariableName())
+                .isEqualTo("TESTIDVAR");
+        Assertions.assertThat(surveyUnitPerret.getCollectedVariables().getFirst().getVariableStatePerretMap().get(DataState.COLLECTED).getValue())
+                .isEqualTo("V1");
+        Assertions.assertThat(surveyUnitPerret.getCollectedVariables().getFirst().getVariableStatePerretMap().get(DataState.EDITED).getValue())
+                .isEqualTo("C NEW E");
+        Assertions.assertThat(surveyUnitPerret.getCollectedVariables().getFirst().getVariableStatePerretMap().get(DataState.COLLECTED).isActive())
+                .isFalse();
+        Assertions.assertThat(surveyUnitPerret.getCollectedVariables().getFirst().getVariableStatePerretMap().get(DataState.EDITED).isActive())
+                .isTrue();
+
+        Assertions.assertThat(surveyUnitPerret.getExternalVariables().getFirst().getVariableName())
+                .isEqualTo("TESTIDVAR");
+        Assertions.assertThat(surveyUnitPerret.getExternalVariables().getFirst().getVariableStatePerretMap().get(DataState.COLLECTED).getValue())
+                .isEqualTo("V1");
+        Assertions.assertThat(surveyUnitPerret.getExternalVariables().getFirst().getVariableStatePerretMap().get(DataState.EDITED).getValue())
+                .isEqualTo("E NEW E");
+        Assertions.assertThat(surveyUnitPerret.getExternalVariables().getFirst().getVariableStatePerretMap().get(DataState.COLLECTED).isActive())
+                .isFalse();
+        Assertions.assertThat(surveyUnitPerret.getExternalVariables().getFirst().getVariableStatePerretMap().get(DataState.EDITED).isActive())
+                .isTrue();
+    }
+
 
 
     // Utilities
@@ -589,8 +659,8 @@ class ResponseControllerTest {
         SurveyUnitModel recentDTO = SurveyUnitModel.builder()
                 .idCampaign("TESTIDCAMPAIGN")
                 .mode(Mode.WEB)
-                .idUE("TESTIDUE")
-                .idQuest("TESTIDQUESTIONNAIRE")
+                .idUE(defaultIdUE)
+                .idQuest(defaultIdQuest)
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2023, 2, 2, 0, 0, 0))
                 .recordDate(LocalDateTime.of(2024, 2, 2, 0, 0, 0))
@@ -612,7 +682,7 @@ class ResponseControllerTest {
         SurveyUnitModel recentDTO = SurveyUnitModel.builder()
                 .idCampaign("TESTIDCAMPAIGN")
                 .mode(Mode.WEB)
-                .idUE("TESTIDUE")
+                .idUE(defaultIdUE)
                 .idQuest(idQuestionnaire)
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2023, 2, 2, 0, 0, 0))
@@ -635,11 +705,38 @@ class ResponseControllerTest {
         SurveyUnitModel recentDTO = SurveyUnitModel.builder()
                 .idCampaign(idCampaign)
                 .mode(Mode.WEB)
-                .idUE("TESTIDUE")
+                .idUE(defaultIdUE)
                 .idQuest(idQuestionnaire)
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2023, 2, 2, 0, 0, 0))
                 .recordDate(LocalDateTime.of(2024, 2, 2, 0, 0, 0))
+                .externalVariables(externalVariableList)
+                .collectedVariables(collectedVariableList)
+                .build();
+        surveyUnitPersistencePortStub.getMongoStub().add(recentDTO);
+    }
+
+    private void addAdditionnalDtoToMongoStub(DataState state,
+                                              String collectedVariableValue,
+                                              String externalVariableValue,
+                                              LocalDateTime fileDate,
+                                              LocalDateTime recordDate) {
+        List<Variable> externalVariableList = new ArrayList<>();
+        Variable variable = Variable.builder().idVar("TESTIDVAR").values(List.of(new String[]{externalVariableValue})).build();
+        externalVariableList.add(variable);
+
+        List<CollectedVariable> collectedVariableList = new ArrayList<>();
+        CollectedVariable collectedVariable = new CollectedVariable("TESTIDVAR", List.of(new String[]{collectedVariableValue}), "TESTIDLOOP", "TESTIDPARENT");
+        collectedVariableList.add(collectedVariable);
+
+        SurveyUnitModel recentDTO = SurveyUnitModel.builder()
+                .idCampaign("TESTIDCAMPAIGN")
+                .mode(Mode.WEB)
+                .idUE(defaultIdUE)
+                .idQuest(defaultIdQuest)
+                .state(state)
+                .fileDate(fileDate)
+                .recordDate(recordDate)
                 .externalVariables(externalVariableList)
                 .collectedVariables(collectedVariableList)
                 .build();
