@@ -4,7 +4,7 @@ import fr.insee.genesis.domain.model.surveyunit.DataState;
 import lombok.Builder;
 import lombok.Data;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Builder
 @Data
@@ -12,5 +12,5 @@ public class VariableStatePerret {
     private DataState state;
     private boolean active;
     private String value;
-    private LocalDate date;
+    private LocalDateTime date;
 }

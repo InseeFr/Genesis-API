@@ -17,8 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.time.chrono.ChronoLocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -259,7 +258,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                                 .state(surveyUnitModel.getState())
                                 .active(isLastVariableState(surveyUnitModel, variablePerret))
                                 .value(collectedVariable.getValues().getFirst())
-                                .date(surveyUnitModel.getFileDate().toLocalDate())
+                                .date(surveyUnitModel.getRecordDate())
                                 .build()
                 );
             }
@@ -291,7 +290,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                                 .state(surveyUnitModel.getState())
                                 .active(isLastVariableState(surveyUnitModel, variablePerret))
                                 .value(externalVariable.getValues().getFirst())
-                                .date(surveyUnitModel.getFileDate().toLocalDate())
+                                .date(surveyUnitModel.getRecordDate())
                                 .build()
                 );
             }
@@ -310,12 +309,13 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             //Variable doesn't contain state
             return true;
         }
-        LocalDate mostRecentStateDate = variablePerret.getVariableStatePerretMap().get(surveyUnitModel.getState()).getDate();
-        return mostRecentStateDate.isBefore(surveyUnitModel.getFileDate().toLocalDate());
+        LocalDateTime mostRecentStateDateTime = variablePerret.getVariableStatePerretMap().get(surveyUnitModel.getState()).getDate();
+        return mostRecentStateDateTime.isBefore(surveyUnitModel.getRecordDate());
     }
 
     /**
      * Check if model is more recent that any variable state in variablePerret DTO regardless of state
+     * Used for active variable
      * @param surveyUnitModel model used to compare
      * @param variablePerret Perret variable to check
      * @return false if there is any variable state that comes from a more recent model
@@ -323,9 +323,10 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     private boolean isLastVariableState(SurveyUnitModel surveyUnitModel, VariablePerret variablePerret) {
         for(Map.Entry<DataState, VariableStatePerret> entry :
                 variablePerret.getVariableStatePerretMap().entrySet()){
-            if(entry.getValue().getDate().isAfter(ChronoLocalDate.from(surveyUnitModel.getFileDate()))){
+            if(entry.getValue().getDate().isAfter(surveyUnitModel.getRecordDate())){
                 return false;
             }
+            entry.getValue().setActive(false);
         }
         return true;
     }
