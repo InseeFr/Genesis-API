@@ -80,6 +80,30 @@ public class ScheduleService implements ScheduleApiPort {
     }
 
     @Override
+    public List<KraftwerkExecutionSchedule> deleteExpiredSchedules(String surveyName) throws NotFoundException {
+        List<ScheduleModel> scheduleModels = schedulePersistencePort.findBySurveyName(surveyName);
+        if (scheduleModels.isEmpty()) {
+            throw new NotFoundException();
+        }
+        List<KraftwerkExecutionSchedule> deletedKraftwerkExecutionSchedules = new ArrayList<>();
+        for (ScheduleModel scheduleModel : scheduleModels) {
+            deletedKraftwerkExecutionSchedules.addAll(schedulePersistencePort.removeExpiredSchedules(scheduleModel));
+            //Delete schedule if empty kraftwerkExecutionScheduleList
+            schedulePersistencePort.findBySurveyName(surveyName)
+                    .stream()
+                    .filter(storedSurveySchedule -> storedSurveySchedule.getKraftwerkExecutionScheduleList().isEmpty())
+                    .forEach(storedSurveySchedule -> {
+                        try {
+                            deleteSchedule(surveyName);
+                        } catch (NotFoundException e) {
+                            log.error("Tried to delete schedule for {} but wasn't found !", surveyName);
+                        }
+                    });
+        }
+        return deletedKraftwerkExecutionSchedules;
+    }
+
+    @Override
     public void updateLastExecutionName(String surveyName, LocalDateTime newDate) throws NotFoundException {
         List<ScheduleModel> scheduleModels = schedulePersistencePort.findBySurveyName(surveyName);
         if (scheduleModels.isEmpty()) {
