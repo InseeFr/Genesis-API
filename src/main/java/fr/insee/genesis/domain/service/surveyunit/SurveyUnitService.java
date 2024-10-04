@@ -5,7 +5,6 @@ import fr.insee.genesis.controller.dto.perret.SurveyUnitPerret;
 import fr.insee.genesis.controller.dto.perret.VariablePerret;
 import fr.insee.genesis.controller.dto.perret.VariableStatePerret;
 import fr.insee.genesis.domain.model.surveyunit.CollectedVariable;
-import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.controller.dto.QuestionnaireWithCampaign;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
@@ -19,7 +18,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -246,14 +244,13 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             if (variablePerret == null) {
                 variablePerret = VariablePerret.builder()
                         .variableName(collectedVariable.getIdVar())
-                        .variableStatePerretMap(new EnumMap<>(DataState.class))
+                        .variableStatePerretList(new ArrayList<>())
                         .build();
                 variablePerretMap.put(collectedVariable.getIdVar(), variablePerret);
             }
             //Extract variable state
             if (!collectedVariable.getValues().isEmpty() && isMostRecentForSameState(surveyUnitModel, variablePerret)) {
-                variablePerret.getVariableStatePerretMap().put(
-                        surveyUnitModel.getState(),
+                variablePerret.getVariableStatePerretList().add(
                         VariableStatePerret.builder()
                                 .state(surveyUnitModel.getState())
                                 .active(isLastVariableState(surveyUnitModel, variablePerret))
@@ -278,14 +275,13 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             if(variablePerret == null){
                 variablePerret = VariablePerret.builder()
                         .variableName(externalVariable.getIdVar())
-                        .variableStatePerretMap(new EnumMap<>(DataState.class))
+                        .variableStatePerretList(new ArrayList<>())
                         .build();
                 variablePerretMap.put(externalVariable.getIdVar(), variablePerret);
             }
             //Extract variable state
             if(!externalVariable.getValues().isEmpty() && isMostRecentForSameState(surveyUnitModel, variablePerret)){
-                variablePerret.getVariableStatePerretMap().put(
-                        surveyUnitModel.getState(),
+                variablePerret.getVariableStatePerretList().add(
                         VariableStatePerret.builder()
                                 .state(surveyUnitModel.getState())
                                 .active(isLastVariableState(surveyUnitModel, variablePerret))
@@ -305,11 +301,14 @@ public class SurveyUnitService implements SurveyUnitApiPort {
      * @return true if there's no more recent variable for the same state
      */
     private boolean isMostRecentForSameState(SurveyUnitModel surveyUnitModel, VariablePerret variablePerret) {
-        if(!variablePerret.getVariableStatePerretMap().containsKey(surveyUnitModel.getState())){
+        List<VariableStatePerret> variableStatesSameState = variablePerret.getVariableStatePerretList().stream().filter(
+                variableStatePerret -> variableStatePerret.getState().equals(surveyUnitModel.getState())
+        ).toList();
+        if(variableStatesSameState.isEmpty()){
             //Variable doesn't contain state
             return true;
         }
-        LocalDateTime mostRecentStateDateTime = variablePerret.getVariableStatePerretMap().get(surveyUnitModel.getState()).getDate();
+        LocalDateTime mostRecentStateDateTime = variableStatesSameState.getFirst().getDate();
         return mostRecentStateDateTime.isBefore(surveyUnitModel.getRecordDate());
     }
 
@@ -318,15 +317,14 @@ public class SurveyUnitService implements SurveyUnitApiPort {
      * Used for active variable
      * @param surveyUnitModel model used to compare
      * @param variablePerret Perret variable to check
-     * @return false if there is any variable state that comes from a more recent model
+     * @return false if there is any variable state that comes from a more recent model already
      */
     private boolean isLastVariableState(SurveyUnitModel surveyUnitModel, VariablePerret variablePerret) {
-        for(Map.Entry<DataState, VariableStatePerret> entry :
-                variablePerret.getVariableStatePerretMap().entrySet()){
-            if(entry.getValue().getDate().isAfter(surveyUnitModel.getRecordDate())){
+        for(VariableStatePerret variableStatePerret : variablePerret.getVariableStatePerretList()){
+            if(variableStatePerret.getDate().isAfter(surveyUnitModel.getRecordDate())){
                 return false;
             }
-            entry.getValue().setActive(false);
+            variableStatePerret.setActive(false);
         }
         return true;
     }

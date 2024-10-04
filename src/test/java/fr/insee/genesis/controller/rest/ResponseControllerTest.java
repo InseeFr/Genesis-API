@@ -623,24 +623,49 @@ class ResponseControllerTest {
 
         Assertions.assertThat(surveyUnitPerret.getCollectedVariables().getFirst().getVariableName())
                 .isEqualTo("TESTIDVAR");
-        Assertions.assertThat(surveyUnitPerret.getCollectedVariables().getFirst().getVariableStatePerretMap().get(DataState.COLLECTED).getValue())
+
+        Assertions.assertThat(surveyUnitPerret.getCollectedVariables().getFirst().getVariableStatePerretList()
+                        .stream().filter(
+                                variableStatePerret -> variableStatePerret.getState().equals(DataState.COLLECTED)
+                        ).toList().getFirst().getValue())
                 .isEqualTo("V1");
-        Assertions.assertThat(surveyUnitPerret.getCollectedVariables().getFirst().getVariableStatePerretMap().get(DataState.EDITED).getValue())
+        Assertions.assertThat(surveyUnitPerret.getCollectedVariables().getFirst().getVariableStatePerretList()
+                        .stream().filter(
+                                variableStatePerret -> variableStatePerret.getState().equals(DataState.EDITED)
+                        ).toList().getFirst().getValue())
                 .isEqualTo("C NEW E");
-        Assertions.assertThat(surveyUnitPerret.getCollectedVariables().getFirst().getVariableStatePerretMap().get(DataState.COLLECTED).isActive())
+        Assertions.assertThat(surveyUnitPerret.getCollectedVariables().getFirst().getVariableStatePerretList()
+                        .stream().filter(
+                                variableStatePerret -> variableStatePerret.getState().equals(DataState.COLLECTED)
+                        ).toList().getFirst().isActive())
                 .isFalse();
-        Assertions.assertThat(surveyUnitPerret.getCollectedVariables().getFirst().getVariableStatePerretMap().get(DataState.EDITED).isActive())
+        Assertions.assertThat(surveyUnitPerret.getCollectedVariables().getFirst().getVariableStatePerretList()
+                        .stream().filter(
+                                variableStatePerret -> variableStatePerret.getState().equals(DataState.EDITED)
+                        ).toList().getFirst().isActive())
                 .isTrue();
 
         Assertions.assertThat(surveyUnitPerret.getExternalVariables().getFirst().getVariableName())
                 .isEqualTo("TESTIDVAR");
-        Assertions.assertThat(surveyUnitPerret.getExternalVariables().getFirst().getVariableStatePerretMap().get(DataState.COLLECTED).getValue())
+        Assertions.assertThat(surveyUnitPerret.getExternalVariables().getFirst().getVariableStatePerretList()
+                        .stream().filter(
+                                variableStatePerret -> variableStatePerret.getState().equals(DataState.COLLECTED)
+                        ).toList().getFirst().getValue())
                 .isEqualTo("V1");
-        Assertions.assertThat(surveyUnitPerret.getExternalVariables().getFirst().getVariableStatePerretMap().get(DataState.EDITED).getValue())
+        Assertions.assertThat(surveyUnitPerret.getExternalVariables().getFirst().getVariableStatePerretList()
+                        .stream().filter(
+                                variableStatePerret -> variableStatePerret.getState().equals(DataState.EDITED)
+                        ).toList().getFirst().getValue())
                 .isEqualTo("E NEW E");
-        Assertions.assertThat(surveyUnitPerret.getExternalVariables().getFirst().getVariableStatePerretMap().get(DataState.COLLECTED).isActive())
+        Assertions.assertThat(surveyUnitPerret.getExternalVariables().getFirst().getVariableStatePerretList()
+                        .stream().filter(
+                                variableStatePerret -> variableStatePerret.getState().equals(DataState.COLLECTED)
+                        ).toList().getFirst().isActive())
                 .isFalse();
-        Assertions.assertThat(surveyUnitPerret.getExternalVariables().getFirst().getVariableStatePerretMap().get(DataState.EDITED).isActive())
+        Assertions.assertThat(surveyUnitPerret.getExternalVariables().getFirst().getVariableStatePerretList()
+                        .stream().filter(
+                                variableStatePerret -> variableStatePerret.getState().equals(DataState.EDITED)
+                        ).toList().getFirst().isActive())
                 .isTrue();
     }
 
