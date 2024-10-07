@@ -29,6 +29,7 @@
         <pitest.version>1.17.0</pitest.version>
         <pitest.junit.version>1.2.1</pitest.junit.version>
         <jackson.version>2.18.0</jackson.version>
+        <bpm.version>1.0.2</bpm.version>
     </properties>
     <dependencies>
         <dependency>
@@ -136,7 +137,7 @@
         <dependency>
             <groupId>fr.insee.bpm</groupId>
             <artifactId>bpm</artifactId>
-            <version>1.0.2</version>
+            <version>${bpm.version}</version>
         </dependency>
     </dependencies>
 
