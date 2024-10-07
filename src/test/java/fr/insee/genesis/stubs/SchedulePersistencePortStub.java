@@ -1,15 +1,19 @@
 package fr.insee.genesis.stubs;
 
+import fr.insee.genesis.domain.model.schedule.KraftwerkExecutionSchedule;
 import fr.insee.genesis.domain.model.schedule.ScheduleModel;
 import fr.insee.genesis.domain.ports.spi.SchedulePersistencePort;
-import fr.insee.genesis.infrastructure.mappers.ScheduleDocumentMapper;
 import fr.insee.genesis.infrastructure.document.schedule.ScheduleDocument;
+import fr.insee.genesis.infrastructure.mappers.ScheduleDocumentMapper;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Getter
+@Slf4j
 public class SchedulePersistencePortStub implements SchedulePersistencePort {
     List<ScheduleDocument> mongoStub = new ArrayList<>();
 
@@ -36,5 +40,21 @@ public class SchedulePersistencePortStub implements SchedulePersistencePort {
     @Override
     public long countSchedules() {
         return mongoStub.size();
+    }
+
+    @Override
+    public List<KraftwerkExecutionSchedule> removeExpiredSchedules(ScheduleModel scheduleModel) {
+        List<KraftwerkExecutionSchedule> kraftwerkExecutionSchedulesToRemove = new ArrayList<>(scheduleModel.getKraftwerkExecutionScheduleList().stream().filter(
+                kraftwerkExecutionSchedule -> kraftwerkExecutionSchedule.getScheduleEndDate().isBefore(LocalDateTime.now())
+        ).toList());
+        for (KraftwerkExecutionSchedule kraftwerkExecutionScheduleToRemove : kraftwerkExecutionSchedulesToRemove){
+            scheduleModel.getKraftwerkExecutionScheduleList().remove(kraftwerkExecutionScheduleToRemove);
+            log.info("Removed kraftwerk execution schedule on {} because it is expired since {}", scheduleModel.getSurveyName(),
+                    kraftwerkExecutionScheduleToRemove.getScheduleEndDate());
+        }
+        //Update mongo stub
+        mongoStub.removeIf(scheduleDocument -> scheduleDocument.getSurveyName().equals(scheduleModel.getSurveyName()));
+        mongoStub.add(ScheduleDocumentMapper.INSTANCE.modelToDocument(scheduleModel));
+        return kraftwerkExecutionSchedulesToRemove;
     }
 }
