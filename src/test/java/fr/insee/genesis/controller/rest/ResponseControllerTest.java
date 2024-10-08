@@ -211,6 +211,31 @@ class ResponseControllerTest {
                             .resolve("data.complete.validated.STPDv2.20231122164209.xml")
             );
         }
+        //SAMPLETEST-NO-COLLECTED
+        if (!testResourcesPath
+                .resolve("IN")
+                .resolve("WEB")
+                .resolve("SAMPLETEST-NO-COLLECTED")
+                .resolve("differential")
+                .resolve("data")
+                .resolve("data_diff_no_collected.xml")
+                .toFile().exists()
+        ){
+            Files.copy(
+                    testResourcesPath
+                            .resolve("IN")
+                            .resolve("WEB")
+                            .resolve("SAMPLETEST-NO-COLLECTED")
+                            .resolve("data_diff_no_collected.xml")
+                    , testResourcesPath
+                            .resolve("IN")
+                            .resolve("WEB")
+                            .resolve("SAMPLETEST-NO-COLLECTED")
+                            .resolve("differential")
+                            .resolve("data")
+                            .resolve("data_diff_no_collected.xml")
+            );
+        }
     }
 
 
@@ -225,6 +250,17 @@ class ResponseControllerTest {
         );
 
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).isNotEmpty();
+    }
+
+    @Test
+    void saveOneFileNoCollected_NoNullPointerException(){
+        Assertions.assertThatCode(() -> responseControllerStatic.saveResponsesFromXmlFile(
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY, "IN/WEB/SAMPLETEST-NO-COLLECTED/differential/data/data_diff_no_collected.xml").toString()
+                , Path.of(TestConstants.TEST_RESOURCES_DIRECTORY, "specs/SAMPLETEST-NO-COLLECTED/WEB/ddi_response_simple.xml").toString()
+                , Mode.WEB
+                , true
+        )).doesNotThrowAnyException();
+
     }
 
     @Test
