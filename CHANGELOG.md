@@ -1,5 +1,23 @@
 # Changelog
 
+
+## 1.2.14 - [2024-10-08]
+
+### Added
+- Delete expired schedules
+
+### Changed
+- Change to hexagonal architecture
+
+### Fixed
+- Bug when no data in xml files
+
+### Updated
+- Update dependencies : mapstruct, pitest, cucumber, jackson
+- Update spring-boot
+- Update BPM
+
+
 ## 1.2.13 - [2024-09-09]
 ### Fixed
 - Fix conflict : xslt transformation is now in BPM library
