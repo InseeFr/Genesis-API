@@ -7,6 +7,7 @@ import fr.insee.bpm.metadata.reader.lunatic.LunaticReader;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.adapter.LunaticXmlAdapter;
 import fr.insee.genesis.controller.dto.SurveyUnitSimplified;
+import fr.insee.genesis.controller.dto.perret.SurveyUnitPerret;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.volumetry.VolumetryLogService;
@@ -192,6 +193,15 @@ public class ResponseController {
                                                                                    @RequestParam("idQuestionnaire") String idQuestionnaire) {
         List<SurveyUnitModel> responses = surveyUnitService.findByIdsUEAndQuestionnaire(idUE, idQuestionnaire);
         return ResponseEntity.ok(responses);
+    }
+
+    @Operation(summary = "Retrieve responses with IdUE and IdQuestionnaire from Genesis Database with perret format")
+    @GetMapping(path = "/get-responses/by-ue-and-questionnaire/perret")
+    public ResponseEntity<SurveyUnitPerret> findResponsesByUEAndQuestionnairePerret(
+            @RequestParam("idUE") String idUE,
+            @RequestParam("idQuestionnaire") String idQuestionnaire) {
+        SurveyUnitPerret response = surveyUnitService.findLatestByIdAndByIdQuestionnairePerret(idUE, idQuestionnaire);
+        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Retrieve all responses of one questionnaire")

@@ -1,6 +1,7 @@
 package fr.insee.genesis.domain.ports.api;
 
 import fr.insee.genesis.controller.dto.CampaignWithQuestionnaire;
+import fr.insee.genesis.controller.dto.perret.SurveyUnitPerret;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.controller.dto.QuestionnaireWithCampaign;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
@@ -22,6 +23,7 @@ public interface SurveyUnitApiPort {
     Stream<SurveyUnitModel> findByIdQuestionnaire(String idQuestionnaire);
 
     List<SurveyUnitModel> findLatestByIdAndByIdQuestionnaire(String idUE, String idQuest);
+    SurveyUnitPerret findLatestByIdAndByIdQuestionnairePerret(String idUE, String idQuest);
 
     List<SurveyUnitModel> findIdUEsAndModesByIdQuestionnaire(String idQuestionnaire);
 
