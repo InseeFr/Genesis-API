@@ -1,9 +1,9 @@
 package fr.insee.genesis.domain.service.surveyunit;
 
 import fr.insee.genesis.controller.dto.CampaignWithQuestionnaire;
-import fr.insee.genesis.controller.dto.perret.SurveyUnitPerret;
-import fr.insee.genesis.controller.dto.perret.VariablePerret;
-import fr.insee.genesis.controller.dto.perret.VariableStatePerret;
+import fr.insee.genesis.controller.dto.SurveyUnitDto;
+import fr.insee.genesis.controller.dto.VariableDto;
+import fr.insee.genesis.controller.dto.VariableStateDto;
 import fr.insee.genesis.domain.model.surveyunit.CollectedVariable;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.controller.dto.QuestionnaireWithCampaign;
@@ -114,31 +114,28 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     }
 
     @Override
-    public SurveyUnitPerret findLatestByIdAndByIdQuestionnairePerret(String idUE, String idQuest) {
-        SurveyUnitPerret surveyUnitPerret = SurveyUnitPerret.builder()
+    public SurveyUnitDto findLatestByIdAndByIdQuestionnaireLastestStates(String idUE, String idQuest) {
+        SurveyUnitDto surveyUnitDto = SurveyUnitDto.builder()
                 .surveyUnitId(idUE)
                 .collectedVariables(new ArrayList<>())
                 .externalVariables(new ArrayList<>())
                 .build();
 
         //Extract variables
-        Map<String, VariablePerret> collectedVariablePerretMap = new HashMap<>();
-        Map<String, VariablePerret> externalVariablePerretMap = new HashMap<>();
+        Map<String, VariableDto> collectedVariablePerretMap = new HashMap<>();
+        Map<String, VariableDto> externalVariablePerretMap = new HashMap<>();
         List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findByIds(idUE, idQuest);
         List<Mode> modes = getDistinctsModes(surveyUnitModels);
         modes.forEach(mode -> {
             List<SurveyUnitModel> suByMode = surveyUnitModels.stream()
-                    .filter(surveyUnitDto -> surveyUnitDto.getMode().equals(mode))
+                    .filter(surveyUnitModel -> surveyUnitModel.getMode().equals(mode))
                     .sorted((o1, o2) -> o2.getRecordDate().compareTo(o1.getRecordDate())) //Sorting update by date (latest updates first by date of upload in database)
                     .toList();
-            suByMode.forEach(surveyUnitModel -> {
-                extractCollectedVariables(surveyUnitModel, collectedVariablePerretMap);
-                extractExternalVariables(surveyUnitModel, externalVariablePerretMap);
-            });
+            suByMode.forEach(surveyUnitModel -> extractVariables(surveyUnitModel, collectedVariablePerretMap,externalVariablePerretMap));
         });
-        collectedVariablePerretMap.keySet().forEach(variableName -> surveyUnitPerret.getCollectedVariables().add(collectedVariablePerretMap.get(variableName)));
-        externalVariablePerretMap.keySet().forEach(variableName -> surveyUnitPerret.getExternalVariables().add(externalVariablePerretMap.get(variableName)));
-        return surveyUnitPerret;
+        collectedVariablePerretMap.keySet().forEach(variableName -> surveyUnitDto.getCollectedVariables().add(collectedVariablePerretMap.get(variableName)));
+        externalVariablePerretMap.keySet().forEach(variableName -> surveyUnitDto.getExternalVariables().add(externalVariablePerretMap.get(variableName)));
+        return surveyUnitDto;
     }
 
     @Override
@@ -234,57 +231,54 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     /**
      * Extract collected variables from a model class to a VariablePerret map
      * @param surveyUnitModel survey unit model
-     * @param variablePerretMap Perret variable DTO map to populate
+     * @param collectedVariableMap Collected variable DTO map to populate
+     * @param externalVariableMap External variable DTO map to populate
      */
-    private void extractCollectedVariables(SurveyUnitModel surveyUnitModel, Map<String, VariablePerret> variablePerretMap) {
+    private void extractVariables(SurveyUnitModel surveyUnitModel,
+                                           Map<String, VariableDto> collectedVariableMap,
+                                           Map<String, VariableDto> externalVariableMap) {
+
         for (CollectedVariable collectedVariable : surveyUnitModel.getCollectedVariables()) {
-            VariablePerret variablePerret = variablePerretMap.get(collectedVariable.getIdVar());
+            VariableDto variableDto = collectedVariableMap.get(collectedVariable.getIdVar());
 
             //Create variable into map if not exists
-            if (variablePerret == null) {
-                variablePerret = VariablePerret.builder()
+            if (variableDto == null) {
+                variableDto = VariableDto.builder()
                         .variableName(collectedVariable.getIdVar())
-                        .variableStatePerretList(new ArrayList<>())
+                        .variableStateDtoList(new ArrayList<>())
                         .build();
-                variablePerretMap.put(collectedVariable.getIdVar(), variablePerret);
+                collectedVariableMap.put(collectedVariable.getIdVar(), variableDto);
             }
             //Extract variable state
-            if (!collectedVariable.getValues().isEmpty() && isMostRecentForSameState(surveyUnitModel, variablePerret)) {
-                variablePerret.getVariableStatePerretList().add(
-                        VariableStatePerret.builder()
+            if (!collectedVariable.getValues().isEmpty() && isMostRecentForSameState(surveyUnitModel, variableDto)) {
+                variableDto.getVariableStateDtoList().add(
+                        VariableStateDto.builder()
                                 .state(surveyUnitModel.getState())
-                                .active(isLastVariableState(surveyUnitModel, variablePerret))
+                                .active(isLastVariableState(surveyUnitModel, variableDto))
                                 .value(collectedVariable.getValues().getFirst())
                                 .date(surveyUnitModel.getRecordDate())
                                 .build()
                 );
             }
         }
-    }
 
-    /**
-     * Extract external variables from a model class to a VariablePerret map
-     * @param surveyUnitModel survey unit model
-     * @param variablePerretMap Perret variable DTO map to populate
-     */
-    private void extractExternalVariables(SurveyUnitModel surveyUnitModel, Map<String, VariablePerret> variablePerretMap) {
         for(Variable externalVariable : surveyUnitModel.getExternalVariables()){
-            VariablePerret variablePerret = variablePerretMap.get(externalVariable.getIdVar());
+            VariableDto variableDto = externalVariableMap.get(externalVariable.getIdVar());
 
             //Create variable into map if not exists
-            if(variablePerret == null){
-                variablePerret = VariablePerret.builder()
+            if(variableDto == null){
+                variableDto = VariableDto.builder()
                         .variableName(externalVariable.getIdVar())
-                        .variableStatePerretList(new ArrayList<>())
+                        .variableStateDtoList(new ArrayList<>())
                         .build();
-                variablePerretMap.put(externalVariable.getIdVar(), variablePerret);
+                externalVariableMap.put(externalVariable.getIdVar(), variableDto);
             }
             //Extract variable state
-            if(!externalVariable.getValues().isEmpty() && isMostRecentForSameState(surveyUnitModel, variablePerret)){
-                variablePerret.getVariableStatePerretList().add(
-                        VariableStatePerret.builder()
+            if(!externalVariable.getValues().isEmpty() && isMostRecentForSameState(surveyUnitModel, variableDto)){
+                variableDto.getVariableStateDtoList().add(
+                        VariableStateDto.builder()
                                 .state(surveyUnitModel.getState())
-                                .active(isLastVariableState(surveyUnitModel, variablePerret))
+                                .active(isLastVariableState(surveyUnitModel, variableDto))
                                 .value(externalVariable.getValues().getFirst())
                                 .date(surveyUnitModel.getRecordDate())
                                 .build()
@@ -297,13 +291,15 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     /**
      * Check if there is any other more recent variable value for a same state in VariablePerret DTO
      * @param surveyUnitModel model containing variable
-     * @param variablePerret DTO to check in
+     * @param variableDto DTO to check in
      * @return true if there's no more recent variable for the same state
      */
-    private boolean isMostRecentForSameState(SurveyUnitModel surveyUnitModel, VariablePerret variablePerret) {
-        List<VariableStatePerret> variableStatesSameState = variablePerret.getVariableStatePerretList().stream().filter(
-                variableStatePerret -> variableStatePerret.getState().equals(surveyUnitModel.getState())
-        ).toList();
+    private boolean isMostRecentForSameState(SurveyUnitModel surveyUnitModel, VariableDto variableDto) {
+        List<VariableStateDto> variableStatesSameState = variableDto.getVariableStateDtoList().stream().filter(
+                variableStateDto -> variableStateDto.getState().equals(surveyUnitModel.getState())
+        )
+                .sorted((o1, o2) -> o2.getDate().compareTo(o1.getDate()))
+                .toList();
         if(variableStatesSameState.isEmpty()){
             //Variable doesn't contain state
             return true;
@@ -316,15 +312,15 @@ public class SurveyUnitService implements SurveyUnitApiPort {
      * Check if model is more recent that any variable state in variablePerret DTO regardless of state
      * Used for active variable
      * @param surveyUnitModel model used to compare
-     * @param variablePerret Perret variable to check
+     * @param variableDto Perret variable to check
      * @return false if there is any variable state that comes from a more recent model already
      */
-    private boolean isLastVariableState(SurveyUnitModel surveyUnitModel, VariablePerret variablePerret) {
-        for(VariableStatePerret variableStatePerret : variablePerret.getVariableStatePerretList()){
-            if(variableStatePerret.getDate().isAfter(surveyUnitModel.getRecordDate())){
+    private boolean isLastVariableState(SurveyUnitModel surveyUnitModel, VariableDto variableDto) {
+        for(VariableStateDto variableStateDTO : variableDto.getVariableStateDtoList()){
+            if(variableStateDTO.getDate().isAfter(surveyUnitModel.getRecordDate())){
                 return false;
             }
-            variableStatePerret.setActive(false);
+            variableStateDTO.setActive(false);
         }
         return true;
     }

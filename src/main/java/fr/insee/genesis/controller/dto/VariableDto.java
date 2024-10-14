@@ -1,4 +1,4 @@
-package fr.insee.genesis.controller.dto.perret;
+package fr.insee.genesis.controller.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
@@ -8,9 +8,9 @@ import java.util.List;
 
 @Builder
 @Data
-public class VariablePerret {
+public class VariableDto {
     private String variableName;
 
     @JsonProperty("variableStates")
-    private List<VariableStatePerret> variableStatePerretList;
+    private List<VariableStateDto> variableStateDtoList;
 }
