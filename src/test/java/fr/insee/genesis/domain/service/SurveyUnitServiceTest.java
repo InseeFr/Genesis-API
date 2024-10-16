@@ -205,7 +205,7 @@ class SurveyUnitServiceTest {
 
 
         //When
-        SurveyUnitDto surveyUnitDto = surveyUnitServiceStatic.findLatestByIdAndByIdQuestionnaireLastestStates(
+        SurveyUnitDto surveyUnitDto = surveyUnitServiceStatic.findLatestValuesByStateByIdAndByIdQuestionnaire(
                 defaultIdUE,
                 defaultIdQuest
         );

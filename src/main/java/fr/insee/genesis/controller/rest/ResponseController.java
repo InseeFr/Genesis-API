@@ -200,7 +200,7 @@ public class ResponseController {
     public ResponseEntity<SurveyUnitDto> findResponsesByUEAndQuestionnaireLastestStates(
             @RequestParam("idUE") String idUE,
             @RequestParam("idQuestionnaire") String idQuestionnaire) {
-        SurveyUnitDto response = surveyUnitService.findLatestByIdAndByIdQuestionnaireLastestStates(idUE, idQuestionnaire);
+        SurveyUnitDto response = surveyUnitService.findLatestValuesByStateByIdAndByIdQuestionnaire(idUE, idQuestionnaire);
         return ResponseEntity.ok(response);
     }
 
