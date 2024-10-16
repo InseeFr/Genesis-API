@@ -1,6 +1,9 @@
 package fr.insee.genesis.controller.rest;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import fr.insee.genesis.Constants;
+import fr.insee.genesis.domain.model.schedule.KraftwerkExecutionSchedule;
 import fr.insee.genesis.domain.model.schedule.ScheduleModel;
 import fr.insee.genesis.domain.model.schedule.ServiceToCall;
 import fr.insee.genesis.domain.model.schedule.TrustParameters;
@@ -22,8 +25,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @RequestMapping(path = "/schedule")
 @Controller
@@ -75,11 +84,19 @@ public class ScheduleController {
                         useSignature
                 );
                 log.info("New schedule request for survey {} with encryption", surveyName);
-                scheduleApiPort.addSchedule(surveyName, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate,
+                scheduleApiPort.addSchedule(surveyName,
+                        serviceToCall == null ? ServiceToCall.MAIN : serviceToCall,
+                        frequency,
+                        scheduleBeginDate,
+                        scheduleEndDate,
                         trustParameters);
             }else{
                 log.info("New schedule request for survey {}", surveyName);
-                scheduleApiPort.addSchedule(surveyName, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate,
+                scheduleApiPort.addSchedule(surveyName,
+                        serviceToCall == null ? ServiceToCall.MAIN : serviceToCall,
+                        frequency,
+                        scheduleBeginDate,
+                        scheduleEndDate,
                         null);
             }
 
@@ -121,6 +138,38 @@ public class ScheduleController {
         }catch (NotFoundException e){
             log.warn("Survey {} not found for setting last execution !", surveyName);
             return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Delete expired schedules")
+    @DeleteMapping(path = "/delete/expired-schedules")
+    public ResponseEntity<Object> deleteExpiredSchedules() throws NotFoundException, IOException {
+        Set<String> storedSurveySchedulesNames = new HashSet<>();
+        for(ScheduleModel scheduleModel : scheduleApiPort.getAllSchedules()){
+            storedSurveySchedulesNames.add(scheduleModel.getSurveyName());
+        }
+        for (String surveyScheduleName : storedSurveySchedulesNames) {
+            List<KraftwerkExecutionSchedule> deletedKraftwerkExecutionSchedules = scheduleApiPort.deleteExpiredSchedules(surveyScheduleName);
+            //Save in JSON log
+            if(!deletedKraftwerkExecutionSchedules.isEmpty()) {
+                Path jsonLogPath = Path.of(fileUtils.getLogFolder(), Constants.SCHEDULE_ARCHIVE_FOLDER_NAME,
+                        surveyScheduleName + ".json");
+                ObjectMapper objectMapper = new ObjectMapper();
+                objectMapper.registerModule(new JavaTimeModule());
+                String jsonToWrite = objectMapper.writeValueAsString(deletedKraftwerkExecutionSchedules);
+                if(Files.exists(jsonLogPath)){
+                    //Remove last ] and append survey
+                    StringBuilder content = new StringBuilder(Files.readString(jsonLogPath));
+                    content.setCharAt(content.length()-1, ',');
+                    content.append(jsonToWrite, 1, jsonToWrite.length()-1);
+                    content.append(']');
+                    Files.write(jsonLogPath, content.toString().getBytes(), StandardOpenOption.TRUNCATE_EXISTING);
+                }else {
+                    Files.createDirectories(jsonLogPath.getParent());
+                    Files.write(jsonLogPath, jsonToWrite.getBytes());
+                }
+            }
         }
         return ResponseEntity.ok().build();
     }

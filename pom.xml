@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>fr.insee.genesis</groupId>
     <artifactId>genesis-api</artifactId>
-    <version>1.2.13</version>
+    <version>1.2.14</version>
     <packaging>jar</packaging>
     <name>genesis-api</name>
 
@@ -18,7 +18,7 @@
         <java.version>21</java.version>
         <springdoc.version>2.6.0</springdoc.version>
         <mapstruct.version>1.6.2</mapstruct.version>
-        <cucumber.version>7.19.0</cucumber.version>
+        <cucumber.version>7.20.1</cucumber.version>
         <!-- Proprietes sonar -->
         <jacoco.version>0.8.12</jacoco.version>
         <sonar.core.codeCoveragePlugin>jacoco</sonar.core.codeCoveragePlugin>
@@ -29,6 +29,7 @@
         <pitest.version>1.17.0</pitest.version>
         <pitest.junit.version>1.2.1</pitest.junit.version>
         <jackson.version>2.18.0</jackson.version>
+        <bpm.version>1.0.2</bpm.version>
     </properties>
     <dependencies>
         <dependency>
@@ -97,6 +98,11 @@
             <artifactId>jackson-databind</artifactId>
             <version>${jackson.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
 
         <!-- generate implementation auto -->
         <dependency>
@@ -136,7 +142,7 @@
         <dependency>
             <groupId>fr.insee.bpm</groupId>
             <artifactId>bpm</artifactId>
-            <version>1.0.2</version>
+            <version>${bpm.version}</version>
         </dependency>
     </dependencies>
 

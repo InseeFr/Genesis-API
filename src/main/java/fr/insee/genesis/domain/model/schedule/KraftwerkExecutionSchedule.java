@@ -1,5 +1,6 @@
 package fr.insee.genesis.domain.model.schedule;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -12,7 +13,10 @@ public class KraftwerkExecutionSchedule {
 
     private ServiceToCall serviceToCall;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
     private LocalDateTime scheduleBeginDate;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
     private LocalDateTime scheduleEndDate;
 
     private TrustParameters trustParameters;

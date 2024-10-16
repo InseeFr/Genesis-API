@@ -1,5 +1,6 @@
 package fr.insee.genesis.domain.ports.api;
 
+import fr.insee.genesis.domain.model.schedule.KraftwerkExecutionSchedule;
 import fr.insee.genesis.domain.model.schedule.ScheduleModel;
 import fr.insee.genesis.domain.model.schedule.ServiceToCall;
 import fr.insee.genesis.domain.model.schedule.TrustParameters;
@@ -21,6 +22,8 @@ public interface ScheduleApiPort {
                      ) throws InvalidCronExpressionException;
 
     void deleteSchedule(String surveyName) throws NotFoundException;
+
+    List<KraftwerkExecutionSchedule> deleteExpiredSchedules(String surveyName) throws NotFoundException;
 
     void updateLastExecutionName(String surveyName, LocalDateTime newDate) throws NotFoundException;
 
