@@ -1,6 +1,9 @@
 package fr.insee.genesis.domain.service.surveyunit;
 
 import fr.insee.genesis.controller.dto.CampaignWithQuestionnaire;
+import fr.insee.genesis.controller.dto.SurveyUnitDto;
+import fr.insee.genesis.controller.dto.VariableDto;
+import fr.insee.genesis.controller.dto.VariableStateDto;
 import fr.insee.genesis.domain.model.surveyunit.CollectedVariable;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.controller.dto.QuestionnaireWithCampaign;
@@ -13,8 +16,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -108,6 +114,31 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     }
 
     @Override
+    public SurveyUnitDto findLatestValuesByStateByIdAndByIdQuestionnaire(String idUE, String idQuest) {
+        SurveyUnitDto surveyUnitDto = SurveyUnitDto.builder()
+                .surveyUnitId(idUE)
+                .collectedVariables(new ArrayList<>())
+                .externalVariables(new ArrayList<>())
+                .build();
+
+        //Extract variables
+        Map<String, VariableDto> collectedVariableMap = new HashMap<>();
+        Map<String, VariableDto> externalVariableMap = new HashMap<>();
+        List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findByIds(idUE, idQuest);
+        List<Mode> modes = getDistinctsModes(surveyUnitModels);
+        modes.forEach(mode -> {
+            List<SurveyUnitModel> suByMode = surveyUnitModels.stream()
+                    .filter(surveyUnitModel -> surveyUnitModel.getMode().equals(mode))
+                    .sorted((o1, o2) -> o2.getRecordDate().compareTo(o1.getRecordDate())) //Sorting update by date (latest updates first by date of upload in database)
+                    .toList();
+            suByMode.forEach(surveyUnitModel -> extractVariables(surveyUnitModel, collectedVariableMap,externalVariableMap));
+        });
+        collectedVariableMap.keySet().forEach(variableName -> surveyUnitDto.getCollectedVariables().add(collectedVariableMap.get(variableName)));
+        externalVariableMap.keySet().forEach(variableName -> surveyUnitDto.getExternalVariables().add(externalVariableMap.get(variableName)));
+        return surveyUnitDto;
+    }
+
+    @Override
     public List<SurveyUnitId> findDistinctIdUEsByIdQuestionnaire(String idQuestionnaire) {
         List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findIdUEsByIdQuestionnaire(idQuestionnaire);
         List<SurveyUnitId> suIds = new ArrayList<>();
@@ -197,4 +228,100 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         return sources.stream().distinct().toList();
     }
 
+    /**
+     * Extract collected variables from a model class to a variable map
+     * @param surveyUnitModel survey unit model
+     * @param collectedVariableMap Collected variable DTO map to populate
+     * @param externalVariableMap External variable DTO map to populate
+     */
+    private void extractVariables(SurveyUnitModel surveyUnitModel,
+                                           Map<String, VariableDto> collectedVariableMap,
+                                           Map<String, VariableDto> externalVariableMap) {
+
+        for (CollectedVariable collectedVariable : surveyUnitModel.getCollectedVariables()) {
+            VariableDto variableDto = collectedVariableMap.get(collectedVariable.getIdVar());
+
+            //Create variable into map if not exists
+            if (variableDto == null) {
+                variableDto = VariableDto.builder()
+                        .variableName(collectedVariable.getIdVar())
+                        .variableStateDtoList(new ArrayList<>())
+                        .build();
+                collectedVariableMap.put(collectedVariable.getIdVar(), variableDto);
+            }
+            //Extract variable state
+            if (!collectedVariable.getValues().isEmpty() && isMostRecentForSameState(surveyUnitModel, variableDto)) {
+                variableDto.getVariableStateDtoList().add(
+                        VariableStateDto.builder()
+                                .state(surveyUnitModel.getState())
+                                .active(isLastVariableState(surveyUnitModel, variableDto))
+                                .value(collectedVariable.getValues().getFirst())
+                                .date(surveyUnitModel.getRecordDate())
+                                .build()
+                );
+            }
+        }
+
+        for(Variable externalVariable : surveyUnitModel.getExternalVariables()){
+            VariableDto variableDto = externalVariableMap.get(externalVariable.getIdVar());
+
+            //Create variable into map if not exists
+            if(variableDto == null){
+                variableDto = VariableDto.builder()
+                        .variableName(externalVariable.getIdVar())
+                        .variableStateDtoList(new ArrayList<>())
+                        .build();
+                externalVariableMap.put(externalVariable.getIdVar(), variableDto);
+            }
+            //Extract variable state
+            if(!externalVariable.getValues().isEmpty() && isMostRecentForSameState(surveyUnitModel, variableDto)){
+                variableDto.getVariableStateDtoList().add(
+                        VariableStateDto.builder()
+                                .state(surveyUnitModel.getState())
+                                .active(isLastVariableState(surveyUnitModel, variableDto))
+                                .value(externalVariable.getValues().getFirst())
+                                .date(surveyUnitModel.getRecordDate())
+                                .build()
+                );
+            }
+        }
+    }
+
+
+    /**
+     * Check if there is any other more recent variable value for a same state in Variable DTO
+     * @param surveyUnitModel model containing variable
+     * @param variableDto DTO to check in
+     * @return true if there's no more recent variable for the same state
+     */
+    private boolean isMostRecentForSameState(SurveyUnitModel surveyUnitModel, VariableDto variableDto) {
+        List<VariableStateDto> variableStatesSameState = variableDto.getVariableStateDtoList().stream().filter(
+                variableStateDto -> variableStateDto.getState().equals(surveyUnitModel.getState())
+        )
+                .sorted((o1, o2) -> o2.getDate().compareTo(o1.getDate()))
+                .toList();
+        if(variableStatesSameState.isEmpty()){
+            //Variable doesn't contain state
+            return true;
+        }
+        LocalDateTime mostRecentStateDateTime = variableStatesSameState.getFirst().getDate();
+        return mostRecentStateDateTime.isBefore(surveyUnitModel.getRecordDate());
+    }
+
+    /**
+     * Check if model is more recent that any variable state in variable DTO regardless of state
+     * Used for active variable
+     * @param surveyUnitModel model used to compare
+     * @param variableDto variable to check
+     * @return false if there is any variable state that comes from a more recent model already
+     */
+    private boolean isLastVariableState(SurveyUnitModel surveyUnitModel, VariableDto variableDto) {
+        for(VariableStateDto variableStateDTO : variableDto.getVariableStateDtoList()){
+            if(variableStateDTO.getDate().isAfter(surveyUnitModel.getRecordDate())){
+                return false;
+            }
+            variableStateDTO.setActive(false);
+        }
+        return true;
+    }
 }
