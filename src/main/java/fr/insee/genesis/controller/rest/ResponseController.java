@@ -60,7 +60,7 @@ import java.util.stream.Stream;
 
 @RequestMapping(path = "/response" )
 @Controller
-@Tag(name = "Response services for interrogations", description = "A **response** is considered the entire set of data associated with an interrogation (idUE x idQuestionnaire). \n These data may have different state (collected, edited, external, ...) ")
+@Tag(name = "Response services for interrogations", description = "A **response** is considered the entire set of data associated with an interrogation (idUE x idQuestionnaire). \n\n These data may have different state (collected, edited, external, ...) ")
 @Slf4j
 public class ResponseController {
 
