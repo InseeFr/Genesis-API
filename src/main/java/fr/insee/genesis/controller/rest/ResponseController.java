@@ -261,7 +261,7 @@ public class ResponseController {
     @Operation(summary = "Retrieve all responses for a questionnaire and a list of UE",
             description = "Return the latest state for each variable for the given ids and a given questionnaire.<br>" +
                     "For a given id, the endpoint returns a single document that merges all collection modes (if there is more than one).")
-    @PostMapping(path = "/get-simplified-responses/by-ue-and-questionnaire/latest")
+    @PostMapping(path = "/get-simplified-responses/by-list-ue-and-questionnaire/latest")
     public ResponseEntity<List<SurveyUnitSimplified>> getLatestForUEList(@RequestParam("idQuestionnaire") String idQuestionnaire,
                                                                                @RequestBody List<SurveyUnitId> idUEs) {
         List<SurveyUnitSimplified> results = new ArrayList<>();
