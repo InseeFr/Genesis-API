@@ -22,7 +22,6 @@ import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.Variable;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
-import fr.insee.genesis.domain.service.volumetry.VolumetryLogService;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.exceptions.NoDataError;
@@ -58,7 +57,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
-@RequestMapping(path = "/response" )
+@RequestMapping(path = "/responses" )
 @Controller
 @Tag(name = "Response services for interrogations", description = "A **response** is considered the entire set of data associated with an interrogation (idUE x idQuestionnaire). \n\n These data may have different state (collected, edited, external, ...) ")
 @Slf4j
@@ -68,22 +67,20 @@ public class ResponseController {
     public static final String S_S = "%s/%s";
     private final SurveyUnitApiPort surveyUnitService;
     private final SurveyUnitQualityService surveyUnitQualityService;
-    private final VolumetryLogService volumetryLogService;
     private final FileUtils fileUtils;
     private final ControllerUtils controllerUtils;
 
     @Autowired
-    public ResponseController(SurveyUnitApiPort surveyUnitService, SurveyUnitQualityService surveyUnitQualityService, VolumetryLogService volumetryLogService, FileUtils fileUtils, ControllerUtils controllerUtils) {
+    public ResponseController(SurveyUnitApiPort surveyUnitService, SurveyUnitQualityService surveyUnitQualityService, FileUtils fileUtils, ControllerUtils controllerUtils) {
         this.surveyUnitService = surveyUnitService;
         this.surveyUnitQualityService = surveyUnitQualityService;
-        this.volumetryLogService = volumetryLogService;
         this.fileUtils = fileUtils;
         this.controllerUtils = controllerUtils;
     }
 
     //SAVE
     @Operation(summary = "Save one file of responses to Genesis Database, passing its path as a parameter")
-    @PutMapping(path = "/save/lunatic-xml/one-file")
+    @PutMapping(path = "/lunatic-xml/save-one")
     public ResponseEntity<Object> saveResponsesFromXmlFile(@RequestParam("pathLunaticXml") String xmlFile,
                                                            @RequestParam(value = "pathSpecFile") String metadataFilePath,
                                                            @RequestParam(value = "mode") Mode modeSpecified,
@@ -118,7 +115,7 @@ public class ResponseController {
     }
 
     @Operation(summary = "Save multiple files to Genesis Database from the campaign root folder")
-    @PutMapping(path = "/save/lunatic-xml")
+    @PutMapping(path = "/lunatic-xml/save-folder")
     public ResponseEntity<Object> saveResponsesFromXmlCampaignFolder(@RequestParam("campaignName") String campaignName,
                                                                      @RequestParam(value = "mode", required = false) Mode modeSpecified,
                                                                      @RequestParam(value = "withDDI", defaultValue = "true") boolean withDDI
@@ -140,7 +137,7 @@ public class ResponseController {
 
     //SAVE ALL
     @Operation(summary = "Save all files to Genesis Database (differential data folder only), regardless of the campaign")
-    @PutMapping(path = "/save/lunatic-xml/all-campaigns")
+    @PutMapping(path = "/lunatic-xml/save-all-campaigns")
     public ResponseEntity<Object> saveResponsesFromAllCampaignFolders(){
         List<GenesisError> errors = new ArrayList<>();
         List<File> campaignFolders = fileUtils.listAllSpecsFolders();
@@ -170,17 +167,11 @@ public class ResponseController {
         }
     }
 
-    @Operation(summary = "Record volumetrics of each campaign in a folder")
-    @PutMapping(path = "/save-volumetry/all-campaigns")
-    public ResponseEntity<Object> saveVolumetry() throws IOException {
-        volumetryLogService.writeVolumetries(surveyUnitService);
-        volumetryLogService.cleanOldFiles();
-        return ResponseEntity.ok("Volumetric saved");
-    }
+
     
     //DELETE
     @Operation(summary = "Delete all responses associated with a questionnaire")
-    @DeleteMapping(path = "/delete-responses/by-questionnaire")
+    @DeleteMapping(path = "/delete/by-questionnaire")
     public ResponseEntity<Object> deleteAllResponsesByQuestionnaire(@RequestParam("idQuestionnaire") String idQuestionnaire) {
         log.info("Try to delete all responses of questionnaire : {}", idQuestionnaire);
         Long ndDocuments = surveyUnitService.deleteByIdQuestionnaire(idQuestionnaire);
@@ -199,7 +190,7 @@ public class ResponseController {
 
     @Operation(summary = "Retrieve responses for an interrogation, using IdUE and IdQuestionnaire from Genesis Database with the latest value for each available state of every variable")
     @GetMapping(path = "/get-responses/by-ue-and-questionnaire/latest-states")
-    public ResponseEntity<SurveyUnitDto> findResponsesByUEAndQuestionnaireLastestStates(
+    public ResponseEntity<SurveyUnitDto> findResponsesByUEAndQuestionnaireLatestStates(
             @RequestParam("idUE") String idUE,
             @RequestParam("idQuestionnaire") String idQuestionnaire) {
         SurveyUnitDto response = surveyUnitService.findLatestValuesByStateByIdAndByIdQuestionnaire(idUE, idQuestionnaire);
@@ -236,8 +227,8 @@ public class ResponseController {
         return ResponseEntity.ok(responses);
     }
 
-    @Operation(summary = "Retrieve response latest state with IdUE and IdQuestionnaire in one object in the output")
-    @GetMapping(path = "/get-simplified-response/by-ue-and-questionnaire/latest")
+    @Operation(summary = "Retrieve responses for an interrogation, using IdUE and IdQuestionnaire from Genesis Database. It returns only the latest value of each variable regardless of the state. The result is in one object in the output")
+    @GetMapping(path = "/get-simplified-response/by-ue-questionnaire-and-mode/latest")
     public ResponseEntity<SurveyUnitSimplified> getLatestByUEOneObject(@RequestParam("idUE") String idUE,
                                                                              @RequestParam("idQuestionnaire") String idQuestionnaire,
                                                                              @RequestParam("mode") Mode mode) {
