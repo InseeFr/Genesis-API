@@ -227,7 +227,7 @@ public class ResponseController {
         return ResponseEntity.ok(responses);
     }
 
-    @Operation(summary = "Retrieve responses for an interrogation, using IdUE and IdQuestionnaire from Genesis Database. It returns only the latest value of each variable regardless of the state. The result is in one object in the output")
+    @Operation(summary = "Retrieve responses for an interrogation, using IdUE and IdQuestionnaire from Genesis Database. For a given mode, it returns only the latest value of each variable regardless of the state. The result is one object by mode in the output")
     @GetMapping(path = "/get-simplified-response/by-ue-questionnaire-and-mode/latest")
     public ResponseEntity<SurveyUnitSimplified> getLatestByUEOneObject(@RequestParam("idUE") String idUE,
                                                                              @RequestParam("idQuestionnaire") String idQuestionnaire,
@@ -251,7 +251,7 @@ public class ResponseController {
 
     @Operation(summary = "Retrieve all responses for a questionnaire and a list of UE",
             description = "Return the latest state for each variable for the given ids and a given questionnaire.<br>" +
-                    "For a given id, the endpoint returns a single document that merges all collection modes (if there is more than one).")
+                    "For a given id, the endpoint returns a document by collection mode (if there is more than one).")
     @PostMapping(path = "/get-simplified-responses/by-list-ue-and-questionnaire/latest")
     public ResponseEntity<List<SurveyUnitSimplified>> getLatestForUEList(@RequestParam("idQuestionnaire") String idQuestionnaire,
                                                                                @RequestBody List<SurveyUnitId> idUEs) {
