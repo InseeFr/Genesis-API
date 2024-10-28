@@ -3,8 +3,8 @@ package fr.insee.genesis.infrastructure.adapter;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.infrastructure.document.surveyunit.ExternalVariable;
-import fr.insee.genesis.infrastructure.document.surveyunit.VariableState;
 import fr.insee.genesis.infrastructure.document.surveyunit.SurveyUnitDocument;
+import fr.insee.genesis.infrastructure.document.surveyunit.VariableState;
 import fr.insee.genesis.infrastructure.repository.SurveyUnitMongoDBRepository;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -26,7 +26,7 @@ import static org.mockito.Mockito.when;
 class SurveyUnitModelMongoAdapterTest {
 
 	@Mock
-	SurveyUnitMongoDBRepository mongoRepository;
+    static SurveyUnitMongoDBRepository mongoRepository;
 
 	@InjectMocks
 	static SurveyUnitMongoAdapter surveyUnitMongoAdapter;
@@ -37,7 +37,7 @@ class SurveyUnitModelMongoAdapterTest {
 
 	@BeforeAll
 	static void setUp() {
-		surveyUnitMongoAdapter = new SurveyUnitMongoAdapter();
+		surveyUnitMongoAdapter = new SurveyUnitMongoAdapter(mongoRepository, null);
 		suDoc= new SurveyUnitDocument();
 		suDoc.setIdCampaign("idCampaign");
 		suDoc.setIdUE("UE1100000001");

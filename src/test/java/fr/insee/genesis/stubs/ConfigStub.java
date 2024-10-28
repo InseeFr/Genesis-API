@@ -3,8 +3,6 @@ package fr.insee.genesis.stubs;
 import cucumber.TestConstants;
 import fr.insee.genesis.configuration.Config;
 
-import java.nio.file.Path;
-
 public class ConfigStub extends Config {
 
 	private static final String DATA_SOURCE = TestConstants.TEST_RESOURCES_DIRECTORY;

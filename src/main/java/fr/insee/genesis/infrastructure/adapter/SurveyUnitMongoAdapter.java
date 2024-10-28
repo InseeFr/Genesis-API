@@ -3,12 +3,11 @@ package fr.insee.genesis.infrastructure.adapter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
-import fr.insee.genesis.infrastructure.mappers.SurveyUnitDocumentMapper;
 import fr.insee.genesis.infrastructure.document.surveyunit.SurveyUnitDocument;
+import fr.insee.genesis.infrastructure.mappers.SurveyUnitDocumentMapper;
 import fr.insee.genesis.infrastructure.repository.SurveyUnitMongoDBRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,11 +25,14 @@ import java.util.stream.Stream;
 @Service
 public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 
-	@Autowired
 	private SurveyUnitMongoDBRepository mongoRepository;
+	private MongoTemplate mongoTemplate;
 
 	@Autowired
-	MongoTemplate mongoTemplate;
+	public SurveyUnitMongoAdapter(SurveyUnitMongoDBRepository mongoRepository, MongoTemplate mongoTemplate) {
+		this.mongoRepository = mongoRepository;
+		this.mongoTemplate = mongoTemplate;
+	}
 
 	@Override
 	public void saveAll(List<SurveyUnitModel> suListDto) {
@@ -66,7 +68,6 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 	public Stream<SurveyUnitModel> findByIdQuestionnaire(String idQuestionnaire) {
 		Stream<SurveyUnitDocument> surveyUnits = mongoRepository.findByIdQuestionnaire(idQuestionnaire);
 		return surveyUnits.map(SurveyUnitDocumentMapper.INSTANCE::documentToModel);
-		//return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListDto(surveyUnits);
 	}
 
 	@Override
