@@ -8,6 +8,7 @@ import fr.insee.genesis.infrastructure.mappers.ScheduleDocumentMapper;
 import fr.insee.genesis.infrastructure.repository.ScheduleMongoDBRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -19,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@Qualifier("scheduleMongoAdapter")
 @Slf4j
 public class ScheduleMongoAdapter implements SchedulePersistencePort {
     private final ScheduleMongoDBRepository scheduleMongoDBRepository;
