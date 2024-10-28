@@ -135,7 +135,11 @@ public class ResponseController {
         } catch (GenesisException e) {
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
         }
-        return ResponseEntity.ok("Data saved");
+        if (errors.isEmpty()){
+            return ResponseEntity.ok("Data saved");
+        }else{
+            return ResponseEntity.internalServerError().body(errors.getFirst().getMessage());
+        }
     }
 
     //SAVE ALL
