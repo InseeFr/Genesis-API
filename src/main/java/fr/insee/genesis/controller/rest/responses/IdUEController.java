@@ -3,7 +3,6 @@ package fr.insee.genesis.controller.rest.responses;
 import fr.insee.genesis.controller.dto.SurveyUnitId;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +15,6 @@ import java.util.List;
 
 @RequestMapping(path = "/idUEs" )
 @Controller
-@Tag(name = "Response services for interrogations", description = "A **response** is considered the entire set of data associated with an interrogation (idUE x idQuestionnaire). \n\n These data may have different state (collected, edited, external, ...) ")
 @Slf4j
 public class IdUEController {
 
