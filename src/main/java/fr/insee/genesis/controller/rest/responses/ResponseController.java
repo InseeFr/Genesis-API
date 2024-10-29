@@ -22,7 +22,7 @@ import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
-import fr.insee.genesis.exceptions.NoDataError;
+import fr.insee.genesis.exceptions.NoDataException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -118,19 +118,26 @@ public class ResponseController {
                                                                      @RequestParam(value = "withDDI", defaultValue = "true") boolean withDDI
     )throws Exception {
         List<GenesisError> errors = new ArrayList<>();
+        boolean isAnyDataSaved = false;
 
         log.info("Try to import XML data for campaign : {}", campaignName);
 
-        try {
-            List<Mode> modesList = controllerUtils.getModesList(campaignName, modeSpecified);
-            for (Mode currentMode : modesList) {
+        List<Mode> modesList = controllerUtils.getModesList(campaignName, modeSpecified);
+        for (Mode currentMode : modesList) {
+            try {
                 treatCampaignWithMode(campaignName, currentMode, errors, null, withDDI);
+                isAnyDataSaved = true;
+            }catch (NoDataException nde){
+                //Don't stop if NoDataError thrown
+                log.warn(nde.getMessage());
+            }catch (Exception e){
+                log.error("Error for campaign {} : {}", campaignName, e.toString());
+                return ResponseEntity.status(500).body(e.getMessage());
             }
-        } catch (GenesisException e) {
-            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
         }
+
         if (errors.isEmpty()){
-            return ResponseEntity.ok("Data saved");
+            return ResponseEntity.ok(isAnyDataSaved ? "Data saved" : "No data has been saved");
         }else{
             return ResponseEntity.internalServerError().body(errors.getFirst().getMessage());
         }
@@ -156,7 +163,10 @@ public class ResponseController {
                 for (Mode currentMode : modesList) {
                     treatCampaignWithMode(campaignName, currentMode, errors, Constants.DIFFRENTIAL_DATA_FOLDER_NAME);
                 }
-            } catch (Exception e) {
+            }catch (NoDataException nde){
+                log.warn(nde.getMessage());
+            }
+            catch (Exception e) {
                 log.warn("Error for campaign {} : {}", campaignName, e.toString());
                 errors.add(new GenesisError(e.getMessage()));
             }
@@ -291,7 +301,7 @@ public class ResponseController {
      * @param errors error list to fill
      */
     private void treatCampaignWithMode(String campaignName, Mode currentMode, List<GenesisError> errors, String rootDataFolder) throws GenesisException,
-            SAXException, XMLStreamException {
+            SAXException, XMLStreamException, NoDataException {
         try {
             fileUtils.findFile(String.format(S_S, fileUtils.getSpecFolder(campaignName),currentMode), DDI_REGEX);
             //DDI if DDI file found
@@ -320,7 +330,7 @@ public class ResponseController {
      * @param withDDI true if it uses DDI, false if Lunatic
      */
     private void treatCampaignWithMode(String campaignName, Mode mode, List<GenesisError> errors, String rootDataFolder, boolean withDDI)
-            throws IOException, ParserConfigurationException,SAXException, XMLStreamException {
+            throws IOException, ParserConfigurationException, SAXException, XMLStreamException, NoDataException {
         log.info("Try to import data for mode : {}", mode.getModeName());
         String dataFolder = rootDataFolder == null ?
                 fileUtils.getDataFolder(campaignName, mode.getFolder())
@@ -328,9 +338,7 @@ public class ResponseController {
         List<String> dataFiles = fileUtils.listFiles(dataFolder);
         log.info("Numbers of files to load in folder {} : {}", dataFolder, dataFiles.size());
         if (dataFiles.isEmpty()) {
-            errors.add(new NoDataError("No data file found", Mode.getEnumFromModeName(mode.getModeName())));
-            log.warn("No data file found in folder {}", dataFolder);
-            return;
+            throw new NoDataException("No data file found in folder %s".formatted(dataFolder));
         }
 
         VariablesMap variablesMap = readMetadatas(campaignName, mode, errors, withDDI);

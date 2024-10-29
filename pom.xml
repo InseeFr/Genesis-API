@@ -28,7 +28,7 @@
         <!-- Pi Test-->
         <pitest.version>1.17.0</pitest.version>
         <pitest.junit.version>1.2.1</pitest.junit.version>
-        <jackson.version>2.18.0</jackson.version>
+        <jackson.version>2.18.1</jackson.version>
         <bpm.version>1.0.2</bpm.version>
     </properties>
     <dependencies>
