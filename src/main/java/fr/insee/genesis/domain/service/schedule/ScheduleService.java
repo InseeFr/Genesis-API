@@ -21,7 +21,7 @@ import java.util.List;
 @Service
 @Slf4j
 public class ScheduleService implements ScheduleApiPort {
-    @Qualifier("ScheduleMongoAdapter")
+    @Qualifier("scheduleMongoAdapter")
     private final SchedulePersistencePort schedulePersistencePort;
 
     @Autowired

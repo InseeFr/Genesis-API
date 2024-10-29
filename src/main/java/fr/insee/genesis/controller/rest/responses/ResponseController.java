@@ -1,4 +1,4 @@
-package fr.insee.genesis.controller.rest;
+package fr.insee.genesis.controller.rest.responses;
 
 import fr.insee.bpm.exceptions.MetadataParserException;
 import fr.insee.bpm.metadata.model.VariablesMap;
@@ -6,8 +6,6 @@ import fr.insee.bpm.metadata.reader.ddi.DDIReader;
 import fr.insee.bpm.metadata.reader.lunatic.LunaticReader;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.adapter.LunaticXmlAdapter;
-import fr.insee.genesis.controller.dto.CampaignWithQuestionnaire;
-import fr.insee.genesis.controller.dto.QuestionnaireWithCampaign;
 import fr.insee.genesis.controller.dto.SurveyUnitDto;
 import fr.insee.genesis.controller.dto.SurveyUnitId;
 import fr.insee.genesis.controller.dto.SurveyUnitSimplified;
@@ -22,7 +20,6 @@ import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.Variable;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
-import fr.insee.genesis.domain.service.volumetry.VolumetryLogService;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.exceptions.NoDataException;
@@ -55,10 +52,9 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Stream;
 
-@RequestMapping(path = "/response" )
+@RequestMapping(path = "/responses" )
 @Controller
 @Tag(name = "Response services for interrogations", description = "A **response** is considered the entire set of data associated with an interrogation (idUE x idQuestionnaire). \n\n These data may have different state (collected, edited, external, ...) ")
 @Slf4j
@@ -68,22 +64,20 @@ public class ResponseController {
     public static final String S_S = "%s/%s";
     private final SurveyUnitApiPort surveyUnitService;
     private final SurveyUnitQualityService surveyUnitQualityService;
-    private final VolumetryLogService volumetryLogService;
     private final FileUtils fileUtils;
     private final ControllerUtils controllerUtils;
 
     @Autowired
-    public ResponseController(SurveyUnitApiPort surveyUnitService, SurveyUnitQualityService surveyUnitQualityService, VolumetryLogService volumetryLogService, FileUtils fileUtils, ControllerUtils controllerUtils) {
+    public ResponseController(SurveyUnitApiPort surveyUnitService, SurveyUnitQualityService surveyUnitQualityService, FileUtils fileUtils, ControllerUtils controllerUtils) {
         this.surveyUnitService = surveyUnitService;
         this.surveyUnitQualityService = surveyUnitQualityService;
-        this.volumetryLogService = volumetryLogService;
         this.fileUtils = fileUtils;
         this.controllerUtils = controllerUtils;
     }
 
     //SAVE
     @Operation(summary = "Save one file of responses to Genesis Database, passing its path as a parameter")
-    @PutMapping(path = "/save/lunatic-xml/one-file")
+    @PutMapping(path = "/lunatic-xml/save-one")
     public ResponseEntity<Object> saveResponsesFromXmlFile(@RequestParam("pathLunaticXml") String xmlFile,
                                                            @RequestParam(value = "pathSpecFile") String metadataFilePath,
                                                            @RequestParam(value = "mode") Mode modeSpecified,
@@ -118,7 +112,7 @@ public class ResponseController {
     }
 
     @Operation(summary = "Save multiple files to Genesis Database from the campaign root folder")
-    @PutMapping(path = "/save/lunatic-xml")
+    @PutMapping(path = "/lunatic-xml/save-folder")
     public ResponseEntity<Object> saveResponsesFromXmlCampaignFolder(@RequestParam("campaignName") String campaignName,
                                                                      @RequestParam(value = "mode", required = false) Mode modeSpecified,
                                                                      @RequestParam(value = "withDDI", defaultValue = "true") boolean withDDI
@@ -151,7 +145,7 @@ public class ResponseController {
 
     //SAVE ALL
     @Operation(summary = "Save all files to Genesis Database (differential data folder only), regardless of the campaign")
-    @PutMapping(path = "/save/lunatic-xml/all-campaigns")
+    @PutMapping(path = "/lunatic-xml/save-all-campaigns")
     public ResponseEntity<Object> saveResponsesFromAllCampaignFolders(){
         List<GenesisError> errors = new ArrayList<>();
         List<File> campaignFolders = fileUtils.listAllSpecsFolders();
@@ -184,17 +178,11 @@ public class ResponseController {
         }
     }
 
-    @Operation(summary = "Record volumetrics of each campaign in a folder")
-    @PutMapping(path = "/save-volumetry/all-campaigns")
-    public ResponseEntity<Object> saveVolumetry() throws IOException {
-        volumetryLogService.writeVolumetries(surveyUnitService);
-        volumetryLogService.cleanOldFiles();
-        return ResponseEntity.ok("Volumetric saved");
-    }
+
     
     //DELETE
     @Operation(summary = "Delete all responses associated with a questionnaire")
-    @DeleteMapping(path = "/delete-responses/by-questionnaire")
+    @DeleteMapping(path = "/delete/by-questionnaire")
     public ResponseEntity<Object> deleteAllResponsesByQuestionnaire(@RequestParam("idQuestionnaire") String idQuestionnaire) {
         log.info("Try to delete all responses of questionnaire : {}", idQuestionnaire);
         Long ndDocuments = surveyUnitService.deleteByIdQuestionnaire(idQuestionnaire);
@@ -204,7 +192,7 @@ public class ResponseController {
 
     //GET
     @Operation(summary = "Retrieve responses for an interrogation, using IdUE and IdQuestionnaire from Genesis Database")
-    @GetMapping(path = "/get-responses/by-ue-and-questionnaire")
+    @GetMapping(path = "/by-ue-and-questionnaire")
     public ResponseEntity<List<SurveyUnitModel>> findResponsesByUEAndQuestionnaire(@RequestParam("idUE") String idUE,
                                                                                    @RequestParam("idQuestionnaire") String idQuestionnaire) {
         List<SurveyUnitModel> responses = surveyUnitService.findByIdsUEAndQuestionnaire(idUE, idQuestionnaire);
@@ -212,8 +200,8 @@ public class ResponseController {
     }
 
     @Operation(summary = "Retrieve responses for an interrogation, using IdUE and IdQuestionnaire from Genesis Database with the latest value for each available state of every variable")
-    @GetMapping(path = "/get-responses/by-ue-and-questionnaire/latest-states")
-    public ResponseEntity<SurveyUnitDto> findResponsesByUEAndQuestionnaireLastestStates(
+    @GetMapping(path = "/by-ue-and-questionnaire/latest-states")
+    public ResponseEntity<SurveyUnitDto> findResponsesByUEAndQuestionnaireLatestStates(
             @RequestParam("idUE") String idUE,
             @RequestParam("idQuestionnaire") String idQuestionnaire) {
         SurveyUnitDto response = surveyUnitService.findLatestValuesByStateByIdAndByIdQuestionnaire(idUE, idQuestionnaire);
@@ -221,7 +209,7 @@ public class ResponseController {
     }
 
     @Operation(summary = "Retrieve all responses (for all interrogations) of one questionnaire")
-    @GetMapping(path = "/get-responses/by-questionnaire")
+    @GetMapping(path = "/by-questionnaire")
     public ResponseEntity<Path> findAllResponsesByQuestionnaire(@RequestParam("idQuestionnaire") String idQuestionnaire) {
         log.info("Try to find all responses of questionnaire : {}", idQuestionnaire);
 
@@ -243,15 +231,15 @@ public class ResponseController {
     }
 
     @Operation(summary = "Retrieve responses for an interrogation, using IdUE and IdQuestionnaire from Genesis Database. It returns only the latest value of each variable regardless of the state.")
-    @GetMapping(path = "/get-responses/by-ue-and-questionnaire/latest")
+    @GetMapping(path = "/by-ue-and-questionnaire/latest")
     public ResponseEntity<List<SurveyUnitModel>> getLatestByUE(@RequestParam("idUE") String idUE,
                                                                @RequestParam("idQuestionnaire") String idQuestionnaire) {
         List<SurveyUnitModel> responses = surveyUnitService.findLatestByIdAndByIdQuestionnaire(idUE, idQuestionnaire);
         return ResponseEntity.ok(responses);
     }
 
-    @Operation(summary = "Retrieve response latest state with IdUE and IdQuestionnaire in one object in the output")
-    @GetMapping(path = "/get-simplified-response/by-ue-and-questionnaire/latest")
+    @Operation(summary = "Retrieve responses for an interrogation, using IdUE and IdQuestionnaire from Genesis Database. For a given mode, it returns only the latest value of each variable regardless of the state. The result is one object by mode in the output")
+    @GetMapping(path = "/simplified/by-ue-questionnaire-and-mode/latest")
     public ResponseEntity<SurveyUnitSimplified> getLatestByUEOneObject(@RequestParam("idUE") String idUE,
                                                                              @RequestParam("idQuestionnaire") String idQuestionnaire,
                                                                              @RequestParam("mode") Mode mode) {
@@ -274,8 +262,8 @@ public class ResponseController {
 
     @Operation(summary = "Retrieve all responses for a questionnaire and a list of UE",
             description = "Return the latest state for each variable for the given ids and a given questionnaire.<br>" +
-                    "For a given id, the endpoint returns a single document that merges all collection modes (if there is more than one).")
-    @PostMapping(path = "/get-simplified-responses/by-ue-and-questionnaire/latest")
+                    "For a given id, the endpoint returns a document by collection mode (if there is more than one).")
+    @PostMapping(path = "/simplified/by-list-ue-and-questionnaire/latest")
     public ResponseEntity<List<SurveyUnitSimplified>> getLatestForUEList(@RequestParam("idQuestionnaire") String idQuestionnaire,
                                                                                @RequestBody List<SurveyUnitId> idUEs) {
         List<SurveyUnitSimplified> results = new ArrayList<>();
@@ -302,64 +290,6 @@ public class ResponseController {
             });
         });
         return ResponseEntity.ok(results);
-    }
-
-    @Operation(summary = "Retrieve all IdUEs for a given questionnaire")
-    @GetMapping(path = "/get-idUEs/by-questionnaire")
-    public ResponseEntity<List<SurveyUnitId>> getAllIdUEsByQuestionnaire(@RequestParam("idQuestionnaire") String idQuestionnaire) {
-        List<SurveyUnitId> responses = surveyUnitService.findDistinctIdUEsByIdQuestionnaire(idQuestionnaire);
-        return ResponseEntity.ok(responses);
-    }
-
-    @Operation(summary = "List sources/modes used for a given questionnaire")
-    @GetMapping(path = "/get-modes/by-questionnaire")
-    public ResponseEntity<List<Mode>> getModesByQuestionnaire(@RequestParam("idQuestionnaire") String idQuestionnaire) {
-        List<Mode> modes = surveyUnitService.findModesByIdQuestionnaire(idQuestionnaire);
-        return ResponseEntity.ok(modes);
-    }
-
-    @Operation(summary = "List sources/modes used for a given campaign")
-    @GetMapping(path = "/get-modes/by-campaign")
-    public ResponseEntity<List<Mode>> getModesByCampaign(@RequestParam("idCampaign") String idCampaign) {
-        List<Mode> modes = surveyUnitService.findModesByIdCampaign(idCampaign);
-        return ResponseEntity.ok(modes);
-    }
-
-    @Operation(summary = "List questionnaires in database")
-    @GetMapping(path = "/get-questionnaires")
-    public ResponseEntity<Set<String>> getQuestionnaires() {
-        Set<String> questionnaires = surveyUnitService.findDistinctIdQuestionnaires();
-        return ResponseEntity.ok(questionnaires);
-    }
-
-
-    @Operation(summary = "List questionnaires in database with their campaigns")
-    @GetMapping(path = "/get-questionnaires/with-campaigns")
-    public ResponseEntity<List<QuestionnaireWithCampaign>> getQuestionnairesWithCampaigns() {
-        List<QuestionnaireWithCampaign> questionnaireWithCampaignList =
-                surveyUnitService.findQuestionnairesWithCampaigns();
-        return ResponseEntity.ok(questionnaireWithCampaignList);
-    }
-
-    @Operation(summary = "List questionnaires used for a given campaign")
-    @GetMapping(path = "/get-questionnaires/by-campaign")
-    public ResponseEntity<Set<String>> getQuestionnairesByCampaign(@RequestParam("idCampaign") String idCampaign) {
-        Set<String> questionnaires = surveyUnitService.findIdQuestionnairesByIdCampaign(idCampaign);
-        return ResponseEntity.ok(questionnaires);
-    }
-
-    @Operation(summary = "List campaigns in database")
-    @GetMapping(path = "/get-campaigns")
-    public ResponseEntity<Set<String>> getCampaigns() {
-        Set<String> campaigns = surveyUnitService.findDistinctIdCampaigns();
-        return ResponseEntity.ok(campaigns);
-    }
-
-    @Operation(summary = "List campaigns in database with their questionnaires")
-    @GetMapping(path = "/get-campaigns/with-questionnaires")
-    public ResponseEntity<List<CampaignWithQuestionnaire>> getCampaignsWithQuestionnaires() {
-        List<CampaignWithQuestionnaire> questionnairesByCampaigns = surveyUnitService.findCampaignsWithQuestionnaires();
-        return ResponseEntity.ok(questionnairesByCampaigns);
     }
 
     //Utilities
