@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.2.15 - [2024-10-29]
+### Added
+- New endpoint to get latest data for each state (Perret needed)
+
+### Fixed
+- Rename endpoints for responses
+- Fixed date format
+- Improve log and manage error
+
+### Updated
+- Cucumber, coverall
+- Springboot 3.3.5
+- Jackson 2.18.1
+- BPM 1.0.3
 
 ## 1.2.14 - [2024-10-08]
 
