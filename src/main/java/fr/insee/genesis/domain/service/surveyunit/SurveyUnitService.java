@@ -80,6 +80,12 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             List<String> addedVariables = new ArrayList<>();
             SurveyUnitModel latestUpdate = suByMode.getFirst();
 
+            if(latestUpdate.getCollectedVariables() == null){
+                latestUpdate.setCollectedVariables(new ArrayList<>());
+            }
+            if(latestUpdate.getExternalVariables() == null){
+                latestUpdate.setExternalVariables(new ArrayList<>());
+            }
             latestUpdate.getCollectedVariables().forEach(variableStateDto -> addedVariables.add(variableStateDto.getIdVar()));
             latestUpdate.getExternalVariables().forEach(externalVariableDto -> addedVariables.add(externalVariableDto.getIdVar()));
 
@@ -238,6 +244,9 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                                            Map<String, VariableDto> collectedVariableMap,
                                            Map<String, VariableDto> externalVariableMap) {
 
+        if(surveyUnitModel.getCollectedVariables() == null){
+            surveyUnitModel.setCollectedVariables(new ArrayList<>());
+        }
         for (CollectedVariable collectedVariable : surveyUnitModel.getCollectedVariables()) {
             VariableDto variableDto = collectedVariableMap.get(collectedVariable.getIdVar());
 
@@ -262,6 +271,9 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             }
         }
 
+        if(surveyUnitModel.getExternalVariables() == null){
+            surveyUnitModel.setExternalVariables(new ArrayList<>());
+        }
         for(Variable externalVariable : surveyUnitModel.getExternalVariables()){
             VariableDto variableDto = externalVariableMap.get(externalVariable.getIdVar());
 
