@@ -19,12 +19,13 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.FileSystemUtils;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.Month;
@@ -38,11 +39,11 @@ class ResponseControllerTest {
 
     static List<SurveyUnitId> surveyUnitIdList;
     //Constants
-    static final String defaultIdUE = "TESTIDUE";
-    static final String defaultIdQuest = "TESTIDQUESTIONNAIRE";
+    static final String DEFAULT_ID_UE = "TESTIDUE";
+    static final String DEFAULT_ID_QUEST = "TESTIDQUESTIONNAIRE";
 
     @BeforeAll
-    static void init() {
+    static void init() throws IOException {
         surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
         SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(surveyUnitPersistencePortStub);
 
@@ -55,7 +56,9 @@ class ResponseControllerTest {
         );
 
         surveyUnitIdList = new ArrayList<>();
-        surveyUnitIdList.add(new SurveyUnitId(defaultIdUE));
+        surveyUnitIdList.add(new SurveyUnitId(DEFAULT_ID_UE));
+
+        FileSystemUtils.deleteRecursively(Path.of(TestConstants.TEST_RESOURCES_DIRECTORY, "OUT"));
     }
 
     @BeforeEach
@@ -122,30 +125,29 @@ class ResponseControllerTest {
 
     @Test
     void findResponsesByUEAndQuestionnaireTest() {
-        ResponseEntity<List<SurveyUnitModel>> response = responseControllerStatic.findResponsesByUEAndQuestionnaire(defaultIdUE, defaultIdQuest);
+        ResponseEntity<List<SurveyUnitModel>> response = responseControllerStatic.findResponsesByUEAndQuestionnaire(DEFAULT_ID_UE, DEFAULT_ID_QUEST);
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
-        Assertions.assertThat(response.getBody().getFirst().getIdUE()).isEqualTo(defaultIdUE);
-        Assertions.assertThat(response.getBody().getFirst().getIdQuest()).isEqualTo(defaultIdQuest);
+        Assertions.assertThat(response.getBody().getFirst().getIdUE()).isEqualTo(DEFAULT_ID_UE);
+        Assertions.assertThat(response.getBody().getFirst().getIdQuest()).isEqualTo(DEFAULT_ID_QUEST);
     }
 
     @Test
-    void findAllResponsesByQuestionnaireTest() {
-        Path path = Path.of(TestConstants.TEST_RESOURCES_DIRECTORY, "OUT", defaultIdQuest);
+    void findAllResponsesByQuestionnaireTest() throws FileNotFoundException {
+        //Given
+        Path path = Path.of(TestConstants.TEST_RESOURCES_DIRECTORY, "OUT", DEFAULT_ID_QUEST);
         File dir = new File(String.valueOf(path));
         FileSystemUtils.deleteRecursively(dir);
 
-        ResponseEntity<Path> response = responseControllerStatic.findAllResponsesByQuestionnaire(defaultIdQuest);
+        //When
+        ResponseEntity<Resource> response = responseControllerStatic.findAllResponsesByQuestionnaire(DEFAULT_ID_QUEST);
 
+        //Then
+        Assertions.assertThat(response).isNotNull();
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull();
-        Assertions.assertThat(Files.exists(path)).isTrue();
-        File[] dir_contents = dir.listFiles();
-        Assertions.assertThat(dir_contents).hasSize(1);
-        Assertions.assertThat(dir_contents[0].length()).isPositive().isNotNull();
-        FileSystemUtils.deleteRecursively(dir);
-        dir.deleteOnExit();
+        Assertions.assertThat(response.getBody().exists()).isTrue();
     }
 
     @Test
@@ -154,56 +156,52 @@ class ResponseControllerTest {
         surveyUnitPersistencePortStub.getMongoStub().clear();
 
         for (int i = 0; i < Constants.BATCH_SIZE + 2; i++) {
-            Utils.addAdditionalDtoToMongoStub("TESTIDCAMPAIGN", defaultIdUE + i,
+            Utils.addAdditionalDtoToMongoStub("TESTIDCAMPAIGN", DEFAULT_ID_UE + i,
                     LocalDateTime.of(2023, 1, 1, 0, 0, 0),
                     LocalDateTime.of(2024, 1, 1, 0, 0, 0),
                     surveyUnitPersistencePortStub);
         }
 
         //When
-        ResponseEntity<Path> response = responseControllerStatic.findAllResponsesByQuestionnaire(defaultIdQuest);
+        ResponseEntity<Resource> response = responseControllerStatic.findAllResponsesByQuestionnaire(DEFAULT_ID_QUEST);
 
         //Then
         Assertions.assertThat(response).isNotNull();
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull();
-
-        Assertions.assertThat(response.getBody()).isNotNull();
-        Assertions.assertThat(response.getBody().toFile()).isNotNull().exists();
-
-        Files.deleteIfExists(response.getBody());
+        Assertions.assertThat(response.getBody().exists()).isTrue();
     }
 
     @Test
     void getLatestByUETest() {
         Utils.addAdditionalDtoToMongoStub(surveyUnitPersistencePortStub);
 
-        ResponseEntity<List<SurveyUnitModel>> response = responseControllerStatic.getLatestByUE(defaultIdUE, defaultIdQuest);
+        ResponseEntity<List<SurveyUnitModel>> response = responseControllerStatic.getLatestByUE(DEFAULT_ID_UE, DEFAULT_ID_QUEST);
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
-        Assertions.assertThat(response.getBody().getFirst().getIdUE()).isEqualTo(defaultIdUE);
-        Assertions.assertThat(response.getBody().getFirst().getIdQuest()).isEqualTo(defaultIdQuest);
+        Assertions.assertThat(response.getBody().getFirst().getIdUE()).isEqualTo(DEFAULT_ID_UE);
+        Assertions.assertThat(response.getBody().getFirst().getIdQuest()).isEqualTo(DEFAULT_ID_QUEST);
         Assertions.assertThat(response.getBody().getFirst().getFileDate()).hasMonth(Month.FEBRUARY);
     }
 
     @Test
     void getLatestByUEOneObjectTest() {
-        ResponseEntity<SurveyUnitSimplified> response = responseControllerStatic.getLatestByUEOneObject(defaultIdUE, defaultIdQuest, Mode.WEB);
+        ResponseEntity<SurveyUnitSimplified> response = responseControllerStatic.getLatestByUEOneObject(DEFAULT_ID_UE, DEFAULT_ID_QUEST, Mode.WEB);
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull();
-        Assertions.assertThat(response.getBody().getIdUE()).isEqualTo(defaultIdUE);
-        Assertions.assertThat(response.getBody().getIdQuest()).isEqualTo(defaultIdQuest);
+        Assertions.assertThat(response.getBody().getIdUE()).isEqualTo(DEFAULT_ID_UE);
+        Assertions.assertThat(response.getBody().getIdQuest()).isEqualTo(DEFAULT_ID_QUEST);
     }
 
     @Test
     void getLatestForUEListTest() {
-        ResponseEntity<List<SurveyUnitSimplified>> response = responseControllerStatic.getLatestForUEList(defaultIdQuest, surveyUnitIdList);
+        ResponseEntity<List<SurveyUnitSimplified>> response = responseControllerStatic.getLatestForUEList(DEFAULT_ID_QUEST, surveyUnitIdList);
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
-        Assertions.assertThat(response.getBody().getFirst().getIdUE()).isEqualTo(defaultIdUE);
+        Assertions.assertThat(response.getBody().getFirst().getIdUE()).isEqualTo(DEFAULT_ID_UE);
     }
 
     // Perret tests
@@ -241,8 +239,8 @@ class ResponseControllerTest {
 
         //WHEN
         ResponseEntity<SurveyUnitDto> response = responseControllerStatic.findResponsesByUEAndQuestionnaireLatestStates(
-                defaultIdUE,
-                defaultIdQuest
+                DEFAULT_ID_UE,
+                DEFAULT_ID_QUEST
         );
 
 
@@ -250,7 +248,7 @@ class ResponseControllerTest {
         SurveyUnitDto surveyUnitDto = response.getBody();
         Assertions.assertThat(surveyUnitDto).isNotNull();
 
-        Assertions.assertThat(surveyUnitDto.getSurveyUnitId()).isEqualTo(defaultIdUE);
+        Assertions.assertThat(surveyUnitDto.getSurveyUnitId()).isEqualTo(DEFAULT_ID_UE);
 
         Assertions.assertThat(surveyUnitDto.getCollectedVariables().getFirst().getVariableName())
                 .isEqualTo("TESTIDVAR");

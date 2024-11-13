@@ -28,7 +28,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -44,6 +47,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLStreamException;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -210,7 +214,7 @@ public class ResponseController {
 
     @Operation(summary = "Retrieve all responses (for all interrogations) of one questionnaire")
     @GetMapping(path = "/by-questionnaire")
-    public ResponseEntity<Path> findAllResponsesByQuestionnaire(@RequestParam("idQuestionnaire") String idQuestionnaire) {
+    public ResponseEntity<Resource> findAllResponsesByQuestionnaire(@RequestParam("idQuestionnaire") String idQuestionnaire) throws FileNotFoundException {
         log.info("Try to find all responses of questionnaire : {}", idQuestionnaire);
 
         //Get all IdUEs/modes of the survey
@@ -224,10 +228,14 @@ public class ResponseController {
             fileUtils.writeSuUpdatesInFile(filepath, responsesStream);
         } catch (IOException e) {
             log.error("Error while writing file", e);
-            return ResponseEntity.internalServerError().body(filepath);
+            return ResponseEntity.internalServerError().build();
         }
         log.info("End of extraction, responses extracted : {}", idUEsResponses.size());
-        return ResponseEntity.ok(filepath);
+        InputStreamResource resource = new InputStreamResource(new FileInputStream(filepath.toFile()));
+        return ResponseEntity.ok()
+                .contentLength(filepath.toFile().length())
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(resource);
     }
 
     @Operation(summary = "Retrieve responses for an interrogation, using IdUE and IdQuestionnaire from Genesis Database. It returns only the latest value of each variable regardless of the state.")
