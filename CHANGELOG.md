@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.16 [2024-11-15]
+
+### Fixed
+- Null collected/external variables list in model does not throw exception
+
+### Updated
+- Mapstruct, pitest, sonar
+
 ## 1.2.15 - [2024-10-29]
 ### Added
 - New endpoint to get latest data for each state (Perret needed)
