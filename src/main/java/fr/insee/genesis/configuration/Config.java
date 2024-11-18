@@ -20,6 +20,21 @@ public class Config {
 	@Value("${fr.insee.genesis.sourcefolder.specifications}")
 	private String specFolderSource;
 
+	@Value("${fr.insee.genesis.oidc.auth-server-url}")
+	private String authServerUrl;
+
+	@Value("${fr.insee.genesis.oidc.realm}")
+	private String realm;
+
+	@Value("${fr.insee.genesis.security.token.oidc-claim-role}")
+	private String oidcClaimRole;
+
+	@Value("${fr.insee.genesis.security.token.oidc-claim-username}")
+	private String oidcClaimUsername;
+
+	@Value("#{'${fr.insee.genesis.security.whitelist-matchers}'.split(',')}")
+	private String[] whiteList;
+
 	private final String logFolder;
 
 	//Extract log folder from log filename property
