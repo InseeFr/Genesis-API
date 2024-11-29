@@ -254,6 +254,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             if (variableDto == null) {
                 variableDto = VariableDto.builder()
                         .variableName(collectedVariable.getIdVar())
+                        .idLoop(collectedVariable.getIdLoop())
                         .variableStateDtoList(new ArrayList<>())
                         .build();
                 collectedVariableMap.put(collectedVariable.getIdVar(), variableDto);
