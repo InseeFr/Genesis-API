@@ -51,7 +51,6 @@ public class SpringDocConfiguration {
 
     private OpenAPI generateOpenAPI() {
         return new OpenAPI()
-                .addServersItem(new Server().url("/"))
                 .info(new Info()
                         .title("Genesis API")
                         .description("Rest Endpoints and services to communicate with Genesis database")
