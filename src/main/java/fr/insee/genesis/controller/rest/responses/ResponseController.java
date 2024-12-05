@@ -155,7 +155,6 @@ public class ResponseController {
     @Operation(summary = "Save one file of raw responses to Genesis Database, passing its path as a parameter")
     @PutMapping(path = "/lunatic-xml/raw/save-one")
     public ResponseEntity<Object> saveRawResponsesFromXmlFile(@RequestParam("pathLunaticXml") String xmlFile,
-                                                           @RequestParam(value = "pathSpecFile") String metadataFilePath,
                                                            @RequestParam(value = "mode") Mode modeSpecified
     )throws Exception {
         log.info(String.format("Try to read Xml file : %s", xmlFile));

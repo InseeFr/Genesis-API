@@ -129,7 +129,6 @@ class ResponseControllerTest {
 
         responseControllerStatic.saveRawResponsesFromXmlFile(
                 Path.of(TestConstants.TEST_RESOURCES_DIRECTORY, "IN/WEB/SAMPLETEST-PARADATA-v1/reponse-platine/data.complete.validated.STPDv1.20231122164209.xml").toString()
-                , Path.of(TestConstants.TEST_RESOURCES_DIRECTORY, "specs/SAMPLETEST-PARADATA-v1/ddi-SAMPLETEST-PARADATA-v1.xml").toString()
                 , Mode.WEB
         );
 
