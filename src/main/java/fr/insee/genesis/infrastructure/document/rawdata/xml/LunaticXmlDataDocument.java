@@ -3,7 +3,6 @@ package fr.insee.genesis.infrastructure.document.rawdata.xml;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlCampaign;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
-import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticXmlDataModel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
