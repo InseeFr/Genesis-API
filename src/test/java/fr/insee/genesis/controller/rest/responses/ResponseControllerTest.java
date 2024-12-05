@@ -9,13 +9,16 @@ import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
-import fr.insee.genesis.domain.ports.api.RawDataApiPort;
+import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
+import fr.insee.genesis.domain.ports.api.LunaticXmlRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
+import fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService;
 import fr.insee.genesis.domain.service.rawdata.LunaticXmlRawDataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
+import fr.insee.genesis.stubs.LunaticJsonPersistanceStub;
 import fr.insee.genesis.stubs.LunaticXmlPersistanceStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import org.assertj.core.api.Assertions;
@@ -39,6 +42,7 @@ class ResponseControllerTest {
     static ResponseController responseControllerStatic;
     static SurveyUnitPersistencePortStub surveyUnitPersistencePortStub;
     static LunaticXmlPersistanceStub lunaticXmlPersistanceStub;
+    static LunaticJsonPersistanceStub lunaticJsonPersistanceStub;
 
     static List<SurveyUnitId> surveyUnitIdList;
     //Constants
@@ -51,13 +55,17 @@ class ResponseControllerTest {
         SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(surveyUnitPersistencePortStub);
 
         lunaticXmlPersistanceStub = new LunaticXmlPersistanceStub();
-        RawDataApiPort rawDataApiPort = new LunaticXmlRawDataService(lunaticXmlPersistanceStub);
+        LunaticXmlRawDataApiPort lunaticXmlRawDataApiPort = new LunaticXmlRawDataService(lunaticXmlPersistanceStub);
+
+        lunaticJsonPersistanceStub = new LunaticJsonPersistanceStub();
+        LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort = new LunaticJsonRawDataService(lunaticJsonPersistanceStub);
 
         FileUtils fileUtils = new FileUtils(new ConfigStub());
         responseControllerStatic = new ResponseController(
                 surveyUnitApiPort
                 , new SurveyUnitQualityService()
-                , rawDataApiPort
+                , lunaticXmlRawDataApiPort
+                , lunaticJsonRawDataApiPort
                 , fileUtils
                 , new ControllerUtils(fileUtils)
         );
@@ -123,6 +131,7 @@ class ResponseControllerTest {
     }
 
     //Raw data
+    //xml
     @Test
     void saveXmlRawDataFromFileTest() throws Exception {
         lunaticXmlPersistanceStub.getMongoStub().clear();
@@ -156,6 +165,29 @@ class ResponseControllerTest {
 
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).isNotEmpty();
     }
+    //json
+    @Test
+    void saveJsonRawDataFromStringTest() throws Exception {
+        lunaticJsonPersistanceStub.getMongoStub().clear();
+        String campaignId = "SAMPLETEST-PARADATA-v1";
+
+        responseControllerStatic.saveRawResponsesFromJsonBody(
+                campaignId
+                , Mode.WEB
+                , "{\"testdata\": \"test\"}"
+        );
+
+        Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub()).isNotEmpty();
+        Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getCampaignId()).isNotNull().isEqualTo(campaignId);
+        Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getMode()).isEqualTo(Mode.WEB);
+        Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getData().get("testdata")).isNotNull();
+        Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getData().get("testdata").asText()).isNotNull().isEqualTo("test");
+
+        Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getRecordDate()).isNotNull();
+        Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getProcessDate()).isNull();
+
+    }
+
 
     //Gets
     @Test

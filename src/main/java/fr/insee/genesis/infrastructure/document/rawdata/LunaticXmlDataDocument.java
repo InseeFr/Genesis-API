@@ -1,4 +1,4 @@
-package fr.insee.genesis.infrastructure.document.rawdata.xml;
+package fr.insee.genesis.infrastructure.document.rawdata;
 
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlCampaign;

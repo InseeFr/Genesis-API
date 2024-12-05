@@ -1,5 +1,6 @@
 package fr.insee.genesis.controller.rest.responses;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import fr.insee.bpm.exceptions.MetadataParserException;
 import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.bpm.metadata.reader.ddi.DDIReader;
@@ -18,7 +19,8 @@ import fr.insee.genesis.domain.model.surveyunit.CollectedVariable;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.Variable;
-import fr.insee.genesis.domain.ports.api.RawDataApiPort;
+import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
+import fr.insee.genesis.domain.ports.api.LunaticXmlRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.exceptions.GenesisError;
@@ -67,19 +69,22 @@ public class ResponseController {
     private static final String SUCCESS_MESSAGE = "Data saved";
     private final SurveyUnitApiPort surveyUnitService;
     private final SurveyUnitQualityService surveyUnitQualityService;
-    private final RawDataApiPort rawDataApiPort;
+    private final LunaticXmlRawDataApiPort lunaticXmlRawDataApiPort;
+    private final LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort;
     private final FileUtils fileUtils;
     private final ControllerUtils controllerUtils;
 
     @Autowired
     public ResponseController(SurveyUnitApiPort surveyUnitService,
                               SurveyUnitQualityService surveyUnitQualityService,
-                              RawDataApiPort rawDataApiPort,
+                              LunaticXmlRawDataApiPort lunaticXmlRawDataApiPort,
+                              LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort,
                               FileUtils fileUtils,
                               ControllerUtils controllerUtils) {
         this.surveyUnitService = surveyUnitService;
         this.surveyUnitQualityService = surveyUnitQualityService;
-        this.rawDataApiPort = rawDataApiPort;
+        this.lunaticXmlRawDataApiPort = lunaticXmlRawDataApiPort;
+        this.lunaticJsonRawDataApiPort = lunaticJsonRawDataApiPort;
         this.fileUtils = fileUtils;
         this.controllerUtils = controllerUtils;
     }
@@ -189,6 +194,24 @@ public class ResponseController {
         return ResponseEntity.ok(isAnyDataSaved ? SUCCESS_MESSAGE : "No data has been saved");
     }
 
+    //JSON
+    @Operation(summary = "Save lunatic json data to Genesis Database from the campaign root folder")
+    @PutMapping(path = "/lunatic-json/raw/save")
+    public ResponseEntity<Object> saveRawResponsesFromJsonBody(
+            @RequestParam("campaignName") String campaignName,
+            @RequestParam(value = "mode", required = false) Mode modeSpecified,
+            @RequestBody String dataJson
+    ) {
+        log.info("Try to import raw lunatic JSON data for campaign : {}", campaignName);
+        try {
+            lunaticJsonRawDataApiPort.saveData(campaignName, dataJson, modeSpecified);
+        }catch (JsonProcessingException jpe){
+            log.error(jpe.toString());
+            return ResponseEntity.badRequest().body("Invalid JSON synthax");
+        }
+        log.info("Data saved for {}", campaignName);
+        return ResponseEntity.ok(SUCCESS_MESSAGE);
+    }
 
 
     //SAVE ALL
@@ -529,7 +552,7 @@ public class ResponseController {
         }
 
         log.debug("Begin saving raw xml data file {}", filepath);
-        rawDataApiPort.saveData(campaign, modeSpecified);
+        lunaticXmlRawDataApiPort.saveData(campaign, modeSpecified);
         log.debug(SUCCESS_MESSAGE);
 
         log.info("File {} treated" , filepath.getFileName());
