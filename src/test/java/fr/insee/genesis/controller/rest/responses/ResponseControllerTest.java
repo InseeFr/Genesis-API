@@ -9,11 +9,14 @@ import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
+import fr.insee.genesis.domain.ports.api.RawDataApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
+import fr.insee.genesis.domain.service.rawdata.LunaticXmlRawDataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
+import fr.insee.genesis.stubs.LunaticXmlPersistanceStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -35,6 +38,7 @@ class ResponseControllerTest {
     //Given
     static ResponseController responseControllerStatic;
     static SurveyUnitPersistencePortStub surveyUnitPersistencePortStub;
+    static LunaticXmlPersistanceStub lunaticXmlPersistanceStub;
 
     static List<SurveyUnitId> surveyUnitIdList;
     //Constants
@@ -46,10 +50,14 @@ class ResponseControllerTest {
         surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
         SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(surveyUnitPersistencePortStub);
 
+        lunaticXmlPersistanceStub = new LunaticXmlPersistanceStub();
+        RawDataApiPort rawDataApiPort = new LunaticXmlRawDataService(lunaticXmlPersistanceStub);
+
         FileUtils fileUtils = new FileUtils(new ConfigStub());
         responseControllerStatic = new ResponseController(
                 surveyUnitApiPort
                 , new SurveyUnitQualityService()
+                , rawDataApiPort
                 , fileUtils
                 , new ControllerUtils(fileUtils)
         );
@@ -65,6 +73,8 @@ class ResponseControllerTest {
 
 
     //When + Then
+
+    //Survey units
     @Test
     void saveResponseFromXMLFileTest() throws Exception {
         responseControllerStatic.saveResponsesFromXmlFile(
@@ -112,6 +122,34 @@ class ResponseControllerTest {
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).isEmpty();
     }
 
+    //Raw data
+    @Test
+    void saveXmlRawDataFromFileTest() throws Exception {
+        lunaticXmlPersistanceStub.getMongoStub().clear();
+
+        responseControllerStatic.saveRawResponsesFromXmlFile(
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY, "IN/WEB/SAMPLETEST-PARADATA-v1/reponse-platine/data.complete.validated.STPDv1.20231122164209.xml").toString()
+                , Path.of(TestConstants.TEST_RESOURCES_DIRECTORY, "specs/SAMPLETEST-PARADATA-v1/ddi-SAMPLETEST-PARADATA-v1.xml").toString()
+                , Mode.WEB
+        );
+
+        Assertions.assertThat(lunaticXmlPersistanceStub.getMongoStub()).isNotEmpty();
+        Assertions.assertThat(lunaticXmlPersistanceStub.getMongoStub().getFirst().getRecordDate()).isNotNull();
+        Assertions.assertThat(lunaticXmlPersistanceStub.getMongoStub().getFirst().getLunaticXmlData()).isNotNull();
+    }
+
+    @Test
+    void saveXmlRawDataFromFolderTest() throws Exception {
+        lunaticXmlPersistanceStub.getMongoStub().clear();
+
+        responseControllerStatic.saveRawResponsesFromXmlCampaignFolder(
+                "SAMPLETEST-PARADATA-v1"
+                , Mode.WEB
+        );
+
+        Assertions.assertThat(lunaticXmlPersistanceStub.getMongoStub()).isNotEmpty();
+    }
+
     @Test
     void saveResponsesFromAllCampaignFoldersTests(){
         surveyUnitPersistencePortStub.getMongoStub().clear();
@@ -120,6 +158,7 @@ class ResponseControllerTest {
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).isNotEmpty();
     }
 
+    //Gets
     @Test
     void findResponsesByUEAndQuestionnaireTest() {
         ResponseEntity<List<SurveyUnitModel>> response = responseControllerStatic.findResponsesByUEAndQuestionnaire(defaultIdUE, defaultIdQuest);

@@ -14,10 +14,12 @@ import fr.insee.genesis.controller.sources.xml.LunaticXmlDataParser;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlDataSequentialParser;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
 import fr.insee.genesis.controller.utils.ControllerUtils;
+import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticXmlDataModel;
 import fr.insee.genesis.domain.model.surveyunit.CollectedVariable;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.Variable;
+import fr.insee.genesis.domain.ports.api.RawDataApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.exceptions.GenesisError;
@@ -62,15 +64,23 @@ public class ResponseController {
 
     private static final String DDI_REGEX = "ddi[\\w,\\s-]+\\.xml";
     public static final String S_S = "%s/%s";
+    private static final String CAMPAIGN_ERROR = "Error for campaign {} : {}";
+    private static final String SUCCESS_MESSAGE = "Data saved";
     private final SurveyUnitApiPort surveyUnitService;
     private final SurveyUnitQualityService surveyUnitQualityService;
+    private final RawDataApiPort rawDataApiPort;
     private final FileUtils fileUtils;
     private final ControllerUtils controllerUtils;
 
     @Autowired
-    public ResponseController(SurveyUnitApiPort surveyUnitService, SurveyUnitQualityService surveyUnitQualityService, FileUtils fileUtils, ControllerUtils controllerUtils) {
+    public ResponseController(SurveyUnitApiPort surveyUnitService,
+                              SurveyUnitQualityService surveyUnitQualityService,
+                              RawDataApiPort rawDataApiPort,
+                              FileUtils fileUtils,
+                              ControllerUtils controllerUtils) {
         this.surveyUnitService = surveyUnitService;
         this.surveyUnitQualityService = surveyUnitQualityService;
+        this.rawDataApiPort = rawDataApiPort;
         this.fileUtils = fileUtils;
         this.controllerUtils = controllerUtils;
     }
@@ -131,17 +141,57 @@ public class ResponseController {
                 //Don't stop if NoDataError thrown
                 log.warn(nde.getMessage());
             }catch (Exception e){
-                log.error("Error for campaign {} : {}", campaignName, e.toString());
+                log.error(CAMPAIGN_ERROR, campaignName, e.toString());
                 return ResponseEntity.status(500).body(e.getMessage());
             }
         }
 
         if (errors.isEmpty()){
-            return ResponseEntity.ok(isAnyDataSaved ? "Data saved" : "No data has been saved");
+            return ResponseEntity.ok(isAnyDataSaved ? SUCCESS_MESSAGE : "No data has been saved");
         }else{
             return ResponseEntity.internalServerError().body(errors.getFirst().getMessage());
         }
     }
+
+    @Operation(summary = "Save one file of raw responses to Genesis Database, passing its path as a parameter")
+    @PutMapping(path = "/lunatic-xml/raw/save-one")
+    public ResponseEntity<Object> saveRawResponsesFromXmlFile(@RequestParam("pathLunaticXml") String xmlFile,
+                                                           @RequestParam(value = "pathSpecFile") String metadataFilePath,
+                                                           @RequestParam(value = "mode") Mode modeSpecified
+    )throws Exception {
+        log.info(String.format("Try to read Xml file : %s", xmlFile));
+        Path filepath = Paths.get(xmlFile);
+
+        return treatRawXmlFile(filepath, modeSpecified);
+    }
+
+    @Operation(summary = "Save multiple raw files to Genesis Database from the campaign root folder")
+    @PutMapping(path = "/lunatic-xml/raw/save-folder")
+    public ResponseEntity<Object> saveRawResponsesFromXmlCampaignFolder(@RequestParam("campaignName") String campaignName,
+                                                                     @RequestParam(value = "mode", required = false) Mode modeSpecified
+    )throws Exception {
+        boolean isAnyDataSaved = false;
+
+        log.info("Try to import raw lunatic XML data for campaign : {}", campaignName);
+
+        List<Mode> modesList = controllerUtils.getModesList(campaignName, modeSpecified);
+        for (Mode currentMode : modesList) {
+            try {
+                treatRawCampaignWithMode(campaignName, currentMode, null);
+                isAnyDataSaved = true;
+            }catch (NoDataException nde){
+                //Don't stop if NoDataError thrown
+                log.warn(nde.getMessage());
+            }catch (Exception e){
+                log.error(CAMPAIGN_ERROR, campaignName, e.toString());
+                return ResponseEntity.status(500).body(e.getMessage());
+            }
+        }
+
+        return ResponseEntity.ok(isAnyDataSaved ? SUCCESS_MESSAGE : "No data has been saved");
+    }
+
+
 
     //SAVE ALL
     @Operation(summary = "Save all files to Genesis Database (differential data folder only), regardless of the campaign")
@@ -167,12 +217,12 @@ public class ResponseController {
                 log.warn(nde.getMessage());
             }
             catch (Exception e) {
-                log.warn("Error for campaign {} : {}", campaignName, e.toString());
+                log.warn(CAMPAIGN_ERROR, campaignName, e.toString());
                 errors.add(new GenesisError(e.getMessage()));
             }
         }
         if (errors.isEmpty()) {
-            return ResponseEntity.ok("Data saved");
+            return ResponseEntity.ok(SUCCESS_MESSAGE);
         } else {
             return ResponseEntity.status(209).body("Data saved with " + errors.size() + " errors");
         }
@@ -373,6 +423,43 @@ public class ResponseController {
         }
     }
 
+    private void treatRawCampaignWithMode(String campaignName,
+                                          Mode mode,
+                                          String rootDataFolder
+    ) throws IOException, ParserConfigurationException, SAXException, NoDataException {
+        log.info("Try to import data for mode : {}", mode.getModeName());
+        String dataFolder = rootDataFolder == null ?
+                fileUtils.getDataFolder(campaignName, mode.getFolder())
+                : fileUtils.getDataFolder(campaignName, mode.getFolder(), rootDataFolder);
+        List<String> dataFiles = fileUtils.listFiles(dataFolder);
+        log.info("Numbers of files to load in folder {} : {}", dataFolder, dataFiles.size());
+        if (dataFiles.isEmpty()) {
+            throw new NoDataException("No data file found in folder %s".formatted(dataFolder));
+        }
+
+        //For each XML data file
+        for (String fileName : dataFiles.stream().filter(s -> s.endsWith(".xml")).toList()) {
+            String filepathString = String.format(S_S, dataFolder, fileName);
+            Path filepath = Paths.get(filepathString);
+            //Check if file not in done folder, delete if true
+            if(isDataFileInDoneFolder(filepath, campaignName, mode.getFolder())){
+                log.warn("File {} already exists in DONE folder ! Deleting...", fileName);
+                Files.deleteIfExists(filepath);
+            }else{
+                //Read file
+                log.info("Try to read Xml file : {}", fileName);
+                ResponseEntity<Object> response = treatRawXmlFile(filepath, mode);
+
+                log.debug("File {} saved", fileName);
+                if(response.getStatusCode() == HttpStatus.OK){
+                    fileUtils.moveDataFile(campaignName, mode.getFolder(), filepath);
+                }else{
+                    log.error("Error on file {}", fileName);
+                }
+            }
+        }
+    }
+
     private VariablesMap readMetadatas(String campaignName, Mode mode, List<GenesisError> errors, boolean withDDI) {
         VariablesMap variablesMap;
         if(withDDI){
@@ -428,6 +515,26 @@ public class ResponseController {
         log.debug("Survey units updates saved");
 
         log.info("File {} treated with {} survey units", filepath.getFileName(), suDtos.size());
+        return ResponseEntity.ok().build();
+    }
+
+    private ResponseEntity<Object> treatRawXmlFile(Path filepath, Mode modeSpecified) throws IOException,
+            ParserConfigurationException, SAXException {
+        LunaticXmlCampaign campaign;
+        // DOM method
+        LunaticXmlDataParser parser = new LunaticXmlDataParser();
+        try {
+            campaign = parser.parseDataFile(filepath);
+        } catch (GenesisException e) {
+            log.error(e.toString());
+            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
+        }
+
+        log.debug("Begin saving raw xml data file {}", filepath);
+        rawDataApiPort.saveData(campaign, modeSpecified);
+        log.debug(SUCCESS_MESSAGE);
+
+        log.info("File {} treated" , filepath.getFileName());
         return ResponseEntity.ok().build();
     }
 
