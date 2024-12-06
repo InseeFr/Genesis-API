@@ -26,8 +26,6 @@ public class ScheduleMongoAdapter implements SchedulePersistencePort {
     private final ScheduleMongoDBRepository scheduleMongoDBRepository;
     private final MongoTemplate mongoTemplate;
 
-
-    @Autowired
     public ScheduleMongoAdapter(ScheduleMongoDBRepository scheduleMongoDBRepository, MongoTemplate mongoTemplate) {
         this.scheduleMongoDBRepository = scheduleMongoDBRepository;
         this.mongoTemplate = mongoTemplate;

@@ -6,7 +6,6 @@ import fr.insee.genesis.infrastructure.document.rawdata.LunaticJsonDataDocument;
 import fr.insee.genesis.infrastructure.mappers.LunaticJsonDocumentMapper;
 import fr.insee.genesis.infrastructure.repository.LunaticJsonMongoDBRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +16,6 @@ public class LunaticJsonMongoAdapter implements LunaticJsonPersistancePort {
 
 	private final LunaticJsonMongoDBRepository lunaticJsonMongoDBRepository;
 
-	@Autowired
 	public LunaticJsonMongoAdapter(LunaticJsonMongoDBRepository lunaticJsonMongoDBRepository) {
 		this.lunaticJsonMongoDBRepository = lunaticJsonMongoDBRepository;
 	}

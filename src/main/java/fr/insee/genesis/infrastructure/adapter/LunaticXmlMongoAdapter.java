@@ -6,9 +6,7 @@ import fr.insee.genesis.infrastructure.document.rawdata.LunaticXmlDataDocument;
 import fr.insee.genesis.infrastructure.mappers.LunaticXmlDocumentMapper;
 import fr.insee.genesis.infrastructure.repository.LunaticXmlMongoDBRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -18,7 +16,6 @@ public class LunaticXmlMongoAdapter implements LunaticXmlPersistancePort {
 
 	private final LunaticXmlMongoDBRepository mongoRepository;
 
-	@Autowired
 	public LunaticXmlMongoAdapter(LunaticXmlMongoDBRepository mongoRepository) {
 		this.mongoRepository = mongoRepository;
 	}

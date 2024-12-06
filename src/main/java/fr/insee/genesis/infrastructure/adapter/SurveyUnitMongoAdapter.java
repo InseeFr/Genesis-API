@@ -27,10 +27,9 @@ import java.util.stream.Stream;
 @Qualifier("surveyUnitMongoAdapter")
 public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 
-	private SurveyUnitMongoDBRepository mongoRepository;
-	private MongoTemplate mongoTemplate;
+	private final SurveyUnitMongoDBRepository mongoRepository;
+	private final MongoTemplate mongoTemplate;
 
-	@Autowired
 	public SurveyUnitMongoAdapter(SurveyUnitMongoDBRepository mongoRepository, MongoTemplate mongoTemplate) {
 		this.mongoRepository = mongoRepository;
 		this.mongoTemplate = mongoTemplate;
