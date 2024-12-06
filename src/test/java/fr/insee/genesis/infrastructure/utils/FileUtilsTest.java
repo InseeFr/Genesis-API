@@ -22,7 +22,7 @@ class FileUtilsTest {
 	@Test
 	void getDataFolderTest() {
 		assertEquals(TestConstants.TEST_RESOURCES_DIRECTORY + "/IN/WEB/TEST",
-				fileUtils.getDataFolder("TEST", "WEB"));
+				fileUtils.getDataFolder("TEST", "WEB", null));
 	}
 
 	@Test
