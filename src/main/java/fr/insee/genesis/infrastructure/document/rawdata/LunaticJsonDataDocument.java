@@ -1,6 +1,5 @@
 package fr.insee.genesis.infrastructure.document.rawdata;
 
-import fr.insee.genesis.Constants;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,7 +14,7 @@ import java.util.Map;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = Constants.MONGODB_LUNATIC_JSON_DATA_COLLECTION_NAME)
+@Document(collection = "lunaticjsondata")
 public class LunaticJsonDataDocument {
     @Id
     private ObjectId id;

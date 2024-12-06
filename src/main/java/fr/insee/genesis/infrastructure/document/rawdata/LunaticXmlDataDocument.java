@@ -1,6 +1,5 @@
 package fr.insee.genesis.infrastructure.document.rawdata;
 
-import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlCampaign;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import lombok.AllArgsConstructor;
@@ -15,7 +14,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = Constants.MONGODB_LUNATIC_XML_DATA_COLLECTION_NAME)
+@Document(collection = "lunaticxmldata")
 public class  LunaticXmlDataDocument {
     @Id
     private ObjectId id;

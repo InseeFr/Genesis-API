@@ -65,8 +65,9 @@ public class ResponseController {
 
     private static final String DDI_REGEX = "ddi[\\w,\\s-]+\\.xml";
     public static final String S_S = "%s/%s";
-    private static final String CAMPAIGN_ERROR = "Error for campaign {} : {}";
+    private static final String CAMPAIGN_ERROR = "Error for campaign {}: {}";
     private static final String SUCCESS_MESSAGE = "Data saved";
+    private static final String SUCCESS_NO_DATA_MESSAGE = "No data has been saved";
     private final SurveyUnitApiPort surveyUnitService;
     private final SurveyUnitQualityService surveyUnitQualityService;
     private final LunaticXmlRawDataApiPort lunaticXmlRawDataApiPort;
@@ -119,10 +120,9 @@ public class ResponseController {
         Path filepath = Paths.get(xmlFile);
 
         if (filepath.toFile().length() / 1024 / 1024 <= Constants.MAX_FILE_SIZE_UNTIL_SEQUENTIAL) {
-            return treatXmlFileWithMemory(filepath, modeSpecified, variablesMap);
-        } else {
-            return treatXmlFileSequentially(filepath, modeSpecified, variablesMap);
+            return processXmlFileWithMemory(filepath, modeSpecified, variablesMap);
         }
+        return processXmlFileSequentially(filepath, modeSpecified, variablesMap);
     }
 
     @Operation(summary = "Save multiple files to Genesis Database from the campaign root folder")
@@ -134,12 +134,12 @@ public class ResponseController {
         List<GenesisError> errors = new ArrayList<>();
         boolean isAnyDataSaved = false;
 
-        log.info("Try to import XML data for campaign : {}", campaignName);
+        log.info("Try to import XML data for campaign: {}", campaignName);
 
         List<Mode> modesList = controllerUtils.getModesList(campaignName, modeSpecified);
         for (Mode currentMode : modesList) {
             try {
-                treatCampaignWithMode(campaignName, currentMode, errors, null, withDDI);
+                processCampaignWithMode(campaignName, currentMode, errors, null, withDDI);
                 isAnyDataSaved = true;
             }catch (NoDataException nde){
                 //Don't stop if NoDataError thrown
@@ -151,10 +151,9 @@ public class ResponseController {
         }
 
         if (errors.isEmpty()){
-            return ResponseEntity.ok(isAnyDataSaved ? SUCCESS_MESSAGE : "No data has been saved");
-        }else{
-            return ResponseEntity.internalServerError().body(errors.getFirst().getMessage());
+            return ResponseEntity.ok(getSuccessMessage(isAnyDataSaved));
         }
+        return ResponseEntity.internalServerError().body(errors.getFirst().getMessage());
     }
 
     @Operation(summary = "Save one file of raw responses to Genesis Database, passing its path as a parameter")
@@ -165,7 +164,7 @@ public class ResponseController {
         log.info(String.format("Try to read Xml file : %s", xmlFile));
         Path filepath = Paths.get(xmlFile);
 
-        return treatRawXmlFile(filepath, modeSpecified);
+        return processRawXmlFile(filepath, modeSpecified);
     }
 
     @Operation(summary = "Save multiple raw files to Genesis Database from the campaign root folder")
@@ -175,12 +174,12 @@ public class ResponseController {
     )throws Exception {
         boolean isAnyDataSaved = false;
 
-        log.info("Try to import raw lunatic XML data for campaign : {}", campaignName);
+        log.info("Try to import raw lunatic XML data for campaign: {}", campaignName);
 
         List<Mode> modesList = controllerUtils.getModesList(campaignName, modeSpecified);
         for (Mode currentMode : modesList) {
             try {
-                treatRawCampaignWithMode(campaignName, currentMode, null);
+                processRawCampaignWithMode(campaignName, currentMode, null);
                 isAnyDataSaved = true;
             }catch (NoDataException nde){
                 //Don't stop if NoDataError thrown
@@ -191,7 +190,7 @@ public class ResponseController {
             }
         }
 
-        return ResponseEntity.ok(isAnyDataSaved ? SUCCESS_MESSAGE : "No data has been saved");
+        return ResponseEntity.ok(getSuccessMessage(isAnyDataSaved));
     }
 
     //JSON
@@ -202,7 +201,7 @@ public class ResponseController {
             @RequestParam(value = "mode", required = false) Mode modeSpecified,
             @RequestBody String dataJson
     ) {
-        log.info("Try to import raw lunatic JSON data for campaign : {}", campaignName);
+        log.info("Try to import raw lunatic JSON data for campaign: {}", campaignName);
         try {
             lunaticJsonRawDataApiPort.saveData(campaignName, dataJson, modeSpecified);
         }catch (JsonProcessingException jpe){
@@ -227,12 +226,12 @@ public class ResponseController {
 
         for (File  campaignFolder: campaignFolders) {
             String campaignName = campaignFolder.getName();
-            log.info("Try to import data for campaign : {}", campaignName);
+            log.info("Try to import data for campaign: {}", campaignName);
 
             try {
                 List<Mode> modesList = controllerUtils.getModesList(campaignName, null); //modeSpecified null = all modes
                 for (Mode currentMode : modesList) {
-                    treatCampaignWithMode(campaignName, currentMode, errors, Constants.DIFFRENTIAL_DATA_FOLDER_NAME);
+                    processCampaignWithMode(campaignName, currentMode, errors, Constants.DIFFRENTIAL_DATA_FOLDER_NAME);
                 }
             }catch (NoDataException nde){
                 log.warn(nde.getMessage());
@@ -244,9 +243,8 @@ public class ResponseController {
         }
         if (errors.isEmpty()) {
             return ResponseEntity.ok(SUCCESS_MESSAGE);
-        } else {
-            return ResponseEntity.status(209).body("Data saved with " + errors.size() + " errors");
         }
+        return ResponseEntity.status(209).body("Data saved with " + errors.size() + " errors");
     }
 
 
@@ -297,7 +295,7 @@ public class ResponseController {
             log.error("Error while writing file", e);
             return ResponseEntity.internalServerError().body(filepath);
         }
-        log.info("End of extraction, responses extracted : {}", idUEsResponses.size());
+        log.info("End of extraction, responses extracted: {}", idUEsResponses.size());
         return ResponseEntity.ok(filepath);
     }
 
@@ -366,23 +364,23 @@ public class ResponseController {
     //Utilities
 
     /**
-     * Checks if DDI is present for a campaign and mode or not and treats it accordingly
+     * Checks if DDI is present for a campaign and mode or not and processes it accordingly
      * @param campaignName name of campaign
      * @param currentMode mode of collected data
      * @param errors error list to fill
      */
-    private void treatCampaignWithMode(String campaignName, Mode currentMode, List<GenesisError> errors, String rootDataFolder) throws GenesisException,
+    private void processCampaignWithMode(String campaignName, Mode currentMode, List<GenesisError> errors, String rootDataFolder) throws GenesisException,
             SAXException, XMLStreamException, NoDataException {
         try {
             fileUtils.findFile(String.format(S_S, fileUtils.getSpecFolder(campaignName),currentMode), DDI_REGEX);
             //DDI if DDI file found
-            treatCampaignWithMode(campaignName, currentMode, errors, rootDataFolder, true);
+            processCampaignWithMode(campaignName, currentMode, errors, rootDataFolder, true);
         }catch (RuntimeException re){
             //Lunatic if no DDI
             log.info("No DDI File found for {}, {} mode. Will try to use Lunatic...", campaignName,
                     currentMode.getModeName());
             try{
-                treatCampaignWithMode(campaignName, currentMode, errors, rootDataFolder, false);
+                processCampaignWithMode(campaignName, currentMode, errors, rootDataFolder, false);
             } catch (IOException | ParserConfigurationException e) {
                 throw new GenesisException(500, e.toString());
             }
@@ -394,17 +392,17 @@ public class ResponseController {
 
 
     /**
-     * Treat a campaign with a specific mode
+     * Process a campaign with a specific mode
      * @param campaignName name of campaign
      * @param mode mode of collected data
      * @param errors error list to fill
      * @param withDDI true if it uses DDI, false if Lunatic
      */
-    private void treatCampaignWithMode(String campaignName, Mode mode, List<GenesisError> errors, String rootDataFolder, boolean withDDI)
+    private void processCampaignWithMode(String campaignName, Mode mode, List<GenesisError> errors, String rootDataFolder, boolean withDDI)
             throws IOException, ParserConfigurationException, SAXException, XMLStreamException, NoDataException {
         log.info("Try to import data for mode : {}", mode.getModeName());
         String dataFolder = rootDataFolder == null ?
-                fileUtils.getDataFolder(campaignName, mode.getFolder())
+                fileUtils.getDataFolder(campaignName, mode.getFolder(), null)
                 : fileUtils.getDataFolder(campaignName, mode.getFolder(), rootDataFolder);
         List<String> dataFiles = fileUtils.listFiles(dataFolder);
         log.info("Numbers of files to load in folder {} : {}", dataFolder, dataFiles.size());
@@ -425,32 +423,32 @@ public class ResponseController {
             if(isDataFileInDoneFolder(filepath, campaignName, mode.getFolder())){
                 log.warn("File {} already exists in DONE folder ! Deleting...", fileName);
                 Files.deleteIfExists(filepath);
-            }else{
-                //Read file
-                log.info("Try to read Xml file : {}", fileName);
-                ResponseEntity<Object> response;
-                if (filepath.toFile().length() / 1024 / 1024 <= Constants.MAX_FILE_SIZE_UNTIL_SEQUENTIAL) {
-                    response = treatXmlFileWithMemory(filepath, mode, variablesMap);
-                } else {
-                    response = treatXmlFileSequentially(filepath, mode, variablesMap);
-                }
-                log.debug("File {} saved", fileName);
-                if(response.getStatusCode() == HttpStatus.OK){
-                    fileUtils.moveDataFile(campaignName, mode.getFolder(), filepath);
-                }else{
-                    log.error("Error on file {}", fileName);
-                }
+                return;
             }
+            //Read file
+            log.info("Try to read Xml file : {}", fileName);
+            ResponseEntity<Object> response;
+            if (filepath.toFile().length() / 1024 / 1024 <= Constants.MAX_FILE_SIZE_UNTIL_SEQUENTIAL) {
+                response = processXmlFileWithMemory(filepath, mode, variablesMap);
+            } else {
+                response = processXmlFileSequentially(filepath, mode, variablesMap);
+            }
+            log.debug("File {} saved", fileName);
+            if(response.getStatusCode() == HttpStatus.OK){
+                fileUtils.moveDataFile(campaignName, mode.getFolder(), filepath);
+                return;
+            }
+            log.error("Error on file {}", fileName);
         }
     }
 
-    private void treatRawCampaignWithMode(String campaignName,
-                                          Mode mode,
-                                          String rootDataFolder
+    private void processRawCampaignWithMode(String campaignName,
+                                            Mode mode,
+                                            String rootDataFolder
     ) throws IOException, ParserConfigurationException, SAXException, NoDataException {
         log.info("Try to import data for mode : {}", mode.getModeName());
         String dataFolder = rootDataFolder == null ?
-                fileUtils.getDataFolder(campaignName, mode.getFolder())
+                fileUtils.getDataFolder(campaignName, mode.getFolder(), null)
                 : fileUtils.getDataFolder(campaignName, mode.getFolder(), rootDataFolder);
         List<String> dataFiles = fileUtils.listFiles(dataFolder);
         log.info("Numbers of files to load in folder {} : {}", dataFolder, dataFiles.size());
@@ -466,18 +464,18 @@ public class ResponseController {
             if(isDataFileInDoneFolder(filepath, campaignName, mode.getFolder())){
                 log.warn("File {} already exists in DONE folder ! Deleting...", fileName);
                 Files.deleteIfExists(filepath);
-            }else{
-                //Read file
-                log.info("Try to read Xml file : {}", fileName);
-                ResponseEntity<Object> response = treatRawXmlFile(filepath, mode);
-
-                log.debug("File {} saved", fileName);
-                if(response.getStatusCode() == HttpStatus.OK){
-                    fileUtils.moveDataFile(campaignName, mode.getFolder(), filepath);
-                }else{
-                    log.error("Error on file {}", fileName);
-                }
+                return;
             }
+            //Read file
+            log.info("Try to read Xml file : {}", fileName);
+            ResponseEntity<Object> response = processRawXmlFile(filepath, mode);
+
+            log.debug("File {} saved", fileName);
+            if(response.getStatusCode() == HttpStatus.OK){
+                fileUtils.moveDataFile(campaignName, mode.getFolder(), filepath);
+                return;
+            }
+            log.error("Error on file {}", fileName);
         }
     }
 
@@ -495,17 +493,17 @@ public class ResponseController {
                 errors.add(new GenesisError(e.toString()));
                 return null;
             }
-        }else{
-            //Read Lunatic
-            try {
-                Path lunaticFilePath = fileUtils.findFile(String.format(S_S, fileUtils.getSpecFolder(campaignName),
-                        mode.getModeName()), "lunatic[\\w," + "\\s-]+\\.json");
-                variablesMap = LunaticReader.getMetadataFromLunatic(new FileInputStream(lunaticFilePath.toString())).getVariables();
-            } catch (Exception e) {
-                log.error(e.toString());
-                errors.add(new GenesisError(e.toString()));
-                return null;
-            }
+            return variablesMap;
+        }
+        //Read Lunatic
+        try {
+            Path lunaticFilePath = fileUtils.findFile(String.format(S_S, fileUtils.getSpecFolder(campaignName),
+                    mode.getModeName()), "lunatic[\\w," + "\\s-]+\\.json");
+            variablesMap = LunaticReader.getMetadataFromLunatic(new FileInputStream(lunaticFilePath.toString())).getVariables();
+        } catch (Exception e) {
+            log.error(e.toString());
+            errors.add(new GenesisError(e.toString()));
+            return null;
         }
         return variablesMap;
     }
@@ -514,7 +512,7 @@ public class ResponseController {
         return Path.of(fileUtils.getDoneFolder(campaignName, modeFolder)).resolve(filepath.getFileName()).toFile().exists();
     }
 
-    private ResponseEntity<Object> treatXmlFileWithMemory(Path filepath, Mode modeSpecified, VariablesMap variablesMap) throws IOException, ParserConfigurationException, SAXException {
+    private ResponseEntity<Object> processXmlFileWithMemory(Path filepath, Mode modeSpecified, VariablesMap variablesMap) throws IOException, ParserConfigurationException, SAXException {
         LunaticXmlCampaign campaign;
         // DOM method
         LunaticXmlDataParser parser = new LunaticXmlDataParser();
@@ -535,11 +533,11 @@ public class ResponseController {
         surveyUnitService.saveSurveyUnits(suDtos);
         log.debug("Survey units updates saved");
 
-        log.info("File {} treated with {} survey units", filepath.getFileName(), suDtos.size());
+        log.info("File {} processed with {} survey units", filepath.getFileName(), suDtos.size());
         return ResponseEntity.ok().build();
     }
 
-    private ResponseEntity<Object> treatRawXmlFile(Path filepath, Mode modeSpecified) throws IOException,
+    private ResponseEntity<Object> processRawXmlFile(Path filepath, Mode modeSpecified) throws IOException,
             ParserConfigurationException, SAXException {
         LunaticXmlCampaign campaign;
         // DOM method
@@ -555,11 +553,11 @@ public class ResponseController {
         lunaticXmlRawDataApiPort.saveData(campaign, modeSpecified);
         log.debug(SUCCESS_MESSAGE);
 
-        log.info("File {} treated" , filepath.getFileName());
+        log.info("File {} processed" , filepath.getFileName());
         return ResponseEntity.ok().build();
     }
 
-    private ResponseEntity<Object> treatXmlFileSequentially(Path filepath, Mode modeSpecified, VariablesMap variablesMap) throws IOException, XMLStreamException {
+    private ResponseEntity<Object> processXmlFileSequentially(Path filepath, Mode modeSpecified, VariablesMap variablesMap) throws IOException, XMLStreamException {
         LunaticXmlCampaign campaign;
         //Sequential method
         log.warn("File size > " + Constants.MAX_FILE_SIZE_UNTIL_SEQUENTIAL + "MB! Parsing XML file using sequential method...");
@@ -583,7 +581,11 @@ public class ResponseController {
             log.info("Saved {} survey units updates", suCount);
         }
 
-        log.info("File {} treated", filepath.getFileName());
+        log.info("File {} processed", filepath.getFileName());
         return ResponseEntity.ok().build();
+    }
+
+    private static String getSuccessMessage(boolean isAnyDataSaved) {
+        return isAnyDataSaved ? SUCCESS_MESSAGE : SUCCESS_NO_DATA_MESSAGE;
     }
 }
