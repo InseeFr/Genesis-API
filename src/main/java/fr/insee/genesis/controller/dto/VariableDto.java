@@ -10,6 +10,7 @@ import java.util.List;
 @Data
 public class VariableDto {
     private String variableName;
+    private String idLoop;
 
     @JsonProperty("variableStates")
     private List<VariableStateDto> variableStateDtoList;
