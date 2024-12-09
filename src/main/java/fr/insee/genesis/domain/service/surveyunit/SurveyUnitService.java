@@ -1,15 +1,7 @@
 package fr.insee.genesis.domain.service.surveyunit;
 
-import fr.insee.genesis.controller.dto.CampaignWithQuestionnaire;
-import fr.insee.genesis.controller.dto.QuestionnaireWithCampaign;
-import fr.insee.genesis.controller.dto.SurveyUnitDto;
-import fr.insee.genesis.controller.dto.SurveyUnitId;
-import fr.insee.genesis.controller.dto.VariableDto;
-import fr.insee.genesis.controller.dto.VariableStateDto;
-import fr.insee.genesis.domain.model.surveyunit.CollectedVariable;
-import fr.insee.genesis.domain.model.surveyunit.Mode;
-import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
-import fr.insee.genesis.domain.model.surveyunit.Variable;
+import fr.insee.genesis.controller.dto.*;
+import fr.insee.genesis.domain.model.surveyunit.*;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,11 +9,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 @Service
@@ -128,7 +116,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                 .build();
 
         //Extract variables
-        Map<String, VariableDto> collectedVariableMap = new HashMap<>();
+        Map<IdTuple, VariableDto> collectedVariableMap = new HashMap<>();
         Map<String, VariableDto> externalVariableMap = new HashMap<>();
         List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findByIds(idUE, idQuest);
         List<Mode> modes = getDistinctsModes(surveyUnitModels);
@@ -139,7 +127,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                     .toList();
             suByMode.forEach(surveyUnitModel -> extractVariables(surveyUnitModel, collectedVariableMap,externalVariableMap));
         });
-        collectedVariableMap.keySet().forEach(variableName -> surveyUnitDto.getCollectedVariables().add(collectedVariableMap.get(variableName)));
+        collectedVariableMap.keySet().forEach(variableTuple -> surveyUnitDto.getCollectedVariables().add(collectedVariableMap.get(variableTuple)));
         externalVariableMap.keySet().forEach(variableName -> surveyUnitDto.getExternalVariables().add(externalVariableMap.get(variableName)));
         return surveyUnitDto;
     }
@@ -241,14 +229,15 @@ public class SurveyUnitService implements SurveyUnitApiPort {
      * @param externalVariableMap External variable DTO map to populate
      */
     private void extractVariables(SurveyUnitModel surveyUnitModel,
-                                           Map<String, VariableDto> collectedVariableMap,
+                                           Map<IdTuple, VariableDto> collectedVariableMap,
                                            Map<String, VariableDto> externalVariableMap) {
 
         if(surveyUnitModel.getCollectedVariables() == null){
             surveyUnitModel.setCollectedVariables(new ArrayList<>());
         }
         for (CollectedVariable collectedVariable : surveyUnitModel.getCollectedVariables()) {
-            VariableDto variableDto = collectedVariableMap.get(collectedVariable.getIdVar());
+            IdTuple idTuple = new IdTuple(collectedVariable.getIdVar(), collectedVariable.getIdLoop());
+            VariableDto variableDto = collectedVariableMap.get(idTuple);
 
             //Create variable into map if not exists
             if (variableDto == null) {
@@ -257,7 +246,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                         .idLoop(collectedVariable.getIdLoop())
                         .variableStateDtoList(new ArrayList<>())
                         .build();
-                collectedVariableMap.put(collectedVariable.getIdVar(), variableDto);
+                collectedVariableMap.put(idTuple, variableDto);
             }
             //Extract variable state
             if (!collectedVariable.getValues().isEmpty() && isMostRecentForSameState(surveyUnitModel, variableDto)) {
