@@ -2,7 +2,6 @@ package fr.insee.genesis.controller.rest;
 
 import fr.insee.genesis.domain.ports.api.ScheduleApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
