@@ -9,7 +9,7 @@ import lombok.Data;
 public class LunaticJsonDataResponse {
 
     @JsonProperty("EXTERNAL")
-    private LunaticJSonExternalVariables externalVariables;
+    private LunaticJsonExternalVariables externalVariables;
 
     @JsonProperty("COLLECTED")
     private LunaticJsonCollectedVariables collectedVariables;

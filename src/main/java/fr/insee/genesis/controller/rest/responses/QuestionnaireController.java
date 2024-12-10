@@ -4,7 +4,6 @@ import fr.insee.genesis.controller.dto.QuestionnaireWithCampaign;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,7 +20,7 @@ public class QuestionnaireController {
 
     private final SurveyUnitApiPort surveyUnitService;
 
-    @Autowired
+
     public QuestionnaireController(SurveyUnitApiPort surveyUnitService) {
         this.surveyUnitService = surveyUnitService;
     }

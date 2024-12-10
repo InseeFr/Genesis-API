@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Data
-public class LunaticJSonExternalVariables {
+public class LunaticJsonExternalVariables {
     private Map<String, String> externalMap = new HashMap<>();
 
     @JsonAnySetter

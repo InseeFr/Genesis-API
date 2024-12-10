@@ -46,140 +46,123 @@ class Utils {
         //Recreate data files
         //SAMPLETEST-PARADATA-v1
         //Root
-        if (!testResourcesPath
+        //Partial
+        Path source = testResourcesPath
                 .resolve("IN")
                 .resolve("WEB")
                 .resolve("SAMPLETEST-PARADATA-v1")
-                .resolve("data.complete.validated.STPDv1.20231122164209.xml")
-                .toFile().exists()
-        ){
-            Files.copy(
-                    testResourcesPath
-                            .resolve("IN")
-                            .resolve("WEB")
-                            .resolve("SAMPLETEST-PARADATA-v1")
-                            .resolve("reponse-platine")
-                            .resolve("data.complete.partial.STPDv1.20231122164209.xml")
-                    , testResourcesPath
-                            .resolve("IN")
-                            .resolve("WEB")
-                            .resolve("SAMPLETEST-PARADATA-v1")
-                            .resolve("data.complete.partial.STPDv1.20231122164209.xml")
-            );
-            Files.copy(
-                    testResourcesPath
-                            .resolve("IN")
-                            .resolve("WEB")
-                            .resolve("SAMPLETEST-PARADATA-v1")
-                            .resolve("reponse-platine")
-                            .resolve("data.complete.validated.STPDv1.20231122164209.xml")
-                    , testResourcesPath
-                            .resolve("IN")
-                            .resolve("WEB")
-                            .resolve("SAMPLETEST-PARADATA-v1")
-                            .resolve("data.complete.validated.STPDv1.20231122164209.xml")
-            );
+                .resolve("reponse-platine")
+                .resolve("data.complete.partial.STPDv1.20231122164209.xml");
+        Path dest = testResourcesPath
+                .resolve("IN")
+                .resolve("WEB")
+                .resolve("SAMPLETEST-PARADATA-v1")
+                .resolve("data.complete.partial.STPDv1.20231122164209.xml");
+        if (!dest.toFile().exists()) {
+            Files.copy(source, dest);
         }
+
+        //Validated
+        source = testResourcesPath
+                .resolve("IN")
+                .resolve("WEB")
+                .resolve("SAMPLETEST-PARADATA-v1")
+                .resolve("reponse-platine")
+                .resolve("data.complete.validated.STPDv1.20231122164209.xml");
+        dest = testResourcesPath
+                .resolve("IN")
+                .resolve("WEB")
+                .resolve("SAMPLETEST-PARADATA-v1")
+                .resolve("data.complete.validated.STPDv1.20231122164209.xml");
+        if (!dest.toFile().exists()) {
+            Files.copy(source, dest);
+        }
+
         //Differential data
-        if (!testResourcesPath
+        //Partial
+        source = testResourcesPath
+                .resolve("IN")
+                .resolve("WEB")
+                .resolve("SAMPLETEST-PARADATA-v1")
+                .resolve("reponse-platine")
+                .resolve("data.complete.partial.STPDv1.20231122164209.xml");
+        dest = testResourcesPath
                 .resolve("IN")
                 .resolve("WEB")
                 .resolve("SAMPLETEST-PARADATA-v1")
                 .resolve("differential")
                 .resolve("data")
-                .resolve("data.complete.validated.STPDv1.20231122164209.xml")
-                .toFile().exists()
-        ) {
-            Files.copy(
-                    testResourcesPath
-                            .resolve("IN")
-                            .resolve("WEB")
-                            .resolve("SAMPLETEST-PARADATA-v1")
-                            .resolve("reponse-platine")
-                            .resolve("data.complete.partial.STPDv1.20231122164209.xml")
-                    , testResourcesPath
-                            .resolve("IN")
-                            .resolve("WEB")
-                            .resolve("SAMPLETEST-PARADATA-v1")
-                            .resolve("differential")
-                            .resolve("data")
-                            .resolve("data.complete.partial.STPDv1.20231122164209.xml")
-            );
-            Files.copy(
-                    testResourcesPath
-                            .resolve("IN")
-                            .resolve("WEB")
-                            .resolve("SAMPLETEST-PARADATA-v1")
-                            .resolve("reponse-platine")
-                            .resolve("data.complete.validated.STPDv1.20231122164209.xml")
-                    , testResourcesPath
-                            .resolve("IN")
-                            .resolve("WEB")
-                            .resolve("SAMPLETEST-PARADATA-v1")
-                            .resolve("differential")
-                            .resolve("data")
-                            .resolve("data.complete.validated.STPDv1.20231122164209.xml")
-            );
+                .resolve("data.complete.partial.STPDv1.20231122164209.xml");
+        if (!dest.toFile().exists()) {
+            Files.copy(source, dest);
         }
+
+        source = testResourcesPath
+                .resolve("IN")
+                .resolve("WEB")
+                .resolve("SAMPLETEST-PARADATA-v1")
+                .resolve("reponse-platine")
+                .resolve("data.complete.validated.STPDv1.20231122164209.xml");
+        dest = testResourcesPath
+                .resolve("IN")
+                .resolve("WEB")
+                .resolve("SAMPLETEST-PARADATA-v1")
+                .resolve("differential")
+                .resolve("data")
+                .resolve("data.complete.validated.STPDv1.20231122164209.xml");
+        if (!dest.toFile().exists()) {
+            Files.copy(source, dest);
+        }
+
         //SAMPLETEST-PARADATA-v2
-        if (!testResourcesPath
+        //Partial
+        source = testResourcesPath
                 .resolve("IN")
                 .resolve("WEB")
                 .resolve("SAMPLETEST-PARADATA-v2")
-                .resolve("data.complete.validated.STPDv2.20231122164209.xml")
-                .toFile().exists()
-        ){
-            Files.copy(
-                    testResourcesPath
-                            .resolve("IN")
-                            .resolve("WEB")
-                            .resolve("SAMPLETEST-PARADATA-v2")
-                            .resolve("reponse-platine")
-                            .resolve("data.complete.partial.STPDv2.20231122164209.xml")
-                    , testResourcesPath
-                            .resolve("IN")
-                            .resolve("WEB")
-                            .resolve("SAMPLETEST-PARADATA-v2")
-                            .resolve("data.complete.partial.STPDv2.20231122164209.xml")
-            );
-            Files.copy(
-                    testResourcesPath
-                            .resolve("IN")
-                            .resolve("WEB")
-                            .resolve("SAMPLETEST-PARADATA-v2")
-                            .resolve("reponse-platine")
-                            .resolve("data.complete.validated.STPDv2.20231122164209.xml")
-                    , testResourcesPath
-                            .resolve("IN")
-                            .resolve("WEB")
-                            .resolve("SAMPLETEST-PARADATA-v2")
-                            .resolve("data.complete.validated.STPDv2.20231122164209.xml")
-            );
+                .resolve("reponse-platine")
+                .resolve("data.complete.partial.STPDv2.20231122164209.xml");
+        dest = testResourcesPath
+                .resolve("IN")
+                .resolve("WEB")
+                .resolve("SAMPLETEST-PARADATA-v2")
+                .resolve("data.complete.partial.STPDv2.20231122164209.xml");
+        if (!dest.toFile().exists()) {
+            Files.copy(source, dest);
         }
+
+        //Validated
+        source = testResourcesPath
+                .resolve("IN")
+                .resolve("WEB")
+                .resolve("SAMPLETEST-PARADATA-v2")
+                .resolve("reponse-platine")
+                .resolve("data.complete.validated.STPDv2.20231122164209.xml");
+        dest = testResourcesPath
+                .resolve("IN")
+                .resolve("WEB")
+                .resolve("SAMPLETEST-PARADATA-v2")
+                .resolve("data.complete.validated.STPDv2.20231122164209.xml");
+        if (!dest.toFile().exists()) {
+            Files.copy(source, dest);
+        }
+
         //SAMPLETEST-NO-COLLECTED
-        if (!testResourcesPath
+        source = testResourcesPath
+                .resolve("IN")
+                .resolve("WEB")
+                .resolve("SAMPLETEST-NO-COLLECTED")
+                .resolve("data_diff_no_collected.xml");
+
+        dest = testResourcesPath
                 .resolve("IN")
                 .resolve("WEB")
                 .resolve("SAMPLETEST-NO-COLLECTED")
                 .resolve("differential")
                 .resolve("data")
-                .resolve("data_diff_no_collected.xml")
-                .toFile().exists()
-        ){
-            Files.copy(
-                    testResourcesPath
-                            .resolve("IN")
-                            .resolve("WEB")
-                            .resolve("SAMPLETEST-NO-COLLECTED")
-                            .resolve("data_diff_no_collected.xml")
-                    , testResourcesPath
-                            .resolve("IN")
-                            .resolve("WEB")
-                            .resolve("SAMPLETEST-NO-COLLECTED")
-                            .resolve("differential")
-                            .resolve("data")
-                            .resolve("data_diff_no_collected.xml")
-            );
+                .resolve("data_diff_no_collected.xml");
+        if (!dest.toFile().exists()) {
+            Files.copy(source, dest);
         }
     }
 
