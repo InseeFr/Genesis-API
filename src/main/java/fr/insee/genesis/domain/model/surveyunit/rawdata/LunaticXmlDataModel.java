@@ -12,5 +12,6 @@ public record LunaticXmlDataModel(
     ObjectId id,
     Mode mode,
     LunaticXmlCampaign data,
-    LocalDateTime recordDate
-){};
+    LocalDateTime recordDate,
+    LocalDateTime processDate
+){}

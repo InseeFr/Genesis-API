@@ -21,4 +21,5 @@ public class  LunaticXmlDataDocument {
     private LunaticXmlCampaign lunaticXmlData;
     private Mode mode;
     private LocalDateTime recordDate;
+    private LocalDateTime processDate;
 }

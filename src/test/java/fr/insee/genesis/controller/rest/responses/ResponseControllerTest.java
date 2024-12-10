@@ -143,7 +143,11 @@ class ResponseControllerTest {
 
         Assertions.assertThat(lunaticXmlPersistanceStub.getMongoStub()).isNotEmpty();
         Assertions.assertThat(lunaticXmlPersistanceStub.getMongoStub().getFirst().getRecordDate()).isNotNull();
+        Assertions.assertThat(lunaticXmlPersistanceStub.getMongoStub().getFirst().getProcessDate()).isNull();
         Assertions.assertThat(lunaticXmlPersistanceStub.getMongoStub().getFirst().getLunaticXmlData()).isNotNull();
+        Assertions.assertThat(lunaticXmlPersistanceStub.getMongoStub().getFirst().getLunaticXmlData().getSurveyUnits()).isNotNull().isNotEmpty();
+
+
     }
 
     @Test
@@ -158,16 +162,9 @@ class ResponseControllerTest {
         Assertions.assertThat(lunaticXmlPersistanceStub.getMongoStub()).isNotEmpty();
     }
 
-    @Test
-    void saveResponsesFromAllCampaignFoldersTests(){
-        surveyUnitPersistencePortStub.getMongoStub().clear();
-        responseControllerStatic.saveResponsesFromAllCampaignFolders();
-
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).isNotEmpty();
-    }
     //json
     @Test
-    void saveJsonRawDataFromStringTest() throws Exception {
+    void saveJsonRawDataFromStringTest(){
         lunaticJsonPersistanceStub.getMongoStub().clear();
         String campaignId = "SAMPLETEST-PARADATA-v1";
 
@@ -186,6 +183,15 @@ class ResponseControllerTest {
         Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getRecordDate()).isNotNull();
         Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getProcessDate()).isNull();
 
+    }
+
+    //All data
+    @Test
+    void saveResponsesFromAllCampaignFoldersTests(){
+        surveyUnitPersistencePortStub.getMongoStub().clear();
+        responseControllerStatic.saveResponsesFromAllCampaignFolders();
+
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).isNotEmpty();
     }
 
 
