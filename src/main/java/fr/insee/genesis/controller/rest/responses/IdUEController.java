@@ -20,7 +20,7 @@ public class IdUEController {
 
     private final SurveyUnitApiPort surveyUnitService;
 
-    @Autowired
+
     public IdUEController(SurveyUnitApiPort surveyUnitService) {
         this.surveyUnitService = surveyUnitService;
     }

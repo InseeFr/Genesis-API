@@ -21,7 +21,7 @@ public class QuestionnaireController {
 
     private final SurveyUnitApiPort surveyUnitService;
 
-    @Autowired
+
     public QuestionnaireController(SurveyUnitApiPort surveyUnitService) {
         this.surveyUnitService = surveyUnitService;
     }

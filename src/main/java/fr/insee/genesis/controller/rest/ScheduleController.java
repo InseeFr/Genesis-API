@@ -42,7 +42,6 @@ public class ScheduleController {
     private final ScheduleApiPort scheduleApiPort;
     private final FileUtils fileUtils;
 
-    @Autowired
     public ScheduleController(ScheduleApiPort scheduleApiPort, FileUtils fileUtils) {
         this.scheduleApiPort = scheduleApiPort;
         this.fileUtils = fileUtils;

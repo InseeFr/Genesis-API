@@ -25,7 +25,7 @@ public class UtilsController {
 	private final SurveyUnitApiPort surveyUnitService;
 
 
-	@Autowired
+
 	public UtilsController(SurveyUnitApiPort surveyUnitService,VolumetryLogService volumetryLogService) {
 		this.surveyUnitService = surveyUnitService;
 		this.volumetryLogService = volumetryLogService;

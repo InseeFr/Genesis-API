@@ -20,7 +20,7 @@ public class CampaignController {
 
     private final SurveyUnitApiPort surveyUnitService;
 
-    @Autowired
+
     public CampaignController(SurveyUnitApiPort surveyUnitService) {
         this.surveyUnitService = surveyUnitService;
     }

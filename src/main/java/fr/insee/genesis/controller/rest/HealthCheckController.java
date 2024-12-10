@@ -18,7 +18,7 @@ public class HealthCheckController {
     @Value("${fr.insee.genesis.version}")
     private String projectVersion;
 
-    @Autowired
+
     public HealthCheckController(SurveyUnitApiPort surveyUnitApiPort, ScheduleApiPort scheduleApiPort) {
         this.surveyUnitApiPort = surveyUnitApiPort;
         this.scheduleApiPort = scheduleApiPort;

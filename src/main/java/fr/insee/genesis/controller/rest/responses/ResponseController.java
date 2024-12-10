@@ -75,7 +75,7 @@ public class ResponseController {
     private final FileUtils fileUtils;
     private final ControllerUtils controllerUtils;
 
-    @Autowired
+
     public ResponseController(SurveyUnitApiPort surveyUnitService,
                               SurveyUnitQualityService surveyUnitQualityService,
                               LunaticXmlRawDataApiPort lunaticXmlRawDataApiPort,

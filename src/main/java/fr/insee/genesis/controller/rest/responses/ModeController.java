@@ -20,7 +20,7 @@ public class ModeController {
 
     private final SurveyUnitApiPort surveyUnitService;
 
-    @Autowired
+
     public ModeController(SurveyUnitApiPort surveyUnitService) {
         this.surveyUnitService = surveyUnitService;
 
