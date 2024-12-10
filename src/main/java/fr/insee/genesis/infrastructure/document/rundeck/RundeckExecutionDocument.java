@@ -11,7 +11,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection= "rundeckExecutions")
 public class RundeckExecutionDocument {
 
-    private long id;
+    private long idExecution;
     private String status;
     private String project;
     private String user;

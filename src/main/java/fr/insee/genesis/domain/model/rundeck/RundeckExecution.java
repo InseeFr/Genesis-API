@@ -8,7 +8,8 @@ import lombok.Setter;
 @Setter
 public class RundeckExecution {
 
-    private long id;
+    @JsonProperty("id")
+    private long idExecution;
     private String href;
     private String permalink;
     private String status;

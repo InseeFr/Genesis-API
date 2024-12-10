@@ -1,5 +1,6 @@
 package fr.insee.genesis.domain.model.rundeck;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -7,7 +8,8 @@ import lombok.Setter;
 @Setter
 public class Job {
 
-    private String id;
+    @JsonProperty("id")
+    private String idJob;
     private long averageDuration;
     private String name;
     private String group;
