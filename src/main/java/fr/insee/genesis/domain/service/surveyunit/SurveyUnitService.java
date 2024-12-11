@@ -65,7 +65,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             //We had all the variables of the oldest update
             latestUpdatesbyVariables.add(suByMode.getFirst());
             //We keep the name of already added variables to skip them in older updates
-            List<String> addedVariables = new ArrayList<>();
+            List<IdTuple> addedVariables = new ArrayList<>();
             SurveyUnitModel latestUpdate = suByMode.getFirst();
 
             if(latestUpdate.getCollectedVariables() == null){
@@ -74,33 +74,38 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             if(latestUpdate.getExternalVariables() == null){
                 latestUpdate.setExternalVariables(new ArrayList<>());
             }
-            latestUpdate.getCollectedVariables().forEach(variableStateDto -> addedVariables.add(variableStateDto.getIdVar()));
-            latestUpdate.getExternalVariables().forEach(externalVariableDto -> addedVariables.add(externalVariableDto.getIdVar()));
+            latestUpdate.getCollectedVariables().forEach(colVar -> addedVariables.add(new IdTuple(colVar.getIdVar(), colVar.getIdLoop())));
+            latestUpdate.getExternalVariables().forEach(extVar -> addedVariables.add(new IdTuple(extVar.getIdVar(), "")));
 
-            suByMode.forEach(surveyUnitDto -> {
+            suByMode.forEach(surveyUnitModel -> {
                 List<CollectedVariable> variablesToKeep = new ArrayList<>();
                 List<Variable> externalToKeep = new ArrayList<>();
                 // We iterate over the variables of the update and add them to the list if they are not already added
-                surveyUnitDto.getCollectedVariables().stream()
-                        .filter(variableStateDto -> !addedVariables.contains(variableStateDto.getIdVar()))
-                        .forEach(variableStateDto -> {
-                           variablesToKeep.add(variableStateDto);
-                           addedVariables.add(variableStateDto.getIdVar());
+                surveyUnitModel.getCollectedVariables().stream()
+                        .peek(colVar -> {
+                            if (addedVariables.contains(new IdTuple(colVar.getIdVar(), colVar.getIdLoop()))) {
+                                System.out.println("Filtré : " + colVar.getIdVar() + " " + colVar.getIdLoop());
+                            }
+                        })
+                        .filter(colVar -> !addedVariables.contains(new IdTuple(colVar.getIdVar(), colVar.getIdLoop())))
+                        .forEach(colVar -> {
+                           variablesToKeep.add(colVar);
+                           addedVariables.add(new IdTuple(colVar.getIdVar(), colVar.getIdLoop()));
                         });
-                if (surveyUnitDto.getExternalVariables() != null){
-                    surveyUnitDto.getExternalVariables().stream()
-                         .filter(externalVariableDto -> !addedVariables.contains(externalVariableDto.getIdVar()))
-                         .forEach(externalVariableDto -> {
-                            externalToKeep.add(externalVariableDto);
-                            addedVariables.add(externalVariableDto.getIdVar());
+                if (surveyUnitModel.getExternalVariables() != null){
+                    surveyUnitModel.getExternalVariables().stream()
+                         .filter(extVar -> !addedVariables.contains(new IdTuple(extVar.getIdVar(), "")))
+                         .forEach(extVar -> {
+                            externalToKeep.add(extVar);
+                            addedVariables.add(new IdTuple(extVar.getIdVar(), ""));
                          });
                 }
 
                 // If there are new variables, we add the update to the list of latest updates
                 if (!variablesToKeep.isEmpty() || !externalToKeep.isEmpty()){
-                    surveyUnitDto.setCollectedVariables(variablesToKeep);
-                    surveyUnitDto.setExternalVariables(externalToKeep);
-                    latestUpdatesbyVariables.add(surveyUnitDto);
+                    surveyUnitModel.setCollectedVariables(variablesToKeep);
+                    surveyUnitModel.setExternalVariables(externalToKeep);
+                    latestUpdatesbyVariables.add(surveyUnitModel);
                 }
             });
         });
