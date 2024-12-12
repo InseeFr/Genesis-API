@@ -10,11 +10,8 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 @Mapper(componentModel = "spring")
 public interface LunaticJsonDocumentMapper {
@@ -32,21 +29,14 @@ public interface LunaticJsonDocumentMapper {
 
 
 	@Named(value = "fromJsonToMap")
-	default Map<String, Object> fromJsonToMap(String dataJson) throws IOException {
-		if (Objects.nonNull(dataJson)) {
-			ObjectMapper objectMapper = new ObjectMapper();
-			return objectMapper.readValue(dataJson, new TypeReference<>() {
-            });
-		}
-		return Collections.emptyMap();
+	default Map<String, Object> fromJsonToMap(String dataJson) throws JsonProcessingException {
+		ObjectMapper objectMapper = new ObjectMapper();
+		return objectMapper.readValue(dataJson, new TypeReference<>(){});
 	}
 
 	@Named(value = "fromMapToJson")
 	default String fromMapToJson(Map<String, Object> dataMap) throws JsonProcessingException {
-		if (Objects.nonNull(dataMap)) {
 			ObjectMapper objectMapper = new ObjectMapper();
 			return objectMapper.writeValueAsString(dataMap);
-		}
-		return null;
 	}
 }
