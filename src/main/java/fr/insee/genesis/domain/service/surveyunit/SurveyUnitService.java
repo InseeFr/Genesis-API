@@ -82,11 +82,6 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                 List<Variable> externalToKeep = new ArrayList<>();
                 // We iterate over the variables of the update and add them to the list if they are not already added
                 surveyUnitModel.getCollectedVariables().stream()
-                        .peek(colVar -> {
-                            if (addedVariables.contains(new IdTuple(colVar.getIdVar(), colVar.getIdLoop()))) {
-                                System.out.println("Filtré : " + colVar.getIdVar() + " " + colVar.getIdLoop());
-                            }
-                        })
                         .filter(colVar -> !addedVariables.contains(new IdTuple(colVar.getIdVar(), colVar.getIdLoop())))
                         .forEach(colVar -> {
                            variablesToKeep.add(colVar);
