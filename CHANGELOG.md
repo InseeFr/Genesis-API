@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.3.0 [2024-12-16]
+
+### Added
+- Authentication on endpoints (except healthchecks)
+
+### Fixed
+- Resolve bug that makes extractions of values from loop and dynamic tables incomplete
+
+### Updated
+- spring boot 3.4.0
+- springdoc 2.7.0
+- jackson 2.18.2
+- pitest 1.17.2
+
 ## 1.2.16 [2024-11-15]
 
 ### Fixed
