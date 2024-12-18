@@ -1,5 +1,6 @@
 package fr.insee.genesis.infrastructure.document.schedule;
 
+import fr.insee.genesis.Constants;
 import fr.insee.genesis.domain.model.schedule.KraftwerkExecutionSchedule;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,7 +15,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "schedules")
+@Document(collection = Constants.MONGODB_SCHEDULE_COLLECTION_NAME)
 public class ScheduleDocument {
 
     public ScheduleDocument(String surveyName, List<KraftwerkExecutionSchedule> kraftwerkExecutionScheduleList) {
