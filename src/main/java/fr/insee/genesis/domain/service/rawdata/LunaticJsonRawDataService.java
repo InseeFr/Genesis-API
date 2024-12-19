@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.insee.genesis.controller.dto.rawdata.LunaticJsonRawDataUnprocessedDto;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonDataModel;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
@@ -13,6 +14,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
@@ -25,18 +28,34 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     }
 
     @Override
-    public void saveData(String campaignName, String dataJson, Mode mode) throws JsonParseException {
+    public void saveData(String campaignName, String idUE, String dataJson, Mode mode) throws JsonParseException {
         if(!isJsonValid(dataJson)){
             throw new JsonParseException("Invalid JSON synthax");
         }
         LunaticJsonDataModel lunaticJsonDataModel = LunaticJsonDataModel.builder()
                 .campaignId(campaignName)
+                .idUE(idUE)
                 .mode(mode)
                 .dataJson(dataJson)
                 .recordDate(LocalDateTime.now())
                 .build();
 
         lunaticJsonPersistancePort.save(lunaticJsonDataModel);
+    }
+
+    @Override
+    public List<LunaticJsonRawDataUnprocessedDto> getUnprocessedData() {
+        List<LunaticJsonRawDataUnprocessedDto> dtos = new ArrayList<>();
+
+        for(LunaticJsonDataModel dataModel : lunaticJsonPersistancePort.getAllUnprocessedData()){
+            dtos.add(LunaticJsonRawDataUnprocessedDto.builder()
+                    .campaignId(dataModel.campaignId())
+                    .idUE(dataModel.idUE())
+                    .build()
+            );
+        }
+
+        return dtos;
     }
 
 

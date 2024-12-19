@@ -5,6 +5,7 @@ import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.dto.SurveyUnitDto;
 import fr.insee.genesis.controller.dto.SurveyUnitId;
 import fr.insee.genesis.controller.dto.SurveyUnitSimplified;
+import fr.insee.genesis.controller.dto.rawdata.LunaticJsonRawDataUnprocessedDto;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
@@ -16,6 +17,7 @@ import fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService;
 import fr.insee.genesis.domain.service.rawdata.LunaticXmlRawDataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
+import fr.insee.genesis.infrastructure.document.rawdata.LunaticJsonDataDocument;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.LunaticJsonPersistanceStub;
@@ -165,17 +167,23 @@ class ResponseControllerTest {
     //json
     @Test
     void saveJsonRawDataFromStringTest(){
+        //GIVEN
         lunaticJsonPersistanceStub.getMongoStub().clear();
         String campaignId = "SAMPLETEST-PARADATA-v1";
+        String idUE = "testIdUE";
 
+        //WHEN
         responseControllerStatic.saveRawResponsesFromJsonBody(
                 campaignId
+                , idUE
                 , Mode.WEB
                 , "{\"testdata\": \"test\"}"
         );
 
+        //THEN
         Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub()).isNotEmpty();
         Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getCampaignId()).isNotNull().isEqualTo(campaignId);
+        Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getIdUE()).isNotNull().isEqualTo(idUE);
         Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getMode()).isEqualTo(Mode.WEB);
         Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getData().get("testdata")).isNotNull();
         Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getData().get("testdata")).isNotNull().isEqualTo("test");
@@ -183,6 +191,38 @@ class ResponseControllerTest {
         Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getRecordDate()).isNotNull();
         Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getProcessDate()).isNull();
 
+    }
+
+    @Test
+    void getUnprocessedDataTest(){
+        //GIVEN
+        lunaticJsonPersistanceStub.getMongoStub().clear();
+        String campaignId = "SAMPLETEST1";
+        String idUE = "testIdUE1";
+        addJsonRawDataDocumentToStub(campaignId, idUE, null);
+
+        //WHEN
+        List<LunaticJsonRawDataUnprocessedDto> dtos = responseControllerStatic.getUnproccessedJsonRawData().getBody();
+
+        //THEN
+        Assertions.assertThat(dtos).isNotNull().isNotEmpty().hasSize(1);
+        Assertions.assertThat(dtos.getFirst().getCampaignId()).isEqualTo(campaignId);
+        Assertions.assertThat(dtos.getFirst().getIdUE()).isEqualTo(idUE);
+    }
+
+    @Test
+    void getUnprocessedDataTest_processDate_present(){
+        //GIVEN
+        lunaticJsonPersistanceStub.getMongoStub().clear();
+        String campaignId = "SAMPLETEST2";
+        String idUE = "testIdUE2";
+        addJsonRawDataDocumentToStub(campaignId, idUE, LocalDateTime.now());
+
+        //WHEN
+        List<LunaticJsonRawDataUnprocessedDto> dtos = responseControllerStatic.getUnproccessedJsonRawData().getBody();
+
+        //THEN
+        Assertions.assertThat(dtos).isNotNull().isEmpty();
     }
 
     //All data
@@ -376,6 +416,14 @@ class ResponseControllerTest {
                 .isTrue();
     }
 
-
+    //Utils
+    private static void addJsonRawDataDocumentToStub(String campaignId, String idUE, LocalDateTime processDate) {
+        LunaticJsonDataDocument lunaticJsonDataDocument = new LunaticJsonDataDocument();
+        lunaticJsonDataDocument.setCampaignId(campaignId);
+        lunaticJsonDataDocument.setIdUE(idUE);
+        lunaticJsonDataDocument.setRecordDate(LocalDateTime.now());
+        lunaticJsonDataDocument.setProcessDate(processDate);
+        lunaticJsonPersistanceStub.getMongoStub().add(lunaticJsonDataDocument);
+    }
 
 }

@@ -17,4 +17,14 @@ public class LunaticJsonPersistanceStub implements LunaticJsonPersistancePort {
     public void save(LunaticJsonDataModel lunaticJsonDataModel) {
         mongoStub.add(LunaticJsonDocumentMapper.INSTANCE.modelToDocument(lunaticJsonDataModel));
     }
+
+    @Override
+    public List<LunaticJsonDataModel> getAllUnprocessedData() {
+        return LunaticJsonDocumentMapper.INSTANCE.listDocumentToListModel(
+                mongoStub.stream().filter(
+                        lunaticJsonDataDocument -> lunaticJsonDataDocument.getProcessDate() == null
+                        )
+                .toList()
+        );
+    }
 }

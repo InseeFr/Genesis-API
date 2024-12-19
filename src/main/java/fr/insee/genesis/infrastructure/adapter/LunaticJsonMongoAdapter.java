@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Slf4j
 @Service
 @Qualifier("lunaticJsonMongoAdapter")
@@ -27,5 +29,10 @@ public class LunaticJsonMongoAdapter implements LunaticJsonPersistancePort {
 		LunaticJsonDataDocument document = LunaticJsonDocumentMapper.INSTANCE
 				.modelToDocument(lunaticJsonDataModel);
 		lunaticJsonMongoDBRepository.insert(document);
+	}
+
+	@Override
+	public List<LunaticJsonDataModel> getAllUnprocessedData() {
+		return LunaticJsonDocumentMapper.INSTANCE.listDocumentToListModel(lunaticJsonMongoDBRepository.findByNullProcessDate());
 	}
 }

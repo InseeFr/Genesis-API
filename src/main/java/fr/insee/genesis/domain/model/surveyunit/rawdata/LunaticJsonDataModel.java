@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 public record LunaticJsonDataModel(
     ObjectId id,
     String campaignId,
+    String idUE,
     Mode mode,
     String dataJson,
     LocalDateTime recordDate,

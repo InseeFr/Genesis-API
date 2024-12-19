@@ -10,6 +10,7 @@ import fr.insee.genesis.controller.adapter.LunaticXmlAdapter;
 import fr.insee.genesis.controller.dto.SurveyUnitDto;
 import fr.insee.genesis.controller.dto.SurveyUnitId;
 import fr.insee.genesis.controller.dto.SurveyUnitSimplified;
+import fr.insee.genesis.controller.dto.rawdata.LunaticJsonRawDataUnprocessedDto;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlCampaign;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlDataParser;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlDataSequentialParser;
@@ -155,6 +156,7 @@ public class ResponseController {
         return ResponseEntity.internalServerError().body(errors.getFirst().getMessage());
     }
 
+    //RAW DATA XML
     @Operation(summary = "Save one file of raw responses to Genesis Database, passing its path as a parameter")
     @PutMapping(path = "/lunatic-xml/raw/save-one")
     public ResponseEntity<Object> saveRawResponsesFromXmlFile(@RequestParam("pathLunaticXml") String xmlFile,
@@ -192,23 +194,32 @@ public class ResponseController {
         return ResponseEntity.ok(getSuccessMessage(isAnyDataSaved));
     }
 
-    //JSON
+    //RAW DATA JSON
     @Operation(summary = "Save lunatic json data to Genesis Database from the campaign root folder")
     @PutMapping(path = "/lunatic-json/raw/save")
     public ResponseEntity<Object> saveRawResponsesFromJsonBody(
             @RequestParam("campaignName") String campaignName,
+            @RequestParam("idUE") String idUE,
             @RequestParam(value = "mode", required = false) Mode modeSpecified,
             @RequestBody String dataJson
     ) {
         log.info("Try to import raw lunatic JSON data for campaign: {}", campaignName);
         try {
-            lunaticJsonRawDataApiPort.saveData(campaignName, dataJson, modeSpecified);
+            lunaticJsonRawDataApiPort.saveData(campaignName, idUE, dataJson, modeSpecified);
         }catch (JsonProcessingException jpe){
             log.error(jpe.toString());
             return ResponseEntity.badRequest().body("Invalid JSON synthax");
         }
         log.info("Data saved for {}", campaignName);
         return ResponseEntity.ok(SUCCESS_MESSAGE);
+    }
+
+    //GET unprocessed
+    @Operation(summary = "Get campaign id and idUE from all unprocessed raw json data")
+    @GetMapping(path = "/lunatic-json/raw/get/unprocessed")
+    public ResponseEntity<List<LunaticJsonRawDataUnprocessedDto>> getUnproccessedJsonRawData(){
+        log.info("Try to get unprocessed raw JSON datas...");
+        return ResponseEntity.ok(lunaticJsonRawDataApiPort.getUnprocessedData());
     }
 
 
