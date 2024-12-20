@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.insee.bpm.metadata.model.VariablesMap;
+import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.dto.rawdata.LunaticJsonRawDataUnprocessedDto;
 import fr.insee.genesis.domain.model.surveyunit.CollectedVariable;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
@@ -96,7 +97,9 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
                 CollectedVariable collectedVariable = CollectedVariable.collectedVariableBuilder()
                         .idVar(variableName)
                         .values(new ArrayList<>())
-                        .idLoop(variablesMap.getVariable(variableName).getGroupName())
+                        .idLoop(variablesMap.getVariable(variableName) == null ?
+                                Constants.ROOT_GROUP_NAME : //TODO What do we do if null ? Exception ?
+                                variablesMap.getVariable(variableName).getGroupName())
                         .idParent(LoopIdentifier.getRelatedVariableName(variableName, variablesMap))
                         .build();
 

@@ -234,40 +234,44 @@ public class ResponseController {
             @RequestParam("campaignName") String campaignName,
             @RequestParam("questionnaireId") String questionnaireId,
             @RequestBody List<String> idUEList
-    ) throws GenesisException {
+    ){
         log.info("Try to get process raw JSON datas for campaign {} and {} idUEs", campaignName, idUEList.size());
 
         int dataCount = 0;
         List<GenesisError> errors = new ArrayList<>();
 
-        List<Mode> modesList = controllerUtils.getModesList(campaignName, null);
-        for(Mode mode: modesList){
-            //Load and save metadatas into database, throw exception if none
-            VariablesMap variablesMap = readMetadatas(campaignName, mode, errors, true);
-            if(variablesMap == null){
-                throw new GenesisException(400,
-                        "Error during metadata parsing for mode %s :%n%s"
-                                .formatted(mode, errors.getLast().toString())
+        try {
+            List<Mode> modesList = controllerUtils.getModesList(campaignName, null);
+            for (Mode mode : modesList) {
+                //Load and save metadatas into database, throw exception if none
+                VariablesMap variablesMap = readMetadatas(campaignName, mode, errors, true);
+                if (variablesMap == null) {
+                    throw new GenesisException(400,
+                            "Error during metadata parsing for mode %s :%n%s"
+                                    .formatted(mode, errors.getLast().getMessage())
+                    );
+                }
+
+                //Save converted data
+                List<SurveyUnitModel> surveyUnitModels = lunaticJsonRawDataApiPort.parseRawData(
+                        campaignName,
+                        mode,
+                        idUEList,
+                        variablesMap
                 );
+                surveyUnitService.saveSurveyUnits(surveyUnitModels);
+
+                //Update process dates
+                lunaticJsonRawDataApiPort.updateProcessDates(surveyUnitModels);
+
+                //Save metadatas
+                variableTypeApiPort.saveMetadatas(campaignName, questionnaireId, mode, variablesMap);
+                dataCount += surveyUnitModels.size();
             }
-
-            //Save converted data
-            List<SurveyUnitModel> surveyUnitModels = lunaticJsonRawDataApiPort.parseRawData(
-                    campaignName,
-                    mode,
-                    idUEList,
-                    variablesMap
-            );
-            surveyUnitService.saveSurveyUnits(surveyUnitModels);
-
-            //Update process dates
-            lunaticJsonRawDataApiPort.updateProcessDates(surveyUnitModels);
-
-            //Save metadatas
-            variableTypeApiPort.saveMetadatas(campaignName, questionnaireId, mode, variablesMap);
-            dataCount += surveyUnitModels.size();
+            return ResponseEntity.ok("%d document(s) processed".formatted(dataCount));
+        }catch (GenesisException e){ //TODO replace with spring exception handler
+            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
         }
-        return ResponseEntity.ok("%d document(s) processed".formatted(dataCount));
     }
 
 

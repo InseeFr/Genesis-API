@@ -24,7 +24,7 @@ public class ControllerUtils {
 	public List<Mode> getModesList(String campaign, Mode modeSpecified) throws GenesisException {
 		// If a mode is specified, we treat only this mode.
 		// If no mode is specified, we treat all modes in the campaign.
-		// If no node is specified and no specs are found, we return an error
+		// If no mode is specified and no specs are found, we return an error
 		if (modeSpecified != null){
 			return Collections.singletonList(modeSpecified);
 		}
