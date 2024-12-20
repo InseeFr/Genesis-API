@@ -13,16 +13,20 @@ import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.LunaticXmlRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
+import fr.insee.genesis.domain.ports.api.VariableTypeApiPort;
 import fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService;
 import fr.insee.genesis.domain.service.rawdata.LunaticXmlRawDataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
+import fr.insee.genesis.domain.service.variabletype.VariableTypeService;
+import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.document.rawdata.LunaticJsonDataDocument;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.LunaticJsonPersistanceStub;
 import fr.insee.genesis.stubs.LunaticXmlPersistanceStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
+import fr.insee.genesis.stubs.VariableTypePersistanceStub;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,6 +41,7 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 class ResponseControllerTest {
@@ -45,6 +50,7 @@ class ResponseControllerTest {
     static SurveyUnitPersistencePortStub surveyUnitPersistencePortStub;
     static LunaticXmlPersistanceStub lunaticXmlPersistanceStub;
     static LunaticJsonPersistanceStub lunaticJsonPersistanceStub;
+    static VariableTypePersistanceStub variableTypePersistanceStub;
 
     static List<SurveyUnitId> surveyUnitIdList;
     //Constants
@@ -62,12 +68,16 @@ class ResponseControllerTest {
         lunaticJsonPersistanceStub = new LunaticJsonPersistanceStub();
         LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort = new LunaticJsonRawDataService(lunaticJsonPersistanceStub);
 
+        variableTypePersistanceStub = new VariableTypePersistanceStub();
+        VariableTypeApiPort variableTypeApiPort = new VariableTypeService(variableTypePersistanceStub);
+
         FileUtils fileUtils = new FileUtils(new ConfigStub());
         responseControllerStatic = new ResponseController(
                 surveyUnitApiPort
                 , new SurveyUnitQualityService()
                 , lunaticXmlRawDataApiPort
                 , lunaticJsonRawDataApiPort
+                , variableTypeApiPort
                 , fileUtils
                 , new ControllerUtils(fileUtils)
         );
@@ -181,7 +191,7 @@ class ResponseControllerTest {
         );
 
         //THEN
-        Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub()).isNotEmpty();
+        Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub()).isNotEmpty().hasSize(1);
         Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getCampaignId()).isNotNull().isEqualTo(campaignId);
         Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getIdUE()).isNotNull().isEqualTo(idUE);
         Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getMode()).isEqualTo(Mode.WEB);
@@ -190,7 +200,6 @@ class ResponseControllerTest {
 
         Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getRecordDate()).isNotNull();
         Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getProcessDate()).isNull();
-
     }
 
     @Test
@@ -223,6 +232,54 @@ class ResponseControllerTest {
 
         //THEN
         Assertions.assertThat(dtos).isNotNull().isEmpty();
+    }
+
+    //raw data process
+    //json
+    @Test
+    void processJsonRawDataTest() throws GenesisException {
+        //GIVEN
+        lunaticJsonPersistanceStub.getMongoStub().clear();
+        surveyUnitPersistencePortStub.getMongoStub().clear();
+        String campaignId = "SAMPLETEST-PARADATA-v2";
+        String idUE = "testIdUE1";
+        String varName = "AVIS_MAIL";
+        String varValue = "TEST";
+        addJsonRawDataDocumentToStub(campaignId, idUE, null, varName, varValue);
+        //TODO comment faire avec les boucles ?
+
+        List<String> idUEList = new ArrayList<>();
+        idUEList.add(idUE);
+
+        //WHEN
+        responseControllerStatic.processJsonRawData(campaignId, idUEList);
+
+
+        //THEN
+        //Genesis model survey unit created successfully
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).isNotNull().isNotEmpty().hasSize(1);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst()).isNotNull();
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getIdCampaign()).isEqualTo(campaignId);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getIdQuest()).isNotNull().isEqualTo(campaignId);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getMode()).isNotNull().isEqualTo(Mode.WEB);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getIdUE()).isEqualTo(idUE);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getFileDate()).isNotNull();
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getRecordDate()).isNotNull();
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables()).isNotNull().isNotEmpty().hasSize(1);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst()).isNotNull();
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst().getIdVar()).isNotNull().isEqualTo(varName);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst().getValues()).isNotNull().isNotEmpty().hasSize(1);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst().getValues().getFirst()).isNotNull().isEqualTo(varValue);
+
+        //
+        Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getProcessDate()).isNotNull();
+
+        Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub()).isNotEmpty().hasSize(1);
+        Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getCampaignId()).isNotNull().isEqualTo(campaignId);
+        Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getIdUE()).isNotNull().isEqualTo(idUE);
+
+        //Var/type
+        Assertions.assertThat(variableTypePersistanceStub.getMongoStub()).isNotNull().isNotEmpty().hasSize(1);
     }
 
     //All data
@@ -420,9 +477,23 @@ class ResponseControllerTest {
     private static void addJsonRawDataDocumentToStub(String campaignId, String idUE, LocalDateTime processDate) {
         LunaticJsonDataDocument lunaticJsonDataDocument = new LunaticJsonDataDocument();
         lunaticJsonDataDocument.setCampaignId(campaignId);
+        lunaticJsonDataDocument.setMode(Mode.WEB);
         lunaticJsonDataDocument.setIdUE(idUE);
         lunaticJsonDataDocument.setRecordDate(LocalDateTime.now());
         lunaticJsonDataDocument.setProcessDate(processDate);
+        lunaticJsonPersistanceStub.getMongoStub().add(lunaticJsonDataDocument);
+    }
+
+    private static void addJsonRawDataDocumentToStub(String campaignId, String idUE, LocalDateTime processDate,
+                                                     String variableName, String variableValue) {
+        LunaticJsonDataDocument lunaticJsonDataDocument = new LunaticJsonDataDocument();
+        lunaticJsonDataDocument.setCampaignId(campaignId);
+        lunaticJsonDataDocument.setMode(Mode.WEB);
+        lunaticJsonDataDocument.setIdUE(idUE);
+        lunaticJsonDataDocument.setRecordDate(LocalDateTime.now());
+        lunaticJsonDataDocument.setProcessDate(processDate);
+        lunaticJsonDataDocument.setData(new HashMap<>());
+        lunaticJsonDataDocument.getData().put(variableName,variableValue);
         lunaticJsonPersistanceStub.getMongoStub().add(lunaticJsonDataDocument);
     }
 

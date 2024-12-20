@@ -23,6 +23,7 @@ import fr.insee.genesis.domain.model.surveyunit.Variable;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.LunaticXmlRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
+import fr.insee.genesis.domain.ports.api.VariableTypeApiPort;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
@@ -72,6 +73,7 @@ public class ResponseController {
     private final SurveyUnitQualityService surveyUnitQualityService;
     private final LunaticXmlRawDataApiPort lunaticXmlRawDataApiPort;
     private final LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort;
+    private final VariableTypeApiPort variableTypeApiPort;
     private final FileUtils fileUtils;
     private final ControllerUtils controllerUtils;
 
@@ -80,12 +82,14 @@ public class ResponseController {
                               SurveyUnitQualityService surveyUnitQualityService,
                               LunaticXmlRawDataApiPort lunaticXmlRawDataApiPort,
                               LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort,
+                              VariableTypeApiPort variableTypeApiPort,
                               FileUtils fileUtils,
                               ControllerUtils controllerUtils) {
         this.surveyUnitService = surveyUnitService;
         this.surveyUnitQualityService = surveyUnitQualityService;
         this.lunaticXmlRawDataApiPort = lunaticXmlRawDataApiPort;
         this.lunaticJsonRawDataApiPort = lunaticJsonRawDataApiPort;
+        this.variableTypeApiPort = variableTypeApiPort;
         this.fileUtils = fileUtils;
         this.controllerUtils = controllerUtils;
     }
@@ -200,7 +204,7 @@ public class ResponseController {
     public ResponseEntity<Object> saveRawResponsesFromJsonBody(
             @RequestParam("campaignName") String campaignName,
             @RequestParam("idUE") String idUE,
-            @RequestParam(value = "mode", required = false) Mode modeSpecified,
+            @RequestParam(value = "mode") Mode modeSpecified,
             @RequestBody String dataJson
     ) {
         log.info("Try to import raw lunatic JSON data for campaign: {}", campaignName);
@@ -219,7 +223,49 @@ public class ResponseController {
     @GetMapping(path = "/lunatic-json/raw/get/unprocessed")
     public ResponseEntity<List<LunaticJsonRawDataUnprocessedDto>> getUnproccessedJsonRawData(){
         log.info("Try to get unprocessed raw JSON datas...");
-        return ResponseEntity.ok(lunaticJsonRawDataApiPort.getUnprocessedData());
+        return ResponseEntity.ok(lunaticJsonRawDataApiPort.getUnprocessedDataIds());
+    }
+
+    //PROCESS
+    @Operation(summary = "Process raw data of a campaign")
+    @PostMapping(path = "/lunatic-json/raw/process")
+    public ResponseEntity<Object> processJsonRawData(
+            @RequestParam("campaignName") String campaignName,
+            @RequestBody List<String> idUEList
+    ) throws GenesisException {
+        log.info("Try to get process raw JSON datas for campaign {} and {} idUEs", campaignName, idUEList.size());
+
+        int dataCount = 0;
+        List<GenesisError> errors = new ArrayList<>();
+
+        List<Mode> modesList = controllerUtils.getModesList(campaignName, null);
+        for(Mode mode: modesList){
+            //Load and save metadatas into database, throw exception if none
+            VariablesMap variablesMap = readMetadatas(campaignName, mode, errors, true);
+            if(variablesMap == null){
+                throw new GenesisException(400,
+                        "Error during metadata parsing for mode %s :%n%s"
+                                .formatted(mode, errors.getLast().toString())
+                );
+            }
+
+            //Save converted data
+            List<SurveyUnitModel> surveyUnitModels = lunaticJsonRawDataApiPort.parseRawData(
+                    campaignName,
+                    mode,
+                    idUEList,
+                    variablesMap
+            );
+            surveyUnitService.saveSurveyUnits(surveyUnitModels);
+
+            //Update process dates
+            lunaticJsonRawDataApiPort.updateProcessDates(surveyUnitModels);
+
+            //Save metadatas
+            variableTypeApiPort.saveMetadatas(campaignName, variablesMap);
+            dataCount += surveyUnitModels.size();
+        }
+        return ResponseEntity.ok("%d document(s) processed".formatted(dataCount));
     }
 
 
@@ -256,7 +302,6 @@ public class ResponseController {
         }
         return ResponseEntity.status(209).body("Data saved with " + errors.size() + " errors");
     }
-
 
     
     //DELETE
