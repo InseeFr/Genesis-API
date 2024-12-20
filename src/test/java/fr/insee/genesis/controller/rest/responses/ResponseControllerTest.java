@@ -1,6 +1,7 @@
 package fr.insee.genesis.controller.rest.responses;
 
 import cucumber.TestConstants;
+import fr.insee.bpm.metadata.model.VariableType;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.dto.SurveyUnitDto;
 import fr.insee.genesis.controller.dto.SurveyUnitId;
@@ -180,11 +181,13 @@ class ResponseControllerTest {
         //GIVEN
         lunaticJsonPersistanceStub.getMongoStub().clear();
         String campaignId = "SAMPLETEST-PARADATA-v1";
+        String idQuest = "testIdQuest";
         String idUE = "testIdUE";
 
         //WHEN
         responseControllerStatic.saveRawResponsesFromJsonBody(
                 campaignId
+                , idQuest
                 , idUE
                 , Mode.WEB
                 , "{\"testdata\": \"test\"}"
@@ -193,6 +196,7 @@ class ResponseControllerTest {
         //THEN
         Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub()).isNotEmpty().hasSize(1);
         Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getCampaignId()).isNotNull().isEqualTo(campaignId);
+        Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getIdQuest()).isNotNull().isEqualTo(idQuest);
         Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getIdUE()).isNotNull().isEqualTo(idUE);
         Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getMode()).isEqualTo(Mode.WEB);
         Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getData().get("testdata")).isNotNull();
@@ -242,17 +246,17 @@ class ResponseControllerTest {
         lunaticJsonPersistanceStub.getMongoStub().clear();
         surveyUnitPersistencePortStub.getMongoStub().clear();
         String campaignId = "SAMPLETEST-PARADATA-v2";
+        String idQuest = campaignId + "_quest";
         String idUE = "testIdUE1";
         String varName = "AVIS_MAIL";
         String varValue = "TEST";
-        addJsonRawDataDocumentToStub(campaignId, idUE, null, varName, varValue);
-        //TODO comment faire avec les boucles ?
+        addJsonRawDataDocumentToStub(campaignId, idQuest, idUE, null, varName, varValue);
 
         List<String> idUEList = new ArrayList<>();
         idUEList.add(idUE);
 
         //WHEN
-        responseControllerStatic.processJsonRawData(campaignId, idUEList);
+        responseControllerStatic.processJsonRawData(campaignId, idQuest, idUEList);
 
 
         //THEN
@@ -260,7 +264,7 @@ class ResponseControllerTest {
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).isNotNull().isNotEmpty().hasSize(1);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst()).isNotNull();
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getIdCampaign()).isEqualTo(campaignId);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getIdQuest()).isNotNull().isEqualTo(campaignId);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getIdQuest()).isNotNull().isEqualTo(idQuest);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getMode()).isNotNull().isEqualTo(Mode.WEB);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getIdUE()).isEqualTo(idUE);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getFileDate()).isNotNull();
@@ -271,15 +275,16 @@ class ResponseControllerTest {
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst().getValues()).isNotNull().isNotEmpty().hasSize(1);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst().getValues().getFirst()).isNotNull().isEqualTo(varValue);
 
-        //
+        //Process date check
         Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getProcessDate()).isNotNull();
 
-        Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub()).isNotEmpty().hasSize(1);
-        Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getCampaignId()).isNotNull().isEqualTo(campaignId);
-        Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getIdUE()).isNotNull().isEqualTo(idUE);
-
-        //Var/type
+        //Var/type check
         Assertions.assertThat(variableTypePersistanceStub.getMongoStub()).isNotNull().isNotEmpty().hasSize(1);
+        Assertions.assertThat(variableTypePersistanceStub.getMongoStub().getFirst().getCampaignId()).isEqualTo(campaignId);
+        Assertions.assertThat(variableTypePersistanceStub.getMongoStub().getFirst().getQuestionnaireId()).isEqualTo(idQuest);
+        Assertions.assertThat(variableTypePersistanceStub.getMongoStub().getFirst().getMode()).isEqualTo(Mode.WEB);
+        Assertions.assertThat(variableTypePersistanceStub.getMongoStub().getFirst().getVariables()).isNotNull().isNotEmpty().containsKey(varName);
+        Assertions.assertThat(variableTypePersistanceStub.getMongoStub().getFirst().getVariables().get(varName)).isEqualTo(VariableType.STRING);
     }
 
     //All data
@@ -484,10 +489,12 @@ class ResponseControllerTest {
         lunaticJsonPersistanceStub.getMongoStub().add(lunaticJsonDataDocument);
     }
 
-    private static void addJsonRawDataDocumentToStub(String campaignId, String idUE, LocalDateTime processDate,
+    private static void addJsonRawDataDocumentToStub(String campaignId, String idQuest, String idUE,
+                                                     LocalDateTime processDate,
                                                      String variableName, String variableValue) {
         LunaticJsonDataDocument lunaticJsonDataDocument = new LunaticJsonDataDocument();
         lunaticJsonDataDocument.setCampaignId(campaignId);
+        lunaticJsonDataDocument.setIdQuest(idQuest);
         lunaticJsonDataDocument.setMode(Mode.WEB);
         lunaticJsonDataDocument.setIdUE(idUE);
         lunaticJsonDataDocument.setRecordDate(LocalDateTime.now());

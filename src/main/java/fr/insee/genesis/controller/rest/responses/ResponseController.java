@@ -200,16 +200,17 @@ public class ResponseController {
 
     //RAW DATA JSON
     @Operation(summary = "Save lunatic json data to Genesis Database from the campaign root folder")
-    @PutMapping(path = "/lunatic-json/raw/save")
+    @PutMapping(path = "/lunatic-json/raw/save-one")
     public ResponseEntity<Object> saveRawResponsesFromJsonBody(
             @RequestParam("campaignName") String campaignName,
+            @RequestParam("idQuest") String idQuest,
             @RequestParam("idUE") String idUE,
             @RequestParam(value = "mode") Mode modeSpecified,
             @RequestBody String dataJson
     ) {
         log.info("Try to import raw lunatic JSON data for campaign: {}", campaignName);
         try {
-            lunaticJsonRawDataApiPort.saveData(campaignName, idUE, dataJson, modeSpecified);
+            lunaticJsonRawDataApiPort.saveData(campaignName, idQuest, idUE, dataJson, modeSpecified);
         }catch (JsonProcessingException jpe){
             log.error(jpe.toString());
             return ResponseEntity.badRequest().body("Invalid JSON synthax");
@@ -231,6 +232,7 @@ public class ResponseController {
     @PostMapping(path = "/lunatic-json/raw/process")
     public ResponseEntity<Object> processJsonRawData(
             @RequestParam("campaignName") String campaignName,
+            @RequestParam("questionnaireId") String questionnaireId,
             @RequestBody List<String> idUEList
     ) throws GenesisException {
         log.info("Try to get process raw JSON datas for campaign {} and {} idUEs", campaignName, idUEList.size());
@@ -262,7 +264,7 @@ public class ResponseController {
             lunaticJsonRawDataApiPort.updateProcessDates(surveyUnitModels);
 
             //Save metadatas
-            variableTypeApiPort.saveMetadatas(campaignName, variablesMap);
+            variableTypeApiPort.saveMetadatas(campaignName, questionnaireId, mode, variablesMap);
             dataCount += surveyUnitModels.size();
         }
         return ResponseEntity.ok("%d document(s) processed".formatted(dataCount));

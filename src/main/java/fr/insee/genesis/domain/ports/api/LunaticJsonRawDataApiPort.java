@@ -9,7 +9,7 @@ import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import java.util.List;
 
 public interface LunaticJsonRawDataApiPort {
-    void saveData(String campaignName,String idUE, String dataJson, Mode mode) throws JsonProcessingException;
+    void saveData(String campaignName, String idQuest, String idUE, String dataJson, Mode mode) throws JsonProcessingException;
     List<LunaticJsonRawDataUnprocessedDto> getUnprocessedDataIds();
 
     List<SurveyUnitModel> parseRawData(

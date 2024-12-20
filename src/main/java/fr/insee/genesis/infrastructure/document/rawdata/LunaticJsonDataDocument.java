@@ -20,6 +20,7 @@ public class LunaticJsonDataDocument {
     @Id
     private ObjectId id;
     private String campaignId;
+    private String idQuest;
     private String idUE;
     private Mode mode;
     private Map<String, Object> data;

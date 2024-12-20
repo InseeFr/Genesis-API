@@ -36,12 +36,13 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     }
 
     @Override
-    public void saveData(String campaignName, String idUE, String dataJson, Mode mode) throws JsonParseException {
+    public void saveData(String campaignName, String idQuest, String idUE, String dataJson, Mode mode) throws JsonParseException {
         if(!isJsonValid(dataJson)){
             throw new JsonParseException("Invalid JSON synthax");
         }
         LunaticJsonDataModel lunaticJsonDataModel = LunaticJsonDataModel.builder()
                 .campaignId(campaignName)
+                .idQuest(idQuest)
                 .idUE(idUE)
                 .mode(mode)
                 .dataJson(dataJson)
@@ -81,7 +82,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
         for(LunaticJsonDataDocument rawData : rawDataList){
             SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
                             .idCampaign(campaignName)
-                            .idQuest(campaignName)
+                            .idQuest(rawData.getIdQuest())
                             .mode(rawData.getMode())
                             .idUE(rawData.getIdUE())
                             .state(DataState.COLLECTED)

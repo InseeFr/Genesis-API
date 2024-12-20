@@ -17,6 +17,7 @@ class LunaticJsonRawDataServiceTest {
 
         Assertions.assertThatThrownBy(() -> lunaticJsonRawDataService.saveData(
                 campaignId
+                ,"TESTIDQUEST"
                 ,"TESTIDUE"
                 ,"{\"testdata\": \"ERROR"
                 , Mode.WEB
