@@ -16,6 +16,7 @@ import fr.insee.genesis.domain.model.surveyunit.Variable;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
 import fr.insee.genesis.domain.utils.LoopIdentifier;
+import fr.insee.genesis.exceptions.GenesisException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -241,7 +242,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             List<VariableDto> variables,
             String userIdentifier,
             VariablesMap variablesMap
-    ) {
+    ) throws GenesisException {
         SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
                 .idCampaign(campaignId)
                 .mode(mode)
@@ -254,26 +255,35 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                 .userIdentifier(userIdentifier)
                 .build();
 
-        for(VariableDto variableDto : variables){
+        //Keep only variable dtos who has at least one EDITED variableStateDto
+        List<VariableDto> editedVariables = variables.stream().filter(
+                variableDto -> !variableDto.getVariableStateDtoList().stream().filter(
+                        variableStateDto -> variableStateDto.getState().equals(DataState.EDITED)
+                ).toList().isEmpty()
+        ).toList();
+
+        //Error 400 bad request if no edited variable in list
+        if(editedVariables.isEmpty()){
+            throw new GenesisException(400, "No EDITED variable in list");
+        }
+
+        for(VariableDto editedVariableDto : editedVariables){
             CollectedVariable collectedVariable = CollectedVariable.collectedVariableBuilder()
-                    .idVar(variableDto.getVariableName())
+                    .idVar(editedVariableDto.getVariableName())
                     .values(new ArrayList<>())
-                    .idParent(LoopIdentifier.getRelatedVariableName(variableDto.getVariableName(), variablesMap))
-                    .idLoop(variableDto.getIdLoop())
+                    .idParent(LoopIdentifier.getRelatedVariableName(editedVariableDto.getVariableName(), variablesMap))
+                    .idLoop(editedVariableDto.getIdLoop())
                     .build();
+
+
+
+            collectedVariable.getValues().add(editedVariableDto.getVariableStateDtoList().stream().filter(variableStateDto ->
+                    variableStateDto.getState().equals(DataState.EDITED)).toList().getFirst().getValue());
 
             surveyUnitModel.getCollectedVariables().add(collectedVariable);
         }
 
         return surveyUnitModel;
-    }
-
-    @Override
-    public void saveEditedVariables(
-            List<SurveyUnitModel> surveyUnitModels
-    ){
-        //TODO Sauvegarde du nouveau document (éventuellement des nouveaux documents si type = forced)
-
     }
 
     //Utils

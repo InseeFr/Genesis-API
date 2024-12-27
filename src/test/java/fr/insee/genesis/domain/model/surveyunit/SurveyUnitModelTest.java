@@ -37,7 +37,7 @@ public class SurveyUnitModelTest {
         objectMapper.findAndRegisterModules();
 
         Assertions.assertEquals(
-                objectMapper.readTree("{\"idQuest\":\"TESTIDQUEST\",\"idCampaign\":\"TESTIDCAMPAIGN\",\"idUE\":\"TESTIDUE\",\"state\":\"COLLECTED\",\"mode\":\"WEB\",\"recordDate\":\"2000-01-01T12:00\",\"fileDate\":\"2000-01-01T12:00\",\"collectedVariables\":[{\"idVar\":\"TESTIDVAR\",\"values\":[\"V1\",\"V2\"],\"idLoop\":\"TESTIDLOOP\",\"idParent\":\"TESTIDPARENT\"}],\"externalVariables\":[{\"idVar\":\"TESTIDVAR\",\"values\":[\"V1\",\"V2\"]}]}"),
+                objectMapper.readTree("{\"idQuest\":\"TESTIDQUEST\",\"idCampaign\":\"TESTIDCAMPAIGN\",\"idUE\":\"TESTIDUE\",\"state\":\"COLLECTED\",\"mode\":\"WEB\",\"recordDate\":\"2000-01-01T12:00\",\"fileDate\":\"2000-01-01T12:00\",\"collectedVariables\":[{\"idVar\":\"TESTIDVAR\",\"values\":[\"V1\",\"V2\"],\"idLoop\":\"TESTIDLOOP\",\"idParent\":\"TESTIDPARENT\"}],\"externalVariables\":[{\"idVar\":\"TESTIDVAR\",\"values\":[\"V1\",\"V2\"]}], \"userIdentifier\": null}"),
                 objectMapper.readTree(objectMapper.writeValueAsString(surveyUnitModel))
         );
     }

@@ -24,6 +24,7 @@ import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.LunaticXmlRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
+import fr.insee.genesis.controller.utils.AuthUtils;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.exceptions.NoDataException;
@@ -33,8 +34,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -76,6 +75,7 @@ public class ResponseController {
     private final LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort;
     private final FileUtils fileUtils;
     private final ControllerUtils controllerUtils;
+    private final AuthUtils authUtils;
 
 
     public ResponseController(SurveyUnitApiPort surveyUnitService,
@@ -83,13 +83,16 @@ public class ResponseController {
                               LunaticXmlRawDataApiPort lunaticXmlRawDataApiPort,
                               LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort,
                               FileUtils fileUtils,
-                              ControllerUtils controllerUtils) {
+                              ControllerUtils controllerUtils,
+                              AuthUtils authUtils
+    ) {
         this.surveyUnitService = surveyUnitService;
         this.surveyUnitQualityService = surveyUnitQualityService;
         this.lunaticXmlRawDataApiPort = lunaticXmlRawDataApiPort;
         this.lunaticJsonRawDataApiPort = lunaticJsonRawDataApiPort;
         this.fileUtils = fileUtils;
         this.controllerUtils = controllerUtils;
+        this.authUtils = authUtils;
     }
 
     //SAVE
@@ -377,7 +380,7 @@ public class ResponseController {
         //TODO Get metadatas from database once devs are merged into main (VariableTypes collection)
         //TODO cf. PR #143
         //Try to look for DDI first, if no DDI found looks for lunatic components
-        //TODO Confirm this method
+        //TODO Confirm this method (DDI then lunatic)
         List<GenesisError> errors = new ArrayList<>();
         VariablesMap variablesMap = readMetadatas(campaignId, mode, errors, true);
         if(variablesMap == null){
@@ -404,19 +407,26 @@ public class ResponseController {
             );
         }
 
-        //TODO Fetch user identifier from OIDC token
-        String userIdentifier = "";
+        //Fetch user identifier from OIDC token
+        String userIdentifier = authUtils.getIDEP();
+
 
         //Create EDITED surveyUnitModel
-        SurveyUnitModel surveyUnitModel = surveyUnitService.parseEditedVariables(
-                campaignId,
-                mode,
-                idQuestionnaire,
-                idUE,
-                variables,
-                userIdentifier,
-                variablesMap
-        );
+        SurveyUnitModel surveyUnitModel;
+        try{
+            surveyUnitModel = surveyUnitService.parseEditedVariables(
+                    campaignId,
+                    mode,
+                    idQuestionnaire,
+                    idUE,
+                    variables,
+                    userIdentifier,
+                    variablesMap
+            );
+        }catch (GenesisException e){
+           return ResponseEntity.status(e.getStatus()).body(e.getMessage());
+        }
+
 
         //Check data with dataverifier (might create a FORCED document)
         List<SurveyUnitModel> surveyUnitModels = new ArrayList<>();
@@ -424,17 +434,8 @@ public class ResponseController {
         surveyUnitQualityService.verifySurveyUnits(surveyUnitModels, variablesMap);
 
         //Save documents
-        surveyUnitService.saveEditedVariables(surveyUnitModels);
+        surveyUnitService.saveSurveyUnits(surveyUnitModels);
         return ResponseEntity.ok(SUCCESS_MESSAGE);
-    }
-
-
-    @GetMapping(path = "/test")
-    public ResponseEntity<Object> test( //TODO REMOVE
-        @AuthenticationPrincipal OidcUser principal
-    ){
-        //TODO get IDEP Gestionnaire
-        return ResponseEntity.ok(principal.getUserInfo().getFullName());
     }
 
     //Utilities

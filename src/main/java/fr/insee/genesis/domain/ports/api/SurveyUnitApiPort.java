@@ -8,6 +8,7 @@ import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.controller.dto.QuestionnaireWithCampaign;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.controller.dto.SurveyUnitId;
+import fr.insee.genesis.exceptions.GenesisException;
 
 import java.util.List;
 import java.util.Set;
@@ -51,8 +52,11 @@ public interface SurveyUnitApiPort {
 
     List<QuestionnaireWithCampaign> findQuestionnairesWithCampaigns();
 
-    SurveyUnitModel parseEditedVariables(String campaignId, Mode mode, String idQuestionnaire, String idUE,
-                                         List<VariableDto> variables, String userIdentifier, VariablesMap variablesMap);
-
-    void saveEditedVariables(List<SurveyUnitModel> surveyUnitModels);
+    SurveyUnitModel parseEditedVariables(String campaignId,
+                                         Mode mode,
+                                         String idQuestionnaire,
+                                         String idUE,
+                                         List<VariableDto> variables,
+                                         String userIdentifier,
+                                         VariablesMap variablesMap) throws GenesisException;
 }
