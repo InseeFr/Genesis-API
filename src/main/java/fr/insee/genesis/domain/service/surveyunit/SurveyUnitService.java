@@ -1,15 +1,31 @@
 package fr.insee.genesis.domain.service.surveyunit;
 
-import fr.insee.genesis.controller.dto.*;
-import fr.insee.genesis.domain.model.surveyunit.*;
+import fr.insee.bpm.metadata.model.VariablesMap;
+import fr.insee.genesis.controller.dto.CampaignWithQuestionnaire;
+import fr.insee.genesis.controller.dto.QuestionnaireWithCampaign;
+import fr.insee.genesis.controller.dto.SurveyUnitDto;
+import fr.insee.genesis.controller.dto.SurveyUnitId;
+import fr.insee.genesis.controller.dto.VariableDto;
+import fr.insee.genesis.controller.dto.VariableStateDto;
+import fr.insee.genesis.domain.model.surveyunit.CollectedVariable;
+import fr.insee.genesis.domain.model.surveyunit.DataState;
+import fr.insee.genesis.domain.model.surveyunit.IdLoopTuple;
+import fr.insee.genesis.domain.model.surveyunit.Mode;
+import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
+import fr.insee.genesis.domain.model.surveyunit.Variable;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
+import fr.insee.genesis.domain.utils.LoopIdentifier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 
 @Service
@@ -216,6 +232,51 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         return questionnaireWithCampaignList;
     }
 
+    @Override
+    public SurveyUnitModel parseEditedVariables(
+            String campaignId,
+            Mode mode,
+            String idQuestionnaire,
+            String idUE,
+            List<VariableDto> variables,
+            String userIdentifier,
+            VariablesMap variablesMap
+    ) {
+        SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
+                .idCampaign(campaignId)
+                .mode(mode)
+                .idQuest(idQuestionnaire)
+                .idUE(idUE)
+                .state(DataState.EDITED)
+                .recordDate(LocalDateTime.now())
+                .collectedVariables(new ArrayList<>())
+                .externalVariables(new ArrayList<>())
+                .userIdentifier(userIdentifier)
+                .build();
+
+        for(VariableDto variableDto : variables){
+            CollectedVariable collectedVariable = CollectedVariable.collectedVariableBuilder()
+                    .idVar(variableDto.getVariableName())
+                    .values(new ArrayList<>())
+                    .idParent(LoopIdentifier.getRelatedVariableName(variableDto.getVariableName(), variablesMap))
+                    .idLoop(variableDto.getIdLoop())
+                    .build();
+
+            surveyUnitModel.getCollectedVariables().add(collectedVariable);
+        }
+
+        return surveyUnitModel;
+    }
+
+    @Override
+    public void saveEditedVariables(
+            List<SurveyUnitModel> surveyUnitModels
+    ){
+        //TODO Sauvegarde du nouveau document (éventuellement des nouveaux documents si type = forced)
+
+    }
+
+    //Utils
     private static List<Mode> getDistinctsModes(List<SurveyUnitModel> surveyUnitModels) {
         List<Mode> sources = new ArrayList<>();
         surveyUnitModels.forEach(surveyUnitDto -> sources.add(surveyUnitDto.getMode()));

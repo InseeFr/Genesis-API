@@ -10,6 +10,7 @@ import fr.insee.genesis.controller.adapter.LunaticXmlAdapter;
 import fr.insee.genesis.controller.dto.SurveyUnitDto;
 import fr.insee.genesis.controller.dto.SurveyUnitId;
 import fr.insee.genesis.controller.dto.SurveyUnitSimplified;
+import fr.insee.genesis.controller.dto.VariableDto;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlCampaign;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlDataParser;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlDataSequentialParser;
@@ -32,6 +33,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -358,6 +361,80 @@ public class ResponseController {
             });
         });
         return ResponseEntity.ok(results);
+    }
+
+    @Operation(summary = "Save edited variables",
+            description = "Save edited variables document into database")
+    @PostMapping(path = "/save-edited")
+    public ResponseEntity<Object> saveEditedVariables(
+            @RequestParam("campaignId") String campaignId,
+            @RequestParam("mode") Mode mode,
+            @RequestParam("idQuestionnaire") String idQuestionnaire,
+            @RequestParam("idUE") String idUE,
+            @RequestBody List<VariableDto> variables
+    ){
+        //Parse metadata
+        //TODO Get metadatas from database once devs are merged into main (VariableTypes collection)
+        //TODO cf. PR #143
+        //Try to look for DDI first, if no DDI found looks for lunatic components
+        //TODO Confirm this method
+        List<GenesisError> errors = new ArrayList<>();
+        VariablesMap variablesMap = readMetadatas(campaignId, mode, errors, true);
+        if(variablesMap == null){
+            log.warn("Can't find DDI, trying with lunatic...");
+            variablesMap = readMetadatas(campaignId, mode, errors, false);
+            if(variablesMap == null){
+                return ResponseEntity.status(404).body(errors.getLast().getMessage());
+            }
+        }
+
+        //Check if input edited variables are in metadatas
+        List<String> absentVariableNames = surveyUnitQualityService.checkVariablesPresentInMetadata(variables,
+                variablesMap);
+        if(!absentVariableNames.isEmpty()){
+            StringBuilder stringBuilder = new StringBuilder();
+            for(String absentVariableName : absentVariableNames){
+                stringBuilder.append(absentVariableName);
+                stringBuilder.append("\n");
+            }
+            return ResponseEntity.badRequest().body(
+                    "The following variables are absent in metadatas : %n%s".formatted(
+                        stringBuilder.toString()
+                    )
+            );
+        }
+
+        //TODO Fetch user identifier from OIDC token
+        String userIdentifier = "";
+
+        //Create EDITED surveyUnitModel
+        SurveyUnitModel surveyUnitModel = surveyUnitService.parseEditedVariables(
+                campaignId,
+                mode,
+                idQuestionnaire,
+                idUE,
+                variables,
+                userIdentifier,
+                variablesMap
+        );
+
+        //Check data with dataverifier (might create a FORCED document)
+        List<SurveyUnitModel> surveyUnitModels = new ArrayList<>();
+        surveyUnitModels.add(surveyUnitModel);
+        surveyUnitQualityService.verifySurveyUnits(surveyUnitModels, variablesMap);
+
+        //Save documents
+        surveyUnitService.saveEditedVariables(surveyUnitModels);
+        return ResponseEntity.ok(SUCCESS_MESSAGE);
+    }
+
+
+    @GetMapping(path = "/test")
+    public ResponseEntity<Object> test( //TODO REMOVE
+        @AuthenticationPrincipal OidcUser principal
+    ){
+        //TODO get IDEP Gestionnaire
+        return ResponseEntity.ok(principal.getUserInfo().getFullName());
     }
 
     //Utilities

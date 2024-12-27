@@ -1,7 +1,9 @@
 package fr.insee.genesis.domain.ports.api;
 
+import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.controller.dto.CampaignWithQuestionnaire;
 import fr.insee.genesis.controller.dto.SurveyUnitDto;
+import fr.insee.genesis.controller.dto.VariableDto;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.controller.dto.QuestionnaireWithCampaign;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
@@ -48,4 +50,9 @@ public interface SurveyUnitApiPort {
     List<CampaignWithQuestionnaire> findCampaignsWithQuestionnaires();
 
     List<QuestionnaireWithCampaign> findQuestionnairesWithCampaigns();
+
+    SurveyUnitModel parseEditedVariables(String campaignId, Mode mode, String idQuestionnaire, String idUE,
+                                         List<VariableDto> variables, String userIdentifier, VariablesMap variablesMap);
+
+    void saveEditedVariables(List<SurveyUnitModel> surveyUnitModels);
 }
