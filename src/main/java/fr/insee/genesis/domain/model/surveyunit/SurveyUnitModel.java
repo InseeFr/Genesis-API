@@ -29,7 +29,7 @@ public class SurveyUnitModel {
 	private List<CollectedVariable> collectedVariables;
 	private List<Variable> externalVariables;
 
-	private String userIdentifier;
+	private String modifiedBy;
 
 	public SurveyUnitModel(String idUE, Mode mode) {
 		this.idUE = idUE;

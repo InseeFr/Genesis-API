@@ -251,7 +251,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                 .recordDate(LocalDateTime.now())
                 .collectedVariables(new ArrayList<>())
                 .externalVariables(new ArrayList<>())
-                .userIdentifier(userIdentifier)
+                .modifiedBy(userIdentifier)
                 .build();
 
         //Keep only variable dtos who has at least one EDITED variableStateDto

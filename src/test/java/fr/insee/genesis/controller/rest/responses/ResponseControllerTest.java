@@ -444,7 +444,7 @@ class ResponseControllerTest {
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst().getValues()).hasSize(1);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst().getValues().getFirst()).isEqualTo(editedValue);
 
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getUserIdentifier()).isNull();
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getModifiedBy()).isNull();
     }
 
     @Test
@@ -518,7 +518,7 @@ class ResponseControllerTest {
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst().getIdParent()).isEqualTo(Constants.ROOT_GROUP_NAME);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst().getValues()).hasSize(1);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst().getValues().getFirst()).isEqualTo(editedValue);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getUserIdentifier()).isNull();
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getModifiedBy()).isNull();
 
         //FORCED document assertions
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getIdCampaign()).isEqualTo(campaignId);
@@ -535,7 +535,7 @@ class ResponseControllerTest {
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getCollectedVariables().getFirst().getIdParent()).isEqualTo(Constants.ROOT_GROUP_NAME);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getCollectedVariables().getFirst().getValues()).hasSize(1);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getCollectedVariables().getFirst().getValues().getFirst()).isNotNull().isEmpty();
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getUserIdentifier()).isNull();
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getModifiedBy()).isNull();
     }
     @Test
     void saveEditedTest_No_Metadata_Error() throws GenesisException {
