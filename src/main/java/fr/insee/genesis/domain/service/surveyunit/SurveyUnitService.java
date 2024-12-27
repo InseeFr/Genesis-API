@@ -41,8 +41,8 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     }
 
     @Override
-    public void saveSurveyUnits(List<SurveyUnitModel> suDtos) {
-        surveyUnitPersistencePort.saveAll(suDtos);
+    public void saveSurveyUnits(List<SurveyUnitModel> surveyUnitModels) {
+        surveyUnitPersistencePort.saveAll(surveyUnitModels);
     }
 
     @Override
@@ -238,8 +238,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             String campaignId,
             Mode mode,
             String idQuestionnaire,
-            String idUE,
-            List<VariableDto> variables,
+            SurveyUnitDto surveyUnitDto,
             String userIdentifier,
             VariablesMap variablesMap
     ) throws GenesisException {
@@ -247,7 +246,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                 .idCampaign(campaignId)
                 .mode(mode)
                 .idQuest(idQuestionnaire)
-                .idUE(idUE)
+                .idUE(surveyUnitDto.getSurveyUnitId())
                 .state(DataState.EDITED)
                 .recordDate(LocalDateTime.now())
                 .collectedVariables(new ArrayList<>())
@@ -256,18 +255,25 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                 .build();
 
         //Keep only variable dtos who has at least one EDITED variableStateDto
-        List<VariableDto> editedVariables = variables.stream().filter(
+        List<VariableDto> editedCollectedVariables = surveyUnitDto.getCollectedVariables().stream().filter(
+                variableDto -> !variableDto.getVariableStateDtoList().stream().filter(
+                        variableStateDto -> variableStateDto.getState().equals(DataState.EDITED)
+                ).toList().isEmpty()
+        ).toList();
+
+        List<VariableDto> editedExternalVariables = surveyUnitDto.getExternalVariables().stream().filter(
                 variableDto -> !variableDto.getVariableStateDtoList().stream().filter(
                         variableStateDto -> variableStateDto.getState().equals(DataState.EDITED)
                 ).toList().isEmpty()
         ).toList();
 
         //Error 400 bad request if no edited variable in list
-        if(editedVariables.isEmpty()){
+        if(editedCollectedVariables.isEmpty() && editedExternalVariables.isEmpty()){
             throw new GenesisException(400, "No EDITED variable in list");
         }
 
-        for(VariableDto editedVariableDto : editedVariables){
+        //Collected variables management
+        for(VariableDto editedVariableDto : editedCollectedVariables){
             CollectedVariable collectedVariable = CollectedVariable.collectedVariableBuilder()
                     .idVar(editedVariableDto.getVariableName())
                     .values(new ArrayList<>())
@@ -281,6 +287,19 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                     variableStateDto.getState().equals(DataState.EDITED)).toList().getFirst().getValue());
 
             surveyUnitModel.getCollectedVariables().add(collectedVariable);
+        }
+
+        //External variables management
+        for(VariableDto editedVariableDto : editedExternalVariables){
+            Variable externalVariable = Variable.builder()
+                    .idVar(editedVariableDto.getVariableName())
+                    .values(new ArrayList<>())
+                    .build();
+
+            externalVariable.getValues().add(editedVariableDto.getVariableStateDtoList().stream().filter(variableStateDto ->
+                    variableStateDto.getState().equals(DataState.EDITED)).toList().getFirst().getValue());
+
+            surveyUnitModel.getExternalVariables().add(externalVariable);
         }
 
         return surveyUnitModel;

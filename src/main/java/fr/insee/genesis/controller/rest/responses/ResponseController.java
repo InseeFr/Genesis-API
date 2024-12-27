@@ -373,8 +373,7 @@ public class ResponseController {
             @RequestParam("campaignId") String campaignId,
             @RequestParam("mode") Mode mode,
             @RequestParam("idQuestionnaire") String idQuestionnaire,
-            @RequestParam("idUE") String idUE,
-            @RequestBody List<VariableDto> variables
+            @RequestBody SurveyUnitDto surveyUnitDto
     ){
         //Parse metadata
         //TODO Get metadatas from database once devs are merged into main (VariableTypes collection)
@@ -392,11 +391,19 @@ public class ResponseController {
         }
 
         //Check if input edited variables are in metadatas
-        List<String> absentVariableNames = surveyUnitQualityService.checkVariablesPresentInMetadata(variables,
+        List<String> absentCollectedVariableNames =
+                surveyUnitQualityService.checkVariablesPresentInMetadata(surveyUnitDto.getCollectedVariables(),
                 variablesMap);
-        if(!absentVariableNames.isEmpty()){
+        List<String> absentExternalVariableNames =
+                surveyUnitQualityService.checkVariablesPresentInMetadata(surveyUnitDto.getExternalVariables(),
+                        variablesMap);
+        if(!absentCollectedVariableNames.isEmpty() || !absentExternalVariableNames.isEmpty()){
             StringBuilder stringBuilder = new StringBuilder();
-            for(String absentVariableName : absentVariableNames){
+            for(String absentVariableName : absentCollectedVariableNames){
+                stringBuilder.append(absentVariableName);
+                stringBuilder.append("\n");
+            }
+            for(String absentVariableName : absentExternalVariableNames){
                 stringBuilder.append(absentVariableName);
                 stringBuilder.append("\n");
             }
@@ -418,8 +425,7 @@ public class ResponseController {
                     campaignId,
                     mode,
                     idQuestionnaire,
-                    idUE,
-                    variables,
+                    surveyUnitDto,
                     userIdentifier,
                     variablesMap
             );

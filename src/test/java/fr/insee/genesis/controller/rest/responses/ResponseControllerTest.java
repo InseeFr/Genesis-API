@@ -412,14 +412,19 @@ class ResponseControllerTest {
 
         newVariables.add(variableDto);
 
+        SurveyUnitDto surveyUnitDto = SurveyUnitDto.builder()
+                .surveyUnitId(DEFAULT_ID_UE)
+                .collectedVariables(newVariables)
+                .externalVariables(new ArrayList<>())
+                .build();
+
 
         //WHEN
         responseControllerStatic.saveEditedVariables(
                 campaignId,
                 Mode.WEB,
                 idQuest,
-                DEFAULT_ID_UE,
-                newVariables
+                surveyUnitDto
         );
 
         //THEN
@@ -482,13 +487,18 @@ class ResponseControllerTest {
                 .build());
         newVariables.add(variableDto);
 
+        SurveyUnitDto surveyUnitDto = SurveyUnitDto.builder()
+                .surveyUnitId(DEFAULT_ID_UE)
+                .collectedVariables(newVariables)
+                .externalVariables(new ArrayList<>())
+                .build();
+
         //WHEN
         responseControllerStatic.saveEditedVariables(
                 campaignId,
                 Mode.WEB,
                 idQuest,
-                DEFAULT_ID_UE,
-                newVariables
+                surveyUnitDto
         );
 
         //THEN
@@ -551,12 +561,19 @@ class ResponseControllerTest {
                 .build());
         newVariables.add(variableDto);
 
-        Assertions.assertThat(responseControllerStatic.saveEditedVariables(
+        SurveyUnitDto surveyUnitDto = SurveyUnitDto.builder()
+                .surveyUnitId(DEFAULT_ID_UE)
+                .collectedVariables(newVariables)
+                .externalVariables(new ArrayList<>())
+                .build();
+
+        Assertions.assertThat(
+            responseControllerStatic.saveEditedVariables(
                 campaignId,
                 Mode.WEB,
                 DEFAULT_ID_QUEST,
-                DEFAULT_ID_UE,
-                newVariables).getStatusCode()
+                surveyUnitDto
+            ).getStatusCode()
         ).isEqualTo(HttpStatusCode.valueOf(404));
     }
 
@@ -583,12 +600,19 @@ class ResponseControllerTest {
                 .build());
         newVariables.add(variableDto);
 
-        Assertions.assertThat(responseControllerStatic.saveEditedVariables(
-                ID_CAMPAIGN_WITH_DDI,
-                Mode.WEB,
-                DEFAULT_ID_QUEST,
-                DEFAULT_ID_UE,
-                newVariables).getStatusCode()
+        SurveyUnitDto surveyUnitDto = SurveyUnitDto.builder()
+                .surveyUnitId(DEFAULT_ID_UE)
+                .collectedVariables(newVariables)
+                .externalVariables(new ArrayList<>())
+                .build();
+
+        Assertions.assertThat(
+                responseControllerStatic.saveEditedVariables(
+                    ID_CAMPAIGN_WITH_DDI,
+                    Mode.WEB,
+                    DEFAULT_ID_QUEST,
+                    surveyUnitDto
+                ).getStatusCode()
         ).isEqualTo(HttpStatusCode.valueOf(400));
     }
 }

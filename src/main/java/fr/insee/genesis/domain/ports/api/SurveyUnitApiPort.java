@@ -55,8 +55,7 @@ public interface SurveyUnitApiPort {
     SurveyUnitModel parseEditedVariables(String campaignId,
                                          Mode mode,
                                          String idQuestionnaire,
-                                         String idUE,
-                                         List<VariableDto> variables,
+                                         SurveyUnitDto surveyUnitDto,
                                          String userIdentifier,
                                          VariablesMap variablesMap) throws GenesisException;
 }
