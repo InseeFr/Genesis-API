@@ -235,7 +235,7 @@ public class ResponseController {
             @RequestParam("questionnaireId") String questionnaireId,
             @RequestBody List<String> idUEList
     ){
-        log.info("Try to get process raw JSON datas for campaign {} and {} idUEs", campaignName, idUEList.size());
+        log.info("Try to process raw JSON datas for campaign {} and {} idUEs", campaignName, idUEList.size());
 
         int dataCount = 0;
         List<GenesisError> errors = new ArrayList<>();

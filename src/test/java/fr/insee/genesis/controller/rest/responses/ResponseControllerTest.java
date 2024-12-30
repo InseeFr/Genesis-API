@@ -20,7 +20,6 @@ import fr.insee.genesis.domain.service.rawdata.LunaticXmlRawDataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.domain.service.variabletype.VariableTypeService;
-import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.document.rawdata.LunaticJsonDataDocument;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
@@ -219,8 +218,8 @@ class ResponseControllerTest {
 
         //THEN
         Assertions.assertThat(dtos).isNotNull().isNotEmpty().hasSize(1);
-        Assertions.assertThat(dtos.getFirst().getCampaignId()).isEqualTo(campaignId);
-        Assertions.assertThat(dtos.getFirst().getIdUE()).isEqualTo(idUE);
+        Assertions.assertThat(dtos.getFirst().campaignId()).isEqualTo(campaignId);
+        Assertions.assertThat(dtos.getFirst().idUE()).isEqualTo(idUE);
     }
 
     @Test
@@ -241,7 +240,7 @@ class ResponseControllerTest {
     //raw data process
     //json
     @Test
-    void processJsonRawDataTest() throws GenesisException {
+    void processJsonRawDataTest() {
         //GIVEN
         lunaticJsonPersistanceStub.getMongoStub().clear();
         surveyUnitPersistencePortStub.getMongoStub().clear();

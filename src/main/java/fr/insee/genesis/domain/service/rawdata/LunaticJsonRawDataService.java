@@ -16,6 +16,7 @@ import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.spi.LunaticJsonPersistancePort;
 import fr.insee.genesis.domain.utils.LoopIdentifier;
 import fr.insee.genesis.infrastructure.document.rawdata.LunaticJsonDataDocument;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,7 @@ import java.util.List;
 import java.util.Set;
 
 @Service
+@Slf4j
 public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     @Qualifier("lunaticJsonMongoAdapter")
     private final LunaticJsonPersistancePort lunaticJsonPersistancePort;
@@ -97,9 +99,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
                 CollectedVariable collectedVariable = CollectedVariable.collectedVariableBuilder()
                         .idVar(variableName)
                         .values(new ArrayList<>())
-                        .idLoop(variablesMap.getVariable(variableName) == null ?
-                                Constants.ROOT_GROUP_NAME : //TODO What do we do if null ? Exception ?
-                                variablesMap.getVariable(variableName).getGroupName())
+                        .idLoop(getIdLoop(variablesMap, variableName))
                         .idParent(LoopIdentifier.getRelatedVariableName(variableName, variablesMap))
                         .build();
 
@@ -111,6 +111,14 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
         }
 
         return surveyUnitModels;
+    }
+
+    private static String getIdLoop(VariablesMap variablesMap, String variableName) {
+        if (variablesMap.getVariable(variableName) == null){
+            log.warn("Variable {} not present in metadatas, assigning to {}", variableName, Constants.ROOT_GROUP_NAME);
+            return Constants.ROOT_GROUP_NAME;
+        }
+        return variablesMap.getVariable(variableName).getGroupName();
     }
 
     @Override

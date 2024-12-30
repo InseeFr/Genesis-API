@@ -29,7 +29,7 @@ public class VariableTypeMongoAdapter implements VariableTypePersistancePort {
     @Override
     public void save(VariableTypeModel variableTypeModel) {
         mongoTemplate.update(VariableTypeDocument.class)
-                .matching(Query.query(Criteria.where("campaignId").is(variableTypeModel.getCampaignId())))
+                .matching(Query.query(Criteria.where("campaignId").is(variableTypeModel.campaignId())))
                 .replaceWith(VariableTypeDocumentMapper.INSTANCE.modelToDocument(variableTypeModel))
                 .withOptions(FindAndReplaceOptions.options().upsert())
                 .findAndReplace();

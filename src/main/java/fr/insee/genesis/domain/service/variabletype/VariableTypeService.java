@@ -33,7 +33,7 @@ public class VariableTypeService implements VariableTypeApiPort {
 
         for(String variableName : variablesMap.getVariables().keySet()){
             Variable bpmVariable = variablesMap.getVariable(variableName);
-            variableTypeModel.getVariables().put(variableName,bpmVariable.getType());
+            variableTypeModel.variables().put(variableName,bpmVariable.getType());
         }
 
         variableTypePersistancePort.save(variableTypeModel);
