@@ -282,8 +282,9 @@ class ResponseControllerTest {
         Assertions.assertThat(variableTypePersistanceStub.getMongoStub().getFirst().getCampaignId()).isEqualTo(campaignId);
         Assertions.assertThat(variableTypePersistanceStub.getMongoStub().getFirst().getQuestionnaireId()).isEqualTo(idQuest);
         Assertions.assertThat(variableTypePersistanceStub.getMongoStub().getFirst().getMode()).isEqualTo(Mode.WEB);
-        Assertions.assertThat(variableTypePersistanceStub.getMongoStub().getFirst().getVariables()).isNotNull().isNotEmpty().containsKey(varName);
-        Assertions.assertThat(variableTypePersistanceStub.getMongoStub().getFirst().getVariables().get(varName)).isEqualTo(VariableType.STRING);
+        Assertions.assertThat(variableTypePersistanceStub.getMongoStub().getFirst().getVariablesMap()).isNotNull();
+        Assertions.assertThat(variableTypePersistanceStub.getMongoStub().getFirst().getVariablesMap().getVariables()).isNotNull().isNotEmpty().containsKey(varName);
+        Assertions.assertThat(variableTypePersistanceStub.getMongoStub().getFirst().getVariablesMap().getVariables().get(varName).getType()).isEqualTo(VariableType.STRING);
     }
 
     //All data

@@ -10,8 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import java.util.LinkedHashMap;
-
 @Service
 public class VariableTypeService implements VariableTypeApiPort {
     @Qualifier("variableTypeMongoAdapter")
@@ -28,12 +26,12 @@ public class VariableTypeService implements VariableTypeApiPort {
                 .campaignId(campaignId)
                 .questionnaireId(questionnaireId)
                 .mode(mode)
-                .variables(new LinkedHashMap<>())
+                .variablesMap(new VariablesMap())
                 .build();
 
         for(String variableName : variablesMap.getVariables().keySet()){
             Variable bpmVariable = variablesMap.getVariable(variableName);
-            variableTypeModel.variables().put(variableName,bpmVariable.getType());
+            variableTypeModel.variablesMap().putVariable(bpmVariable);
         }
 
         variableTypePersistancePort.save(variableTypeModel);
