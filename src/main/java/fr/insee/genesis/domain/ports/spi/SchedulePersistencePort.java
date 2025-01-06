@@ -16,5 +16,5 @@ public interface SchedulePersistencePort {
 
     long countSchedules();
 
-    public List<KraftwerkExecutionSchedule> removeExpiredSchedules(ScheduleModel scheduleModel);
+    List<KraftwerkExecutionSchedule> removeExpiredSchedules(ScheduleModel scheduleModel);
 }
