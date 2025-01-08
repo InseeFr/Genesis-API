@@ -86,10 +86,10 @@ public class DataVerifier {
 
         for(CollectedVariable correctedCollectedVariable : correctedCollectedVariables){
             newForcedSuDto.getCollectedVariables().add(
-                    new CollectedVariable(correctedCollectedVariable.getIdVar(),
+                    new CollectedVariable(correctedCollectedVariable.getVarId(),
                             correctedCollectedVariable.getValues()
-                            ,correctedCollectedVariable.getIdLoop()
-                            ,correctedCollectedVariable.getIdParent()
+                            ,correctedCollectedVariable.getLoopId()
+                            ,correctedCollectedVariable.getParentId()
                     )
             );
         }
@@ -97,7 +97,7 @@ public class DataVerifier {
         for(Variable correctedExternalVariable : correctedExternalVariables){
             newForcedSuDto.getExternalVariables().add(
                     Variable.builder()
-                            .idVar(correctedExternalVariable.getIdVar())
+                            .varId(correctedExternalVariable.getVarId())
                             .values(correctedExternalVariable.getValues())
                             .build()
             );
@@ -136,8 +136,8 @@ public class DataVerifier {
         //Get more priority variables to verify
         for(SurveyUnitModel srcSuDto : sortedSuDtos){
             for(CollectedVariable collectedVariable : srcSuDto.getCollectedVariables()){
-                if(!variableNames.contains(collectedVariable.getIdVar())){
-                    variableNames.add(collectedVariable.getIdVar());
+                if(!variableNames.contains(collectedVariable.getVarId())){
+                    variableNames.add(collectedVariable.getVarId());
                     variablesToVerify.add(collectedVariable);
                 }
             }
@@ -145,11 +145,11 @@ public class DataVerifier {
 
         //Verify variables
         for(CollectedVariable collectedVariableToVerify : variablesToVerify){
-            if(variablesMap.hasVariable(collectedVariableToVerify.getIdVar()))
+            if(variablesMap.hasVariable(collectedVariableToVerify.getVarId()))
             {
                 CollectedVariable correctedCollectedVariable = verifyCollectedVariable(
                         collectedVariableToVerify,
-                        variablesMap.getVariable(collectedVariableToVerify.getIdVar())
+                        variablesMap.getVariable(collectedVariableToVerify.getVarId())
                 );
 
                 if(correctedCollectedVariable != null){
@@ -173,10 +173,10 @@ public class DataVerifier {
         }
 
         return isInvalid ? new CollectedVariable(
-                collectedVariable.getIdVar(),
+                collectedVariable.getVarId(),
                 newValues,
-                collectedVariable.getIdLoop(),
-                collectedVariable.getIdParent()
+                collectedVariable.getLoopId(),
+                collectedVariable.getParentId()
                 ) : null;
     }
 
@@ -189,10 +189,10 @@ public class DataVerifier {
         //Verify variables
         if(collectedSuDtoOpt.isPresent()){
             for(Variable variable: collectedSuDtoOpt.get().getExternalVariables()){
-                if(variablesMap.hasVariable(variable.getIdVar())) {
+                if(variablesMap.hasVariable(variable.getVarId())) {
                     Variable correctedExternalVariable = verifyExternalVariable(
                             variable,
-                            variablesMap.getVariable(variable.getIdVar())
+                            variablesMap.getVariable(variable.getVarId())
                     );
                     if (correctedExternalVariable != null) {
                         correctedExternalVariables.add(correctedExternalVariable);
@@ -222,7 +222,7 @@ public class DataVerifier {
         }
 
         return isInvalid ? Variable.builder()
-                .idVar(externalVariable.getIdVar())
+                .varId(externalVariable.getVarId())
                 .values(newValues)
                 .build() : null;
     }

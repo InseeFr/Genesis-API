@@ -13,7 +13,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
 import java.time.Month;
@@ -44,7 +43,7 @@ class SurveyUnitServiceTest {
     void reset(){
         surveyUnitPersistencePortStub.getMongoStub().clear();
         List<Variable> externalVariableList = new ArrayList<>();
-        Variable variable = Variable.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
+        Variable variable = Variable.builder().varId("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
         externalVariableList.add(variable);
 
         List<CollectedVariable> collectedVariableList = new ArrayList<>();
@@ -70,7 +69,7 @@ class SurveyUnitServiceTest {
         List<SurveyUnitModel> newSurveyUnitModelList = new ArrayList<>();
 
         List<Variable> externalVariableList = new ArrayList<>();
-        Variable variable = Variable.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
+        Variable variable = Variable.builder().varId("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
         externalVariableList.add(variable);
 
         List<CollectedVariable> collectedVariableList = new ArrayList<>();
@@ -102,11 +101,11 @@ class SurveyUnitServiceTest {
                 && surveyUnitDto.getFileDate().equals(LocalDateTime.of(2023,1,1,0,0,0))
                 && surveyUnitDto.getRecordDate().equals(LocalDateTime.of(2024,1,1,0,0,0))
                 && !surveyUnitDto.getExternalVariables().stream().filter(
-                        externalVariable -> externalVariable.getIdVar().equals("TESTIDVAR")
+                        externalVariable -> externalVariable.getVarId().equals("TESTIDVAR")
                         && externalVariable.getValues().containsAll(List.of(new String[]{"V1", "V2"}))
                 ).toList().isEmpty()
                         && !surveyUnitDto.getCollectedVariables().stream().filter(
-                        collectedVariable -> collectedVariable.getIdVar().equals("TESTIDVAR")
+                        collectedVariable -> collectedVariable.getVarId().equals("TESTIDVAR")
                                 && collectedVariable.getValues().containsAll(List.of(new String[]{"V1", "V2"}))
                 ).toList().isEmpty()
                 ).isNotEmpty();
@@ -415,7 +414,7 @@ class SurveyUnitServiceTest {
 
     private void addAdditionnalDtoToMongoStub(){
         List<Variable> externalVariableList = new ArrayList<>();
-        Variable variable = Variable.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
+        Variable variable = Variable.builder().varId("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
         externalVariableList.add(variable);
 
         List<CollectedVariable> collectedVariableList = new ArrayList<>();
@@ -438,7 +437,7 @@ class SurveyUnitServiceTest {
 
     private void addAdditionnalDtoToMongoStub(String idQuestionnaire) {
         List<Variable> externalVariableList = new ArrayList<>();
-        Variable variable = Variable.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
+        Variable variable = Variable.builder().varId("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
         externalVariableList.add(variable);
 
         List<CollectedVariable> collectedVariableList = new ArrayList<>();
@@ -465,7 +464,7 @@ class SurveyUnitServiceTest {
                                                          LocalDateTime fileDate,
                                                          LocalDateTime recordDate) {
         List<Variable> externalVariableList = new ArrayList<>();
-        Variable variable = Variable.builder().idVar("TESTIDVAR").values(List.of(new String[]{externalVariableValue})).build();
+        Variable variable = Variable.builder().varId("TESTIDVAR").values(List.of(new String[]{externalVariableValue})).build();
         externalVariableList.add(variable);
 
         List<CollectedVariable> collectedVariableList = new ArrayList<>();

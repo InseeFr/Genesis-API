@@ -74,25 +74,25 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             if(latestUpdate.getExternalVariables() == null){
                 latestUpdate.setExternalVariables(new ArrayList<>());
             }
-            latestUpdate.getCollectedVariables().forEach(colVar -> addedVariables.add(new IdLoopTuple(colVar.getIdVar(), colVar.getIdLoop())));
-            latestUpdate.getExternalVariables().forEach(extVar -> addedVariables.add(new IdLoopTuple(extVar.getIdVar(), "")));
+            latestUpdate.getCollectedVariables().forEach(colVar -> addedVariables.add(new IdLoopTuple(colVar.getVarId(), colVar.getLoopId())));
+            latestUpdate.getExternalVariables().forEach(extVar -> addedVariables.add(new IdLoopTuple(extVar.getVarId(), "")));
 
             suByMode.forEach(surveyUnitModel -> {
                 List<CollectedVariable> variablesToKeep = new ArrayList<>();
                 List<Variable> externalToKeep = new ArrayList<>();
                 // We iterate over the variables of the update and add them to the list if they are not already added
                 surveyUnitModel.getCollectedVariables().stream()
-                        .filter(colVar -> !addedVariables.contains(new IdLoopTuple(colVar.getIdVar(), colVar.getIdLoop())))
+                        .filter(colVar -> !addedVariables.contains(new IdLoopTuple(colVar.getVarId(), colVar.getLoopId())))
                         .forEach(colVar -> {
                            variablesToKeep.add(colVar);
-                           addedVariables.add(new IdLoopTuple(colVar.getIdVar(), colVar.getIdLoop()));
+                           addedVariables.add(new IdLoopTuple(colVar.getVarId(), colVar.getLoopId()));
                         });
                 if (surveyUnitModel.getExternalVariables() != null){
                     surveyUnitModel.getExternalVariables().stream()
-                         .filter(extVar -> !addedVariables.contains(new IdLoopTuple(extVar.getIdVar(), "")))
+                         .filter(extVar -> !addedVariables.contains(new IdLoopTuple(extVar.getVarId(), "")))
                          .forEach(extVar -> {
                             externalToKeep.add(extVar);
-                            addedVariables.add(new IdLoopTuple(extVar.getIdVar(), ""));
+                            addedVariables.add(new IdLoopTuple(extVar.getVarId(), ""));
                          });
                 }
 
@@ -236,14 +236,14 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             surveyUnitModel.setCollectedVariables(new ArrayList<>());
         }
         for (CollectedVariable collectedVariable : surveyUnitModel.getCollectedVariables()) {
-            IdLoopTuple idLoopTuple = new IdLoopTuple(collectedVariable.getIdVar(), collectedVariable.getIdLoop());
+            IdLoopTuple idLoopTuple = new IdLoopTuple(collectedVariable.getVarId(), collectedVariable.getLoopId());
             VariableDto variableDto = collectedVariableMap.get(idLoopTuple);
 
             //Create variable into map if not exists
             if (variableDto == null) {
                 variableDto = VariableDto.builder()
-                        .variableName(collectedVariable.getIdVar())
-                        .idLoop(collectedVariable.getIdLoop())
+                        .variableName(collectedVariable.getVarId())
+                        .idLoop(collectedVariable.getLoopId())
                         .variableStateDtoList(new ArrayList<>())
                         .build();
                 collectedVariableMap.put(idLoopTuple, variableDto);
@@ -265,15 +265,15 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             surveyUnitModel.setExternalVariables(new ArrayList<>());
         }
         for(Variable externalVariable : surveyUnitModel.getExternalVariables()){
-            VariableDto variableDto = externalVariableMap.get(externalVariable.getIdVar());
+            VariableDto variableDto = externalVariableMap.get(externalVariable.getVarId());
 
             //Create variable into map if not exists
             if(variableDto == null){
                 variableDto = VariableDto.builder()
-                        .variableName(externalVariable.getIdVar())
+                        .variableName(externalVariable.getVarId())
                         .variableStateDtoList(new ArrayList<>())
                         .build();
-                externalVariableMap.put(externalVariable.getIdVar(), variableDto);
+                externalVariableMap.put(externalVariable.getVarId(), variableDto);
             }
             //Extract variable state
             if(!externalVariable.getValues().isEmpty() && isMostRecentForSameState(surveyUnitModel, variableDto)){

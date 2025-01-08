@@ -161,10 +161,10 @@ public class MainDefinitions {
 
         //Get Variable
         Assertions.assertThat(concernedDto.getCollectedVariables()).filteredOn(collectedVariableDto ->
-                collectedVariableDto.getIdVar().equals(variableName)).isNotEmpty();
+                collectedVariableDto.getVarId().equals(variableName)).isNotEmpty();
 
         Optional<CollectedVariable> concernedVariableOptional = concernedDto.getCollectedVariables().stream().filter(variable ->
-                variable.getIdVar().equals(variableName)
+                variable.getVarId().equals(variableName)
         ).findFirst();
 
         Assertions.assertThat(concernedVariableOptional).isPresent();
@@ -196,10 +196,10 @@ public class MainDefinitions {
 
         //Get Variable
         Assertions.assertThat(concernedDto.getExternalVariables()).filteredOn(variableDto ->
-                variableDto.getIdVar().equals(externalVariableName)).isNotEmpty();
+                variableDto.getVarId().equals(externalVariableName)).isNotEmpty();
 
         Optional<Variable> concernedVariableOptional = concernedDto.getExternalVariables().stream().filter(variable ->
-                variable.getIdVar().equals(externalVariableName)
+                variable.getVarId().equals(externalVariableName)
         ).findFirst();
 
         Assertions.assertThat(concernedVariableOptional).isPresent();
@@ -230,10 +230,10 @@ public class MainDefinitions {
 
         //Get Variable
         Assertions.assertThat(concernedDto.getExternalVariables()).filteredOn(variableDto ->
-                variableDto.getIdVar().equals(externalVariableName)).isNotEmpty();
+                variableDto.getVarId().equals(externalVariableName)).isNotEmpty();
 
         Optional<Variable> concernedVariableOptional = concernedDto.getExternalVariables().stream().filter(variable ->
-                variable.getIdVar().equals(externalVariableName)
+                variable.getVarId().equals(externalVariableName)
         ).findFirst();
 
         Assertions.assertThat(concernedVariableOptional).isPresent();

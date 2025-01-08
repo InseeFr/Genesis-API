@@ -12,9 +12,9 @@ class CollectedVariableTest {
     @Test
     void toJSONTest() throws JsonProcessingException {
         CollectedVariable collectedVariable = CollectedVariable.collectedVariableBuilder()
-                .idVar("TESTIDVAR")
-                .idParent("TESTIDPARENT")
-                .idLoop("TESTIDLOOP")
+                .varId("TESTIDVAR")
+                .parentId("TESTIDPARENT")
+                .loopId("TESTIDLOOP")
                 .values(new ArrayList<>(List.of(new String[]{"V1", "V2"})))
                 .build();
 
@@ -22,7 +22,7 @@ class CollectedVariableTest {
         objectMapper.findAndRegisterModules();
 
         Assertions.assertEquals(objectMapper.readTree(objectMapper.writeValueAsString(collectedVariable)),
-                objectMapper.readTree("{\"values\":[\"V1\",\"V2\"],\"idVar\":\"TESTIDVAR\",\"idLoop\":\"TESTIDLOOP\",\"idParent\":\"TESTIDPARENT\"}"));
+                objectMapper.readTree("{\"values\":[\"V1\",\"V2\"],\"varId\":\"TESTIDVAR\",\"loopId\":\"TESTIDLOOP\",\"parentId\":\"TESTIDPARENT\"}"));
 
     }
 }

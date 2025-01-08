@@ -87,7 +87,7 @@ class DataVerifierTest {
     void shouldAddForcedSurveyUnit_WhenInvalidExternalVariable() {
 
         //Add surveyUnit with invalid external Variable
-        fr.insee.genesis.domain.model.surveyunit.Variable extVar = fr.insee.genesis.domain.model.surveyunit.Variable.builder().idVar("var2").values(List.of("notBoolean")).build();
+        fr.insee.genesis.domain.model.surveyunit.Variable extVar = fr.insee.genesis.domain.model.surveyunit.Variable.builder().varId("var2").values(List.of("notBoolean")).build();
         List<fr.insee.genesis.domain.model.surveyunit.Variable> listVarExt = new ArrayList<>();
         listVarExt.add(extVar);
 

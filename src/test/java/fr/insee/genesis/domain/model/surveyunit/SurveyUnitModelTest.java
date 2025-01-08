@@ -13,7 +13,7 @@ public class SurveyUnitModelTest {
     @Test
     public void toJSONTest() throws JsonProcessingException {
         List<Variable> externalVariableList = new ArrayList<>();
-        Variable variable = Variable.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
+        Variable variable = Variable.builder().varId("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
         externalVariableList.add(variable);
 
         List<CollectedVariable> collectedVariableList = new ArrayList<>();
@@ -37,7 +37,7 @@ public class SurveyUnitModelTest {
         objectMapper.findAndRegisterModules();
 
         Assertions.assertEquals(
-                objectMapper.readTree("{\"questionnaireId\":\"TESTIDQUEST\",\"campaignId\":\"TESTIDCAMPAIGN\",\"interrogationId\":\"TESTIDUE\",\"state\":\"COLLECTED\",\"mode\":\"WEB\",\"recordDate\":\"2000-01-01T12:00\",\"fileDate\":\"2000-01-01T12:00\",\"collectedVariables\":[{\"idVar\":\"TESTIDVAR\",\"values\":[\"V1\",\"V2\"],\"idLoop\":\"TESTIDLOOP\",\"idParent\":\"TESTIDPARENT\"}],\"externalVariables\":[{\"varId\":\"TESTIDVAR\",\"values\":[\"V1\",\"V2\"]}]}"),
+                objectMapper.readTree("{\"questionnaireId\":\"TESTIDQUEST\",\"campaignId\":\"TESTIDCAMPAIGN\",\"interrogationId\":\"TESTIDUE\",\"state\":\"COLLECTED\",\"mode\":\"WEB\",\"recordDate\":\"2000-01-01T12:00\",\"fileDate\":\"2000-01-01T12:00\",\"collectedVariables\":[{\"varId\":\"TESTIDVAR\",\"values\":[\"V1\",\"V2\"],\"loopId\":\"TESTIDLOOP\",\"parentId\":\"TESTIDPARENT\"}],\"externalVariables\":[{\"varId\":\"TESTIDVAR\",\"values\":[\"V1\",\"V2\"]}]}"),
                 objectMapper.readTree(objectMapper.writeValueAsString(surveyUnitModel))
         );
     }

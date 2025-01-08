@@ -122,10 +122,10 @@ public class LunaticXmlAdapter {
                     if (valueTypeList.get(i-1).getValue()!=null) {
                         variableValues.add(valueTypeList.get(i-1).getValue());
                         variablesUpdate.add(CollectedVariable.collectedVariableBuilder()
-                                .idVar(lunaticXmlCollectedData.getVariableName())
+                                .varId(lunaticXmlCollectedData.getVariableName())
                                 .values(variableValues)
-                                .idLoop(LoopIdentifier.getLoopIdentifier(lunaticXmlCollectedData.getVariableName(), variablesMap, i))
-                                .idParent(LoopIdentifier.getRelatedVariableName(lunaticXmlCollectedData.getVariableName(), variablesMap))
+                                .loopId(LoopIdentifier.getLoopIdentifier(lunaticXmlCollectedData.getVariableName(), variablesMap, i))
+                                .parentId(LoopIdentifier.getRelatedVariableName(lunaticXmlCollectedData.getVariableName(), variablesMap))
                                 .build());
                         dataCount++;
                     }
@@ -152,7 +152,7 @@ public class LunaticXmlAdapter {
         List<Variable> externalVariables = new ArrayList<>();
         su.getData().getExternal().forEach(lunaticXmlExternalData ->
                 externalVariables.add(Variable.builder()
-                        .idVar(lunaticXmlExternalData.getVariableName())
+                        .varId(lunaticXmlExternalData.getVariableName())
                         .values(getValuesFromValueTypeList(lunaticXmlExternalData.getValues()))
                         .build())
         );
