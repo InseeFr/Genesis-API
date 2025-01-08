@@ -421,7 +421,7 @@ public class ResponseController {
             if(isDataFileInDoneFolder(filepath, campaignName, mode.getFolder())){
                 log.warn("File {} already exists in DONE folder ! Deleting...", fileName);
                 Files.deleteIfExists(filepath);
-                return;
+                continue; //Go to next file
             }
             //Read file
             log.info("Try to read Xml file : {}", fileName);
@@ -432,11 +432,13 @@ public class ResponseController {
                 response = processXmlFileSequentially(filepath, mode, variablesMap);
             }
             log.debug("File {} saved", fileName);
-            if(response.getStatusCode() == HttpStatus.OK){
-                fileUtils.moveDataFile(campaignName, mode.getFolder(), filepath);
-                return;
+            if (response.getStatusCode() == HttpStatus.OK) {
+                fileUtils.moveDataFile(campaignName, mode.getFolder(),
+                        filepath);
+                //Sonar is annoying when there is more than 1 continue
+            } else {
+                log.error("Error {} on file {} : {}", response.getStatusCode(), fileName,  response.getBody());
             }
-            log.error("Error on file {}", fileName);
         }
     }
 
