@@ -42,6 +42,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public class MainDefinitions {
@@ -149,20 +150,20 @@ public class MainDefinitions {
                         && surveyUnitDto.getIdUE().equals(surveyUnitId)
         ).isNotEmpty();
 
-        Optional<SurveyUnitModel> concernedDtoOptional = this.surveyUnitModels.stream().filter(dto ->
+        Optional<SurveyUnitModel> concernedSurveyUnitModelOptional = this.surveyUnitModels.stream().filter(dto ->
                 dto.getState().toString().equals(dataState)
                 && dto.getIdUE().equals(surveyUnitId)
         ).findFirst();
 
-        Assertions.assertThat(concernedDtoOptional).isPresent();
+        Assertions.assertThat(concernedSurveyUnitModelOptional).isPresent();
 
-        SurveyUnitModel concernedDto = concernedDtoOptional.get();
+        SurveyUnitModel concernedSurveyUnitModel = concernedSurveyUnitModelOptional.get();
 
         //Get Variable
-        Assertions.assertThat(concernedDto.getCollectedVariables()).filteredOn(collectedVariableDto ->
-                collectedVariableDto.idVar().equals(variableName)).isNotEmpty();
+        Assertions.assertThat(concernedSurveyUnitModel.getCollectedVariables()).filteredOn(collectedvariableModel ->
+                collectedvariableModel.idVar().equals(variableName)).isNotEmpty();
 
-        Optional<VariableModel> concernedCollectedVariableOptional = concernedDto.getCollectedVariables().stream().filter(variable ->
+        Optional<VariableModel> concernedCollectedVariableOptional = concernedSurveyUnitModel.getCollectedVariables().stream().filter(variable ->
                 variable.idVar().equals(variableName)
         ).findFirst();
 
@@ -184,20 +185,20 @@ public class MainDefinitions {
                         && surveyUnitDto.getIdUE().equals(surveyUnitId)
         ).isNotEmpty();
 
-        Optional<SurveyUnitModel> concernedDtoOptional = this.surveyUnitModels.stream().filter(dto ->
+        Optional<SurveyUnitModel> concernedSurveyUnitModelOptional = this.surveyUnitModels.stream().filter(dto ->
                 dto.getState().equals(DataState.COLLECTED)
                         && dto.getIdUE().equals(surveyUnitId)
         ).findFirst();
 
-        Assertions.assertThat(concernedDtoOptional).isPresent();
+        Assertions.assertThat(concernedSurveyUnitModelOptional).isPresent();
 
-        SurveyUnitModel concernedDto = concernedDtoOptional.get();
+        SurveyUnitModel concernedSurveyUnitModel = concernedSurveyUnitModelOptional.get();
 
         //Get Variable
-        Assertions.assertThat(concernedDto.getExternalVariables()).filteredOn(variableDto ->
-                variableDto.idVar().equals(externalVariableName)).isNotEmpty();
+        Assertions.assertThat(concernedSurveyUnitModel.getExternalVariables()).filteredOn(variableModel ->
+                variableModel.idVar().equals(externalVariableName)).isNotEmpty();
 
-        Optional<VariableModel> concernedVariableOptional = concernedDto.getExternalVariables().stream().filter(variable ->
+        Optional<VariableModel> concernedVariableOptional = concernedSurveyUnitModel.getExternalVariables().stream().filter(variable ->
                 variable.idVar().equals(externalVariableName)
         ).findFirst();
 
@@ -212,26 +213,26 @@ public class MainDefinitions {
 
     @Then("For external variable {string} in survey unit {string} we should have {string} as value number {int}")
     public void external_variable_content_check(String externalVariableName, String surveyUnitId, String expectedValue, int expectedValueIndex) {
-        //Get DTO
+        //Get SurveyUnitModel
         Assertions.assertThat(this.surveyUnitModels).filteredOn(surveyUnitDto ->
                 surveyUnitDto.getState().equals(DataState.COLLECTED)
                         && surveyUnitDto.getIdUE().equals(surveyUnitId)
         ).isNotEmpty();
 
-        Optional<SurveyUnitModel> concernedDtoOptional = this.surveyUnitModels.stream().filter(dto ->
+        Optional<SurveyUnitModel> concernedSurveyUnitModelOptional = this.surveyUnitModels.stream().filter(dto ->
                 dto.getState().equals(DataState.COLLECTED)
                         && dto.getIdUE().equals(surveyUnitId)
         ).findFirst();
 
-        Assertions.assertThat(concernedDtoOptional).isPresent();
+        Assertions.assertThat(concernedSurveyUnitModelOptional).isPresent();
 
-        SurveyUnitModel concernedDto = concernedDtoOptional.get();
+        SurveyUnitModel concernedSurveyUnitModel = concernedSurveyUnitModelOptional.get();
 
         //Get Variable
-        Assertions.assertThat(concernedDto.getExternalVariables()).filteredOn(variableDto ->
-                variableDto.idVar().equals(externalVariableName)).isNotEmpty();
+        Assertions.assertThat(concernedSurveyUnitModel.getExternalVariables()).filteredOn(variableModel ->
+                variableModel.idVar().equals(externalVariableName)).isNotEmpty();
 
-        Optional<VariableModel> concernedExternalVariableOptional = concernedDto.getExternalVariables().stream().filter(variable ->
+        Optional<VariableModel> concernedExternalVariableOptional = concernedSurveyUnitModel.getExternalVariables().stream().filter(variable ->
                 variable.idVar().equals(externalVariableName)
         ).findFirst();
 
@@ -242,6 +243,38 @@ public class MainDefinitions {
         //Value content assertion
         Assertions.assertThat(concernedExternalVariable.values()).hasSizeGreaterThan(expectedValueIndex);
         Assertions.assertThat(concernedExternalVariable.values().get(expectedValueIndex)).isEqualTo(expectedValue);
+    }
+
+    @Then("For external variable {string} in survey unit {string} we should have {string} as idLoop and {string} as first " +
+            "value")
+    public void check_idLoop_and_value(String externalVariableName, String interrogationId, String expectedIdLoop,
+                             String expectedValue) {
+        //Get SurveyUnitModel
+        Assertions.assertThat(surveyUnitPersistence.getMongoStub()).filteredOn(surveyUnitDto ->
+                surveyUnitDto.getState().equals(DataState.COLLECTED)
+                        && surveyUnitDto.getIdUE().equals(interrogationId)
+        ).isNotEmpty().hasSize(1);
+
+        SurveyUnitModel surveyUnitModel = surveyUnitPersistence.getMongoStub().stream().filter(dto ->
+                dto.getState().equals(DataState.COLLECTED)
+                        && dto.getIdUE().equals(interrogationId)
+        ).toList().getFirst();
+
+        //Get Variable
+        Assertions.assertThat(surveyUnitModel.getExternalVariables()).filteredOn(variableModel ->
+                variableModel.idVar().equals(externalVariableName)
+                && Objects.equals(variableModel.idLoop(), expectedIdLoop)
+        ).isNotEmpty().hasSize(1);
+
+        VariableModel concernedExternalVariable = surveyUnitModel.getExternalVariables().stream().filter(variableModel ->
+                        variableModel.idVar().equals(externalVariableName)
+                        && Objects.equals(variableModel.idLoop(), expectedIdLoop)
+                ).toList().getFirst();
+
+        //Value content assertion
+        Assertions.assertThat(concernedExternalVariable.idLoop()).isNotNull().isEqualTo(expectedIdLoop);
+        Assertions.assertThat(concernedExternalVariable.values()).hasSize(1);
+        Assertions.assertThat(concernedExternalVariable.values().getFirst()).isEqualTo(expectedValue);
     }
 
     @After
