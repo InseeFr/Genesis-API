@@ -130,7 +130,7 @@ public class MainDefinitions {
     public void check_expected_datastate_dto(String surveyUnitId, String expectedDataState) {
         Assertions.assertThat(this.surveyUnitModels).filteredOn(surveyUnitDto ->
                 surveyUnitDto.getState().toString().equals(expectedDataState)
-                        && surveyUnitDto.getIdUE().equals(surveyUnitId)
+                        && surveyUnitDto.getInterrogationId().equals(surveyUnitId)
         ).isNotEmpty();
     }
 
@@ -138,7 +138,7 @@ public class MainDefinitions {
     public void check_unexpected_datastate_dto(String surveyUnitId, String unexpectedDataState) {
         Assertions.assertThat(this.surveyUnitModels).filteredOn(surveyUnitDto ->
                 surveyUnitDto.getState().toString().equals(unexpectedDataState)
-                && surveyUnitDto.getIdUE().equals(surveyUnitId)
+                && surveyUnitDto.getInterrogationId().equals(surveyUnitId)
         ).isEmpty();
     }
 
@@ -147,12 +147,12 @@ public class MainDefinitions {
         //Get DTO
         Assertions.assertThat(this.surveyUnitModels).filteredOn(surveyUnitDto ->
                 surveyUnitDto.getState().toString().equals(dataState)
-                        && surveyUnitDto.getIdUE().equals(surveyUnitId)
+                        && surveyUnitDto.getInterrogationId().equals(surveyUnitId)
         ).isNotEmpty();
 
         Optional<SurveyUnitModel> concernedDtoOptional = this.surveyUnitModels.stream().filter(dto ->
                 dto.getState().toString().equals(dataState)
-                && dto.getIdUE().equals(surveyUnitId)
+                && dto.getInterrogationId().equals(surveyUnitId)
         ).findFirst();
 
         Assertions.assertThat(concernedDtoOptional).isPresent();
@@ -182,12 +182,12 @@ public class MainDefinitions {
         //Get DTO
         Assertions.assertThat(this.surveyUnitModels).filteredOn(surveyUnitDto ->
                 surveyUnitDto.getState().equals(DataState.COLLECTED)
-                        && surveyUnitDto.getIdUE().equals(surveyUnitId)
+                        && surveyUnitDto.getInterrogationId().equals(surveyUnitId)
         ).isNotEmpty();
 
         Optional<SurveyUnitModel> concernedDtoOptional = this.surveyUnitModels.stream().filter(dto ->
                 dto.getState().equals(DataState.COLLECTED)
-                        && dto.getIdUE().equals(surveyUnitId)
+                        && dto.getInterrogationId().equals(surveyUnitId)
         ).findFirst();
 
         Assertions.assertThat(concernedDtoOptional).isPresent();
@@ -216,12 +216,12 @@ public class MainDefinitions {
         //Get DTO
         Assertions.assertThat(this.surveyUnitModels).filteredOn(surveyUnitDto ->
                 surveyUnitDto.getState().equals(DataState.COLLECTED)
-                        && surveyUnitDto.getIdUE().equals(surveyUnitId)
+                        && surveyUnitDto.getInterrogationId().equals(surveyUnitId)
         ).isNotEmpty();
 
         Optional<SurveyUnitModel> concernedDtoOptional = this.surveyUnitModels.stream().filter(dto ->
                 dto.getState().equals(DataState.COLLECTED)
-                        && dto.getIdUE().equals(surveyUnitId)
+                        && dto.getInterrogationId().equals(surveyUnitId)
         ).findFirst();
 
         Assertions.assertThat(concernedDtoOptional).isPresent();

@@ -70,9 +70,9 @@ public class LunaticXmlAdapter {
      */
     private static SurveyUnitModel getStateDataFromSurveyUnit(LunaticXmlSurveyUnit su, VariablesMap variablesMap, String idCampaign, DataState dataState, Mode mode) {
         SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
-                .idQuest(su.getQuestionnaireModelId())
-                .idCampaign(idCampaign)
-                .idUE(su.getId())
+                .questionnaireId(su.getQuestionnaireModelId())
+                .campaignId(idCampaign)
+                .interrogationId(su.getId())
                 .state(dataState)
                 .mode(mode)
                 .recordDate(LocalDateTime.now())

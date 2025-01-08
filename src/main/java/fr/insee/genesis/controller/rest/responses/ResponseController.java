@@ -319,9 +319,9 @@ public class ResponseController {
             outputExternalVariables.addAll(response.getExternalVariables());
         });
         return ResponseEntity.ok(SurveyUnitSimplified.builder()
-                .idQuest(responses.getFirst().getIdQuest())
-                .idCampaign(responses.getFirst().getIdCampaign())
-                .idUE(responses.getFirst().getIdUE())
+                .idQuest(responses.getFirst().getQuestionnaireId())
+                .idCampaign(responses.getFirst().getCampaignId())
+                .idUE(responses.getFirst().getInterrogationId())
                 .variablesUpdate(outputVariables)
                 .externalVariables(outputExternalVariables)
                 .build());
@@ -347,9 +347,9 @@ public class ResponseController {
                 });
                 if (!outputVariables.isEmpty() || !outputExternalVariables.isEmpty()) {
                     results.add(SurveyUnitSimplified.builder()
-                            .idQuest(responses.getFirst().getIdQuest())
-                            .idCampaign(responses.getFirst().getIdCampaign())
-                            .idUE(responses.getFirst().getIdUE())
+                            .idQuest(responses.getFirst().getQuestionnaireId())
+                            .idCampaign(responses.getFirst().getCampaignId())
+                            .idUE(responses.getFirst().getInterrogationId())
                             .mode(mode)
                             .variablesUpdate(outputVariables)
                             .externalVariables(outputExternalVariables)

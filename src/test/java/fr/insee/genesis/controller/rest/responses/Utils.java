@@ -193,10 +193,10 @@ class Utils {
         collectedVariableList.add(collectedVariable);
 
         SurveyUnitModel recentDTO = SurveyUnitModel.builder()
-                .idCampaign(idCampaign)
+                .campaignId(idCampaign)
                 .mode(Mode.WEB)
-                .idUE(defaultIdUE)
-                .idQuest(idQuestionnaire)
+                .interrogationId(defaultIdUE)
+                .questionnaireId(idQuestionnaire)
                 .state(DataState.COLLECTED)
                 .fileDate(fileDate)
                 .recordDate(recordDate)
@@ -223,10 +223,10 @@ class Utils {
         collectedVariableList.add(collectedVariable);
 
         SurveyUnitModel recentDTO = SurveyUnitModel.builder()
-                .idCampaign("TESTIDCAMPAIGN")
+                .campaignId("TESTIDCAMPAIGN")
                 .mode(Mode.WEB)
-                .idUE(defaultIdUE)
-                .idQuest(defaultIdQuest)
+                .interrogationId(defaultIdUE)
+                .questionnaireId(defaultIdQuest)
                 .state(state)
                 .fileDate(fileDate)
                 .recordDate(recordDate)

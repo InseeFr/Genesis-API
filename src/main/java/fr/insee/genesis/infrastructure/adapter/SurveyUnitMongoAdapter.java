@@ -59,7 +59,7 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 		List<SurveyUnitDocument> surveyUnits= new ArrayList<>();
 		// TODO: 18-10-2023 : find a way to do this in one query
 		idUEs.forEach(su -> {
-			List<SurveyUnitDocument> docs = mongoRepository.findByIdUEAndIdQuestionnaire(su.getIdUE(), idQuestionnaire);
+			List<SurveyUnitDocument> docs = mongoRepository.findByIdUEAndIdQuestionnaire(su.getInterrogationId(), idQuestionnaire);
 			surveyUnits.addAll(docs);
 		});
 		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnits);

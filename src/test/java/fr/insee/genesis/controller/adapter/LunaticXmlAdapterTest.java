@@ -214,7 +214,7 @@ class LunaticXmlAdapterTest {
         // When
         List<SurveyUnitModel> suDtos = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit1, metadataModel.getVariables(), ID_CAMPAIGN, Mode.WEB);
         // Then
-        Assertions.assertThat(suDtos.getFirst().getIdQuest()).isEqualTo("idQuest1");
+        Assertions.assertThat(suDtos.getFirst().getQuestionnaireId()).isEqualTo("idQuest1");
     }
 
     @Test
@@ -223,7 +223,7 @@ class LunaticXmlAdapterTest {
         // When
         List<SurveyUnitModel> suDtos = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit1, metadataModel.getVariables(), ID_CAMPAIGN, Mode.WEB);
         // Then
-        Assertions.assertThat(suDtos.getFirst().getIdUE()).isEqualTo("idUE1");
+        Assertions.assertThat(suDtos.getFirst().getInterrogationId()).isEqualTo("idUE1");
     }
 
     @Test

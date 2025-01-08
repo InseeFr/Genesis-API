@@ -23,7 +23,7 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     public List<SurveyUnitModel> findByIds(String idUE, String idQuest) {
         List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
         for(SurveyUnitModel SurveyUnitModel : mongoStub){
-            if(SurveyUnitModel.getIdUE().equals(idUE) && SurveyUnitModel.getIdQuest().equals(idQuest))
+            if(SurveyUnitModel.getInterrogationId().equals(idUE) && SurveyUnitModel.getQuestionnaireId().equals(idQuest))
                 surveyUnitModelList.add(SurveyUnitModel);
         }
 
@@ -34,7 +34,7 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     public List<SurveyUnitModel> findByIdUE(String idUE) {
         List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
         for(SurveyUnitModel SurveyUnitModel : mongoStub){
-            if(SurveyUnitModel.getIdUE().equals(idUE))
+            if(SurveyUnitModel.getInterrogationId().equals(idUE))
                 surveyUnitModelList.add(SurveyUnitModel);
         }
 
@@ -46,7 +46,7 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
         List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
         for(SurveyUnitModel surveyUnitModel : idUEs) {
             for (SurveyUnitModel document : mongoStub) {
-                if (surveyUnitModel.getIdUE().equals(document.getIdUE()) && document.getIdQuest().equals(idQuestionnaire))
+                if (surveyUnitModel.getInterrogationId().equals(document.getInterrogationId()) && document.getQuestionnaireId().equals(idQuestionnaire))
                     surveyUnitModelList.add(document);
             }
         }
@@ -58,7 +58,7 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     public Stream<SurveyUnitModel> findByIdQuestionnaire(String idQuestionnaire) {
         List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
         for(SurveyUnitModel SurveyUnitModel : mongoStub){
-            if(SurveyUnitModel.getIdQuest().equals(idQuestionnaire))
+            if(SurveyUnitModel.getQuestionnaireId().equals(idQuestionnaire))
                 surveyUnitModelList.add(SurveyUnitModel);
         }
 
@@ -69,9 +69,9 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     public List<SurveyUnitModel> findIdUEsByIdQuestionnaire(String idQuestionnaire) {
         List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
         for(SurveyUnitModel SurveyUnitModel : mongoStub){
-            if(SurveyUnitModel.getIdQuest().equals(idQuestionnaire))
+            if(SurveyUnitModel.getQuestionnaireId().equals(idQuestionnaire))
                 surveyUnitModelList.add(
-                        new SurveyUnitModel(SurveyUnitModel.getIdUE(), SurveyUnitModel.getMode())
+                        new SurveyUnitModel(SurveyUnitModel.getInterrogationId(), SurveyUnitModel.getMode())
                 );
         }
 
@@ -82,9 +82,9 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     public List<SurveyUnitModel> findIdUEsByIdCampaign(String idCampaign) {
         List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
         for(SurveyUnitModel SurveyUnitModel : mongoStub){
-            if(SurveyUnitModel.getIdCampaign().equals(idCampaign))
+            if(SurveyUnitModel.getCampaignId().equals(idCampaign))
                 surveyUnitModelList.add(
-                        new SurveyUnitModel(SurveyUnitModel.getIdUE(), SurveyUnitModel.getMode())
+                        new SurveyUnitModel(SurveyUnitModel.getInterrogationId(), SurveyUnitModel.getMode())
                 );
         }
 
@@ -105,8 +105,8 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     public Set<String> findIdQuestionnairesByIdCampaign(String idCampaign) {
         Set<String> idQuestionnaireSet = new HashSet<>();
         for(SurveyUnitModel SurveyUnitModel : mongoStub){
-            if(SurveyUnitModel.getIdCampaign().equals(idCampaign))
-                idQuestionnaireSet.add(SurveyUnitModel.getIdQuest());
+            if(SurveyUnitModel.getCampaignId().equals(idCampaign))
+                idQuestionnaireSet.add(SurveyUnitModel.getQuestionnaireId());
         }
 
         return idQuestionnaireSet;
@@ -116,7 +116,7 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     public Set<String> findDistinctIdCampaigns() {
         Set<String> campaignIds = new HashSet<>();
         for(SurveyUnitModel SurveyUnitModel : mongoStub){
-            campaignIds.add(SurveyUnitModel.getIdCampaign());
+            campaignIds.add(SurveyUnitModel.getCampaignId());
         }
 
         return campaignIds;
@@ -125,14 +125,14 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     @Override
     public long countByIdCampaign(String idCampaign) {
         return mongoStub.stream().filter(
-                SurveyUnitDto -> SurveyUnitDto.getIdCampaign().equals(idCampaign)).toList().size();
+                SurveyUnitDto -> SurveyUnitDto.getCampaignId().equals(idCampaign)).toList().size();
     }
 
     @Override
     public Set<String> findDistinctIdQuestionnaires() {
         Set<String> questionnaireIds = new HashSet<>();
         for(SurveyUnitModel SurveyUnitModel : mongoStub){
-            questionnaireIds.add(SurveyUnitModel.getIdQuest());
+            questionnaireIds.add(SurveyUnitModel.getQuestionnaireId());
         }
         return questionnaireIds;
     }
@@ -141,8 +141,8 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     public Set<String> findIdCampaignsByIdQuestionnaire(String idQuestionnaire) {
         Set<String> idCampaignSet = new HashSet<>();
         for(SurveyUnitModel SurveyUnitModel : mongoStub){
-            if(SurveyUnitModel.getIdQuest().equals(idQuestionnaire))
-                idCampaignSet.add(SurveyUnitModel.getIdCampaign());
+            if(SurveyUnitModel.getQuestionnaireId().equals(idQuestionnaire))
+                idCampaignSet.add(SurveyUnitModel.getCampaignId());
         }
 
         return idCampaignSet;

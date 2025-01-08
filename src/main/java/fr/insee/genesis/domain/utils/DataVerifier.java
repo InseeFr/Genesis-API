@@ -48,7 +48,7 @@ public class DataVerifier {
         List<SurveyUnitModel> suDtosListForced = new ArrayList<>(); // Created FORCED SU DTOs
 
         for(String idUE : getIdUEs(suDtosList)) { // For each id of the list
-            List<SurveyUnitModel> srcSuDtosOfIdUE = suDtosList.stream().filter(element -> element.getIdUE().equals(idUE)).toList();
+            List<SurveyUnitModel> srcSuDtosOfIdUE = suDtosList.stream().filter(element -> element.getInterrogationId().equals(idUE)).toList();
             List<CollectedVariable> correctedCollectedVariables = new ArrayList<>();
             List<Variable> correctedExternalVariables = new ArrayList<>();
 
@@ -71,11 +71,11 @@ public class DataVerifier {
             List<CollectedVariable> correctedCollectedVariables,
             List<Variable> correctedExternalVariables
     ) {
-        SurveyUnitModel sampleSuDto = suDtosList.stream().filter(element -> element.getIdUE().equals(idUE)).toList().getFirst();
+        SurveyUnitModel sampleSuDto = suDtosList.stream().filter(element -> element.getInterrogationId().equals(idUE)).toList().getFirst();
         SurveyUnitModel newForcedSuDto = SurveyUnitModel.builder()
-                .idQuest(sampleSuDto.getIdQuest())
-                .idCampaign(sampleSuDto.getIdCampaign())
-                .idUE(idUE)
+                .questionnaireId(sampleSuDto.getQuestionnaireId())
+                .campaignId(sampleSuDto.getCampaignId())
+                .interrogationId(idUE)
                 .state(DataState.FORCED)
                 .mode(sampleSuDto.getMode())
                 .recordDate(LocalDateTime.now())
@@ -114,7 +114,7 @@ public class DataVerifier {
     private static Set<String> getIdUEs(List<SurveyUnitModel> suDtosList) {
         Set<String> idUEs = new HashSet<>();
         for(SurveyUnitModel surveyUnitModel : suDtosList){
-            idUEs.add(surveyUnitModel.getIdUE());
+            idUEs.add(surveyUnitModel.getInterrogationId());
         }
 
         return idUEs;

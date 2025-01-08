@@ -14,9 +14,9 @@ import java.util.List;
 @CompoundIndex(name = "idQuestionnaire_1_idCampaign_1", def = "{'idQuestionnaire': 1, 'idCampaign': 1}")
 @CompoundIndex(name = "idQuestionnaire_1_idUE_1", def = "{'idQuestionnaire': 1, 'idUE': 1}")
 public class SurveyUnitDocument {
-	private String idCampaign;
-	private String idUE;
-	private String idQuestionnaire;
+	private String campaignId;
+	private String interrogationId;
+	private String questionnaireId;
 	private String state;
 	private String mode;
 	private LocalDateTime recordDate;

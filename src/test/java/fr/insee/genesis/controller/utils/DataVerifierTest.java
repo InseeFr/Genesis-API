@@ -89,13 +89,13 @@ class DataVerifierTest {
         //Manual modifications
         //Valid 2nd variable on 5th and 13th case
         SurveyUnitModel suDto = testSurveyUnitModels.stream().filter(surveyUnitDto ->
-                surveyUnitDto.getIdUE().equals("TestUE5")
+                surveyUnitDto.getInterrogationId().equals("TestUE5")
         ).toList().getFirst();
 
         suDto.getCollectedVariables().get(1).getValues().set(0,"1");
 
         suDto = testSurveyUnitModels.stream().filter(surveyUnitDto ->
-                surveyUnitDto.getIdUE().equals("TestUE13")
+                surveyUnitDto.getInterrogationId().equals("TestUE13")
         ).toList().getFirst();
 
         suDto.getCollectedVariables().get(1).getValues().set(0,"1");
@@ -104,14 +104,14 @@ class DataVerifierTest {
 
         //Valid EDITED variables on 3rd and 7th case for priority test
         SurveyUnitModel suDtoEdited = testSurveyUnitModels.stream().filter(surveyUnitDto ->
-                surveyUnitDto.getIdUE().equals("TestUE3")
+                surveyUnitDto.getInterrogationId().equals("TestUE3")
                 && surveyUnitDto.getState().equals(DataState.EDITED)
                 ).toList().getFirst();
 
         suDtoEdited.getCollectedVariables().getFirst().getValues().set(0,"1");
 
         suDtoEdited = testSurveyUnitModels.stream().filter(surveyUnitDto ->
-                surveyUnitDto.getIdUE().equals("TestUE7")
+                surveyUnitDto.getInterrogationId().equals("TestUE7")
                         && surveyUnitDto.getState().equals(DataState.EDITED)
         ).toList().getFirst();
 
@@ -120,7 +120,7 @@ class DataVerifierTest {
 
         //Remove EDITED variable on 8th case
         suDtoEdited = testSurveyUnitModels.stream().filter(surveyUnitDto ->
-                surveyUnitDto.getIdUE().equals("TestUE8")
+                surveyUnitDto.getInterrogationId().equals("TestUE8")
                         && surveyUnitDto.getState().equals(DataState.EDITED)
         ).toList().getFirst();
 
@@ -165,9 +165,9 @@ class DataVerifierTest {
             }
 
             SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
-                    .idQuest("IdQuest1")
-                    .idCampaign("IdCampaign1")
-                    .idUE(idUE)
+                    .questionnaireId("IdQuest1")
+                    .campaignId("IdCampaign1")
+                    .interrogationId(idUE)
                     .state(stateIndex % 2 == 0 ? DataState.COLLECTED : DataState.EDITED)
                     .mode(Mode.WEB)
                     .recordDate(LocalDateTime.now())
@@ -187,12 +187,12 @@ class DataVerifierTest {
     private void assertForcedExistence(List<SurveyUnitModel> testSurveyUnitModels, String idUE, boolean hasToExist) {
         if(hasToExist)
             assertThat(testSurveyUnitModels).filteredOn(surveyUnit ->
-                            surveyUnit.getIdUE().equals(idUE)
+                            surveyUnit.getInterrogationId().equals(idUE)
                                     && surveyUnit.getState() == DataState.FORCED)
                     .hasSize(1);
         else
             assertThat(testSurveyUnitModels).filteredOn(surveyUnit ->
-                            surveyUnit.getIdUE().equals(idUE)
+                            surveyUnit.getInterrogationId().equals(idUE)
                                     && surveyUnit.getState() == DataState.FORCED)
                 .isEmpty();
     }
@@ -201,7 +201,7 @@ class DataVerifierTest {
         assertForcedExistence(testSurveyUnitModels,idUE,true);
 
         Optional<SurveyUnitModel> suDtoOpt = testSurveyUnitModels.stream().filter(surveyUnit ->
-                        surveyUnit.getIdUE().equals(idUE)
+                        surveyUnit.getInterrogationId().equals(idUE)
                                 && surveyUnit.getState() == DataState.FORCED).findFirst();
 
         assertThat(suDtoOpt).isPresent();
@@ -225,7 +225,7 @@ class DataVerifierTest {
     private void assertForcedCollectedVariableExistence(List<SurveyUnitModel> testSurveyUnitModels, String idUE, String variableName, boolean hasToExist) {
         assertForcedExistence(testSurveyUnitModels,idUE, true);
         Optional<SurveyUnitModel> suDtoOpt = testSurveyUnitModels.stream().filter(surveyUnit ->
-                surveyUnit.getIdUE().equals(idUE)
+                surveyUnit.getInterrogationId().equals(idUE)
                         && surveyUnit.getState() == DataState.FORCED).findFirst();
         assertThat(suDtoOpt).isPresent();
 
@@ -240,7 +240,7 @@ class DataVerifierTest {
     private void assertForcedExternalVariableExistence(List<SurveyUnitModel> testSurveyUnitModels, String idUE, String variableName, boolean hasToExist) {
         assertForcedExistence(testSurveyUnitModels,idUE, true);
         Optional<SurveyUnitModel> suDtoOpt = testSurveyUnitModels.stream().filter(surveyUnit ->
-                surveyUnit.getIdUE().equals(idUE)
+                surveyUnit.getInterrogationId().equals(idUE)
                         && surveyUnit.getState() == DataState.FORCED).findFirst();
         assertThat(suDtoOpt).isPresent();
 
@@ -256,7 +256,7 @@ class DataVerifierTest {
         assertForcedExistence(testSurveyUnitModels,idUE,true);
 
         Optional<SurveyUnitModel> suDtoOpt = testSurveyUnitModels.stream().filter(surveyUnit ->
-                surveyUnit.getIdUE().equals(idUE)
+                surveyUnit.getInterrogationId().equals(idUE)
                         && surveyUnit.getState() == DataState.FORCED).findFirst();
 
         assertThat(suDtoOpt).isPresent();

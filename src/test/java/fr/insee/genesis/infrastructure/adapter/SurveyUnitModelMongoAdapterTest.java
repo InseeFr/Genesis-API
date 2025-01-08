@@ -39,9 +39,9 @@ class SurveyUnitModelMongoAdapterTest {
 	static void setUp() {
 		surveyUnitMongoAdapter = new SurveyUnitMongoAdapter(mongoRepository, null);
 		suDoc= new SurveyUnitDocument();
-		suDoc.setIdCampaign("idCampaign");
-		suDoc.setIdUE("UE1100000001");
-		suDoc.setIdQuestionnaire("TEST2023X01");
+		suDoc.setCampaignId("idCampaign");
+		suDoc.setInterrogationId("UE1100000001");
+		suDoc.setQuestionnaireId("TEST2023X01");
 		suDoc.setState("COLLECTED");
 		suDoc.setMode("WEB");
 		suDoc.setRecordDate(LocalDateTime.now());
@@ -49,9 +49,9 @@ class SurveyUnitModelMongoAdapterTest {
 		suDoc.setExternalVariables(List.of(new ExternalVariable()));
 
 		suDoc2= new SurveyUnitDocument();
-		suDoc2.setIdCampaign("idCampaign");
-		suDoc2.setIdUE("UE1100000001");
-		suDoc2.setIdQuestionnaire("TEST2023X01");
+		suDoc2.setCampaignId("idCampaign");
+		suDoc2.setInterrogationId("UE1100000001");
+		suDoc2.setQuestionnaireId("TEST2023X01");
 		suDoc2.setState("COLLECTED");
 		suDoc2.setMode("TEL");
 		suDoc2.setRecordDate(LocalDateTime.now());
@@ -59,9 +59,9 @@ class SurveyUnitModelMongoAdapterTest {
 		suDoc2.setExternalVariables(List.of(new ExternalVariable()));
 
 		suDoc3= new SurveyUnitDocument();
-		suDoc3.setIdCampaign("idCampaign");
-		suDoc3.setIdUE("UE1100000002");
-		suDoc3.setIdQuestionnaire("TEST2023X01");
+		suDoc3.setCampaignId("idCampaign");
+		suDoc3.setInterrogationId("UE1100000002");
+		suDoc3.setQuestionnaireId("TEST2023X01");
 		suDoc3.setState("COLLECTED");
 		suDoc3.setMode("WEB");
 		suDoc3.setRecordDate(LocalDateTime.now());
@@ -152,8 +152,8 @@ class SurveyUnitModelMongoAdapterTest {
 		responses2.add(suDoc3);
 		when(mongoRepository.findByIdUEAndIdQuestionnaire("UE1100000001", "TEST2023X01")).thenReturn(responses1);
 		when(mongoRepository.findByIdUEAndIdQuestionnaire("UE1100000002", "TEST2023X01")).thenReturn(responses2);
-		SurveyUnitModel id1 = SurveyUnitModel.builder().idUE("UE1100000001").build();
-		SurveyUnitModel id2 = SurveyUnitModel.builder().idUE("UE1100000002").build();
+		SurveyUnitModel id1 = SurveyUnitModel.builder().interrogationId("UE1100000001").build();
+		SurveyUnitModel id2 = SurveyUnitModel.builder().interrogationId("UE1100000002").build();
 		List<SurveyUnitModel> ids = List.of(id1, id2);
 		// When
 		List<SurveyUnitModel> updates = surveyUnitMongoAdapter.findByIdUEsAndIdQuestionnaire(ids, "TEST2023X01");
@@ -166,8 +166,8 @@ class SurveyUnitModelMongoAdapterTest {
 	void shouldReturnEmptyList_IfIdUEsNotFoundInDataBase() {
 		//Given
 		when(mongoRepository.findByIdUEAndIdQuestionnaire(any(String.class),any(String.class))).thenReturn(List.of());
-		SurveyUnitModel id1 = SurveyUnitModel.builder().idUE("UE1100000001").build();
-		SurveyUnitModel id2 = SurveyUnitModel.builder().idUE("UE1100000002").build();
+		SurveyUnitModel id1 = SurveyUnitModel.builder().interrogationId("UE1100000001").build();
+		SurveyUnitModel id2 = SurveyUnitModel.builder().interrogationId("UE1100000002").build();
 		List<SurveyUnitModel> ids = List.of(id1, id2);
 		// When
 		List<SurveyUnitModel> updates = surveyUnitMongoAdapter.findByIdUEsAndIdQuestionnaire(ids, "TEST2023X01");

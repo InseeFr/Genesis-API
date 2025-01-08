@@ -39,9 +39,9 @@ class DataVerifierTest {
         CollectedVariable cv2 = new CollectedVariable("var2", List.of("true"), "loop2", "parent2");
 
         SurveyUnitModel surveyUnit = SurveyUnitModel.builder()
-                .idUE("UE1100000001")
-                .idQuest("Quest1")
-                .idCampaign("Camp1")
+                .interrogationId("UE1100000001")
+                .questionnaireId("Quest1")
+                .campaignId("Camp1")
                 .state(DataState.COLLECTED)
                 .collectedVariables(List.of(cv1, cv2))
                 .externalVariables(List.of())
@@ -92,9 +92,9 @@ class DataVerifierTest {
         listVarExt.add(extVar);
 
         SurveyUnitModel surveyUnitWithInvalidExt = SurveyUnitModel.builder()
-                .idUE("UE1100000002")
-                .idQuest("Quest1")
-                .idCampaign("Camp1")
+                .interrogationId("UE1100000002")
+                .questionnaireId("Quest1")
+                .campaignId("Camp1")
                 .state(DataState.COLLECTED)
                 .collectedVariables(List.of())
                 .externalVariables(listVarExt)

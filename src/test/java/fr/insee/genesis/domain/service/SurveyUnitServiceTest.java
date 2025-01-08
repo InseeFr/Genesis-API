@@ -51,10 +51,10 @@ class SurveyUnitServiceTest {
         CollectedVariable collectedVariable = new CollectedVariable("TESTIDVAR", List.of(new String[]{"V1", "V2"}),"TESTIDLOOP","TESTIDPARENT");
         collectedVariableList.add(collectedVariable);
         surveyUnitPersistencePortStub.getMongoStub().add(SurveyUnitModel.builder()
-                .idCampaign("TESTIDCAMPAIGN")
+                .campaignId("TESTIDCAMPAIGN")
                 .mode(Mode.WEB)
-                .idUE(defaultIdUE)
-                .idQuest(defaultIdQuest)
+                .interrogationId(defaultIdUE)
+                .questionnaireId(defaultIdQuest)
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2023,1,1,0,0,0))
                 .recordDate(LocalDateTime.of(2024,1,1,0,0,0))
@@ -79,10 +79,10 @@ class SurveyUnitServiceTest {
 
         newSurveyUnitModelList.add(
                 SurveyUnitModel.builder()
-                        .idCampaign("TESTIDCAMPAIGN")
+                        .campaignId("TESTIDCAMPAIGN")
                         .mode(Mode.WEB)
-                        .idUE("TESTIDUE2")
-                        .idQuest(defaultIdQuest)
+                        .interrogationId("TESTIDUE2")
+                        .questionnaireId(defaultIdQuest)
                         .state(DataState.COLLECTED)
                         .fileDate(LocalDateTime.of(2023,1,1,0,0,0))
                         .recordDate(LocalDateTime.of(2024,1,1,0,0,0))
@@ -94,10 +94,10 @@ class SurveyUnitServiceTest {
         surveyUnitServiceStatic.saveSurveyUnits(newSurveyUnitModelList);
 
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).filteredOn(surveyUnitDto ->
-                surveyUnitDto.getIdCampaign().equals("TESTIDCAMPAIGN")
+                surveyUnitDto.getCampaignId().equals("TESTIDCAMPAIGN")
                 && surveyUnitDto.getMode().equals(Mode.WEB)
-                && surveyUnitDto.getIdUE().equals("TESTIDUE2")
-                && surveyUnitDto.getIdQuest().equals(defaultIdQuest)
+                && surveyUnitDto.getInterrogationId().equals("TESTIDUE2")
+                && surveyUnitDto.getQuestionnaireId().equals(defaultIdQuest)
                 && surveyUnitDto.getState().equals(DataState.COLLECTED)
                 && surveyUnitDto.getFileDate().equals(LocalDateTime.of(2023,1,1,0,0,0))
                 && surveyUnitDto.getRecordDate().equals(LocalDateTime.of(2024,1,1,0,0,0))
@@ -116,8 +116,8 @@ class SurveyUnitServiceTest {
     void findByIdsUEAndQuestionnaireTest(){
         Assertions.assertThat(surveyUnitServiceStatic.findByIdsUEAndQuestionnaire(defaultIdUE, defaultIdQuest)).filteredOn(
                 surveyUnitDto ->
-                        surveyUnitDto.getIdUE().equals(defaultIdUE)
-                        && surveyUnitDto.getIdQuest().equals(defaultIdQuest)
+                        surveyUnitDto.getInterrogationId().equals(defaultIdUE)
+                        && surveyUnitDto.getQuestionnaireId().equals(defaultIdQuest)
         ).isNotEmpty();
     }
 
@@ -125,14 +125,14 @@ class SurveyUnitServiceTest {
     void findByIdUETest(){
         Assertions.assertThat(surveyUnitServiceStatic.findByIdUE(defaultIdUE)).filteredOn(
                 surveyUnitDto ->
-                        surveyUnitDto.getIdUE().equals(defaultIdUE)
+                        surveyUnitDto.getInterrogationId().equals(defaultIdUE)
         ).isNotEmpty();
     }
 
     @Test
     void findByIdQuestionnaireTest(){
         Assertions.assertThat(surveyUnitServiceStatic.findByIdQuestionnaire(defaultIdQuest)).filteredOn(
-                surveyUnitDto -> surveyUnitDto.getIdQuest().equals(defaultIdQuest)
+                surveyUnitDto -> surveyUnitDto.getQuestionnaireId().equals(defaultIdQuest)
         ).isNotEmpty();
     }
 
@@ -141,8 +141,8 @@ class SurveyUnitServiceTest {
         addAdditionnalDtoToMongoStub();
 
         Assertions.assertThat(surveyUnitServiceStatic.findLatestByIdAndByIdQuestionnaire(defaultIdUE, defaultIdQuest)).filteredOn(
-                surveyUnitDto -> surveyUnitDto.getIdUE().equals(defaultIdUE)
-                && surveyUnitDto.getIdQuest().equals(defaultIdQuest)
+                surveyUnitDto -> surveyUnitDto.getInterrogationId().equals(defaultIdUE)
+                && surveyUnitDto.getQuestionnaireId().equals(defaultIdQuest)
                 && surveyUnitDto.getFileDate().getMonth().equals(Month.FEBRUARY)
         ).isNotEmpty();
     }
@@ -158,8 +158,8 @@ class SurveyUnitServiceTest {
         surveyUnitPersistencePortStub.getMongoStub().getLast().setCollectedVariables(null);
 
         Assertions.assertThat(surveyUnitServiceStatic.findLatestByIdAndByIdQuestionnaire(defaultIdUE, defaultIdQuest)).filteredOn(
-                surveyUnitDto -> surveyUnitDto.getIdUE().equals(defaultIdUE)
-                        && surveyUnitDto.getIdQuest().equals(defaultIdQuest)
+                surveyUnitDto -> surveyUnitDto.getInterrogationId().equals(defaultIdUE)
+                        && surveyUnitDto.getQuestionnaireId().equals(defaultIdQuest)
                         && surveyUnitDto.getFileDate().getMonth().equals(Month.FEBRUARY)
         ).isNotEmpty();
     }
@@ -174,8 +174,8 @@ class SurveyUnitServiceTest {
         surveyUnitPersistencePortStub.getMongoStub().getLast().setExternalVariables(null);
 
         Assertions.assertThat(surveyUnitServiceStatic.findLatestByIdAndByIdQuestionnaire(defaultIdUE, defaultIdQuest)).filteredOn(
-                surveyUnitDto -> surveyUnitDto.getIdUE().equals(defaultIdUE)
-                        && surveyUnitDto.getIdQuest().equals(defaultIdQuest)
+                surveyUnitDto -> surveyUnitDto.getInterrogationId().equals(defaultIdUE)
+                        && surveyUnitDto.getQuestionnaireId().equals(defaultIdQuest)
                         && surveyUnitDto.getFileDate().getMonth().equals(Month.FEBRUARY)
         ).isNotEmpty();
     }
@@ -423,10 +423,10 @@ class SurveyUnitServiceTest {
         collectedVariableList.add(collectedVariable);
 
         SurveyUnitModel recentDTO = SurveyUnitModel.builder()
-                .idCampaign("TESTIDCAMPAIGN")
+                .campaignId("TESTIDCAMPAIGN")
                 .mode(Mode.WEB)
-                .idUE(defaultIdUE)
-                .idQuest(defaultIdQuest)
+                .interrogationId(defaultIdUE)
+                .questionnaireId(defaultIdQuest)
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2023,2,2,0,0,0))
                 .recordDate(LocalDateTime.of(2024,2,2,0,0,0))
@@ -446,10 +446,10 @@ class SurveyUnitServiceTest {
         collectedVariableList.add(collectedVariable);
 
         SurveyUnitModel recentDTO = SurveyUnitModel.builder()
-                .idCampaign("TESTIDCAMPAIGN")
+                .campaignId("TESTIDCAMPAIGN")
                 .mode(Mode.WEB)
-                .idUE(defaultIdUE)
-                .idQuest(idQuestionnaire)
+                .interrogationId(defaultIdUE)
+                .questionnaireId(idQuestionnaire)
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2023, 2, 2, 0, 0, 0))
                 .recordDate(LocalDateTime.of(2024, 2, 2, 0, 0, 0))
@@ -473,10 +473,10 @@ class SurveyUnitServiceTest {
         collectedVariableList.add(collectedVariable);
 
         SurveyUnitModel recentDTO = SurveyUnitModel.builder()
-                .idCampaign("TESTIDCAMPAIGN")
+                .campaignId("TESTIDCAMPAIGN")
                 .mode(Mode.WEB)
-                .idUE(defaultIdUE)
-                .idQuest(defaultIdQuest)
+                .interrogationId(defaultIdUE)
+                .questionnaireId(defaultIdQuest)
                 .state(state)
                 .fileDate(fileDate)
                 .recordDate(recordDate)
