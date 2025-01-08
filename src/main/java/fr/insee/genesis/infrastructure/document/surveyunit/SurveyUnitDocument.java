@@ -21,6 +21,6 @@ public class SurveyUnitDocument {
 	private String mode;
 	private LocalDateTime recordDate;
 	private LocalDateTime fileDate;
-	private List<VariableState> collectedVariables;
-	private List<ExternalVariable> externalVariables;
+	private List<VariableDocument> collectedVariables;
+	private List<VariableDocument> externalVariables;
 }

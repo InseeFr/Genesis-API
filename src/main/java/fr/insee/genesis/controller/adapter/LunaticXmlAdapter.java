@@ -6,10 +6,9 @@ import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
 import fr.insee.genesis.controller.sources.xml.ValueType;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.utils.LoopIdentifier;
-import fr.insee.genesis.domain.model.surveyunit.CollectedVariable;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
-import fr.insee.genesis.domain.model.surveyunit.Variable;
+import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import lombok.experimental.UtilityClass;
 
 import java.time.LocalDateTime;
@@ -92,7 +91,7 @@ public class LunaticXmlAdapter {
      * @return the DTO containing data, null if no data and not COLLECTED
      */
     private static SurveyUnitModel getCollectedDataFromSurveyUnit(LunaticXmlSurveyUnit su, SurveyUnitModel surveyUnitModel, VariablesMap variablesMap, DataState dataState) {
-        List<CollectedVariable> variablesUpdate = new ArrayList<>();
+        List<VariableModel> variablesUpdate = new ArrayList<>();
 
         int dataCount = 0;
         for (LunaticXmlCollectedData lunaticXmlCollectedData : su.getData().getCollected()){
@@ -121,7 +120,7 @@ public class LunaticXmlAdapter {
                     List<String> variableValues = new ArrayList<>();
                     if (valueTypeList.get(i-1).getValue()!=null) {
                         variableValues.add(valueTypeList.get(i-1).getValue());
-                        variablesUpdate.add(CollectedVariable.collectedVariableBuilder()
+                        variablesUpdate.add(VariableModel.builder()
                                 .idVar(lunaticXmlCollectedData.getVariableName())
                                 .values(variableValues)
                                 .idLoop(LoopIdentifier.getLoopIdentifier(lunaticXmlCollectedData.getVariableName(), variablesMap, i))
@@ -149,9 +148,9 @@ public class LunaticXmlAdapter {
      * @param surveyUnitModel DTO to aliment
      */
     private static void getExternalDataFromSurveyUnit(LunaticXmlSurveyUnit su, SurveyUnitModel surveyUnitModel) {
-        List<Variable> externalVariables = new ArrayList<>();
+        List<VariableModel> externalVariables = new ArrayList<>();
         su.getData().getExternal().forEach(lunaticXmlExternalData ->
-                externalVariables.add(Variable.builder()
+                externalVariables.add(VariableModel.builder()
                         .idVar(lunaticXmlExternalData.getVariableName())
                         .values(getValuesFromValueTypeList(lunaticXmlExternalData.getValues()))
                         .build())

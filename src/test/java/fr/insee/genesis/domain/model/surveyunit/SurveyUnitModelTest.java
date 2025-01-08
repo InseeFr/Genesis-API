@@ -12,12 +12,20 @@ import java.util.List;
 public class SurveyUnitModelTest {
     @Test
     public void toJSONTest() throws JsonProcessingException {
-        List<Variable> externalVariableList = new ArrayList<>();
-        Variable variable = Variable.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
-        externalVariableList.add(variable);
+        List<VariableModel> externalVariableList = new ArrayList<>();
+        VariableModel externalVariable = VariableModel.builder()
+                .idVar("TESTIDVAREXT")
+                .values(List.of(new String[]{"V1", "V2"}))
+                .build();
+        externalVariableList.add(externalVariable);
 
-        List<CollectedVariable> collectedVariableList = new ArrayList<>();
-        CollectedVariable collectedVariable = new CollectedVariable("TESTIDVAR", List.of(new String[]{"V1", "V2"}),"TESTIDLOOP","TESTIDPARENT");
+        List<VariableModel> collectedVariableList = new ArrayList<>();
+        VariableModel collectedVariable = VariableModel.builder()
+                .idVar("TESTIDVAR")
+                .values(List.of(new String[]{"V1", "V2"}))
+                .idLoop("TESTIDLOOP")
+                .idParent("TESTIDPARENT")
+                .build();
         collectedVariableList.add(collectedVariable);
 
         SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
@@ -35,9 +43,9 @@ public class SurveyUnitModelTest {
         Assertions.assertNotNull(surveyUnitModel);
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.findAndRegisterModules();
-
+//TODO ASSERT ID LOOP & ID PARENT
         Assertions.assertEquals(
-                objectMapper.readTree("{\"idQuest\":\"TESTIDQUEST\",\"idCampaign\":\"TESTIDCAMPAIGN\",\"idUE\":\"TESTIDUE\",\"state\":\"COLLECTED\",\"mode\":\"WEB\",\"recordDate\":\"2000-01-01T12:00\",\"fileDate\":\"2000-01-01T12:00\",\"collectedVariables\":[{\"idVar\":\"TESTIDVAR\",\"values\":[\"V1\",\"V2\"],\"idLoop\":\"TESTIDLOOP\",\"idParent\":\"TESTIDPARENT\"}],\"externalVariables\":[{\"idVar\":\"TESTIDVAR\",\"values\":[\"V1\",\"V2\"]}]}"),
+                objectMapper.readTree("{\"idQuest\":\"TESTIDQUEST\",\"idCampaign\":\"TESTIDCAMPAIGN\",\"idUE\":\"TESTIDUE\",\"state\":\"COLLECTED\",\"mode\":\"WEB\",\"recordDate\":\"2000-01-01T12:00\",\"fileDate\":\"2000-01-01T12:00\",\"collectedVariables\":[{\"idVar\":\"TESTIDVAR\",\"values\":[\"V1\",\"V2\"],\"idLoop\":\"TESTIDLOOP\",\"idParent\":\"TESTIDPARENT\"}],\"externalVariables\":[{\"idVar\":\"TESTIDVAREXT\",\"values\":[\"V1\",\"V2\"],\"idLoop\":null,\"idParent\":null}]}"),
                 objectMapper.readTree(objectMapper.writeValueAsString(surveyUnitModel))
         );
     }

@@ -10,10 +10,9 @@ import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlCampaign;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlDataParser;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
-import fr.insee.genesis.domain.model.surveyunit.CollectedVariable;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
-import fr.insee.genesis.domain.model.surveyunit.Variable;
+import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.exceptions.GenesisException;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -102,20 +101,20 @@ public class MainDefinitions {
 
         //Get Variable
         Assertions.assertThat(concernedDto.getCollectedVariables()).filteredOn(collectedVariableDto ->
-                collectedVariableDto.getIdVar().equals(variableName)).isNotEmpty();
+                collectedVariableDto.idVar().equals(variableName)).isNotEmpty();
 
-        Optional<CollectedVariable> concernedVariableOptional = concernedDto.getCollectedVariables().stream().filter(variable ->
-                variable.getIdVar().equals(variableName)
+        Optional<VariableModel> concernedCollectedVariableOptional = concernedDto.getCollectedVariables().stream().filter(variable ->
+                variable.idVar().equals(variableName)
         ).findFirst();
 
-        Assertions.assertThat(concernedVariableOptional).isPresent();
+        Assertions.assertThat(concernedCollectedVariableOptional).isPresent();
 
-        CollectedVariable concernedVariable = concernedVariableOptional.get();
+        VariableModel concernedCollectedVariable = concernedCollectedVariableOptional.get();
 
         //Value assertion
-        Assertions.assertThat(concernedVariable.getValues()).hasSizeGreaterThan(expectedIndex);
+        Assertions.assertThat(concernedCollectedVariable.values()).hasSizeGreaterThan(expectedIndex);
 
-        Assertions.assertThat(concernedVariable.getValues().get(expectedIndex)).isEqualTo(expectedValue);
+        Assertions.assertThat(concernedCollectedVariable.values().get(expectedIndex)).isEqualTo(expectedValue);
     }
 
     @Then("We should have {int} values for external variable {string} for survey unit {string}")
@@ -137,18 +136,18 @@ public class MainDefinitions {
 
         //Get Variable
         Assertions.assertThat(concernedDto.getExternalVariables()).filteredOn(variableDto ->
-                variableDto.getIdVar().equals(externalVariableName)).isNotEmpty();
+                variableDto.idVar().equals(externalVariableName)).isNotEmpty();
 
-        Optional<Variable> concernedVariableOptional = concernedDto.getExternalVariables().stream().filter(variable ->
-                variable.getIdVar().equals(externalVariableName)
+        Optional<VariableModel> concernedVariableOptional = concernedDto.getExternalVariables().stream().filter(variable ->
+                variable.idVar().equals(externalVariableName)
         ).findFirst();
 
         Assertions.assertThat(concernedVariableOptional).isPresent();
 
-        Variable concernedVariable = concernedVariableOptional.get();
+        VariableModel concernedVariable = concernedVariableOptional.get();
 
         //Values count assertion
-        Assertions.assertThat(concernedVariable.getValues()).hasSize(expectedNumberOfValues);
+        Assertions.assertThat(concernedVariable.values()).hasSize(expectedNumberOfValues);
 
     }
 
@@ -171,18 +170,18 @@ public class MainDefinitions {
 
         //Get Variable
         Assertions.assertThat(concernedDto.getExternalVariables()).filteredOn(variableDto ->
-                variableDto.getIdVar().equals(externalVariableName)).isNotEmpty();
+                variableDto.idVar().equals(externalVariableName)).isNotEmpty();
 
-        Optional<Variable> concernedVariableOptional = concernedDto.getExternalVariables().stream().filter(variable ->
-                variable.getIdVar().equals(externalVariableName)
+        Optional<VariableModel> concernedExternalVariableOptional = concernedDto.getExternalVariables().stream().filter(variable ->
+                variable.idVar().equals(externalVariableName)
         ).findFirst();
 
-        Assertions.assertThat(concernedVariableOptional).isPresent();
+        Assertions.assertThat(concernedExternalVariableOptional).isPresent();
 
-        Variable concernedVariable = concernedVariableOptional.get();
+        VariableModel concernedExternalVariable = concernedExternalVariableOptional.get();
 
         //Value content assertion
-        Assertions.assertThat(concernedVariable.getValues()).hasSizeGreaterThan(expectedValueIndex);
-        Assertions.assertThat(concernedVariable.getValues().get(expectedValueIndex)).isEqualTo(expectedValue);
+        Assertions.assertThat(concernedExternalVariable.values()).hasSizeGreaterThan(expectedValueIndex);
+        Assertions.assertThat(concernedExternalVariable.values().get(expectedValueIndex)).isEqualTo(expectedValue);
     }
 }
