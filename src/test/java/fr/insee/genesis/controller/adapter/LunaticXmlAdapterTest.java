@@ -36,6 +36,7 @@ class LunaticXmlAdapterTest {
     LunaticXmlSurveyUnit lunaticXmlSurveyUnit7 = new LunaticXmlSurveyUnit();
     MetadataModel metadataModel = new MetadataModel();
     LunaticXmlSurveyUnit lunaticXmlSurveyUnit8 = new LunaticXmlSurveyUnit();
+    LunaticXmlSurveyUnit lunaticXmlSurveyUnit9 = new LunaticXmlSurveyUnit();
 
     @BeforeEach
     void setUp() {
@@ -191,12 +192,27 @@ class LunaticXmlAdapterTest {
         lunaticXmlSurveyUnit8.setQuestionnaireModelId("idQuest1");
         lunaticXmlSurveyUnit8.setData(lunaticXmlData);
 
+        //SurveyUnit 9 : External data only
+        lunaticXmlData = new LunaticXmlData();
+        collected = List.of();
+        lunaticXmlData.setCollected(collected);
+        LunaticXmlOtherData lunaticXmlOtherData = new LunaticXmlOtherData();
+        lunaticXmlOtherData.setVariableName("extvar1");
+        lunaticXmlOtherData.setValues(List.of(new ValueType("ext", "string")));
+        external = List.of(lunaticXmlOtherData);
+        lunaticXmlData.setExternal(external);
+        lunaticXmlSurveyUnit9.setId("idUE1");
+        lunaticXmlSurveyUnit9.setQuestionnaireModelId("idQuest1");
+        lunaticXmlSurveyUnit9.setData(lunaticXmlData);
+
         //VariablesMap
         Group group = new Group(LOOP_NAME, Constants.ROOT_GROUP_NAME);
         Variable var1 = new Variable("var1", group, VariableType.STRING, "1");
         Variable var2 = new Variable("var2", metadataModel.getRootGroup(), VariableType.STRING, "1");
+        Variable extvar1 = new Variable("extvar1", group, VariableType.STRING, "1");
         metadataModel.getVariables().putVariable(var1);
         metadataModel.getVariables().putVariable(var2);
+        metadataModel.getVariables().putVariable(extvar1);
     }
 
     @Test
@@ -356,5 +372,21 @@ class LunaticXmlAdapterTest {
         Assertions.assertThat(suDtos.getFirst().getCollectedVariables().stream().filter(collectedVariableDto ->
                 collectedVariableDto.idLoop().equals("BOUCLE1_3")).toList().getFirst().values().getFirst()).isEqualTo("2");
 
+    }
+
+    @Test
+    @DisplayName("External value should be affected in the good loop iteration")
+    void test12(){
+        // When
+        List<SurveyUnitModel> suDtos = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit9, metadataModel.getVariables(), ID_CAMPAIGN, Mode.WEB);
+        // Then
+        Assertions.assertThat(suDtos).hasSize(1);
+        Assertions.assertThat(suDtos.getFirst().getCollectedVariables()).isEmpty();
+        Assertions.assertThat(suDtos.getFirst().getExternalVariables()).hasSize(1);
+        Assertions.assertThat(suDtos.getFirst().getExternalVariables().getFirst().idVar()).isEqualTo("extvar1");
+        Assertions.assertThat(suDtos.getFirst().getExternalVariables().getFirst().values()).hasSize(1);
+        Assertions.assertThat(suDtos.getFirst().getExternalVariables().getFirst().values().getFirst()).isEqualTo("ext");
+        Assertions.assertThat(suDtos.getFirst().getExternalVariables().getFirst().idLoop()).isEqualTo(LOOP_NAME+"_1");
+        Assertions.assertThat(suDtos.getFirst().getExternalVariables().getFirst().idParent()).isEqualTo(Constants.ROOT_GROUP_NAME);
     }
 }

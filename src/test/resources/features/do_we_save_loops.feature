@@ -3,7 +3,7 @@ Feature: Do we save loops ?
 
   Scenario Outline: Loops in external variables
     Given We have data in directory "TEST-TABLEAUX"
-    When We copy data file "data_backup/data.complete.validated.TEST-TABLEAUX.xml" to that directory
+    Given We copy data file "data_backup/data.complete.validated.TEST-TABLEAUX.xml" to that directory
     When We save data from that directory
     When We delete that directory
 
