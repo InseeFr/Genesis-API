@@ -6,6 +6,7 @@ import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.variabletype.VariableTypeModel;
 import fr.insee.genesis.domain.ports.api.VariableTypeApiPort;
 import fr.insee.genesis.domain.ports.spi.VariableTypePersistancePort;
+import fr.insee.genesis.infrastructure.mappers.VariableTypeDocumentMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -35,5 +36,12 @@ public class VariableTypeService implements VariableTypeApiPort {
         }
 
         variableTypePersistancePort.save(variableTypeModel);
+    }
+
+    @Override
+    public VariableTypeModel getMetadatas(String campaignId, String questionnaireId, Mode mode) {
+        return VariableTypeDocumentMapper.INSTANCE.documentToModel(
+                variableTypePersistancePort.find(campaignId, questionnaireId, mode)
+        );
     }
 }
