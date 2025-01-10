@@ -58,7 +58,7 @@ import java.util.stream.Stream;
 
 @RequestMapping(path = "/responses" )
 @Controller
-@Tag(name = "Response services for interrogations", description = "A **response** is considered the entire set of data associated with an interrogation (idUE x idQuestionnaire). \n\n These data may have different state (collected, edited, external, ...) ")
+@Tag(name = "Response services", description = "A **response** is considered the entire set of data associated with an interrogation (survey unit x questionnaireId). \n\n These data may have different state (collected, edited, external, ...) ")
 @Slf4j
 public class ResponseController {
 
@@ -251,67 +251,67 @@ public class ResponseController {
     //DELETE
     @Operation(summary = "Delete all responses associated with a questionnaire")
     @DeleteMapping(path = "/delete/by-questionnaire")
-    public ResponseEntity<Object> deleteAllResponsesByQuestionnaire(@RequestParam("idQuestionnaire") String idQuestionnaire) {
-        log.info("Try to delete all responses of questionnaire : {}", idQuestionnaire);
-        Long ndDocuments = surveyUnitService.deleteByIdQuestionnaire(idQuestionnaire);
+    public ResponseEntity<Object> deleteAllResponsesByQuestionnaire(@RequestParam("questionnaireId") String questionnaireId) {
+        log.info("Try to delete all responses of questionnaire : {}", questionnaireId);
+        Long ndDocuments = surveyUnitService.deleteByQuestionnaireId(questionnaireId);
         log.info("{} responses deleted", ndDocuments);
         return ResponseEntity.ok(String.format("%d responses deleted", ndDocuments));
     }
 
     //GET
-    @Operation(summary = "Retrieve responses for an interrogation, using IdUE and IdQuestionnaire from Genesis Database")
+    @Operation(summary = "Retrieve responses for an interrogation, using interrogationId and questionnaireId from Genesis Database")
     @GetMapping(path = "/by-ue-and-questionnaire")
-    public ResponseEntity<List<SurveyUnitModel>> findResponsesByUEAndQuestionnaire(@RequestParam("idUE") String idUE,
-                                                                                   @RequestParam("idQuestionnaire") String idQuestionnaire) {
-        List<SurveyUnitModel> responses = surveyUnitService.findByIdsUEAndQuestionnaire(idUE, idQuestionnaire);
+    public ResponseEntity<List<SurveyUnitModel>> findResponsesByInterrogationAndQuestionnaire(@RequestParam("interrogationId") String interrogationId,
+                                                                                   @RequestParam("questionnaireId") String questionnaireId) {
+        List<SurveyUnitModel> responses = surveyUnitService.findByIdsInterrogationAndQuestionnaire(interrogationId, questionnaireId);
         return ResponseEntity.ok(responses);
     }
 
-    @Operation(summary = "Retrieve responses for an interrogation, using IdUE and IdQuestionnaire from Genesis Database with the latest value for each available state of every variable")
+    @Operation(summary = "Retrieve responses for an interrogation, using interrogationId and questionnaireId from Genesis Database with the latest value for each available state of every variable")
     @GetMapping(path = "/by-ue-and-questionnaire/latest-states")
-    public ResponseEntity<SurveyUnitDto> findResponsesByUEAndQuestionnaireLatestStates(
-            @RequestParam("idUE") String idUE,
-            @RequestParam("idQuestionnaire") String idQuestionnaire) {
-        SurveyUnitDto response = surveyUnitService.findLatestValuesByStateByIdAndByIdQuestionnaire(idUE, idQuestionnaire);
+    public ResponseEntity<SurveyUnitDto> findResponsesByInterrogationAndQuestionnaireLatestStates(
+            @RequestParam("interrogationId") String interrogationId,
+            @RequestParam("questionnaireId") String questionnaireId) {
+        SurveyUnitDto response = surveyUnitService.findLatestValuesByStateByIdAndByQuestionnaireId(interrogationId, questionnaireId);
         return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Retrieve all responses (for all interrogations) of one questionnaire")
     @GetMapping(path = "/by-questionnaire")
-    public ResponseEntity<Path> findAllResponsesByQuestionnaire(@RequestParam("idQuestionnaire") String idQuestionnaire) {
-        log.info("Try to find all responses of questionnaire : {}", idQuestionnaire);
+    public ResponseEntity<Path> findAllResponsesByQuestionnaire(@RequestParam("questionnaireId") String questionnaireId) {
+        log.info("Try to find all responses of questionnaire : {}", questionnaireId);
 
         //Get all IdUEs/modes of the survey
-        List<SurveyUnitModel> idUEsResponses = surveyUnitService.findIdUEsAndModesByIdQuestionnaire(idQuestionnaire);
-        log.info("Responses found : {}", idUEsResponses.size());
+        List<SurveyUnitModel> interrogationIdsResponses = surveyUnitService.findInterrogationIdsAndModesByQuestionnaireId(questionnaireId);
+        log.info("Responses found : {}", interrogationIdsResponses.size());
 
-        String filepathString = String.format("OUT/%s/OUT_ALL_%s.json", idQuestionnaire, LocalDateTime.now().toString().replace(":", ""));
+        String filepathString = String.format("OUT/%s/OUT_ALL_%s.json", questionnaireId, LocalDateTime.now().toString().replace(":", ""));
         Path filepath = Path.of(fileUtils.getDataFolderSource(), filepathString);
 
-        try (Stream<SurveyUnitModel> responsesStream = surveyUnitService.findByIdQuestionnaire(idQuestionnaire)) {
+        try (Stream<SurveyUnitModel> responsesStream = surveyUnitService.findByQuestionnaireId(questionnaireId)) {
             fileUtils.writeSuUpdatesInFile(filepath, responsesStream);
         } catch (IOException e) {
             log.error("Error while writing file", e);
             return ResponseEntity.internalServerError().body(filepath);
         }
-        log.info("End of extraction, responses extracted: {}", idUEsResponses.size());
+        log.info("End of extraction, responses extracted: {}", interrogationIdsResponses.size());
         return ResponseEntity.ok(filepath);
     }
 
-    @Operation(summary = "Retrieve responses for an interrogation, using IdUE and IdQuestionnaire from Genesis Database. It returns only the latest value of each variable regardless of the state.")
+    @Operation(summary = "Retrieve responses for an interrogation, using interrogationId and questionnaireId from Genesis Database. It returns only the latest value of each variable regardless of the state.")
     @GetMapping(path = "/by-ue-and-questionnaire/latest")
-    public ResponseEntity<List<SurveyUnitModel>> getLatestByUE(@RequestParam("idUE") String idUE,
-                                                               @RequestParam("idQuestionnaire") String idQuestionnaire) {
-        List<SurveyUnitModel> responses = surveyUnitService.findLatestByIdAndByIdQuestionnaire(idUE, idQuestionnaire);
+    public ResponseEntity<List<SurveyUnitModel>> getLatestByInterrogation(@RequestParam("interrogationId") String interrogationId,
+                                                               @RequestParam("questionnaireId") String questionnaireId) {
+        List<SurveyUnitModel> responses = surveyUnitService.findLatestByIdAndByQuestionnaireId(interrogationId, questionnaireId);
         return ResponseEntity.ok(responses);
     }
 
-    @Operation(summary = "Retrieve responses for an interrogation, using IdUE and IdQuestionnaire from Genesis Database. For a given mode, it returns only the latest value of each variable regardless of the state. The result is one object by mode in the output")
+    @Operation(summary = "Retrieve responses for an interrogation, using interrogationId and questionnaireId from Genesis Database. For a given mode, it returns only the latest value of each variable regardless of the state. The result is one object by mode in the output")
     @GetMapping(path = "/simplified/by-ue-questionnaire-and-mode/latest")
-    public ResponseEntity<SurveyUnitSimplified> getLatestByUEOneObject(@RequestParam("idUE") String idUE,
-                                                                             @RequestParam("idQuestionnaire") String idQuestionnaire,
+    public ResponseEntity<SurveyUnitSimplified> getLatestByInterrogationOneObject(@RequestParam("interrogationId") String interrogationId,
+                                                                             @RequestParam("questionnaireId") String questionnaireId,
                                                                              @RequestParam("mode") Mode mode) {
-        List<SurveyUnitModel> responses = surveyUnitService.findLatestByIdAndByIdQuestionnaire(idUE, idQuestionnaire);
+        List<SurveyUnitModel> responses = surveyUnitService.findLatestByIdAndByQuestionnaireId(interrogationId, questionnaireId);
         List<CollectedVariable> outputVariables = new ArrayList<>();
         List<Variable> outputExternalVariables = new ArrayList<>();
         responses.stream().filter(rep -> rep.getMode().equals(mode)).forEach(response -> {
@@ -319,9 +319,9 @@ public class ResponseController {
             outputExternalVariables.addAll(response.getExternalVariables());
         });
         return ResponseEntity.ok(SurveyUnitSimplified.builder()
-                .idQuest(responses.getFirst().getQuestionnaireId())
-                .idCampaign(responses.getFirst().getCampaignId())
-                .idUE(responses.getFirst().getInterrogationId())
+                .questionnaireId(responses.getFirst().getQuestionnaireId())
+                .campaignId(responses.getFirst().getCampaignId())
+                .interrogationId(responses.getFirst().getInterrogationId())
                 .variablesUpdate(outputVariables)
                 .externalVariables(outputExternalVariables)
                 .build());
@@ -331,13 +331,13 @@ public class ResponseController {
     @Operation(summary = "Retrieve all responses for a questionnaire and a list of UE",
             description = "Return the latest state for each variable for the given ids and a given questionnaire.<br>" +
                     "For a given id, the endpoint returns a document by collection mode (if there is more than one).")
-    @PostMapping(path = "/simplified/by-list-ue-and-questionnaire/latest")
-    public ResponseEntity<List<SurveyUnitSimplified>> getLatestForUEList(@RequestParam("idQuestionnaire") String idQuestionnaire,
-                                                                               @RequestBody List<SurveyUnitId> idUEs) {
+    @PostMapping(path = "/simplified/by-list-interrogation-and-questionnaire/latest")
+    public ResponseEntity<List<SurveyUnitSimplified>> getLatestForInterrogationList(@RequestParam("questionnaireId") String questionnaireId,
+                                                                               @RequestBody List<SurveyUnitId> interrogationIds) {
         List<SurveyUnitSimplified> results = new ArrayList<>();
-        List<Mode> modes = surveyUnitService.findModesByIdQuestionnaire(idQuestionnaire);
-        idUEs.forEach(idUE -> {
-            List<SurveyUnitModel> responses = surveyUnitService.findLatestByIdAndByIdQuestionnaire(idUE.getIdUE(), idQuestionnaire);
+        List<Mode> modes = surveyUnitService.findModesByQuestionnaireId(questionnaireId);
+        interrogationIds.forEach(interrogationId -> {
+            List<SurveyUnitModel> responses = surveyUnitService.findLatestByIdAndByQuestionnaireId(interrogationId.getIdUE(), questionnaireId);
             modes.forEach(mode -> {
                 List<CollectedVariable> outputVariables = new ArrayList<>();
                 List<Variable> outputExternalVariables = new ArrayList<>();
@@ -347,9 +347,9 @@ public class ResponseController {
                 });
                 if (!outputVariables.isEmpty() || !outputExternalVariables.isEmpty()) {
                     results.add(SurveyUnitSimplified.builder()
-                            .idQuest(responses.getFirst().getQuestionnaireId())
-                            .idCampaign(responses.getFirst().getCampaignId())
-                            .idUE(responses.getFirst().getInterrogationId())
+                            .questionnaireId(responses.getFirst().getQuestionnaireId())
+                            .campaignId(responses.getFirst().getCampaignId())
+                            .interrogationId(responses.getFirst().getInterrogationId())
                             .mode(mode)
                             .variablesUpdate(outputVariables)
                             .externalVariables(outputExternalVariables)
@@ -553,6 +553,7 @@ public class ResponseController {
         log.debug("Begin saving raw xml data file {}", filepath);
         lunaticXmlRawDataApiPort.saveData(campaign, modeSpecified);
         log.debug(SUCCESS_MESSAGE);
+
 
         log.info("File {} processed" , filepath.getFileName());
         return ResponseEntity.ok().build();

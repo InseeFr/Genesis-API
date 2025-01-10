@@ -13,28 +13,28 @@ import java.util.stream.Stream;
 @Repository
 public interface SurveyUnitMongoDBRepository extends MongoRepository<SurveyUnitDocument, String> {
 
-	List<SurveyUnitDocument> findByIdUE(String idUE);
+	List<SurveyUnitDocument> findByInterrogationId(String interrogationId);
 
-	List<SurveyUnitDocument> findByIdUEAndIdQuestionnaire(String idUE, String idQuestionnaire);
+	List<SurveyUnitDocument> findByInterrogationIdAndQuestionnaireId(String interrogationId, String questionnaireId);
 
-	@Query(value = "{ 'idQuestionnaire' : ?0 }", fields = "{ 'idUE' : 1, 'mode' :  1 }")
-	List<SurveyUnitDocument> findIdUEsByIdQuestionnaire(String idQuestionnaire);
+	@Query(value = "{ 'questionnaireId' : ?0 }", fields = "{ 'interrogationId' : 1, 'mode' :  1 }")
+	List<SurveyUnitDocument> findInterrogationIdsByQuestionnaireId(String questionnaireId);
 
-	@Query(value = "{ 'idCampaign' : ?0 }", fields = "{ 'idUE' : 1, 'mode' :  1 }")
-	List<SurveyUnitDocument> findIdUEsByIdCampaign(String idCampaign);
+	@Query(value = "{ 'campaignId' : ?0 }", fields = "{ 'interrogationId' : 1, 'mode' :  1 }")
+	List<SurveyUnitDocument> findInterrogationIdsByCampaignId(String campaignId);
 
-	Long deleteByIdQuestionnaire(String idQuestionnaire);
+	Long deleteByQuestionnaireId(String questionnaireId);
 
 	@Meta(cursorBatchSize = 20)
-	Stream<SurveyUnitDocument> findByIdQuestionnaire(String idQuestionnaire);
+	Stream<SurveyUnitDocument> findByQuestionnaireId(String questionnaireId);
 
 	long count();
 
-	@Query(value = "{ 'idCampaign' : ?0 }", fields = "{ _id : 0, 'idQuestionnaire' : 1 }")
-	Set<String> findIdQuestionnairesByIdCampaign(String idCampaign);
+	@Query(value = "{ 'campaignId' : ?0 }", fields = "{ _id : 0, 'questionnaireId' : 1 }")
+	Set<String> findQuestionnaireIdsByCampaignId(String campaignId);
 
-	long countByIdCampaign(String idCampaign);
+	long countByCampaignId(String campaignId);
 
-	@Query(value = "{ 'idQuestionnaire' : ?0 }", fields = "{ _id : 0, 'idCampaign' : 1 }")
-	Set<String> findIdCampaignsByIdQuestionnaire(String idQuestionnaire);
+	@Query(value = "{ 'questionnaireId' : ?0 }", fields = "{ _id : 0, 'campaignId' : 1 }")
+	Set<String> findCampaignIdsByQuestionnaireId(String questionnaireId);
 }

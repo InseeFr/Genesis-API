@@ -12,9 +12,9 @@ import java.util.List;
 @Data
 public class SurveyUnitSimplified {
 
-	private String idQuest;
-	private String idCampaign;
-	private String idUE;
+	private String questionnaireId;
+	private String campaignId;
+	private String interrogationId;
 	private Mode mode;
 	private List<CollectedVariable> variablesUpdate;
 	private List<Variable> externalVariables;

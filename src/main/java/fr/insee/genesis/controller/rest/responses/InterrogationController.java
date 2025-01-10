@@ -12,23 +12,23 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
-@RequestMapping(path = "/idUEs" )
+@RequestMapping(path = "/interrogations" )
 @Controller
 @Slf4j
-public class IdUEController {
+public class InterrogationController {
 
     private final SurveyUnitApiPort surveyUnitService;
 
 
-    public IdUEController(SurveyUnitApiPort surveyUnitService) {
+    public InterrogationController(SurveyUnitApiPort surveyUnitService) {
         this.surveyUnitService = surveyUnitService;
     }
 
 
-    @Operation(summary = "Retrieve all IdUEs for a given questionnaire")
+    @Operation(summary = "Retrieve all interrogations for a given questionnaire")
     @GetMapping(path = "/by-questionnaire")
-    public ResponseEntity<List<SurveyUnitId>> getAllIdUEsByQuestionnaire(@RequestParam("idQuestionnaire") String idQuestionnaire) {
-        List<SurveyUnitId> responses = surveyUnitService.findDistinctIdUEsByIdQuestionnaire(idQuestionnaire);
+    public ResponseEntity<List<SurveyUnitId>> getAllInterrogationIdsByQuestionnaire(@RequestParam("questionnaireId") String questionnaireId) {
+        List<SurveyUnitId> responses = surveyUnitService.findDistinctInterrogationIdsByQuestionnaireId(questionnaireId);
         return ResponseEntity.ok(responses);
     }
 

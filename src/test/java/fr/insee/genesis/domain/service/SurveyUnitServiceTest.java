@@ -113,7 +113,7 @@ class SurveyUnitServiceTest {
 
     @Test
     void findByIdsUEAndQuestionnaireTest(){
-        Assertions.assertThat(surveyUnitServiceStatic.findByIdsUEAndQuestionnaire(defaultIdUE, defaultIdQuest)).filteredOn(
+        Assertions.assertThat(surveyUnitServiceStatic.findByIdsInterrogationAndQuestionnaire(defaultIdUE, defaultIdQuest)).filteredOn(
                 surveyUnitDto ->
                         surveyUnitDto.getInterrogationId().equals(defaultIdUE)
                         && surveyUnitDto.getQuestionnaireId().equals(defaultIdQuest)
@@ -122,15 +122,15 @@ class SurveyUnitServiceTest {
 
     @Test
     void findByIdUETest(){
-        Assertions.assertThat(surveyUnitServiceStatic.findByIdUE(defaultIdUE)).filteredOn(
+        Assertions.assertThat(surveyUnitServiceStatic.findByInterrogationId(defaultIdUE)).filteredOn(
                 surveyUnitDto ->
                         surveyUnitDto.getInterrogationId().equals(defaultIdUE)
         ).isNotEmpty();
     }
 
     @Test
-    void findByIdQuestionnaireTest(){
-        Assertions.assertThat(surveyUnitServiceStatic.findByIdQuestionnaire(defaultIdQuest)).filteredOn(
+    void findByQuestionnaireIdTest(){
+        Assertions.assertThat(surveyUnitServiceStatic.findByQuestionnaireId(defaultIdQuest)).filteredOn(
                 surveyUnitDto -> surveyUnitDto.getQuestionnaireId().equals(defaultIdQuest)
         ).isNotEmpty();
     }
@@ -139,7 +139,7 @@ class SurveyUnitServiceTest {
     void findLatestByIdAndByModeTest(){
         addAdditionnalDtoToMongoStub();
 
-        Assertions.assertThat(surveyUnitServiceStatic.findLatestByIdAndByIdQuestionnaire(defaultIdUE, defaultIdQuest)).filteredOn(
+        Assertions.assertThat(surveyUnitServiceStatic.findLatestByIdAndByQuestionnaireId(defaultIdUE, defaultIdQuest)).filteredOn(
                 surveyUnitDto -> surveyUnitDto.getInterrogationId().equals(defaultIdUE)
                 && surveyUnitDto.getQuestionnaireId().equals(defaultIdQuest)
                 && surveyUnitDto.getFileDate().getMonth().equals(Month.FEBRUARY)
@@ -156,7 +156,7 @@ class SurveyUnitServiceTest {
         );
         surveyUnitPersistencePortStub.getMongoStub().getLast().setCollectedVariables(null);
 
-        Assertions.assertThat(surveyUnitServiceStatic.findLatestByIdAndByIdQuestionnaire(defaultIdUE, defaultIdQuest)).filteredOn(
+        Assertions.assertThat(surveyUnitServiceStatic.findLatestByIdAndByQuestionnaireId(defaultIdUE, defaultIdQuest)).filteredOn(
                 surveyUnitDto -> surveyUnitDto.getInterrogationId().equals(defaultIdUE)
                         && surveyUnitDto.getQuestionnaireId().equals(defaultIdQuest)
                         && surveyUnitDto.getFileDate().getMonth().equals(Month.FEBRUARY)
@@ -172,7 +172,7 @@ class SurveyUnitServiceTest {
         );
         surveyUnitPersistencePortStub.getMongoStub().getLast().setExternalVariables(null);
 
-        Assertions.assertThat(surveyUnitServiceStatic.findLatestByIdAndByIdQuestionnaire(defaultIdUE, defaultIdQuest)).filteredOn(
+        Assertions.assertThat(surveyUnitServiceStatic.findLatestByIdAndByQuestionnaireId(defaultIdUE, defaultIdQuest)).filteredOn(
                 surveyUnitDto -> surveyUnitDto.getInterrogationId().equals(defaultIdUE)
                         && surveyUnitDto.getQuestionnaireId().equals(defaultIdQuest)
                         && surveyUnitDto.getFileDate().getMonth().equals(Month.FEBRUARY)
@@ -180,17 +180,17 @@ class SurveyUnitServiceTest {
     }
 
     @Test
-    void findDistinctIdUEsByIdQuestionnaireTest(){
+    void findDistinctIdUEsByQuestionnaireIdTest(){
         addAdditionnalDtoToMongoStub();
 
-        Assertions.assertThat(surveyUnitServiceStatic.findDistinctIdUEsByIdQuestionnaire(defaultIdQuest)).filteredOn(
+        Assertions.assertThat(surveyUnitServiceStatic.findDistinctInterrogationIdsByQuestionnaireId(defaultIdQuest)).filteredOn(
                 surveyUnitId -> surveyUnitId.getIdUE().equals(defaultIdUE)
         ).isNotEmpty().hasSize(1);
     }
 
     @Test
-    void findIdUEsByIdQuestionnaireTest(){
-        Assertions.assertThat(surveyUnitServiceStatic.findModesByIdQuestionnaire(defaultIdQuest)).filteredOn(
+    void findIdUEsByQuestionnaireIdTest(){
+        Assertions.assertThat(surveyUnitServiceStatic.findModesByQuestionnaireId(defaultIdQuest)).filteredOn(
                 mode -> mode.equals(Mode.WEB)
         ).isNotEmpty();
     }
@@ -199,17 +199,17 @@ class SurveyUnitServiceTest {
     void getQuestionnairesByCampaignTest() {
         addAdditionnalDtoToMongoStub("TESTQUESTIONNAIRE2");
 
-        Assertions.assertThat(surveyUnitServiceStatic.findIdQuestionnairesByIdCampaign("TESTIDCAMPAIGN")).isNotEmpty().hasSize(2);
+        Assertions.assertThat(surveyUnitServiceStatic.findQuestionnaireIdsByCampaignId("TESTIDCAMPAIGN")).isNotEmpty().hasSize(2);
 
     }
 
     @Test
     void getAllCampaignsTest() {
-        Assertions.assertThat(surveyUnitServiceStatic.findDistinctIdCampaigns()).contains("TESTIDCAMPAIGN");
+        Assertions.assertThat(surveyUnitServiceStatic.findDistinctCampaignIds()).contains("TESTIDCAMPAIGN");
     }
 
     @Test
-    void findLatestByIdAndByIdQuestionnairePerretTest(){
+    void findLatestByIdAndByQuestionnaireIdPerretTest(){
         //Given
         //Recent Collected already in stub
         //Old Collected
@@ -238,7 +238,7 @@ class SurveyUnitServiceTest {
 
 
         //When
-        SurveyUnitDto surveyUnitDto = surveyUnitServiceStatic.findLatestValuesByStateByIdAndByIdQuestionnaire(
+        SurveyUnitDto surveyUnitDto = surveyUnitServiceStatic.findLatestValuesByStateByIdAndByQuestionnaireId(
                 defaultIdUE,
                 defaultIdQuest
         );
@@ -295,7 +295,7 @@ class SurveyUnitServiceTest {
     }
 
     @Test
-    void findLatestByIdAndByIdQuestionnairePerretTest_null_collectedVariables(){
+    void findLatestByIdAndByQuestionnaireIdPerretTest_null_collectedVariables(){
         //Given
         addAdditionnalDtoToMongoStub(DataState.EDITED,
                 "C NEW E",
@@ -307,7 +307,7 @@ class SurveyUnitServiceTest {
 
 
         //When
-        SurveyUnitDto surveyUnitDto = surveyUnitServiceStatic.findLatestValuesByStateByIdAndByIdQuestionnaire(
+        SurveyUnitDto surveyUnitDto = surveyUnitServiceStatic.findLatestValuesByStateByIdAndByQuestionnaireId(
                 defaultIdUE,
                 defaultIdQuest
         );
@@ -354,7 +354,7 @@ class SurveyUnitServiceTest {
     }
 
     @Test
-    void findLatestByIdAndByIdQuestionnairePerretTest_null_externalVariables(){
+    void findLatestByIdAndByQuestionnaireIdPerretTest_null_externalVariables(){
         //Given
         addAdditionnalDtoToMongoStub(DataState.EDITED,
                 "C NEW E",
@@ -366,7 +366,7 @@ class SurveyUnitServiceTest {
 
 
         //When
-        SurveyUnitDto surveyUnitDto = surveyUnitServiceStatic.findLatestValuesByStateByIdAndByIdQuestionnaire(
+        SurveyUnitDto surveyUnitDto = surveyUnitServiceStatic.findLatestValuesByStateByIdAndByQuestionnaireId(
                 defaultIdUE,
                 defaultIdQuest
         );

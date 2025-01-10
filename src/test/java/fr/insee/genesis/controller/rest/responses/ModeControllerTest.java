@@ -13,14 +13,12 @@ import org.springframework.http.ResponseEntity;
 import java.io.IOException;
 import java.util.List;
 
+import static fr.insee.genesis.TestConstants.DEFAULT_QUESTIONNAIRE_ID;
+
 class ModeControllerTest {
     //Given
     static ModeController modeControllerStatic;
     static SurveyUnitPersistencePortStub surveyUnitPersistencePortStub;
-
-    //Constants
-    static final String defaultIdUE = "TESTIDUE";
-    static final String defaultIdQuest = "TESTIDQUESTIONNAIRE";
 
     @BeforeAll
     static void init() {
@@ -40,7 +38,7 @@ class ModeControllerTest {
     //When + Then
     @Test
     void getModesByQuestionnaireTest() {
-        ResponseEntity<List<Mode>> response = modeControllerStatic.getModesByQuestionnaire(defaultIdQuest);
+        ResponseEntity<List<Mode>> response = modeControllerStatic.getModesByQuestionnaire(DEFAULT_QUESTIONNAIRE_ID);
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().hasSize(1);

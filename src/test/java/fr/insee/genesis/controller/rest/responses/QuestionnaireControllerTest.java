@@ -14,14 +14,12 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
+import static fr.insee.genesis.TestConstants.DEFAULT_QUESTIONNAIRE_ID;
+
 class QuestionnaireControllerTest {
     //Given
     static QuestionnaireController questionnaireControllerStatic;
     static SurveyUnitPersistencePortStub surveyUnitPersistencePortStub;
-
-    //Constants
-    static final String defaultIdUE = "TESTIDUE";
-    static final String defaultIdQuest = "TESTIDQUESTIONNAIRE";
 
     @BeforeAll
     static void init() {
@@ -48,7 +46,7 @@ class QuestionnaireControllerTest {
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().containsExactly(
-                defaultIdQuest,"TESTQUESTIONNAIRE2");
+                DEFAULT_QUESTIONNAIRE_ID,"TESTQUESTIONNAIRE2");
     }
 
     @Test
@@ -59,7 +57,7 @@ class QuestionnaireControllerTest {
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().containsExactly(
-                defaultIdQuest,"TESTQUESTIONNAIRE2");
+                DEFAULT_QUESTIONNAIRE_ID,"TESTQUESTIONNAIRE2");
     }
 
 
@@ -75,12 +73,12 @@ class QuestionnaireControllerTest {
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
         Assertions.assertThat(response.getBody().stream().filter(questionnaireWithCampaign ->
-                questionnaireWithCampaign.getIdQuestionnaire().equals(defaultIdQuest)
+                questionnaireWithCampaign.getIdQuestionnaire().equals(DEFAULT_QUESTIONNAIRE_ID)
                         || questionnaireWithCampaign.getIdQuestionnaire().equals("TESTQUESTIONNAIRE2")
         )).isNotNull().isNotEmpty().hasSize(2);
 
         Assertions.assertThat(response.getBody().stream().filter(
-                questionnaireWithCampaign -> questionnaireWithCampaign.getIdQuestionnaire().equals(defaultIdQuest)
+                questionnaireWithCampaign -> questionnaireWithCampaign.getIdQuestionnaire().equals(DEFAULT_QUESTIONNAIRE_ID)
         ).findFirst().get().getCampaigns()).containsExactly("TESTIDCAMPAIGN");
 
         Assertions.assertThat(response.getBody().stream().filter(

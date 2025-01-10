@@ -39,9 +39,9 @@ public class VolumetryLogService {
         Files.writeString(logFilePath, "campaign;volumetry\n");
 
         //Write lines
-        Set<String> campaigns = surveyUnitApiPort.findDistinctIdCampaigns();
+        Set<String> campaigns = surveyUnitApiPort.findDistinctCampaignIds();
         for (String campaignId : campaigns) {
-            long countResult = surveyUnitApiPort.countResponsesByIdCampaign(campaignId);
+            long countResult = surveyUnitApiPort.countResponsesByCampaignId(campaignId);
 
             String line = campaignId + ";" + countResult + "\n";
 

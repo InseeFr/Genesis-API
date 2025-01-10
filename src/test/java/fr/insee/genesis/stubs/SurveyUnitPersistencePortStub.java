@@ -20,10 +20,10 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     }
 
     @Override
-    public List<SurveyUnitModel> findByIds(String idUE, String idQuest) {
+    public List<SurveyUnitModel> findByIds(String interrogationId, String questionnaireId) {
         List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
         for(SurveyUnitModel SurveyUnitModel : mongoStub){
-            if(SurveyUnitModel.getInterrogationId().equals(idUE) && SurveyUnitModel.getQuestionnaireId().equals(idQuest))
+            if(SurveyUnitModel.getInterrogationId().equals(interrogationId) && SurveyUnitModel.getQuestionnaireId().equals(questionnaireId))
                 surveyUnitModelList.add(SurveyUnitModel);
         }
 
@@ -31,10 +31,10 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     }
 
     @Override
-    public List<SurveyUnitModel> findByIdUE(String idUE) {
+    public List<SurveyUnitModel> findByInterrogationId(String interrogationId) {
         List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
         for(SurveyUnitModel SurveyUnitModel : mongoStub){
-            if(SurveyUnitModel.getInterrogationId().equals(idUE))
+            if(SurveyUnitModel.getInterrogationId().equals(interrogationId))
                 surveyUnitModelList.add(SurveyUnitModel);
         }
 
@@ -42,11 +42,11 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     }
 
     @Override
-    public List<SurveyUnitModel> findByIdUEsAndIdQuestionnaire(List<SurveyUnitModel> idUEs, String idQuestionnaire) {
+    public List<SurveyUnitModel> findByInterrogationIdsAndQuestionnaireId(List<SurveyUnitModel> interrogationIds, String questionnaireId) {
         List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
-        for(SurveyUnitModel surveyUnitModel : idUEs) {
+        for(SurveyUnitModel surveyUnitModel : interrogationIds) {
             for (SurveyUnitModel document : mongoStub) {
-                if (surveyUnitModel.getInterrogationId().equals(document.getInterrogationId()) && document.getQuestionnaireId().equals(idQuestionnaire))
+                if (surveyUnitModel.getInterrogationId().equals(document.getInterrogationId()) && document.getQuestionnaireId().equals(questionnaireId))
                     surveyUnitModelList.add(document);
             }
         }
@@ -55,10 +55,10 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     }
 
     @Override
-    public Stream<SurveyUnitModel> findByIdQuestionnaire(String idQuestionnaire) {
+    public Stream<SurveyUnitModel> findByQuestionnaireId(String questionnaireId) {
         List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
         for(SurveyUnitModel SurveyUnitModel : mongoStub){
-            if(SurveyUnitModel.getQuestionnaireId().equals(idQuestionnaire))
+            if(SurveyUnitModel.getQuestionnaireId().equals(questionnaireId))
                 surveyUnitModelList.add(SurveyUnitModel);
         }
 
@@ -66,10 +66,10 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     }
 
     @Override
-    public List<SurveyUnitModel> findIdUEsByIdQuestionnaire(String idQuestionnaire) {
+    public List<SurveyUnitModel> findInterrogationIdsByQuestionnaireId(String questionnaireId) {
         List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
         for(SurveyUnitModel SurveyUnitModel : mongoStub){
-            if(SurveyUnitModel.getQuestionnaireId().equals(idQuestionnaire))
+            if(SurveyUnitModel.getQuestionnaireId().equals(questionnaireId))
                 surveyUnitModelList.add(
                         new SurveyUnitModel(SurveyUnitModel.getInterrogationId(), SurveyUnitModel.getMode())
                 );
@@ -79,10 +79,10 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     }
 
     @Override
-    public List<SurveyUnitModel> findIdUEsByIdCampaign(String idCampaign) {
+    public List<SurveyUnitModel> findInterrogationIdsByCampaignId(String campaignId) {
         List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
         for(SurveyUnitModel SurveyUnitModel : mongoStub){
-            if(SurveyUnitModel.getCampaignId().equals(idCampaign))
+            if(SurveyUnitModel.getCampaignId().equals(campaignId))
                 surveyUnitModelList.add(
                         new SurveyUnitModel(SurveyUnitModel.getInterrogationId(), SurveyUnitModel.getMode())
                 );
@@ -92,7 +92,7 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     }
 
     @Override
-    public Long deleteByIdQuestionnaire(String idQuestionnaire) {
+    public Long deleteByQuestionnaireId(String questionnaireId) {
         return null;
     }
 
@@ -102,18 +102,18 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     }
 
     @Override
-    public Set<String> findIdQuestionnairesByIdCampaign(String idCampaign) {
-        Set<String> idQuestionnaireSet = new HashSet<>();
+    public Set<String> findQuestionnaireIdsByCampaignId(String campaignId) {
+        Set<String> questionnaireIdSet = new HashSet<>();
         for(SurveyUnitModel SurveyUnitModel : mongoStub){
-            if(SurveyUnitModel.getCampaignId().equals(idCampaign))
-                idQuestionnaireSet.add(SurveyUnitModel.getQuestionnaireId());
+            if(SurveyUnitModel.getCampaignId().equals(campaignId))
+                questionnaireIdSet.add(SurveyUnitModel.getQuestionnaireId());
         }
 
-        return idQuestionnaireSet;
+        return questionnaireIdSet;
     }
 
     @Override
-    public Set<String> findDistinctIdCampaigns() {
+    public Set<String> findDistinctCampaignIds() {
         Set<String> campaignIds = new HashSet<>();
         for(SurveyUnitModel SurveyUnitModel : mongoStub){
             campaignIds.add(SurveyUnitModel.getCampaignId());
@@ -123,13 +123,13 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     }
 
     @Override
-    public long countByIdCampaign(String idCampaign) {
+    public long countByCampaignId(String campaignId) {
         return mongoStub.stream().filter(
-                SurveyUnitDto -> SurveyUnitDto.getCampaignId().equals(idCampaign)).toList().size();
+                SurveyUnitDto -> SurveyUnitDto.getCampaignId().equals(campaignId)).toList().size();
     }
 
     @Override
-    public Set<String> findDistinctIdQuestionnaires() {
+    public Set<String> findDistinctQuestionnaireIds() {
         Set<String> questionnaireIds = new HashSet<>();
         for(SurveyUnitModel SurveyUnitModel : mongoStub){
             questionnaireIds.add(SurveyUnitModel.getQuestionnaireId());
@@ -138,13 +138,13 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     }
 
     @Override
-    public Set<String> findIdCampaignsByIdQuestionnaire(String idQuestionnaire) {
-        Set<String> idCampaignSet = new HashSet<>();
+    public Set<String> findCampaignIdsByQuestionnaireId(String questionnaireId) {
+        Set<String> campaignIdSet = new HashSet<>();
         for(SurveyUnitModel SurveyUnitModel : mongoStub){
-            if(SurveyUnitModel.getQuestionnaireId().equals(idQuestionnaire))
-                idCampaignSet.add(SurveyUnitModel.getCampaignId());
+            if(SurveyUnitModel.getQuestionnaireId().equals(questionnaireId))
+                campaignIdSet.add(SurveyUnitModel.getCampaignId());
         }
 
-        return idCampaignSet;
+        return campaignIdSet;
     }
 }
