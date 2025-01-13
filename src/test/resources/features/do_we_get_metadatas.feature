@@ -6,5 +6,5 @@ Feature: Do we get variable types ?
     Then There should be a variable "<VariableName>" with type "<VariableType>"
     Examples:
       |Directory  | VariableName | VariableType   |
-      |SAMPLETEST | T_PRENOM     | STRING         |
-      |SAMPLETEST | T_AGE        | NUMBER         |
+      |SAMPLETEST | PRENOMREP    | STRING         |
+      |SAMPLETEST | AGE          | NUMBER         |
