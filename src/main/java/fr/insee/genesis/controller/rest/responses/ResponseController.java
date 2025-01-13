@@ -23,7 +23,7 @@ import fr.insee.genesis.domain.model.surveyunit.Variable;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.LunaticXmlRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
-import fr.insee.genesis.domain.ports.api.VariableTypeApiPort;
+import fr.insee.genesis.domain.ports.api.SurveyMetadataApiPort;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
@@ -73,7 +73,7 @@ public class ResponseController {
     private final SurveyUnitQualityService surveyUnitQualityService;
     private final LunaticXmlRawDataApiPort lunaticXmlRawDataApiPort;
     private final LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort;
-    private final VariableTypeApiPort variableTypeApiPort;
+    private final SurveyMetadataApiPort surveyMetadataApiPort;
     private final FileUtils fileUtils;
     private final ControllerUtils controllerUtils;
 
@@ -82,14 +82,14 @@ public class ResponseController {
                               SurveyUnitQualityService surveyUnitQualityService,
                               LunaticXmlRawDataApiPort lunaticXmlRawDataApiPort,
                               LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort,
-                              VariableTypeApiPort variableTypeApiPort,
+                              SurveyMetadataApiPort surveyMetadataApiPort,
                               FileUtils fileUtils,
                               ControllerUtils controllerUtils) {
         this.surveyUnitService = surveyUnitService;
         this.surveyUnitQualityService = surveyUnitQualityService;
         this.lunaticXmlRawDataApiPort = lunaticXmlRawDataApiPort;
         this.lunaticJsonRawDataApiPort = lunaticJsonRawDataApiPort;
-        this.variableTypeApiPort = variableTypeApiPort;
+        this.surveyMetadataApiPort = surveyMetadataApiPort;
         this.fileUtils = fileUtils;
         this.controllerUtils = controllerUtils;
     }
@@ -265,7 +265,7 @@ public class ResponseController {
                 lunaticJsonRawDataApiPort.updateProcessDates(surveyUnitModels);
 
                 //Save metadatas
-                variableTypeApiPort.saveMetadatas(campaignName, questionnaireId, mode, variablesMap);
+                surveyMetadataApiPort.saveMetadatas(campaignName, questionnaireId, mode, variablesMap);
                 dataCount += surveyUnitModels.size();
             }
             return ResponseEntity.ok("%d document(s) processed".formatted(dataCount));

@@ -1,10 +1,10 @@
 package fr.insee.genesis.infrastructure.adapter;
 
 import fr.insee.genesis.domain.model.surveyunit.Mode;
-import fr.insee.genesis.domain.model.variabletype.VariableTypeModel;
-import fr.insee.genesis.domain.ports.spi.VariableTypePersistancePort;
-import fr.insee.genesis.infrastructure.document.variabletype.VariableTypeDocument;
-import fr.insee.genesis.infrastructure.mappers.VariableTypeDocumentMapper;
+import fr.insee.genesis.domain.model.surveymetadata.SurveyMetadataModel;
+import fr.insee.genesis.domain.ports.spi.SurveyMetadataPersistancePort;
+import fr.insee.genesis.infrastructure.document.surveymetadata.SurveyMetadataDocument;
+import fr.insee.genesis.infrastructure.mappers.SurveyMetadataDocumentMapper;
 import fr.insee.genesis.infrastructure.repository.VariableTypeMongoDBRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -16,27 +16,27 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Qualifier("variableTypeMongoAdapter")
-public class VariableTypeMongoAdapter implements VariableTypePersistancePort {
+public class SurveyMetadataMongoAdapter implements SurveyMetadataPersistancePort {
     private final VariableTypeMongoDBRepository variableTypeMongoDBRepository;
     private final MongoTemplate mongoTemplate;
 
     @Autowired
-    public VariableTypeMongoAdapter(VariableTypeMongoDBRepository variableTypeMongoDBRepository, MongoTemplate mongoTemplate) {
+    public SurveyMetadataMongoAdapter(VariableTypeMongoDBRepository variableTypeMongoDBRepository, MongoTemplate mongoTemplate) {
         this.variableTypeMongoDBRepository = variableTypeMongoDBRepository;
         this.mongoTemplate = mongoTemplate;
     }
 
     @Override
-    public void save(VariableTypeModel variableTypeModel) {
-        mongoTemplate.update(VariableTypeDocument.class)
-                .matching(Query.query(Criteria.where("campaignId").is(variableTypeModel.campaignId())))
-                .replaceWith(VariableTypeDocumentMapper.INSTANCE.modelToDocument(variableTypeModel))
+    public void save(SurveyMetadataModel surveyMetadataModel) {
+        mongoTemplate.update(SurveyMetadataDocument.class)
+                .matching(Query.query(Criteria.where("campaignId").is(surveyMetadataModel.campaignId())))
+                .replaceWith(SurveyMetadataDocumentMapper.INSTANCE.modelToDocument(surveyMetadataModel))
                 .withOptions(FindAndReplaceOptions.options().upsert())
                 .findAndReplace();
     }
 
     @Override
-    public VariableTypeDocument find(String campaignId, String questionnaireId, Mode mode) {
+    public SurveyMetadataDocument find(String campaignId, String questionnaireId, Mode mode) {
         return variableTypeMongoDBRepository.findFirstByCampaignIdQuestionnaireIdMode(campaignId, questionnaireId, mode);
     }
 }

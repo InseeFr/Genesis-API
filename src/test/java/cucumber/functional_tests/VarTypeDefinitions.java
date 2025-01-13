@@ -4,16 +4,16 @@ import fr.insee.bpm.exceptions.MetadataParserException;
 import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.bpm.metadata.reader.ddi.DDIReader;
 import fr.insee.bpm.metadata.reader.lunatic.LunaticReader;
-import fr.insee.genesis.controller.rest.responses.VarTypeController;
+import fr.insee.genesis.controller.rest.responses.SurveyMetadataController;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
-import fr.insee.genesis.domain.model.variabletype.VariableTypeModel;
-import fr.insee.genesis.domain.service.variabletype.VariableTypeService;
+import fr.insee.genesis.domain.model.surveymetadata.SurveyMetadataModel;
+import fr.insee.genesis.domain.service.surveymetadata.SurveyMetadataService;
 import fr.insee.genesis.exceptions.GenesisException;
-import fr.insee.genesis.infrastructure.mappers.VariableTypeDocumentMapper;
+import fr.insee.genesis.infrastructure.mappers.SurveyMetadataDocumentMapper;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
-import fr.insee.genesis.stubs.VariableTypePersistanceStub;
+import fr.insee.genesis.stubs.SurveyMetadataPersistanceStub;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
@@ -28,9 +28,9 @@ import java.nio.file.Path;
 import java.util.List;
 
 public class VarTypeDefinitions {
-    VariableTypePersistanceStub variableTypePersistanceStub = new VariableTypePersistanceStub();
+    SurveyMetadataPersistanceStub variableTypePersistanceStub = new SurveyMetadataPersistanceStub();
 
-    VarTypeController varTypeController = new VarTypeController(new VariableTypeService(variableTypePersistanceStub));
+    SurveyMetadataController surveyMetadataController = new SurveyMetadataController(new SurveyMetadataService(variableTypePersistanceStub));
 
     String campaignId;
     Mode mode;
@@ -63,8 +63,8 @@ public class VarTypeDefinitions {
 
         campaignId = specDirectory;
         variableTypePersistanceStub.getMongoStub().add(
-                VariableTypeDocumentMapper.INSTANCE.modelToDocument(
-                        VariableTypeModel.builder()
+                SurveyMetadataDocumentMapper.INSTANCE.modelToDocument(
+                        SurveyMetadataModel.builder()
                                 .campaignId(campaignId)
                                 .questionnaireId(campaignId)
                                 .mode(mode)
@@ -76,7 +76,7 @@ public class VarTypeDefinitions {
 
     @When("We get metadata from database")
     public void get_metadata() {
-        response = varTypeController.getVarType(campaignId,campaignId,mode);
+        response = surveyMetadataController.getSurveyMetadata(campaignId,campaignId,mode);
     }
 
 

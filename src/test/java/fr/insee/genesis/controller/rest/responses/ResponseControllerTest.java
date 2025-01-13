@@ -14,19 +14,19 @@ import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.LunaticXmlRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
-import fr.insee.genesis.domain.ports.api.VariableTypeApiPort;
+import fr.insee.genesis.domain.ports.api.SurveyMetadataApiPort;
 import fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService;
 import fr.insee.genesis.domain.service.rawdata.LunaticXmlRawDataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
-import fr.insee.genesis.domain.service.variabletype.VariableTypeService;
+import fr.insee.genesis.domain.service.surveymetadata.SurveyMetadataService;
 import fr.insee.genesis.infrastructure.document.rawdata.LunaticJsonDataDocument;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.LunaticJsonPersistanceStub;
 import fr.insee.genesis.stubs.LunaticXmlPersistanceStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
-import fr.insee.genesis.stubs.VariableTypePersistanceStub;
+import fr.insee.genesis.stubs.SurveyMetadataPersistanceStub;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,7 +50,7 @@ class ResponseControllerTest {
     static SurveyUnitPersistencePortStub surveyUnitPersistencePortStub;
     static LunaticXmlPersistanceStub lunaticXmlPersistanceStub;
     static LunaticJsonPersistanceStub lunaticJsonPersistanceStub;
-    static VariableTypePersistanceStub variableTypePersistanceStub;
+    static SurveyMetadataPersistanceStub variableTypePersistanceStub;
 
     static List<SurveyUnitId> surveyUnitIdList;
     //Constants
@@ -68,8 +68,8 @@ class ResponseControllerTest {
         lunaticJsonPersistanceStub = new LunaticJsonPersistanceStub();
         LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort = new LunaticJsonRawDataService(lunaticJsonPersistanceStub);
 
-        variableTypePersistanceStub = new VariableTypePersistanceStub();
-        VariableTypeApiPort variableTypeApiPort = new VariableTypeService(variableTypePersistanceStub);
+        variableTypePersistanceStub = new SurveyMetadataPersistanceStub();
+        SurveyMetadataApiPort surveyMetadataApiPort = new SurveyMetadataService(variableTypePersistanceStub);
 
         FileUtils fileUtils = new FileUtils(new ConfigStub());
         responseControllerStatic = new ResponseController(
@@ -77,7 +77,7 @@ class ResponseControllerTest {
                 , new SurveyUnitQualityService()
                 , lunaticXmlRawDataApiPort
                 , lunaticJsonRawDataApiPort
-                , variableTypeApiPort
+                , surveyMetadataApiPort
                 , fileUtils
                 , new ControllerUtils(fileUtils)
         );

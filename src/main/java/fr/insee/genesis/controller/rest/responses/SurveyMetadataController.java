@@ -1,8 +1,9 @@
 package fr.insee.genesis.controller.rest.responses;
 
 import fr.insee.bpm.metadata.model.VariablesMap;
+import fr.insee.genesis.controller.dto.SurveyMetadataDto;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
-import fr.insee.genesis.domain.service.variabletype.VariableTypeService;
+import fr.insee.genesis.domain.service.surveymetadata.SurveyMetadataService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -16,17 +17,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @Tag(name = "Metadata services", description = "Services to interact with survey metadatas (especially variable types)")
 @Slf4j
-public class VarTypeController {
-    VariableTypeService variableTypeService;
+public class SurveyMetadataController {
+    SurveyMetadataService surveyMetadataService;
 
-    public VarTypeController(VariableTypeService variableTypeService) {
-        this.variableTypeService = variableTypeService;
+    public SurveyMetadataController(SurveyMetadataService surveyMetadataService) {
+        this.surveyMetadataService = surveyMetadataService;
     }
 
-    @Operation(summary = "Get BPM metadatas")
-    @PutMapping(path = "/get")
-    public ResponseEntity<VariablesMap> getVarType(String campaignId, String questionnaireId, Mode mode) {
-        return new ResponseEntity<>(variableTypeService.getMetadatas(campaignId, questionnaireId, mode).variablesMap(),
-                HttpStatus.OK);
-    }
+//    @Operation(summary = "Get BPM metadatas")
+//    @PutMapping(path = "/get")
+//    public ResponseEntity<VariablesMap> getSurveyMetadata(String campaignId, String questionnaireId, Mode mode) {
+//        return new ResponseEntity<>(surveyMetadataService.getMetadatas(campaignId, questionnaireId, mode).variableDocumentMap(),
+//                HttpStatus.OK);
+//    }
 }
