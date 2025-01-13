@@ -22,9 +22,9 @@ public class SurveyMetadataPersistanceStub implements SurveyMetadataPersistanceP
     @Override
     public SurveyMetadataDocument find(String campaignId, String questionnaireId, Mode mode) {
         return mongoStub.stream().filter(variableTypeDocument ->
-                variableTypeDocument.getCampaignId().equals(campaignId)
-                && variableTypeDocument.getQuestionnaireId().equals(questionnaireId)
-                && variableTypeDocument.getMode().equals(mode)
+                variableTypeDocument.campaignId().equals(campaignId)
+                && variableTypeDocument.questionnaireId().equals(questionnaireId)
+                && variableTypeDocument.mode().equals(mode)
         ).toList().getFirst();
     }
 }

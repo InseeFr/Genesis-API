@@ -279,11 +279,11 @@ class ResponseControllerTest {
 
         //Metadata content check
         Assertions.assertThat(surveyMetadataPersistanceStub.getMongoStub()).isNotNull().isNotEmpty().hasSize(1);
-        Assertions.assertThat(surveyMetadataPersistanceStub.getMongoStub().getFirst().getCampaignId()).isEqualTo(campaignId);
-        Assertions.assertThat(surveyMetadataPersistanceStub.getMongoStub().getFirst().getQuestionnaireId()).isEqualTo(idQuest);
-        Assertions.assertThat(surveyMetadataPersistanceStub.getMongoStub().getFirst().getMode()).isEqualTo(Mode.WEB);
-        Assertions.assertThat(surveyMetadataPersistanceStub.getMongoStub().getFirst().getVariableDefinitions()).isNotNull().isNotEmpty().containsKey(varName);
-        Assertions.assertThat(surveyMetadataPersistanceStub.getMongoStub().getFirst().getVariableDefinitions().get(varName).getType()).isEqualTo(VariableType.STRING);
+        Assertions.assertThat(surveyMetadataPersistanceStub.getMongoStub().getFirst().campaignId()).isEqualTo(campaignId);
+        Assertions.assertThat(surveyMetadataPersistanceStub.getMongoStub().getFirst().questionnaireId()).isEqualTo(idQuest);
+        Assertions.assertThat(surveyMetadataPersistanceStub.getMongoStub().getFirst().mode()).isEqualTo(Mode.WEB);
+        Assertions.assertThat(surveyMetadataPersistanceStub.getMongoStub().getFirst().variableDefinitions()).isNotNull().isNotEmpty().containsKey(varName);
+        Assertions.assertThat(surveyMetadataPersistanceStub.getMongoStub().getFirst().variableDefinitions().get(varName).type()).isEqualTo(VariableType.STRING);
     }
 
     //All data

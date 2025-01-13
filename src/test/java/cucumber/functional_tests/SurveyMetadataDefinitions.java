@@ -78,7 +78,7 @@ public class SurveyMetadataDefinitions {
         );
 
         for(Map.Entry<String, Variable> variable : variablesMap.getVariables().entrySet()){
-            surveyMetadataDocument.getVariableDefinitions().put(
+            surveyMetadataDocument.variableDefinitions().put(
                     variable.getKey(),
                     VariableDocumentMapper.INSTANCE.bpmToDocument(variable.getValue())
             );
@@ -100,6 +100,6 @@ public class SurveyMetadataDefinitions {
         SurveyMetadataModel surveyMetadataModel = response.getBody();
         Assertions.assertThat(surveyMetadataModel).isNotNull();
         Assertions.assertThat(surveyMetadataModel.variableDocumentMap()).isNotNull().containsKey(expectedVariableName);
-        Assertions.assertThat(surveyMetadataModel.variableDocumentMap().get(expectedVariableName).getType()).isNotNull().asString().isEqualTo(expectedVariableType);
+        Assertions.assertThat(surveyMetadataModel.variableDocumentMap().get(expectedVariableName).type()).isNotNull().asString().isEqualTo(expectedVariableType);
     }
 }
