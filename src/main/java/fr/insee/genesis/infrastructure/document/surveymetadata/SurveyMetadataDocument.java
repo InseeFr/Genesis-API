@@ -1,6 +1,5 @@
 package fr.insee.genesis.infrastructure.document.surveymetadata;
 
-import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import lombok.Data;
@@ -14,6 +13,5 @@ public class SurveyMetadataDocument {
     private String campaignId;
     private String questionnaireId;
     private Mode mode;
-    private VariablesMap variablesMap;
     private Map<String, VariableDocument> variableDefinitions;
 }

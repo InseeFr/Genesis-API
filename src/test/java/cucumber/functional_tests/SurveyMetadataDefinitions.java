@@ -1,16 +1,19 @@
 package cucumber.functional_tests;
 
 import fr.insee.bpm.exceptions.MetadataParserException;
+import fr.insee.bpm.metadata.model.Variable;
 import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.bpm.metadata.reader.ddi.DDIReader;
 import fr.insee.bpm.metadata.reader.lunatic.LunaticReader;
 import fr.insee.genesis.controller.rest.responses.SurveyMetadataController;
 import fr.insee.genesis.controller.utils.ControllerUtils;
-import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveymetadata.SurveyMetadataModel;
+import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.service.surveymetadata.SurveyMetadataService;
 import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.infrastructure.document.surveymetadata.SurveyMetadataDocument;
 import fr.insee.genesis.infrastructure.mappers.SurveyMetadataDocumentMapper;
+import fr.insee.genesis.infrastructure.mappers.VariableDocumentMapper;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.SurveyMetadataPersistanceStub;
@@ -25,12 +28,14 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
-public class VarTypeDefinitions {
-    SurveyMetadataPersistanceStub variableTypePersistanceStub = new SurveyMetadataPersistanceStub();
+public class SurveyMetadataDefinitions {
+    SurveyMetadataPersistanceStub surveyMetadataPersistanceStub = new SurveyMetadataPersistanceStub();
 
-    SurveyMetadataController surveyMetadataController = new SurveyMetadataController(new SurveyMetadataService(variableTypePersistanceStub));
+    SurveyMetadataController surveyMetadataController = new SurveyMetadataController(new SurveyMetadataService(surveyMetadataPersistanceStub));
 
     String campaignId;
     Mode mode;
@@ -62,16 +67,24 @@ public class VarTypeDefinitions {
         Assertions.assertThat(variablesMap).isNotNull();
 
         campaignId = specDirectory;
-        variableTypePersistanceStub.getMongoStub().add(
-                SurveyMetadataDocumentMapper.INSTANCE.modelToDocument(
-                        SurveyMetadataModel.builder()
-                                .campaignId(campaignId)
-                                .questionnaireId(campaignId)
-                                .mode(mode)
-                                //TODO map
-                                .build()
-                )
+
+        SurveyMetadataDocument surveyMetadataDocument = SurveyMetadataDocumentMapper.INSTANCE.modelToDocument(
+                SurveyMetadataModel.builder()
+                        .campaignId(campaignId)
+                        .questionnaireId(campaignId)
+                        .mode(mode)
+                        .variableDocumentMap(new LinkedHashMap<>())
+                        .build()
         );
+
+        for(Map.Entry<String, Variable> variable : variablesMap.getVariables().entrySet()){
+            surveyMetadataDocument.getVariableDefinitions().put(
+                    variable.getKey(),
+                    VariableDocumentMapper.INSTANCE.bpmToDocument(variable.getValue())
+            );
+        }
+
+        surveyMetadataPersistanceStub.getMongoStub().add(surveyMetadataDocument);
     }
 
     @When("We get metadata from database")

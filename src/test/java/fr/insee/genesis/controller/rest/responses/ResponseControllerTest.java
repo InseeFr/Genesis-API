@@ -50,7 +50,7 @@ class ResponseControllerTest {
     static SurveyUnitPersistencePortStub surveyUnitPersistencePortStub;
     static LunaticXmlPersistanceStub lunaticXmlPersistanceStub;
     static LunaticJsonPersistanceStub lunaticJsonPersistanceStub;
-    static SurveyMetadataPersistanceStub variableTypePersistanceStub;
+    static SurveyMetadataPersistanceStub surveyMetadataPersistanceStub;
 
     static List<SurveyUnitId> surveyUnitIdList;
     //Constants
@@ -68,8 +68,8 @@ class ResponseControllerTest {
         lunaticJsonPersistanceStub = new LunaticJsonPersistanceStub();
         LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort = new LunaticJsonRawDataService(lunaticJsonPersistanceStub);
 
-        variableTypePersistanceStub = new SurveyMetadataPersistanceStub();
-        SurveyMetadataApiPort surveyMetadataApiPort = new SurveyMetadataService(variableTypePersistanceStub);
+        surveyMetadataPersistanceStub = new SurveyMetadataPersistanceStub();
+        SurveyMetadataApiPort surveyMetadataApiPort = new SurveyMetadataService(surveyMetadataPersistanceStub);
 
         FileUtils fileUtils = new FileUtils(new ConfigStub());
         responseControllerStatic = new ResponseController(
@@ -277,14 +277,13 @@ class ResponseControllerTest {
         //Process date check
         Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getProcessDate()).isNotNull();
 
-        //Var/type check
-        Assertions.assertThat(variableTypePersistanceStub.getMongoStub()).isNotNull().isNotEmpty().hasSize(1);
-        Assertions.assertThat(variableTypePersistanceStub.getMongoStub().getFirst().getCampaignId()).isEqualTo(campaignId);
-        Assertions.assertThat(variableTypePersistanceStub.getMongoStub().getFirst().getQuestionnaireId()).isEqualTo(idQuest);
-        Assertions.assertThat(variableTypePersistanceStub.getMongoStub().getFirst().getMode()).isEqualTo(Mode.WEB);
-        Assertions.assertThat(variableTypePersistanceStub.getMongoStub().getFirst().getVariablesMap()).isNotNull();
-        Assertions.assertThat(variableTypePersistanceStub.getMongoStub().getFirst().getVariablesMap().getVariables()).isNotNull().isNotEmpty().containsKey(varName);
-        Assertions.assertThat(variableTypePersistanceStub.getMongoStub().getFirst().getVariablesMap().getVariables().get(varName).getType()).isEqualTo(VariableType.STRING);
+        //Metadata content check
+        Assertions.assertThat(surveyMetadataPersistanceStub.getMongoStub()).isNotNull().isNotEmpty().hasSize(1);
+        Assertions.assertThat(surveyMetadataPersistanceStub.getMongoStub().getFirst().getCampaignId()).isEqualTo(campaignId);
+        Assertions.assertThat(surveyMetadataPersistanceStub.getMongoStub().getFirst().getQuestionnaireId()).isEqualTo(idQuest);
+        Assertions.assertThat(surveyMetadataPersistanceStub.getMongoStub().getFirst().getMode()).isEqualTo(Mode.WEB);
+        Assertions.assertThat(surveyMetadataPersistanceStub.getMongoStub().getFirst().getVariableDefinitions()).isNotNull().isNotEmpty().containsKey(varName);
+        Assertions.assertThat(surveyMetadataPersistanceStub.getMongoStub().getFirst().getVariableDefinitions().get(varName).getType()).isEqualTo(VariableType.STRING);
     }
 
     //All data
