@@ -1,7 +1,6 @@
 package fr.insee.genesis.controller.rest.responses;
 
-import fr.insee.bpm.metadata.model.VariablesMap;
-import fr.insee.genesis.controller.dto.SurveyMetadataDto;
+import fr.insee.genesis.domain.model.surveymetadata.SurveyMetadataModel;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.service.surveymetadata.SurveyMetadataService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -24,10 +23,10 @@ public class SurveyMetadataController {
         this.surveyMetadataService = surveyMetadataService;
     }
 
-//    @Operation(summary = "Get BPM metadatas")
-//    @PutMapping(path = "/get")
-//    public ResponseEntity<VariablesMap> getSurveyMetadata(String campaignId, String questionnaireId, Mode mode) {
-//        return new ResponseEntity<>(surveyMetadataService.getMetadatas(campaignId, questionnaireId, mode).variableDocumentMap(),
-//                HttpStatus.OK);
-//    }
+    @Operation(summary = "Get BPM metadatas")
+    @PutMapping(path = "/get")
+    public ResponseEntity<SurveyMetadataModel> getSurveyMetadata(String campaignId, String questionnaireId, Mode mode) {
+        return new ResponseEntity<>(surveyMetadataService.getMetadatas(campaignId, questionnaireId, mode),
+                HttpStatus.OK);
+    }
 }

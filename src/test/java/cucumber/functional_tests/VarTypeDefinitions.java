@@ -38,7 +38,7 @@ public class VarTypeDefinitions {
     public static final String S_S = "%s/%s";
     FileUtils fileUtils = new FileUtils(new ConfigStub());
 
-    ResponseEntity<VariablesMap> response;
+    ResponseEntity<SurveyMetadataModel> response;
 
     @Given("We import metadata in database from {string} spec folder")
     public void import_metadatas(String specDirectory) throws IOException, GenesisException {
@@ -68,7 +68,7 @@ public class VarTypeDefinitions {
                                 .campaignId(campaignId)
                                 .questionnaireId(campaignId)
                                 .mode(mode)
-                                .variablesMap(variablesMap)
+                                //TODO map
                                 .build()
                 )
         );
@@ -84,9 +84,9 @@ public class VarTypeDefinitions {
     public void check_variable_type(String expectedVariableName, String expectedVariableType) {
         Assertions.assertThat(response).isNotNull();
         Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        VariablesMap variablesMap = response.getBody();
-        Assertions.assertThat(variablesMap).isNotNull();
-        Assertions.assertThat(variablesMap.getVariables()).isNotNull().containsKey(expectedVariableName);
-        Assertions.assertThat(variablesMap.getVariables().get(expectedVariableName).getType()).isNotNull().asString().isEqualTo(expectedVariableType);
+        SurveyMetadataModel surveyMetadataModel = response.getBody();
+        Assertions.assertThat(surveyMetadataModel).isNotNull();
+        Assertions.assertThat(surveyMetadataModel.variableDocumentMap()).isNotNull().containsKey(expectedVariableName);
+        Assertions.assertThat(surveyMetadataModel.variableDocumentMap().get(expectedVariableName).getType()).isNotNull().asString().isEqualTo(expectedVariableType);
     }
 }
