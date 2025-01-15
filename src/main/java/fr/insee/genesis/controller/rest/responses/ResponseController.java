@@ -1,7 +1,6 @@
 package fr.insee.genesis.controller.rest.responses;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import fr.insee.bpm.exceptions.MetadataParserException;
 import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.bpm.metadata.reader.ddi.DDIReader;
 import fr.insee.bpm.metadata.reader.lunatic.LunaticReader;
@@ -103,31 +102,10 @@ public class ResponseController {
                                                            @RequestParam(value = "mode") Mode modeSpecified,
                                                            @RequestParam(value = "withDDI", defaultValue = "true") boolean withDDI
     )throws Exception {
-        VariablesMap variablesMap;
-        if(withDDI) {
-            //Parse DDI
-            log.info(String.format("Try to read DDI file : %s", metadataFilePath));
-            try {
-                variablesMap =
-                        DDIReader.getMetadataFromDDI(Path.of(metadataFilePath).toFile().toURI().toURL().toString(),
-                                new FileInputStream(metadataFilePath)).getVariables();
-            } catch (MetadataParserException e) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-            }
-        }else{
-            //Parse Lunatic
-            log.info(String.format("Try to read lunatic file : %s", metadataFilePath));
-
-            variablesMap = LunaticReader.getMetadataFromLunatic(new FileInputStream(metadataFilePath)).getVariables();
-        }
-
         log.info(String.format("Try to read Xml file : %s", xmlFile));
         Path filepath = Paths.get(xmlFile);
 
-        if (filepath.toFile().length() / 1024 / 1024 <= Constants.MAX_FILE_SIZE_UNTIL_SEQUENTIAL) {
-            return processXmlFileWithMemory(filepath, modeSpecified, variablesMap);
-        }
-        return processXmlFileSequentially(filepath, modeSpecified, variablesMap);
+        return processXmlFile(filepath, modeSpecified, null);
     }
 
     @Operation(summary = "Save multiple files to Genesis Database from the campaign root folder")
@@ -310,7 +288,7 @@ public class ResponseController {
         return ResponseEntity.status(209).body("Data saved with " + errors.size() + " errors");
     }
 
-    
+
     //DELETE
     @Operation(summary = "Delete all responses associated with a questionnaire")
     @DeleteMapping(path = "/delete/by-questionnaire")
@@ -490,11 +468,7 @@ public class ResponseController {
             //Read file
             log.info("Try to read Xml file : {}", fileName);
             ResponseEntity<Object> response;
-            if (filepath.toFile().length() / 1024 / 1024 <= Constants.MAX_FILE_SIZE_UNTIL_SEQUENTIAL) {
-                response = processXmlFileWithMemory(filepath, mode, variablesMap);
-            } else {
-                response = processXmlFileSequentially(filepath, mode, variablesMap);
-            }
+            response = processXmlFile(filepath, mode, variablesMap);
             log.debug("File {} saved", fileName);
             if (response.getStatusCode() == HttpStatus.OK) {
                 fileUtils.moveDataFile(campaignName, mode.getFolder(),
@@ -543,6 +517,26 @@ public class ResponseController {
         }
     }
 
+    private ResponseEntity<Object> processRawXmlFile(Path filepath, Mode modeSpecified) throws IOException,
+            ParserConfigurationException, SAXException {
+        LunaticXmlCampaign campaign;
+        // DOM method
+        LunaticXmlDataParser parser = new LunaticXmlDataParser();
+        try {
+            campaign = parser.parseDataFile(filepath);
+        } catch (GenesisException e) {
+            log.error(e.toString());
+            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
+        }
+
+        log.debug("Begin saving raw xml data file {}", filepath);
+        lunaticXmlRawDataApiPort.saveData(campaign, modeSpecified);
+        log.debug(SUCCESS_MESSAGE);
+
+        log.info("File {} processed" , filepath.getFileName());
+        return ResponseEntity.ok().build();
+    }
+
     protected VariablesMap readMetadatas(String campaignName, Mode mode, List<GenesisError> errors, boolean withDDI) {
         //Try to get metadatas from database first
         VariablesMap variablesMap;
@@ -583,11 +577,22 @@ public class ResponseController {
             errors.add(new GenesisError(e.toString()));
             return null;
         }
+        //TODO Where to find questionnaire Id ?
+        // Save metadatas
+        surveyMetadataApiPort.saveMetadatas(campaignName, questionnaireId, mode, variablesMap);
+
         return variablesMap;
     }
 
     private boolean isDataFileInDoneFolder(Path filepath, String campaignName, String modeFolder) {
         return Path.of(fileUtils.getDoneFolder(campaignName, modeFolder)).resolve(filepath.getFileName()).toFile().exists();
+    }
+
+    private ResponseEntity<Object> processXmlFile(Path filepath, Mode modeSpecified, VariablesMap variablesMap) throws IOException, ParserConfigurationException, SAXException, XMLStreamException {
+        if (filepath.toFile().length() / 1024 / 1024 <= Constants.MAX_FILE_SIZE_UNTIL_SEQUENTIAL) {
+            return processXmlFileWithMemory(filepath, modeSpecified, variablesMap);
+        }
+        return processXmlFileSequentially(filepath, modeSpecified, variablesMap);
     }
 
     private ResponseEntity<Object> processXmlFileWithMemory(Path filepath, Mode modeSpecified, VariablesMap variablesMap) throws IOException, ParserConfigurationException, SAXException {
@@ -601,37 +606,17 @@ public class ResponseController {
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
         }
 
-        List<SurveyUnitModel> suDtos = new ArrayList<>();
-        for (LunaticXmlSurveyUnit su : campaign.getSurveyUnits()) {
-            suDtos.addAll(LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign(), modeSpecified));
+        List<SurveyUnitModel> surveyUnitModels = new ArrayList<>();
+        for (LunaticXmlSurveyUnit lunaticXmlSurveyUnit : campaign.getSurveyUnits()) {
+            surveyUnitModels.addAll(LunaticXmlAdapter.convert(lunaticXmlSurveyUnit, variablesMap, campaign.getIdCampaign(), modeSpecified));
         }
-        surveyUnitQualityService.verifySurveyUnits(suDtos, variablesMap);
+        surveyUnitQualityService.verifySurveyUnits(surveyUnitModels, variablesMap);
 
-        log.debug("Saving {} survey units updates", suDtos.size());
-        surveyUnitService.saveSurveyUnits(suDtos);
+        log.debug("Saving {} survey units updates", surveyUnitModels.size());
+        surveyUnitService.saveSurveyUnits(surveyUnitModels);
         log.debug("Survey units updates saved");
 
-        log.info("File {} processed with {} survey units", filepath.getFileName(), suDtos.size());
-        return ResponseEntity.ok().build();
-    }
-
-    private ResponseEntity<Object> processRawXmlFile(Path filepath, Mode modeSpecified) throws IOException,
-            ParserConfigurationException, SAXException {
-        LunaticXmlCampaign campaign;
-        // DOM method
-        LunaticXmlDataParser parser = new LunaticXmlDataParser();
-        try {
-            campaign = parser.parseDataFile(filepath);
-        } catch (GenesisException e) {
-            log.error(e.toString());
-            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
-        }
-
-        log.debug("Begin saving raw xml data file {}", filepath);
-        lunaticXmlRawDataApiPort.saveData(campaign, modeSpecified);
-        log.debug(SUCCESS_MESSAGE);
-
-        log.info("File {} processed" , filepath.getFileName());
+        log.info("File {} processed with {} survey units", filepath.getFileName(), surveyUnitModels.size());
         return ResponseEntity.ok().build();
     }
 
@@ -647,10 +632,10 @@ public class ResponseController {
             LunaticXmlSurveyUnit su = parser.readNextSurveyUnit();
 
             while (su != null) {
-                List<SurveyUnitModel> suDtos = new ArrayList<>(LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign(), modeSpecified));
+                List<SurveyUnitModel> surveyUnitModels = new ArrayList<>(LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign(), modeSpecified));
 
-                surveyUnitQualityService.verifySurveyUnits(suDtos, variablesMap);
-                surveyUnitService.saveSurveyUnits(suDtos);
+                surveyUnitQualityService.verifySurveyUnits(surveyUnitModels, variablesMap);
+                surveyUnitService.saveSurveyUnits(surveyUnitModels);
                 suCount++;
 
                 su = parser.readNextSurveyUnit();
