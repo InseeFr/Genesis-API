@@ -1,5 +1,6 @@
 package fr.insee.genesis.domain.ports.spi;
 
+import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 
 import java.util.List;
@@ -35,4 +36,6 @@ public interface SurveyUnitPersistencePort {
     Set<String> findDistinctIdQuestionnaires();
 
     Set<String> findIdCampaignsByIdQuestionnaire(String idQuestionnaire);
+
+    Set<String> findIdQuestionnairesByIdCampaignAndMode(String idCampaign, Mode mode);
 }

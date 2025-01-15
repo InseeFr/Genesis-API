@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.insee.genesis.Constants;
+import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
 import fr.insee.genesis.infrastructure.document.surveyunit.SurveyUnitDocument;
@@ -27,6 +28,8 @@ import java.util.stream.Stream;
 @Qualifier("surveyUnitMongoAdapter")
 public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 
+	public static final String QUESTIONNAIRE_ID_FIELD_NAME = "idQuestionnaire";
+	public static final String CAMPAIGN_ID_FIELD_NAME = "idCampaign";
 	private SurveyUnitMongoDBRepository mongoRepository;
 	private MongoTemplate mongoTemplate;
 
@@ -93,7 +96,27 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 			ObjectMapper objectMapper = new ObjectMapper();
 			try{
 				JsonNode jsonNode = objectMapper.readTree(line);
-				idQuestionnaires.add(jsonNode.get("idQuestionnaire").asText());
+				idQuestionnaires.add(jsonNode.get(QUESTIONNAIRE_ID_FIELD_NAME).asText());
+			}catch (JsonProcessingException e){
+				log.error(e.getMessage());
+			}
+		}
+
+		return idQuestionnaires;
+	}
+
+	@Override
+	public Set<String> findIdQuestionnairesByIdCampaignAndMode(String idCampaign, Mode mode) {
+		Set<String> mongoResponse =
+				mongoRepository.findIdQuestionnairesByIdCampaignAndMode(idCampaign, mode);
+
+		//Extract idQuestionnaires from JSON response
+		Set<String> idQuestionnaires = new HashSet<>();
+		for(String line : mongoResponse){
+			ObjectMapper objectMapper = new ObjectMapper();
+			try{
+				JsonNode jsonNode = objectMapper.readTree(line);
+				idQuestionnaires.add(jsonNode.get(QUESTIONNAIRE_ID_FIELD_NAME).asText());
 			}catch (JsonProcessingException e){
 				log.error(e.getMessage());
 			}
@@ -105,7 +128,7 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 	@Override
 	public Set<String> findDistinctIdCampaigns() {
 		Set<String> idCampaigns = new HashSet<>();
-		for(String idCampaign : mongoTemplate.getCollection(Constants.MONGODB_RESPONSE_COLLECTION_NAME).distinct("idCampaign",
+		for(String idCampaign : mongoTemplate.getCollection(Constants.MONGODB_RESPONSE_COLLECTION_NAME).distinct(CAMPAIGN_ID_FIELD_NAME,
 				String.class)){
 			idCampaigns.add(idCampaign);
 		}
@@ -133,7 +156,7 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 	public Set<String> findDistinctIdQuestionnaires() {
 		Set<String> idQuestionnaires = new HashSet<>();
 		for(String idQuestionnaire : mongoTemplate.getCollection(Constants.MONGODB_RESPONSE_COLLECTION_NAME).distinct(
-				"idQuestionnaire",
+				QUESTIONNAIRE_ID_FIELD_NAME,
 				String.class)){
 			idQuestionnaires.add(idQuestionnaire);
 		}
@@ -151,7 +174,7 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 			ObjectMapper objectMapper = new ObjectMapper();
 			try{
 				JsonNode jsonNode = objectMapper.readTree(line);
-				idCampaigns.add(jsonNode.get("idCampaign").asText());
+				idCampaigns.add(jsonNode.get(CAMPAIGN_ID_FIELD_NAME).asText());
 			}catch (JsonProcessingException e){
 				log.error(e.getMessage());
 			}

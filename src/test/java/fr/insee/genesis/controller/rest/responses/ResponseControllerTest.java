@@ -1,7 +1,9 @@
 package fr.insee.genesis.controller.rest.responses;
 
-import cucumber.TestConstants;
+import fr.insee.genesis.TestConstants;
+import fr.insee.bpm.metadata.model.Group;
 import fr.insee.bpm.metadata.model.VariableType;
+import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.dto.SurveyUnitDto;
 import fr.insee.genesis.controller.dto.SurveyUnitId;
@@ -21,6 +23,8 @@ import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.domain.service.surveymetadata.SurveyMetadataService;
 import fr.insee.genesis.infrastructure.document.rawdata.LunaticJsonDataDocument;
+import fr.insee.genesis.infrastructure.document.surveymetadata.SurveyMetadataDocument;
+import fr.insee.genesis.infrastructure.document.surveymetadata.VariableDocument;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.LunaticJsonPersistanceStub;
@@ -42,7 +46,9 @@ import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 class ResponseControllerTest {
     //Given
@@ -89,6 +95,7 @@ class ResponseControllerTest {
     @BeforeEach
     void reset() throws IOException {
         Utils.reset(surveyUnitPersistencePortStub);
+        surveyMetadataPersistanceStub.getMongoStub().clear();
     }
 
 
@@ -331,7 +338,7 @@ class ResponseControllerTest {
         surveyUnitPersistencePortStub.getMongoStub().clear();
 
         for (int i = 0; i < Constants.BATCH_SIZE + 2; i++) {
-            Utils.addAdditionalDtoToMongoStub("TESTIDCAMPAIGN", DEFAULT_ID_UE + i,
+            Utils.addAdditionalSurveyUnitToMongoStub("TESTIDCAMPAIGN", DEFAULT_ID_UE + i,
                     LocalDateTime.of(2023, 1, 1, 0, 0, 0),
                     LocalDateTime.of(2024, 1, 1, 0, 0, 0),
                     surveyUnitPersistencePortStub);
@@ -353,7 +360,7 @@ class ResponseControllerTest {
 
     @Test
     void getLatestByUETest() {
-        Utils.addAdditionalDtoToMongoStub(surveyUnitPersistencePortStub);
+        Utils.addAdditionalSurveyUnitToMongoStub(surveyUnitPersistencePortStub);
 
         ResponseEntity<List<SurveyUnitModel>> response = responseControllerStatic.getLatestByUE(DEFAULT_ID_UE, DEFAULT_ID_QUEST);
 
@@ -382,6 +389,87 @@ class ResponseControllerTest {
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
         Assertions.assertThat(response.getBody().getFirst().getIdUE()).isEqualTo(DEFAULT_ID_UE);
     }
+    // Metadata tests
+
+    @Test
+    void readMetadataTest(){
+        //Given
+        surveyMetadataPersistanceStub.getMongoStub().clear();
+        surveyUnitPersistencePortStub.getMongoStub().clear();
+
+        String campaignId = "TESTCAMPAIGN";
+        String questionnaireId = "TESTQUESTIONNAIRE";
+        String varName = "var1";
+
+        //Metadata present in database
+        Map<String, VariableDocument> variableDocumentMap = new LinkedHashMap<>();
+        variableDocumentMap.put(varName,
+            new VariableDocument(
+                    varName,
+                    new Group("GROUP1", Constants.ROOT_GROUP_NAME),
+                    VariableType.STRING,
+                    "STRING",
+                    500,
+                    "QUESTIONNAME",
+                    false
+            )
+        );
+        surveyMetadataPersistanceStub.getMongoStub().add(
+                new SurveyMetadataDocument(
+                        campaignId,
+                        questionnaireId,
+                        Mode.WEB,
+                        variableDocumentMap
+                )
+        );
+        //1 SU for questionnaire id
+        Utils.addAdditionalSurveyUnitToMongoStub(
+                campaignId,
+                questionnaireId,
+                surveyUnitPersistencePortStub
+        );
+
+
+        //When
+        VariablesMap variablesMap = responseControllerStatic.readMetadatas(campaignId, Mode.WEB, new ArrayList<>(), true);
+
+        //Then
+        checkTestVariablesMap(variablesMap, varName);
+    }
+
+    @Test
+    void readMetadataTest_no_metadata_in_base_DDI(){
+        //Given
+        surveyMetadataPersistanceStub.getMongoStub().clear();
+        surveyUnitPersistencePortStub.getMongoStub().clear();
+
+        String campaignId = "SAMPLETEST";
+        String varName = "LOG_PAR2A3";
+
+        //When
+        VariablesMap variablesMap = responseControllerStatic.readMetadatas(campaignId, Mode.WEB, new ArrayList<>(),
+                true);
+
+        //Then
+        Assertions.assertThat(variablesMap.getVariables()).containsKey(varName);
+    }
+
+    @Test
+    void readMetadataTest_no_metadata_in_base_Lunatic(){
+        //Given
+        surveyMetadataPersistanceStub.getMongoStub().clear();
+        surveyUnitPersistencePortStub.getMongoStub().clear();
+
+        String campaignId = "SAMPLETEST-NO-COLLECTED";
+        String varName = "QSIMPLENUM";
+
+        //When
+        VariablesMap variablesMap = responseControllerStatic.readMetadatas(campaignId, Mode.WEB, new ArrayList<>(),
+                false);
+
+        //Then
+        Assertions.assertThat(variablesMap.getVariables()).containsKey(varName);
+    }
 
     // Perret tests
     @Test
@@ -389,7 +477,7 @@ class ResponseControllerTest {
         //GIVEN
         //Recent Collected already in stub
         //Old Collected
-        Utils.addAdditionalDtoToMongoStub(DataState.COLLECTED,
+        Utils.addAdditionalSurveyUnitToMongoStub(DataState.COLLECTED,
                 "C OLD C", //<Collected/External> <NEW or OLD> <Collected/Edited>
                 "E OLD C",
                 LocalDateTime.of(1999,2,2,0,0,0),
@@ -398,7 +486,7 @@ class ResponseControllerTest {
         );
 
         //Recent Edited
-        Utils.addAdditionalDtoToMongoStub(DataState.EDITED,
+        Utils.addAdditionalSurveyUnitToMongoStub(DataState.EDITED,
                 "C NEW E",
                 "E NEW E",
                 LocalDateTime.of(2025,2,2,0,0,0),
@@ -407,7 +495,7 @@ class ResponseControllerTest {
         );
 
         //Old Edited
-        Utils.addAdditionalDtoToMongoStub(DataState.EDITED,
+        Utils.addAdditionalSurveyUnitToMongoStub(DataState.EDITED,
                 "C OLD E",
                 "E OLD E",
                 LocalDateTime.of(1999,2,2,0,0,0),
@@ -501,6 +589,21 @@ class ResponseControllerTest {
         lunaticJsonDataDocument.setData(new HashMap<>());
         lunaticJsonDataDocument.getData().put(variableName,variableValue);
         lunaticJsonPersistanceStub.getMongoStub().add(lunaticJsonDataDocument);
+    }
+
+    private static void checkTestVariablesMap(VariablesMap variablesMap, String varName) {
+        Assertions.assertThat(variablesMap).isNotNull();
+        Assertions.assertThat(variablesMap.getVariables()).isNotNull().isNotEmpty();
+        Assertions.assertThat(variablesMap.getVariables()).isNotNull().isNotEmpty().containsKey(varName);
+        Assertions.assertThat(variablesMap.getVariables().get(varName)).isNotNull();
+        Assertions.assertThat(variablesMap.getVariables().get(varName).getName()).isEqualTo(varName);
+        Assertions.assertThat(variablesMap.getVariables().get(varName).getGroup().getName()).isEqualTo("GROUP1");
+        Assertions.assertThat(variablesMap.getVariables().get(varName).getGroup().getParentName()).isEqualTo(Constants.ROOT_GROUP_NAME);
+        Assertions.assertThat(variablesMap.getVariables().get(varName).getType()).isEqualTo(VariableType.STRING);
+        Assertions.assertThat(variablesMap.getVariables().get(varName).getSasFormat()).isEqualTo("STRING");
+        Assertions.assertThat(variablesMap.getVariables().get(varName).getMaxLengthData()).isEqualTo(500);
+        Assertions.assertThat(variablesMap.getVariables().get(varName).getQuestionName()).isEqualTo("QUESTIONNAME");
+        Assertions.assertThat(variablesMap.getVariables().get(varName).isInQuestionGrid()).isFalse();
     }
 
 }

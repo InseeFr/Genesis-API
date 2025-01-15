@@ -5,7 +5,7 @@ import fr.insee.genesis.domain.model.surveymetadata.SurveyMetadataModel;
 import fr.insee.genesis.domain.ports.spi.SurveyMetadataPersistancePort;
 import fr.insee.genesis.infrastructure.document.surveymetadata.SurveyMetadataDocument;
 import fr.insee.genesis.infrastructure.mappers.SurveyMetadataDocumentMapper;
-import fr.insee.genesis.infrastructure.repository.VariableTypeMongoDBRepository;
+import fr.insee.genesis.infrastructure.repository.SurveyMetadataMongoDBRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.mongodb.core.FindAndReplaceOptions;
@@ -17,12 +17,12 @@ import org.springframework.stereotype.Service;
 @Service
 @Qualifier("variableTypeMongoAdapter")
 public class SurveyMetadataMongoAdapter implements SurveyMetadataPersistancePort {
-    private final VariableTypeMongoDBRepository variableTypeMongoDBRepository;
+    private final SurveyMetadataMongoDBRepository surveyMetadataMongoDBRepository;
     private final MongoTemplate mongoTemplate;
 
     @Autowired
-    public SurveyMetadataMongoAdapter(VariableTypeMongoDBRepository variableTypeMongoDBRepository, MongoTemplate mongoTemplate) {
-        this.variableTypeMongoDBRepository = variableTypeMongoDBRepository;
+    public SurveyMetadataMongoAdapter(SurveyMetadataMongoDBRepository surveyMetadataMongoDBRepository, MongoTemplate mongoTemplate) {
+        this.surveyMetadataMongoDBRepository = surveyMetadataMongoDBRepository;
         this.mongoTemplate = mongoTemplate;
     }
 
@@ -37,6 +37,6 @@ public class SurveyMetadataMongoAdapter implements SurveyMetadataPersistancePort
 
     @Override
     public SurveyMetadataDocument find(String campaignId, String questionnaireId, Mode mode) {
-        return variableTypeMongoDBRepository.findFirstByCampaignIdQuestionnaireIdMode(campaignId, questionnaireId, mode);
+        return surveyMetadataMongoDBRepository.findFirstByCampaignIdQuestionnaireIdMode(campaignId, questionnaireId, mode);
     }
 }

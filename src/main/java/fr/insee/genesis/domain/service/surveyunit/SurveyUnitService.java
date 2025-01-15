@@ -176,6 +176,10 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     public Set<String> findIdQuestionnairesByIdCampaign(String idCampaign) {
             return surveyUnitPersistencePort.findIdQuestionnairesByIdCampaign(idCampaign);
     }
+    @Override
+    public Set<String> findIdQuestionnairesByIdCampaignAndMode(String idCampaign, Mode mode) {
+        return surveyUnitPersistencePort.findIdQuestionnairesByIdCampaignAndMode(idCampaign, mode);
+    }
 
     @Override
     public Set<String> findDistinctIdCampaigns() {

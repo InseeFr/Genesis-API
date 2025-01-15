@@ -1,5 +1,6 @@
 package fr.insee.genesis.stubs;
 
+import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
 import lombok.Getter;
@@ -113,10 +114,20 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     }
 
     @Override
+    public Set<String> findIdQuestionnairesByIdCampaignAndMode(String idCampaign, Mode mode) {
+        Set<String> idQuestionnaireSet = new HashSet<>();
+        for(SurveyUnitModel surveyUnitModel : mongoStub){
+            if(surveyUnitModel.getIdCampaign().equals(idCampaign) && surveyUnitModel.getMode().equals(mode))
+                idQuestionnaireSet.add(surveyUnitModel.getIdQuest());
+        }
+        return idQuestionnaireSet;
+    }
+
+    @Override
     public Set<String> findDistinctIdCampaigns() {
         Set<String> campaignIds = new HashSet<>();
-        for(SurveyUnitModel SurveyUnitModel : mongoStub){
-            campaignIds.add(SurveyUnitModel.getIdCampaign());
+        for(SurveyUnitModel surveyUnitModel : mongoStub){
+            campaignIds.add(surveyUnitModel.getIdCampaign());
         }
 
         return campaignIds;
@@ -125,7 +136,7 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     @Override
     public long countByIdCampaign(String idCampaign) {
         return mongoStub.stream().filter(
-                SurveyUnitDto -> SurveyUnitDto.getIdCampaign().equals(idCampaign)).toList().size();
+                surveyUnitModel -> surveyUnitModel.getIdCampaign().equals(idCampaign)).toList().size();
     }
 
     @Override

@@ -22,8 +22,8 @@ import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.Variable;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.LunaticXmlRawDataApiPort;
-import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyMetadataApiPort;
+import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
@@ -56,6 +56,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 @RequestMapping(path = "/responses" )
@@ -542,8 +543,22 @@ public class ResponseController {
         }
     }
 
-    private VariablesMap readMetadatas(String campaignName, Mode mode, List<GenesisError> errors, boolean withDDI) {
+    protected VariablesMap readMetadatas(String campaignName, Mode mode, List<GenesisError> errors, boolean withDDI) {
+        //Try to get metadatas from database first
         VariablesMap variablesMap;
+        Set<String> questionnaireIds = surveyUnitService.findIdQuestionnairesByIdCampaignAndMode(campaignName, mode);
+        if(!questionnaireIds.isEmpty()){
+            variablesMap = surveyMetadataApiPort.getVariableMapFromMetadatas(
+                    campaignName,
+                    questionnaireIds.stream().toList().getFirst(),
+                    mode
+            );
+            if(variablesMap != null){
+                return variablesMap;
+            }
+        }
+        log.info("Metadata not found in database for campaign {} mode {}", campaignName, mode);
+        //If not found
         if(withDDI){
             //Read DDI
             try {

@@ -39,6 +39,8 @@ public interface SurveyUnitApiPort {
 
     Set<String> findIdQuestionnairesByIdCampaign(String idCampaign);
 
+    Set<String> findIdQuestionnairesByIdCampaignAndMode(String idCampaign, Mode mode);
+
     Set<String> findDistinctIdCampaigns();
 
     long countResponsesByIdCampaign(String idCampaign);

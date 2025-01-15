@@ -28,7 +28,7 @@ class Utils {
         //MongoDB stub management
         surveyUnitPersistencePortStub.getMongoStub().clear();
 
-        addAdditionalDtoToMongoStub("TESTIDCAMPAIGN", defaultIdQuest ,
+        addAdditionalSurveyUnitToMongoStub("TESTIDCAMPAIGN", defaultIdQuest ,
                 LocalDateTime.of(2023, 1, 1, 0, 0, 0),
                 LocalDateTime.of(2024, 1, 1, 0, 0, 0),
                 surveyUnitPersistencePortStub);
@@ -166,24 +166,24 @@ class Utils {
         }
     }
 
-    static void addAdditionalDtoToMongoStub(SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) {
-        addAdditionalDtoToMongoStub(defaultIdQuest, surveyUnitPersistencePortStub);
+    static void addAdditionalSurveyUnitToMongoStub(SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) {
+        addAdditionalSurveyUnitToMongoStub(defaultIdQuest, surveyUnitPersistencePortStub);
     }
 
-    static void addAdditionalDtoToMongoStub(String idQuestionnaire, SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) {
-        addAdditionalDtoToMongoStub("TESTIDCAMPAIGN",idQuestionnaire, surveyUnitPersistencePortStub);
+    static void addAdditionalSurveyUnitToMongoStub(String idQuestionnaire, SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) {
+        addAdditionalSurveyUnitToMongoStub("TESTIDCAMPAIGN",idQuestionnaire, surveyUnitPersistencePortStub);
     }
 
-    static void addAdditionalDtoToMongoStub(String idCampaign, String idQuestionnaire, SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) {
-        addAdditionalDtoToMongoStub(idCampaign,idQuestionnaire,
+    static void addAdditionalSurveyUnitToMongoStub(String idCampaign, String idQuestionnaire, SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) {
+        addAdditionalSurveyUnitToMongoStub(idCampaign,idQuestionnaire,
                 LocalDateTime.of(2023, 2, 2, 0, 0, 0),
                 LocalDateTime.of(2024, 2, 2, 0, 0, 0),
                 surveyUnitPersistencePortStub);
     }
 
-    static void addAdditionalDtoToMongoStub(String idCampaign, String idQuestionnaire,
-                                             LocalDateTime fileDate, LocalDateTime recordDate,
-                                             SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) {
+    static void addAdditionalSurveyUnitToMongoStub(String idCampaign, String idQuestionnaire,
+                                                   LocalDateTime fileDate, LocalDateTime recordDate,
+                                                   SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) {
         List<Variable> externalVariableList = new ArrayList<>();
         Variable variable = Variable.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
         externalVariableList.add(variable);
@@ -208,12 +208,12 @@ class Utils {
 
 
 
-    static void addAdditionalDtoToMongoStub(DataState state,
-                                            String collectedVariableValue,
-                                            String externalVariableValue,
-                                            LocalDateTime fileDate,
-                                            LocalDateTime recordDate,
-                                            SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) {
+    static void addAdditionalSurveyUnitToMongoStub(DataState state,
+                                                   String collectedVariableValue,
+                                                   String externalVariableValue,
+                                                   LocalDateTime fileDate,
+                                                   LocalDateTime recordDate,
+                                                   SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) {
         List<Variable> externalVariableList = new ArrayList<>();
         Variable variable = Variable.builder().idVar("TESTIDVAR").values(List.of(new String[]{externalVariableValue})).build();
         externalVariableList.add(variable);

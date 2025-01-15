@@ -1,5 +1,6 @@
 package fr.insee.genesis.infrastructure.repository;
 
+import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.infrastructure.document.surveyunit.SurveyUnitDocument;
 import org.springframework.data.mongodb.repository.Meta;
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -32,6 +33,9 @@ public interface SurveyUnitMongoDBRepository extends MongoRepository<SurveyUnitD
 
 	@Query(value = "{ 'idCampaign' : ?0 }", fields = "{ _id : 0, 'idQuestionnaire' : 1 }")
 	Set<String> findIdQuestionnairesByIdCampaign(String idCampaign);
+
+	@Query(value = "{ 'idCampaign' : ?0, 'mode' : ?1 }", fields = "{ _id : 0, 'idQuestionnaire' : 1 }")
+	Set<String> findIdQuestionnairesByIdCampaignAndMode(String idCampaign, Mode mode);
 
 	long countByIdCampaign(String idCampaign);
 
