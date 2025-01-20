@@ -4,6 +4,7 @@ import cucumber.TestConstants;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.dto.SurveyUnitDto;
 import fr.insee.genesis.controller.dto.InterrogationId;
+import fr.insee.genesis.controller.dto.SurveyUnitQualityToolDto;
 import fr.insee.genesis.controller.dto.SurveyUnitSimplified;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
@@ -316,14 +317,14 @@ class ResponseControllerTest {
 
 
         //WHEN
-        ResponseEntity<SurveyUnitDto> response = responseControllerStatic.findResponsesByInterrogationAndQuestionnaireLatestStates(
+        ResponseEntity<SurveyUnitQualityToolDto> response = responseControllerStatic.findResponsesByInterrogationAndQuestionnaireLatestStates(
                 DEFAULT_INTERROGATION_ID,
                 DEFAULT_QUESTIONNAIRE_ID
         );
 
 
         //THEN
-        SurveyUnitDto surveyUnitDto = response.getBody();
+        SurveyUnitQualityToolDto surveyUnitDto = response.getBody();
         Assertions.assertThat(surveyUnitDto).isNotNull();
 
         Assertions.assertThat(surveyUnitDto.getSurveyUnitId()).isEqualTo(DEFAULT_INTERROGATION_ID);
