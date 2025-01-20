@@ -123,7 +123,7 @@ public class ResponseController {
         log.info(String.format("Try to read Xml file : %s", xmlFile));
         Path filepath = Paths.get(xmlFile);
 
-        if (filepath.toFile().length() / 1024 / 1024 <= Constants.MAX_FILE_SIZE_UNTIL_SEQUENTIAL) {
+        if (getFileSizeInMB(filepath) <= Constants.MAX_FILE_SIZE_UNTIL_SEQUENTIAL) {
             return processXmlFileWithMemory(filepath, modeSpecified, variablesMap);
         }
         return processXmlFileSequentially(filepath, modeSpecified, variablesMap);
@@ -461,12 +461,12 @@ public class ResponseController {
      */
     private void processCampaignWithMode(String campaignName, Mode mode, List<GenesisError> errors, String rootDataFolder, boolean withDDI)
             throws IOException, ParserConfigurationException, SAXException, XMLStreamException, NoDataException {
-        log.info("Try to import data for mode : {}", mode.getModeName());
+        log.info("Starting data import for mode: {}", mode.getModeName());
         String dataFolder = rootDataFolder == null ?
                 fileUtils.getDataFolder(campaignName, mode.getFolder(), null)
                 : fileUtils.getDataFolder(campaignName, mode.getFolder(), rootDataFolder);
         List<String> dataFiles = fileUtils.listFiles(dataFolder);
-        log.info("Numbers of files to load in folder {} : {}", dataFolder, dataFiles.size());
+        log.info("Number of files to load in folder {} : {}", dataFolder, dataFiles.size());
         if (dataFiles.isEmpty()) {
             throw new NoDataException("No data file found in folder %s".formatted(dataFolder));
         }
@@ -478,31 +478,38 @@ public class ResponseController {
 
         //For each XML data file
         for (String fileName : dataFiles.stream().filter(s -> s.endsWith(".xml")).toList()) {
-            String filepathString = String.format(S_S, dataFolder, fileName);
-            Path filepath = Paths.get(filepathString);
-            //Check if file not in done folder, delete if true
-            if(isDataFileInDoneFolder(filepath, campaignName, mode.getFolder())){
-                log.warn("File {} already exists in DONE folder ! Deleting...", fileName);
-                Files.deleteIfExists(filepath);
-                continue; //Go to next file
-            }
-            //Read file
-            log.info("Try to read Xml file : {}", fileName);
-            ResponseEntity<Object> response;
-            if (filepath.toFile().length() / 1024 / 1024 <= Constants.MAX_FILE_SIZE_UNTIL_SEQUENTIAL) {
-                response = processXmlFileWithMemory(filepath, mode, variablesMap);
-            } else {
-                response = processXmlFileSequentially(filepath, mode, variablesMap);
-            }
-            log.debug("File {} saved", fileName);
-            if (response.getStatusCode() == HttpStatus.OK) {
-                fileUtils.moveDataFile(campaignName, mode.getFolder(),
-                        filepath);
-                //Sonar is annoying when there is more than 1 continue
-            } else {
-                log.error("Error {} on file {} : {}", response.getStatusCode(), fileName,  response.getBody());
-            }
+            processOneXmlFileForCampaign(campaignName, mode, fileName, dataFolder, variablesMap);
         }
+    }
+
+    private void processOneXmlFileForCampaign(String campaignName, Mode mode, String fileName, String dataFolder, VariablesMap variablesMap) throws IOException, ParserConfigurationException, SAXException, XMLStreamException {
+        String filepathString = String.format(S_S, dataFolder, fileName);
+        Path filepath = Paths.get(filepathString);
+        //Check if file not in done folder, delete if true
+        if(isDataFileInDoneFolder(filepath, campaignName, mode.getFolder())){
+            log.warn("File {} already exists in DONE folder ! Deleting...", fileName);
+            Files.deleteIfExists(filepath);
+            return;
+        }
+        //Read file
+        log.info("Try to read Xml file : {}", fileName);
+        ResponseEntity<Object> response;
+        if (getFileSizeInMB(filepath) <= Constants.MAX_FILE_SIZE_UNTIL_SEQUENTIAL) {
+            response = processXmlFileWithMemory(filepath, mode, variablesMap);
+        } else {
+            response = processXmlFileSequentially(filepath, mode, variablesMap);
+        }
+        log.debug("File {} saved", fileName);
+        if (response.getStatusCode() == HttpStatus.OK) {
+            fileUtils.moveDataFile(campaignName, mode.getFolder(),filepath);
+            return;
+        }
+        log.error("Error {} on file {} : {}", response.getStatusCode(), fileName,  response.getBody());
+
+    }
+
+    private static long getFileSizeInMB(Path filepath) {
+        return filepath.toFile().length() / 1024 / 1024;
     }
 
     private void processRawCampaignWithMode(String campaignName,
@@ -623,7 +630,7 @@ public class ResponseController {
     private ResponseEntity<Object> processXmlFileSequentially(Path filepath, Mode modeSpecified, VariablesMap variablesMap) throws IOException, XMLStreamException {
         LunaticXmlCampaign campaign;
         //Sequential method
-        log.warn("File size > " + Constants.MAX_FILE_SIZE_UNTIL_SEQUENTIAL + "MB! Parsing XML file using sequential method...");
+        log.warn("File size > {} MB! Parsing XML file using sequential method...", Constants.MAX_FILE_SIZE_UNTIL_SEQUENTIAL);
         try (final InputStream stream = new FileInputStream(filepath.toFile())) {
             LunaticXmlDataSequentialParser parser = new LunaticXmlDataSequentialParser(filepath, stream);
             int suCount = 0;
