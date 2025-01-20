@@ -133,10 +133,10 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     }
 
     @Override
-    public List<SurveyUnitId> findDistinctInterrogationIdsByQuestionnaireId(String questionnaireId) {
+    public List<InterrogationId> findDistinctInterrogationIdsByQuestionnaireId(String questionnaireId) {
         List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findInterrogationIdsByQuestionnaireId(questionnaireId);
-        List<SurveyUnitId> suIds = new ArrayList<>();
-        surveyUnitModels.forEach(surveyUnitDto -> suIds.add(new SurveyUnitId(surveyUnitDto.getInterrogationId())));
+        List<InterrogationId> suIds = new ArrayList<>();
+        surveyUnitModels.forEach(surveyUnitDto -> suIds.add(new InterrogationId(surveyUnitDto.getInterrogationId())));
         return suIds.stream().distinct().toList();
     }
 

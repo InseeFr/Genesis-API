@@ -8,7 +8,7 @@ import fr.insee.bpm.metadata.reader.lunatic.LunaticReader;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.adapter.LunaticXmlAdapter;
 import fr.insee.genesis.controller.dto.SurveyUnitDto;
-import fr.insee.genesis.controller.dto.SurveyUnitId;
+import fr.insee.genesis.controller.dto.InterrogationId;
 import fr.insee.genesis.controller.dto.SurveyUnitSimplified;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlCampaign;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlDataParser;
@@ -333,11 +333,11 @@ public class ResponseController {
                     "For a given id, the endpoint returns a document by collection mode (if there is more than one).")
     @PostMapping(path = "/simplified/by-list-interrogation-and-questionnaire/latest")
     public ResponseEntity<List<SurveyUnitSimplified>> getLatestForInterrogationList(@RequestParam("questionnaireId") String questionnaireId,
-                                                                               @RequestBody List<SurveyUnitId> interrogationIds) {
+                                                                               @RequestBody List<InterrogationId> interrogationIds) {
         List<SurveyUnitSimplified> results = new ArrayList<>();
         List<Mode> modes = surveyUnitService.findModesByQuestionnaireId(questionnaireId);
         interrogationIds.forEach(interrogationId -> {
-            List<SurveyUnitModel> responses = surveyUnitService.findLatestByIdAndByQuestionnaireId(interrogationId.getIdUE(), questionnaireId);
+            List<SurveyUnitModel> responses = surveyUnitService.findLatestByIdAndByQuestionnaireId(interrogationId.getInterrogationId(), questionnaireId);
             modes.forEach(mode -> {
                 List<CollectedVariable> outputVariables = new ArrayList<>();
                 List<Variable> outputExternalVariables = new ArrayList<>();

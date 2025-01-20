@@ -2,7 +2,7 @@ package fr.insee.genesis.controller.rest;
 
 import cucumber.TestConstants;
 import fr.insee.genesis.Constants;
-import fr.insee.genesis.controller.dto.SurveyUnitId;
+import fr.insee.genesis.controller.dto.InterrogationId;
 import fr.insee.genesis.domain.model.surveyunit.CollectedVariable;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
@@ -36,7 +36,7 @@ class UtilsControllerTest {
     static UtilsController utilsControllerStatic;
     static SurveyUnitPersistencePortStub surveyUnitPersistencePortStub;
 
-    static List<SurveyUnitId> surveyUnitIdList;
+    static List<InterrogationId> interrogationIdList;
     //Constants
     static final String defaultIdUE = "TESTIDUE";
     static final String defaultIdQuest = "TESTIDQUESTIONNAIRE";
@@ -51,8 +51,8 @@ class UtilsControllerTest {
                 , new VolumetryLogService(new ConfigStub())
         );
 
-        surveyUnitIdList = new ArrayList<>();
-        surveyUnitIdList.add(new SurveyUnitId(defaultIdUE));
+        interrogationIdList = new ArrayList<>();
+        interrogationIdList.add(new InterrogationId(defaultIdUE));
     }
 
     @BeforeEach

@@ -184,7 +184,7 @@ class SurveyUnitServiceTest {
         addAdditionnalDtoToMongoStub();
 
         Assertions.assertThat(surveyUnitServiceStatic.findDistinctInterrogationIdsByQuestionnaireId(defaultIdQuest)).filteredOn(
-                surveyUnitId -> surveyUnitId.getIdUE().equals(defaultIdUE)
+                surveyUnitId -> surveyUnitId.getInterrogationId().equals(defaultIdUE)
         ).isNotEmpty().hasSize(1);
     }
 
