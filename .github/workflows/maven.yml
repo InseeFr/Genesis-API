@@ -45,6 +45,7 @@ jobs:
         
     - name: Build Genesis with Maven
       run: |
+        cd ${{github.ref_name}}
         mvn clean
         mvn -B package --file pom.xml
 
