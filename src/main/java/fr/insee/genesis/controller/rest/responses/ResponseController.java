@@ -65,7 +65,7 @@ import java.util.stream.Stream;
 public class ResponseController {
 
     private static final String DDI_REGEX = "ddi[\\w,\\s-]+\\.xml";
-    public static final String S_S = "%s/%s";
+    public static final String PATH_FORMAT = "%s/%s";
     private static final String CAMPAIGN_ERROR = "Error for campaign {}: {}";
     private static final String SUCCESS_MESSAGE = "Data saved";
     private static final String SUCCESS_NO_DATA_MESSAGE = "No data has been saved";
@@ -433,7 +433,7 @@ public class ResponseController {
     private void processCampaignWithMode(String campaignName, Mode currentMode, List<GenesisError> errors, String rootDataFolder) throws GenesisException,
             SAXException, XMLStreamException, NoDataException {
         try {
-            fileUtils.findFile(String.format(S_S, fileUtils.getSpecFolder(campaignName),currentMode), DDI_REGEX);
+            fileUtils.findFile(String.format(PATH_FORMAT, fileUtils.getSpecFolder(campaignName),currentMode), DDI_REGEX);
             //DDI if DDI file found
             processCampaignWithMode(campaignName, currentMode, errors, rootDataFolder, true);
         }catch (RuntimeException re){
@@ -482,8 +482,12 @@ public class ResponseController {
         }
     }
 
-    private void processOneXmlFileForCampaign(String campaignName, Mode mode, String fileName, String dataFolder, VariablesMap variablesMap) throws IOException, ParserConfigurationException, SAXException, XMLStreamException {
-        String filepathString = String.format(S_S, dataFolder, fileName);
+    private void processOneXmlFileForCampaign(String campaignName,
+                                              Mode mode,
+                                              String fileName,
+                                              String dataFolder,
+                                              VariablesMap variablesMap) throws IOException, ParserConfigurationException, SAXException, XMLStreamException {
+        String filepathString = String.format(PATH_FORMAT, dataFolder, fileName);
         Path filepath = Paths.get(filepathString);
         //Check if file not in done folder, delete if true
         if(isDataFileInDoneFolder(filepath, campaignName, mode.getFolder())){
@@ -528,7 +532,7 @@ public class ResponseController {
 
         //For each XML data file
         for (String fileName : dataFiles.stream().filter(s -> s.endsWith(".xml")).toList()) {
-            String filepathString = String.format(S_S, dataFolder, fileName);
+            String filepathString = String.format(PATH_FORMAT, dataFolder, fileName);
             Path filepath = Paths.get(filepathString);
             //Check if file not in done folder, delete if true
             if(isDataFileInDoneFolder(filepath, campaignName, mode.getFolder())){
@@ -540,12 +544,12 @@ public class ResponseController {
             log.info("Try to read Xml file : {}", fileName);
             ResponseEntity<Object> response = processRawXmlFile(filepath, mode);
 
-            log.debug("File {} saved", fileName);
-            if(response.getStatusCode() == HttpStatus.OK){
-                fileUtils.moveDataFile(campaignName, mode.getFolder(), filepath);
+            if(response.getStatusCode() != HttpStatus.OK){
+                log.error("Error {} on file {}", response.getStatusCode(), fileName);
                 return;
             }
-            log.error("Error on file {}", fileName);
+            log.debug("File {} saved", fileName);
+            fileUtils.moveDataFile(campaignName, mode.getFolder(), filepath);
         }
     }
 
@@ -554,7 +558,7 @@ public class ResponseController {
         if(withDDI){
             //Read DDI
             try {
-                Path ddiFilePath = fileUtils.findFile(String.format(S_S, fileUtils.getSpecFolder(campaignName),
+                Path ddiFilePath = fileUtils.findFile(String.format(PATH_FORMAT, fileUtils.getSpecFolder(campaignName),
                             mode.getModeName()), DDI_REGEX);
                 variablesMap = DDIReader.getMetadataFromDDI(ddiFilePath.toUri().toURL().toString(),
                         new FileInputStream(ddiFilePath.toString())).getVariables();
@@ -567,7 +571,7 @@ public class ResponseController {
         }
         //Read Lunatic
         try {
-            Path lunaticFilePath = fileUtils.findFile(String.format(S_S, fileUtils.getSpecFolder(campaignName),
+            Path lunaticFilePath = fileUtils.findFile(String.format(PATH_FORMAT, fileUtils.getSpecFolder(campaignName),
                     mode.getModeName()), "lunatic[\\w," + "\\s-]+\\.json");
             variablesMap = LunaticReader.getMetadataFromLunatic(new FileInputStream(lunaticFilePath.toString())).getVariables();
         } catch (Exception e) {
