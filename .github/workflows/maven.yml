@@ -29,9 +29,6 @@ jobs:
         distribution: 'temurin'
         cache: maven
 
-    - name: Clean Maven repository cache
-      run: rm -rf ~/.m2/repository
-
     - name: Clone BPM
       uses: actions/checkout@master
       with:
@@ -43,13 +40,9 @@ jobs:
         cd bpm
         mvn clean install
         cd ..
-
-    - name: Clean workspace
-      run: git clean -fdx
         
     - name: Build Genesis with Maven
-      run:
-        mvn clean package -B --file pom.xml
+      run: mvn clean package -B --file pom.xml
 
     # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
     - name: Update dependency graph
