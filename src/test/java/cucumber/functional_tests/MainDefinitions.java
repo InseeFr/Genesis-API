@@ -58,12 +58,12 @@ public class MainDefinitions {
                     ddiFilePath.toFile().toURI().toURL().toString(),
                     new FileInputStream(ddiFilePath.toFile())
             ).getVariables();
-            List<SurveyUnitModel> suDtos = new ArrayList<>();
+            List<SurveyUnitModel> surveyUnitModels1 = new ArrayList<>();
             for (LunaticXmlSurveyUnit su : campaign.getSurveyUnits()) {
-                suDtos.addAll(LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign(), Mode.WEB));
+                surveyUnitModels1.addAll(LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign(), Mode.WEB));
             }
-            surveyUnitQualityService.verifySurveyUnits(suDtos,variablesMap);
-            surveyUnitModels = suDtos;
+            surveyUnitQualityService.verifySurveyUnits(surveyUnitModels1,variablesMap);
+            surveyUnitModels = surveyUnitModels1;
         }
     }
 
