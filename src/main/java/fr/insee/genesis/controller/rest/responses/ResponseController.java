@@ -10,11 +10,11 @@ import fr.insee.genesis.controller.adapter.LunaticXmlAdapter;
 import fr.insee.genesis.controller.dto.SurveyUnitDto;
 import fr.insee.genesis.controller.dto.SurveyUnitId;
 import fr.insee.genesis.controller.dto.SurveyUnitSimplified;
-import fr.insee.genesis.controller.dto.VariableDto;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlCampaign;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlDataParser;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlDataSequentialParser;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
+import fr.insee.genesis.controller.utils.AuthUtils;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.surveyunit.CollectedVariable;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
@@ -24,7 +24,6 @@ import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.LunaticXmlRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
-import fr.insee.genesis.controller.utils.AuthUtils;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.exceptions.NoDataException;
@@ -56,6 +55,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @RequestMapping(path = "/responses" )
@@ -236,7 +236,7 @@ public class ResponseController {
             try {
                 List<Mode> modesList = controllerUtils.getModesList(campaignName, null); //modeSpecified null = all modes
                 for (Mode currentMode : modesList) {
-                    processCampaignWithMode(campaignName, currentMode, errors, Constants.DIFFRENTIAL_DATA_FOLDER_NAME);
+                    processCampaignWithMode(campaignName, currentMode, errors, Constants.DIFFERENTIAL_DATA_FOLDER_NAME);
                 }
             }catch (NoDataException nde){
                 log.warn(nde.getMessage());
@@ -397,20 +397,12 @@ public class ResponseController {
         List<String> absentExternalVariableNames =
                 surveyUnitQualityService.checkVariablesPresentInMetadata(surveyUnitDto.getExternalVariables(),
                         variablesMap);
-        if(!absentCollectedVariableNames.isEmpty() || !absentExternalVariableNames.isEmpty()){
-            StringBuilder stringBuilder = new StringBuilder();
-            for(String absentVariableName : absentCollectedVariableNames){
-                stringBuilder.append(absentVariableName);
-                stringBuilder.append("\n");
-            }
-            for(String absentVariableName : absentExternalVariableNames){
-                stringBuilder.append(absentVariableName);
-                stringBuilder.append("\n");
-            }
+        if (!absentCollectedVariableNames.isEmpty() || !absentExternalVariableNames.isEmpty()) {
+            String absentVariables =
+                    Stream.concat(absentCollectedVariableNames.stream(),absentExternalVariableNames.stream())
+                    .collect(Collectors.joining("\n"));
             return ResponseEntity.badRequest().body(
-                    "The following variables are absent in metadatas : %n%s".formatted(
-                        stringBuilder.toString()
-                    )
+                    String.format("The following variables are absent in metadatas : %n%s", absentVariables)
             );
         }
 
@@ -661,10 +653,9 @@ public class ResponseController {
                 su = parser.readNextSurveyUnit();
             }
 
-            log.info("Saved {} survey units updates", suCount);
+            log.info("Saved {} survey units updates from Xml file {}", suCount,  filepath.getFileName());
         }
 
-        log.info("File {} processed", filepath.getFileName());
         return ResponseEntity.ok().build();
     }
 
