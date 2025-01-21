@@ -6,6 +6,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 @Component
 public class AuthUtils {
     private final Config config;
@@ -19,12 +21,12 @@ public class AuthUtils {
      * Extract IDEP from OIDC token
      * @return the IDEP from the OIDC if the app uses OIDC auth, null otherwise
      */
-    public String getIDEP(){
-        if(config.getAuthType().equals("OIDC")){
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            return  authentication
-                    .getName()
-                    .substring(authentication.getName().lastIndexOf(":") + 1);
+    public String getIDEP() {
+        if ("OIDC".equals(config.getAuthType())) {
+            return Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
+                    .map(Authentication::getName)
+                    .map(name -> name.substring(name.lastIndexOf(":") + 1))
+                    .orElse(null);
         }
         return null;
     }
