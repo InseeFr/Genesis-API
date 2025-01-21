@@ -265,7 +265,8 @@ public class ResponseController {
                 lunaticJsonRawDataApiPort.updateProcessDates(surveyUnitModels);
 
                 //Save metadatas
-                variableTypeApiPort.saveMetadatas(campaignName, questionnaireId, mode, variablesMap);
+                //TODO Enable when mapping problem solved for get metadatas step
+                //variableTypeApiPort.saveMetadatas(campaignName, questionnaireId, mode, variablesMap);
                 dataCount += surveyUnitModels.size();
             }
             return ResponseEntity.ok("%d document(s) processed".formatted(dataCount));
