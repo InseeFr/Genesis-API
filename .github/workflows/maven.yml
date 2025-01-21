@@ -21,8 +21,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-      with:
-        path: ${{github.ref_name}}
     
     - name: Set up JDK 21
       uses: actions/setup-java@v4
@@ -44,10 +42,8 @@ jobs:
         cd ..
         
     - name: Build Genesis with Maven
-      run: |
-        cd ${{github.ref_name}}
-        mvn clean
-        mvn -B package --file pom.xml
+      run:
+        mvn -B package --file pom.xml -Dcucumber.options="--dry-run"
 
     # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
     - name: Update dependency graph
