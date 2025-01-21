@@ -376,10 +376,7 @@ public class ResponseController {
             @RequestBody SurveyUnitDto surveyUnitDto
     ){
         //Parse metadata
-        //TODO Get metadatas from database once devs are merged into main (VariableTypes collection)
-        //TODO cf. PR #143
         //Try to look for DDI first, if no DDI found looks for lunatic components
-        //TODO Confirm this method (DDI then lunatic)
         List<GenesisError> errors = new ArrayList<>();
         VariablesMap variablesMap = readMetadatas(campaignId, mode, errors, true);
         if(variablesMap == null){
