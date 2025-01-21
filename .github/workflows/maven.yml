@@ -27,6 +27,7 @@ jobs:
       with:
         java-version: '21'
         distribution: 'temurin'
+        path: ${{github.ref_name}}
         cache: maven
 
     - name: Clone BPM
