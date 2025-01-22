@@ -5,7 +5,9 @@ import fr.insee.genesis.controller.dto.CampaignWithQuestionnaire;
 import fr.insee.genesis.controller.dto.QuestionnaireWithCampaign;
 import fr.insee.genesis.controller.dto.SurveyUnitDto;
 import fr.insee.genesis.controller.dto.SurveyUnitId;
+import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
 import fr.insee.genesis.controller.dto.VariableDto;
+import fr.insee.genesis.controller.dto.VariableInputDto;
 import fr.insee.genesis.controller.dto.VariableStateDto;
 import fr.insee.genesis.domain.model.surveyunit.CollectedVariable;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
@@ -234,75 +236,58 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     }
 
     @Override
-    public SurveyUnitModel parseEditedVariables(
-            String campaignId,
-            Mode mode,
-            String idQuestionnaire,
-            SurveyUnitDto surveyUnitDto,
+    public List<SurveyUnitModel> parseEditedVariables(
+            SurveyUnitInputDto surveyUnitInputDto,
             String userIdentifier,
             VariablesMap variablesMap
     ) throws GenesisException {
-        SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
-                .idCampaign(campaignId)
-                .mode(mode)
-                .idQuest(idQuestionnaire)
-                .idUE(surveyUnitDto.getSurveyUnitId())
-                .state(DataState.EDITED)
-                .recordDate(LocalDateTime.now())
-                .collectedVariables(new ArrayList<>())
-                .externalVariables(new ArrayList<>())
-                .modifiedBy(userIdentifier)
-                .build();
 
-        //Keep only variable dtos who has at least one EDITED variableStateDto
-        List<VariableDto> editedCollectedVariables = surveyUnitDto.getCollectedVariables().stream().filter(
-                variableDto -> !variableDto.getVariableStateDtoList().stream().filter(
-                        variableStateDto -> variableStateDto.getState().equals(DataState.EDITED)
-                ).toList().isEmpty()
-        ).toList();
+        List<DataState> statesReceived = surveyUnitInputDto.getCollectedVariables().stream()
+                .map(colVar -> colVar.getVariableStateInputDto().getState())
+                .distinct()
+                .toList();
 
-        List<VariableDto> editedExternalVariables = surveyUnitDto.getExternalVariables().stream().filter(
-                variableDto -> !variableDto.getVariableStateDtoList().stream().filter(
-                        variableStateDto -> variableStateDto.getState().equals(DataState.EDITED)
-                ).toList().isEmpty()
-        ).toList();
-
-        //Error 400 bad request if no edited variable in list
-        if(editedCollectedVariables.isEmpty() && editedExternalVariables.isEmpty()){
-            throw new GenesisException(400, "No EDITED variable in list");
+        if (statesReceived.contains(DataState.COLLECTED)){
+            throw new GenesisException(400,"You can not persist in database a new value with the state COLLECTED");
         }
 
-        //Collected variables management
-        for(VariableDto editedVariableDto : editedCollectedVariables){
-            CollectedVariable collectedVariable = CollectedVariable.collectedVariableBuilder()
-                    .idVar(editedVariableDto.getVariableName())
-                    .values(new ArrayList<>())
-                    .idParent(LoopIdentifier.getRelatedVariableName(editedVariableDto.getVariableName(), variablesMap))
-                    .idLoop(editedVariableDto.getIdLoop())
+        List<SurveyUnitModel> surveyUnitModels = new ArrayList<>();
+
+        for (DataState state : statesReceived){
+            SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
+                    .idCampaign(surveyUnitInputDto.getCampaignId())
+                    .mode(surveyUnitInputDto.getMode())
+                    .idQuest(surveyUnitInputDto.getIdQuestionnaire())
+                    .idUE(surveyUnitInputDto.getSurveyUnitId())
+                    .state(state)
+                    .recordDate(LocalDateTime.now())
+                    .collectedVariables(new ArrayList<>())
+                    .externalVariables(new ArrayList<>())
+                    .modifiedBy(userIdentifier)
                     .build();
 
+            //Keep only variable dtos who has the corresponding state
+            List<VariableInputDto> editedCollectedVariables = surveyUnitInputDto.getCollectedVariables().stream()
+                    .filter(colVar -> colVar.getVariableStateInputDto().getState() == state).toList();
 
+            //Collected variables management
+            for(VariableInputDto editedVariableDto : editedCollectedVariables){
+                CollectedVariable collectedVariable = CollectedVariable.collectedVariableBuilder()
+                        .idVar(editedVariableDto.getVariableName())
+                        .values(new ArrayList<>())
+                        .idParent(LoopIdentifier.getRelatedVariableName(editedVariableDto.getVariableName(), variablesMap))
+                        .idLoop(editedVariableDto.getIdLoop())
+                        .build();
 
-            collectedVariable.getValues().add(editedVariableDto.getVariableStateDtoList().stream().filter(variableStateDto ->
-                    variableStateDto.getState().equals(DataState.EDITED)).toList().getFirst().getValue());
+                collectedVariable.getValues().add(editedVariableDto.getVariableStateInputDto().getValue());
 
-            surveyUnitModel.getCollectedVariables().add(collectedVariable);
+                surveyUnitModel.getCollectedVariables().add(collectedVariable);
+
+            }
+            surveyUnitModels.add(surveyUnitModel);
         }
 
-        //External variables management
-        for(VariableDto editedVariableDto : editedExternalVariables){
-            Variable externalVariable = Variable.builder()
-                    .idVar(editedVariableDto.getVariableName())
-                    .values(new ArrayList<>())
-                    .build();
-
-            externalVariable.getValues().add(editedVariableDto.getVariableStateDtoList().stream().filter(variableStateDto ->
-                    variableStateDto.getState().equals(DataState.EDITED)).toList().getFirst().getValue());
-
-            surveyUnitModel.getExternalVariables().add(externalVariable);
-        }
-
-        return surveyUnitModel;
+        return surveyUnitModels;
     }
 
     //Utils

@@ -9,6 +9,7 @@ import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.adapter.LunaticXmlAdapter;
 import fr.insee.genesis.controller.dto.SurveyUnitDto;
 import fr.insee.genesis.controller.dto.SurveyUnitId;
+import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
 import fr.insee.genesis.controller.dto.SurveyUnitSimplified;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlCampaign;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlDataParser;
@@ -370,18 +371,15 @@ public class ResponseController {
             description = "Save edited variables document into database")
     @PostMapping(path = "/save-edited")
     public ResponseEntity<Object> saveEditedVariables(
-            @RequestParam("campaignId") String campaignId,
-            @RequestParam("mode") Mode mode,
-            @RequestParam("idQuestionnaire") String idQuestionnaire,
-            @RequestBody SurveyUnitDto surveyUnitDto
+            @RequestBody SurveyUnitInputDto surveyUnitInputDto
     ){
         //Parse metadata
         //Try to look for DDI first, if no DDI found looks for lunatic components
         List<GenesisError> errors = new ArrayList<>();
-        VariablesMap variablesMap = readMetadatas(campaignId, mode, errors, true);
+        VariablesMap variablesMap = readMetadatas(surveyUnitInputDto.getCampaignId(), surveyUnitInputDto.getMode(), errors, true);
         if(variablesMap == null){
             log.warn("Can't find DDI, trying with lunatic...");
-            variablesMap = readMetadatas(campaignId, mode, errors, false);
+            variablesMap = readMetadatas(surveyUnitInputDto.getCampaignId(), surveyUnitInputDto.getMode(), errors, false);
             if(variablesMap == null){
                 return ResponseEntity.status(404).body(errors.getLast().getMessage());
             }
@@ -389,15 +387,13 @@ public class ResponseController {
 
         //Check if input edited variables are in metadatas
         List<String> absentCollectedVariableNames =
-                surveyUnitQualityService.checkVariablesPresentInMetadata(surveyUnitDto.getCollectedVariables(),
+                surveyUnitQualityService.checkVariablesPresentInMetadata(surveyUnitInputDto.getCollectedVariables(),
                 variablesMap);
-        List<String> absentExternalVariableNames =
-                surveyUnitQualityService.checkVariablesPresentInMetadata(surveyUnitDto.getExternalVariables(),
-                        variablesMap);
-        if (!absentCollectedVariableNames.isEmpty() || !absentExternalVariableNames.isEmpty()) {
-            String absentVariables =
-                    Stream.concat(absentCollectedVariableNames.stream(),absentExternalVariableNames.stream())
-                    .collect(Collectors.joining("\n"));
+//        List<String> absentExternalVariableNames =
+//                surveyUnitQualityService.checkVariablesPresentInMetadata(surveyUnitInputDto.getExternalVariables(),
+//                        variablesMap);
+        if (!absentCollectedVariableNames.isEmpty()) {
+            String absentVariables = String.join("\n", absentCollectedVariableNames);
             return ResponseEntity.badRequest().body(
                     String.format("The following variables are absent in metadatas : %n%s", absentVariables)
             );
@@ -407,14 +403,11 @@ public class ResponseController {
         String userIdentifier = authUtils.getIDEP();
 
 
-        //Create EDITED surveyUnitModel
-        SurveyUnitModel surveyUnitModel;
+        //Create surveyUnitModel for each STATE received (Quality tool could send variables with another STATE than EDITED)
+        List<SurveyUnitModel> surveyUnitModels;
         try{
-            surveyUnitModel = surveyUnitService.parseEditedVariables(
-                    campaignId,
-                    mode,
-                    idQuestionnaire,
-                    surveyUnitDto,
+            surveyUnitModels = surveyUnitService.parseEditedVariables(
+                    surveyUnitInputDto,
                     userIdentifier,
                     variablesMap
             );
@@ -422,10 +415,7 @@ public class ResponseController {
            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
         }
 
-
         //Check data with dataverifier (might create a FORCED document)
-        List<SurveyUnitModel> surveyUnitModels = new ArrayList<>();
-        surveyUnitModels.add(surveyUnitModel);
         surveyUnitQualityService.verifySurveyUnits(surveyUnitModels, variablesMap);
 
         //Save documents

@@ -1,6 +1,7 @@
 package fr.insee.genesis.domain.service.surveyunit;
 
 import fr.insee.genesis.controller.dto.VariableDto;
+import fr.insee.genesis.controller.dto.VariableInputDto;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.utils.DataVerifier;
 import fr.insee.bpm.metadata.model.VariablesMap;
@@ -20,16 +21,16 @@ public class SurveyUnitQualityService {
 
     /**
      * Checks
-     * @param variableDtos input variables to check
+     * @param variableInputDtos input variables to check
      * @param variablesMap BPM Questionnaire metadata to use for checking
      * @return A list of variables that are <strong>absent</strong> in metadata
      */
-    public List<String> checkVariablesPresentInMetadata(List<VariableDto> variableDtos, VariablesMap variablesMap) {
+    public List<String> checkVariablesPresentInMetadata(List<VariableInputDto> variableInputDtos, VariablesMap variablesMap) {
         List<String> absentVariableNames = new ArrayList<>();
 
-        for(VariableDto variableDto : variableDtos){
-            if(!variablesMap.hasVariable(variableDto.getVariableName())){
-                absentVariableNames.add(variableDto.getVariableName());
+        for(VariableInputDto variableInputDto : variableInputDtos){
+            if(!variablesMap.hasVariable(variableInputDto.getVariableName())){
+                absentVariableNames.add(variableInputDto.getVariableName());
             }
         }
 

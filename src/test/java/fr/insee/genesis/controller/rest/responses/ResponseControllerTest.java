@@ -5,9 +5,10 @@ import fr.insee.genesis.Constants;
 import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.controller.dto.SurveyUnitDto;
 import fr.insee.genesis.controller.dto.SurveyUnitId;
+import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
 import fr.insee.genesis.controller.dto.SurveyUnitSimplified;
-import fr.insee.genesis.controller.dto.VariableDto;
-import fr.insee.genesis.controller.dto.VariableStateDto;
+import fr.insee.genesis.controller.dto.VariableInputDto;
+import fr.insee.genesis.controller.dto.VariableStateInputDto;
 import fr.insee.genesis.controller.utils.AuthUtils;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
@@ -20,7 +21,6 @@ import fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService;
 import fr.insee.genesis.domain.service.rawdata.LunaticXmlRawDataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
-import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.LunaticJsonPersistanceStub;
@@ -387,7 +387,7 @@ class ResponseControllerTest {
     }
 
     @Test
-    void saveEditedTest() throws GenesisException {
+    void saveEditedTest() {
         //GIVEN
         surveyUnitPersistencePortStub.getMongoStub().clear();
         String campaignId = ID_CAMPAIGN_WITH_DDI;
@@ -396,36 +396,30 @@ class ResponseControllerTest {
         String idLoop = "BOUCLE_VAL_ANNAISS_1";
         String editedValue = "TESTPRENOMEDITED";
 
-        List<VariableDto> newVariables = new ArrayList<>();
-        VariableDto variableDto = VariableDto.builder()
+        List<VariableInputDto> newVariables = new ArrayList<>();
+        VariableInputDto variableInputDto = VariableInputDto.builder()
                 .variableName(idVar)
                 .idLoop(idLoop)
-                .variableStateDtoList(new ArrayList<>())
                 .build();
 
-        variableDto.getVariableStateDtoList().add(VariableStateDto.builder()
+        variableInputDto.setVariableStateInputDto(VariableStateInputDto.builder()
                         .state(DataState.EDITED)
                         .value(editedValue)
-                        .date(LocalDateTime.now())
-                        .active(true)
                 .build());
 
-        newVariables.add(variableDto);
+        newVariables.add(variableInputDto);
 
-        SurveyUnitDto surveyUnitDto = SurveyUnitDto.builder()
+        SurveyUnitInputDto surveyUnitInputDto = SurveyUnitInputDto.builder()
+                .campaignId(campaignId)
+                .mode(Mode.WEB)
+                .idQuestionnaire(idQuest)
                 .surveyUnitId(DEFAULT_ID_UE)
                 .collectedVariables(newVariables)
-                .externalVariables(new ArrayList<>())
                 .build();
 
 
         //WHEN
-        responseControllerStatic.saveEditedVariables(
-                campaignId,
-                Mode.WEB,
-                idQuest,
-                surveyUnitDto
-        );
+        responseControllerStatic.saveEditedVariables(surveyUnitInputDto);
 
         //THEN
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).hasSize(1);
@@ -448,7 +442,7 @@ class ResponseControllerTest {
     }
 
     @Test
-    void saveEditedTest_Forced() throws GenesisException {
+    void saveEditedTest_Forced() {
         //GIVEN
         surveyUnitPersistencePortStub.getMongoStub().clear();
         String campaignId = ID_CAMPAIGN_WITH_DDI;
@@ -459,47 +453,38 @@ class ResponseControllerTest {
         String editedValue = "NOT A INT";
 
         //Variable 1
-        List<VariableDto> newVariables = new ArrayList<>();
-        VariableDto variableDto = VariableDto.builder()
+        List<VariableInputDto> newVariables = new ArrayList<>();
+        VariableInputDto variableInputDto = VariableInputDto.builder()
                 .variableName(idVar)
                 .idLoop(idLoop)
-                .variableStateDtoList(new ArrayList<>())
+                .variableStateInputDto(VariableStateInputDto.builder()
+                        .state(DataState.EDITED)
+                        .value(editedValue)
+                        .build())
                 .build();
-        variableDto.getVariableStateDtoList().add(VariableStateDto.builder()
-                .state(DataState.EDITED)
-                .value(editedValue)
-                .date(LocalDateTime.now())
-                .active(true)
-                .build());
-        newVariables.add(variableDto);
+        newVariables.add(variableInputDto);
 
         //Variable 2
-        variableDto = VariableDto.builder()
+        VariableInputDto variableInputDto2 = VariableInputDto.builder()
                 .variableName(idVar2)
                 .idLoop(idLoop)
-                .variableStateDtoList(new ArrayList<>())
+                .variableStateInputDto(VariableStateInputDto.builder()
+                        .state(DataState.EDITED)
+                        .value(editedValue)
+                        .build())
                 .build();
-        variableDto.getVariableStateDtoList().add(VariableStateDto.builder()
-                .state(DataState.EDITED)
-                .value(editedValue)
-                .date(LocalDateTime.now())
-                .active(true)
-                .build());
-        newVariables.add(variableDto);
+        newVariables.add(variableInputDto2);
 
-        SurveyUnitDto surveyUnitDto = SurveyUnitDto.builder()
+        SurveyUnitInputDto surveyUnitInputDto = SurveyUnitInputDto.builder()
+                .campaignId(campaignId)
+                .mode(Mode.WEB)
+                .idQuestionnaire(idQuest)
                 .surveyUnitId(DEFAULT_ID_UE)
                 .collectedVariables(newVariables)
-                .externalVariables(new ArrayList<>())
                 .build();
 
         //WHEN
-        responseControllerStatic.saveEditedVariables(
-                campaignId,
-                Mode.WEB,
-                idQuest,
-                surveyUnitDto
-        );
+        responseControllerStatic.saveEditedVariables(surveyUnitInputDto);
 
         //THEN
         //EDITED document assertions
@@ -538,7 +523,7 @@ class ResponseControllerTest {
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getModifiedBy()).isNull();
     }
     @Test
-    void saveEditedTest_No_Metadata_Error() throws GenesisException {
+    void saveEditedTest_No_Metadata_Error() {
         //GIVEN
         surveyUnitPersistencePortStub.getMongoStub().clear();
         String campaignId = "TEST";
@@ -547,38 +532,34 @@ class ResponseControllerTest {
         String editedValue = "TESTVALUE";
 
         //Variable 1
-        List<VariableDto> newVariables = new ArrayList<>();
-        VariableDto variableDto = VariableDto.builder()
+        List<VariableInputDto> newVariables = new ArrayList<>();
+        VariableInputDto variableInputDto = VariableInputDto.builder()
                 .variableName(idVar)
                 .idLoop(idLoop)
-                .variableStateDtoList(new ArrayList<>())
+                .variableStateInputDto(VariableStateInputDto.builder()
+                        .state(DataState.EDITED)
+                        .value(editedValue)
+                        .build())
                 .build();
-        variableDto.getVariableStateDtoList().add(VariableStateDto.builder()
-                .state(DataState.EDITED)
-                .value(editedValue)
-                .date(LocalDateTime.now())
-                .active(true)
-                .build());
-        newVariables.add(variableDto);
+        newVariables.add(variableInputDto);
 
-        SurveyUnitDto surveyUnitDto = SurveyUnitDto.builder()
+        SurveyUnitInputDto surveyUnitInputDto = SurveyUnitInputDto.builder()
+                .campaignId(campaignId)
+                .mode(Mode.WEB)
+                .idQuestionnaire(DEFAULT_ID_QUEST)
                 .surveyUnitId(DEFAULT_ID_UE)
                 .collectedVariables(newVariables)
-                .externalVariables(new ArrayList<>())
                 .build();
 
         Assertions.assertThat(
             responseControllerStatic.saveEditedVariables(
-                campaignId,
-                Mode.WEB,
-                DEFAULT_ID_QUEST,
-                surveyUnitDto
+                    surveyUnitInputDto
             ).getStatusCode()
         ).isEqualTo(HttpStatusCode.valueOf(404));
     }
 
     @Test
-    void saveEditedTest_No_Edited_Variable_Error(){
+    void saveTest_With_Collected_State_Error(){
         //GIVEN
         surveyUnitPersistencePortStub.getMongoStub().clear();
         String idVar = "PRENOM_C";
@@ -586,33 +567,25 @@ class ResponseControllerTest {
         String editedValue = "TESTVALUE";
 
         //Variable 1
-        List<VariableDto> newVariables = new ArrayList<>();
-        VariableDto variableDto = VariableDto.builder()
+        List<VariableInputDto> newVariables = new ArrayList<>();
+        VariableInputDto variableInputDto = VariableInputDto.builder()
                 .variableName(idVar)
                 .idLoop(idLoop)
-                .variableStateDtoList(new ArrayList<>())
+                .variableStateInputDto(VariableStateInputDto.builder()
+                        .state(DataState.COLLECTED) //Collected instead of EDITED
+                        .value(editedValue)
+                        .build())
                 .build();
-        variableDto.getVariableStateDtoList().add(VariableStateDto.builder()
-                .state(DataState.COLLECTED) //Collected instead of EDITED
-                .value(editedValue)
-                .date(LocalDateTime.now())
-                .active(true)
-                .build());
-        newVariables.add(variableDto);
+        newVariables.add(variableInputDto);
 
-        SurveyUnitDto surveyUnitDto = SurveyUnitDto.builder()
+        SurveyUnitInputDto surveyUnitInputDto = SurveyUnitInputDto.builder()
+                .campaignId(ID_CAMPAIGN_WITH_DDI)
+                .mode(Mode.WEB)
+                .idQuestionnaire(DEFAULT_ID_QUEST)
                 .surveyUnitId(DEFAULT_ID_UE)
                 .collectedVariables(newVariables)
-                .externalVariables(new ArrayList<>())
                 .build();
 
-        Assertions.assertThat(
-                responseControllerStatic.saveEditedVariables(
-                    ID_CAMPAIGN_WITH_DDI,
-                    Mode.WEB,
-                    DEFAULT_ID_QUEST,
-                    surveyUnitDto
-                ).getStatusCode()
-        ).isEqualTo(HttpStatusCode.valueOf(400));
+        Assertions.assertThat(responseControllerStatic.saveEditedVariables(surveyUnitInputDto).getStatusCode()).isEqualTo(HttpStatusCode.valueOf(400));
     }
 }
