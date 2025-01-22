@@ -137,21 +137,13 @@ public class FileUtils {
 	 * Get the path of the folder where the data files are stored
 	 * @param campaign name of campaign
 	 * @param dataSource folder of the mode (ENQ, WEB...)
-	 * @return Path of the data folder
-	 */
-	public String getDataFolder(String campaign, String dataSource) {
-		return  String.format("%s/%s/%s/%s", dataFolderSource, "IN", dataSource, campaign);
-	}
-
-	/**
-	 * Get the path of the folder where the data files are stored
-	 * @param campaign name of campaign
-	 * @param dataSource folder of the mode (ENQ, WEB...)
 	 * @param rootDataFolder folder of data (ex: differential/complete)
 	 * @return Path of the data folder
 	 */
 	public String getDataFolder(String campaign, String dataSource, String rootDataFolder) {
-		return  String.format("%s/%s/%s/%s/%s", dataFolderSource, "IN", dataSource, campaign, rootDataFolder);
+		return rootDataFolder == null ?
+				String.format("%s/%s/%s/%s", dataFolderSource, "IN", dataSource, campaign)
+				: String.format("%s/%s/%s/%s/%s", dataFolderSource, "IN", dataSource, campaign, rootDataFolder);
 	}
 
 
