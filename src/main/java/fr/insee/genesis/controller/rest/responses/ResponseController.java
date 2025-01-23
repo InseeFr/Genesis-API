@@ -281,7 +281,7 @@ public class ResponseController {
     public ResponseEntity<Path> findAllResponsesByQuestionnaire(@RequestParam("questionnaireId") String questionnaireId) {
         log.info("Try to find all responses of questionnaire : {}", questionnaireId);
 
-        //Get all IdUEs/modes of the survey
+        //Get all interrogationIds/modes of the survey
         List<SurveyUnitModel> interrogationIdsResponses = surveyUnitService.findInterrogationIdsAndModesByQuestionnaireId(questionnaireId);
         log.info("Responses found : {}", interrogationIdsResponses.size());
 
@@ -526,7 +526,7 @@ public class ResponseController {
 
         List<SurveyUnitModel> suDtos = new ArrayList<>();
         for (LunaticXmlSurveyUnit su : campaign.getSurveyUnits()) {
-            suDtos.addAll(LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign(), modeSpecified));
+            suDtos.addAll(LunaticXmlAdapter.convert(su, variablesMap, campaign.getCampaignId(), modeSpecified));
         }
         surveyUnitQualityService.verifySurveyUnits(suDtos, variablesMap);
 
@@ -571,7 +571,7 @@ public class ResponseController {
             LunaticXmlSurveyUnit su = parser.readNextSurveyUnit();
 
             while (su != null) {
-                List<SurveyUnitModel> suDtos = new ArrayList<>(LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign(), modeSpecified));
+                List<SurveyUnitModel> suDtos = new ArrayList<>(LunaticXmlAdapter.convert(su, variablesMap, campaign.getCampaignId(), modeSpecified));
 
                 surveyUnitQualityService.verifySurveyUnits(suDtos, variablesMap);
                 surveyUnitService.saveSurveyUnits(suDtos);

@@ -21,14 +21,14 @@ import java.util.List;
 class Utils {
 
     //Constants
-    static final String defaultIdUE = "TESTIDUE";
-    static final String defaultIdQuest = "TESTIDQUESTIONNAIRE";
+    static final String DEFAULT_INTERROGATION_ID = "TESTINTERROGATIONID";
+    static final String DEFAULT_ID_QUEST = "TESTQUESTIONNAIREID";
 
     static void reset(SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) throws IOException {
         //MongoDB stub management
         surveyUnitPersistencePortStub.getMongoStub().clear();
 
-        addAdditionalDtoToMongoStub("TESTIDCAMPAIGN", defaultIdQuest ,
+        addAdditionalDtoToMongoStub("TESTCAMPAIGNID", DEFAULT_ID_QUEST,
                 LocalDateTime.of(2023, 1, 1, 0, 0, 0),
                 LocalDateTime.of(2024, 1, 1, 0, 0, 0),
                 surveyUnitPersistencePortStub);
@@ -167,21 +167,21 @@ class Utils {
     }
 
     static void addAdditionalDtoToMongoStub(SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) {
-        addAdditionalDtoToMongoStub(defaultIdQuest, surveyUnitPersistencePortStub);
+        addAdditionalDtoToMongoStub(DEFAULT_ID_QUEST, surveyUnitPersistencePortStub);
     }
 
-    static void addAdditionalDtoToMongoStub(String idQuestionnaire, SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) {
-        addAdditionalDtoToMongoStub("TESTIDCAMPAIGN",idQuestionnaire, surveyUnitPersistencePortStub);
+    static void addAdditionalDtoToMongoStub(String questionnaireId, SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) {
+        addAdditionalDtoToMongoStub("TESTCAMPAIGNID",questionnaireId, surveyUnitPersistencePortStub);
     }
 
-    static void addAdditionalDtoToMongoStub(String idCampaign, String idQuestionnaire, SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) {
-        addAdditionalDtoToMongoStub(idCampaign,idQuestionnaire,
+    static void addAdditionalDtoToMongoStub(String campaignId, String questionnaireId, SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) {
+        addAdditionalDtoToMongoStub(campaignId,questionnaireId,
                 LocalDateTime.of(2023, 2, 2, 0, 0, 0),
                 LocalDateTime.of(2024, 2, 2, 0, 0, 0),
                 surveyUnitPersistencePortStub);
     }
 
-    static void addAdditionalDtoToMongoStub(String idCampaign, String idQuestionnaire,
+    static void addAdditionalDtoToMongoStub(String campaignId, String questionnaireId,
                                              LocalDateTime fileDate, LocalDateTime recordDate,
                                              SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) {
         List<Variable> externalVariableList = new ArrayList<>();
@@ -193,10 +193,10 @@ class Utils {
         collectedVariableList.add(collectedVariable);
 
         SurveyUnitModel recentDTO = SurveyUnitModel.builder()
-                .campaignId(idCampaign)
+                .campaignId(campaignId)
                 .mode(Mode.WEB)
-                .interrogationId(defaultIdUE)
-                .questionnaireId(idQuestionnaire)
+                .interrogationId(DEFAULT_INTERROGATION_ID)
+                .questionnaireId(questionnaireId)
                 .state(DataState.COLLECTED)
                 .fileDate(fileDate)
                 .recordDate(recordDate)
@@ -223,10 +223,10 @@ class Utils {
         collectedVariableList.add(collectedVariable);
 
         SurveyUnitModel recentDTO = SurveyUnitModel.builder()
-                .campaignId("TESTIDCAMPAIGN")
+                .campaignId("TESTCAMPAIGNID")
                 .mode(Mode.WEB)
-                .interrogationId(defaultIdUE)
-                .questionnaireId(defaultIdQuest)
+                .interrogationId(DEFAULT_INTERROGATION_ID)
+                .questionnaireId(DEFAULT_ID_QUEST)
                 .state(state)
                 .fileDate(fileDate)
                 .recordDate(recordDate)

@@ -52,8 +52,8 @@ class LunaticXmlAdapterTest {
         lunaticXmlData.setCollected(collected);
         List<LunaticXmlOtherData> external = List.of();
         lunaticXmlData.setExternal(external);
-        lunaticXmlSurveyUnit1.setId("idUE1");
-        lunaticXmlSurveyUnit1.setQuestionnaireModelId("idQuest1");
+        lunaticXmlSurveyUnit1.setId("interrogationId1");
+        lunaticXmlSurveyUnit1.setQuestionnaireModelId("questionnaireId1");
         lunaticXmlSurveyUnit1.setData(lunaticXmlData);
 
         //SurveyUnit 2 : COLLECTED + EDITED
@@ -71,8 +71,8 @@ class LunaticXmlAdapterTest {
         lunaticXmlData.setCollected(collected);
 
         lunaticXmlData.setExternal(external);
-        lunaticXmlSurveyUnit2.setId("idUE1");
-        lunaticXmlSurveyUnit2.setQuestionnaireModelId("idQuest1");
+        lunaticXmlSurveyUnit2.setId("interrogationId1");
+        lunaticXmlSurveyUnit2.setQuestionnaireModelId("questionnaireId1");
         lunaticXmlSurveyUnit2.setData(lunaticXmlData);
 
         //SurveyUnit 3 : COLLECTED + EDITED + FORCED
@@ -91,8 +91,8 @@ class LunaticXmlAdapterTest {
         lunaticXmlData.setCollected(collected);
 
         lunaticXmlData.setExternal(external);
-        lunaticXmlSurveyUnit3.setId("idUE1");
-        lunaticXmlSurveyUnit3.setQuestionnaireModelId("idQuest1");
+        lunaticXmlSurveyUnit3.setId("interrogationId1");
+        lunaticXmlSurveyUnit3.setQuestionnaireModelId("questionnaireId1");
         lunaticXmlSurveyUnit3.setData(lunaticXmlData);
 
         //SurveyUnit 4 : COLLECTED + EDITED + PREVIOUS
@@ -111,8 +111,8 @@ class LunaticXmlAdapterTest {
         lunaticXmlData.setCollected(collected);
 
         lunaticXmlData.setExternal(external);
-        lunaticXmlSurveyUnit4.setId("idUE1");
-        lunaticXmlSurveyUnit4.setQuestionnaireModelId("idQuest1");
+        lunaticXmlSurveyUnit4.setId("interrogationId1");
+        lunaticXmlSurveyUnit4.setQuestionnaireModelId("questionnaireId1");
         lunaticXmlSurveyUnit4.setData(lunaticXmlData);
 
         //SurveyUnit 5 : COLLECTED + EDITED + PREVIOUS + INPUTED
@@ -132,8 +132,8 @@ class LunaticXmlAdapterTest {
         lunaticXmlData.setCollected(collected);
 
         lunaticXmlData.setExternal(external);
-        lunaticXmlSurveyUnit5.setId("idUE1");
-        lunaticXmlSurveyUnit5.setQuestionnaireModelId("idQuest1");
+        lunaticXmlSurveyUnit5.setId("interrogationId1");
+        lunaticXmlSurveyUnit5.setQuestionnaireModelId("questionnaireId1");
         lunaticXmlSurveyUnit5.setData(lunaticXmlData);
 
         //SurveyUnit 6 : COLLECTED only, has one unknown variable
@@ -152,8 +152,8 @@ class LunaticXmlAdapterTest {
         lunaticXmlData.setCollected(collected);
 
         lunaticXmlData.setExternal(external);
-        lunaticXmlSurveyUnit6.setId("idUE1");
-        lunaticXmlSurveyUnit6.setQuestionnaireModelId("idQuest1");
+        lunaticXmlSurveyUnit6.setId("interrogationId1");
+        lunaticXmlSurveyUnit6.setQuestionnaireModelId("questionnaireId1");
         lunaticXmlSurveyUnit6.setData(lunaticXmlData);
 
         //SurveyUnit 7 : COLLECTED only, has one unknown variable with known variable prefix
@@ -171,8 +171,8 @@ class LunaticXmlAdapterTest {
         lunaticXmlData.setCollected(collected);
 
         lunaticXmlData.setExternal(external);
-        lunaticXmlSurveyUnit7.setId("idUE1");
-        lunaticXmlSurveyUnit7.setQuestionnaireModelId("idQuest1");
+        lunaticXmlSurveyUnit7.setId("interrogationId1");
+        lunaticXmlSurveyUnit7.setQuestionnaireModelId("questionnaireId1");
         lunaticXmlSurveyUnit7.setData(lunaticXmlData);
 
         //SurveyUnit 8 : Only collected data
@@ -187,8 +187,8 @@ class LunaticXmlAdapterTest {
         lunaticXmlData.setCollected(collected);
         external = List.of();
         lunaticXmlData.setExternal(external);
-        lunaticXmlSurveyUnit8.setId("idUE1");
-        lunaticXmlSurveyUnit8.setQuestionnaireModelId("idQuest1");
+        lunaticXmlSurveyUnit8.setId("interrogationId1");
+        lunaticXmlSurveyUnit8.setQuestionnaireModelId("questionnaireId1");
         lunaticXmlSurveyUnit8.setData(lunaticXmlData);
 
         //VariablesMap
@@ -209,12 +209,12 @@ class LunaticXmlAdapterTest {
     }
 
     @Test
-    @DisplayName("SurveyUnitDto should have the right idQuest")
+    @DisplayName("SurveyUnitDto should have the right questionnaireId")
     void test02() {
         // When
         List<SurveyUnitModel> suDtos = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit1, metadataModel.getVariables(), ID_CAMPAIGN, Mode.WEB);
         // Then
-        Assertions.assertThat(suDtos.getFirst().getQuestionnaireId()).isEqualTo("idQuest1");
+        Assertions.assertThat(suDtos.getFirst().getQuestionnaireId()).isEqualTo("questionnaireId1");
     }
 
     @Test
@@ -223,7 +223,7 @@ class LunaticXmlAdapterTest {
         // When
         List<SurveyUnitModel> suDtos = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit1, metadataModel.getVariables(), ID_CAMPAIGN, Mode.WEB);
         // Then
-        Assertions.assertThat(suDtos.getFirst().getInterrogationId()).isEqualTo("idUE1");
+        Assertions.assertThat(suDtos.getFirst().getInterrogationId()).isEqualTo("interrogationId1");
     }
 
     @Test

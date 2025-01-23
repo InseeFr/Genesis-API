@@ -230,7 +230,7 @@ class ResponseControllerTest {
         surveyUnitPersistencePortStub.getMongoStub().clear();
 
         for (int i = 0; i < Constants.BATCH_SIZE + 2; i++) {
-            Utils.addAdditionalDtoToMongoStub("TESTIDCAMPAIGN", DEFAULT_INTERROGATION_ID + i,
+            Utils.addAdditionalDtoToMongoStub("TESTCAMPAIGNID", DEFAULT_INTERROGATION_ID + i,
                     LocalDateTime.of(2023, 1, 1, 0, 0, 0),
                     LocalDateTime.of(2024, 1, 1, 0, 0, 0),
                     surveyUnitPersistencePortStub);

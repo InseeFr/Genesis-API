@@ -39,7 +39,7 @@ class SurveyUnitModelMongoAdapterTest {
 	static void setUp() {
 		surveyUnitMongoAdapter = new SurveyUnitMongoAdapter(mongoRepository, null);
 		suDoc= new SurveyUnitDocument();
-		suDoc.setCampaignId("idCampaign");
+		suDoc.setCampaignId("campaignId");
 		suDoc.setInterrogationId("UE1100000001");
 		suDoc.setQuestionnaireId("TEST2023X01");
 		suDoc.setState("COLLECTED");
@@ -49,7 +49,7 @@ class SurveyUnitModelMongoAdapterTest {
 		suDoc.setExternalVariables(List.of(new ExternalVariable()));
 
 		suDoc2= new SurveyUnitDocument();
-		suDoc2.setCampaignId("idCampaign");
+		suDoc2.setCampaignId("campaignId");
 		suDoc2.setInterrogationId("UE1100000001");
 		suDoc2.setQuestionnaireId("TEST2023X01");
 		suDoc2.setState("COLLECTED");
@@ -59,7 +59,7 @@ class SurveyUnitModelMongoAdapterTest {
 		suDoc2.setExternalVariables(List.of(new ExternalVariable()));
 
 		suDoc3= new SurveyUnitDocument();
-		suDoc3.setCampaignId("idCampaign");
+		suDoc3.setCampaignId("campaignId");
 		suDoc3.setInterrogationId("UE1100000002");
 		suDoc3.setQuestionnaireId("TEST2023X01");
 		suDoc3.setState("COLLECTED");

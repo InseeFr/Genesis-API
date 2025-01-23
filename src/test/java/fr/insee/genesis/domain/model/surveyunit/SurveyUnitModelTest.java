@@ -21,9 +21,9 @@ public class SurveyUnitModelTest {
         collectedVariableList.add(collectedVariable);
 
         SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
-                .campaignId("TESTIDCAMPAIGN")
-                .questionnaireId("TESTIDQUEST")
-                .interrogationId("TESTIDUE")
+                .campaignId("TESTCAMPAIGNID")
+                .questionnaireId("TESTQUESTIONNAIREID")
+                .interrogationId("TESTINTERROGATIONID")
                 .mode(Mode.WEB)
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2000,1,1,0,0,0))
@@ -37,7 +37,7 @@ public class SurveyUnitModelTest {
         objectMapper.findAndRegisterModules();
 
         Assertions.assertEquals(
-                objectMapper.readTree("{\"questionnaireId\":\"TESTIDQUEST\",\"campaignId\":\"TESTIDCAMPAIGN\",\"interrogationId\":\"TESTIDUE\",\"state\":\"COLLECTED\",\"mode\":\"WEB\",\"recordDate\":\"2000-01-01T12:00\",\"fileDate\":\"2000-01-01T12:00\",\"collectedVariables\":[{\"varId\":\"TESTIDVAR\",\"values\":[\"V1\",\"V2\"],\"loopId\":\"TESTIDLOOP\",\"parentId\":\"TESTIDPARENT\"}],\"externalVariables\":[{\"varId\":\"TESTIDVAR\",\"values\":[\"V1\",\"V2\"]}]}"),
+                objectMapper.readTree("{\"questionnaireId\":\"TESTQUESTIONNAIREID\",\"campaignId\":\"TESTCAMPAIGNID\",\"interrogationId\":\"TESTINTERROGATIONID\",\"state\":\"COLLECTED\",\"mode\":\"WEB\",\"recordDate\":\"2000-01-01T12:00\",\"fileDate\":\"2000-01-01T12:00\",\"collectedVariables\":[{\"varId\":\"TESTIDVAR\",\"values\":[\"V1\",\"V2\"],\"loopId\":\"TESTIDLOOP\",\"parentId\":\"TESTIDPARENT\"}],\"externalVariables\":[{\"varId\":\"TESTIDVAR\",\"values\":[\"V1\",\"V2\"]}]}"),
                 objectMapper.readTree(objectMapper.writeValueAsString(surveyUnitModel))
         );
     }

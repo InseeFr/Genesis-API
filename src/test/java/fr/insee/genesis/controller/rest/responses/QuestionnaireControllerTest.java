@@ -26,7 +26,7 @@ class QuestionnaireControllerTest {
         surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
         SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(surveyUnitPersistencePortStub);
 
-        questionnaireControllerStatic = new QuestionnaireController(surveyUnitApiPort );
+        questionnaireControllerStatic = new QuestionnaireController(surveyUnitApiPort);
 
     }
 
@@ -45,7 +45,7 @@ class QuestionnaireControllerTest {
         ResponseEntity<Set<String>> response = questionnaireControllerStatic.getQuestionnaires();
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().containsExactly(
+        Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().containsOnly(
                 DEFAULT_QUESTIONNAIRE_ID,"TESTQUESTIONNAIRE2");
     }
 
@@ -53,10 +53,10 @@ class QuestionnaireControllerTest {
     void getQuestionnairesByCampaignTest() {
         Utils.addAdditionalDtoToMongoStub("TESTQUESTIONNAIRE2", surveyUnitPersistencePortStub);
 
-        ResponseEntity<Set<String>> response = questionnaireControllerStatic.getQuestionnairesByCampaign("TESTIDCAMPAIGN");
+        ResponseEntity<Set<String>> response = questionnaireControllerStatic.getQuestionnairesByCampaign("TESTCAMPAIGNID");
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().containsExactly(
+        Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().containsOnly(
                 DEFAULT_QUESTIONNAIRE_ID,"TESTQUESTIONNAIRE2");
     }
 
@@ -73,17 +73,17 @@ class QuestionnaireControllerTest {
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
         Assertions.assertThat(response.getBody().stream().filter(questionnaireWithCampaign ->
-                questionnaireWithCampaign.getIdQuestionnaire().equals(DEFAULT_QUESTIONNAIRE_ID)
-                        || questionnaireWithCampaign.getIdQuestionnaire().equals("TESTQUESTIONNAIRE2")
+                questionnaireWithCampaign.getQuestionnaireId().equals(DEFAULT_QUESTIONNAIRE_ID)
+                        || questionnaireWithCampaign.getQuestionnaireId().equals("TESTQUESTIONNAIRE2")
         )).isNotNull().isNotEmpty().hasSize(2);
 
         Assertions.assertThat(response.getBody().stream().filter(
-                questionnaireWithCampaign -> questionnaireWithCampaign.getIdQuestionnaire().equals(DEFAULT_QUESTIONNAIRE_ID)
-        ).findFirst().get().getCampaigns()).containsExactly("TESTIDCAMPAIGN");
+                questionnaireWithCampaign -> questionnaireWithCampaign.getQuestionnaireId().equals(DEFAULT_QUESTIONNAIRE_ID)
+        ).findFirst().get().getCampaigns()).containsExactly("TESTCAMPAIGNID");
 
         Assertions.assertThat(response.getBody().stream().filter(
-                questionnaireWithCampaign -> questionnaireWithCampaign.getIdQuestionnaire().equals("TESTQUESTIONNAIRE2")
-        ).findFirst().get().getCampaigns()).containsExactly("TESTIDCAMPAIGN", "TESTCAMPAIGN2");
+                questionnaireWithCampaign -> questionnaireWithCampaign.getQuestionnaireId().equals("TESTQUESTIONNAIRE2")
+        ).findFirst().get().getCampaigns()).containsExactly("TESTCAMPAIGNID", "TESTCAMPAIGN2");
     }
 
 }

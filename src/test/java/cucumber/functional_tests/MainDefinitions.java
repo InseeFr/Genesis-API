@@ -93,7 +93,7 @@ public class MainDefinitions {
             ).getVariables();
             List<SurveyUnitModel> suDtos = new ArrayList<>();
             for (LunaticXmlSurveyUnit su : campaign.getSurveyUnits()) {
-                suDtos.addAll(LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign(), Mode.WEB));
+                suDtos.addAll(LunaticXmlAdapter.convert(su, variablesMap, campaign.getCampaignId(), Mode.WEB));
             }
             surveyUnitQualityService.verifySurveyUnits(suDtos,variablesMap);
             surveyUnitModels = suDtos;

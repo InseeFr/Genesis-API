@@ -47,7 +47,7 @@ class ModeControllerTest {
 
     @Test
     void getModesByCampaignTest() {
-        ResponseEntity<List<Mode>> response = modeControllerStatic.getModesByCampaign("TESTIDCAMPAIGN");
+        ResponseEntity<List<Mode>> response = modeControllerStatic.getModesByCampaign("TESTCAMPAIGNID");
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().hasSize(1);

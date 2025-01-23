@@ -130,7 +130,7 @@ class DataVerifierTest {
         DataVerifier.verifySurveyUnits(testSurveyUnitModels,metadataModel.getVariables());
     }
 
-    private static void createCase(int variableNumber, int stateNumber, int valueNumber, boolean hasIncorrectValues, boolean hasExternalVariables, String idUE, List<SurveyUnitModel> testSurveyUnitModels, VariablesMap variablesMap) {
+    private static void createCase(int variableNumber, int stateNumber, int valueNumber, boolean hasIncorrectValues, boolean hasExternalVariables, String interrogationId, List<SurveyUnitModel> testSurveyUnitModels, VariablesMap variablesMap) {
         for(int stateIndex = 0; stateIndex < stateNumber; stateIndex++){
             List<CollectedVariable> variableUpdates = new ArrayList<>();
             List<Variable> externalVariables = new ArrayList<>();
@@ -165,9 +165,9 @@ class DataVerifierTest {
             }
 
             SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
-                    .questionnaireId("IdQuest1")
+                    .questionnaireId("QuestionnaireId1")
                     .campaignId("IdCampaign1")
-                    .interrogationId(idUE)
+                    .interrogationId(interrogationId)
                     .state(stateIndex % 2 == 0 ? DataState.COLLECTED : DataState.EDITED)
                     .mode(Mode.WEB)
                     .recordDate(LocalDateTime.now())
@@ -184,24 +184,24 @@ class DataVerifierTest {
 
     //Then
     //Assertions
-    private void assertForcedExistence(List<SurveyUnitModel> testSurveyUnitModels, String idUE, boolean hasToExist) {
+    private void assertForcedExistence(List<SurveyUnitModel> testSurveyUnitModels, String interrogationId, boolean hasToExist) {
         if(hasToExist)
             assertThat(testSurveyUnitModels).filteredOn(surveyUnit ->
-                            surveyUnit.getInterrogationId().equals(idUE)
+                            surveyUnit.getInterrogationId().equals(interrogationId)
                                     && surveyUnit.getState() == DataState.FORCED)
                     .hasSize(1);
         else
             assertThat(testSurveyUnitModels).filteredOn(surveyUnit ->
-                            surveyUnit.getInterrogationId().equals(idUE)
+                            surveyUnit.getInterrogationId().equals(interrogationId)
                                     && surveyUnit.getState() == DataState.FORCED)
                 .isEmpty();
     }
 
-    private void assertCollectedVariableContent(List<SurveyUnitModel> testSurveyUnitModels, String idUE, String variableName, int valueIndex, String expectedContent) {
-        assertForcedExistence(testSurveyUnitModels,idUE,true);
+    private void assertCollectedVariableContent(List<SurveyUnitModel> testSurveyUnitModels, String interrogationId, String variableName, int valueIndex, String expectedContent) {
+        assertForcedExistence(testSurveyUnitModels,interrogationId,true);
 
         Optional<SurveyUnitModel> suDtoOpt = testSurveyUnitModels.stream().filter(surveyUnit ->
-                        surveyUnit.getInterrogationId().equals(idUE)
+                        surveyUnit.getInterrogationId().equals(interrogationId)
                                 && surveyUnit.getState() == DataState.FORCED).findFirst();
 
         assertThat(suDtoOpt).isPresent();
@@ -222,10 +222,10 @@ class DataVerifierTest {
         ).findFirst().get().getValues().get(valueIndex)).isEqualTo(expectedContent);
     }
 
-    private void assertForcedCollectedVariableExistence(List<SurveyUnitModel> testSurveyUnitModels, String idUE, String variableName, boolean hasToExist) {
-        assertForcedExistence(testSurveyUnitModels,idUE, true);
+    private void assertForcedCollectedVariableExistence(List<SurveyUnitModel> testSurveyUnitModels, String interrogationId, String variableName, boolean hasToExist) {
+        assertForcedExistence(testSurveyUnitModels,interrogationId, true);
         Optional<SurveyUnitModel> suDtoOpt = testSurveyUnitModels.stream().filter(surveyUnit ->
-                surveyUnit.getInterrogationId().equals(idUE)
+                surveyUnit.getInterrogationId().equals(interrogationId)
                         && surveyUnit.getState() == DataState.FORCED).findFirst();
         assertThat(suDtoOpt).isPresent();
 
@@ -237,10 +237,10 @@ class DataVerifierTest {
             assertThat(suDto.getCollectedVariables().stream().filter(collectedVariableDto -> collectedVariableDto.getVarId().equals(variableName)).toList()).isEmpty();
     }
 
-    private void assertForcedExternalVariableExistence(List<SurveyUnitModel> testSurveyUnitModels, String idUE, String variableName, boolean hasToExist) {
-        assertForcedExistence(testSurveyUnitModels,idUE, true);
+    private void assertForcedExternalVariableExistence(List<SurveyUnitModel> testSurveyUnitModels, String interrogationId, String variableName, boolean hasToExist) {
+        assertForcedExistence(testSurveyUnitModels,interrogationId, true);
         Optional<SurveyUnitModel> suDtoOpt = testSurveyUnitModels.stream().filter(surveyUnit ->
-                surveyUnit.getInterrogationId().equals(idUE)
+                surveyUnit.getInterrogationId().equals(interrogationId)
                         && surveyUnit.getState() == DataState.FORCED).findFirst();
         assertThat(suDtoOpt).isPresent();
 
@@ -252,11 +252,11 @@ class DataVerifierTest {
             assertThat(suDto.getExternalVariables().stream().filter(variableDto -> variableDto.getVarId().equals(variableName)).toList()).isEmpty();
     }
 
-    private void assertExternalVariableContent(List<SurveyUnitModel> testSurveyUnitModels, String idUE, String variableName, int valueIndex, String expectedContent) {
-        assertForcedExistence(testSurveyUnitModels,idUE,true);
+    private void assertExternalVariableContent(List<SurveyUnitModel> testSurveyUnitModels, String interrogationId, String variableName, int valueIndex, String expectedContent) {
+        assertForcedExistence(testSurveyUnitModels,interrogationId,true);
 
         Optional<SurveyUnitModel> suDtoOpt = testSurveyUnitModels.stream().filter(surveyUnit ->
-                surveyUnit.getInterrogationId().equals(idUE)
+                surveyUnit.getInterrogationId().equals(interrogationId)
                         && surveyUnit.getState() == DataState.FORCED).findFirst();
 
         assertThat(suDtoOpt).isPresent();

@@ -13,9 +13,9 @@ public class LunaticJsonAdapter {
 
     public SurveyUnitModel convert(LunaticJsonSurveyUnit su){
         return SurveyUnitModel.builder()
-                .questionnaireId(su.getIdQuest())
+                .questionnaireId(su.getQuestionnaireId())
                 .campaignId("")
-                .interrogationId(su.getIdUE())
+                .interrogationId(su.getInterrogationId())
                 .state(DataState.COLLECTED)
                 .mode(Mode.WEB)
                 .recordDate(LocalDateTime.now())

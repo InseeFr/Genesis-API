@@ -38,8 +38,8 @@ class UtilsControllerTest {
 
     static List<InterrogationId> interrogationIdList;
     //Constants
-    static final String defaultIdUE = "TESTIDUE";
-    static final String defaultIdQuest = "TESTIDQUESTIONNAIRE";
+    static final String defaultInterrogationId = "TESTINTERROGATIONID";
+    static final String defaultQuestionnaireId = "TESTQUESTIONNAIREID";
 
     @BeforeAll
     static void init() {
@@ -52,7 +52,7 @@ class UtilsControllerTest {
         );
 
         interrogationIdList = new ArrayList<>();
-        interrogationIdList.add(new InterrogationId(defaultIdUE));
+        interrogationIdList.add(new InterrogationId(defaultInterrogationId));
     }
 
     @BeforeEach
@@ -68,10 +68,10 @@ class UtilsControllerTest {
         CollectedVariable collectedVariable = new CollectedVariable("TESTIDVAR", List.of(new String[]{"V1", "V2"}), "TESTIDLOOP", "TESTIDPARENT");
         collectedVariableList.add(collectedVariable);
         surveyUnitPersistencePortStub.getMongoStub().add(SurveyUnitModel.builder()
-                .campaignId("TESTIDCAMPAIGN")
+                .campaignId("TESTCAMPAIGNID")
                 .mode(Mode.WEB)
-                .interrogationId(defaultIdUE)
-                .questionnaireId(defaultIdQuest)
+                .interrogationId(defaultInterrogationId)
+                .questionnaireId(defaultQuestionnaireId)
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2023, 1, 1, 0, 0, 0))
                 .recordDate(LocalDateTime.of(2024, 1, 1, 0, 0, 0))
@@ -243,7 +243,7 @@ class UtilsControllerTest {
                         .resolve(LocalDate.now().format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
                                 + Constants.VOLUMETRY_FILE_SUFFIX + ".csv");
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TESTIDCAMPAIGN;1");
+        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TESTCAMPAIGNID;1");
 
         //CLEAN
         Files.deleteIfExists(logFilePath);
@@ -262,7 +262,7 @@ class UtilsControllerTest {
                 .resolve(LocalDate.now().format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
                         + Constants.VOLUMETRY_FILE_SUFFIX + ".csv");
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TESTIDCAMPAIGN;1").doesNotContain("TESTIDCAMPAIGN;1\nTESTIDCAMPAIGN;1");
+        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TESTCAMPAIGNID;1").doesNotContain("TESTCAMPAIGNID;1\nTESTCAMPAIGNID;1");
 
         //CLEAN
         Files.deleteIfExists(logFilePath);
@@ -271,7 +271,7 @@ class UtilsControllerTest {
     @Test
     void saveVolumetryTest_additionnal_campaign() throws IOException {
         //Given
-        addAdditionalDtoToMongoStub("TESTIDCAMPAIGN2","TESTQUEST2");
+        addAdditionalDtoToMongoStub("TESTCAMPAIGNID2","TESTQUEST2");
 
         //WHEN
         ResponseEntity<Object> response = utilsControllerStatic.saveVolumetry();
@@ -283,7 +283,7 @@ class UtilsControllerTest {
                 .resolve(LocalDate.now().format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
                         + Constants.VOLUMETRY_FILE_SUFFIX + ".csv");
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TESTIDCAMPAIGN;1").contains("TESTIDCAMPAIGN2;1");
+        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TESTCAMPAIGNID;1").contains("TESTCAMPAIGNID2;1");
 
         //CLEAN
         Files.deleteIfExists(logFilePath);
@@ -292,7 +292,7 @@ class UtilsControllerTest {
     void saveVolumetryTest_additionnal_campaign_and_document() throws IOException {
         //Given
         addAdditionalDtoToMongoStub("TESTQUEST");
-        addAdditionalDtoToMongoStub("TESTIDCAMPAIGN2","TESTQUEST2");
+        addAdditionalDtoToMongoStub("TESTCAMPAIGNID2","TESTQUEST2");
 
         //WHEN
         ResponseEntity<Object> response = utilsControllerStatic.saveVolumetry();
@@ -304,7 +304,7 @@ class UtilsControllerTest {
                 .resolve(LocalDate.now().format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
                         + Constants.VOLUMETRY_FILE_SUFFIX + ".csv");
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TESTIDCAMPAIGN;2").contains("TESTIDCAMPAIGN2;1");
+        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TESTCAMPAIGNID;2").contains("TESTCAMPAIGNID2;1");
 
         //CLEAN
         Files.deleteIfExists(logFilePath);
@@ -342,11 +342,11 @@ class UtilsControllerTest {
 
     // Utilities
 
-    private void addAdditionalDtoToMongoStub(String idQuestionnaire) {
-        addAdditionalDtoToMongoStub("TESTIDCAMPAIGN",idQuestionnaire);
+    private void addAdditionalDtoToMongoStub(String questionnaireId) {
+        addAdditionalDtoToMongoStub("TESTCAMPAIGNID",questionnaireId);
     }
 
-    private void addAdditionalDtoToMongoStub(String idCampaign, String idQuestionnaire) {
+    private void addAdditionalDtoToMongoStub(String campaignId, String questionnaireId) {
         List<Variable> externalVariableList = new ArrayList<>();
         Variable variable = Variable.builder().varId("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
         externalVariableList.add(variable);
@@ -356,10 +356,10 @@ class UtilsControllerTest {
         collectedVariableList.add(collectedVariable);
 
         SurveyUnitModel recentDTO = SurveyUnitModel.builder()
-                .campaignId(idCampaign)
+                .campaignId(campaignId)
                 .mode(Mode.WEB)
-                .interrogationId(defaultIdUE)
-                .questionnaireId(idQuestionnaire)
+                .interrogationId(defaultInterrogationId)
+                .questionnaireId(questionnaireId)
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2023, 2, 2, 0, 0, 0))
                 .recordDate(LocalDateTime.of(2024, 2, 2, 0, 0, 0))

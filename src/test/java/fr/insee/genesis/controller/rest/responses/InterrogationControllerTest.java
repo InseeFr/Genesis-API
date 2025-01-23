@@ -38,7 +38,7 @@ class InterrogationControllerTest {
 
     //When + Then
       @Test
-    void getAllIdUEsByQuestionnaireTest() {
+    void getAllInterrogationIdsByQuestionnaireTest() {
         ResponseEntity<List<InterrogationId>> response = interrogationControllerStatic.getAllInterrogationIdsByQuestionnaire(DEFAULT_QUESTIONNAIRE_ID);
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();

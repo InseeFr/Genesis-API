@@ -57,7 +57,7 @@ public class LunaticXmlDataSequentialParser{
 
                 switch (elementName){
                     case Constants.CAMPAIGN_ID_ELEMENT_NAME:
-                        campaign.setIdCampaign(reader.getElementText());
+                        campaign.setCampaignId(reader.getElementText());
                         break;
                     case Constants.CAMPAIGN_LABEL_ELEMENT_NAME:
                         campaign.setLabel(reader.getElementText());
