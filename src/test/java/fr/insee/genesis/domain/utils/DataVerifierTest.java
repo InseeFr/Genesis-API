@@ -52,13 +52,13 @@ class DataVerifierTest {
 
     @Test
     void shouldHandleEmptyValuesList() {
-        List<SurveyUnitModel> suDtosList = new ArrayList<>();
+        List<SurveyUnitModel> surveyUnitModelsList = new ArrayList<>();
 
         // When
-        DataVerifier.verifySurveyUnits(suDtosList, null);
+        DataVerifier.verifySurveyUnits(surveyUnitModelsList, null);
 
         // Then
-        assertTrue(suDtosList.isEmpty()); // Empty list, nothing invalid, so should return null
+        assertTrue(surveyUnitModelsList.isEmpty()); // Empty list, nothing invalid, so should return null
     }
 
     @Test

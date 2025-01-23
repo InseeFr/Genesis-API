@@ -77,8 +77,8 @@ public class MainDefinitions {
         Files.createDirectories(inDirectory);
     }
 
-    @When("We create DTOs from file {string} with DDI {string}")
-    public void get_dtos(String fileName, String ddiName) throws IOException, ParserConfigurationException,
+    @When("We create survey unit models from file {string} with DDI {string}")
+    public void get_su_models(String fileName, String ddiName) throws IOException, ParserConfigurationException,
             SAXException, GenesisException, MetadataParserException {
         Path filePath = inDirectory.resolve(fileName);
         Path ddiFilePath = ddiDirectory.resolve(directory).resolve(ddiName);
@@ -91,12 +91,12 @@ public class MainDefinitions {
                     ddiFilePath.toFile().toURI().toURL().toString(),
                     new FileInputStream(ddiFilePath.toFile())
             ).getVariables();
-            List<SurveyUnitModel> suDtos = new ArrayList<>();
+            List<SurveyUnitModel> suModelList = new ArrayList<>();
             for (LunaticXmlSurveyUnit su : campaign.getSurveyUnits()) {
-                suDtos.addAll(LunaticXmlAdapter.convert(su, variablesMap, campaign.getCampaignId(), Mode.WEB));
+                suModelList.addAll(LunaticXmlAdapter.convert(su, variablesMap, campaign.getCampaignId(), Mode.WEB));
             }
-            surveyUnitQualityService.verifySurveyUnits(suDtos,variablesMap);
-            surveyUnitModels = suDtos;
+            surveyUnitQualityService.verifySurveyUnits(suModelList,variablesMap);
+            this.surveyUnitModels = suModelList;
         }
     }
 
@@ -108,7 +108,7 @@ public class MainDefinitions {
     }
 
     @When("We save data from that directory")
-    public void get_dtos_from_folder() throws Exception {
+    public void get_su_models_from_folder() throws Exception {
         responseController.saveResponsesFromXmlCampaignFolder(this.inDirectory.getFileName().toString(), null, true);
     }
 
@@ -126,44 +126,44 @@ public class MainDefinitions {
 
 
 
-    @Then("For SurveyUnit {string} there should be at least one {string} SurveyUnit DTO")
-    public void check_expected_datastate_dto(String surveyUnitId, String expectedDataState) {
-        Assertions.assertThat(this.surveyUnitModels).filteredOn(surveyUnitDto ->
-                surveyUnitDto.getState().toString().equals(expectedDataState)
-                        && surveyUnitDto.getInterrogationId().equals(surveyUnitId)
+    @Then("For SurveyUnit {string} there should be at least one {string} SurveyUnit Model")
+    public void check_expected_datastate_model(String interrogationId, String expectedDataState) {
+        Assertions.assertThat(this.surveyUnitModels).filteredOn(surveyUnitModel ->
+                surveyUnitModel.getState().toString().equals(expectedDataState)
+                        && surveyUnitModel.getInterrogationId().equals(interrogationId)
         ).isNotEmpty();
     }
 
-    @Then("For SurveyUnit {string} there shouldn't be a {string} SurveyUnit DTO")
-    public void check_unexpected_datastate_dto(String surveyUnitId, String unexpectedDataState) {
-        Assertions.assertThat(this.surveyUnitModels).filteredOn(surveyUnitDto ->
-                surveyUnitDto.getState().toString().equals(unexpectedDataState)
-                && surveyUnitDto.getInterrogationId().equals(surveyUnitId)
+    @Then("For SurveyUnit {string} there shouldn't be a {string} SurveyUnit Model")
+    public void check_unexpected_datastate_model(String interrogationId, String unexpectedDataState) {
+        Assertions.assertThat(this.surveyUnitModels).filteredOn(surveyUnitModel ->
+                surveyUnitModel.getState().toString().equals(unexpectedDataState)
+                && surveyUnitModel.getInterrogationId().equals(interrogationId)
         ).isEmpty();
     }
 
-    @Then("We should have a {string} DTO for survey unit {string} with {string} filled with {string} at index {int}")
-    public void check_survey_unit_dto_content(String dataState, String surveyUnitId, String variableName, String expectedValue, int expectedIndex) {
+    @Then("We should have a {string} Survey Unit model with id {string} with {string} filled with {string} at index {int}")
+    public void check_survey_unit_model_content(String dataState, String interrogationId, String variableName, String expectedValue, int expectedIndex) {
         //Get DTO
-        Assertions.assertThat(this.surveyUnitModels).filteredOn(surveyUnitDto ->
-                surveyUnitDto.getState().toString().equals(dataState)
-                        && surveyUnitDto.getInterrogationId().equals(surveyUnitId)
+        Assertions.assertThat(this.surveyUnitModels).filteredOn(surveyUnitModel ->
+                surveyUnitModel.getState().toString().equals(dataState)
+                        && surveyUnitModel.getInterrogationId().equals(interrogationId)
         ).isNotEmpty();
 
-        Optional<SurveyUnitModel> concernedDtoOptional = this.surveyUnitModels.stream().filter(dto ->
+        Optional<SurveyUnitModel> concernedSuModelOptional = this.surveyUnitModels.stream().filter(dto ->
                 dto.getState().toString().equals(dataState)
-                && dto.getInterrogationId().equals(surveyUnitId)
+                && dto.getInterrogationId().equals(interrogationId)
         ).findFirst();
 
-        Assertions.assertThat(concernedDtoOptional).isPresent();
+        Assertions.assertThat(concernedSuModelOptional).isPresent();
 
-        SurveyUnitModel concernedDto = concernedDtoOptional.get();
+        SurveyUnitModel concernedSuModel = concernedSuModelOptional.get();
 
         //Get Variable
-        Assertions.assertThat(concernedDto.getCollectedVariables()).filteredOn(collectedVariableDto ->
+        Assertions.assertThat(concernedSuModel.getCollectedVariables()).filteredOn(collectedVariableDto ->
                 collectedVariableDto.getVarId().equals(variableName)).isNotEmpty();
 
-        Optional<CollectedVariable> concernedVariableOptional = concernedDto.getCollectedVariables().stream().filter(variable ->
+        Optional<CollectedVariable> concernedVariableOptional = concernedSuModel.getCollectedVariables().stream().filter(variable ->
                 variable.getVarId().equals(variableName)
         ).findFirst();
 
@@ -178,27 +178,27 @@ public class MainDefinitions {
     }
 
     @Then("We should have {int} values for external variable {string} for survey unit {string}")
-    public void external_variable_volumetric_check(int expectedNumberOfValues, String externalVariableName, String surveyUnitId) {
+    public void external_variable_volumetric_check(int expectedNumberOfValues, String externalVariableName, String interrogationId) {
         //Get DTO
-        Assertions.assertThat(this.surveyUnitModels).filteredOn(surveyUnitDto ->
-                surveyUnitDto.getState().equals(DataState.COLLECTED)
-                        && surveyUnitDto.getInterrogationId().equals(surveyUnitId)
+        Assertions.assertThat(this.surveyUnitModels).filteredOn(surveyUnitModel ->
+                surveyUnitModel.getState().equals(DataState.COLLECTED)
+                        && surveyUnitModel.getInterrogationId().equals(interrogationId)
         ).isNotEmpty();
 
-        Optional<SurveyUnitModel> concernedDtoOptional = this.surveyUnitModels.stream().filter(dto ->
+        Optional<SurveyUnitModel> concernedSuModelOptional = this.surveyUnitModels.stream().filter(dto ->
                 dto.getState().equals(DataState.COLLECTED)
-                        && dto.getInterrogationId().equals(surveyUnitId)
+                        && dto.getInterrogationId().equals(interrogationId)
         ).findFirst();
 
-        Assertions.assertThat(concernedDtoOptional).isPresent();
+        Assertions.assertThat(concernedSuModelOptional).isPresent();
 
-        SurveyUnitModel concernedDto = concernedDtoOptional.get();
+        SurveyUnitModel concernedSuModel = concernedSuModelOptional.get();
 
         //Get Variable
-        Assertions.assertThat(concernedDto.getExternalVariables()).filteredOn(variableDto ->
-                variableDto.getVarId().equals(externalVariableName)).isNotEmpty();
+        Assertions.assertThat(concernedSuModel.getExternalVariables()).filteredOn(variableModel ->
+                variableModel.getVarId().equals(externalVariableName)).isNotEmpty();
 
-        Optional<Variable> concernedVariableOptional = concernedDto.getExternalVariables().stream().filter(variable ->
+        Optional<Variable> concernedVariableOptional = concernedSuModel.getExternalVariables().stream().filter(variable ->
                 variable.getVarId().equals(externalVariableName)
         ).findFirst();
 
@@ -212,27 +212,27 @@ public class MainDefinitions {
     }
 
     @Then("For external variable {string} in survey unit {string} we should have {string} as value number {int}")
-    public void external_variable_content_check(String externalVariableName, String surveyUnitId, String expectedValue, int expectedValueIndex) {
+    public void external_variable_content_check(String externalVariableName, String interrogationId, String expectedValue, int expectedValueIndex) {
         //Get DTO
-        Assertions.assertThat(this.surveyUnitModels).filteredOn(surveyUnitDto ->
-                surveyUnitDto.getState().equals(DataState.COLLECTED)
-                        && surveyUnitDto.getInterrogationId().equals(surveyUnitId)
+        Assertions.assertThat(this.surveyUnitModels).filteredOn(surveyUnitModel ->
+                surveyUnitModel.getState().equals(DataState.COLLECTED)
+                        && surveyUnitModel.getInterrogationId().equals(interrogationId)
         ).isNotEmpty();
 
-        Optional<SurveyUnitModel> concernedDtoOptional = this.surveyUnitModels.stream().filter(dto ->
+        Optional<SurveyUnitModel> concernedSuModelOptional = this.surveyUnitModels.stream().filter(dto ->
                 dto.getState().equals(DataState.COLLECTED)
-                        && dto.getInterrogationId().equals(surveyUnitId)
+                        && dto.getInterrogationId().equals(interrogationId)
         ).findFirst();
 
-        Assertions.assertThat(concernedDtoOptional).isPresent();
+        Assertions.assertThat(concernedSuModelOptional).isPresent();
 
-        SurveyUnitModel concernedDto = concernedDtoOptional.get();
+        SurveyUnitModel concernedSuModel = concernedSuModelOptional.get();
 
         //Get Variable
-        Assertions.assertThat(concernedDto.getExternalVariables()).filteredOn(variableDto ->
-                variableDto.getVarId().equals(externalVariableName)).isNotEmpty();
+        Assertions.assertThat(concernedSuModel.getExternalVariables()).filteredOn(variableModel ->
+                variableModel.getVarId().equals(externalVariableName)).isNotEmpty();
 
-        Optional<Variable> concernedVariableOptional = concernedDto.getExternalVariables().stream().filter(variable ->
+        Optional<Variable> concernedVariableOptional = concernedSuModel.getExternalVariables().stream().filter(variable ->
                 variable.getVarId().equals(externalVariableName)
         ).findFirst();
 

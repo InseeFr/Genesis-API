@@ -326,7 +326,7 @@ class ResponseControllerTest {
         SurveyUnitDto surveyUnitDto = response.getBody();
         Assertions.assertThat(surveyUnitDto).isNotNull();
 
-        Assertions.assertThat(surveyUnitDto.getSurveyUnitId()).isEqualTo(DEFAULT_INTERROGATION_ID);
+        Assertions.assertThat(surveyUnitDto.getInterrogationId()).isEqualTo(DEFAULT_INTERROGATION_ID);
 
         Assertions.assertThat(surveyUnitDto.getCollectedVariables().getFirst().getVariableName())
                 .isEqualTo("TESTIDVAR");

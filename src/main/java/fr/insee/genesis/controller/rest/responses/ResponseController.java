@@ -524,17 +524,17 @@ public class ResponseController {
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
         }
 
-        List<SurveyUnitModel> suDtos = new ArrayList<>();
+        List<SurveyUnitModel> surveyUnitModels = new ArrayList<>();
         for (LunaticXmlSurveyUnit su : campaign.getSurveyUnits()) {
-            suDtos.addAll(LunaticXmlAdapter.convert(su, variablesMap, campaign.getCampaignId(), modeSpecified));
+            surveyUnitModels.addAll(LunaticXmlAdapter.convert(su, variablesMap, campaign.getCampaignId(), modeSpecified));
         }
-        surveyUnitQualityService.verifySurveyUnits(suDtos, variablesMap);
+        surveyUnitQualityService.verifySurveyUnits(surveyUnitModels, variablesMap);
 
-        log.debug("Saving {} survey units updates", suDtos.size());
-        surveyUnitService.saveSurveyUnits(suDtos);
+        log.debug("Saving {} survey units updates", surveyUnitModels.size());
+        surveyUnitService.saveSurveyUnits(surveyUnitModels);
         log.debug("Survey units updates saved");
 
-        log.info("File {} processed with {} survey units", filepath.getFileName(), suDtos.size());
+        log.info("File {} processed with {} survey units", filepath.getFileName(), surveyUnitModels.size());
         return ResponseEntity.ok().build();
     }
 
@@ -571,10 +571,10 @@ public class ResponseController {
             LunaticXmlSurveyUnit su = parser.readNextSurveyUnit();
 
             while (su != null) {
-                List<SurveyUnitModel> suDtos = new ArrayList<>(LunaticXmlAdapter.convert(su, variablesMap, campaign.getCampaignId(), modeSpecified));
+                List<SurveyUnitModel> surveyUnitModels = new ArrayList<>(LunaticXmlAdapter.convert(su, variablesMap, campaign.getCampaignId(), modeSpecified));
 
-                surveyUnitQualityService.verifySurveyUnits(suDtos, variablesMap);
-                surveyUnitService.saveSurveyUnits(suDtos);
+                surveyUnitQualityService.verifySurveyUnits(surveyUnitModels, variablesMap);
+                surveyUnitService.saveSurveyUnits(surveyUnitModels);
                 suCount++;
 
                 su = parser.readNextSurveyUnit();
