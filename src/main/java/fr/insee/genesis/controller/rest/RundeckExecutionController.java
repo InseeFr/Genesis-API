@@ -27,7 +27,7 @@ public class RundeckExecutionController {
     @Operation(summary = "Register a Rundeck execution")
     @PostMapping(path = "/save")
     public ResponseEntity<Object> addRundeckExecution(
-            @Parameter(description = "Survey name to call Kraftwerk on") @RequestBody RundeckExecution rundeckExecution
+            @Parameter(description = "JSON response from Rundeck API /run endpoint") @RequestBody RundeckExecution rundeckExecution
     ){
         try{
             rundeckExecutionApiPort.addExecution(rundeckExecution);
