@@ -3,14 +3,10 @@ package fr.insee.genesis.domain.service.rundeck;
 import fr.insee.genesis.domain.model.rundeck.DateStarted;
 import fr.insee.genesis.domain.model.rundeck.Job;
 import fr.insee.genesis.domain.model.rundeck.RundeckExecution;
-import fr.insee.genesis.domain.model.schedule.ServiceToCall;
-import fr.insee.genesis.exceptions.InvalidCronExpressionException;
 import fr.insee.genesis.stubs.RundeckExecutionPersistencePortStub;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-
-import java.time.LocalDateTime;
 
 class RundeckExecutionServiceTest {
 
