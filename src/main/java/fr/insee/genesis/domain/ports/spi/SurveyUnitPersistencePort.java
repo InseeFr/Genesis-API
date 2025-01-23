@@ -10,29 +10,29 @@ public interface SurveyUnitPersistencePort {
 
     void saveAll(List<SurveyUnitModel> suList);
 
-    List<SurveyUnitModel> findByIds(String idUE, String idQuest);
+    List<SurveyUnitModel> findByIds(String interrogationId, String questionnaireId);
 
-    List<SurveyUnitModel> findByIdUE(String idUE);
+    List<SurveyUnitModel> findByInterrogationId(String interrogationId);
 
-    List<SurveyUnitModel> findByIdUEsAndIdQuestionnaire(List<SurveyUnitModel> idUEs, String idQuestionnaire);
+    List<SurveyUnitModel> findByInterrogationIdsAndQuestionnaireId(List<SurveyUnitModel> interrogationIds, String questionnaireId);
 
-    Stream<SurveyUnitModel> findByIdQuestionnaire(String idQuestionnaire);
+    Stream<SurveyUnitModel> findByQuestionnaireId(String questionnaireId);
 
-    List<SurveyUnitModel> findIdUEsByIdQuestionnaire(String idQuestionnaire);
+    List<SurveyUnitModel> findInterrogationIdsByQuestionnaireId(String questionnaireId);
 
-    List<SurveyUnitModel> findIdUEsByIdCampaign(String idCampaign);
+    List<SurveyUnitModel> findInterrogationIdsByCampaignId(String campaignId);
 
-    Long deleteByIdQuestionnaire(String idQuestionnaire);
+    Long deleteByQuestionnaireId(String questionnaireId);
 
     long count();
 
-    Set<String> findIdQuestionnairesByIdCampaign(String idCampaign);
+    Set<String> findQuestionnaireIdsByCampaignId(String campaignId);
 
-    Set<String> findDistinctIdCampaigns();
+    Set<String> findDistinctCampaignIds();
 
-    long countByIdCampaign(String idCampaign);
+    long countByCampaignId(String campaignId);
 
-    Set<String> findDistinctIdQuestionnaires();
+    Set<String> findDistinctQuestionnaireIds();
 
-    Set<String> findIdCampaignsByIdQuestionnaire(String idQuestionnaire);
+    Set<String> findCampaignIdsByQuestionnaireId(String questionnaireId);
 }

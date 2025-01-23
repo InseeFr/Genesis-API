@@ -10,13 +10,13 @@ import java.util.List;
 
 @Data
 @Document(collection = Constants.MONGODB_RESPONSE_COLLECTION_NAME)
-@CompoundIndex(name = "idCampaign_1_idQuestionnaire_1", def = "{'idCampaign': 1, 'idQuestionnaire': 1}") //1 = ascending, -1 = descending
-@CompoundIndex(name = "idQuestionnaire_1_idCampaign_1", def = "{'idQuestionnaire': 1, 'idCampaign': 1}")
-@CompoundIndex(name = "idQuestionnaire_1_idUE_1", def = "{'idQuestionnaire': 1, 'idUE': 1}")
+@CompoundIndex(name = "campaignId_1_questionnaireId_1", def = "{'campaignId': 1, 'questionnaireId': 1}") //1 = ascending, -1 = descending
+@CompoundIndex(name = "questionnaireId_1_campaignId_1", def = "{'questionnaireId': 1, 'campaignId': 1}")
+@CompoundIndex(name = "questionnaireId_1_interrogationId_1", def = "{'questionnaireId': 1, 'interrogationId': 1}")
 public class SurveyUnitDocument {
-	private String idCampaign;
-	private String idUE;
-	private String idQuestionnaire;
+	private String campaignId;
+	private String interrogationId;
+	private String questionnaireId;
 	private String state;
 	private String mode;
 	private LocalDateTime recordDate;

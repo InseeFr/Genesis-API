@@ -11,7 +11,7 @@ import java.util.List;
 @Setter
 public class Variable {
 
-	private String idVar;
+	private String varId;
 	private List<String> values;
 
 }

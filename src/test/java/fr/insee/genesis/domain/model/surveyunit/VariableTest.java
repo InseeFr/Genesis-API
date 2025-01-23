@@ -15,7 +15,7 @@ class VariableTest {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.findAndRegisterModules();
         Assertions.assertEquals(objectMapper.readTree(objectMapper.writeValueAsString(variable)),
-                objectMapper.readTree("{\"values\":[\"V1\",\"V2\"],\"idVar\":\"TESTIDVAR\"}"));
+                objectMapper.readTree("{\"values\":[\"V1\",\"V2\"],\"varId\":\"TESTIDVAR\"}"));
 
     }
 }

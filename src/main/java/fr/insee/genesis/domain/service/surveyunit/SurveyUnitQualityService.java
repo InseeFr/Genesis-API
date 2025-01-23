@@ -12,7 +12,7 @@ import java.util.List;
  */
 @Service
 public class SurveyUnitQualityService {
-    public void verifySurveyUnits(List<SurveyUnitModel> suDtos, VariablesMap variablesMap) {
-        DataVerifier.verifySurveyUnits(suDtos,variablesMap);
+    public void verifySurveyUnits(List<SurveyUnitModel> surveyUnitModels, VariablesMap variablesMap) {
+        DataVerifier.verifySurveyUnits(surveyUnitModels,variablesMap);
     }
 }

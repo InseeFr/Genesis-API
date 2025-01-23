@@ -39,9 +39,9 @@ class DataVerifierTest {
         CollectedVariable cv2 = new CollectedVariable("var2", List.of("true"), "loop2", "parent2");
 
         SurveyUnitModel surveyUnit = SurveyUnitModel.builder()
-                .idUE("UE1100000001")
-                .idQuest("Quest1")
-                .idCampaign("Camp1")
+                .interrogationId("UE1100000001")
+                .questionnaireId("Quest1")
+                .campaignId("Camp1")
                 .state(DataState.COLLECTED)
                 .collectedVariables(List.of(cv1, cv2))
                 .externalVariables(List.of())
@@ -52,13 +52,13 @@ class DataVerifierTest {
 
     @Test
     void shouldHandleEmptyValuesList() {
-        List<SurveyUnitModel> suDtosList = new ArrayList<>();
+        List<SurveyUnitModel> surveyUnitModelsList = new ArrayList<>();
 
         // When
-        DataVerifier.verifySurveyUnits(suDtosList, null);
+        DataVerifier.verifySurveyUnits(surveyUnitModelsList, null);
 
         // Then
-        assertTrue(suDtosList.isEmpty()); // Empty list, nothing invalid, so should return null
+        assertTrue(surveyUnitModelsList.isEmpty()); // Empty list, nothing invalid, so should return null
     }
 
     @Test
@@ -87,14 +87,14 @@ class DataVerifierTest {
     void shouldAddForcedSurveyUnit_WhenInvalidExternalVariable() {
 
         //Add surveyUnit with invalid external Variable
-        fr.insee.genesis.domain.model.surveyunit.Variable extVar = fr.insee.genesis.domain.model.surveyunit.Variable.builder().idVar("var2").values(List.of("notBoolean")).build();
+        fr.insee.genesis.domain.model.surveyunit.Variable extVar = fr.insee.genesis.domain.model.surveyunit.Variable.builder().varId("var2").values(List.of("notBoolean")).build();
         List<fr.insee.genesis.domain.model.surveyunit.Variable> listVarExt = new ArrayList<>();
         listVarExt.add(extVar);
 
         SurveyUnitModel surveyUnitWithInvalidExt = SurveyUnitModel.builder()
-                .idUE("UE1100000002")
-                .idQuest("Quest1")
-                .idCampaign("Camp1")
+                .interrogationId("UE1100000002")
+                .questionnaireId("Quest1")
+                .campaignId("Camp1")
                 .state(DataState.COLLECTED)
                 .collectedVariables(List.of())
                 .externalVariables(listVarExt)

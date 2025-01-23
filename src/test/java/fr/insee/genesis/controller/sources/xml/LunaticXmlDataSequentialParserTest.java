@@ -35,7 +35,7 @@ class LunaticXmlDataSequentialParserTest {
     @Test
     void campaignHasGoodLabelAndId()  {
         Assertions.assertThat(campaign.getLabel()).isEqualTo("Enquête Test Unitaire");
-        Assertions.assertThat(campaign.getIdCampaign()).isEqualTo("TEST2023X01");
+        Assertions.assertThat(campaign.getCampaignId()).isEqualTo("TEST2023X01");
     }
 
     @Test

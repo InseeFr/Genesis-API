@@ -31,17 +31,17 @@ class HealthCheckControllerTest {
         surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
         SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(surveyUnitPersistencePortStub);
         List<Variable> externalVariableList = new ArrayList<>();
-        Variable variable = Variable.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
+        Variable variable = Variable.builder().varId("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
         externalVariableList.add(variable);
 
         List<CollectedVariable> collectedVariableList = new ArrayList<>();
         CollectedVariable collectedVariable = new CollectedVariable("TESTIDVAR", List.of(new String[]{"V1", "V2"}), "TESTIDLOOP", "TESTIDPARENT");
         collectedVariableList.add(collectedVariable);
         surveyUnitPersistencePortStub.getMongoStub().add(SurveyUnitModel.builder()
-                .idCampaign("TESTIDCAMPAIGN")
+                .campaignId("TESTCAMPAIGNID")
                 .mode(Mode.WEB)
-                .idUE("TESTIDUE")
-                .idQuest("TESTIDQUESTIONNAIRE")
+                .interrogationId("TESTINTERROGATIONID")
+                .questionnaireId("TESTQUESTIONNAIREID")
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2023, 1, 1, 0, 0, 0))
                 .recordDate(LocalDateTime.of(2024, 1, 1, 0, 0, 0))

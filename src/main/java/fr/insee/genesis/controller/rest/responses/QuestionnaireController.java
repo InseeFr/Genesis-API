@@ -30,7 +30,7 @@ public class QuestionnaireController {
     @Operation(summary = "List questionnaires in database")
     @GetMapping(path = "/")
     public ResponseEntity<Set<String>> getQuestionnaires() {
-        Set<String> questionnaires = surveyUnitService.findDistinctIdQuestionnaires();
+        Set<String> questionnaires = surveyUnitService.findDistinctQuestionnaireIds();
         return ResponseEntity.ok(questionnaires);
     }
 
@@ -45,8 +45,8 @@ public class QuestionnaireController {
 
     @Operation(summary = "List questionnaires used for a given campaign")
     @GetMapping(path = "/by-campaign")
-    public ResponseEntity<Set<String>> getQuestionnairesByCampaign(@RequestParam("idCampaign") String idCampaign) {
-        Set<String> questionnaires = surveyUnitService.findIdQuestionnairesByIdCampaign(idCampaign);
+    public ResponseEntity<Set<String>> getQuestionnairesByCampaign(@RequestParam("campaignId") String campaignId) {
+        Set<String> questionnaires = surveyUnitService.findQuestionnaireIdsByCampaignId(campaignId);
         return ResponseEntity.ok(questionnaires);
     }
 

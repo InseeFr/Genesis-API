@@ -28,15 +28,15 @@ public class ModeController {
 
     @Operation(summary = "List sources/modes used for a given questionnaire")
     @GetMapping(path = "/by-questionnaire")
-    public ResponseEntity<List<Mode>> getModesByQuestionnaire(@RequestParam("idQuestionnaire") String idQuestionnaire) {
-        List<Mode> modes = surveyUnitService.findModesByIdQuestionnaire(idQuestionnaire);
+    public ResponseEntity<List<Mode>> getModesByQuestionnaire(@RequestParam("questionnaireId") String questionnaireId) {
+        List<Mode> modes = surveyUnitService.findModesByQuestionnaireId(questionnaireId);
         return ResponseEntity.ok(modes);
     }
 
     @Operation(summary = "List sources/modes used for a given campaign")
     @GetMapping(path = "/by-campaign")
-    public ResponseEntity<List<Mode>> getModesByCampaign(@RequestParam("idCampaign") String idCampaign) {
-        List<Mode> modes = surveyUnitService.findModesByIdCampaign(idCampaign);
+    public ResponseEntity<List<Mode>> getModesByCampaign(@RequestParam("campaignId") String campaignId) {
+        List<Mode> modes = surveyUnitService.findModesByCampaignId(campaignId);
         return ResponseEntity.ok(modes);
     }
 

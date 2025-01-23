@@ -7,10 +7,10 @@ import lombok.Data;
 public class LunaticJsonSurveyUnit {
 
     @JsonProperty("Id")
-    private String idUE;
+    private String interrogationId;
 
     @JsonProperty("QuestionnaireModelId")
-    private String idQuest;
+    private String questionnaireId;
 
     @JsonProperty("Data")
     private LunaticJsonDataResponse dataResponse;

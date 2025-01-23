@@ -13,7 +13,7 @@ public class SurveyUnitModelTest {
     @Test
     public void toJSONTest() throws JsonProcessingException {
         List<Variable> externalVariableList = new ArrayList<>();
-        Variable variable = Variable.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
+        Variable variable = Variable.builder().varId("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
         externalVariableList.add(variable);
 
         List<CollectedVariable> collectedVariableList = new ArrayList<>();
@@ -21,9 +21,9 @@ public class SurveyUnitModelTest {
         collectedVariableList.add(collectedVariable);
 
         SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
-                .idCampaign("TESTIDCAMPAIGN")
-                .idQuest("TESTIDQUEST")
-                .idUE("TESTIDUE")
+                .campaignId("TESTCAMPAIGNID")
+                .questionnaireId("TESTQUESTIONNAIREID")
+                .interrogationId("TESTINTERROGATIONID")
                 .mode(Mode.WEB)
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2000,1,1,0,0,0))
@@ -37,7 +37,7 @@ public class SurveyUnitModelTest {
         objectMapper.findAndRegisterModules();
 
         Assertions.assertEquals(
-                objectMapper.readTree("{\"idQuest\":\"TESTIDQUEST\",\"idCampaign\":\"TESTIDCAMPAIGN\",\"idUE\":\"TESTIDUE\",\"state\":\"COLLECTED\",\"mode\":\"WEB\",\"recordDate\":\"2000-01-01T12:00\",\"fileDate\":\"2000-01-01T12:00\",\"collectedVariables\":[{\"idVar\":\"TESTIDVAR\",\"values\":[\"V1\",\"V2\"],\"idLoop\":\"TESTIDLOOP\",\"idParent\":\"TESTIDPARENT\"}],\"externalVariables\":[{\"idVar\":\"TESTIDVAR\",\"values\":[\"V1\",\"V2\"]}]}"),
+                objectMapper.readTree("{\"questionnaireId\":\"TESTQUESTIONNAIREID\",\"campaignId\":\"TESTCAMPAIGNID\",\"interrogationId\":\"TESTINTERROGATIONID\",\"state\":\"COLLECTED\",\"mode\":\"WEB\",\"recordDate\":\"2000-01-01T12:00\",\"fileDate\":\"2000-01-01T12:00\",\"collectedVariables\":[{\"varId\":\"TESTIDVAR\",\"values\":[\"V1\",\"V2\"],\"loopId\":\"TESTIDLOOP\",\"parentId\":\"TESTIDPARENT\"}],\"externalVariables\":[{\"varId\":\"TESTIDVAR\",\"values\":[\"V1\",\"V2\"]}]}"),
                 objectMapper.readTree(objectMapper.writeValueAsString(surveyUnitModel))
         );
     }

@@ -2,7 +2,7 @@ package fr.insee.genesis.controller.rest;
 
 import cucumber.TestConstants;
 import fr.insee.genesis.Constants;
-import fr.insee.genesis.controller.dto.SurveyUnitId;
+import fr.insee.genesis.controller.dto.InterrogationId;
 import fr.insee.genesis.domain.model.surveyunit.CollectedVariable;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
@@ -36,10 +36,10 @@ class UtilsControllerTest {
     static UtilsController utilsControllerStatic;
     static SurveyUnitPersistencePortStub surveyUnitPersistencePortStub;
 
-    static List<SurveyUnitId> surveyUnitIdList;
+    static List<InterrogationId> interrogationIdList;
     //Constants
-    static final String defaultIdUE = "TESTIDUE";
-    static final String defaultIdQuest = "TESTIDQUESTIONNAIRE";
+    static final String defaultInterrogationId = "TESTINTERROGATIONID";
+    static final String defaultQuestionnaireId = "TESTQUESTIONNAIREID";
 
     @BeforeAll
     static void init() {
@@ -51,8 +51,8 @@ class UtilsControllerTest {
                 , new VolumetryLogService(new ConfigStub())
         );
 
-        surveyUnitIdList = new ArrayList<>();
-        surveyUnitIdList.add(new SurveyUnitId(defaultIdUE));
+        interrogationIdList = new ArrayList<>();
+        interrogationIdList.add(new InterrogationId(defaultInterrogationId));
     }
 
     @BeforeEach
@@ -61,17 +61,17 @@ class UtilsControllerTest {
         surveyUnitPersistencePortStub.getMongoStub().clear();
 
         List<Variable> externalVariableList = new ArrayList<>();
-        Variable variable = Variable.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
+        Variable variable = Variable.builder().varId("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
         externalVariableList.add(variable);
 
         List<CollectedVariable> collectedVariableList = new ArrayList<>();
         CollectedVariable collectedVariable = new CollectedVariable("TESTIDVAR", List.of(new String[]{"V1", "V2"}), "TESTIDLOOP", "TESTIDPARENT");
         collectedVariableList.add(collectedVariable);
         surveyUnitPersistencePortStub.getMongoStub().add(SurveyUnitModel.builder()
-                .idCampaign("TESTIDCAMPAIGN")
+                .campaignId("TESTCAMPAIGNID")
                 .mode(Mode.WEB)
-                .idUE(defaultIdUE)
-                .idQuest(defaultIdQuest)
+                .interrogationId(defaultInterrogationId)
+                .questionnaireId(defaultQuestionnaireId)
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2023, 1, 1, 0, 0, 0))
                 .recordDate(LocalDateTime.of(2024, 1, 1, 0, 0, 0))
@@ -243,7 +243,7 @@ class UtilsControllerTest {
                         .resolve(LocalDate.now().format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
                                 + Constants.VOLUMETRY_FILE_SUFFIX + ".csv");
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TESTIDCAMPAIGN;1");
+        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TESTCAMPAIGNID;1");
 
         //CLEAN
         Files.deleteIfExists(logFilePath);
@@ -262,7 +262,7 @@ class UtilsControllerTest {
                 .resolve(LocalDate.now().format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
                         + Constants.VOLUMETRY_FILE_SUFFIX + ".csv");
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TESTIDCAMPAIGN;1").doesNotContain("TESTIDCAMPAIGN;1\nTESTIDCAMPAIGN;1");
+        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TESTCAMPAIGNID;1").doesNotContain("TESTCAMPAIGNID;1\nTESTCAMPAIGNID;1");
 
         //CLEAN
         Files.deleteIfExists(logFilePath);
@@ -271,7 +271,7 @@ class UtilsControllerTest {
     @Test
     void saveVolumetryTest_additionnal_campaign() throws IOException {
         //Given
-        addAdditionalDtoToMongoStub("TESTIDCAMPAIGN2","TESTQUEST2");
+        addAdditionalDtoToMongoStub("TESTCAMPAIGNID2","TESTQUEST2");
 
         //WHEN
         ResponseEntity<Object> response = utilsControllerStatic.saveVolumetry();
@@ -283,7 +283,7 @@ class UtilsControllerTest {
                 .resolve(LocalDate.now().format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
                         + Constants.VOLUMETRY_FILE_SUFFIX + ".csv");
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TESTIDCAMPAIGN;1").contains("TESTIDCAMPAIGN2;1");
+        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TESTCAMPAIGNID;1").contains("TESTCAMPAIGNID2;1");
 
         //CLEAN
         Files.deleteIfExists(logFilePath);
@@ -292,7 +292,7 @@ class UtilsControllerTest {
     void saveVolumetryTest_additionnal_campaign_and_document() throws IOException {
         //Given
         addAdditionalDtoToMongoStub("TESTQUEST");
-        addAdditionalDtoToMongoStub("TESTIDCAMPAIGN2","TESTQUEST2");
+        addAdditionalDtoToMongoStub("TESTCAMPAIGNID2","TESTQUEST2");
 
         //WHEN
         ResponseEntity<Object> response = utilsControllerStatic.saveVolumetry();
@@ -304,7 +304,7 @@ class UtilsControllerTest {
                 .resolve(LocalDate.now().format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
                         + Constants.VOLUMETRY_FILE_SUFFIX + ".csv");
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TESTIDCAMPAIGN;2").contains("TESTIDCAMPAIGN2;1");
+        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TESTCAMPAIGNID;2").contains("TESTCAMPAIGNID2;1");
 
         //CLEAN
         Files.deleteIfExists(logFilePath);
@@ -342,13 +342,13 @@ class UtilsControllerTest {
 
     // Utilities
 
-    private void addAdditionalDtoToMongoStub(String idQuestionnaire) {
-        addAdditionalDtoToMongoStub("TESTIDCAMPAIGN",idQuestionnaire);
+    private void addAdditionalDtoToMongoStub(String questionnaireId) {
+        addAdditionalDtoToMongoStub("TESTCAMPAIGNID",questionnaireId);
     }
 
-    private void addAdditionalDtoToMongoStub(String idCampaign, String idQuestionnaire) {
+    private void addAdditionalDtoToMongoStub(String campaignId, String questionnaireId) {
         List<Variable> externalVariableList = new ArrayList<>();
-        Variable variable = Variable.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
+        Variable variable = Variable.builder().varId("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
         externalVariableList.add(variable);
 
         List<CollectedVariable> collectedVariableList = new ArrayList<>();
@@ -356,10 +356,10 @@ class UtilsControllerTest {
         collectedVariableList.add(collectedVariable);
 
         SurveyUnitModel recentDTO = SurveyUnitModel.builder()
-                .idCampaign(idCampaign)
+                .campaignId(campaignId)
                 .mode(Mode.WEB)
-                .idUE(defaultIdUE)
-                .idQuest(idQuestionnaire)
+                .interrogationId(defaultInterrogationId)
+                .questionnaireId(questionnaireId)
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2023, 2, 2, 0, 0, 0))
                 .recordDate(LocalDateTime.of(2024, 2, 2, 0, 0, 0))

@@ -11,14 +11,14 @@ import java.util.List;
 @Setter
 public class CollectedVariable extends Variable {
 
-    private String idLoop;
-    private String idParent;
+    private String loopId;
+    private String parentId;
 
     @Builder(builderMethodName = "collectedVariableBuilder")
-    public CollectedVariable(String idVar, List<String> values, String idLoop, String idParent) {
-        super(idVar, values);
-        this.idLoop = idLoop;
-        this.idParent = idParent;
+    public CollectedVariable(String varId, List<String> values, String loopId, String parentId) {
+        super(varId, values);
+        this.loopId = loopId;
+        this.parentId = parentId;
     }
 
 }

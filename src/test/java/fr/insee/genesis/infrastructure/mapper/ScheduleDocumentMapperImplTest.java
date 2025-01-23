@@ -28,11 +28,11 @@ class ScheduleDocumentMapperImplTest {
         scheduleDocumentMapperImplStatic = new ScheduleDocumentMapperImpl();
 
         scheduleDocument = new ScheduleDocument();
-        scheduleDocument.setSurveyName("TESTIDCAMPAIGN");
+        scheduleDocument.setSurveyName("TESTCAMPAIGNID");
         scheduleDocument.setKraftwerkExecutionScheduleList(new ArrayList<>());
 
         scheduleModel = ScheduleModel.builder()
-                .surveyName("TESTIDCAMPAIGN")
+                .surveyName("TESTCAMPAIGNID")
                 .kraftwerkExecutionScheduleList(new ArrayList<>())
                 .build();
 
@@ -63,7 +63,7 @@ class ScheduleDocumentMapperImplTest {
     void shouldReturnDocumentDtoFromDocument(){
         ScheduleModel scheduleModel1 = scheduleDocumentMapperImplStatic.documentToModel(scheduleDocument);
 
-        Assertions.assertThat(scheduleModel1.getSurveyName()).isEqualTo("TESTIDCAMPAIGN");
+        Assertions.assertThat(scheduleModel1.getSurveyName()).isEqualTo("TESTCAMPAIGNID");
         Assertions.assertThat(scheduleModel1.getLastExecution()).isNull();
         Assertions.assertThat(scheduleModel1.getKraftwerkExecutionScheduleList()).hasSize(1);
 
@@ -77,7 +77,7 @@ class ScheduleDocumentMapperImplTest {
     void shouldReturnDocumentFromDocumentDto(){
         ScheduleDocument scheduleDocument1 = scheduleDocumentMapperImplStatic.modelToDocument(scheduleModel);
 
-        Assertions.assertThat(scheduleDocument1.getSurveyName()).isEqualTo("TESTIDCAMPAIGN");
+        Assertions.assertThat(scheduleDocument1.getSurveyName()).isEqualTo("TESTCAMPAIGNID");
         Assertions.assertThat(scheduleDocument1.getLastExecution()).isNull();
         Assertions.assertThat(scheduleDocument1.getKraftwerkExecutionScheduleList()).hasSize(1);
 
@@ -95,7 +95,7 @@ class ScheduleDocumentMapperImplTest {
 
         List<ScheduleModel> scheduleModelList = scheduleDocumentMapperImplStatic.listDocumentToListModel(scheduleDocumentList);
 
-        Assertions.assertThat(scheduleModelList.getFirst().getSurveyName()).isEqualTo("TESTIDCAMPAIGN");
+        Assertions.assertThat(scheduleModelList.getFirst().getSurveyName()).isEqualTo("TESTCAMPAIGNID");
         Assertions.assertThat(scheduleModelList.getFirst().getLastExecution()).isNull();
         Assertions.assertThat(scheduleModelList.getFirst().getKraftwerkExecutionScheduleList()).hasSize(1);
 
@@ -116,7 +116,7 @@ class ScheduleDocumentMapperImplTest {
 
         List<ScheduleDocument> scheduleDocumentList = scheduleDocumentMapperImplStatic.listModelToListDocument(scheduleModelList);
 
-        Assertions.assertThat(scheduleDocumentList.getFirst().getSurveyName()).isEqualTo("TESTIDCAMPAIGN");
+        Assertions.assertThat(scheduleDocumentList.getFirst().getSurveyName()).isEqualTo("TESTCAMPAIGNID");
         Assertions.assertThat(scheduleDocumentList.getFirst().getLastExecution()).isNull();
         Assertions.assertThat(scheduleDocumentList.getFirst().getKraftwerkExecutionScheduleList()).hasSize(1);
 

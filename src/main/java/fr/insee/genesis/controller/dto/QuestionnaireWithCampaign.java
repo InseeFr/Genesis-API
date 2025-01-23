@@ -10,6 +10,6 @@ import java.util.Set;
 @NoArgsConstructor
 @Getter
 public class QuestionnaireWithCampaign {
-    private String idQuestionnaire;
+    private String questionnaireId;
     private Set<String> campaigns;
 }
