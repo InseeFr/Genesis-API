@@ -389,9 +389,6 @@ public class ResponseController {
         List<String> absentCollectedVariableNames =
                 surveyUnitQualityService.checkVariablesPresentInMetadata(surveyUnitInputDto.getCollectedVariables(),
                 variablesMap);
-//        List<String> absentExternalVariableNames =
-//                surveyUnitQualityService.checkVariablesPresentInMetadata(surveyUnitInputDto.getExternalVariables(),
-//                        variablesMap);
         if (!absentCollectedVariableNames.isEmpty()) {
             String absentVariables = String.join("\n", absentCollectedVariableNames);
             return ResponseEntity.badRequest().body(
