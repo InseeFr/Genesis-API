@@ -1,10 +1,9 @@
 package fr.insee.genesis.domain.service.surveyunit;
 
-import fr.insee.genesis.controller.dto.VariableDto;
+import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.controller.dto.VariableInputDto;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.utils.DataVerifier;
-import fr.insee.bpm.metadata.model.VariablesMap;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;

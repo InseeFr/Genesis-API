@@ -4,11 +4,9 @@ import fr.insee.genesis.domain.model.rundeck.RundeckExecution;
 import fr.insee.genesis.domain.ports.spi.RundeckExecutionPersistencePort;
 import fr.insee.genesis.infrastructure.mappers.RundeckExecutionDocumentMapper;
 import fr.insee.genesis.infrastructure.repository.RundeckExecutionDBRepository;
-import fr.insee.genesis.infrastructure.repository.ScheduleMongoDBRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
