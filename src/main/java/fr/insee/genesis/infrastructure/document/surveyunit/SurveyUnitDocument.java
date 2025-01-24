@@ -23,4 +23,5 @@ public class SurveyUnitDocument {
 	private LocalDateTime fileDate;
 	private List<VariableState> collectedVariables;
 	private List<ExternalVariable> externalVariables;
+	private String modifiedBy;
 }

@@ -14,6 +14,6 @@ public class VariableStateDto {
     private boolean active;
     private String value;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy hh:mm:ss.SSS")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss.SSS")
     private LocalDateTime date;
 }

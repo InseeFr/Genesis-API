@@ -20,6 +20,9 @@ public class Config {
 	@Value("${fr.insee.genesis.sourcefolder.specifications}")
 	private String specFolderSource;
 
+	@Value("${fr.insee.genesis.authentication}")
+	private String authType;
+
 	@Value("${fr.insee.genesis.oidc.auth-server-url}")
 	private String authServerUrl;
 

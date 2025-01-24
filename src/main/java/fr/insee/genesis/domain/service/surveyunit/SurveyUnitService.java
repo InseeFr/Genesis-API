@@ -1,15 +1,34 @@
 package fr.insee.genesis.domain.service.surveyunit;
 
-import fr.insee.genesis.controller.dto.*;
-import fr.insee.genesis.domain.model.surveyunit.*;
+import fr.insee.bpm.metadata.model.VariablesMap;
+import fr.insee.genesis.controller.dto.CampaignWithQuestionnaire;
+import fr.insee.genesis.controller.dto.QuestionnaireWithCampaign;
+import fr.insee.genesis.controller.dto.SurveyUnitDto;
+import fr.insee.genesis.controller.dto.SurveyUnitId;
+import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
+import fr.insee.genesis.controller.dto.VariableDto;
+import fr.insee.genesis.controller.dto.VariableInputDto;
+import fr.insee.genesis.controller.dto.VariableStateDto;
+import fr.insee.genesis.domain.model.surveyunit.CollectedVariable;
+import fr.insee.genesis.domain.model.surveyunit.DataState;
+import fr.insee.genesis.domain.model.surveyunit.IdLoopTuple;
+import fr.insee.genesis.domain.model.surveyunit.Mode;
+import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
+import fr.insee.genesis.domain.model.surveyunit.Variable;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
+import fr.insee.genesis.domain.utils.LoopIdentifier;
+import fr.insee.genesis.exceptions.GenesisException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 
 @Service
@@ -24,8 +43,8 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     }
 
     @Override
-    public void saveSurveyUnits(List<SurveyUnitModel> suDtos) {
-        surveyUnitPersistencePort.saveAll(suDtos);
+    public void saveSurveyUnits(List<SurveyUnitModel> surveyUnitModels) {
+        surveyUnitPersistencePort.saveAll(surveyUnitModels);
     }
 
     @Override
@@ -216,6 +235,62 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         return questionnaireWithCampaignList;
     }
 
+    @Override
+    public List<SurveyUnitModel> parseEditedVariables(
+            SurveyUnitInputDto surveyUnitInputDto,
+            String userIdentifier,
+            VariablesMap variablesMap
+    ) throws GenesisException {
+
+        List<DataState> statesReceived = surveyUnitInputDto.getCollectedVariables().stream()
+                .map(colVar -> colVar.getVariableStateInputDto().getState())
+                .distinct()
+                .toList();
+
+        if (statesReceived.contains(DataState.COLLECTED)){
+            throw new GenesisException(400,"You can not persist in database a new value with the state COLLECTED");
+        }
+
+        List<SurveyUnitModel> surveyUnitModels = new ArrayList<>();
+
+        for (DataState state : statesReceived){
+            SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
+                    .idCampaign(surveyUnitInputDto.getCampaignId())
+                    .mode(surveyUnitInputDto.getMode())
+                    .idQuest(surveyUnitInputDto.getIdQuestionnaire())
+                    .idUE(surveyUnitInputDto.getSurveyUnitId())
+                    .state(state)
+                    .recordDate(LocalDateTime.now())
+                    .collectedVariables(new ArrayList<>())
+                    .externalVariables(new ArrayList<>())
+                    .modifiedBy(userIdentifier)
+                    .build();
+
+            //Keep only variable dtos who has the corresponding state
+            List<VariableInputDto> editedCollectedVariables = surveyUnitInputDto.getCollectedVariables().stream()
+                    .filter(colVar -> colVar.getVariableStateInputDto().getState() == state).toList();
+
+            //Collected variables management
+            for(VariableInputDto editedVariableDto : editedCollectedVariables){
+                CollectedVariable collectedVariable = CollectedVariable.collectedVariableBuilder()
+                        .idVar(editedVariableDto.getVariableName())
+                        .values(new ArrayList<>())
+                        .idParent(LoopIdentifier.getRelatedVariableName(editedVariableDto.getVariableName(), variablesMap))
+                        .idLoop(editedVariableDto.getIdLoop())
+                        .build();
+
+                collectedVariable.getValues().add(editedVariableDto.getVariableStateInputDto().getValue());
+
+                surveyUnitModel.getCollectedVariables().add(collectedVariable);
+
+            }
+            surveyUnitModels.add(surveyUnitModel);
+        }
+
+        return surveyUnitModels;
+    }
+
+    //Utils
     private static List<Mode> getDistinctsModes(List<SurveyUnitModel> surveyUnitModels) {
         List<Mode> sources = new ArrayList<>();
         surveyUnitModels.forEach(surveyUnitDto -> sources.add(surveyUnitDto.getMode()));
