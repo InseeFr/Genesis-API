@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.3.1 [2025-01-24]
+
+### Added
+- New endpoint to save raw data from questionnaire directly in MongoDB
+- New endpoint to save data send by external quality tools
+- New endpoint to save infos on a rundeck execution
+- Auto creation of indexes
+
+### Updated
+- spring boot 3.4.2
+- springdoc 2.8.3
+- pitest 1.17.4
+- bpm 1.0.5
+
 ## 1.3.0 [2024-12-16]
 
 ### Added
