@@ -29,6 +29,8 @@ public class SurveyUnitModel {
 	private List<VariableModel> collectedVariables;
 	private List<VariableModel> externalVariables;
 
+	private String modifiedBy;
+
 	public SurveyUnitModel(String idUE, Mode mode) {
 		this.idUE = idUE;
 		this.mode = mode;

@@ -10,10 +10,11 @@ import fr.insee.genesis.controller.rest.responses.ResponseController;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlCampaign;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlDataParser;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
+import fr.insee.genesis.controller.utils.AuthUtils;
+import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
-import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService;
 import fr.insee.genesis.domain.service.rawdata.LunaticXmlRawDataService;
@@ -61,7 +62,8 @@ public class MainDefinitions {
             new LunaticXmlRawDataService(new LunaticXmlPersistanceStub()),
             new LunaticJsonRawDataService(new LunaticJsonPersistanceStub()),
             new FileUtils(config),
-            new ControllerUtils(new FileUtils(config))
+            new ControllerUtils(new FileUtils(config)),
+            new AuthUtils(config)
         );
 
     List<SurveyUnitModel> surveyUnitModels;
@@ -99,12 +101,12 @@ public class MainDefinitions {
                     ddiFilePath.toFile().toURI().toURL().toString(),
                     new FileInputStream(ddiFilePath.toFile())
             ).getVariables();
-            List<SurveyUnitModel> suDtos = new ArrayList<>();
+            List<SurveyUnitModel> surveyUnitModels1 = new ArrayList<>();
             for (LunaticXmlSurveyUnit su : campaign.getSurveyUnits()) {
-                suDtos.addAll(LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign(), Mode.WEB));
+                surveyUnitModels1.addAll(LunaticXmlAdapter.convert(su, variablesMap, campaign.getIdCampaign(), Mode.WEB));
             }
-            surveyUnitQualityService.verifySurveyUnits(suDtos,variablesMap);
-            surveyUnitModels = suDtos;
+            surveyUnitQualityService.verifySurveyUnits(surveyUnitModels1,variablesMap);
+            surveyUnitModels = surveyUnitModels1;
         }
     }
 

@@ -27,4 +27,9 @@ public class ConfigStub extends Config {
 
 	@Override
 	public String getLogFolder(){return LOG_FOLDER;}
+
+	@Override
+	public String getAuthType() {
+		return "NONE";
+	}
 }
