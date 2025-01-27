@@ -26,8 +26,8 @@ public class SurveyUnitModel {
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'hh:mm")
 	private LocalDateTime fileDate;
 
-	private List<CollectedVariable> collectedVariables;
-	private List<Variable> externalVariables;
+	private List<VariableModel> collectedVariables;
+	private List<VariableModel> externalVariables;
 
 	private String modifiedBy;
 

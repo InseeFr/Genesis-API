@@ -50,11 +50,12 @@ Feature: Do we extract data ?
 
   Scenario Outline: External data extraction
     Given We have data in directory "<Directory>"
-    When We create DTOs from file "<FileName>" with DDI "<DDIFileName>"
-    Then We should have <ExpectedNumberOfValues> values for external variable "<ExternalVariableName>" for survey unit "<SurveyUnitId>"
-    And For external variable "<ExternalVariableName>" in survey unit "<SurveyUnitId>" we should have "<ExpectedValue>" as value number <ExpectedValueIndex>
+    Given We copy data file "data_backup/data.complete.validated.STPDv1.20231122164209.xml" to that directory
+    When We save data from that directory
+    Then We should have 1 values for external variable "<ExternalVariableName>" for survey unit "<SurveyUnitId>"
+    And For external variable "<ExternalVariableName>" in survey unit "<SurveyUnitId>" we should have "<ExpectedValue>" and loopId "<LoopId>"
     Examples:
-      | Directory              | FileName                                                          | DDIFileName                   | ExpectedNumberOfValues | ExternalVariableName | SurveyUnitId | ExpectedValue    | ExpectedValueIndex |
-      | SAMPLETEST-PARADATA-v1 | reponse-platine/data.complete.validated.STPDv1.20231122164209.xml |ddi-SAMPLETEST-PARADATA-v1.xml | 1                      | RPANAISCONJ          | 0000007      | 1986             | 0                  |
-      | SAMPLETEST-PARADATA-v1 | reponse-platine/data.complete.validated.STPDv1.20231122164209.xml |ddi-SAMPLETEST-PARADATA-v1.xml | 2                      | RPPRENOM             | 0000007      | TESTRPRENOM7_2   | 0                  |
-      | SAMPLETEST-PARADATA-v1 | reponse-platine/data.complete.validated.STPDv1.20231122164209.xml |ddi-SAMPLETEST-PARADATA-v1.xml | 2                      | RPPRENOM             | 0000007      | TESTRPRENOM7PAR1 | 1                  |
+      | Directory              | ExternalVariableName | LoopId        | SurveyUnitId | ExpectedValue    |
+      | SAMPLETEST             | RPANAISCONJ          | B_PRENOMREP_1 | 0000007      | 1986             |
+      | SAMPLETEST             | RPPRENOM             | B_PRENOMREP_1 | 0000007      | TESTRPRENOM7_2   |
+      | SAMPLETEST             | RPPRENOM             | B_PRENOMREP_2 | 0000007      | TESTRPRENOM7PAR1 |
