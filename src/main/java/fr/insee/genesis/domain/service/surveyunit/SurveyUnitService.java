@@ -9,12 +9,11 @@ import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
 import fr.insee.genesis.controller.dto.VariableDto;
 import fr.insee.genesis.controller.dto.VariableInputDto;
 import fr.insee.genesis.controller.dto.VariableStateDto;
-import fr.insee.genesis.domain.model.surveyunit.CollectedVariable;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.IdLoopTuple;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
-import fr.insee.genesis.domain.model.surveyunit.Variable;
+import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
 import fr.insee.genesis.domain.utils.LoopIdentifier;
@@ -137,7 +136,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
 
         //Extract variables
         Map<IdLoopTuple, VariableDto> collectedVariableMap = new HashMap<>();
-        Map<String, VariableDto> externalVariableMap = new HashMap<>();
+        Map<IdLoopTuple, VariableDto> externalVariableMap = new HashMap<>();
         List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findByIds(idUE, idQuest);
         List<Mode> modes = getDistinctsModes(surveyUnitModels);
         modes.forEach(mode -> {
@@ -273,14 +272,14 @@ public class SurveyUnitService implements SurveyUnitApiPort {
 
             //Collected variables management
             for(VariableInputDto editedVariableDto : editedCollectedVariables){
-                CollectedVariable collectedVariable = CollectedVariable.collectedVariableBuilder()
+                VariableModel collectedVariable = VariableModel.builder()
                         .idVar(editedVariableDto.getVariableName())
                         .values(new ArrayList<>())
                         .idParent(LoopIdentifier.getRelatedVariableName(editedVariableDto.getVariableName(), variablesMap))
                         .idLoop(editedVariableDto.getIdLoop())
                         .build();
 
-                collectedVariable.getValues().add(editedVariableDto.getVariableStateInputDto().getValue());
+                collectedVariable.values().add(editedVariableDto.getVariableStateInputDto().getValue());
 
                 surveyUnitModel.getCollectedVariables().add(collectedVariable);
 
@@ -306,7 +305,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
      */
     private void extractVariables(SurveyUnitModel surveyUnitModel,
                                            Map<IdLoopTuple, VariableDto> collectedVariableMap,
-                                           Map<String, VariableDto> externalVariableMap) {
+                                           Map<IdLoopTuple, VariableDto> externalVariableMap) {
 
         if(surveyUnitModel.getCollectedVariables() == null){
             surveyUnitModel.setCollectedVariables(new ArrayList<>());
@@ -341,15 +340,17 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             surveyUnitModel.setExternalVariables(new ArrayList<>());
         }
         for(VariableModel externalVariable : surveyUnitModel.getExternalVariables()){
-            VariableDto variableDto = externalVariableMap.get(externalVariable.idVar());
+            IdLoopTuple idLoopTuple = new IdLoopTuple(externalVariable.idVar(), externalVariable.idLoop());
+            VariableDto variableDto = externalVariableMap.get(idLoopTuple);
 
             //Create variable into map if not exists
             if(variableDto == null){
                 variableDto = VariableDto.builder()
                         .variableName(externalVariable.idVar())
+                        .idLoop(externalVariable.idLoop())
                         .variableStateDtoList(new ArrayList<>())
                         .build();
-                externalVariableMap.put(externalVariable.idVar(), variableDto);
+                externalVariableMap.put(idLoopTuple, variableDto);
             }
             //Extract variable state
             if(!externalVariable.values().isEmpty() && isMostRecentForSameState(surveyUnitModel, variableDto)){
