@@ -15,14 +15,16 @@ public class SurveyUnitModelTest {
         List<VariableModel> externalVariableList = new ArrayList<>();
         VariableModel externalVariable = VariableModel.builder()
                 .idVar("TESTIDVAREXT")
-                .values(List.of(new String[]{"V1", "V2"}))
+                .values(List.of(new String[]{"V1","V2"}))
+                .idLoop("TESTIDLOOP")
+                .idParent("TESTIDPARENT")
                 .build();
         externalVariableList.add(externalVariable);
 
         List<VariableModel> collectedVariableList = new ArrayList<>();
         VariableModel collectedVariable = VariableModel.builder()
                 .idVar("TESTIDVAR")
-                .values(List.of(new String[]{"V1", "V2"}))
+                .values(List.of(new String[]{"V1","V2"}))
                 .idLoop("TESTIDLOOP")
                 .idParent("TESTIDPARENT")
                 .build();
@@ -45,7 +47,7 @@ public class SurveyUnitModelTest {
         objectMapper.findAndRegisterModules();
 //TODO ASSERT ID LOOP & ID PARENT
         Assertions.assertEquals(
-                objectMapper.readTree("{\"idQuest\":\"TESTIDQUEST\",\"idCampaign\":\"TESTIDCAMPAIGN\",\"idUE\":\"TESTIDUE\",\"state\":\"COLLECTED\",\"mode\":\"WEB\",\"recordDate\":\"2000-01-01T12:00\",\"fileDate\":\"2000-01-01T12:00\",\"collectedVariables\":[{\"idVar\":\"TESTIDVAR\",\"values\":[\"V1\",\"V2\"],\"idLoop\":\"TESTIDLOOP\",\"idParent\":\"TESTIDPARENT\"}],\"externalVariables\":[{\"idVar\":\"TESTIDVAREXT\",\"values\":[\"V1\",\"V2\"],\"idLoop\":null,\"idParent\":null, \"modifiedBy\": null}\"}]}"),
+                objectMapper.readTree("{\"idQuest\":\"TESTIDQUEST\",\"idCampaign\":\"TESTIDCAMPAIGN\",\"idUE\":\"TESTIDUE\",\"state\":\"COLLECTED\",\"mode\":\"WEB\",\"recordDate\":\"2000-01-01T12:00\",\"fileDate\":\"2000-01-01T12:00\",\"collectedVariables\":[{\"idVar\":\"TESTIDVAR\",\"values\":[\"V1\",\"V2\"],\"idLoop\":\"TESTIDLOOP\",\"idParent\":\"TESTIDPARENT\"}],\"externalVariables\":[{\"idVar\":\"TESTIDVAREXT\",\"values\":[\"V1\",\"V2\"],\"idLoop\":\"TESTIDLOOP\",\"idParent\":\"TESTIDPARENT\"}],\"modifiedBy\": null}"),
                 objectMapper.readTree(objectMapper.writeValueAsString(surveyUnitModel))
         );
     }
