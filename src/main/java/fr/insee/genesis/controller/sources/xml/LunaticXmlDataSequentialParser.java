@@ -203,13 +203,21 @@ public class LunaticXmlDataSequentialParser{
 		return element.getAttributeByName(new QName("type"));
 	}
 
-    private List<ValueType> readValues(XMLEventReader reader, String stateName) throws XMLStreamException {
+    /**
+     * Read multiple repeated values in XML (notably when reading loop data)
+     * @param reader the XML reader used to read XML
+     * @param elementName the repeated element name
+     *
+     * @return a list of ValueType for a specific element
+     * @throws XMLStreamException if XML reading error
+     */
+    private List<ValueType> readValues(XMLEventReader reader, String elementName) throws XMLStreamException {
         List<ValueType> values = new ArrayList<>();
 
         while(reader.hasNext()){
             final XMLEvent event = reader.nextEvent();
 
-            if (event.isEndElement() && event.asEndElement().getName().getLocalPart().equals(stateName)){
+            if (event.isEndElement() && event.asEndElement().getName().getLocalPart().equals(elementName)){
                 // End of variable
                 return values;
             }
@@ -223,7 +231,6 @@ public class LunaticXmlDataSequentialParser{
                 values.add(new ValueType(value, type));
             }
         }
-
         return values;
     }
 
@@ -246,13 +253,21 @@ public class LunaticXmlDataSequentialParser{
                 LunaticXmlOtherData variable = new LunaticXmlOtherData();
                 variable.setVariableName(variableName);
 
-                String type = getType(element).getValue();
-                String value = reader.getElementText();
-
+                //Read values
                 List<ValueType> values = new ArrayList<>();
-                values.add(new ValueType(value, type));
-                variable.setValues(values);
+                if(element.isStartElement() && getType(element) != null && !getType(element).getValue().equals("null")) {
+                    //If only 1 value (determined by presence of type)
+                    String type = getType(element).getValue();
+                    String value = reader.getElementText();
 
+                    values.add(new ValueType(value, type));
+                    variable.setValues(values);
+                    lunaticXmlOtherDataList.add(variable);
+                    continue; //Go to next XML event
+                }
+                // Multiple values (loop)
+                values = readValues(reader, variableName);
+                variable.setValues(values);
                 lunaticXmlOtherDataList.add(variable);
             }
         }
