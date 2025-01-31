@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.3.2 [2025-01-31]
+
+### Added
+- External variables in loops/tables are now correctly persisted
+### Fixed
+- Sequential data parser bug
+### Updated
+- springdoc 2.8.4
+
 ## 1.3.1 [2025-01-24]
 
 ### Added
