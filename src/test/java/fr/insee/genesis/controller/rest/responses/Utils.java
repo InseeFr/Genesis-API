@@ -1,11 +1,10 @@
 package fr.insee.genesis.controller.rest.responses;
 
 import cucumber.TestConstants;
-import fr.insee.genesis.domain.model.surveyunit.CollectedVariable;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
-import fr.insee.genesis.domain.model.surveyunit.Variable;
+import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 
 import java.io.File;
@@ -184,12 +183,19 @@ class Utils {
     static void addAdditionalDtoToMongoStub(String idCampaign, String idQuestionnaire,
                                              LocalDateTime fileDate, LocalDateTime recordDate,
                                              SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) {
-        List<Variable> externalVariableList = new ArrayList<>();
-        Variable variable = Variable.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
-        externalVariableList.add(variable);
+        List<VariableModel> externalVariableList = new ArrayList<>();
+        VariableModel externalVariable = VariableModel.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
+        externalVariableList.add(externalVariable);
 
-        List<CollectedVariable> collectedVariableList = new ArrayList<>();
-        CollectedVariable collectedVariable = new CollectedVariable("TESTIDVAR", List.of(new String[]{"V1", "V2"}), "TESTIDLOOP", "TESTIDPARENT");
+        List<VariableModel> collectedVariableList = new ArrayList<>();
+        VariableModel collectedVariable = VariableModel.builder()
+                .idVar("TESTIDVAR")
+                .values(List.of(new String[]{"V1", "V2"}))
+                .idLoop("TESTIDLOOP")
+                .idParent("TESTIDPARENT")
+                .build();
+
+
         collectedVariableList.add(collectedVariable);
 
         SurveyUnitModel recentDTO = SurveyUnitModel.builder()
@@ -214,12 +220,18 @@ class Utils {
                                             LocalDateTime fileDate,
                                             LocalDateTime recordDate,
                                             SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) {
-        List<Variable> externalVariableList = new ArrayList<>();
-        Variable variable = Variable.builder().idVar("TESTIDVAR").values(List.of(new String[]{externalVariableValue})).build();
+        List<VariableModel> externalVariableList = new ArrayList<>();
+        VariableModel variable = VariableModel.builder().idVar("TESTIDVAR").values(List.of(new String[]{externalVariableValue})).build();
         externalVariableList.add(variable);
 
-        List<CollectedVariable> collectedVariableList = new ArrayList<>();
-        CollectedVariable collectedVariable = new CollectedVariable("TESTIDVAR", List.of(new String[]{collectedVariableValue}), "TESTIDLOOP", "TESTIDPARENT");
+        List<VariableModel> collectedVariableList = new ArrayList<>();
+        VariableModel collectedVariable = VariableModel.builder()
+                .idVar("TESTIDVAR")
+                .values(List.of(new String[]{collectedVariableValue}))
+                .idLoop("TESTIDLOOP")
+                .idParent("TESTIDPARENT")
+                .build();
+
         collectedVariableList.add(collectedVariable);
 
         SurveyUnitModel recentDTO = SurveyUnitModel.builder()
