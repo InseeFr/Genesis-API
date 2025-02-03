@@ -87,7 +87,7 @@ public class MainDefinitions {
                 StandardCopyOption.REPLACE_EXISTING);
     }
 
-    @When("We create DTOs from file {string} with DDI {string}")
+    @When("We create survey unit models from file {string} with DDI {string}")
     public void get_dtos(String fileName, String ddiName) throws IOException, ParserConfigurationException,
             SAXException, GenesisException, MetadataParserException {
         Path filePath = inDirectory.resolve(fileName);
