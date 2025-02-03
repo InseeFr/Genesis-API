@@ -45,7 +45,6 @@ public class SurveyUnitModelTest {
         Assertions.assertNotNull(surveyUnitModel);
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.findAndRegisterModules();
-//TODO ASSERT ID LOOP & ID PARENT
         Assertions.assertEquals(
                 objectMapper.readTree("{\"idQuest\":\"TESTIDQUEST\",\"idCampaign\":\"TESTIDCAMPAIGN\",\"idUE\":\"TESTIDUE\",\"state\":\"COLLECTED\",\"mode\":\"WEB\",\"recordDate\":\"2000-01-01T12:00\",\"fileDate\":\"2000-01-01T12:00\",\"collectedVariables\":[{\"idVar\":\"TESTIDVAR\",\"values\":[\"V1\",\"V2\"],\"idLoop\":\"TESTIDLOOP\",\"idParent\":\"TESTIDPARENT\"}],\"externalVariables\":[{\"idVar\":\"TESTIDVAREXT\",\"values\":[\"V1\",\"V2\"],\"idLoop\":\"TESTIDLOOP\",\"idParent\":\"TESTIDPARENT\"}],\"modifiedBy\": null}"),
                 objectMapper.readTree(objectMapper.writeValueAsString(surveyUnitModel))
