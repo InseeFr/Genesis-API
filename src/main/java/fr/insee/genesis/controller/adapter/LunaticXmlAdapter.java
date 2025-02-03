@@ -2,36 +2,35 @@ package fr.insee.genesis.controller.adapter;
 
 import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlCollectedData;
+import fr.insee.genesis.controller.sources.xml.LunaticXmlOtherData;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
 import fr.insee.genesis.controller.sources.xml.ValueType;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.utils.LoopIdentifier;
-import fr.insee.genesis.domain.model.surveyunit.CollectedVariable;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
-import fr.insee.genesis.domain.model.surveyunit.Variable;
+import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import lombok.experimental.UtilityClass;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @UtilityClass
 public class LunaticXmlAdapter {
 
     /**
-     * Convert a Lunatic XML survey unit into a genesis survey unit DTO
+     * Convert a Lunatic XML survey unit into a genesis survey unit model
      * @param su Lunatic XML survey unit to convert
      * @param variablesMap variable definitions (used for loops)
      * @param campaignId survey id
-     * @return a genesis survey unit DTO
+     * @return Genesis SurveyUnitModels for each data state
      */
     public static List<SurveyUnitModel> convert(LunaticXmlSurveyUnit su, VariablesMap variablesMap, String campaignId, Mode mode){
         //Get COLLECTED Data and external variables
         List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
         SurveyUnitModel surveyUnitModel = getStateDataFromSurveyUnit(su, variablesMap, campaignId, DataState.COLLECTED, mode);
-        getExternalDataFromSurveyUnit(su, surveyUnitModel);
+        getExternalDataFromSurveyUnit(su, surveyUnitModel, variablesMap);
 
         surveyUnitModelList.add(surveyUnitModel);
 
@@ -65,8 +64,8 @@ public class LunaticXmlAdapter {
      * @param su source XML Survey Unit
      * @param variablesMap variable definitions (used for loops)
      * @param campaignId survey id
-     * @param dataState state of the DTO to generate
-     * @return Survey Unit DTO with a specific state
+     * @param dataState state of the SurveyUnitModel to generate
+     * @return SurveyUnitModel with a specific state
      */
     private static SurveyUnitModel getStateDataFromSurveyUnit(LunaticXmlSurveyUnit su, VariablesMap variablesMap, String campaignId, DataState dataState, Mode mode) {
         SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
@@ -84,15 +83,15 @@ public class LunaticXmlAdapter {
 
 
     /**
-     * Gets data from a specific state and put it into DTO's data
+     * Gets data from a specific state and put it into Model's data
      * @param su XML survey unit to extract from
-     * @param surveyUnitModel DTO to aliment
+     * @param surveyUnitModel Model to aliment
      * @param variablesMap variables definitions (used for loops)
      * @param dataState data state from XML
-     * @return the DTO containing data, null if no data and not COLLECTED
+     * @return the SurveyUnitModel containing data, null if no data and not COLLECTED
      */
     private static SurveyUnitModel getCollectedDataFromSurveyUnit(LunaticXmlSurveyUnit su, SurveyUnitModel surveyUnitModel, VariablesMap variablesMap, DataState dataState) {
-        List<CollectedVariable> variablesUpdate = new ArrayList<>();
+        List<VariableModel> variableModels = new ArrayList<>();
 
         int dataCount = 0;
         for (LunaticXmlCollectedData lunaticXmlCollectedData : su.getData().getCollected()){
@@ -116,23 +115,25 @@ public class LunaticXmlAdapter {
                 default:
                     return null;
             }
-            if(valueTypeList != null) {
-                for (int i = 1; i <= valueTypeList.size(); i++) {
-                    List<String> variableValues = new ArrayList<>();
-                    if (valueTypeList.get(i-1).getValue()!=null) {
-                        variableValues.add(valueTypeList.get(i-1).getValue());
-                        variablesUpdate.add(CollectedVariable.collectedVariableBuilder()
-                                .varId(lunaticXmlCollectedData.getVariableName())
-                                .values(variableValues)
-                                .loopId(LoopIdentifier.getLoopIdentifier(lunaticXmlCollectedData.getVariableName(), variablesMap, i))
-                                .parentId(LoopIdentifier.getRelatedVariableName(lunaticXmlCollectedData.getVariableName(), variablesMap))
-                                .build());
-                        dataCount++;
-                    }
+
+            if(valueTypeList == null) {
+                continue; //Go to next data
+            }
+            for (int i = 1; i <= valueTypeList.size(); i++) {
+                List<String> variableValues = new ArrayList<>();
+                if (valueTypeList.get(i-1).getValue()!=null) {
+                    variableValues.add(valueTypeList.get(i-1).getValue());
+                    variableModels.add(VariableModel.builder()
+                            .varId(lunaticXmlCollectedData.getVariableName())
+                            .values(variableValues)
+                            .loopId(LoopIdentifier.getLoopIdentifier(lunaticXmlCollectedData.getVariableName(), variablesMap, i))
+                            .parentId(LoopIdentifier.getRelatedVariableName(lunaticXmlCollectedData.getVariableName(), variablesMap))
+                            .build());
+                    dataCount++;
                 }
             }
         }
-        surveyUnitModel.setCollectedVariables(variablesUpdate);
+        surveyUnitModel.setCollectedVariables(variableModels);
 
         //Return null if no data and not COLLECTED
         if(dataCount > 0 || dataState.equals(DataState.COLLECTED)){
@@ -144,29 +145,31 @@ public class LunaticXmlAdapter {
 
 
     /**
-     * Extract external data from XML survey unit and put it into DTO
+     * Extract external data from XML survey unit and put it into Model
      * @param su XML survey unit
-     * @param surveyUnitModel DTO to aliment
+     * @param surveyUnitModel Model to aliment
      */
-    private static void getExternalDataFromSurveyUnit(LunaticXmlSurveyUnit su, SurveyUnitModel surveyUnitModel) {
-        List<Variable> externalVariables = new ArrayList<>();
-        su.getData().getExternal().forEach(lunaticXmlExternalData ->
-                externalVariables.add(Variable.builder()
-                        .varId(lunaticXmlExternalData.getVariableName())
-                        .values(getValuesFromValueTypeList(lunaticXmlExternalData.getValues()))
-                        .build())
-        );
-        surveyUnitModel.setExternalVariables(externalVariables);
-    }
+    private static void getExternalDataFromSurveyUnit(LunaticXmlSurveyUnit su, SurveyUnitModel surveyUnitModel, VariablesMap variablesMap) {
+        List<VariableModel> variableModels = new ArrayList<>();
 
-    private static List<String> getValuesFromValueTypeList(List<ValueType> valueTypeList) {
-        if (!valueTypeList.isEmpty()){
-            return valueTypeList.stream()
-                    .map(ValueType::getValue)
-                    .filter(Objects::nonNull)
-                    .toList();
+        for(LunaticXmlOtherData lunaticXmlExternalData : su.getData().getExternal()){
+            List<ValueType> valueTypeList = lunaticXmlExternalData.getValues();
+            if(valueTypeList == null) {
+                continue; //Go to next data
+            }
+            for (int i = 1; i <= valueTypeList.size(); i++) {
+                List<String> variableValues = new ArrayList<>();
+                if (valueTypeList.get(i-1).getValue()!=null) {
+                    variableValues.add(valueTypeList.get(i-1).getValue());
+                    variableModels.add(VariableModel.builder()
+                            .varId(lunaticXmlExternalData.getVariableName())
+                            .values(variableValues)
+                            .loopId(LoopIdentifier.getLoopIdentifier(lunaticXmlExternalData.getVariableName(), variablesMap, i))
+                            .parentId(LoopIdentifier.getRelatedVariableName(lunaticXmlExternalData.getVariableName(), variablesMap))
+                            .build());
+                }
+            }
         }
-        return List.of();
+        surveyUnitModel.setExternalVariables(variableModels);
     }
-
 }

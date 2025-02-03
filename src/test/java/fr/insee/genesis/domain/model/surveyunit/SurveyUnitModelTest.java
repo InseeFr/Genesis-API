@@ -12,12 +12,22 @@ import java.util.List;
 public class SurveyUnitModelTest {
     @Test
     public void toJSONTest() throws JsonProcessingException {
-        List<Variable> externalVariableList = new ArrayList<>();
-        Variable variable = Variable.builder().varId("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
-        externalVariableList.add(variable);
+        List<VariableModel> externalVariableList = new ArrayList<>();
+        VariableModel externalVariable = VariableModel.builder()
+                .varId("TESTIDVAREXT")
+                .values(List.of(new String[]{"V1","V2"}))
+                .loopId("TESTIDLOOP")
+                .parentId("TESTIDPARENT")
+                .build();
+        externalVariableList.add(externalVariable);
 
-        List<CollectedVariable> collectedVariableList = new ArrayList<>();
-        CollectedVariable collectedVariable = new CollectedVariable("TESTIDVAR", List.of(new String[]{"V1", "V2"}),"TESTIDLOOP","TESTIDPARENT");
+        List<VariableModel> collectedVariableList = new ArrayList<>();
+        VariableModel collectedVariable = VariableModel.builder()
+                .varId("TESTIDVAR")
+                .values(List.of(new String[]{"V1","V2"}))
+                .loopId("TESTIDLOOP")
+                .parentId("TESTIDPARENT")
+                .build();
         collectedVariableList.add(collectedVariable);
 
         SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
@@ -35,9 +45,8 @@ public class SurveyUnitModelTest {
         Assertions.assertNotNull(surveyUnitModel);
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.findAndRegisterModules();
-
         Assertions.assertEquals(
-                objectMapper.readTree("{\"questionnaireId\":\"TESTQUESTIONNAIREID\",\"campaignId\":\"TESTCAMPAIGNID\",\"interrogationId\":\"TESTINTERROGATIONID\",\"state\":\"COLLECTED\",\"mode\":\"WEB\",\"recordDate\":\"2000-01-01T12:00\",\"fileDate\":\"2000-01-01T12:00\",\"collectedVariables\":[{\"varId\":\"TESTIDVAR\",\"values\":[\"V1\",\"V2\"],\"loopId\":\"TESTIDLOOP\",\"parentId\":\"TESTIDPARENT\"}],\"externalVariables\":[{\"varId\":\"TESTIDVAR\",\"values\":[\"V1\",\"V2\"]}]}"),
+                objectMapper.readTree("{\"questionnaireId\":\"TESTQUESTIONNAIREID\",\"campaignId\":\"TESTCAMPAIGNID\",\"interrogationId\":\"TESTINTERROGATIONID\",\"state\":\"COLLECTED\",\"mode\":\"WEB\",\"recordDate\":\"2000-01-01T12:00\",\"fileDate\":\"2000-01-01T12:00\",\"collectedVariables\":[{\"varId\":\"TESTIDVAR\",\"values\":[\"V1\",\"V2\"],\"loopId\":\"TESTIDLOOP\",\"parentId\":\"TESTIDPARENT\"}],\"externalVariables\":[{\"varId\":\"TESTIDVAREXT\",\"values\":[\"V1\",\"V2\"],\"loopId\":\"TESTIDLOOP\",\"parentId\":\"TESTIDPARENT\"}],\"modifiedBy\": null}"),
                 objectMapper.readTree(objectMapper.writeValueAsString(surveyUnitModel))
         );
     }

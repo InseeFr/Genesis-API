@@ -1,7 +1,6 @@
 package fr.insee.genesis.controller.dto;
 
-import fr.insee.genesis.domain.model.surveyunit.CollectedVariable;
-import fr.insee.genesis.domain.model.surveyunit.Variable;
+import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import lombok.Builder;
 import lombok.Data;
@@ -16,6 +15,6 @@ public class SurveyUnitSimplified {
 	private String campaignId;
 	private String interrogationId;
 	private Mode mode;
-	private List<CollectedVariable> variablesUpdate;
-	private List<Variable> externalVariables;
+	private List<VariableModel> variablesUpdate;
+	private List<VariableModel> externalVariables;
 }

@@ -47,8 +47,8 @@ public class Constants {
 
 
     // Data extraction parameters
-    public static final int BATCH_SIZE = 100; //TODO Adapt to avoid OutOfMemoryException
-    public static final String DIFFRENTIAL_DATA_FOLDER_NAME = "differential/data";
+    public static final int BATCH_SIZE = 100; //Adapt to avoid OutOfMemoryException
+    public static final String DIFFERENTIAL_DATA_FOLDER_NAME = "differential/data";
 
     // Kraftwerk service path parameters
     public static final String KRAFTWERK_MAIN_ENDPOINT = "";

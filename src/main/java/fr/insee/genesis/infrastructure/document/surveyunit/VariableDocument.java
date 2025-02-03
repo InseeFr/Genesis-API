@@ -7,7 +7,7 @@ import java.util.List;
 import lombok.Data;
 
 @Data
-public class VariableState implements Serializable {
+public class VariableDocument implements Serializable {
 
 	@Serial
 	private static final long serialVersionUID = -1576556180669134053L;

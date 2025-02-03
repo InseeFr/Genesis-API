@@ -8,10 +8,10 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-class CollectedVariableTest {
+class VariableModelTest {
     @Test
     void toJSONTest() throws JsonProcessingException {
-        CollectedVariable collectedVariable = CollectedVariable.collectedVariableBuilder()
+        VariableModel variable = VariableModel.builder()
                 .varId("TESTIDVAR")
                 .parentId("TESTIDPARENT")
                 .loopId("TESTIDLOOP")
@@ -21,8 +21,7 @@ class CollectedVariableTest {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.findAndRegisterModules();
 
-        Assertions.assertEquals(objectMapper.readTree(objectMapper.writeValueAsString(collectedVariable)),
+        Assertions.assertEquals(objectMapper.readTree(objectMapper.writeValueAsString(variable)),
                 objectMapper.readTree("{\"values\":[\"V1\",\"V2\"],\"varId\":\"TESTIDVAR\",\"loopId\":\"TESTIDLOOP\",\"parentId\":\"TESTIDPARENT\"}"));
-
     }
 }

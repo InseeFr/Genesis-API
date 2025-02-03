@@ -4,11 +4,10 @@ package fr.insee.genesis.controller.utils;
 import fr.insee.bpm.metadata.model.MetadataModel;
 import fr.insee.bpm.metadata.model.VariableType;
 import fr.insee.bpm.metadata.model.VariablesMap;
-import fr.insee.genesis.domain.model.surveyunit.CollectedVariable;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
-import fr.insee.genesis.domain.model.surveyunit.Variable;
+import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.utils.DataVerifier;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -92,15 +91,14 @@ class DataVerifierTest {
                 surveyUnitModel1.getInterrogationId().equals("TestUE5")
         ).toList().getFirst();
 
-        surveyUnitModel.getCollectedVariables().get(1).getValues().set(0,"1");
+        surveyUnitModel.getCollectedVariables().get(1).values().set(0,"1");
 
         surveyUnitModel = testSurveyUnitModels.stream().filter(surveyUnitModel1 ->
                 surveyUnitModel1.getInterrogationId().equals("TestUE13")
         ).toList().getFirst();
 
-        surveyUnitModel.getCollectedVariables().get(1).getValues().set(0,"1");
-        surveyUnitModel.getExternalVariables().get(1).getValues().set(0,"1");
-
+        surveyUnitModel.getCollectedVariables().get(1).values().set(0,"1");
+        surveyUnitModel.getExternalVariables().get(1).values().set(0,"1");
 
         //Valid EDITED variables on 3rd and 7th case for priority test
         SurveyUnitModel surveyUnitModelEdited = testSurveyUnitModels.stream().filter(surveyUnitModel1 ->
@@ -108,15 +106,15 @@ class DataVerifierTest {
                 && surveyUnitModel1.getState().equals(DataState.EDITED)
                 ).toList().getFirst();
 
-        surveyUnitModelEdited.getCollectedVariables().getFirst().getValues().set(0,"1");
+        surveyUnitModelEdited.getCollectedVariables().getFirst().values().set(0,"1");
 
         surveyUnitModelEdited = testSurveyUnitModels.stream().filter(surveyUnitModel1 ->
                 surveyUnitModel1.getInterrogationId().equals("TestUE7")
                         && surveyUnitModel1.getState().equals(DataState.EDITED)
         ).toList().getFirst();
 
-        surveyUnitModelEdited.getCollectedVariables().get(0).getValues().set(0,"1");
-        surveyUnitModelEdited.getCollectedVariables().get(1).getValues().set(0,"1");
+        surveyUnitModelEdited.getCollectedVariables().get(0).values().set(0,"1");
+        surveyUnitModelEdited.getCollectedVariables().get(1).values().set(0,"1");
 
         //Remove EDITED variable on 8th case
         surveyUnitModelEdited = testSurveyUnitModels.stream().filter(surveyUnitModel1 ->
@@ -132,8 +130,8 @@ class DataVerifierTest {
 
     private static void createCase(int variableNumber, int stateNumber, int valueNumber, boolean hasIncorrectValues, boolean hasExternalVariables, String interrogationId, List<SurveyUnitModel> testSurveyUnitModels, VariablesMap variablesMap) {
         for(int stateIndex = 0; stateIndex < stateNumber; stateIndex++){
-            List<CollectedVariable> variableUpdates = new ArrayList<>();
-            List<Variable> externalVariables = new ArrayList<>();
+            List<VariableModel> collectedVariables = new ArrayList<>();
+            List<VariableModel> externalVariables = new ArrayList<>();
 
             for(int variableIndex = 0; variableIndex < variableNumber; variableIndex++){
                 List<String> values = new ArrayList<>();
@@ -149,14 +147,14 @@ class DataVerifierTest {
                             ? "?" : String.valueOf(valueIndex + 1));
                 }
 
-                variableUpdates.add(CollectedVariable.collectedVariableBuilder()
+                collectedVariables.add(VariableModel.builder()
                         .varId("testInteger" + variableIndex)
                         .values(new ArrayList<>(values))
                         .build()
                 );
 
                 if(hasExternalVariables){
-                    externalVariables.add(Variable.builder()
+                    externalVariables.add(VariableModel.builder()
                             .varId("testInteger" + variableIndex)
                             .values(new ArrayList<>(values))
                             .build()
@@ -171,11 +169,11 @@ class DataVerifierTest {
                     .state(stateIndex % 2 == 0 ? DataState.COLLECTED : DataState.EDITED)
                     .mode(Mode.WEB)
                     .recordDate(LocalDateTime.now())
-                    .collectedVariables(new ArrayList<>(variableUpdates))
+                    .collectedVariables(new ArrayList<>(collectedVariables))
                     .externalVariables(new ArrayList<>(externalVariables))
                     .build();
 
-            variableUpdates.clear();
+            collectedVariables.clear();
             externalVariables.clear();
 
             testSurveyUnitModels.add(surveyUnitModel);
@@ -210,16 +208,16 @@ class DataVerifierTest {
         SurveyUnitModel surveyUnitModel = surveyUnitModelOpt.get();
 
         assertThat(surveyUnitModel.getCollectedVariables().stream().filter(collectedVariableDto ->
-                collectedVariableDto.getVarId().equals(variableName)
+                collectedVariableDto.varId().equals(variableName)
                 )).isNotEmpty();
 
         assertThat(surveyUnitModel.getCollectedVariables().stream().filter(collectedVariableDto ->
-                collectedVariableDto.getVarId().equals(variableName)
+                collectedVariableDto.varId().equals(variableName)
         ).findFirst()).isPresent();
 
         assertThat(surveyUnitModel.getCollectedVariables().stream().filter(collectedVariableDto ->
-                collectedVariableDto.getVarId().equals(variableName)
-        ).findFirst().get().getValues().get(valueIndex)).isEqualTo(expectedContent);
+                collectedVariableDto.varId().equals(variableName)
+        ).findFirst().get().values().get(valueIndex)).isEqualTo(expectedContent);
     }
 
     private void assertForcedCollectedVariableExistence(List<SurveyUnitModel> testSurveyUnitModels, String interrogationId, String variableName, boolean hasToExist) {
@@ -231,10 +229,11 @@ class DataVerifierTest {
 
         SurveyUnitModel surveyUnitModel = surveyUnitModelOpt.get();
 
-        if(hasToExist)
-            assertThat(surveyUnitModel.getCollectedVariables().stream().filter(collectedVariableDto -> collectedVariableDto.getVarId().equals(variableName)).toList()).isNotEmpty();
-        else
-            assertThat(surveyUnitModel.getCollectedVariables().stream().filter(collectedVariableDto -> collectedVariableDto.getVarId().equals(variableName)).toList()).isEmpty();
+        if(hasToExist) {
+            assertThat(surveyUnitModel.getCollectedVariables().stream().filter(collectedVariableDto -> collectedVariableDto.varId().equals(variableName)).toList()).isNotEmpty();
+        }else {
+            assertThat(surveyUnitModel.getCollectedVariables().stream().filter(collectedVariableDto -> collectedVariableDto.varId().equals(variableName)).toList()).isEmpty();
+        }
     }
 
     private void assertForcedExternalVariableExistence(List<SurveyUnitModel> testSurveyUnitModels, String interrogationId, String variableName, boolean hasToExist) {
@@ -247,9 +246,9 @@ class DataVerifierTest {
         SurveyUnitModel surveyUnitModel = surveyUnitModelOpt.get();
 
         if(hasToExist)
-            assertThat(surveyUnitModel.getExternalVariables().stream().filter(variableModel -> variableModel.getVarId().equals(variableName)).toList()).isNotEmpty();
+            assertThat(surveyUnitModel.getExternalVariables().stream().filter(variableModel -> variableModel.varId().equals(variableName)).toList()).isNotEmpty();
         else
-            assertThat(surveyUnitModel.getExternalVariables().stream().filter(variableModel -> variableModel.getVarId().equals(variableName)).toList()).isEmpty();
+            assertThat(surveyUnitModel.getExternalVariables().stream().filter(variableModel -> variableModel.varId().equals(variableName)).toList()).isEmpty();
     }
 
     private void assertExternalVariableContent(List<SurveyUnitModel> testSurveyUnitModels, String interrogationId, String variableName, int valueIndex, String expectedContent) {
@@ -265,16 +264,16 @@ class DataVerifierTest {
         SurveyUnitModel surveyUnitModel = surveyUnitModelOpt.get();
 
         assertThat(surveyUnitModel.getExternalVariables().stream().filter(variableModel ->
-                variableModel.getVarId().equals(variableName)
+                variableModel.varId().equals(variableName)
         )).isNotEmpty();
 
         assertThat(surveyUnitModel.getExternalVariables().stream().filter(variableModel ->
-                variableModel.getVarId().equals(variableName)
+                variableModel.varId().equals(variableName)
         ).findFirst()).isPresent();
 
         assertThat(surveyUnitModel.getExternalVariables().stream().filter(variableModel ->
-                variableModel.getVarId().equals(variableName)
-        ).findFirst().get().getValues().get(valueIndex)).isEqualTo(expectedContent);
+                variableModel.varId().equals(variableName)
+        ).findFirst().get().values().get(valueIndex)).isEqualTo(expectedContent);
     }
 
     //Tests
