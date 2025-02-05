@@ -4,9 +4,9 @@ import fr.insee.bpm.metadata.model.Group;
 import fr.insee.bpm.metadata.model.Variable;
 import fr.insee.bpm.metadata.model.VariableType;
 import fr.insee.bpm.metadata.model.VariablesMap;
-import fr.insee.genesis.domain.model.surveyunit.CollectedVariable;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
+import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,15 +35,26 @@ class DataVerifierTest {
         variablesMap.putVariable(variableDefinition2);
 
         // Setup survey units
-        CollectedVariable cv1 = new CollectedVariable("var1", List.of("123"), "loop1", "parent1");
-        CollectedVariable cv2 = new CollectedVariable("var2", List.of("true"), "loop2", "parent2");
+        VariableModel collectedVariable1 = VariableModel.builder()
+                .idVar("var1")
+                .values(List.of("123"))
+                .idLoop("loop1")
+                .idParent("parent1")
+                .build();
+
+        VariableModel collectedVariable2 = VariableModel.builder()
+                .idVar("var2")
+                .values(List.of("true"))
+                .idLoop("loop2")
+                .idParent("parent2")
+                .build();
 
         SurveyUnitModel surveyUnit = SurveyUnitModel.builder()
                 .idUE("UE1100000001")
                 .idQuest("Quest1")
                 .idCampaign("Camp1")
                 .state(DataState.COLLECTED)
-                .collectedVariables(List.of(cv1, cv2))
+                .collectedVariables(List.of(collectedVariable1, collectedVariable2))
                 .externalVariables(List.of())
                 .build();
 
@@ -63,8 +74,31 @@ class DataVerifierTest {
 
     @Test
     void shouldAddForcedSurveyUnit_WhenInvalidCollectedVariable() {
+        // GIVEN
         // Add invalid value
-        surveyUnits.getFirst().getCollectedVariables().getFirst().setValues(List.of("invalid"));
+        surveyUnits.clear();
+        VariableModel collectedVariable1 = VariableModel.builder()
+                .idVar("var1")
+                .values(List.of("invalid"))
+                .idLoop("loop1")
+                .idParent("parent1")
+                .build();
+        VariableModel collectedVariable2 = VariableModel.builder()
+                .idVar("var2")
+                .values(List.of("true"))
+                .idLoop("loop2")
+                .idParent("parent2")
+                .build();
+        SurveyUnitModel surveyUnit = SurveyUnitModel.builder()
+                .idUE("UE1100000001")
+                .idQuest("Quest1")
+                .idCampaign("Camp1")
+                .state(DataState.COLLECTED)
+                .collectedVariables(List.of(collectedVariable1, collectedVariable2))
+                .externalVariables(List.of())
+                .build();
+        surveyUnits.add(surveyUnit);
+
 
         // WHEN
         DataVerifier.verifySurveyUnits(surveyUnits, variablesMap);
@@ -85,10 +119,10 @@ class DataVerifierTest {
 
     @Test
     void shouldAddForcedSurveyUnit_WhenInvalidExternalVariable() {
-
         //Add surveyUnit with invalid external Variable
-        fr.insee.genesis.domain.model.surveyunit.Variable extVar = fr.insee.genesis.domain.model.surveyunit.Variable.builder().idVar("var2").values(List.of("notBoolean")).build();
-        List<fr.insee.genesis.domain.model.surveyunit.Variable> listVarExt = new ArrayList<>();
+        VariableModel extVar = VariableModel.builder().idVar("var2").values(List.of(
+                "notBoolean")).build();
+        List<VariableModel> listVarExt = new ArrayList<>();
         listVarExt.add(extVar);
 
         SurveyUnitModel surveyUnitWithInvalidExt = SurveyUnitModel.builder()
@@ -113,9 +147,30 @@ class DataVerifierTest {
 
     @Test
     void shouldCorrectInvalidValuesInForcedSurveyUnit() {
+        // GIVEN
         // ADD invalid values
-        surveyUnits.get(0).getCollectedVariables().get(0).setValues(List.of("invalid", "456"));
-        surveyUnits.get(0).getCollectedVariables().get(1).setValues(List.of("false"));
+        surveyUnits.clear();
+        VariableModel collectedVariable1 = VariableModel.builder()
+                .idVar("var1")
+                .values(List.of("invalid", "456"))
+                .idLoop("loop1")
+                .idParent("parent1")
+                .build();
+        VariableModel collectedVariable2 = VariableModel.builder()
+                .idVar("var2")
+                .values(List.of("false"))
+                .idLoop("loop2")
+                .idParent("parent2")
+                .build();
+        SurveyUnitModel surveyUnit = SurveyUnitModel.builder()
+                .idUE("UE1100000001")
+                .idQuest("Quest1")
+                .idCampaign("Camp1")
+                .state(DataState.COLLECTED)
+                .collectedVariables(List.of(collectedVariable1, collectedVariable2))
+                .externalVariables(List.of())
+                .build();
+        surveyUnits.add(surveyUnit);
 
         // WHEN
         DataVerifier.verifySurveyUnits(surveyUnits, variablesMap);
@@ -124,7 +179,7 @@ class DataVerifierTest {
         SurveyUnitModel forcedUnit = surveyUnits.get(1);
         Assertions.assertEquals(DataState.FORCED, forcedUnit.getState());
         Assertions.assertEquals(1, forcedUnit.getCollectedVariables().size());
-        Assertions.assertEquals("", forcedUnit.getCollectedVariables().getFirst().getValues().getFirst()); // Corrected values
+        Assertions.assertEquals("", forcedUnit.getCollectedVariables().getFirst().values().getFirst()); // Corrected values
     }
 
 }

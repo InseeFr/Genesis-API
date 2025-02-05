@@ -11,10 +11,10 @@ import fr.insee.genesis.controller.sources.xml.LunaticXmlData;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlOtherData;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
 import fr.insee.genesis.controller.sources.xml.ValueType;
-import fr.insee.genesis.domain.model.surveyunit.CollectedVariable;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
+import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -36,6 +36,7 @@ class LunaticXmlAdapterTest {
     LunaticXmlSurveyUnit lunaticXmlSurveyUnit7 = new LunaticXmlSurveyUnit();
     MetadataModel metadataModel = new MetadataModel();
     LunaticXmlSurveyUnit lunaticXmlSurveyUnit8 = new LunaticXmlSurveyUnit();
+    LunaticXmlSurveyUnit lunaticXmlSurveyUnit9 = new LunaticXmlSurveyUnit();
 
     @BeforeEach
     void setUp() {
@@ -191,12 +192,27 @@ class LunaticXmlAdapterTest {
         lunaticXmlSurveyUnit8.setQuestionnaireModelId("idQuest1");
         lunaticXmlSurveyUnit8.setData(lunaticXmlData);
 
+        //SurveyUnit 9 : External data only
+        lunaticXmlData = new LunaticXmlData();
+        collected = List.of();
+        lunaticXmlData.setCollected(collected);
+        LunaticXmlOtherData lunaticXmlOtherData = new LunaticXmlOtherData();
+        lunaticXmlOtherData.setVariableName("extvar1");
+        lunaticXmlOtherData.setValues(List.of(new ValueType("ext", "string")));
+        external = List.of(lunaticXmlOtherData);
+        lunaticXmlData.setExternal(external);
+        lunaticXmlSurveyUnit9.setId("idUE1");
+        lunaticXmlSurveyUnit9.setQuestionnaireModelId("idQuest1");
+        lunaticXmlSurveyUnit9.setData(lunaticXmlData);
+
         //VariablesMap
         Group group = new Group(LOOP_NAME, Constants.ROOT_GROUP_NAME);
         Variable var1 = new Variable("var1", group, VariableType.STRING, "1");
         Variable var2 = new Variable("var2", metadataModel.getRootGroup(), VariableType.STRING, "1");
+        Variable extvar1 = new Variable("extvar1", group, VariableType.STRING, "1");
         metadataModel.getVariables().putVariable(var1);
         metadataModel.getVariables().putVariable(var2);
+        metadataModel.getVariables().putVariable(extvar1);
     }
 
     @Test
@@ -252,8 +268,8 @@ class LunaticXmlAdapterTest {
         Assertions.assertThat(editedDTO).isPresent();
 
         //Content check
-        for (CollectedVariable collectedVariable : editedDTO.get().getCollectedVariables()) {
-            Assertions.assertThat(collectedVariable.getValues()).containsAnyOf("1e", "2e").doesNotContain("1", "2");
+        for (VariableModel collectedVariable : editedDTO.get().getCollectedVariables()) {
+            Assertions.assertThat(collectedVariable.values()).containsAnyOf("1e", "2e").doesNotContain("1", "2");
         }
     }
 
@@ -315,11 +331,11 @@ class LunaticXmlAdapterTest {
         Assertions.assertThat(suDtos).hasSize(1);
 
         Assertions.assertThat(suDtos.getFirst().getCollectedVariables()).filteredOn(collectedVariableDto ->
-                collectedVariableDto.getIdVar().equals("var3")).isNotEmpty();
+                collectedVariableDto.idVar().equals("var3")).isNotEmpty();
         Assertions.assertThat(suDtos.getFirst().getCollectedVariables().stream().filter(collectedVariableDto ->
-                collectedVariableDto.getIdVar().equals("var3")).toList().getFirst().getIdParent()).isNull();
+                collectedVariableDto.idVar().equals("var3")).toList().getFirst().idParent()).isNull();
         Assertions.assertThat(suDtos.getFirst().getCollectedVariables().stream().filter(collectedVariableDto ->
-                collectedVariableDto.getIdVar().equals("var3")).toList().getFirst().getIdLoop()).isEqualTo(Constants.ROOT_GROUP_NAME);
+                collectedVariableDto.idVar().equals("var3")).toList().getFirst().idLoop()).isEqualTo(Constants.ROOT_GROUP_NAME);
     }
 
     @Test
@@ -332,11 +348,11 @@ class LunaticXmlAdapterTest {
         Assertions.assertThat(suDtos).hasSize(1);
 
         Assertions.assertThat(suDtos.getFirst().getCollectedVariables()).filteredOn(collectedVariableDto ->
-                collectedVariableDto.getIdVar().equals("var1_MISSING")).isNotEmpty();
+                collectedVariableDto.idVar().equals("var1_MISSING")).isNotEmpty();
         Assertions.assertThat(suDtos.getFirst().getCollectedVariables().stream().filter(collectedVariableDto ->
-                collectedVariableDto.getIdVar().equals("var1_MISSING")).toList().getFirst().getIdParent()).isNotNull().isEqualTo("var1");
+                collectedVariableDto.idVar().equals("var1_MISSING")).toList().getFirst().idParent()).isNotNull().isEqualTo("var1");
         Assertions.assertThat(suDtos.getFirst().getCollectedVariables().stream().filter(collectedVariableDto ->
-                collectedVariableDto.getIdVar().equals("var1_MISSING")).toList().getFirst().getIdLoop()).isNotEqualTo(Constants.ROOT_GROUP_NAME).isEqualTo(LOOP_NAME);
+                collectedVariableDto.idVar().equals("var1_MISSING")).toList().getFirst().idLoop()).isNotEqualTo(Constants.ROOT_GROUP_NAME).isEqualTo(LOOP_NAME);
     }
 
     @Test
@@ -348,13 +364,29 @@ class LunaticXmlAdapterTest {
         Assertions.assertThat(suDtos).hasSize(1);
         Assertions.assertThat(suDtos.getFirst().getCollectedVariables()).hasSize(3);
         Assertions.assertThat(suDtos.getFirst().getCollectedVariables()).filteredOn(collectedVariableDto ->
-                collectedVariableDto.getIdVar().equals("var1")).isNotEmpty();
+                collectedVariableDto.idVar().equals("var1")).isNotEmpty();
         Assertions.assertThat(suDtos.getFirst().getCollectedVariables()).filteredOn(collectedVariableDto ->
-                collectedVariableDto.getIdLoop().equals("BOUCLE1_1")).isEmpty();
+                collectedVariableDto.idLoop().equals("BOUCLE1_1")).isEmpty();
         Assertions.assertThat(suDtos.getFirst().getCollectedVariables().stream().filter(collectedVariableDto ->
-                collectedVariableDto.getIdLoop().equals("BOUCLE1_2")).toList().getFirst().getValues().getFirst()).isEqualTo("1");
+                collectedVariableDto.idLoop().equals("BOUCLE1_2")).toList().getFirst().values().getFirst()).isEqualTo("1");
         Assertions.assertThat(suDtos.getFirst().getCollectedVariables().stream().filter(collectedVariableDto ->
-                collectedVariableDto.getIdLoop().equals("BOUCLE1_3")).toList().getFirst().getValues().getFirst()).isEqualTo("2");
+                collectedVariableDto.idLoop().equals("BOUCLE1_3")).toList().getFirst().values().getFirst()).isEqualTo("2");
 
+    }
+
+    @Test
+    @DisplayName("External value should be affected in the good loop iteration")
+    void test12(){
+        // When
+        List<SurveyUnitModel> suDtos = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit9, metadataModel.getVariables(), ID_CAMPAIGN, Mode.WEB);
+        // Then
+        Assertions.assertThat(suDtos).hasSize(1);
+        Assertions.assertThat(suDtos.getFirst().getCollectedVariables()).isEmpty();
+        Assertions.assertThat(suDtos.getFirst().getExternalVariables()).hasSize(1);
+        Assertions.assertThat(suDtos.getFirst().getExternalVariables().getFirst().idVar()).isEqualTo("extvar1");
+        Assertions.assertThat(suDtos.getFirst().getExternalVariables().getFirst().values()).hasSize(1);
+        Assertions.assertThat(suDtos.getFirst().getExternalVariables().getFirst().values().getFirst()).isEqualTo("ext");
+        Assertions.assertThat(suDtos.getFirst().getExternalVariables().getFirst().idLoop()).isEqualTo(LOOP_NAME+"_1");
+        Assertions.assertThat(suDtos.getFirst().getExternalVariables().getFirst().idParent()).isEqualTo(Constants.ROOT_GROUP_NAME);
     }
 }
