@@ -40,28 +40,29 @@ class SurveyUnitDocumentMapperImplTest {
         List<VariableDocument> documentExternalVariableList = new ArrayList<>();
         VariableDocument externalVariable = new VariableDocument();
         externalVariable.setVarId("TESTIDVAR");
-        externalVariable.setValues(List.of(new String[]{"V1", "V2"}));
+        externalVariable.setValue("V1");
         documentExternalVariableList.add(externalVariable);
         surveyUnitDocumentStatic.setExternalVariables(documentExternalVariableList);
 
         List<VariableDocument> documentCollectedVariableList = new ArrayList<>();
         VariableDocument variableDocument = new VariableDocument();
         variableDocument.setVarId("TESTIDVAR");
-        variableDocument.setValues(List.of(new String[]{"V1", "V2"}));
+        variableDocument.setValue("V1");
         documentCollectedVariableList.add(variableDocument);
         surveyUnitDocumentStatic.setCollectedVariables(documentCollectedVariableList);
 
         List<VariableModel> externalVariableDtoList = new ArrayList<>();
         VariableModel variable =
-                VariableModel.builder().varId("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
+                VariableModel.builder().varId("TESTIDVAR").value("V1").build();
         externalVariableDtoList.add(variable);
 
         List<VariableModel> collectedVariableList = new ArrayList<>();
         VariableModel collectedVariable = VariableModel.builder()
                 .varId("TESTIDVAR")
-                .values(List.of(new String[]{"V1", "V2"}))
+                .value("V1")
                 .loopId("TESTIDLOOP")
                 .parentId("TESTIDPARENT")
+                .iteration(1)
                 .build();
         collectedVariableList.add(collectedVariable);
 
@@ -104,12 +105,12 @@ class SurveyUnitDocumentMapperImplTest {
 
         Assertions.assertThat(surveyUnit.getExternalVariables()).filteredOn(externalVariableDto ->
             externalVariableDto.varId().equals("TESTIDVAR")
-            && externalVariableDto.values().containsAll(List.of(new String[]{"V1", "V2"}))
+            && externalVariableDto.value().equals("V1")
         ).isNotEmpty();
 
         Assertions.assertThat(surveyUnit.getCollectedVariables()).filteredOn(variableStateDto ->
                 variableStateDto.varId().equals("TESTIDVAR")
-                        && variableStateDto.values().containsAll(List.of(new String[]{"V1", "V2"}))
+                        && variableStateDto.value().equals("V1")
         ).isNotEmpty();
 
     }
@@ -128,12 +129,12 @@ class SurveyUnitDocumentMapperImplTest {
 
         Assertions.assertThat(surveyUnitDocument.getExternalVariables()).filteredOn(externalVariableDto ->
                 externalVariableDto.getVarId().equals("TESTIDVAR")
-                        && externalVariableDto.getValues().containsAll(List.of(new String[]{"V1", "V2"}))
+                        && externalVariableDto.getValue().equals("V1")
         ).isNotEmpty();
 
         Assertions.assertThat(surveyUnitDocument.getCollectedVariables()).filteredOn(variableDocument ->
                 variableDocument.getVarId().equals("TESTIDVAR")
-                        && variableDocument.getValues().containsAll(List.of(new String[]{"V1", "V2"}))
+                        && variableDocument.getValue().equals("V1")
         ).isNotEmpty();
 
     }
@@ -156,12 +157,12 @@ class SurveyUnitDocumentMapperImplTest {
 
         Assertions.assertThat(surveyUnitList.getFirst().getExternalVariables()).filteredOn(externalVariableDto ->
                 externalVariableDto.varId().equals("TESTIDVAR")
-                        && externalVariableDto.values().containsAll(List.of(new String[]{"V1", "V2"}))
+                        && externalVariableDto.value().equals("V1")
         ).isNotEmpty();
 
         Assertions.assertThat(surveyUnitList.getFirst().getCollectedVariables()).filteredOn(variableStateDto ->
                 variableStateDto.varId().equals("TESTIDVAR")
-                        && variableStateDto.values().containsAll(List.of(new String[]{"V1", "V2"}))
+                        && variableStateDto.value().equals("V1")
         ).isNotEmpty();
     }
 
@@ -182,12 +183,12 @@ class SurveyUnitDocumentMapperImplTest {
 
         Assertions.assertThat(surveyUnitDocumentList.getFirst().getExternalVariables()).filteredOn(externalVariableDto ->
                 externalVariableDto.getVarId().equals("TESTIDVAR")
-                        && externalVariableDto.getValues().containsAll(List.of(new String[]{"V1", "V2"}))
+                        && externalVariableDto.getValue().equals("V1")
         ).isNotEmpty();
 
         Assertions.assertThat(surveyUnitDocumentList.getFirst().getCollectedVariables()).filteredOn(variableDocument ->
                 variableDocument.getVarId().equals("TESTIDVAR")
-                        && variableDocument.getValues().containsAll(List.of(new String[]{"V1", "V2"}))
+                        && variableDocument.getValue().equals("V1")
         ).isNotEmpty();
     }
 }

@@ -44,18 +44,33 @@ class SurveyUnitServiceTest {
         List<VariableModel> externalVariableList = new ArrayList<>();
         VariableModel variable = VariableModel.builder()
                 .varId("TESTIDVAR")
-                .values(List.of(new String[]{"V1", "V2"})).build();
+                .value("V1")
+                .iteration(1)
+                .build();
+        externalVariableList.add(variable);
+        variable = VariableModel.builder()
+                .varId("TESTIDVAR")
+                .value("V2")
+                .iteration(2)
+                .build();
         externalVariableList.add(variable);
 
         List<VariableModel> collectedVariableList = new ArrayList<>();
         VariableModel collectedVariable = VariableModel.builder()
                 .varId("TESTIDVAR")
-                .values(List.of(new String[]{"V1", "V2"}))
+                .value("V1")
                 .loopId("TESTIDLOOP")
                 .parentId("TESTIDPARENT")
+                .iteration(1)
                 .build();
-
-
+        collectedVariableList.add(collectedVariable);
+        collectedVariable = VariableModel.builder()
+                .varId("TESTIDVAR")
+                .value("V2")
+                .loopId("TESTIDLOOP")
+                .parentId("TESTIDPARENT")
+                .iteration(2)
+                .build();
         collectedVariableList.add(collectedVariable);
         surveyUnitPersistencePortStub.getMongoStub().add(SurveyUnitModel.builder()
                 .campaignId("TESTIDCAMPAIGN")
@@ -79,17 +94,34 @@ class SurveyUnitServiceTest {
         List<VariableModel> externalVariableList = new ArrayList<>();
         VariableModel externalVariableModel = VariableModel.builder()
                 .varId("TESTIDVAR")
-                .values(List.of(new String[]{"V1", "V2"})).build();
+                .value("V1")
+                .iteration(1)
+                .build();
         externalVariableList.add(externalVariableModel);
+        externalVariableModel = VariableModel.builder()
+                .varId("TESTIDVAR")
+                .value("V2")
+                .iteration(2)
+                .build();
+        externalVariableList.add(externalVariableModel);
+
 
         List<VariableModel> collectedVariableList = new ArrayList<>();
         VariableModel collectedVariableModel = VariableModel.builder()
                 .varId("TESTIDVAR")
-                .values(List.of(new String[]{"V1", "V2"}))
+                .value("V1")
                 .loopId("TESTIDLOOP")
                 .parentId("TESTIDPARENT")
+                .iteration(1)
                 .build();
-
+        collectedVariableList.add(collectedVariableModel);
+        collectedVariableModel = VariableModel.builder()
+                .varId("TESTIDVAR")
+                .value("V2")
+                .loopId("TESTIDLOOP")
+                .parentId("TESTIDPARENT")
+                .iteration(2)
+                .build();
         collectedVariableList.add(collectedVariableModel);
 
         newSurveyUnitModelList.add(
@@ -118,11 +150,13 @@ class SurveyUnitServiceTest {
                 && surveyUnitModel.getRecordDate().equals(LocalDateTime.of(2024,1,1,0,0,0))
                 && !surveyUnitModel.getExternalVariables().stream().filter(
                         externalVariable -> externalVariable.varId().equals("TESTIDVAR")
-                        && externalVariable.values().containsAll(List.of(new String[]{"V1", "V2"}))
+                                && externalVariable.iteration().equals(1)
+                                && externalVariable.value().equals("V1")
                 ).toList().isEmpty()
                         && !surveyUnitModel.getCollectedVariables().stream().filter(
                         collectedVariable -> collectedVariable.varId().equals("TESTIDVAR")
-                                && collectedVariable.values().containsAll(List.of(new String[]{"V1", "V2"}))
+                                && collectedVariable.iteration().equals(2)
+                                && collectedVariable.value().equals("V2")
                 ).toList().isEmpty()
                 ).isNotEmpty();
     }
@@ -430,16 +464,26 @@ class SurveyUnitServiceTest {
 
     private void addAdditionnalDtoToMongoStub(){
         List<VariableModel> externalVariableList = new ArrayList<>();
-        VariableModel externalVariableModel = VariableModel.builder().varId("TESTIDVAR").values(List.of(new String[]{"V1"
-                , "V2"})).build();
+        VariableModel externalVariableModel = VariableModel.builder()
+                .varId("TESTIDVAR")
+                .value("V1")
+                .iteration(1)
+                .build();
+        externalVariableList.add(externalVariableModel);
+        externalVariableModel = VariableModel.builder()
+                .varId("TESTIDVAR")
+                .value("V2")
+                .iteration(2)
+                .build();
         externalVariableList.add(externalVariableModel);
 
         List<VariableModel> collectedVariableList = new ArrayList<>();
         VariableModel collectedVariableModel = VariableModel.builder()
                 .varId("TESTIDVAR")
-                .values(List.of(new String[]{"V1", "V2"}))
+                .value("V1")
                 .loopId("TESTIDLOOP")
                 .parentId("TESTIDPARENT")
+                .iteration(1)
                 .build();
         collectedVariableList.add(collectedVariableModel);
 
@@ -459,16 +503,34 @@ class SurveyUnitServiceTest {
 
     private void addAdditionnalDtoToMongoStub(String idQuestionnaire) {
         List<VariableModel> externalVariableList = new ArrayList<>();
-        VariableModel externalVariableModel = VariableModel.builder().varId("TESTIDVAR").values(List.of(new String[]{"V1"
-                , "V2"})).build();
+        VariableModel externalVariableModel = VariableModel.builder()
+                .varId("TESTIDVAR")
+                .value("V1")
+                .iteration(1)
+                .build();
+        externalVariableList.add(externalVariableModel);
+        externalVariableModel = VariableModel.builder()
+                .varId("TESTIDVAR")
+                .value("V2")
+                .iteration(2)
+                .build();
         externalVariableList.add(externalVariableModel);
 
         List<VariableModel> collectedVariableList = new ArrayList<>();
         VariableModel collectedVariableModel = VariableModel.builder()
                 .varId("TESTIDVAR")
-                .values(List.of(new String[]{"V1", "V2"}))
+                .value("V1")
                 .loopId("TESTIDLOOP")
                 .parentId("TESTIDPARENT")
+                .iteration(1)
+                .build();
+        collectedVariableList.add(collectedVariableModel);
+        collectedVariableModel = VariableModel.builder()
+                .varId("TESTIDVAR")
+                .value("V2")
+                .loopId("TESTIDLOOP")
+                .parentId("TESTIDPARENT")
+                .iteration(2)
                 .build();
         collectedVariableList.add(collectedVariableModel);
 
@@ -493,15 +555,20 @@ class SurveyUnitServiceTest {
                                                          LocalDateTime recordDate) {
         List<VariableModel> externalVariableList = new ArrayList<>();
         VariableModel externalVariableModel =
-                VariableModel.builder().varId("TESTIDVAR").values(List.of(new String[]{externalVariableValue})).build();
+                VariableModel.builder()
+                        .varId("TESTIDVAR")
+                        .value(externalVariableValue)
+                        .iteration(1)
+                        .build();
         externalVariableList.add(externalVariableModel);
 
         List<VariableModel> collectedVariableList = new ArrayList<>();
         VariableModel collectedVariable = VariableModel.builder()
                 .varId("TESTIDVAR")
-                .values(List.of(new String[]{collectedVariableValue}))
+                .value(collectedVariableValue)
                 .loopId("TESTIDLOOP")
                 .parentId("TESTIDPARENT")
+                .iteration(1)
                 .build();
         collectedVariableList.add(collectedVariable);
 

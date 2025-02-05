@@ -37,25 +37,24 @@ Feature: Do we extract data ?
   Scenario Outline: Collected data extraction content
     Given We have data in directory "<Directory>"
     When We create DTOs from file "<FileName>" with DDI "<DDIFileName>"
-    Then We should have a "<ExpectedDataState>" DTO for survey unit "<SurveyUnitId>" with "<VariableName>" filled with "<ExpectedValue>" at index <ExpectedIndex>
+    Then We should have a "<ExpectedDataState>" DTO for survey unit "<SurveyUnitId>" with "<VariableName>" filled with "<ExpectedValue>" for iteration <Iteration>
     Examples:
-      | Directory              | FileName                                                          | DDIFileName                   |  ExpectedDataState | SurveyUnitId | VariableName   | ExpectedValue  | ExpectedIndex |
-      | SAMPLETEST-PARADATA-v1 | reponse-platine/data.complete.validated.STPDv1.20231122164209.xml |ddi-SAMPLETEST-PARADATA-v1.xml | COLLECTED          | 0000007      | PRENOM_C       | TESTPRENOM7    | 0             |
-      | SAMPLETEST-PARADATA-v2 | reponse-platine/data.complete.validated.STPDv2.20231122164209.xml |ddi-SAMPLETEST-PARADATA-v2.xml | COLLECTED          | 0000007      | PRENOM_C       | TESTPRENOM7    | 0             |
-      | SAMPLETEST-PARADATA-v2 | reponse-platine/data.complete.validated.STPDv2.20231122164209.xml |ddi-SAMPLETEST-PARADATA-v2.xml | EDITED             | 0000007      | SANTE_ENFLOG71 | TESTSANTE7E    | 0             |
-      | SAMPLETEST-PARADATA-v2 | reponse-platine/data.complete.validated.STPDv2.20231122164209.xml |ddi-SAMPLETEST-PARADATA-v2.xml | INPUTED            | 0000007      | PETIT_ENF      | TESTPETITENF7I | 0             |
-      | SAMPLETEST-PARADATA-v2 | reponse-platine/data.complete.validated.STPDv2.20231122164209.xml |ddi-SAMPLETEST-PARADATA-v2.xml | FORCED             | 0000007      | LANGUE2_ENTOU  | FR             | 0             |
-      | SAMPLETEST-PARADATA-v2 | reponse-platine/data.complete.validated.STPDv2.20231122164209.xml |ddi-SAMPLETEST-PARADATA-v2.xml | PREVIOUS           | 0000007      | AVIS_FILTRE    | 1              | 0             |
+      | Directory              | FileName                                                          | DDIFileName                   |  ExpectedDataState | SurveyUnitId | VariableName   | ExpectedValue  | Iteration     |
+      | SAMPLETEST-PARADATA-v1 | reponse-platine/data.complete.validated.STPDv1.20231122164209.xml |ddi-SAMPLETEST-PARADATA-v1.xml | COLLECTED          | 0000007      | PRENOM_C       | TESTPRENOM7    | 1             |
+      | SAMPLETEST-PARADATA-v2 | reponse-platine/data.complete.validated.STPDv2.20231122164209.xml |ddi-SAMPLETEST-PARADATA-v2.xml | COLLECTED          | 0000007      | PRENOM_C       | TESTPRENOM7    | 1             |
+      | SAMPLETEST-PARADATA-v2 | reponse-platine/data.complete.validated.STPDv2.20231122164209.xml |ddi-SAMPLETEST-PARADATA-v2.xml | EDITED             | 0000007      | SANTE_ENFLOG71 | TESTSANTE7E    | 1             |
+      | SAMPLETEST-PARADATA-v2 | reponse-platine/data.complete.validated.STPDv2.20231122164209.xml |ddi-SAMPLETEST-PARADATA-v2.xml | INPUTED            | 0000007      | PETIT_ENF      | TESTPETITENF7I | 1             |
+      | SAMPLETEST-PARADATA-v2 | reponse-platine/data.complete.validated.STPDv2.20231122164209.xml |ddi-SAMPLETEST-PARADATA-v2.xml | FORCED             | 0000007      | LANGUE2_ENTOU  | FR             | 1             |
+      | SAMPLETEST-PARADATA-v2 | reponse-platine/data.complete.validated.STPDv2.20231122164209.xml |ddi-SAMPLETEST-PARADATA-v2.xml | PREVIOUS           | 0000007      | AVIS_FILTRE    | 1              | 1             |
 
 
   Scenario Outline: External data extraction
     Given We have data in directory "<Directory>"
     Given We copy data file "data_backup/data.complete.validated.STPDv1.20231122164209.xml" to that directory
     When We save data from that directory
-    Then We should have 1 values for external variable "<ExternalVariableName>" for survey unit "<SurveyUnitId>"
-    And For external variable "<ExternalVariableName>" in survey unit "<SurveyUnitId>" we should have "<ExpectedValue>" and loopId "<LoopId>"
+    Then For external variable "<ExternalVariableName>" in survey unit "<SurveyUnitId>" we should have "<ExpectedValue>" and loopId "<LoopId>" for iteration <Iteration>
     Examples:
-      | Directory              | ExternalVariableName | LoopId        | SurveyUnitId | ExpectedValue    |
-      | SAMPLETEST             | RPANAISCONJ          | B_PRENOMREP_1 | 0000007      | 1986             |
-      | SAMPLETEST             | RPPRENOM             | B_PRENOMREP_1 | 0000007      | TESTRPRENOM7_2   |
-      | SAMPLETEST             | RPPRENOM             | B_PRENOMREP_2 | 0000007      | TESTRPRENOM7PAR1 |
+      | Directory              | ExternalVariableName | LoopId        | SurveyUnitId | ExpectedValue  | Iteration |
+      | SAMPLETEST             | RPANAISCONJ          | B_PRENOMREP | 0000007      | 1986             | 1         |
+      | SAMPLETEST             | RPPRENOM             | B_PRENOMREP | 0000007      | TESTRPRENOM7_2   | 1         |
+      | SAMPLETEST             | RPPRENOM             | B_PRENOMREP | 0000007      | TESTRPRENOM7PAR1 | 2         |

@@ -274,12 +274,10 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             for(VariableInputDto editedVariableDto : editedCollectedVariables){
                 VariableModel collectedVariable = VariableModel.builder()
                         .varId(editedVariableDto.getVariableName())
-                        .values(new ArrayList<>())
+                        .value(editedVariableDto.getVariableStateInputDto().getValue())
                         .parentId(LoopIdentifier.getRelatedVariableName(editedVariableDto.getVariableName(), variablesMap))
                         .loopId(editedVariableDto.getLoopId())
                         .build();
-
-                collectedVariable.values().add(editedVariableDto.getVariableStateInputDto().getValue());
 
                 surveyUnitModel.getCollectedVariables().add(collectedVariable);
 
@@ -324,12 +322,12 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                 collectedVariableMap.put(loopIdTuple, variableDto);
             }
             //Extract variable state
-            if (!collectedVariable.values().isEmpty() && isMostRecentForSameState(surveyUnitModel, variableDto)) {
+            if (!collectedVariable.value().isEmpty() && isMostRecentForSameState(surveyUnitModel, variableDto)) {
                 variableDto.getVariableStateDtoList().add(
                         VariableStateDto.builder()
                                 .state(surveyUnitModel.getState())
                                 .active(isLastVariableState(surveyUnitModel, variableDto))
-                                .value(collectedVariable.values().getFirst())
+                                .value(collectedVariable.value())
                                 .date(surveyUnitModel.getRecordDate())
                                 .build()
                 );
@@ -353,12 +351,12 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                 externalVariableMap.put(loopIdTuple, variableDto);
             }
             //Extract variable state
-            if(!externalVariable.values().isEmpty() && isMostRecentForSameState(surveyUnitModel, variableDto)){
+            if(!externalVariable.value().isEmpty() && isMostRecentForSameState(surveyUnitModel, variableDto)){
                 variableDto.getVariableStateDtoList().add(
                         VariableStateDto.builder()
                                 .state(surveyUnitModel.getState())
                                 .active(isLastVariableState(surveyUnitModel, variableDto))
-                                .value(externalVariable.values().getFirst())
+                                .value(externalVariable.value())
                                 .date(surveyUnitModel.getRecordDate())
                                 .build()
                 );

@@ -7,10 +7,10 @@ Feature: Do we save loops ?
     When We save data from that directory
     When We delete that directory
 
-    Then For external variable "<VariableName>" in survey unit "<InterrogationId>" we should have "<ExpectedIdLoop>" as loopId and "<ExpectedValue>" as first value
+    Then For external variable "<VariableName>" in survey unit "<InterrogationId>" we should have "<ExpectedValue>" and loopId "<ExpectedIdLoop>" for iteration <Iteration>
     Examples:
-      | VariableName       | InterrogationId | ExpectedIdLoop | ExpectedValue |
-      | CODESA             | AUTO11000       | TABESA_1       | AAA |
-      | CODESA             | AUTO11000       | TABESA_2       | BBB |
-      | CODESA             | AUTO11000       | TABESA_3       | CCC |
-      | CODESA             | AUTO11000       | TABESA_4       | DDD |
+      | VariableName       | InterrogationId | ExpectedIdLoop | ExpectedValue | Iteration |
+      | CODESA             | AUTO11000       | TABESA         | AAA           | 1         |
+      | CODESA             | AUTO11000       | TABESA         | BBB           | 2         |
+      | CODESA             | AUTO11000       | TABESA         | CCC           | 3         |
+      | CODESA             | AUTO11000       | TABESA         | DDD           | 4         |

@@ -14,8 +14,8 @@ import fr.insee.genesis.controller.utils.AuthUtils;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
-import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
+import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService;
 import fr.insee.genesis.domain.service.rawdata.LunaticXmlRawDataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
@@ -28,7 +28,6 @@ import fr.insee.genesis.stubs.LunaticXmlPersistanceStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
-import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
@@ -45,7 +44,6 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 public class MainDefinitions {
     String directory;
@@ -145,135 +143,63 @@ public class MainDefinitions {
         ).isEmpty();
     }
 
-    @Then("We should have a {string} DTO for survey unit {string} with {string} filled with {string} at index {int}")
-    public void check_survey_unit_dto_content(String dataState, String surveyUnitId, String variableName, String expectedValue, int expectedIndex) {
-        //Get DTO
-        Assertions.assertThat(this.surveyUnitModels).filteredOn(surveyUnitDto ->
-                surveyUnitDto.getState().toString().equals(dataState)
-                        && surveyUnitDto.getInterrogationId().equals(surveyUnitId)
-        ).isNotEmpty();
-
-        Optional<SurveyUnitModel> concernedSurveyUnitModelOptional = this.surveyUnitModels.stream().filter(dto ->
+    @Then("We should have a {string} DTO for survey unit {string} with {string} filled with {string} for iteration " +
+            "{int}")
+    public void check_survey_unit_dto_content(String dataState, String surveyUnitId, String variableName,
+                                              String expectedValue, int iteration) {
+        //Get model
+       List<SurveyUnitModel> concernedSurveyUnitModels = this.surveyUnitModels.stream().filter(dto ->
                 dto.getState().toString().equals(dataState)
                 && dto.getInterrogationId().equals(surveyUnitId)
-        ).findFirst();
+        ).toList();
 
-        Assertions.assertThat(concernedSurveyUnitModelOptional).isPresent();
-
-        SurveyUnitModel concernedSurveyUnitModel = concernedSurveyUnitModelOptional.get();
+        Assertions.assertThat(concernedSurveyUnitModels).isNotEmpty();
+        SurveyUnitModel concernedSurveyUnitModel = concernedSurveyUnitModels.getFirst();
 
         //Get Variable
-        Assertions.assertThat(concernedSurveyUnitModel.getCollectedVariables()).filteredOn(collectedvariableModel ->
-                collectedvariableModel.varId().equals(variableName)).isNotEmpty();
+        List<VariableModel> concernedCollectedVariables =
+                concernedSurveyUnitModel.getCollectedVariables().stream().filter(variable ->
+                    variable.varId().equals(variableName)
+                    && variable.iteration().equals(iteration)
+        ).toList();
 
-        Optional<VariableModel> concernedCollectedVariableOptional = concernedSurveyUnitModel.getCollectedVariables().stream().filter(variable ->
-                variable.varId().equals(variableName)
-        ).findFirst();
+        Assertions.assertThat(concernedCollectedVariables).isNotEmpty().hasSize(1);
 
-        Assertions.assertThat(concernedCollectedVariableOptional).isPresent();
-
-        VariableModel concernedCollectedVariable = concernedCollectedVariableOptional.get();
+        VariableModel concernedCollectedVariable = concernedCollectedVariables.getFirst();
 
         //Value assertion
-        Assertions.assertThat(concernedCollectedVariable.values()).hasSizeGreaterThan(expectedIndex);
-
-        Assertions.assertThat(concernedCollectedVariable.values().get(expectedIndex)).isEqualTo(expectedValue);
+        Assertions.assertThat(concernedCollectedVariable.value()).isEqualTo(expectedValue);
     }
 
-    @Then("We should have {int} values for external variable {string} for survey unit {string}")
-    public void external_variable_volumetric_check(int expectedNumberOfValues, String externalVariableName,
-                                                   String interrogationId) {
-        //Get SurveyUnitModel
-        Assertions.assertThat(surveyUnitPersistence.getMongoStub()).filteredOn(surveyUnitModel ->
-                surveyUnitModel.getState().equals(DataState.COLLECTED)
-                        && surveyUnitModel.getInterrogationId().equals(interrogationId)
-        ).isNotEmpty().hasSize(1);
-
-        SurveyUnitModel surveyUnitModel = surveyUnitPersistence.getMongoStub().stream().filter(surveyUnitModel1 ->
-                surveyUnitModel1.getState().equals(DataState.COLLECTED)
-                        && surveyUnitModel1.getInterrogationId().equals(interrogationId)
-        ).toList().getFirst();
-
-        //Get Variable
-        Assertions.assertThat(surveyUnitModel.getExternalVariables()).filteredOn(variableModel ->
-                variableModel.varId().equals(externalVariableName)).isNotEmpty();
-
-        Optional<VariableModel> concernedVariableOptional = surveyUnitModel.getExternalVariables().stream().filter(variable ->
-                variable.varId().equals(externalVariableName)
-        ).findFirst();
-
-        Assertions.assertThat(concernedVariableOptional).isPresent();
-
-        VariableModel concernedVariable = concernedVariableOptional.get();
-
-        //Values count assertion
-        Assertions.assertThat(concernedVariable.values()).hasSize(expectedNumberOfValues);
-
-    }
-
-    @And("For external variable {string} in survey unit {string} we should have {string} and loopId {string}")
+    @Then("For external variable {string} in survey unit {string} we should have {string} and loopId {string} for " +
+            "iteration {int}")
     public void forExternalVariableInSurveyUnitWeShouldHaveForLoop(String externalVariableName,
                                                                    String interrogationId,
                                                                    String expectedValue,
-                                                                   String expectedLoopId) {
+                                                                   String expectedLoopId,
+                                                                   Integer iteration
+                                                                   ) {
         //Get SurveyUnitModel
-        Assertions.assertThat(surveyUnitPersistence.getMongoStub()).filteredOn(surveyUnitDto ->
-                surveyUnitDto.getState().equals(DataState.COLLECTED)
-                        && surveyUnitDto.getInterrogationId().equals(interrogationId)
-        ).isNotEmpty().hasSize(1);
-
-        SurveyUnitModel surveyUnitModel = surveyUnitPersistence.getMongoStub().stream().filter(dto ->
+        List<SurveyUnitModel> concernedSurveyUnitModels = surveyUnitPersistence.getMongoStub().stream().filter(dto ->
                 dto.getState().equals(DataState.COLLECTED)
                         && dto.getInterrogationId().equals(interrogationId)
-        ).toList().getFirst();
+        ).toList();
+        Assertions.assertThat(concernedSurveyUnitModels).hasSize(1);
+
+        SurveyUnitModel surveyUnitModel = concernedSurveyUnitModels.getFirst();
 
         //Get Variable
-        Assertions.assertThat(surveyUnitModel.getExternalVariables()).filteredOn(variableModel ->
+        List<VariableModel> concernedExternalVariables =
+                surveyUnitModel.getExternalVariables().stream().filter(variableModel ->
                 variableModel.varId().equals(externalVariableName)
                         && Objects.equals(variableModel.loopId(), expectedLoopId)
-        ).isNotEmpty().hasSize(1);
+                        && variableModel.iteration().equals(iteration)
+        ).toList();
 
-        VariableModel concernedExternalVariable = surveyUnitModel.getExternalVariables().stream().filter(variableModel ->
-                variableModel.varId().equals(externalVariableName)
-                        && Objects.equals(variableModel.loopId(), expectedLoopId)
-        ).toList().getFirst();
+        VariableModel variableModel = concernedExternalVariables.getFirst();
 
         //Value content assertion
-        Assertions.assertThat(concernedExternalVariable.values()).hasSize(1);
-        Assertions.assertThat(concernedExternalVariable.values().getFirst()).isEqualTo(expectedValue);
-        Assertions.assertThat(concernedExternalVariable.loopId()).isNotNull().isEqualTo(expectedLoopId);
-    }
-
-    @Then("For external variable {string} in survey unit {string} we should have {string} as loopId and {string} as first " +
-            "value")
-    public void check_loopId_and_value(String externalVariableName, String interrogationId, String expectedLoopId,
-                             String expectedValue) {
-        //Get SurveyUnitModel
-        Assertions.assertThat(surveyUnitPersistence.getMongoStub()).filteredOn(surveyUnitDto ->
-                surveyUnitDto.getState().equals(DataState.COLLECTED)
-                        && surveyUnitDto.getInterrogationId().equals(interrogationId)
-        ).isNotEmpty().hasSize(1);
-
-        SurveyUnitModel surveyUnitModel = surveyUnitPersistence.getMongoStub().stream().filter(dto ->
-                dto.getState().equals(DataState.COLLECTED)
-                        && dto.getInterrogationId().equals(interrogationId)
-        ).toList().getFirst();
-
-        //Get Variable
-        Assertions.assertThat(surveyUnitModel.getExternalVariables()).filteredOn(variableModel ->
-                variableModel.varId().equals(externalVariableName)
-                && Objects.equals(variableModel.loopId(), expectedLoopId)
-        ).isNotEmpty().hasSize(1);
-
-        VariableModel concernedExternalVariable = surveyUnitModel.getExternalVariables().stream().filter(variableModel ->
-                        variableModel.varId().equals(externalVariableName)
-                        && Objects.equals(variableModel.loopId(), expectedLoopId)
-                ).toList().getFirst();
-
-        //Value content assertion
-        Assertions.assertThat(concernedExternalVariable.loopId()).isNotNull().isEqualTo(expectedLoopId);
-        Assertions.assertThat(concernedExternalVariable.values()).hasSize(1);
-        Assertions.assertThat(concernedExternalVariable.values().getFirst()).isEqualTo(expectedValue);
+        Assertions.assertThat(variableModel.value()).isEqualTo(expectedValue);
     }
 
     @After
