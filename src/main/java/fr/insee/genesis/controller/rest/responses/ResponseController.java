@@ -8,19 +8,20 @@ import fr.insee.bpm.metadata.reader.lunatic.LunaticReader;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.adapter.LunaticXmlAdapter;
 import fr.insee.genesis.controller.dto.SurveyUnitDto;
-import fr.insee.genesis.controller.dto.InterrogationId;
 import fr.insee.genesis.controller.dto.SurveyUnitQualityToolDto;
+import fr.insee.genesis.controller.dto.InterrogationId;
+import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
 import fr.insee.genesis.controller.dto.SurveyUnitSimplified;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlCampaign;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlDataParser;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlDataSequentialParser;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
+import fr.insee.genesis.controller.utils.AuthUtils;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.controller.utils.DataTransformer;
-import fr.insee.genesis.domain.model.surveyunit.CollectedVariable;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
-import fr.insee.genesis.domain.model.surveyunit.Variable;
+import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.LunaticXmlRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
@@ -56,6 +57,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @RequestMapping(path = "/responses" )
@@ -75,6 +77,7 @@ public class ResponseController {
     private final LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort;
     private final FileUtils fileUtils;
     private final ControllerUtils controllerUtils;
+    private final AuthUtils authUtils;
 
 
     public ResponseController(SurveyUnitApiPort surveyUnitService,
@@ -82,13 +85,16 @@ public class ResponseController {
                               LunaticXmlRawDataApiPort lunaticXmlRawDataApiPort,
                               LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort,
                               FileUtils fileUtils,
-                              ControllerUtils controllerUtils) {
+                              ControllerUtils controllerUtils,
+                              AuthUtils authUtils
+    ) {
         this.surveyUnitService = surveyUnitService;
         this.surveyUnitQualityService = surveyUnitQualityService;
         this.lunaticXmlRawDataApiPort = lunaticXmlRawDataApiPort;
         this.lunaticJsonRawDataApiPort = lunaticJsonRawDataApiPort;
         this.fileUtils = fileUtils;
         this.controllerUtils = controllerUtils;
+        this.authUtils = authUtils;
     }
 
     //SAVE
@@ -232,7 +238,7 @@ public class ResponseController {
             try {
                 List<Mode> modesList = controllerUtils.getModesList(campaignName, null); //modeSpecified null = all modes
                 for (Mode currentMode : modesList) {
-                    processCampaignWithMode(campaignName, currentMode, errors, Constants.DIFFRENTIAL_DATA_FOLDER_NAME);
+                    processCampaignWithMode(campaignName, currentMode, errors, Constants.DIFFERENTIAL_DATA_FOLDER_NAME);
                 }
             }catch (NoDataException nde){
                 log.warn(nde.getMessage());
@@ -314,9 +320,9 @@ public class ResponseController {
     public ResponseEntity<SurveyUnitSimplified> getLatestByInterrogationOneObject(@RequestParam("interrogationId") String interrogationId,
                                                                              @RequestParam("questionnaireId") String questionnaireId,
                                                                              @RequestParam("mode") Mode mode) {
-        List<SurveyUnitModel> responses = surveyUnitService.findLatestByIdAndByQuestionnaireId(interrogationId, questionnaireId);
-        List<CollectedVariable> outputVariables = new ArrayList<>();
-        List<Variable> outputExternalVariables = new ArrayList<>();
+        List<SurveyUnitModel> responses = surveyUnitService.findLatestByIdAndByIdQuestionnaire(interrogationId, questionnaireId);
+        List<VariableModel> outputVariables = new ArrayList<>();
+        List<VariableModel> outputExternalVariables = new ArrayList<>();
         responses.stream().filter(rep -> rep.getMode().equals(mode)).forEach(response -> {
             outputVariables.addAll(response.getCollectedVariables());
             outputExternalVariables.addAll(response.getExternalVariables());
@@ -342,8 +348,8 @@ public class ResponseController {
         interrogationIds.forEach(interrogationId -> {
             List<SurveyUnitModel> responses = surveyUnitService.findLatestByIdAndByQuestionnaireId(interrogationId.getInterrogationId(), questionnaireId);
             modes.forEach(mode -> {
-                List<CollectedVariable> outputVariables = new ArrayList<>();
-                List<Variable> outputExternalVariables = new ArrayList<>();
+                List<VariableModel> outputVariables = new ArrayList<>();
+                List<VariableModel> outputExternalVariables = new ArrayList<>();
                 responses.stream().filter(rep -> rep.getMode().equals(mode)).forEach(response -> {
                     outputVariables.addAll(response.getCollectedVariables());
                     outputExternalVariables.addAll(response.getExternalVariables());
@@ -361,6 +367,59 @@ public class ResponseController {
             });
         });
         return ResponseEntity.ok(results);
+    }
+
+    @Operation(summary = "Save edited variables",
+            description = "Save edited variables document into database")
+    @PostMapping(path = "/save-edited")
+    public ResponseEntity<Object> saveEditedVariables(
+            @RequestBody SurveyUnitInputDto surveyUnitInputDto
+    ){
+        //Parse metadata
+        //Try to look for DDI first, if no DDI found looks for lunatic components
+        List<GenesisError> errors = new ArrayList<>();
+        VariablesMap variablesMap = readMetadatas(surveyUnitInputDto.getCampaignId(), surveyUnitInputDto.getMode(), errors, true);
+        if(variablesMap == null){
+            log.warn("Can't find DDI, trying with lunatic...");
+            variablesMap = readMetadatas(surveyUnitInputDto.getCampaignId(), surveyUnitInputDto.getMode(), errors, false);
+            if(variablesMap == null){
+                return ResponseEntity.status(404).body(errors.getLast().getMessage());
+            }
+        }
+
+        //Check if input edited variables are in metadatas
+        List<String> absentCollectedVariableNames =
+                surveyUnitQualityService.checkVariablesPresentInMetadata(surveyUnitInputDto.getCollectedVariables(),
+                variablesMap);
+        if (!absentCollectedVariableNames.isEmpty()) {
+            String absentVariables = String.join("\n", absentCollectedVariableNames);
+            return ResponseEntity.badRequest().body(
+                    String.format("The following variables are absent in metadatas : %n%s", absentVariables)
+            );
+        }
+
+        //Fetch user identifier from OIDC token
+        String userIdentifier = authUtils.getIDEP();
+
+
+        //Create surveyUnitModel for each STATE received (Quality tool could send variables with another STATE than EDITED)
+        List<SurveyUnitModel> surveyUnitModels;
+        try{
+            surveyUnitModels = surveyUnitService.parseEditedVariables(
+                    surveyUnitInputDto,
+                    userIdentifier,
+                    variablesMap
+            );
+        }catch (GenesisException e){
+           return ResponseEntity.status(e.getStatus()).body(e.getMessage());
+        }
+
+        //Check data with dataverifier (might create a FORCED document)
+        surveyUnitQualityService.verifySurveyUnits(surveyUnitModels, variablesMap);
+
+        //Save documents
+        surveyUnitService.saveSurveyUnits(surveyUnitModels);
+        return ResponseEntity.ok(SUCCESS_MESSAGE);
     }
 
     //Utilities
@@ -583,10 +642,9 @@ public class ResponseController {
                 su = parser.readNextSurveyUnit();
             }
 
-            log.info("Saved {} survey units updates", suCount);
+            log.info("Saved {} survey units updates from Xml file {}", suCount,  filepath.getFileName());
         }
 
-        log.info("File {} processed", filepath.getFileName());
         return ResponseEntity.ok().build();
     }
 

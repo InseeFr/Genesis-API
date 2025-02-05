@@ -1,14 +1,12 @@
 package fr.insee.genesis.infrastructure.mapper;
 
-import fr.insee.genesis.domain.model.surveyunit.CollectedVariable;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
-import fr.insee.genesis.domain.model.surveyunit.Variable;
+import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.infrastructure.mappers.SurveyUnitDocumentMapper;
 import fr.insee.genesis.infrastructure.mappers.SurveyUnitDocumentMapperImpl;
-import fr.insee.genesis.infrastructure.document.surveyunit.ExternalVariable;
-import fr.insee.genesis.infrastructure.document.surveyunit.VariableState;
+import fr.insee.genesis.infrastructure.document.surveyunit.VariableDocument;
 import fr.insee.genesis.infrastructure.document.surveyunit.SurveyUnitDocument;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -39,26 +37,31 @@ class SurveyUnitDocumentMapperImplTest {
         surveyUnitDocumentStatic.setState("COLLECTED");
         surveyUnitDocumentStatic.setFileDate(LocalDateTime.of(2023,1,1,0,0,0));
 
-        List<ExternalVariable> externalVariableList = new ArrayList<>();
-        ExternalVariable externalVariable = new ExternalVariable();
+        List<VariableDocument> documentExternalVariableList = new ArrayList<>();
+        VariableDocument externalVariable = new VariableDocument();
         externalVariable.setVarId("TESTIDVAR");
         externalVariable.setValues(List.of(new String[]{"V1", "V2"}));
-        externalVariableList.add(externalVariable);
-        surveyUnitDocumentStatic.setExternalVariables(externalVariableList);
+        documentExternalVariableList.add(externalVariable);
+        surveyUnitDocumentStatic.setExternalVariables(documentExternalVariableList);
 
-        List<VariableState> variableStateList = new ArrayList<>();
-        VariableState variableState = new VariableState();
-        variableState.setVarId("TESTIDVAR");
-        variableState.setValues(List.of(new String[]{"V1", "V2"}));
-        variableStateList.add(variableState);
-        surveyUnitDocumentStatic.setCollectedVariables(variableStateList);
+        List<VariableDocument> documentCollectedVariableList = new ArrayList<>();
+        VariableDocument variableDocument = new VariableDocument();
+        variableDocument.setVarId("TESTIDVAR");
+        variableDocument.setValues(List.of(new String[]{"V1", "V2"}));
+        documentCollectedVariableList.add(variableDocument);
+        surveyUnitDocumentStatic.setCollectedVariables(documentCollectedVariableList);
 
-        List<Variable> externalVariableDtoList = new ArrayList<>();
-        Variable variable = Variable.builder().varId("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
+        List<VariableModel> externalVariableDtoList = new ArrayList<>();
+        VariableModel variable = VariableModel.builder().varId("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
         externalVariableDtoList.add(variable);
 
-        List<CollectedVariable> collectedVariableList = new ArrayList<>();
-        CollectedVariable collectedVariable = new CollectedVariable("TESTIDVAR", List.of(new String[]{"V1", "V2"}),"TESTIDLOOP","TESTIDPARENT");
+        List<VariableModel> collectedVariableList = new ArrayList<>();
+        VariableModel collectedVariable = VariableModel.builder()
+                .idVar("TESTIDVAR")
+                .values(List.of(new String[]{"V1", "V2"}))
+                .idLoop("TESTIDLOOP")
+                .idParent("TESTIDPARENT")
+                .build();
         collectedVariableList.add(collectedVariable);
 
 
@@ -99,13 +102,13 @@ class SurveyUnitDocumentMapperImplTest {
         Assertions.assertThat(surveyUnit.getFileDate()).isEqualTo(LocalDateTime.of(2023,1,1,0,0,0));
 
         Assertions.assertThat(surveyUnit.getExternalVariables()).filteredOn(externalVariableDto ->
-            externalVariableDto.getVarId().equals("TESTIDVAR")
-            && externalVariableDto.getValues().containsAll(List.of(new String[]{"V1", "V2"}))
+            externalVariableDto.varId().equals("TESTIDVAR")
+            && externalVariableDto.values().containsAll(List.of(new String[]{"V1", "V2"}))
         ).isNotEmpty();
 
         Assertions.assertThat(surveyUnit.getCollectedVariables()).filteredOn(variableStateDto ->
-                variableStateDto.getVarId().equals("TESTIDVAR")
-                        && variableStateDto.getValues().containsAll(List.of(new String[]{"V1", "V2"}))
+                variableStateDto.varId().equals("TESTIDVAR")
+                        && variableStateDto.values().containsAll(List.of(new String[]{"V1", "V2"}))
         ).isNotEmpty();
 
     }
@@ -127,9 +130,9 @@ class SurveyUnitDocumentMapperImplTest {
                         && externalVariableDto.getValues().containsAll(List.of(new String[]{"V1", "V2"}))
         ).isNotEmpty();
 
-        Assertions.assertThat(surveyUnitDocument.getCollectedVariables()).filteredOn(variableStateDto ->
-                variableStateDto.getVarId().equals("TESTIDVAR")
-                        && variableStateDto.getValues().containsAll(List.of(new String[]{"V1", "V2"}))
+        Assertions.assertThat(surveyUnitDocument.getCollectedVariables()).filteredOn(variableDocument ->
+                variableDocument.getVarId().equals("TESTIDVAR")
+                        && variableDocument.getValues().containsAll(List.of(new String[]{"V1", "V2"}))
         ).isNotEmpty();
 
     }
@@ -151,13 +154,13 @@ class SurveyUnitDocumentMapperImplTest {
         Assertions.assertThat(surveyUnitList.getFirst().getFileDate()).isEqualTo(LocalDateTime.of(2023,1,1,0,0,0));
 
         Assertions.assertThat(surveyUnitList.getFirst().getExternalVariables()).filteredOn(externalVariableDto ->
-                externalVariableDto.getVarId().equals("TESTIDVAR")
-                        && externalVariableDto.getValues().containsAll(List.of(new String[]{"V1", "V2"}))
+                externalVariableDto.varId().equals("TESTIDVAR")
+                        && externalVariableDto.values().containsAll(List.of(new String[]{"V1", "V2"}))
         ).isNotEmpty();
 
         Assertions.assertThat(surveyUnitList.getFirst().getCollectedVariables()).filteredOn(variableStateDto ->
-                variableStateDto.getVarId().equals("TESTIDVAR")
-                        && variableStateDto.getValues().containsAll(List.of(new String[]{"V1", "V2"}))
+                variableStateDto.varId().equals("TESTIDVAR")
+                        && variableStateDto.values().containsAll(List.of(new String[]{"V1", "V2"}))
         ).isNotEmpty();
     }
 
@@ -181,9 +184,9 @@ class SurveyUnitDocumentMapperImplTest {
                         && externalVariableDto.getValues().containsAll(List.of(new String[]{"V1", "V2"}))
         ).isNotEmpty();
 
-        Assertions.assertThat(surveyUnitDocumentList.getFirst().getCollectedVariables()).filteredOn(variableStateDto ->
-                variableStateDto.getVarId().equals("TESTIDVAR")
-                        && variableStateDto.getValues().containsAll(List.of(new String[]{"V1", "V2"}))
+        Assertions.assertThat(surveyUnitDocumentList.getFirst().getCollectedVariables()).filteredOn(variableDocument ->
+                variableDocument.varId().equals("TESTIDVAR")
+                        && variableDocument.getValues().containsAll(List.of(new String[]{"V1", "V2"}))
         ).isNotEmpty();
     }
 }

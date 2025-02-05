@@ -2,9 +2,8 @@ package fr.insee.genesis.infrastructure.adapter;
 
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
-import fr.insee.genesis.infrastructure.document.surveyunit.ExternalVariable;
 import fr.insee.genesis.infrastructure.document.surveyunit.SurveyUnitDocument;
-import fr.insee.genesis.infrastructure.document.surveyunit.VariableState;
+import fr.insee.genesis.infrastructure.document.surveyunit.VariableDocument;
 import fr.insee.genesis.infrastructure.repository.SurveyUnitMongoDBRepository;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -45,8 +44,8 @@ class SurveyUnitModelMongoAdapterTest {
 		suDoc.setState("COLLECTED");
 		suDoc.setMode("WEB");
 		suDoc.setRecordDate(LocalDateTime.now());
-		suDoc.setCollectedVariables(List.of(new VariableState()));
-		suDoc.setExternalVariables(List.of(new ExternalVariable()));
+		suDoc.setCollectedVariables(List.of(new VariableDocument()));
+		suDoc.setExternalVariables(List.of(new VariableDocument()));
 
 		suDoc2= new SurveyUnitDocument();
 		suDoc2.setCampaignId("idCampaign");
@@ -55,8 +54,8 @@ class SurveyUnitModelMongoAdapterTest {
 		suDoc2.setState("COLLECTED");
 		suDoc2.setMode("TEL");
 		suDoc2.setRecordDate(LocalDateTime.now());
-		suDoc2.setCollectedVariables(List.of(new VariableState()));
-		suDoc2.setExternalVariables(List.of(new ExternalVariable()));
+		suDoc2.setCollectedVariables(List.of(new VariableDocument()));
+		suDoc2.setExternalVariables(List.of(new VariableDocument()));
 
 		suDoc3= new SurveyUnitDocument();
 		suDoc3.setCampaignId("idCampaign");
@@ -65,8 +64,8 @@ class SurveyUnitModelMongoAdapterTest {
 		suDoc3.setState("COLLECTED");
 		suDoc3.setMode("WEB");
 		suDoc3.setRecordDate(LocalDateTime.now());
-		suDoc3.setCollectedVariables(List.of(new VariableState()));
-		suDoc3.setExternalVariables(List.of(new ExternalVariable()));
+		suDoc3.setCollectedVariables(List.of(new VariableDocument()));
+		suDoc3.setExternalVariables(List.of(new VariableDocument()));
 	}
 
 	@Test

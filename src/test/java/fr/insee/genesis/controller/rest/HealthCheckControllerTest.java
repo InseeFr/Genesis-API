@@ -1,10 +1,9 @@
 package fr.insee.genesis.controller.rest;
 
-import fr.insee.genesis.domain.model.surveyunit.CollectedVariable;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
-import fr.insee.genesis.domain.model.surveyunit.Variable;
+import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.stubs.ScheduleApiPortStub;
@@ -30,12 +29,19 @@ class HealthCheckControllerTest {
     static void init() {
         surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
         SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(surveyUnitPersistencePortStub);
-        List<Variable> externalVariableList = new ArrayList<>();
-        Variable variable = Variable.builder().varId("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
+        List<VariableModel> externalVariableList = new ArrayList<>();
+        VariableModel variable = VariableModel.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
         externalVariableList.add(variable);
 
-        List<CollectedVariable> collectedVariableList = new ArrayList<>();
-        CollectedVariable collectedVariable = new CollectedVariable("TESTIDVAR", List.of(new String[]{"V1", "V2"}), "TESTIDLOOP", "TESTIDPARENT");
+        List<VariableModel> collectedVariableList = new ArrayList<>();
+        VariableModel collectedVariable = VariableModel.builder()
+                .idVar("TESTIDVAR")
+                .values(List.of(new String[]{"V1", "V2"}))
+                .idLoop("TESTIDLOOP")
+                .idParent("TESTIDPARENT")
+                .build();
+
+
         collectedVariableList.add(collectedVariable);
         surveyUnitPersistencePortStub.getMongoStub().add(SurveyUnitModel.builder()
                 .campaignId("TESTIDCAMPAIGN")

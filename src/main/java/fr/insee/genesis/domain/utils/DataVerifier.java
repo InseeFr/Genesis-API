@@ -1,10 +1,9 @@
 package fr.insee.genesis.domain.utils;
 
 import fr.insee.genesis.Constants;
-import fr.insee.genesis.domain.model.surveyunit.CollectedVariable;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
-import fr.insee.genesis.domain.model.surveyunit.Variable;
+import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.bpm.metadata.model.VariableType;
 import fr.insee.bpm.metadata.model.VariablesMap;
 import lombok.extern.slf4j.Slf4j;
@@ -49,8 +48,8 @@ public class DataVerifier {
 
         for(String idUE : getIdUEs(suDtosList)) { // For each id of the list
             List<SurveyUnitModel> srcSuDtosOfIdUE = suDtosList.stream().filter(element -> element.getInterrogationId().equals(idUE)).toList();
-            List<CollectedVariable> correctedCollectedVariables = new ArrayList<>();
-            List<Variable> correctedExternalVariables = new ArrayList<>();
+            List<VariableModel> correctedCollectedVariables = new ArrayList<>();
+            List<VariableModel> correctedExternalVariables = new ArrayList<>();
 
             //Get corrected variables
             collectedVariablesManagement(srcSuDtosOfIdUE, variablesMap, correctedCollectedVariables);
@@ -68,8 +67,8 @@ public class DataVerifier {
     private static SurveyUnitModel createForcedDto(
             List<SurveyUnitModel> suDtosList,
             String idUE,
-            List<CollectedVariable> correctedCollectedVariables,
-            List<Variable> correctedExternalVariables
+            List<VariableModel> correctedCollectedVariables,
+            List<VariableModel> correctedExternalVariables
     ) {
         SurveyUnitModel sampleSuDto = suDtosList.stream().filter(element -> element.getInterrogationId().equals(idUE)).toList().getFirst();
         SurveyUnitModel newForcedSuDto = SurveyUnitModel.builder()
@@ -84,21 +83,24 @@ public class DataVerifier {
                 .externalVariables(new ArrayList<>())
                 .build();
 
-        for(CollectedVariable correctedCollectedVariable : correctedCollectedVariables){
+        for(VariableModel correctedCollectedVariable : correctedCollectedVariables){
             newForcedSuDto.getCollectedVariables().add(
-                    new CollectedVariable(correctedCollectedVariable.getVarId(),
-                            correctedCollectedVariable.getValues()
-                            ,correctedCollectedVariable.getLoopId()
-                            ,correctedCollectedVariable.getParentId()
-                    )
+                VariableModel.builder()
+                        .idVar(correctedCollectedVariable.idVar())
+                        .values(correctedCollectedVariable.values())
+                        .idLoop(correctedCollectedVariable.idLoop())
+                        .idParent(correctedCollectedVariable.idParent())
+                        .build()
             );
         }
 
-        for(Variable correctedExternalVariable : correctedExternalVariables){
+        for(VariableModel correctedExternalVariable : correctedExternalVariables){
             newForcedSuDto.getExternalVariables().add(
-                    Variable.builder()
-                            .varId(correctedExternalVariable.getVarId())
-                            .values(correctedExternalVariable.getValues())
+                    VariableModel.builder()
+                            .idVar(correctedExternalVariable.idVar())
+                            .values(correctedExternalVariable.values())
+                            .idLoop(correctedExternalVariable.idLoop())
+                            .idParent(correctedExternalVariable.idParent())
                             .build()
             );
         }
@@ -126,30 +128,30 @@ public class DataVerifier {
      * @param variablesMap variables definitions
      * @param correctedCollectedVariables FORCED document variables
      */
-    private static void collectedVariablesManagement(List<SurveyUnitModel> srcSuDtosOfIdUE, VariablesMap variablesMap, List<CollectedVariable> correctedCollectedVariables){
+    private static void collectedVariablesManagement(List<SurveyUnitModel> srcSuDtosOfIdUE, VariablesMap variablesMap, List<VariableModel> correctedCollectedVariables){
         Set<String> variableNames = new HashSet<>();
-        List<CollectedVariable> variablesToVerify = new ArrayList<>();
+        List<VariableModel> variablesToVerify = new ArrayList<>();
 
         //Sort from more priority to less
         List<SurveyUnitModel> sortedSuDtos = srcSuDtosOfIdUE.stream().sorted(Comparator.comparing(surveyUnitDto -> dataStatesPriority.get(surveyUnitDto.getState()))).toList();
 
         //Get more priority variables to verify
         for(SurveyUnitModel srcSuDto : sortedSuDtos){
-            for(CollectedVariable collectedVariable : srcSuDto.getCollectedVariables()){
-                if(!variableNames.contains(collectedVariable.getVarId())){
-                    variableNames.add(collectedVariable.getVarId());
+            for(VariableModel collectedVariable : srcSuDto.getCollectedVariables()){
+                if(!variableNames.contains(collectedVariable.idVar())){
+                    variableNames.add(collectedVariable.idVar());
                     variablesToVerify.add(collectedVariable);
                 }
             }
         }
 
         //Verify variables
-        for(CollectedVariable collectedVariableToVerify : variablesToVerify){
-            if(variablesMap.hasVariable(collectedVariableToVerify.getVarId()))
+        for(VariableModel collectedVariableToVerify : variablesToVerify){
+            if(variablesMap.hasVariable(collectedVariableToVerify.idVar()))
             {
-                CollectedVariable correctedCollectedVariable = verifyCollectedVariable(
+                VariableModel correctedCollectedVariable = verifyCollectedVariable(
                         collectedVariableToVerify,
-                        variablesMap.getVariable(collectedVariableToVerify.getVarId())
+                        variablesMap.getVariable(collectedVariableToVerify.idVar())
                 );
 
                 if(correctedCollectedVariable != null){
@@ -159,11 +161,11 @@ public class DataVerifier {
         }
     }
 
-    private static CollectedVariable verifyCollectedVariable(CollectedVariable collectedVariable, fr.insee.bpm.metadata.model.Variable variableDefinition) {
+    private static VariableModel verifyCollectedVariable(VariableModel collectedVariable, fr.insee.bpm.metadata.model.Variable variableDefinition) {
         List<String> newValues = new ArrayList<>();
         boolean isInvalid = false;
 
-        for (String value : collectedVariable.getValues()){
+        for (String value : collectedVariable.values()){
             if(isParseError(value, variableDefinition.getType())){
                 isInvalid = true;
                 newValues.add("");
@@ -172,15 +174,16 @@ public class DataVerifier {
             }
         }
 
-        return isInvalid ? new CollectedVariable(
-                collectedVariable.getVarId(),
-                newValues,
-                collectedVariable.getLoopId(),
-                collectedVariable.getParentId()
-                ) : null;
+
+        return isInvalid ? VariableModel.builder()
+                .idVar(collectedVariable.idVar())
+                .values(newValues)
+                .idLoop(collectedVariable.idLoop())
+                .idParent(collectedVariable.idParent())
+                .build() : null;
     }
 
-    private static void externalVariablesManagement(List<SurveyUnitModel> srcSuDtosOfIdUE, VariablesMap variablesMap, List<Variable> correctedExternalVariables) {
+    private static void externalVariablesManagement(List<SurveyUnitModel> srcSuDtosOfIdUE, VariablesMap variablesMap, List<VariableModel> correctedExternalVariables) {
         //COLLECTED only
         Optional<SurveyUnitModel> collectedSuDtoOpt = srcSuDtosOfIdUE.stream().filter(
                 suDto -> suDto.getState().equals(DataState.COLLECTED)
@@ -188,11 +191,11 @@ public class DataVerifier {
 
         //Verify variables
         if(collectedSuDtoOpt.isPresent()){
-            for(Variable variable: collectedSuDtoOpt.get().getExternalVariables()){
-                if(variablesMap.hasVariable(variable.getVarId())) {
-                    Variable correctedExternalVariable = verifyExternalVariable(
+            for(VariableModel variable: collectedSuDtoOpt.get().getExternalVariables()){
+                if(variablesMap.hasVariable(variable.idVar())) {
+                    VariableModel correctedExternalVariable = verifyExternalVariable(
                             variable,
-                            variablesMap.getVariable(variable.getVarId())
+                            variablesMap.getVariable(variable.idVar())
                     );
                     if (correctedExternalVariable != null) {
                         correctedExternalVariables.add(correctedExternalVariable);
@@ -208,11 +211,11 @@ public class DataVerifier {
      * @param variableDefinition variable definition of the variable
      * @return a corrected external variable if there is any parsing error, null otherwise
      */
-    private static Variable verifyExternalVariable(Variable externalVariable, fr.insee.bpm.metadata.model.Variable variableDefinition) {
+    private static VariableModel verifyExternalVariable(VariableModel externalVariable, fr.insee.bpm.metadata.model.Variable variableDefinition) {
         List<String> newValues = new ArrayList<>();
         boolean isInvalid = false;
 
-        for (String value : externalVariable.getValues()){
+        for (String value : externalVariable.values()){
             if(isParseError(value, variableDefinition.getType())){
                 isInvalid = true;
                 newValues.add("");
@@ -221,8 +224,8 @@ public class DataVerifier {
             }
         }
 
-        return isInvalid ? Variable.builder()
-                .varId(externalVariable.getVarId())
+        return isInvalid ? VariableModel.builder()
+                .idVar(externalVariable.idVar())
                 .values(newValues)
                 .build() : null;
     }

@@ -2,10 +2,14 @@ package fr.insee.genesis.controller.rest.responses;
 
 import cucumber.TestConstants;
 import fr.insee.genesis.Constants;
+import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.controller.dto.SurveyUnitDto;
 import fr.insee.genesis.controller.dto.InterrogationId;
+import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
 import fr.insee.genesis.controller.dto.SurveyUnitQualityToolDto;
-import fr.insee.genesis.controller.dto.SurveyUnitSimplified;
+import fr.insee.genesis.controller.dto.VariableInputDto;
+import fr.insee.genesis.controller.dto.VariableStateInputDto;
+import fr.insee.genesis.controller.utils.AuthUtils;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
@@ -26,6 +30,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.FileSystemUtils;
 
@@ -49,6 +54,11 @@ class ResponseControllerTest {
     static LunaticJsonPersistanceStub lunaticJsonPersistanceStub;
 
     static List<InterrogationId> interrogationIdList;
+    //Constants
+    static final String DEFAULT_ID_UE = "TESTIDUE";
+    static final String DEFAULT_ID_QUEST = "TESTIDQUESTIONNAIRE";
+    static final String ID_CAMPAIGN_WITH_DDI = "SAMPLETEST-PARADATA-v1";
+    static final String ID_QUEST_WITH_DDI = "SAMPLETEST-PARADATA-v1";
 
     @BeforeAll
     static void init() {
@@ -61,7 +71,8 @@ class ResponseControllerTest {
         lunaticJsonPersistanceStub = new LunaticJsonPersistanceStub();
         LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort = new LunaticJsonRawDataService(lunaticJsonPersistanceStub);
 
-        FileUtils fileUtils = new FileUtils(new ConfigStub());
+        Config config = new ConfigStub();
+        FileUtils fileUtils = new FileUtils(config);
         responseControllerStatic = new ResponseController(
                 surveyUnitApiPort
                 , new SurveyUnitQualityService()
@@ -69,6 +80,7 @@ class ResponseControllerTest {
                 , lunaticJsonRawDataApiPort
                 , fileUtils
                 , new ControllerUtils(fileUtils)
+                , new AuthUtils(config)
         );
 
         interrogationIdList = new ArrayList<>();
@@ -377,6 +389,255 @@ class ResponseControllerTest {
                 .isTrue();
     }
 
+    @Test
+    void saveEditedTest() {
+        //GIVEN
+        surveyUnitPersistencePortStub.getMongoStub().clear();
+        String campaignId = ID_CAMPAIGN_WITH_DDI;
+        String idQuest = ID_QUEST_WITH_DDI;
+        String idVar = "PRENOM_C";
+        String idLoop = "BOUCLE_VAL_ANNAISS_1";
+        String editedValue = "TESTPRENOMEDITED";
+
+        List<VariableInputDto> newVariables = new ArrayList<>();
+        VariableInputDto variableInputDto = VariableInputDto.builder()
+                .variableName(idVar)
+                .idLoop(idLoop)
+                .build();
+
+        variableInputDto.setVariableStateInputDto(VariableStateInputDto.builder()
+                        .state(DataState.EDITED)
+                        .value(editedValue)
+                .build());
+
+        newVariables.add(variableInputDto);
+
+        SurveyUnitInputDto surveyUnitInputDto = SurveyUnitInputDto.builder()
+                .campaignId(campaignId)
+                .mode(Mode.WEB)
+                .idQuestionnaire(idQuest)
+                .surveyUnitId(DEFAULT_ID_UE)
+                .collectedVariables(newVariables)
+                .build();
 
 
+        //WHEN
+        responseControllerStatic.saveEditedVariables(surveyUnitInputDto);
+
+        //THEN
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).hasSize(1);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getIdCampaign()).isEqualTo(campaignId);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getIdQuest()).isEqualTo(idQuest);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getMode()).isEqualTo(Mode.WEB);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getState()).isEqualTo(DataState.EDITED);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getFileDate()).isNull();
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getRecordDate()).isNotNull();
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getExternalVariables()).isEmpty();
+
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables()).hasSize(1);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst().idVar()).isEqualTo(idVar);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst().idLoop()).isEqualTo(idLoop);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst().idParent()).isEqualTo(Constants.ROOT_GROUP_NAME);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst().values()).hasSize(1);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst().values().getFirst()).isEqualTo(editedValue);
+
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getModifiedBy()).isNull();
+    }
+
+    @Test
+    void saveEditedTest_DocumentEdited() {
+        //GIVEN
+        surveyUnitPersistencePortStub.getMongoStub().clear();
+        String campaignId = ID_CAMPAIGN_WITH_DDI;
+        String idQuest = ID_QUEST_WITH_DDI;
+        String idVar = "PRENOM_C";
+        String idVar2 = "NB_SOEURS";
+        String idLoop = "BOUCLE_VAL_ANNAISS_1";
+        String editedValue = "NOT A INT";
+
+        //Variable 1
+        List<VariableInputDto> newVariables = new ArrayList<>();
+        VariableInputDto variableInputDto = VariableInputDto.builder()
+                .variableName(idVar)
+                .idLoop(idLoop)
+                .variableStateInputDto(VariableStateInputDto.builder()
+                        .state(DataState.EDITED)
+                        .value(editedValue)
+                        .build())
+                .build();
+        newVariables.add(variableInputDto);
+
+        //Variable 2
+        VariableInputDto variableInputDto2 = VariableInputDto.builder()
+                .variableName(idVar2)
+                .idLoop(idLoop)
+                .variableStateInputDto(VariableStateInputDto.builder()
+                        .state(DataState.EDITED)
+                        .value(editedValue)
+                        .build())
+                .build();
+        newVariables.add(variableInputDto2);
+
+        SurveyUnitInputDto surveyUnitInputDto = SurveyUnitInputDto.builder()
+                .campaignId(campaignId)
+                .mode(Mode.WEB)
+                .idQuestionnaire(idQuest)
+                .surveyUnitId(DEFAULT_ID_UE)
+                .collectedVariables(newVariables)
+                .build();
+
+        //WHEN
+        responseControllerStatic.saveEditedVariables(surveyUnitInputDto);
+
+        //THEN
+        //EDITED document assertions
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).hasSize(2);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getIdCampaign()).isEqualTo(campaignId);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getIdQuest()).isEqualTo(idQuest);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getState()).isEqualTo(DataState.EDITED);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getMode()).isEqualTo(Mode.WEB);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getFileDate()).isNull();
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getRecordDate()).isNotNull();
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getExternalVariables()).isEmpty();
+
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables()).hasSize(2);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst().idVar()).isEqualTo(idVar);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst().idLoop()).isEqualTo(idLoop);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst().idParent()).isEqualTo(Constants.ROOT_GROUP_NAME);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst().values()).hasSize(1);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst().values().getFirst()).isEqualTo(editedValue);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getModifiedBy()).isNull();
+    }
+
+    @Test
+    void saveEditedTest_DocumentForced() {
+        //GIVEN
+        surveyUnitPersistencePortStub.getMongoStub().clear();
+        String campaignId = ID_CAMPAIGN_WITH_DDI;
+        String idQuest = ID_QUEST_WITH_DDI;
+        String idVar = "PRENOM_C";
+        String idVar2 = "NB_SOEURS";
+        String idLoop = "BOUCLE_VAL_ANNAISS_1";
+        String editedValue = "NOT A INT";
+
+        //Variable 1
+        List<VariableInputDto> newVariables = new ArrayList<>();
+        VariableInputDto variableInputDto = VariableInputDto.builder()
+                .variableName(idVar)
+                .idLoop(idLoop)
+                .variableStateInputDto(VariableStateInputDto.builder()
+                        .state(DataState.EDITED)
+                        .value(editedValue)
+                        .build())
+                .build();
+        newVariables.add(variableInputDto);
+
+        //Variable 2
+        VariableInputDto variableInputDto2 = VariableInputDto.builder()
+                .variableName(idVar2)
+                .idLoop(idLoop)
+                .variableStateInputDto(VariableStateInputDto.builder()
+                        .state(DataState.EDITED)
+                        .value(editedValue)
+                        .build())
+                .build();
+        newVariables.add(variableInputDto2);
+
+        SurveyUnitInputDto surveyUnitInputDto = SurveyUnitInputDto.builder()
+                .campaignId(campaignId)
+                .mode(Mode.WEB)
+                .idQuestionnaire(idQuest)
+                .surveyUnitId(DEFAULT_ID_UE)
+                .collectedVariables(newVariables)
+                .build();
+
+        //WHEN
+        responseControllerStatic.saveEditedVariables(surveyUnitInputDto);
+
+        //THEN
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).hasSize(2);
+
+        //FORCED document assertions
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getIdCampaign()).isEqualTo(campaignId);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getIdQuest()).isEqualTo(idQuest);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getState()).isEqualTo(DataState.FORCED);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getMode()).isEqualTo(Mode.WEB);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getFileDate()).isNull();
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getRecordDate()).isNotNull();
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getExternalVariables()).isEmpty();
+
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getCollectedVariables()).hasSize(1);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getCollectedVariables().getFirst().idVar()).isEqualTo(idVar2);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getCollectedVariables().getFirst().idLoop()).isEqualTo(idLoop);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getCollectedVariables().getFirst().idParent()).isEqualTo(Constants.ROOT_GROUP_NAME);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getCollectedVariables().getFirst().values()).hasSize(1);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getCollectedVariables().getFirst().values().getFirst()).isNotNull().isEmpty();
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getModifiedBy()).isNull();
+    }
+    @Test
+    void saveEditedTest_No_Metadata_Error() {
+        //GIVEN
+        surveyUnitPersistencePortStub.getMongoStub().clear();
+        String campaignId = "TEST";
+        String idVar = "PRENOM_C";
+        String idLoop = "BOUCLE_VAL_ANNAISS_1";
+        String editedValue = "TESTVALUE";
+
+        //Variable 1
+        List<VariableInputDto> newVariables = new ArrayList<>();
+        VariableInputDto variableInputDto = VariableInputDto.builder()
+                .variableName(idVar)
+                .idLoop(idLoop)
+                .variableStateInputDto(VariableStateInputDto.builder()
+                        .state(DataState.EDITED)
+                        .value(editedValue)
+                        .build())
+                .build();
+        newVariables.add(variableInputDto);
+
+        SurveyUnitInputDto surveyUnitInputDto = SurveyUnitInputDto.builder()
+                .campaignId(campaignId)
+                .mode(Mode.WEB)
+                .idQuestionnaire(DEFAULT_ID_QUEST)
+                .surveyUnitId(DEFAULT_ID_UE)
+                .collectedVariables(newVariables)
+                .build();
+
+        Assertions.assertThat(
+            responseControllerStatic.saveEditedVariables(
+                    surveyUnitInputDto
+            ).getStatusCode()
+        ).isEqualTo(HttpStatusCode.valueOf(404));
+    }
+
+    @Test
+    void saveTest_With_Collected_State_Error(){
+        //GIVEN
+        surveyUnitPersistencePortStub.getMongoStub().clear();
+        String idVar = "PRENOM_C";
+        String idLoop = "BOUCLE_VAL_ANNAISS_1";
+        String editedValue = "TESTVALUE";
+
+        //Variable 1
+        List<VariableInputDto> newVariables = new ArrayList<>();
+        VariableInputDto variableInputDto = VariableInputDto.builder()
+                .variableName(idVar)
+                .idLoop(idLoop)
+                .variableStateInputDto(VariableStateInputDto.builder()
+                        .state(DataState.COLLECTED) //Collected instead of EDITED
+                        .value(editedValue)
+                        .build())
+                .build();
+        newVariables.add(variableInputDto);
+
+        SurveyUnitInputDto surveyUnitInputDto = SurveyUnitInputDto.builder()
+                .campaignId(ID_CAMPAIGN_WITH_DDI)
+                .mode(Mode.WEB)
+                .idQuestionnaire(DEFAULT_ID_QUEST)
+                .surveyUnitId(DEFAULT_ID_UE)
+                .collectedVariables(newVariables)
+                .build();
+
+        Assertions.assertThat(responseControllerStatic.saveEditedVariables(surveyUnitInputDto).getStatusCode()).isEqualTo(HttpStatusCode.valueOf(400));
+    }
 }
