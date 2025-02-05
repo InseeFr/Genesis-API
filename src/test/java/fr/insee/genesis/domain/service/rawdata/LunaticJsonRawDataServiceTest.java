@@ -15,12 +15,12 @@ class LunaticJsonRawDataServiceTest {
         lunaticJsonPersistanceStub.getMongoStub().clear();
         String campaignId = "SAMPLETEST-PARADATA-v1";
 
-        Assertions.assertThatThrownBy(() -> {
-            lunaticJsonRawDataService.saveData(
-                    campaignId
-                    ,"{\"testdata\": \"ERROR"
-                    , Mode.WEB
-            );
-        }).isInstanceOf(JsonParseException.class);
+        Assertions.assertThatThrownBy(() -> lunaticJsonRawDataService.saveData(
+                campaignId
+                ,"TESTIDQUEST"
+                ,"TESTIDUE"
+                ,"{\"testdata\": \"ERROR"
+                , Mode.WEB
+        )).isInstanceOf(JsonParseException.class);
     }
 }
