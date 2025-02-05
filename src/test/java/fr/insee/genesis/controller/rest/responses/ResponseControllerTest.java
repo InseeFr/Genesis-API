@@ -280,9 +280,9 @@ class ResponseControllerTest {
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getRecordDate()).isNotNull();
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables()).isNotNull().isNotEmpty().hasSize(1);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst()).isNotNull();
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst().getIdVar()).isNotNull().isEqualTo(varName);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst().getValues()).isNotNull().isNotEmpty().hasSize(1);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst().getValues().getFirst()).isNotNull().isEqualTo(varValue);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst().idVar()).isNotNull().isEqualTo(varName);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst().values()).isNotNull().isNotEmpty().hasSize(1);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst().values().getFirst()).isNotNull().isEqualTo(varValue);
 
         //Process date check
         Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getProcessDate()).isNotNull();
@@ -523,33 +523,6 @@ class ResponseControllerTest {
                 .surveyUnitId(DEFAULT_ID_UE)
                 .collectedVariables(newVariables)
                 .build();
-    }
-
-    //Utils
-    private static void addJsonRawDataDocumentToStub(String campaignId, String idUE, LocalDateTime processDate) {
-        LunaticJsonDataDocument lunaticJsonDataDocument = new LunaticJsonDataDocument();
-        lunaticJsonDataDocument.setCampaignId(campaignId);
-        lunaticJsonDataDocument.setMode(Mode.WEB);
-        lunaticJsonDataDocument.setIdUE(idUE);
-        lunaticJsonDataDocument.setRecordDate(LocalDateTime.now());
-        lunaticJsonDataDocument.setProcessDate(processDate);
-        lunaticJsonPersistanceStub.getMongoStub().add(lunaticJsonDataDocument);
-    }
-
-    private static void addJsonRawDataDocumentToStub(String campaignId, String idQuest, String idUE,
-                                                     LocalDateTime processDate,
-                                                     String variableName, String variableValue) {
-        LunaticJsonDataDocument lunaticJsonDataDocument = new LunaticJsonDataDocument();
-        lunaticJsonDataDocument.setCampaignId(campaignId);
-        lunaticJsonDataDocument.setIdQuest(idQuest);
-        lunaticJsonDataDocument.setMode(Mode.WEB);
-        lunaticJsonDataDocument.setIdUE(idUE);
-        lunaticJsonDataDocument.setRecordDate(LocalDateTime.now());
-        lunaticJsonDataDocument.setProcessDate(processDate);
-        lunaticJsonDataDocument.setData(new HashMap<>());
-        lunaticJsonDataDocument.getData().put(variableName,variableValue);
-        lunaticJsonPersistanceStub.getMongoStub().add(lunaticJsonDataDocument);
-    }
 
         //WHEN
         responseControllerStatic.saveEditedVariables(surveyUnitInputDto);
@@ -769,5 +742,31 @@ class ResponseControllerTest {
                 .build();
 
         Assertions.assertThat(responseControllerStatic.saveEditedVariables(surveyUnitInputDto).getStatusCode()).isEqualTo(HttpStatusCode.valueOf(400));
+    }
+
+    //Utils
+    private static void addJsonRawDataDocumentToStub(String campaignId, String idUE, LocalDateTime processDate) {
+        LunaticJsonDataDocument lunaticJsonDataDocument = new LunaticJsonDataDocument();
+        lunaticJsonDataDocument.setCampaignId(campaignId);
+        lunaticJsonDataDocument.setMode(Mode.WEB);
+        lunaticJsonDataDocument.setIdUE(idUE);
+        lunaticJsonDataDocument.setRecordDate(LocalDateTime.now());
+        lunaticJsonDataDocument.setProcessDate(processDate);
+        lunaticJsonPersistanceStub.getMongoStub().add(lunaticJsonDataDocument);
+    }
+
+    private static void addJsonRawDataDocumentToStub(String campaignId, String idQuest, String idUE,
+                                                     LocalDateTime processDate,
+                                                     String variableName, String variableValue) {
+        LunaticJsonDataDocument lunaticJsonDataDocument = new LunaticJsonDataDocument();
+        lunaticJsonDataDocument.setCampaignId(campaignId);
+        lunaticJsonDataDocument.setIdQuest(idQuest);
+        lunaticJsonDataDocument.setMode(Mode.WEB);
+        lunaticJsonDataDocument.setIdUE(idUE);
+        lunaticJsonDataDocument.setRecordDate(LocalDateTime.now());
+        lunaticJsonDataDocument.setProcessDate(processDate);
+        lunaticJsonDataDocument.setData(new HashMap<>());
+        lunaticJsonDataDocument.getData().put(variableName,variableValue);
+        lunaticJsonPersistanceStub.getMongoStub().add(lunaticJsonDataDocument);
     }
 }
