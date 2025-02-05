@@ -164,10 +164,10 @@ public class MainDefinitions {
 
         //Get Variable
         Assertions.assertThat(concernedSurveyUnitModel.getCollectedVariables()).filteredOn(collectedvariableModel ->
-                collectedvariableModel.idVar().equals(variableName)).isNotEmpty();
+                collectedvariableModel.varId().equals(variableName)).isNotEmpty();
 
         Optional<VariableModel> concernedCollectedVariableOptional = concernedSurveyUnitModel.getCollectedVariables().stream().filter(variable ->
-                variable.idVar().equals(variableName)
+                variable.varId().equals(variableName)
         ).findFirst();
 
         Assertions.assertThat(concernedCollectedVariableOptional).isPresent();
@@ -196,10 +196,10 @@ public class MainDefinitions {
 
         //Get Variable
         Assertions.assertThat(surveyUnitModel.getExternalVariables()).filteredOn(variableModel ->
-                variableModel.idVar().equals(externalVariableName)).isNotEmpty();
+                variableModel.varId().equals(externalVariableName)).isNotEmpty();
 
         Optional<VariableModel> concernedVariableOptional = surveyUnitModel.getExternalVariables().stream().filter(variable ->
-                variable.idVar().equals(externalVariableName)
+                variable.varId().equals(externalVariableName)
         ).findFirst();
 
         Assertions.assertThat(concernedVariableOptional).isPresent();
@@ -229,49 +229,49 @@ public class MainDefinitions {
 
         //Get Variable
         Assertions.assertThat(surveyUnitModel.getExternalVariables()).filteredOn(variableModel ->
-                variableModel.idVar().equals(externalVariableName)
-                        && Objects.equals(variableModel.idLoop(), expectedLoopId)
+                variableModel.varId().equals(externalVariableName)
+                        && Objects.equals(variableModel.loopId(), expectedLoopId)
         ).isNotEmpty().hasSize(1);
 
         VariableModel concernedExternalVariable = surveyUnitModel.getExternalVariables().stream().filter(variableModel ->
-                variableModel.idVar().equals(externalVariableName)
-                        && Objects.equals(variableModel.idLoop(), expectedLoopId)
+                variableModel.varId().equals(externalVariableName)
+                        && Objects.equals(variableModel.loopId(), expectedLoopId)
         ).toList().getFirst();
 
         //Value content assertion
         Assertions.assertThat(concernedExternalVariable.values()).hasSize(1);
         Assertions.assertThat(concernedExternalVariable.values().getFirst()).isEqualTo(expectedValue);
-        Assertions.assertThat(concernedExternalVariable.idLoop()).isNotNull().isEqualTo(expectedLoopId);
+        Assertions.assertThat(concernedExternalVariable.loopId()).isNotNull().isEqualTo(expectedLoopId);
     }
 
-    @Then("For external variable {string} in survey unit {string} we should have {string} as idLoop and {string} as first " +
+    @Then("For external variable {string} in survey unit {string} we should have {string} as loopId and {string} as first " +
             "value")
-    public void check_idLoop_and_value(String externalVariableName, String interrogationId, String expectedLoopId,
+    public void check_loopId_and_value(String externalVariableName, String interrogationId, String expectedLoopId,
                              String expectedValue) {
         //Get SurveyUnitModel
         Assertions.assertThat(surveyUnitPersistence.getMongoStub()).filteredOn(surveyUnitDto ->
                 surveyUnitDto.getState().equals(DataState.COLLECTED)
-                        && surveyUnitDto.getIdUE().equals(interrogationId)
+                        && surveyUnitDto.getInterrogationId().equals(interrogationId)
         ).isNotEmpty().hasSize(1);
 
         SurveyUnitModel surveyUnitModel = surveyUnitPersistence.getMongoStub().stream().filter(dto ->
                 dto.getState().equals(DataState.COLLECTED)
-                        && dto.getIdUE().equals(interrogationId)
+                        && dto.getInterrogationId().equals(interrogationId)
         ).toList().getFirst();
 
         //Get Variable
         Assertions.assertThat(surveyUnitModel.getExternalVariables()).filteredOn(variableModel ->
-                variableModel.idVar().equals(externalVariableName)
-                && Objects.equals(variableModel.idLoop(), expectedLoopId)
+                variableModel.varId().equals(externalVariableName)
+                && Objects.equals(variableModel.loopId(), expectedLoopId)
         ).isNotEmpty().hasSize(1);
 
         VariableModel concernedExternalVariable = surveyUnitModel.getExternalVariables().stream().filter(variableModel ->
-                        variableModel.idVar().equals(externalVariableName)
-                        && Objects.equals(variableModel.idLoop(), expectedLoopId)
+                        variableModel.varId().equals(externalVariableName)
+                        && Objects.equals(variableModel.loopId(), expectedLoopId)
                 ).toList().getFirst();
 
         //Value content assertion
-        Assertions.assertThat(concernedExternalVariable.idLoop()).isNotNull().isEqualTo(expectedLoopId);
+        Assertions.assertThat(concernedExternalVariable.loopId()).isNotNull().isEqualTo(expectedLoopId);
         Assertions.assertThat(concernedExternalVariable.values()).hasSize(1);
         Assertions.assertThat(concernedExternalVariable.values().getFirst()).isEqualTo(expectedValue);
     }

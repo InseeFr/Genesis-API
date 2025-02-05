@@ -8,7 +8,7 @@ import lombok.Data;
 @Data
 public class VariableInputDto {
     private String variableName;
-    private String idLoop;
+    private String loopId;
 
     @JsonProperty("newVariableState")
     private VariableStateInputDto variableStateInputDto;

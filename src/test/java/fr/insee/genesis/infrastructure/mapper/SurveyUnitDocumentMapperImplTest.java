@@ -52,15 +52,16 @@ class SurveyUnitDocumentMapperImplTest {
         surveyUnitDocumentStatic.setCollectedVariables(documentCollectedVariableList);
 
         List<VariableModel> externalVariableDtoList = new ArrayList<>();
-        VariableModel variable = VariableModel.builder().varId("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
+        VariableModel variable =
+                VariableModel.builder().varId("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
         externalVariableDtoList.add(variable);
 
         List<VariableModel> collectedVariableList = new ArrayList<>();
         VariableModel collectedVariable = VariableModel.builder()
-                .idVar("TESTIDVAR")
+                .varId("TESTIDVAR")
                 .values(List.of(new String[]{"V1", "V2"}))
-                .idLoop("TESTIDLOOP")
-                .idParent("TESTIDPARENT")
+                .loopId("TESTIDLOOP")
+                .parentId("TESTIDPARENT")
                 .build();
         collectedVariableList.add(collectedVariable);
 
@@ -185,7 +186,7 @@ class SurveyUnitDocumentMapperImplTest {
         ).isNotEmpty();
 
         Assertions.assertThat(surveyUnitDocumentList.getFirst().getCollectedVariables()).filteredOn(variableDocument ->
-                variableDocument.varId().equals("TESTIDVAR")
+                variableDocument.getVarId().equals("TESTIDVAR")
                         && variableDocument.getValues().containsAll(List.of(new String[]{"V1", "V2"}))
         ).isNotEmpty();
     }

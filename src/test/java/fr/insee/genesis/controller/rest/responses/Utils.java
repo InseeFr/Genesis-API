@@ -184,15 +184,15 @@ class Utils {
                                              LocalDateTime fileDate, LocalDateTime recordDate,
                                              SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) {
         List<VariableModel> externalVariableList = new ArrayList<>();
-        VariableModel externalVariable = VariableModel.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
+        VariableModel externalVariable = VariableModel.builder().varId("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
         externalVariableList.add(externalVariable);
 
         List<VariableModel> collectedVariableList = new ArrayList<>();
         VariableModel collectedVariable = VariableModel.builder()
-                .idVar("TESTIDVAR")
+                .varId("TESTIDVAR")
                 .values(List.of(new String[]{"V1", "V2"}))
-                .idLoop("TESTIDLOOP")
-                .idParent("TESTIDPARENT")
+                .loopId("TESTIDLOOP")
+                .parentId("TESTIDPARENT")
                 .build();
 
 
@@ -221,15 +221,15 @@ class Utils {
                                             LocalDateTime recordDate,
                                             SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) {
         List<VariableModel> externalVariableList = new ArrayList<>();
-        VariableModel variable = VariableModel.builder().idVar("TESTIDVAR").values(List.of(new String[]{externalVariableValue})).build();
+        VariableModel variable = VariableModel.builder().varId("TESTIDVAR").values(List.of(new String[]{externalVariableValue})).build();
         externalVariableList.add(variable);
 
         List<VariableModel> collectedVariableList = new ArrayList<>();
         VariableModel collectedVariable = VariableModel.builder()
-                .idVar("TESTIDVAR")
+                .varId("TESTIDVAR")
                 .values(List.of(new String[]{collectedVariableValue}))
-                .idLoop("TESTIDLOOP")
-                .idParent("TESTIDPARENT")
+                .loopId("TESTIDLOOP")
+                .parentId("TESTIDPARENT")
                 .build();
 
         collectedVariableList.add(collectedVariable);

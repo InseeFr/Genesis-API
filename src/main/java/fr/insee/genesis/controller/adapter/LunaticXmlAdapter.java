@@ -123,10 +123,10 @@ public class LunaticXmlAdapter {
                 if (valueTypeList.get(i-1).getValue()!=null) {
                     variableValues.add(valueTypeList.get(i-1).getValue());
                     variableModels.add(VariableModel.builder()
-                            .idVar(lunaticXmlCollectedData.getVariableName())
+                            .varId(lunaticXmlCollectedData.getVariableName())
                             .values(variableValues)
-                            .idLoop(LoopIdentifier.getLoopIdentifier(lunaticXmlCollectedData.getVariableName(), variablesMap, i))
-                            .idParent(LoopIdentifier.getRelatedVariableName(lunaticXmlCollectedData.getVariableName(), variablesMap))
+                            .loopId(LoopIdentifier.getLoopIdentifier(lunaticXmlCollectedData.getVariableName(), variablesMap, i))
+                            .parentId(LoopIdentifier.getRelatedVariableName(lunaticXmlCollectedData.getVariableName(), variablesMap))
                             .build());
                     dataCount++;
                 }
@@ -161,10 +161,10 @@ public class LunaticXmlAdapter {
                 if (valueTypeList.get(i-1).getValue()!=null) {
                     variableValues.add(valueTypeList.get(i-1).getValue());
                     variableModels.add(VariableModel.builder()
-                            .idVar(lunaticXmlExternalData.getVariableName())
+                            .varId(lunaticXmlExternalData.getVariableName())
                             .values(variableValues)
-                            .idLoop(LoopIdentifier.getLoopIdentifier(lunaticXmlExternalData.getVariableName(), variablesMap, i))
-                            .idParent(LoopIdentifier.getRelatedVariableName(lunaticXmlExternalData.getVariableName(), variablesMap))
+                            .loopId(LoopIdentifier.getLoopIdentifier(lunaticXmlExternalData.getVariableName(), variablesMap, i))
+                            .parentId(LoopIdentifier.getRelatedVariableName(lunaticXmlExternalData.getVariableName(), variablesMap))
                             .build());
                 }
             }

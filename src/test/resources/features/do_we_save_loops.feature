@@ -7,7 +7,7 @@ Feature: Do we save loops ?
     When We save data from that directory
     When We delete that directory
 
-    Then For external variable "<VariableName>" in survey unit "<InterrogationId>" we should have "<ExpectedIdLoop>" as idLoop and "<ExpectedValue>" as first value
+    Then For external variable "<VariableName>" in survey unit "<InterrogationId>" we should have "<ExpectedIdLoop>" as loopId and "<ExpectedValue>" as first value
     Examples:
       | VariableName       | InterrogationId | ExpectedIdLoop | ExpectedValue |
       | CODESA             | AUTO11000       | TABESA_1       | AAA |

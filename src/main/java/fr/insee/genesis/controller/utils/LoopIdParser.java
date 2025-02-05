@@ -7,12 +7,12 @@ public class LoopIdParser {
 
     private static final Pattern LOOP_PATTERN = Pattern.compile(".*_(\\d+)$");
 
-    public static Integer extractIndex(String idLoop) {
-        if (idLoop == null) {
+    public static Integer extractIndex(String loopId) {
+        if (loopId == null) {
             return null;
         }
 
-        Matcher matcher = LOOP_PATTERN.matcher(idLoop);
+        Matcher matcher = LOOP_PATTERN.matcher(loopId);
         if (matcher.matches()) {
             return Integer.parseInt(matcher.group(1));
         }

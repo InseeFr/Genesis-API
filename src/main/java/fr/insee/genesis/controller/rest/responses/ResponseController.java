@@ -57,7 +57,6 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @RequestMapping(path = "/responses" )
@@ -320,7 +319,7 @@ public class ResponseController {
     public ResponseEntity<SurveyUnitSimplified> getLatestByInterrogationOneObject(@RequestParam("interrogationId") String interrogationId,
                                                                              @RequestParam("questionnaireId") String questionnaireId,
                                                                              @RequestParam("mode") Mode mode) {
-        List<SurveyUnitModel> responses = surveyUnitService.findLatestByIdAndByIdQuestionnaire(interrogationId, questionnaireId);
+        List<SurveyUnitModel> responses = surveyUnitService.findLatestByIdAndByQuestionnaireId(interrogationId, questionnaireId);
         List<VariableModel> outputVariables = new ArrayList<>();
         List<VariableModel> outputExternalVariables = new ArrayList<>();
         responses.stream().filter(rep -> rep.getMode().equals(mode)).forEach(response -> {

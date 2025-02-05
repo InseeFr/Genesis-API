@@ -149,14 +149,14 @@ class DataVerifierTest {
                 }
 
                 collectedVariables.add(VariableModel.builder()
-                        .idVar("testInteger" + variableIndex)
+                        .varId("testInteger" + variableIndex)
                         .values(new ArrayList<>(values))
                         .build()
                 );
 
                 if(hasExternalVariables){
                     externalVariables.add(VariableModel.builder()
-                            .idVar("testInteger" + variableIndex)
+                            .varId("testInteger" + variableIndex)
                             .values(new ArrayList<>(values))
                             .build()
                     );
@@ -209,15 +209,15 @@ class DataVerifierTest {
         SurveyUnitModel suDto = suDtoOpt.get();
 
         assertThat(suDto.getCollectedVariables().stream().filter(collectedVariableDto ->
-                collectedVariableDto.idVar().equals(variableName)
+                collectedVariableDto.varId().equals(variableName)
                 )).isNotEmpty();
 
         assertThat(suDto.getCollectedVariables().stream().filter(collectedVariableDto ->
-                collectedVariableDto.idVar().equals(variableName)
+                collectedVariableDto.varId().equals(variableName)
         ).findFirst()).isPresent();
 
         assertThat(suDto.getCollectedVariables().stream().filter(collectedVariableDto ->
-                collectedVariableDto.idVar().equals(variableName)
+                collectedVariableDto.varId().equals(variableName)
         ).findFirst().get().values().get(valueIndex)).isEqualTo(expectedContent);
     }
 
@@ -231,9 +231,9 @@ class DataVerifierTest {
         SurveyUnitModel suDto = suDtoOpt.get();
 
         if(hasToExist)
-            assertThat(suDto.getCollectedVariables().stream().filter(collectedVariableDto -> collectedVariableDto.idVar().equals(variableName)).toList()).isNotEmpty();
+            assertThat(suDto.getCollectedVariables().stream().filter(collectedVariableDto -> collectedVariableDto.varId().equals(variableName)).toList()).isNotEmpty();
         else
-            assertThat(suDto.getCollectedVariables().stream().filter(collectedVariableDto -> collectedVariableDto.idVar().equals(variableName)).toList()).isEmpty();
+            assertThat(suDto.getCollectedVariables().stream().filter(collectedVariableDto -> collectedVariableDto.varId().equals(variableName)).toList()).isEmpty();
     }
 
     private void assertForcedExternalVariableExistence(List<SurveyUnitModel> testSurveyUnitModels, String idUE, String variableName, boolean hasToExist) {
@@ -246,9 +246,9 @@ class DataVerifierTest {
         SurveyUnitModel suDto = suDtoOpt.get();
 
         if(hasToExist)
-            assertThat(suDto.getExternalVariables().stream().filter(variableDto -> variableDto.idVar().equals(variableName)).toList()).isNotEmpty();
+            assertThat(suDto.getExternalVariables().stream().filter(variableDto -> variableDto.varId().equals(variableName)).toList()).isNotEmpty();
         else
-            assertThat(suDto.getExternalVariables().stream().filter(variableDto -> variableDto.idVar().equals(variableName)).toList()).isEmpty();
+            assertThat(suDto.getExternalVariables().stream().filter(variableDto -> variableDto.varId().equals(variableName)).toList()).isEmpty();
     }
 
     private void assertExternalVariableContent(List<SurveyUnitModel> testSurveyUnitModels, String idUE, String variableName, int valueIndex, String expectedContent) {
@@ -264,15 +264,15 @@ class DataVerifierTest {
         SurveyUnitModel suDto = suDtoOpt.get();
 
         assertThat(suDto.getExternalVariables().stream().filter(variableDto ->
-                variableDto.idVar().equals(variableName)
+                variableDto.varId().equals(variableName)
         )).isNotEmpty();
 
         assertThat(suDto.getExternalVariables().stream().filter(variableDto ->
-                variableDto.idVar().equals(variableName)
+                variableDto.varId().equals(variableName)
         ).findFirst()).isPresent();
 
         assertThat(suDto.getExternalVariables().stream().filter(variableDto ->
-                variableDto.idVar().equals(variableName)
+                variableDto.varId().equals(variableName)
         ).findFirst().get().values().get(valueIndex)).isEqualTo(expectedContent);
     }
 

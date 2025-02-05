@@ -38,8 +38,8 @@ public class DataTransformer {
     private static VariableQualityToolDto transformVariable(VariableDto variable) {
         Integer iteration = null;
 
-        if (variable.getIdLoop() != null) {
-            iteration = LoopIdParser.extractIndex(variable.getIdLoop());
+        if (variable.getLoopId() != null) {
+            iteration = LoopIdParser.extractIndex(variable.getLoopId());
         }
 
         return VariableQualityToolDto.builder()

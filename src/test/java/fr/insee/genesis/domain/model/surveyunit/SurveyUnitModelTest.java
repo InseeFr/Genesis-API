@@ -14,19 +14,19 @@ public class SurveyUnitModelTest {
     public void toJSONTest() throws JsonProcessingException {
         List<VariableModel> externalVariableList = new ArrayList<>();
         VariableModel externalVariable = VariableModel.builder()
-                .idVar("TESTIDVAREXT")
+                .varId("TESTIDVAREXT")
                 .values(List.of(new String[]{"V1","V2"}))
-                .idLoop("TESTIDLOOP")
-                .idParent("TESTIDPARENT")
+                .loopId("TESTIDLOOP")
+                .parentId("TESTIDPARENT")
                 .build();
         externalVariableList.add(externalVariable);
 
         List<VariableModel> collectedVariableList = new ArrayList<>();
         VariableModel collectedVariable = VariableModel.builder()
-                .idVar("TESTIDVAR")
+                .varId("TESTIDVAR")
                 .values(List.of(new String[]{"V1","V2"}))
-                .idLoop("TESTIDLOOP")
-                .idParent("TESTIDPARENT")
+                .loopId("TESTIDLOOP")
+                .parentId("TESTIDPARENT")
                 .build();
         collectedVariableList.add(collectedVariable);
 
@@ -46,7 +46,7 @@ public class SurveyUnitModelTest {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.findAndRegisterModules();
         Assertions.assertEquals(
-                objectMapper.readTree("{\"idQuest\":\"TESTIDQUEST\",\"idCampaign\":\"TESTIDCAMPAIGN\",\"interrogationId\":\"TESTIDUE\",\"state\":\"COLLECTED\",\"mode\":\"WEB\",\"recordDate\":\"2000-01-01T12:00\",\"fileDate\":\"2000-01-01T12:00\",\"collectedVariables\":[{\"idVar\":\"TESTIDVAR\",\"values\":[\"V1\",\"V2\"],\"idLoop\":\"TESTIDLOOP\",\"idParent\":\"TESTIDPARENT\"}],\"externalVariables\":[{\"idVar\":\"TESTIDVAREXT\",\"values\":[\"V1\",\"V2\"],\"idLoop\":\"TESTIDLOOP\",\"idParent\":\"TESTIDPARENT\"}],\"modifiedBy\": null}"),
+                objectMapper.readTree("{\"questionnaireId\":\"TESTIDQUEST\",\"campaignId\":\"TESTIDCAMPAIGN\",\"interrogationId\":\"TESTIDUE\",\"state\":\"COLLECTED\",\"mode\":\"WEB\",\"recordDate\":\"2000-01-01T12:00\",\"fileDate\":\"2000-01-01T12:00\",\"collectedVariables\":[{\"varId\":\"TESTIDVAR\",\"values\":[\"V1\",\"V2\"],\"loopId\":\"TESTIDLOOP\",\"parentId\":\"TESTIDPARENT\"}],\"externalVariables\":[{\"varId\":\"TESTIDVAREXT\",\"values\":[\"V1\",\"V2\"],\"loopId\":\"TESTIDLOOP\",\"parentId\":\"TESTIDPARENT\"}],\"modifiedBy\": null}"),
                 objectMapper.readTree(objectMapper.writeValueAsString(surveyUnitModel))
         );
     }

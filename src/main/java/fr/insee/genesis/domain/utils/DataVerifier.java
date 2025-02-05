@@ -86,10 +86,10 @@ public class DataVerifier {
         for(VariableModel correctedCollectedVariable : correctedCollectedVariables){
             newForcedSuDto.getCollectedVariables().add(
                 VariableModel.builder()
-                        .idVar(correctedCollectedVariable.idVar())
+                        .varId(correctedCollectedVariable.varId())
                         .values(correctedCollectedVariable.values())
-                        .idLoop(correctedCollectedVariable.idLoop())
-                        .idParent(correctedCollectedVariable.idParent())
+                        .loopId(correctedCollectedVariable.loopId())
+                        .parentId(correctedCollectedVariable.parentId())
                         .build()
             );
         }
@@ -97,10 +97,10 @@ public class DataVerifier {
         for(VariableModel correctedExternalVariable : correctedExternalVariables){
             newForcedSuDto.getExternalVariables().add(
                     VariableModel.builder()
-                            .idVar(correctedExternalVariable.idVar())
+                            .varId(correctedExternalVariable.varId())
                             .values(correctedExternalVariable.values())
-                            .idLoop(correctedExternalVariable.idLoop())
-                            .idParent(correctedExternalVariable.idParent())
+                            .loopId(correctedExternalVariable.loopId())
+                            .parentId(correctedExternalVariable.parentId())
                             .build()
             );
         }
@@ -138,8 +138,8 @@ public class DataVerifier {
         //Get more priority variables to verify
         for(SurveyUnitModel srcSuDto : sortedSuDtos){
             for(VariableModel collectedVariable : srcSuDto.getCollectedVariables()){
-                if(!variableNames.contains(collectedVariable.idVar())){
-                    variableNames.add(collectedVariable.idVar());
+                if(!variableNames.contains(collectedVariable.varId())){
+                    variableNames.add(collectedVariable.varId());
                     variablesToVerify.add(collectedVariable);
                 }
             }
@@ -147,11 +147,11 @@ public class DataVerifier {
 
         //Verify variables
         for(VariableModel collectedVariableToVerify : variablesToVerify){
-            if(variablesMap.hasVariable(collectedVariableToVerify.idVar()))
+            if(variablesMap.hasVariable(collectedVariableToVerify.varId()))
             {
                 VariableModel correctedCollectedVariable = verifyCollectedVariable(
                         collectedVariableToVerify,
-                        variablesMap.getVariable(collectedVariableToVerify.idVar())
+                        variablesMap.getVariable(collectedVariableToVerify.varId())
                 );
 
                 if(correctedCollectedVariable != null){
@@ -176,10 +176,10 @@ public class DataVerifier {
 
 
         return isInvalid ? VariableModel.builder()
-                .idVar(collectedVariable.idVar())
+                .varId(collectedVariable.varId())
                 .values(newValues)
-                .idLoop(collectedVariable.idLoop())
-                .idParent(collectedVariable.idParent())
+                .loopId(collectedVariable.loopId())
+                .parentId(collectedVariable.parentId())
                 .build() : null;
     }
 
@@ -192,10 +192,10 @@ public class DataVerifier {
         //Verify variables
         if(collectedSuDtoOpt.isPresent()){
             for(VariableModel variable: collectedSuDtoOpt.get().getExternalVariables()){
-                if(variablesMap.hasVariable(variable.idVar())) {
+                if(variablesMap.hasVariable(variable.varId())) {
                     VariableModel correctedExternalVariable = verifyExternalVariable(
                             variable,
-                            variablesMap.getVariable(variable.idVar())
+                            variablesMap.getVariable(variable.varId())
                     );
                     if (correctedExternalVariable != null) {
                         correctedExternalVariables.add(correctedExternalVariable);
@@ -225,7 +225,7 @@ public class DataVerifier {
         }
 
         return isInvalid ? VariableModel.builder()
-                .idVar(externalVariable.idVar())
+                .varId(externalVariable.varId())
                 .values(newValues)
                 .build() : null;
     }

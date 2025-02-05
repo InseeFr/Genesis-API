@@ -331,11 +331,11 @@ class LunaticXmlAdapterTest {
         Assertions.assertThat(suDtos).hasSize(1);
 
         Assertions.assertThat(suDtos.getFirst().getCollectedVariables()).filteredOn(collectedVariableDto ->
-                collectedVariableDto.idVar().equals("var3")).isNotEmpty();
+                collectedVariableDto.varId().equals("var3")).isNotEmpty();
         Assertions.assertThat(suDtos.getFirst().getCollectedVariables().stream().filter(collectedVariableDto ->
-                collectedVariableDto.idVar().equals("var3")).toList().getFirst().idParent()).isNull();
+                collectedVariableDto.varId().equals("var3")).toList().getFirst().parentId()).isNull();
         Assertions.assertThat(suDtos.getFirst().getCollectedVariables().stream().filter(collectedVariableDto ->
-                collectedVariableDto.idVar().equals("var3")).toList().getFirst().idLoop()).isEqualTo(Constants.ROOT_GROUP_NAME);
+                collectedVariableDto.varId().equals("var3")).toList().getFirst().loopId()).isEqualTo(Constants.ROOT_GROUP_NAME);
     }
 
     @Test
@@ -348,11 +348,11 @@ class LunaticXmlAdapterTest {
         Assertions.assertThat(suDtos).hasSize(1);
 
         Assertions.assertThat(suDtos.getFirst().getCollectedVariables()).filteredOn(collectedVariableDto ->
-                collectedVariableDto.idVar().equals("var1_MISSING")).isNotEmpty();
+                collectedVariableDto.varId().equals("var1_MISSING")).isNotEmpty();
         Assertions.assertThat(suDtos.getFirst().getCollectedVariables().stream().filter(collectedVariableDto ->
-                collectedVariableDto.idVar().equals("var1_MISSING")).toList().getFirst().idParent()).isNotNull().isEqualTo("var1");
+                collectedVariableDto.varId().equals("var1_MISSING")).toList().getFirst().parentId()).isNotNull().isEqualTo("var1");
         Assertions.assertThat(suDtos.getFirst().getCollectedVariables().stream().filter(collectedVariableDto ->
-                collectedVariableDto.idVar().equals("var1_MISSING")).toList().getFirst().idLoop()).isNotEqualTo(Constants.ROOT_GROUP_NAME).isEqualTo(LOOP_NAME);
+                collectedVariableDto.varId().equals("var1_MISSING")).toList().getFirst().loopId()).isNotEqualTo(Constants.ROOT_GROUP_NAME).isEqualTo(LOOP_NAME);
     }
 
     @Test
@@ -364,13 +364,13 @@ class LunaticXmlAdapterTest {
         Assertions.assertThat(suDtos).hasSize(1);
         Assertions.assertThat(suDtos.getFirst().getCollectedVariables()).hasSize(3);
         Assertions.assertThat(suDtos.getFirst().getCollectedVariables()).filteredOn(collectedVariableDto ->
-                collectedVariableDto.idVar().equals("var1")).isNotEmpty();
+                collectedVariableDto.varId().equals("var1")).isNotEmpty();
         Assertions.assertThat(suDtos.getFirst().getCollectedVariables()).filteredOn(collectedVariableDto ->
-                collectedVariableDto.idLoop().equals("BOUCLE1_1")).isEmpty();
+                collectedVariableDto.loopId().equals("BOUCLE1_1")).isEmpty();
         Assertions.assertThat(suDtos.getFirst().getCollectedVariables().stream().filter(collectedVariableDto ->
-                collectedVariableDto.idLoop().equals("BOUCLE1_2")).toList().getFirst().values().getFirst()).isEqualTo("1");
+                collectedVariableDto.loopId().equals("BOUCLE1_2")).toList().getFirst().values().getFirst()).isEqualTo("1");
         Assertions.assertThat(suDtos.getFirst().getCollectedVariables().stream().filter(collectedVariableDto ->
-                collectedVariableDto.idLoop().equals("BOUCLE1_3")).toList().getFirst().values().getFirst()).isEqualTo("2");
+                collectedVariableDto.loopId().equals("BOUCLE1_3")).toList().getFirst().values().getFirst()).isEqualTo("2");
 
     }
 
@@ -383,10 +383,10 @@ class LunaticXmlAdapterTest {
         Assertions.assertThat(suDtos).hasSize(1);
         Assertions.assertThat(suDtos.getFirst().getCollectedVariables()).isEmpty();
         Assertions.assertThat(suDtos.getFirst().getExternalVariables()).hasSize(1);
-        Assertions.assertThat(suDtos.getFirst().getExternalVariables().getFirst().idVar()).isEqualTo("extvar1");
+        Assertions.assertThat(suDtos.getFirst().getExternalVariables().getFirst().varId()).isEqualTo("extvar1");
         Assertions.assertThat(suDtos.getFirst().getExternalVariables().getFirst().values()).hasSize(1);
         Assertions.assertThat(suDtos.getFirst().getExternalVariables().getFirst().values().getFirst()).isEqualTo("ext");
-        Assertions.assertThat(suDtos.getFirst().getExternalVariables().getFirst().idLoop()).isEqualTo(LOOP_NAME+"_1");
-        Assertions.assertThat(suDtos.getFirst().getExternalVariables().getFirst().idParent()).isEqualTo(Constants.ROOT_GROUP_NAME);
+        Assertions.assertThat(suDtos.getFirst().getExternalVariables().getFirst().loopId()).isEqualTo(LOOP_NAME+"_1");
+        Assertions.assertThat(suDtos.getFirst().getExternalVariables().getFirst().parentId()).isEqualTo(Constants.ROOT_GROUP_NAME);
     }
 }
