@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.dto.rawdata.LunaticJsonRawDataUnprocessedDto;
-import fr.insee.genesis.domain.model.surveyunit.CollectedVariable;
+import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
@@ -96,16 +96,16 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
 
             //Data variables convertion
             for(String variableName : rawData.getData().keySet()){
-                CollectedVariable collectedVariable = CollectedVariable.collectedVariableBuilder()
+                VariableModel variableModel = VariableModel.builder()
                         .idVar(variableName)
                         .values(new ArrayList<>())
                         .idLoop(getIdLoop(variablesMap, variableName))
                         .idParent(LoopIdentifier.getRelatedVariableName(variableName, variablesMap))
                         .build();
 
-                collectedVariable.getValues().add(rawData.getData().get(variableName).toString());
+                variableModel.values().add(rawData.getData().get(variableName).toString());
 
-                surveyUnitModel.getCollectedVariables().add(collectedVariable);
+                surveyUnitModel.getCollectedVariables().add(variableModel);
             }
             surveyUnitModels.add(surveyUnitModel);
         }
