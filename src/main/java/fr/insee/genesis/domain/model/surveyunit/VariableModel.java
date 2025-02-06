@@ -7,6 +7,6 @@ public record VariableModel(
         String varId,
         String value,
         String scope,
-        String parentId,
-        Integer iteration
+        Integer iteration,
+        String parentId
 ) {}
