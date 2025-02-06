@@ -59,17 +59,17 @@ class SurveyUnitServiceTest {
         VariableModel collectedVariable = VariableModel.builder()
                 .varId("TESTIDVAR")
                 .value("V1")
-                .loopId("TESTIDLOOP")
-                .parentId("TESTIDPARENT")
+                .scope("TESTIDLOOP")
                 .iteration(1)
+                .parentId("TESTIDPARENT")
                 .build();
         collectedVariableList.add(collectedVariable);
         collectedVariable = VariableModel.builder()
                 .varId("TESTIDVAR")
                 .value("V2")
-                .loopId("TESTIDLOOP")
-                .parentId("TESTIDPARENT")
+                .scope("TESTIDLOOP")
                 .iteration(2)
+                .parentId("TESTIDPARENT")
                 .build();
         collectedVariableList.add(collectedVariable);
         surveyUnitPersistencePortStub.getMongoStub().add(SurveyUnitModel.builder()
@@ -110,17 +110,17 @@ class SurveyUnitServiceTest {
         VariableModel collectedVariableModel = VariableModel.builder()
                 .varId("TESTIDVAR")
                 .value("V1")
-                .loopId("TESTIDLOOP")
-                .parentId("TESTIDPARENT")
+                .scope("TESTIDLOOP")
                 .iteration(1)
+                .parentId("TESTIDPARENT")
                 .build();
         collectedVariableList.add(collectedVariableModel);
         collectedVariableModel = VariableModel.builder()
                 .varId("TESTIDVAR")
                 .value("V2")
-                .loopId("TESTIDLOOP")
-                .parentId("TESTIDPARENT")
+                .scope("TESTIDLOOP")
                 .iteration(2)
+                .parentId("TESTIDPARENT")
                 .build();
         collectedVariableList.add(collectedVariableModel);
 
@@ -481,9 +481,9 @@ class SurveyUnitServiceTest {
         VariableModel collectedVariableModel = VariableModel.builder()
                 .varId("TESTIDVAR")
                 .value("V1")
-                .loopId("TESTIDLOOP")
-                .parentId("TESTIDPARENT")
+                .scope("TESTIDLOOP")
                 .iteration(1)
+                .parentId("TESTIDPARENT")
                 .build();
         collectedVariableList.add(collectedVariableModel);
 
@@ -520,17 +520,17 @@ class SurveyUnitServiceTest {
         VariableModel collectedVariableModel = VariableModel.builder()
                 .varId("TESTIDVAR")
                 .value("V1")
-                .loopId("TESTIDLOOP")
-                .parentId("TESTIDPARENT")
+                .scope("TESTIDLOOP")
                 .iteration(1)
+                .parentId("TESTIDPARENT")
                 .build();
         collectedVariableList.add(collectedVariableModel);
         collectedVariableModel = VariableModel.builder()
                 .varId("TESTIDVAR")
                 .value("V2")
-                .loopId("TESTIDLOOP")
-                .parentId("TESTIDPARENT")
+                .scope("TESTIDLOOP")
                 .iteration(2)
+                .parentId("TESTIDPARENT")
                 .build();
         collectedVariableList.add(collectedVariableModel);
 
@@ -566,9 +566,9 @@ class SurveyUnitServiceTest {
         VariableModel collectedVariable = VariableModel.builder()
                 .varId("TESTIDVAR")
                 .value(collectedVariableValue)
-                .loopId("TESTIDLOOP")
-                .parentId("TESTIDPARENT")
+                .scope("TESTIDLOOP")
                 .iteration(1)
+                .parentId("TESTIDPARENT")
                 .build();
         collectedVariableList.add(collectedVariable);
 

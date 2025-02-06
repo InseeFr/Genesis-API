@@ -93,7 +93,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                 latestUpdate.setExternalVariables(new ArrayList<>());
             }
             latestUpdate.getCollectedVariables().forEach(colVar -> addedVariables.add(new IdLoopTuple(colVar.varId(),
-                    colVar.loopId())));
+                    colVar.scope())));
             latestUpdate.getExternalVariables().forEach(extVar -> addedVariables.add(new IdLoopTuple(extVar.varId(), "")));
 
             suByMode.forEach(surveyUnitModel -> {
@@ -101,10 +101,10 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                 List<VariableModel> externalVariablesToKeep = new ArrayList<>();
                 // We iterate over the variables of the update and add them to the list if they are not already added
                 surveyUnitModel.getCollectedVariables().stream()
-                        .filter(colVar -> !addedVariables.contains(new IdLoopTuple(colVar.varId(), colVar.loopId())))
+                        .filter(colVar -> !addedVariables.contains(new IdLoopTuple(colVar.varId(), colVar.scope())))
                         .forEach(colVar -> {
                             collectedVariablesToKeep.add(colVar);
-                           addedVariables.add(new IdLoopTuple(colVar.varId(), colVar.loopId()));
+                           addedVariables.add(new IdLoopTuple(colVar.varId(), colVar.scope()));
                         });
                 if (surveyUnitModel.getExternalVariables() != null){
                     surveyUnitModel.getExternalVariables().stream()
@@ -276,7 +276,8 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                         .varId(editedVariableDto.getVariableName())
                         .value(editedVariableDto.getVariableStateInputDto().getValue())
                         .parentId(LoopIdentifier.getRelatedVariableName(editedVariableDto.getVariableName(), variablesMap))
-                        .loopId(editedVariableDto.getLoopId())
+                        .scope(editedVariableDto.getScope())
+                        .iteration(editedVariableDto.getIteration())
                         .build();
 
                 surveyUnitModel.getCollectedVariables().add(collectedVariable);
@@ -309,14 +310,15 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             surveyUnitModel.setCollectedVariables(new ArrayList<>());
         }
         for (VariableModel collectedVariable : surveyUnitModel.getCollectedVariables()) {
-            IdLoopTuple loopIdTuple = new IdLoopTuple(collectedVariable.varId(), collectedVariable.loopId());
+            IdLoopTuple loopIdTuple = new IdLoopTuple(collectedVariable.varId(), collectedVariable.scope());
             VariableDto variableDto = collectedVariableMap.get(loopIdTuple);
 
             //Create variable into map if not exists
             if (variableDto == null) {
                 variableDto = VariableDto.builder()
                         .variableName(collectedVariable.varId())
-                        .loopId(collectedVariable.loopId())
+                        .scope(collectedVariable.scope())
+                        .iteration(collectedVariable.iteration())
                         .variableStateDtoList(new ArrayList<>())
                         .build();
                 collectedVariableMap.put(loopIdTuple, variableDto);
@@ -338,14 +340,14 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             surveyUnitModel.setExternalVariables(new ArrayList<>());
         }
         for(VariableModel externalVariable : surveyUnitModel.getExternalVariables()){
-            IdLoopTuple loopIdTuple = new IdLoopTuple(externalVariable.varId(), externalVariable.loopId());
+            IdLoopTuple loopIdTuple = new IdLoopTuple(externalVariable.varId(), externalVariable.scope());
             VariableDto variableDto = externalVariableMap.get(loopIdTuple);
 
             //Create variable into map if not exists
             if(variableDto == null){
                 variableDto = VariableDto.builder()
                         .variableName(externalVariable.varId())
-                        .loopId(externalVariable.loopId())
+                        .scope(externalVariable.scope())
                         .variableStateDtoList(new ArrayList<>())
                         .build();
                 externalVariableMap.put(loopIdTuple, variableDto);

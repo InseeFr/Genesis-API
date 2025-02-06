@@ -47,17 +47,17 @@ class HealthCheckControllerTest {
         VariableModel collectedVariable = VariableModel.builder()
                 .varId("TESTIDVAR")
                 .value("V1")
-                .loopId("TESTIDLOOP")
-                .parentId("TESTIDPARENT")
+                .scope("TESTIDLOOP")
                 .iteration(1)
+                .parentId("TESTIDPARENT")
                 .build();
         collectedVariableList.add(collectedVariable);
         collectedVariable = VariableModel.builder()
                 .varId("TESTIDVAR")
                 .value("V2")
-                .loopId("TESTIDLOOP")
-                .parentId("TESTIDPARENT")
+                .scope("TESTIDLOOP")
                 .iteration(2)
+                .parentId("TESTIDPARENT")
                 .build();
         collectedVariableList.add(collectedVariable);
         surveyUnitPersistencePortStub.getMongoStub().add(SurveyUnitModel.builder()

@@ -88,7 +88,8 @@ public class DataVerifier {
                 VariableModel.builder()
                         .varId(correctedCollectedVariable.varId())
                         .value(correctedCollectedVariable.value())
-                        .loopId(correctedCollectedVariable.loopId())
+                        .scope(correctedCollectedVariable.scope())
+                        .iteration(correctedCollectedVariable.iteration())
                         .parentId(correctedCollectedVariable.parentId())
                         .build()
             );
@@ -99,7 +100,8 @@ public class DataVerifier {
                     VariableModel.builder()
                             .varId(correctedExternalVariable.varId())
                             .value(correctedExternalVariable.value())
-                            .loopId(correctedExternalVariable.loopId())
+                            .scope(correctedExternalVariable.scope())
+                            .iteration(correctedExternalVariable.iteration())
                             .parentId(correctedExternalVariable.parentId())
                             .build()
             );
@@ -166,9 +168,9 @@ public class DataVerifier {
             return VariableModel.builder()
                     .varId(variableModel.varId())
                     .value("")
-                    .loopId(variableModel.loopId())
-                    .parentId(variableModel.parentId())
+                    .scope(variableModel.scope())
                     .iteration(variableModel.iteration())
+                    .parentId(variableModel.parentId())
                     .build();
         }
         return null;

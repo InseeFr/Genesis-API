@@ -4,10 +4,12 @@ import fr.insee.genesis.controller.dto.SurveyUnitDto;
 import fr.insee.genesis.controller.dto.SurveyUnitQualityToolDto;
 import fr.insee.genesis.controller.dto.VariableQualityToolDto;
 import fr.insee.genesis.controller.dto.VariableDto;
+import lombok.experimental.UtilityClass;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@UtilityClass
 public class DataTransformer {
 
     public static SurveyUnitQualityToolDto transformSurveyUnitDto(SurveyUnitDto dto){
@@ -38,8 +40,8 @@ public class DataTransformer {
     private static VariableQualityToolDto transformVariable(VariableDto variable) {
         Integer iteration = null;
 
-        if (variable.getLoopId() != null) {
-            iteration = LoopIdParser.extractIndex(variable.getLoopId());
+        if (variable.getScope() != null) {
+            iteration = LoopIdParser.extractIndex(variable.getScope());
         }
 
         return VariableQualityToolDto.builder()
@@ -47,7 +49,6 @@ public class DataTransformer {
             .iteration(iteration)
             .variableStateDtoList(variable.getVariableStateDtoList())
             .build();
-
     }
 
 }

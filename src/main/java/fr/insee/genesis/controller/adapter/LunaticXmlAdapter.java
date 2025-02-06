@@ -123,7 +123,7 @@ public class LunaticXmlAdapter {
                     variableModels.add(VariableModel.builder()
                             .varId(lunaticXmlCollectedData.getVariableName())
                             .value(valueTypeList.get(i-1).getValue())
-                            .loopId(LoopIdentifier.getLoopIdentifier(lunaticXmlCollectedData.getVariableName(), variablesMap))
+                            .scope(LoopIdentifier.getLoopIdentifier(lunaticXmlCollectedData.getVariableName(), variablesMap))
                             .parentId(LoopIdentifier.getRelatedVariableName(lunaticXmlCollectedData.getVariableName(), variablesMap))
                             .iteration(i)
                             .build());
@@ -160,9 +160,9 @@ public class LunaticXmlAdapter {
                     variableModels.add(VariableModel.builder()
                             .varId(lunaticXmlExternalData.getVariableName())
                             .value(valueTypeList.get(i-1).getValue())
-                            .loopId(LoopIdentifier.getLoopIdentifier(lunaticXmlExternalData.getVariableName(), variablesMap))
-                            .parentId(LoopIdentifier.getRelatedVariableName(lunaticXmlExternalData.getVariableName(), variablesMap))
+                            .scope(LoopIdentifier.getLoopIdentifier(lunaticXmlExternalData.getVariableName(), variablesMap))
                             .iteration(i)
+                            .parentId(LoopIdentifier.getRelatedVariableName(lunaticXmlExternalData.getVariableName(), variablesMap))
                             .build());
                 }
             }

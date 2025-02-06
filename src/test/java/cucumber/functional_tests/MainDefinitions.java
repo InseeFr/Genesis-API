@@ -171,7 +171,7 @@ public class MainDefinitions {
         Assertions.assertThat(concernedCollectedVariable.value()).isEqualTo(expectedValue);
     }
 
-    @Then("For external variable {string} in survey unit {string} we should have {string} and loopId {string} for " +
+    @Then("For external variable {string} in survey unit {string} we should have {string} and scope {string} for " +
             "iteration {int}")
     public void forExternalVariableInSurveyUnitWeShouldHaveForLoop(String externalVariableName,
                                                                    String interrogationId,
@@ -192,7 +192,7 @@ public class MainDefinitions {
         List<VariableModel> concernedExternalVariables =
                 surveyUnitModel.getExternalVariables().stream().filter(variableModel ->
                 variableModel.varId().equals(externalVariableName)
-                        && Objects.equals(variableModel.loopId(), expectedLoopId)
+                        && Objects.equals(variableModel.scope(), expectedLoopId)
                         && variableModel.iteration().equals(iteration)
         ).toList();
 

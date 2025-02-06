@@ -402,7 +402,8 @@ class ResponseControllerTest {
         List<VariableInputDto> newVariables = new ArrayList<>();
         VariableInputDto variableInputDto = VariableInputDto.builder()
                 .variableName(varId)
-                .loopId(loopId)
+                .scope(loopId)
+                .iteration(1)
                 .build();
 
         variableInputDto.setVariableStateInputDto(VariableStateInputDto.builder()
@@ -436,7 +437,7 @@ class ResponseControllerTest {
 
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables()).hasSize(1);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst().varId()).isEqualTo(varId);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst().loopId()).isEqualTo(loopId);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst().scope()).isEqualTo(loopId);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst().parentId()).isEqualTo(Constants.ROOT_GROUP_NAME);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst().value()).isEqualTo(editedValue);
 
@@ -458,7 +459,8 @@ class ResponseControllerTest {
         List<VariableInputDto> newVariables = new ArrayList<>();
         VariableInputDto variableInputDto = VariableInputDto.builder()
                 .variableName(varId)
-                .loopId(loopId)
+                .scope(loopId)
+                .iteration(1)
                 .variableStateInputDto(VariableStateInputDto.builder()
                         .state(DataState.EDITED)
                         .value(editedValue)
@@ -469,7 +471,8 @@ class ResponseControllerTest {
         //Variable 2
         VariableInputDto variableInputDto2 = VariableInputDto.builder()
                 .variableName(varId2)
-                .loopId(loopId)
+                .scope(loopId)
+                .iteration(1)
                 .variableStateInputDto(VariableStateInputDto.builder()
                         .state(DataState.EDITED)
                         .value(editedValue)
@@ -501,7 +504,7 @@ class ResponseControllerTest {
 
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables()).hasSize(2);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst().varId()).isEqualTo(varId);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst().loopId()).isEqualTo(loopId);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst().scope()).isEqualTo(loopId);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst().parentId()).isEqualTo(Constants.ROOT_GROUP_NAME);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst().value()).isEqualTo(editedValue);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getModifiedBy()).isNull();
@@ -522,7 +525,8 @@ class ResponseControllerTest {
         List<VariableInputDto> newVariables = new ArrayList<>();
         VariableInputDto variableInputDto = VariableInputDto.builder()
                 .variableName(varId)
-                .loopId(loopId)
+                .scope(loopId)
+                .iteration(1)
                 .variableStateInputDto(VariableStateInputDto.builder()
                         .state(DataState.EDITED)
                         .value(editedValue)
@@ -533,7 +537,8 @@ class ResponseControllerTest {
         //Variable 2
         VariableInputDto variableInputDto2 = VariableInputDto.builder()
                 .variableName(varId2)
-                .loopId(loopId)
+                .scope(loopId)
+                .iteration(1)
                 .variableStateInputDto(VariableStateInputDto.builder()
                         .state(DataState.EDITED)
                         .value(editedValue)
@@ -566,7 +571,7 @@ class ResponseControllerTest {
 
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getCollectedVariables()).hasSize(1);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getCollectedVariables().getFirst().varId()).isEqualTo(varId2);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getCollectedVariables().getFirst().loopId()).isEqualTo(loopId);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getCollectedVariables().getFirst().scope()).isEqualTo(loopId);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getCollectedVariables().getFirst().parentId()).isEqualTo(Constants.ROOT_GROUP_NAME);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getCollectedVariables().getFirst().value()).isNotNull().isEmpty();
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getModifiedBy()).isNull();
@@ -584,7 +589,8 @@ class ResponseControllerTest {
         List<VariableInputDto> newVariables = new ArrayList<>();
         VariableInputDto variableInputDto = VariableInputDto.builder()
                 .variableName(varId)
-                .loopId(loopId)
+                .scope(loopId)
+                .iteration(1)
                 .variableStateInputDto(VariableStateInputDto.builder()
                         .state(DataState.EDITED)
                         .value(editedValue)
@@ -619,11 +625,12 @@ class ResponseControllerTest {
         List<VariableInputDto> newVariables = new ArrayList<>();
         VariableInputDto variableInputDto = VariableInputDto.builder()
                 .variableName(varId)
-                .loopId(loopId)
+                .scope(loopId)
                 .variableStateInputDto(VariableStateInputDto.builder()
                         .state(DataState.COLLECTED) //Collected instead of EDITED
                         .value(editedValue)
                         .build())
+                .iteration(1)
                 .build();
         newVariables.add(variableInputDto);
 

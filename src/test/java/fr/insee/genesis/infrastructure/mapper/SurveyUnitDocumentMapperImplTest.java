@@ -60,7 +60,7 @@ class SurveyUnitDocumentMapperImplTest {
         VariableModel collectedVariable = VariableModel.builder()
                 .varId("TESTIDVAR")
                 .value("V1")
-                .loopId("TESTIDLOOP")
+                .scope("TESTIDLOOP")
                 .parentId("TESTIDPARENT")
                 .iteration(1)
                 .build();
