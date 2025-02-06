@@ -7,9 +7,9 @@ Feature: Do we save loops ?
     When We save data from that directory
     When We delete that directory
 
-    Then For external variable "<VariableName>" in survey unit "<InterrogationId>" we should have "<ExpectedValue>" and loopId "<ExpectedIdLoop>" for iteration <Iteration>
+    Then For external variable "<VariableName>" in survey unit "<InterrogationId>" we should have "<ExpectedValue>" and scope "<ExpectedScope>" for iteration <Iteration>
     Examples:
-      | VariableName       | InterrogationId | ExpectedIdLoop | ExpectedValue | Iteration |
+      | VariableName       | InterrogationId | ExpectedScope  | ExpectedValue | Iteration |
       | CODESA             | AUTO11000       | TABESA         | AAA           | 1         |
       | CODESA             | AUTO11000       | TABESA         | BBB           | 2         |
       | CODESA             | AUTO11000       | TABESA         | CCC           | 3         |

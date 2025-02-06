@@ -52,9 +52,9 @@ Feature: Do we extract data ?
     Given We have data in directory "<Directory>"
     Given We copy data file "data_backup/data.complete.validated.STPDv1.20231122164209.xml" to that directory
     When We save data from that directory
-    Then For external variable "<ExternalVariableName>" in survey unit "<SurveyUnitId>" we should have "<ExpectedValue>" and loopId "<LoopId>" for iteration <Iteration>
+    Then For external variable "<ExternalVariableName>" in survey unit "<SurveyUnitId>" we should have "<ExpectedValue>" and scope "<Scope>" for iteration <Iteration>
     Examples:
-      | Directory              | ExternalVariableName | LoopId        | SurveyUnitId | ExpectedValue  | Iteration |
+      | Directory              | ExternalVariableName | Scope       | SurveyUnitId | ExpectedValue  | Iteration |
       | SAMPLETEST             | RPANAISCONJ          | B_PRENOMREP | 0000007      | 1986             | 1         |
       | SAMPLETEST             | RPPRENOM             | B_PRENOMREP | 0000007      | TESTRPRENOM7_2   | 1         |
       | SAMPLETEST             | RPPRENOM             | B_PRENOMREP | 0000007      | TESTRPRENOM7PAR1 | 2         |
