@@ -36,7 +36,7 @@ Feature: Do we extract data ?
 
   Scenario Outline: Collected data extraction content
     Given We have data in directory "<Directory>"
-    When We create DTOs from file "<FileName>" with DDI "<DDIFileName>"
+    When We create survey unit models from file "<FileName>" with DDI "<DDIFileName>"
     Then We should have a "<ExpectedDataState>" Survey Unit model for survey unit "<SurveyUnitId>" with "<VariableName>" filled with "<ExpectedValue>" for iteration <Iteration>
     Examples:
       | Directory              | FileName                                                          | DDIFileName                   |  ExpectedDataState | SurveyUnitId | VariableName   | ExpectedValue  | Iteration     |

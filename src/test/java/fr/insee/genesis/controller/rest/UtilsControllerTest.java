@@ -37,8 +37,8 @@ class UtilsControllerTest {
 
     static List<InterrogationId> interrogationIdList;
     //Constants
-    static final String defaultInterrogationId = "TESTINTERROGATIONID";
-    static final String defaultQuestionnaireId = "TESTQUESTIONNAIREID";
+    static final String DEFAULT_INTERROGATION_ID = "TESTINTERROGATIONID";
+    static final String DEFAULT_QUESTIONNAIRE_ID = "TESTQUESTIONNAIREID";
 
     @BeforeAll
     static void init() {
@@ -51,7 +51,7 @@ class UtilsControllerTest {
         );
 
         interrogationIdList = new ArrayList<>();
-        interrogationIdList.add(new InterrogationId(defaultInterrogationId));
+        interrogationIdList.add(new InterrogationId(DEFAULT_INTERROGATION_ID));
     }
 
     @BeforeEach
@@ -94,8 +94,8 @@ class UtilsControllerTest {
         surveyUnitPersistencePortStub.getMongoStub().add(SurveyUnitModel.builder()
                 .campaignId("TESTCAMPAIGNID")
                 .mode(Mode.WEB)
-                .interrogationId(defaultInterrogationId)
-                .questionnaireId(defaultQuestionnaireId)
+                .interrogationId(DEFAULT_INTERROGATION_ID)
+                .questionnaireId(DEFAULT_QUESTIONNAIRE_ID)
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2023, 1, 1, 0, 0, 0))
                 .recordDate(LocalDateTime.of(2024, 1, 1, 0, 0, 0))
@@ -370,7 +370,7 @@ class UtilsControllerTest {
         addAdditionalDtoToMongoStub("TESTCAMPAIGNID",questionnaireId);
     }
 
-    private void addAdditionalDtoToMongoStub(String idCampaign, String idQuestionnaire) {
+    private void addAdditionalDtoToMongoStub(String campaignId, String questionnaireId) {
         List<VariableModel> externalVariableList = new ArrayList<>();
         VariableModel variable = VariableModel.builder()
                 .varId("TESTIDVAR")
@@ -406,7 +406,7 @@ class UtilsControllerTest {
         SurveyUnitModel recentDTO = SurveyUnitModel.builder()
                 .campaignId(campaignId)
                 .mode(Mode.WEB)
-                .interrogationId(defaultInterrogationId)
+                .interrogationId(DEFAULT_INTERROGATION_ID)
                 .questionnaireId(questionnaireId)
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2023, 2, 2, 0, 0, 0))

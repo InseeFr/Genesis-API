@@ -3,7 +3,6 @@ package fr.insee.genesis.controller.rest.responses;
 import cucumber.TestConstants;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.configuration.Config;
-import fr.insee.genesis.controller.dto.SurveyUnitDto;
 import fr.insee.genesis.controller.dto.InterrogationId;
 import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
 import fr.insee.genesis.controller.dto.SurveyUnitQualityToolDto;
@@ -339,7 +338,7 @@ class ResponseControllerTest {
         SurveyUnitQualityToolDto surveyUnitDto = response.getBody();
         Assertions.assertThat(surveyUnitDto).isNotNull();
 
-        Assertions.assertThat(surveyUnitDto.getInterrogationId()).isEqualTo(DEFAULT_INTERROGATION_ID);
+        Assertions.assertThat(surveyUnitDto.getSurveyUnitId()).isEqualTo(DEFAULT_INTERROGATION_ID);
 
         Assertions.assertThat(surveyUnitDto.getCollectedVariables().getFirst().getVariableName())
                 .isEqualTo("TESTIDVAR");

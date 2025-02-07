@@ -336,7 +336,7 @@ class LunaticXmlAdapterTest {
         Assertions.assertThat(surveyUnitModels.getFirst().getCollectedVariables().stream().filter(collectedVariableDto ->
                 collectedVariableDto.varId().equals("var3")).toList().getFirst().parentId()).isNull();
         Assertions.assertThat(surveyUnitModels.getFirst().getCollectedVariables().stream().filter(collectedVariableDto ->
-                collectedVariableDto.varId().equals("var3")).toList().getFirst().loopId()).isEqualTo(Constants.ROOT_GROUP_NAME);
+                collectedVariableDto.varId().equals("var3")).toList().getFirst().scope()).isEqualTo(Constants.ROOT_GROUP_NAME);
     }
 
     @Test
@@ -353,7 +353,7 @@ class LunaticXmlAdapterTest {
         Assertions.assertThat(surveyUnitModels.getFirst().getCollectedVariables().stream().filter(collectedVariableDto ->
                 collectedVariableDto.varId().equals("var1_MISSING")).toList().getFirst().parentId()).isNotNull().isEqualTo("var1");
         Assertions.assertThat(surveyUnitModels.getFirst().getCollectedVariables().stream().filter(collectedVariableDto ->
-                collectedVariableDto.varId().equals("var1_MISSING")).toList().getFirst().loopId()).isNotEqualTo(Constants.ROOT_GROUP_NAME).isEqualTo(LOOP_NAME);
+                collectedVariableDto.varId().equals("var1_MISSING")).toList().getFirst().scope()).isNotEqualTo(Constants.ROOT_GROUP_NAME).isEqualTo(LOOP_NAME);
     }
 
     @Test

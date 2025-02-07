@@ -178,7 +178,7 @@ public class DataVerifier {
 
     private static void externalVariablesManagement(List<SurveyUnitModel> srcSuModels, VariablesMap variablesMap, List<VariableModel> correctedExternalVariables) {
         //COLLECTED only
-        Optional<SurveyUnitModel> surveyUnitModelOptional = srcSurveyUnitModelsOfInterrogationId.stream().filter(
+        Optional<SurveyUnitModel> surveyUnitModelOptional = srcSuModels.stream().filter(
                 surveyUnitModel -> surveyUnitModel.getState().equals(DataState.COLLECTED)
         ).findFirst();
 

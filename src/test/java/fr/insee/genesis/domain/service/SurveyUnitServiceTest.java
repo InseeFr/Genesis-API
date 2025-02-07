@@ -501,7 +501,7 @@ class SurveyUnitServiceTest {
         surveyUnitPersistencePortStub.getMongoStub().add(recentDTO);
     }
 
-    private void addAdditionnalDtoToMongoStub(String idQuestionnaire) {
+    private void addAdditionnalDtoToMongoStub(String questionnaireId) {
         List<VariableModel> externalVariableList = new ArrayList<>();
         VariableModel externalVariableModel = VariableModel.builder()
                 .varId("TESTVARID")
