@@ -31,13 +31,13 @@ class HealthCheckControllerTest {
         SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(surveyUnitPersistencePortStub);
         List<VariableModel> externalVariableList = new ArrayList<>();
         VariableModel variable = VariableModel.builder()
-                .varId("TESTIDVAR")
+                .varId("TESTVARID")
                 .value("V1")
                 .iteration(1)
                 .build();
         externalVariableList.add(variable);
         variable = VariableModel.builder()
-                .varId("TESTIDVAR")
+                .varId("TESTVARID")
                 .value("V2")
                 .iteration(2)
                 .build();
@@ -45,19 +45,19 @@ class HealthCheckControllerTest {
 
         List<VariableModel> collectedVariableList = new ArrayList<>();
         VariableModel collectedVariable = VariableModel.builder()
-                .varId("TESTIDVAR")
+                .varId("TESTVARID")
                 .value("V1")
-                .scope("TESTIDLOOP")
+                .scope("TESTSCOPE")
                 .iteration(1)
-                .parentId("TESTIDPARENT")
+                .parentId("TESTPARENTID")
                 .build();
         collectedVariableList.add(collectedVariable);
         collectedVariable = VariableModel.builder()
-                .varId("TESTIDVAR")
+                .varId("TESTVARID")
                 .value("V2")
-                .scope("TESTIDLOOP")
+                .scope("TESTSCOPE")
                 .iteration(2)
-                .parentId("TESTIDPARENT")
+                .parentId("TESTPARENTID")
                 .build();
         collectedVariableList.add(collectedVariable);
         surveyUnitPersistencePortStub.getMongoStub().add(SurveyUnitModel.builder()

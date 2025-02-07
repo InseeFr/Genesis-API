@@ -125,7 +125,7 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     @Override
     public long countByCampaignId(String campaignId) {
         return mongoStub.stream().filter(
-                SurveyUnitDto -> SurveyUnitDto.getCampaignId().equals(campaignId)).toList().size();
+                surveyUnitModel -> surveyUnitModel.getCampaignId().equals(campaignId)).toList().size();
     }
 
     @Override

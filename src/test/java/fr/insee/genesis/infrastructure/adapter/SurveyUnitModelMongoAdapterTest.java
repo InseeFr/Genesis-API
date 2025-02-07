@@ -69,7 +69,7 @@ class SurveyUnitModelMongoAdapterTest {
 	}
 
 	@Test
-	void shouldReturnListOfSurveyUnitDto_IfIdsFoundInDataBase() {
+	void shouldReturnListOfSurveyUnitModels_IfIdsFoundInDataBase() {
 		//Given
 		List<SurveyUnitDocument> responses = new ArrayList<>();
 		responses.add(suDoc);
@@ -93,7 +93,7 @@ class SurveyUnitModelMongoAdapterTest {
 	}
 
 	@Test
-	void shouldReturnListOfSurveyUnitDto_IfInterrogationIdFoundInDataBase() {
+	void shouldReturnListOfSurveyUnitModels_IfInterrogationIdFoundInDataBase() {
 		//Given
 		List<SurveyUnitDocument> responses = new ArrayList<>();
 		responses.add(suDoc);
@@ -117,7 +117,7 @@ class SurveyUnitModelMongoAdapterTest {
 	}
 
 	@Test
-	void shouldReturnListOfSurveyUnitDto_IfQuestionnaireIdFoundInDataBase() {
+	void shouldReturnListOfSurveyUnitModels_IfQuestionnaireIdFoundInDataBase() {
 		//Given
 		List<SurveyUnitDocument> responses = new ArrayList<>();
 		responses.add(suDoc);
@@ -142,7 +142,7 @@ class SurveyUnitModelMongoAdapterTest {
 	}
 
 	@Test
-	void shouldReturnListOfSurveyUnitDto_WhenGivenAListOfInterrogationIds() {
+	void shouldReturnListOfSurveyUnitModels_WhenGivenAListOfInterrogationIds() {
 		//Given
 		List<SurveyUnitDocument> responses1 = new ArrayList<>();
 		responses1.add(suDoc);

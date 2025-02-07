@@ -257,7 +257,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
                     .campaignId(surveyUnitInputDto.getCampaignId())
                     .mode(surveyUnitInputDto.getMode())
-                    .questionnaireId(surveyUnitInputDto.getIdQuestionnaire())
+                    .questionnaireId(surveyUnitInputDto.getQuestionnaireId())
                     .interrogationId(surveyUnitInputDto.getSurveyUnitId())
                     .state(state)
                     .recordDate(LocalDateTime.now())

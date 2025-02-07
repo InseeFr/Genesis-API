@@ -61,13 +61,13 @@ class UtilsControllerTest {
 
         List<VariableModel> externalVariableList = new ArrayList<>();
         VariableModel variable = VariableModel.builder()
-                .varId("TESTIDVAR")
+                .varId("TESTVARID")
                 .value("V1")
                 .iteration(1)
                 .build();
         externalVariableList.add(variable);
         variable = VariableModel.builder()
-                .varId("TESTIDVAR")
+                .varId("TESTVARID")
                 .value("V2")
                 .iteration(2)
                 .build();
@@ -75,19 +75,19 @@ class UtilsControllerTest {
 
         List<VariableModel> collectedVariableList = new ArrayList<>();
         VariableModel collectedVariable = VariableModel.builder()
-                .varId("TESTIDVAR")
+                .varId("TESTVARID")
                 .value("V1")
-                .scope("TESTIDLOOP")
+                .scope("TESTSCOPE")
                 .iteration(1)
-                .parentId("TESTIDPARENT")
+                .parentId("TESTPARENTID")
                 .build();
         collectedVariableList.add(collectedVariable);
         collectedVariable = VariableModel.builder()
-                .varId("TESTIDVAR")
+                .varId("TESTVARID")
                 .value("V2")
-                .scope("TESTIDLOOP")
+                .scope("TESTSCOPE")
                 .iteration(2)
-                .parentId("TESTIDPARENT")
+                .parentId("TESTPARENTID")
                 .build();
         collectedVariableList.add(collectedVariable);
 
@@ -295,7 +295,7 @@ class UtilsControllerTest {
     @Test
     void saveVolumetryTest_additionnal_campaign() throws IOException {
         //Given
-        addAdditionalDtoToMongoStub("TESTCAMPAIGNID2","TESTQUEST2");
+        addAdditionalSurveyUnitModelToMongoStub("TESTCAMPAIGNID2","TESTQUEST2");
 
         //WHEN
         ResponseEntity<Object> response = utilsControllerStatic.saveVolumetry();
@@ -315,8 +315,8 @@ class UtilsControllerTest {
     @Test
     void saveVolumetryTest_additionnal_campaign_and_document() throws IOException {
         //Given
-        addAdditionalDtoToMongoStub("TESTQUEST");
-        addAdditionalDtoToMongoStub("TESTCAMPAIGNID2","TESTQUEST2");
+        addAdditionalSurveyUnitModelToMongoStub("TESTQUEST");
+        addAdditionalSurveyUnitModelToMongoStub("TESTCAMPAIGNID2","TESTQUEST2");
 
         //WHEN
         ResponseEntity<Object> response = utilsControllerStatic.saveVolumetry();
@@ -366,20 +366,20 @@ class UtilsControllerTest {
 
     // Utilities
 
-    private void addAdditionalDtoToMongoStub(String questionnaireId) {
-        addAdditionalDtoToMongoStub("TESTCAMPAIGNID",questionnaireId);
+    private void addAdditionalSurveyUnitModelToMongoStub(String questionnaireId) {
+        addAdditionalSurveyUnitModelToMongoStub("TESTCAMPAIGNID",questionnaireId);
     }
 
-    private void addAdditionalDtoToMongoStub(String campaignId, String questionnaireId) {
+    private void addAdditionalSurveyUnitModelToMongoStub(String campaignId, String questionnaireId) {
         List<VariableModel> externalVariableList = new ArrayList<>();
         VariableModel variable = VariableModel.builder()
-                .varId("TESTIDVAR")
+                .varId("TESTVARID")
                 .value("V1")
                 .iteration(1)
                 .build();
         externalVariableList.add(variable);
         variable = VariableModel.builder()
-                .varId("TESTIDVAR")
+                .varId("TESTVARID")
                 .value("V2")
                 .iteration(2)
                 .build();
@@ -387,23 +387,23 @@ class UtilsControllerTest {
 
         List<VariableModel> collectedVariableList = new ArrayList<>();
         VariableModel collectedVariable = VariableModel.builder()
-                .varId("TESTIDVAR")
+                .varId("TESTVARID")
                 .value("V1")
-                .scope("TESTIDLOOP")
+                .scope("TESTSCOPE")
                 .iteration(1)
-                .parentId("TESTIDPARENT")
+                .parentId("TESTPARENTID")
                 .build();
         collectedVariableList.add(collectedVariable);
         collectedVariable = VariableModel.builder()
-                .varId("TESTIDVAR")
+                .varId("TESTVARID")
                 .value("V2")
-                .scope("TESTIDLOOP")
+                .scope("TESTSCOPE")
                 .iteration(2)
-                .parentId("TESTIDPARENT")
+                .parentId("TESTPARENTID")
                 .build();
         collectedVariableList.add(collectedVariable);
 
-        SurveyUnitModel recentDTO = SurveyUnitModel.builder()
+        SurveyUnitModel recentSurveyUnitModel = SurveyUnitModel.builder()
                 .campaignId(campaignId)
                 .mode(Mode.WEB)
                 .interrogationId(DEFAULT_INTERROGATION_ID)
@@ -414,7 +414,7 @@ class UtilsControllerTest {
                 .externalVariables(externalVariableList)
                 .collectedVariables(collectedVariableList)
                 .build();
-        surveyUnitPersistencePortStub.getMongoStub().add(recentDTO);
+        surveyUnitPersistencePortStub.getMongoStub().add(recentSurveyUnitModel);
     }
 
 }

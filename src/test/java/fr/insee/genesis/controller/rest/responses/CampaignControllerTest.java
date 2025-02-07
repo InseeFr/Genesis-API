@@ -21,7 +21,7 @@ class CampaignControllerTest {
 
     //Constants
     static final String DEFAULT_INTERROGATION_ID = "TESTINTERROGATIONID";
-    static final String DEFAULT_ID_QUEST = "TESTQUESTIONNAIREID";
+    static final String DEFAULT_QUESTIONNAIRE_ID = "TESTQUESTIONNAIREID";
 
     @BeforeAll
     static void init() {
@@ -42,7 +42,7 @@ class CampaignControllerTest {
 
     @Test
     void getCampaignsTest() {
-        Utils.addAdditionalDtoToMongoStub("TESTCAMPAIGN2","TESTQUESTIONNAIRE2", surveyUnitPersistencePortStub);
+        Utils.addAdditionalSurveyUnitModelToMongoStub("TESTCAMPAIGN2","TESTQUESTIONNAIRE2", surveyUnitPersistencePortStub);
 
         ResponseEntity<Set<String>> response = campaignControllerStatic.getCampaigns();
 
@@ -53,8 +53,8 @@ class CampaignControllerTest {
 
     @Test
     void getCampaignsWithQuestionnairesTest() {
-        Utils.addAdditionalDtoToMongoStub("TESTQUESTIONNAIRE2", surveyUnitPersistencePortStub);
-        Utils.addAdditionalDtoToMongoStub("TESTCAMPAIGN2","TESTQUESTIONNAIRE2", surveyUnitPersistencePortStub);
+        Utils.addAdditionalSurveyUnitModelToMongoStub("TESTQUESTIONNAIRE2", surveyUnitPersistencePortStub);
+        Utils.addAdditionalSurveyUnitModelToMongoStub("TESTCAMPAIGN2","TESTQUESTIONNAIRE2", surveyUnitPersistencePortStub);
 
         ResponseEntity<List<CampaignWithQuestionnaire>> response = campaignControllerStatic.getCampaignsWithQuestionnaires();
 
@@ -67,7 +67,7 @@ class CampaignControllerTest {
 
         Assertions.assertThat(response.getBody().stream().filter(
                 campaignWithQuestionnaire -> campaignWithQuestionnaire.getCampaignId().equals("TESTCAMPAIGNID")
-        ).findFirst().get().getQuestionnaires()).containsOnly(DEFAULT_ID_QUEST, "TESTQUESTIONNAIRE2");
+        ).findFirst().get().getQuestionnaires()).containsOnly(DEFAULT_QUESTIONNAIRE_ID, "TESTQUESTIONNAIRE2");
 
         Assertions.assertThat(response.getBody().stream().filter(
                 campaignWithQuestionnaire -> campaignWithQuestionnaire.getCampaignId().equals("TESTCAMPAIGN2")

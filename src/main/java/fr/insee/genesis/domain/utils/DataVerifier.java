@@ -37,14 +37,15 @@ public class DataVerifier {
     }
 
     /**
-     * Verify data format in all surveyUnits DTOs
-     * If there is at least 1 incorrect variable for a survey unit, a new SurveyUnitDto is created with "FORCED" status
+     * Verify data format in all surveyUnits models
+     * If there is at least 1 incorrect variable for a survey unit, a new SurveyUnitModel is created with "FORCED"
+     * status
      * The new surveyUnits are added to the list
-     * @param surveyUnitModelsList list of SurveyUnitDtos to verify
+     * @param surveyUnitModelsList list of SurveyUnitModels to verify
      * @param variablesMap VariablesMap containing definitions of each variable
      */
     public static void verifySurveyUnits(List<SurveyUnitModel> surveyUnitModelsList, VariablesMap variablesMap){
-        List<SurveyUnitModel> surveyUnitModelsListForced = new ArrayList<>(); // Created FORCED SU DTOs
+        List<SurveyUnitModel> surveyUnitModelsListForced = new ArrayList<>(); // Created FORCED SU models
 
         for(String interrogationId : getInterrogationIds(surveyUnitModelsList)) { // For each id of the list
             List<SurveyUnitModel> srcSurveyUnitModelsOfInterrogationId = surveyUnitModelsList.stream().filter(element -> element.getInterrogationId().equals(interrogationId)).toList();
@@ -57,14 +58,14 @@ public class DataVerifier {
 
             //Create FORCED if any corrected variable
             if(!correctedCollectedVariables.isEmpty() || !correctedExternalVariables.isEmpty()){
-                SurveyUnitModel newForcedSurveyUnitModel = createForcedDto(surveyUnitModelsList, interrogationId, correctedCollectedVariables, correctedExternalVariables);
+                SurveyUnitModel newForcedSurveyUnitModel = createForcedSurveyUnitModel(surveyUnitModelsList, interrogationId, correctedCollectedVariables, correctedExternalVariables);
                 surveyUnitModelsListForced.add(newForcedSurveyUnitModel);
             }
         }
         surveyUnitModelsList.addAll(surveyUnitModelsListForced);
     }
 
-    private static SurveyUnitModel createForcedDto(
+    private static SurveyUnitModel createForcedSurveyUnitModel(
             List<SurveyUnitModel> surveyUnitModelsList,
             String interrogationId,
             List<VariableModel> correctedCollectedVariables,

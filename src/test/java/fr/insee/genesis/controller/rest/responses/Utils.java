@@ -21,13 +21,13 @@ class Utils {
 
     //Constants
     static final String DEFAULT_INTERROGATION_ID = "TESTINTERROGATIONID";
-    static final String DEFAULT_ID_QUEST = "TESTQUESTIONNAIREID";
+    static final String DEFAULT_QUESTIONNAIRE_ID = "TESTQUESTIONNAIREID";
 
     static void reset(SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) throws IOException {
         //MongoDB stub management
         surveyUnitPersistencePortStub.getMongoStub().clear();
 
-        addAdditionalDtoToMongoStub("TESTCAMPAIGNID", DEFAULT_ID_QUEST,
+        addAdditionalSurveyUnitModelToMongoStub("TESTCAMPAIGNID", DEFAULT_QUESTIONNAIRE_ID,
                 LocalDateTime.of(2023, 1, 1, 0, 0, 0),
                 LocalDateTime.of(2024, 1, 1, 0, 0, 0),
                 surveyUnitPersistencePortStub);
@@ -165,33 +165,33 @@ class Utils {
         }
     }
 
-    static void addAdditionalDtoToMongoStub(SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) {
-        addAdditionalDtoToMongoStub(DEFAULT_ID_QUEST, surveyUnitPersistencePortStub);
+    static void addAdditionalSurveyUnitModelToMongoStub(SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) {
+        addAdditionalSurveyUnitModelToMongoStub(DEFAULT_QUESTIONNAIRE_ID, surveyUnitPersistencePortStub);
     }
 
-    static void addAdditionalDtoToMongoStub(String questionnaireId, SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) {
-        addAdditionalDtoToMongoStub("TESTCAMPAIGNID",questionnaireId, surveyUnitPersistencePortStub);
+    static void addAdditionalSurveyUnitModelToMongoStub(String questionnaireId, SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) {
+        addAdditionalSurveyUnitModelToMongoStub("TESTCAMPAIGNID",questionnaireId, surveyUnitPersistencePortStub);
     }
 
-    static void addAdditionalDtoToMongoStub(String campaignId, String questionnaireId, SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) {
-        addAdditionalDtoToMongoStub(campaignId,questionnaireId,
+    static void addAdditionalSurveyUnitModelToMongoStub(String campaignId, String questionnaireId, SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) {
+        addAdditionalSurveyUnitModelToMongoStub(campaignId,questionnaireId,
                 LocalDateTime.of(2023, 2, 2, 0, 0, 0),
                 LocalDateTime.of(2024, 2, 2, 0, 0, 0),
                 surveyUnitPersistencePortStub);
     }
 
-    static void addAdditionalDtoToMongoStub(String campaignId, String questionnaireId,
-                                             LocalDateTime fileDate, LocalDateTime recordDate,
-                                             SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) {
+    static void addAdditionalSurveyUnitModelToMongoStub(String campaignId, String questionnaireId,
+                                                        LocalDateTime fileDate, LocalDateTime recordDate,
+                                                        SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) {
         List<VariableModel> externalVariableList = new ArrayList<>();
         VariableModel externalVariable = VariableModel.builder()
-                .varId("TESTIDVAR")
+                .varId("TESTVARID")
                 .value("V1")
                 .iteration(1)
                 .build();
         externalVariableList.add(externalVariable);
         externalVariable = VariableModel.builder()
-                .varId("TESTIDVAR")
+                .varId("TESTVARID")
                 .value("V2")
                 .iteration(2)
                 .build();
@@ -199,23 +199,23 @@ class Utils {
 
         List<VariableModel> collectedVariableList = new ArrayList<>();
         VariableModel collectedVariable = VariableModel.builder()
-                .varId("TESTIDVAR")
+                .varId("TESTVARID")
                 .value("V1")
-                .scope("TESTIDLOOP")
+                .scope("TESTSCOPE")
                 .iteration(1)
-                .parentId("TESTIDPARENT")
+                .parentId("TESTPARENTID")
                 .build();
         collectedVariableList.add(collectedVariable);
         collectedVariable = VariableModel.builder()
-                .varId("TESTIDVAR")
+                .varId("TESTVARID")
                 .value("V2")
-                .scope("TESTIDLOOP")
+                .scope("TESTSCOPE")
                 .iteration(2)
-                .parentId("TESTIDPARENT")
+                .parentId("TESTPARENTID")
                 .build();
         collectedVariableList.add(collectedVariable);
 
-        SurveyUnitModel recentDTO = SurveyUnitModel.builder()
+        SurveyUnitModel recentSurveyUnitModel = SurveyUnitModel.builder()
                 .campaignId(campaignId)
                 .mode(Mode.WEB)
                 .interrogationId(DEFAULT_INTERROGATION_ID)
@@ -226,20 +226,20 @@ class Utils {
                 .externalVariables(externalVariableList)
                 .collectedVariables(collectedVariableList)
                 .build();
-        surveyUnitPersistencePortStub.getMongoStub().add(recentDTO);
+        surveyUnitPersistencePortStub.getMongoStub().add(recentSurveyUnitModel);
     }
 
 
 
-    static void addAdditionalDtoToMongoStub(DataState state,
-                                            String collectedVariableValue,
-                                            String externalVariableValue,
-                                            LocalDateTime fileDate,
-                                            LocalDateTime recordDate,
-                                            SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) {
+    static void addAdditionalSurveyUnitModelToMongoStub(DataState state,
+                                                        String collectedVariableValue,
+                                                        String externalVariableValue,
+                                                        LocalDateTime fileDate,
+                                                        LocalDateTime recordDate,
+                                                        SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) {
         List<VariableModel> externalVariableList = new ArrayList<>();
         VariableModel variable = VariableModel.builder()
-                .varId("TESTIDVAR")
+                .varId("TESTVARID")
                 .value(externalVariableValue)
                 .iteration(1)
                 .build();
@@ -247,27 +247,27 @@ class Utils {
 
         List<VariableModel> collectedVariableList = new ArrayList<>();
         VariableModel collectedVariable = VariableModel.builder()
-                .varId("TESTIDVAR")
+                .varId("TESTVARID")
                 .value(collectedVariableValue)
-                .scope("TESTIDLOOP")
+                .scope("TESTSCOPE")
                 .iteration(1)
-                .parentId("TESTIDPARENT")
+                .parentId("TESTPARENTID")
                 .build();
 
         collectedVariableList.add(collectedVariable);
 
-        SurveyUnitModel recentDTO = SurveyUnitModel.builder()
+        SurveyUnitModel recentSurveyUnitModel = SurveyUnitModel.builder()
                 .campaignId("TESTCAMPAIGNID")
                 .mode(Mode.WEB)
                 .interrogationId(DEFAULT_INTERROGATION_ID)
-                .questionnaireId(DEFAULT_ID_QUEST)
+                .questionnaireId(DEFAULT_QUESTIONNAIRE_ID)
                 .state(state)
                 .fileDate(fileDate)
                 .recordDate(recordDate)
                 .externalVariables(externalVariableList)
                 .collectedVariables(collectedVariableList)
                 .build();
-        surveyUnitPersistencePortStub.getMongoStub().add(recentDTO);
+        surveyUnitPersistencePortStub.getMongoStub().add(recentSurveyUnitModel);
     }
 
 }

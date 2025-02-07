@@ -220,7 +220,7 @@ public class FileUtils {
 	 * Appends a JSON object array into file.
 	 * Creates the files if it doesn't exist
 	 * @param filePath Path to the file.
-	 * @param responsesStream Stream of SurveyUnitDto to write
+	 * @param responsesStream Stream of SurveyUnitModels to write
 	 */
 	public void writeSuUpdatesInFile(Path filePath, Stream<SurveyUnitModel> responsesStream) throws IOException {
 		Files.createDirectories(filePath.getParent());

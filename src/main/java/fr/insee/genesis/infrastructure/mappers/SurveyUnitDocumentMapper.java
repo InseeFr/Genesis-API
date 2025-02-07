@@ -18,6 +18,6 @@ public interface SurveyUnitDocumentMapper {
 
 	List<SurveyUnitModel> listDocumentToListModel(List<SurveyUnitDocument> surveyUnits);
 
-	List<SurveyUnitDocument> listModelToListDocument(List<SurveyUnitModel> surveyUnitsDtoModel);
+	List<SurveyUnitDocument> listModelToListDocument(List<SurveyUnitModel> surveyUnitModels);
 
 }

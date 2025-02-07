@@ -43,9 +43,6 @@ import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
 
-import static fr.insee.genesis.TestConstants.DEFAULT_INTERROGATION_ID;
-import static fr.insee.genesis.TestConstants.DEFAULT_QUESTIONNAIRE_ID;
-
 class ResponseControllerTest {
     //Given
     static ResponseController responseControllerStatic;
@@ -54,10 +51,10 @@ class ResponseControllerTest {
     static LunaticJsonPersistanceStub lunaticJsonPersistanceStub;
     static List<InterrogationId> interrogationIdList;
     //Constants
-    static final String DEFAULT_ID_UE = "TESTIDUE";
-    static final String DEFAULT_ID_QUEST = "TESTIDQUESTIONNAIRE";
-    static final String ID_CAMPAIGN_WITH_DDI = "SAMPLETEST-PARADATA-v1";
-    static final String ID_QUEST_WITH_DDI = "SAMPLETEST-PARADATA-v1";
+    static final String DEFAULT_INTERROGATION_ID = "TESTINTERROGATIONID";
+    static final String DEFAULT_QUESTIONNAIRE_ID = "TESTQUESTIONNAIREID";
+    static final String CAMPAIGN_ID_WITH_DDI = "SAMPLETEST-PARADATA-v1";
+    static final String QUESTIONNAIRE_ID_WITH_DDI = "SAMPLETEST-PARADATA-v1";
 
     @BeforeAll
     static void init() {
@@ -242,7 +239,7 @@ class ResponseControllerTest {
         surveyUnitPersistencePortStub.getMongoStub().clear();
 
         for (int i = 0; i < Constants.BATCH_SIZE + 2; i++) {
-            Utils.addAdditionalDtoToMongoStub("TESTCAMPAIGNID", DEFAULT_INTERROGATION_ID + i,
+            Utils.addAdditionalSurveyUnitModelToMongoStub("TESTCAMPAIGNID", DEFAULT_INTERROGATION_ID + i,
                     LocalDateTime.of(2023, 1, 1, 0, 0, 0),
                     LocalDateTime.of(2024, 1, 1, 0, 0, 0),
                     surveyUnitPersistencePortStub);
@@ -264,7 +261,7 @@ class ResponseControllerTest {
 
     @Test
     void getLatestByUETest() {
-        Utils.addAdditionalDtoToMongoStub(surveyUnitPersistencePortStub);
+        Utils.addAdditionalSurveyUnitModelToMongoStub(surveyUnitPersistencePortStub);
 
         ResponseEntity<List<SurveyUnitModel>> response = responseControllerStatic.getLatestByInterrogation(DEFAULT_INTERROGATION_ID, DEFAULT_QUESTIONNAIRE_ID);
 
@@ -300,7 +297,7 @@ class ResponseControllerTest {
         //GIVEN
         //Recent Collected already in stub
         //Old Collected
-        Utils.addAdditionalDtoToMongoStub(DataState.COLLECTED,
+        Utils.addAdditionalSurveyUnitModelToMongoStub(DataState.COLLECTED,
                 "C OLD C", //<Collected/External> <NEW or OLD> <Collected/Edited>
                 "E OLD C",
                 LocalDateTime.of(1999,2,2,0,0,0),
@@ -309,7 +306,7 @@ class ResponseControllerTest {
         );
 
         //Recent Edited
-        Utils.addAdditionalDtoToMongoStub(DataState.EDITED,
+        Utils.addAdditionalSurveyUnitModelToMongoStub(DataState.EDITED,
                 "C NEW E",
                 "E NEW E",
                 LocalDateTime.of(2025,2,2,0,0,0),
@@ -318,7 +315,7 @@ class ResponseControllerTest {
         );
 
         //Old Edited
-        Utils.addAdditionalDtoToMongoStub(DataState.EDITED,
+        Utils.addAdditionalSurveyUnitModelToMongoStub(DataState.EDITED,
                 "C OLD E",
                 "E OLD E",
                 LocalDateTime.of(1999,2,2,0,0,0),
@@ -341,7 +338,7 @@ class ResponseControllerTest {
         Assertions.assertThat(surveyUnitDto.getSurveyUnitId()).isEqualTo(DEFAULT_INTERROGATION_ID);
 
         Assertions.assertThat(surveyUnitDto.getCollectedVariables().getFirst().getVariableName())
-                .isEqualTo("TESTIDVAR");
+                .isEqualTo("TESTVARID");
 
         Assertions.assertThat(surveyUnitDto.getCollectedVariables().getFirst().getVariableStateDtoList()
                         .stream().filter(
@@ -365,7 +362,7 @@ class ResponseControllerTest {
                 .isTrue();
 
         Assertions.assertThat(surveyUnitDto.getExternalVariables().getFirst().getVariableName())
-                .isEqualTo("TESTIDVAR");
+                .isEqualTo("TESTVARID");
         Assertions.assertThat(surveyUnitDto.getExternalVariables().getFirst().getVariableStateDtoList()
                         .stream().filter(
                                 variableStatePerret -> variableStatePerret.getState().equals(DataState.COLLECTED)
@@ -392,8 +389,8 @@ class ResponseControllerTest {
     void saveEditedTest() {
         //GIVEN
         surveyUnitPersistencePortStub.getMongoStub().clear();
-        String campaignId = ID_CAMPAIGN_WITH_DDI;
-        String idQuest = ID_QUEST_WITH_DDI;
+        String campaignId = CAMPAIGN_ID_WITH_DDI;
+        String questionnaireId = QUESTIONNAIRE_ID_WITH_DDI;
         String varId = "PRENOM_C";
         String loopId = "B_PRENOMREP";
         String editedValue = "TESTPRENOMEDITED";
@@ -414,8 +411,8 @@ class ResponseControllerTest {
         SurveyUnitInputDto surveyUnitInputDto = SurveyUnitInputDto.builder()
                 .campaignId(campaignId)
                 .mode(Mode.WEB)
-                .idQuestionnaire(idQuest)
-                .surveyUnitId(DEFAULT_ID_UE)
+                .questionnaireId(questionnaireId)
+                .surveyUnitId(DEFAULT_INTERROGATION_ID)
                 .collectedVariables(newVariables)
                 .build();
 
@@ -426,7 +423,7 @@ class ResponseControllerTest {
         //THEN
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).hasSize(1);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCampaignId()).isEqualTo(campaignId);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getQuestionnaireId()).isEqualTo(idQuest);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getQuestionnaireId()).isEqualTo(questionnaireId);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getMode()).isEqualTo(Mode.WEB);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getState()).isEqualTo(DataState.EDITED);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getFileDate()).isNull();
@@ -446,8 +443,8 @@ class ResponseControllerTest {
     void saveEditedTest_DocumentEdited() {
         //GIVEN
         surveyUnitPersistencePortStub.getMongoStub().clear();
-        String campaignId = ID_CAMPAIGN_WITH_DDI;
-        String idQuest = ID_QUEST_WITH_DDI;
+        String campaignId = CAMPAIGN_ID_WITH_DDI;
+        String questionnaireId = QUESTIONNAIRE_ID_WITH_DDI;
         String varId = "PRENOM_C";
         String varId2 = "NB_SOEURS";
         String loopId = "B_PRENOMREP";
@@ -479,8 +476,8 @@ class ResponseControllerTest {
         SurveyUnitInputDto surveyUnitInputDto = SurveyUnitInputDto.builder()
                 .campaignId(campaignId)
                 .mode(Mode.WEB)
-                .idQuestionnaire(idQuest)
-                .surveyUnitId(DEFAULT_ID_UE)
+                .questionnaireId(questionnaireId)
+                .surveyUnitId(DEFAULT_INTERROGATION_ID)
                 .collectedVariables(newVariables)
                 .build();
 
@@ -491,7 +488,7 @@ class ResponseControllerTest {
         //EDITED document assertions
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).hasSize(2);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCampaignId()).isEqualTo(campaignId);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getQuestionnaireId()).isEqualTo(idQuest);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getQuestionnaireId()).isEqualTo(questionnaireId);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getState()).isEqualTo(DataState.EDITED);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getMode()).isEqualTo(Mode.WEB);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getFileDate()).isNull();
@@ -510,8 +507,8 @@ class ResponseControllerTest {
     void saveEditedTest_DocumentForced() {
         //GIVEN
         surveyUnitPersistencePortStub.getMongoStub().clear();
-        String campaignId = ID_CAMPAIGN_WITH_DDI;
-        String idQuest = ID_QUEST_WITH_DDI;
+        String campaignId = CAMPAIGN_ID_WITH_DDI;
+        String questionnaireId = QUESTIONNAIRE_ID_WITH_DDI;
         String varId = "PRENOM_C";
         String varId2 = "NB_SOEURS";
         String loopId = "B_PRENOMREP";
@@ -543,8 +540,8 @@ class ResponseControllerTest {
         SurveyUnitInputDto surveyUnitInputDto = SurveyUnitInputDto.builder()
                 .campaignId(campaignId)
                 .mode(Mode.WEB)
-                .idQuestionnaire(idQuest)
-                .surveyUnitId(DEFAULT_ID_UE)
+                .questionnaireId(questionnaireId)
+                .surveyUnitId(DEFAULT_INTERROGATION_ID)
                 .collectedVariables(newVariables)
                 .build();
 
@@ -556,7 +553,7 @@ class ResponseControllerTest {
 
         //FORCED document assertions
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getCampaignId()).isEqualTo(campaignId);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getQuestionnaireId()).isEqualTo(idQuest);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getQuestionnaireId()).isEqualTo(questionnaireId);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getState()).isEqualTo(DataState.FORCED);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getMode()).isEqualTo(Mode.WEB);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getFileDate()).isNull();
@@ -593,8 +590,8 @@ class ResponseControllerTest {
         SurveyUnitInputDto surveyUnitInputDto = SurveyUnitInputDto.builder()
                 .campaignId(campaignId)
                 .mode(Mode.WEB)
-                .idQuestionnaire(DEFAULT_ID_QUEST)
-                .surveyUnitId(DEFAULT_ID_UE)
+                .questionnaireId(DEFAULT_QUESTIONNAIRE_ID)
+                .surveyUnitId(DEFAULT_INTERROGATION_ID)
                 .collectedVariables(newVariables)
                 .build();
 
@@ -625,10 +622,10 @@ class ResponseControllerTest {
         newVariables.add(variableInputDto);
 
         SurveyUnitInputDto surveyUnitInputDto = SurveyUnitInputDto.builder()
-                .campaignId(ID_CAMPAIGN_WITH_DDI)
+                .campaignId(CAMPAIGN_ID_WITH_DDI)
                 .mode(Mode.WEB)
-                .idQuestionnaire(DEFAULT_ID_QUEST)
-                .surveyUnitId(DEFAULT_ID_UE)
+                .questionnaireId(DEFAULT_QUESTIONNAIRE_ID)
+                .surveyUnitId(DEFAULT_INTERROGATION_ID)
                 .collectedVariables(newVariables)
                 .build();
 

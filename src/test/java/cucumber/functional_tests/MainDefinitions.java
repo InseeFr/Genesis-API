@@ -86,7 +86,7 @@ public class MainDefinitions {
     }
 
     @When("We create survey unit models from file {string} with DDI {string}")
-    public void get_dtos(String fileName, String ddiName) throws IOException, ParserConfigurationException,
+    public void get_models(String fileName, String ddiName) throws IOException, ParserConfigurationException,
             SAXException, GenesisException, MetadataParserException {
         Path filePath = inDirectory.resolve(fileName);
         Path ddiFilePath = ddiDirectory.resolve(directory).resolve(ddiName);
@@ -180,9 +180,9 @@ public class MainDefinitions {
                                                                    Integer iteration
                                                                    ) {
         //Get SurveyUnitModel
-        List<SurveyUnitModel> concernedSurveyUnitModels = surveyUnitPersistence.getMongoStub().stream().filter(dto ->
-                dto.getState().equals(DataState.COLLECTED)
-                        && dto.getInterrogationId().equals(interrogationId)
+        List<SurveyUnitModel> concernedSurveyUnitModels = surveyUnitPersistence.getMongoStub().stream().filter(surveyUnitModel ->
+                surveyUnitModel.getState().equals(DataState.COLLECTED)
+                        && surveyUnitModel.getInterrogationId().equals(interrogationId)
         ).toList();
         Assertions.assertThat(concernedSurveyUnitModels).hasSize(1);
 

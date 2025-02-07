@@ -40,7 +40,7 @@ class QuestionnaireControllerTest {
 
     @Test
     void getQuestionnairesTest() {
-        Utils.addAdditionalDtoToMongoStub("TESTQUESTIONNAIRE2", surveyUnitPersistencePortStub);
+        Utils.addAdditionalSurveyUnitModelToMongoStub("TESTQUESTIONNAIRE2", surveyUnitPersistencePortStub);
 
         ResponseEntity<Set<String>> response = questionnaireControllerStatic.getQuestionnaires();
 
@@ -51,7 +51,7 @@ class QuestionnaireControllerTest {
 
     @Test
     void getQuestionnairesByCampaignTest() {
-        Utils.addAdditionalDtoToMongoStub("TESTQUESTIONNAIRE2", surveyUnitPersistencePortStub);
+        Utils.addAdditionalSurveyUnitModelToMongoStub("TESTQUESTIONNAIRE2", surveyUnitPersistencePortStub);
 
         ResponseEntity<Set<String>> response = questionnaireControllerStatic.getQuestionnairesByCampaign("TESTCAMPAIGNID");
 
@@ -63,8 +63,8 @@ class QuestionnaireControllerTest {
 
     @Test
     void getQuestionnairesWithCampaignsTest() {
-        Utils.addAdditionalDtoToMongoStub("TESTQUESTIONNAIRE2", surveyUnitPersistencePortStub);
-        Utils.addAdditionalDtoToMongoStub("TESTCAMPAIGN2","TESTQUESTIONNAIRE2", surveyUnitPersistencePortStub);
+        Utils.addAdditionalSurveyUnitModelToMongoStub("TESTQUESTIONNAIRE2", surveyUnitPersistencePortStub);
+        Utils.addAdditionalSurveyUnitModelToMongoStub("TESTCAMPAIGN2","TESTQUESTIONNAIRE2", surveyUnitPersistencePortStub);
 
         ResponseEntity<List<QuestionnaireWithCampaign>> response = questionnaireControllerStatic.getQuestionnairesWithCampaigns();
 

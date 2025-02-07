@@ -37,8 +37,8 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 	}
 
 	@Override
-	public void saveAll(List<SurveyUnitModel> suListDto) {
-		List<SurveyUnitDocument> suList = SurveyUnitDocumentMapper.INSTANCE.listModelToListDocument(suListDto);
+	public void saveAll(List<SurveyUnitModel> surveyUnitModels) {
+		List<SurveyUnitDocument> suList = SurveyUnitDocumentMapper.INSTANCE.listModelToListDocument(surveyUnitModels);
 		mongoRepository.insert(suList);
 	}
 
