@@ -396,13 +396,12 @@ class ResponseControllerTest {
         String campaignId = ID_CAMPAIGN_WITH_DDI;
         String idQuest = ID_QUEST_WITH_DDI;
         String varId = "PRENOM_C";
-        String loopId = "BOUCLE_VAL_ANNAISS_1";
+        String loopId = "B_PRENOMREP";
         String editedValue = "TESTPRENOMEDITED";
 
         List<VariableInputDto> newVariables = new ArrayList<>();
         VariableInputDto variableInputDto = VariableInputDto.builder()
                 .variableName(varId)
-                .scope(loopId)
                 .iteration(1)
                 .build();
 
@@ -452,14 +451,13 @@ class ResponseControllerTest {
         String idQuest = ID_QUEST_WITH_DDI;
         String varId = "PRENOM_C";
         String varId2 = "NB_SOEURS";
-        String loopId = "BOUCLE_VAL_ANNAISS_1";
+        String loopId = "B_PRENOMREP";
         String editedValue = "NOT A INT";
 
         //Variable 1
         List<VariableInputDto> newVariables = new ArrayList<>();
         VariableInputDto variableInputDto = VariableInputDto.builder()
                 .variableName(varId)
-                .scope(loopId)
                 .iteration(1)
                 .variableStateInputDto(VariableStateInputDto.builder()
                         .state(DataState.EDITED)
@@ -471,7 +469,6 @@ class ResponseControllerTest {
         //Variable 2
         VariableInputDto variableInputDto2 = VariableInputDto.builder()
                 .variableName(varId2)
-                .scope(loopId)
                 .iteration(1)
                 .variableStateInputDto(VariableStateInputDto.builder()
                         .state(DataState.EDITED)
@@ -518,14 +515,13 @@ class ResponseControllerTest {
         String idQuest = ID_QUEST_WITH_DDI;
         String varId = "PRENOM_C";
         String varId2 = "NB_SOEURS";
-        String loopId = "BOUCLE_VAL_ANNAISS_1";
+        String loopId = "B_PRENOMREP";
         String editedValue = "NOT A INT";
 
         //Variable 1
         List<VariableInputDto> newVariables = new ArrayList<>();
         VariableInputDto variableInputDto = VariableInputDto.builder()
                 .variableName(varId)
-                .scope(loopId)
                 .iteration(1)
                 .variableStateInputDto(VariableStateInputDto.builder()
                         .state(DataState.EDITED)
@@ -537,7 +533,6 @@ class ResponseControllerTest {
         //Variable 2
         VariableInputDto variableInputDto2 = VariableInputDto.builder()
                 .variableName(varId2)
-                .scope(loopId)
                 .iteration(1)
                 .variableStateInputDto(VariableStateInputDto.builder()
                         .state(DataState.EDITED)
@@ -582,14 +577,12 @@ class ResponseControllerTest {
         surveyUnitPersistencePortStub.getMongoStub().clear();
         String campaignId = "TEST";
         String varId = "PRENOM_C";
-        String loopId = "BOUCLE_VAL_ANNAISS_1";
         String editedValue = "TESTVALUE";
 
         //Variable 1
         List<VariableInputDto> newVariables = new ArrayList<>();
         VariableInputDto variableInputDto = VariableInputDto.builder()
                 .variableName(varId)
-                .scope(loopId)
                 .iteration(1)
                 .variableStateInputDto(VariableStateInputDto.builder()
                         .state(DataState.EDITED)
@@ -618,14 +611,12 @@ class ResponseControllerTest {
         //GIVEN
         surveyUnitPersistencePortStub.getMongoStub().clear();
         String varId = "PRENOM_C";
-        String loopId = "BOUCLE_VAL_ANNAISS_1";
         String editedValue = "TESTVALUE";
 
         //Variable 1
         List<VariableInputDto> newVariables = new ArrayList<>();
         VariableInputDto variableInputDto = VariableInputDto.builder()
                 .variableName(varId)
-                .scope(loopId)
                 .variableStateInputDto(VariableStateInputDto.builder()
                         .state(DataState.COLLECTED) //Collected instead of EDITED
                         .value(editedValue)

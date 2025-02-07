@@ -276,7 +276,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                         .varId(editedVariableDto.getVariableName())
                         .value(editedVariableDto.getVariableStateInputDto().getValue())
                         .parentId(LoopIdentifier.getRelatedVariableName(editedVariableDto.getVariableName(), variablesMap))
-                        .scope(editedVariableDto.getScope())
+                        .scope(variablesMap.getVariable(editedVariableDto.getVariableName()).getGroupName())
                         .iteration(editedVariableDto.getIteration())
                         .build();
 
