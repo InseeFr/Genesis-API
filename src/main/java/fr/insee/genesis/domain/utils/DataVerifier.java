@@ -40,106 +40,106 @@ public class DataVerifier {
      * Verify data format in all surveyUnits DTOs
      * If there is at least 1 incorrect variable for a survey unit, a new SurveyUnitDto is created with "FORCED" status
      * The new surveyUnits are added to the list
-     * @param suDtosList list of SurveyUnitDtos to verify
+     * @param surveyUnitModelsList list of SurveyUnitDtos to verify
      * @param variablesMap VariablesMap containing definitions of each variable
      */
-    public static void verifySurveyUnits(List<SurveyUnitModel> suDtosList, VariablesMap variablesMap){
-        List<SurveyUnitModel> suDtosListForced = new ArrayList<>(); // Created FORCED SU DTOs
+    public static void verifySurveyUnits(List<SurveyUnitModel> surveyUnitModelsList, VariablesMap variablesMap){
+        List<SurveyUnitModel> surveyUnitModelsListForced = new ArrayList<>(); // Created FORCED SU DTOs
 
-        for(String idUE : getIdUEs(suDtosList)) { // For each id of the list
-            List<SurveyUnitModel> srcSuDtosOfIdUE = suDtosList.stream().filter(element -> element.getIdUE().equals(idUE)).toList();
+        for(String interrogationId : getInterrogationIds(surveyUnitModelsList)) { // For each id of the list
+            List<SurveyUnitModel> srcSurveyUnitModelsOfInterrogationId = surveyUnitModelsList.stream().filter(element -> element.getInterrogationId().equals(interrogationId)).toList();
             List<VariableModel> correctedCollectedVariables = new ArrayList<>();
             List<VariableModel> correctedExternalVariables = new ArrayList<>();
 
             //Get corrected variables
-            collectedVariablesManagement(srcSuDtosOfIdUE, variablesMap, correctedCollectedVariables);
-            externalVariablesManagement(srcSuDtosOfIdUE, variablesMap, correctedExternalVariables);
+            collectedVariablesManagement(srcSurveyUnitModelsOfInterrogationId, variablesMap, correctedCollectedVariables);
+            externalVariablesManagement(srcSurveyUnitModelsOfInterrogationId, variablesMap, correctedExternalVariables);
 
             //Create FORCED if any corrected variable
             if(!correctedCollectedVariables.isEmpty() || !correctedExternalVariables.isEmpty()){
-                SurveyUnitModel newForcedSuDto = createForcedDto(suDtosList, idUE, correctedCollectedVariables, correctedExternalVariables);
-                suDtosListForced.add(newForcedSuDto);
+                SurveyUnitModel newForcedSurveyUnitModel = createForcedDto(surveyUnitModelsList, interrogationId, correctedCollectedVariables, correctedExternalVariables);
+                surveyUnitModelsListForced.add(newForcedSurveyUnitModel);
             }
         }
-        suDtosList.addAll(suDtosListForced);
+        surveyUnitModelsList.addAll(surveyUnitModelsListForced);
     }
 
     private static SurveyUnitModel createForcedDto(
-            List<SurveyUnitModel> suDtosList,
-            String idUE,
+            List<SurveyUnitModel> surveyUnitModelsList,
+            String interrogationId,
             List<VariableModel> correctedCollectedVariables,
             List<VariableModel> correctedExternalVariables
     ) {
-        SurveyUnitModel sampleSuDto = suDtosList.stream().filter(element -> element.getIdUE().equals(idUE)).toList().getFirst();
-        SurveyUnitModel newForcedSuDto = SurveyUnitModel.builder()
-                .idQuest(sampleSuDto.getIdQuest())
-                .idCampaign(sampleSuDto.getIdCampaign())
-                .idUE(idUE)
+        SurveyUnitModel sampleSurveyUnitModel = surveyUnitModelsList.stream().filter(element -> element.getInterrogationId().equals(interrogationId)).toList().getFirst();
+        SurveyUnitModel newForcedSurveyUnitModel = SurveyUnitModel.builder()
+                .questionnaireId(sampleSurveyUnitModel.getQuestionnaireId())
+                .campaignId(sampleSurveyUnitModel.getCampaignId())
+                .interrogationId(interrogationId)
                 .state(DataState.FORCED)
-                .mode(sampleSuDto.getMode())
+                .mode(sampleSurveyUnitModel.getMode())
                 .recordDate(LocalDateTime.now())
-                .fileDate(sampleSuDto.getFileDate())
+                .fileDate(sampleSurveyUnitModel.getFileDate())
                 .collectedVariables(new ArrayList<>())
                 .externalVariables(new ArrayList<>())
                 .build();
 
         for(VariableModel correctedCollectedVariable : correctedCollectedVariables){
-            newForcedSuDto.getCollectedVariables().add(
+            newForcedSurveyUnitModel.getCollectedVariables().add(
                 VariableModel.builder()
-                        .idVar(correctedCollectedVariable.idVar())
+                        .varId(correctedCollectedVariable.varId())
                         .values(correctedCollectedVariable.values())
-                        .idLoop(correctedCollectedVariable.idLoop())
-                        .idParent(correctedCollectedVariable.idParent())
+                        .loopId(correctedCollectedVariable.loopId())
+                        .parentId(correctedCollectedVariable.parentId())
                         .build()
             );
         }
 
         for(VariableModel correctedExternalVariable : correctedExternalVariables){
-            newForcedSuDto.getExternalVariables().add(
+            newForcedSurveyUnitModel.getExternalVariables().add(
                     VariableModel.builder()
-                            .idVar(correctedExternalVariable.idVar())
+                            .varId(correctedExternalVariable.varId())
                             .values(correctedExternalVariable.values())
-                            .idLoop(correctedExternalVariable.idLoop())
-                            .idParent(correctedExternalVariable.idParent())
+                            .loopId(correctedExternalVariable.loopId())
+                            .parentId(correctedExternalVariable.parentId())
                             .build()
             );
         }
-        return newForcedSuDto;
+        return newForcedSurveyUnitModel;
     }
 
     /**
-     * Fetch individual IdUEs of variable from the list
-     * @param suDtosList source list
-     * @return a set of IdUEs
+     * Fetch individual interrogationIds of variable from the list
+     * @param surveyUnitModelsList source list
+     * @return a set of interrogationIds
      */
 
-    private static Set<String> getIdUEs(List<SurveyUnitModel> suDtosList) {
-        Set<String> idUEs = new HashSet<>();
-        for(SurveyUnitModel surveyUnitModel : suDtosList){
-            idUEs.add(surveyUnitModel.getIdUE());
+    private static Set<String> getInterrogationIds(List<SurveyUnitModel> surveyUnitModelsList) {
+        Set<String> interrogationIds = new HashSet<>();
+        for(SurveyUnitModel surveyUnitModel : surveyUnitModelsList){
+            interrogationIds.add(surveyUnitModel.getInterrogationId());
         }
 
-        return idUEs;
+        return interrogationIds;
     }
 
     /**
      * Adds the collected variables for the FORCED document
-     * @param srcSuDtosOfIdUE source Survey Unit documents associated with IdUE
+     * @param srcSurveyUnitModelsOfInterrogationId source Survey Unit documents associated with InterrogationId
      * @param variablesMap variables definitions
      * @param correctedCollectedVariables FORCED document variables
      */
-    private static void collectedVariablesManagement(List<SurveyUnitModel> srcSuDtosOfIdUE, VariablesMap variablesMap, List<VariableModel> correctedCollectedVariables){
+    private static void collectedVariablesManagement(List<SurveyUnitModel> srcSurveyUnitModelsOfInterrogationId, VariablesMap variablesMap, List<VariableModel> correctedCollectedVariables){
         Set<String> variableNames = new HashSet<>();
         List<VariableModel> variablesToVerify = new ArrayList<>();
 
         //Sort from more priority to less
-        List<SurveyUnitModel> sortedSuDtos = srcSuDtosOfIdUE.stream().sorted(Comparator.comparing(surveyUnitDto -> dataStatesPriority.get(surveyUnitDto.getState()))).toList();
+        List<SurveyUnitModel> sortedSurveyUnitModels = srcSurveyUnitModelsOfInterrogationId.stream().sorted(Comparator.comparing(surveyUnitModel -> dataStatesPriority.get(surveyUnitModel.getState()))).toList();
 
         //Get more priority variables to verify
-        for(SurveyUnitModel srcSuDto : sortedSuDtos){
-            for(VariableModel collectedVariable : srcSuDto.getCollectedVariables()){
-                if(!variableNames.contains(collectedVariable.idVar())){
-                    variableNames.add(collectedVariable.idVar());
+        for(SurveyUnitModel srcSurveyUnitModel : sortedSurveyUnitModels){
+            for(VariableModel collectedVariable : srcSurveyUnitModel.getCollectedVariables()){
+                if(!variableNames.contains(collectedVariable.varId())){
+                    variableNames.add(collectedVariable.varId());
                     variablesToVerify.add(collectedVariable);
                 }
             }
@@ -147,11 +147,11 @@ public class DataVerifier {
 
         //Verify variables
         for(VariableModel collectedVariableToVerify : variablesToVerify){
-            if(variablesMap.hasVariable(collectedVariableToVerify.idVar()))
+            if(variablesMap.hasVariable(collectedVariableToVerify.varId()))
             {
                 VariableModel correctedCollectedVariable = verifyCollectedVariable(
                         collectedVariableToVerify,
-                        variablesMap.getVariable(collectedVariableToVerify.idVar())
+                        variablesMap.getVariable(collectedVariableToVerify.varId())
                 );
 
                 if(correctedCollectedVariable != null){
@@ -174,28 +174,27 @@ public class DataVerifier {
             }
         }
 
-
         return isInvalid ? VariableModel.builder()
-                .idVar(collectedVariable.idVar())
+                .varId(collectedVariable.varId())
                 .values(newValues)
-                .idLoop(collectedVariable.idLoop())
-                .idParent(collectedVariable.idParent())
+                .loopId(collectedVariable.loopId())
+                .parentId(collectedVariable.parentId())
                 .build() : null;
     }
 
-    private static void externalVariablesManagement(List<SurveyUnitModel> srcSuDtosOfIdUE, VariablesMap variablesMap, List<VariableModel> correctedExternalVariables) {
+    private static void externalVariablesManagement(List<SurveyUnitModel> srcSurveyUnitModelsOfInterrogationId, VariablesMap variablesMap, List<VariableModel> correctedExternalVariables) {
         //COLLECTED only
-        Optional<SurveyUnitModel> collectedSuDtoOpt = srcSuDtosOfIdUE.stream().filter(
-                suDto -> suDto.getState().equals(DataState.COLLECTED)
+        Optional<SurveyUnitModel> collectedSurveyUnitModelOpt = srcSurveyUnitModelsOfInterrogationId.stream().filter(
+                surveyUnitModel -> surveyUnitModel.getState().equals(DataState.COLLECTED)
         ).findFirst();
 
         //Verify variables
-        if(collectedSuDtoOpt.isPresent()){
-            for(VariableModel variable: collectedSuDtoOpt.get().getExternalVariables()){
-                if(variablesMap.hasVariable(variable.idVar())) {
+        if(collectedSurveyUnitModelOpt.isPresent()){
+            for(VariableModel variable: collectedSurveyUnitModelOpt.get().getExternalVariables()){
+                if(variablesMap.hasVariable(variable.varId())) {
                     VariableModel correctedExternalVariable = verifyExternalVariable(
                             variable,
-                            variablesMap.getVariable(variable.idVar())
+                            variablesMap.getVariable(variable.varId())
                     );
                     if (correctedExternalVariable != null) {
                         correctedExternalVariables.add(correctedExternalVariable);
@@ -225,7 +224,7 @@ public class DataVerifier {
         }
 
         return isInvalid ? VariableModel.builder()
-                .idVar(externalVariable.idVar())
+                .varId(externalVariable.varId())
                 .values(newValues)
                 .build() : null;
     }

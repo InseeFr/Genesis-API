@@ -6,8 +6,8 @@ import java.util.List;
 
 @Builder
 public record VariableModel(
-        String idVar,
+        String varId,
         List<String> values,
-        String idLoop,
-        String idParent
+        String loopId,
+        String parentId
 ) {}

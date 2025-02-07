@@ -27,7 +27,7 @@ public class CampaignController {
     @Operation(summary = "List campaigns in database")
     @GetMapping(path = "/")
     public ResponseEntity<Set<String>> getCampaigns() {
-        Set<String> campaigns = surveyUnitService.findDistinctIdCampaigns();
+        Set<String> campaigns = surveyUnitService.findDistinctCampaignIds();
         return ResponseEntity.ok(campaigns);
     }
 

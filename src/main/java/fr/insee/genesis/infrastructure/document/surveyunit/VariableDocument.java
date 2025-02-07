@@ -11,8 +11,8 @@ public class VariableDocument implements Serializable {
 
 	@Serial
 	private static final long serialVersionUID = -1576556180669134053L;
-	private String idVar;
-	private String idLoop;
-	private String idParent;
+	private String varId;
+	private String loopId;
+	private String parentId;
 	private List<String> values;
 }

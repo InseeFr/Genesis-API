@@ -3,18 +3,18 @@ Feature: Do we extract data ?
 
   Scenario Outline: Collected data extraction (COLLECTED only)
     Given We have data in directory "SAMPLETEST-PARADATA-v1"
-    When We create DTOs from file "reponse-platine/data.complete.validated.STPDv1.20231122164209.xml" with DDI "ddi-SAMPLETEST-PARADATA-v1.xml"
-    Then For SurveyUnit "<SurveyUnitId>" there should be at least one "<ExpectedStatus>" SurveyUnit DTO
+    When We create survey unit models from file "reponse-platine/data.complete.validated.STPDv1.20231122164209.xml" with DDI "ddi-SAMPLETEST-PARADATA-v1.xml"
+    Then For SurveyUnit "<InterrogationId>" there should be at least one "<ExpectedStatus>" SurveyUnit Model
     Examples:
-      | SurveyUnitId | ExpectedStatus |
+      | InterrogationId | ExpectedStatus |
       | 0000007      | COLLECTED      |
 
   Scenario Outline: Collected data extraction (COLLECTED only)
     Given We have data in directory "SAMPLETEST-PARADATA-v1"
-    When We create DTOs from file "reponse-platine/data.complete.validated.STPDv1.20231122164209.xml" with DDI "ddi-SAMPLETEST-PARADATA-v1.xml"
-    Then For SurveyUnit "<SurveyUnitId>" there shouldn't be a "<UnexpectedStatus>" SurveyUnit DTO
+    When We create survey unit models from file "reponse-platine/data.complete.validated.STPDv1.20231122164209.xml" with DDI "ddi-SAMPLETEST-PARADATA-v1.xml"
+    Then For SurveyUnit "<InterrogationId>" there shouldn't be a "<UnexpectedStatus>" SurveyUnit Model
     Examples:
-      | SurveyUnitId | UnexpectedStatus |
+      | InterrogationId | UnexpectedStatus |
       | 0000007      | EDITED           |
       | 0000007      | FORCED           |
       | 0000007      | INPUTED          |
@@ -24,10 +24,10 @@ Feature: Do we extract data ?
 
     Scenario Outline: Collected data extraction (all states)
       Given We have data in directory "SAMPLETEST-PARADATA-v2"
-      When We create DTOs from file "reponse-platine/data.complete.validated.STPDv2.20231122164209.xml" with DDI "ddi-SAMPLETEST-PARADATA-v2.xml"
-      Then For SurveyUnit "<SurveyUnitId>" there should be at least one "<ExpectedStatus>" SurveyUnit DTO
+      When We create survey unit models from file "reponse-platine/data.complete.validated.STPDv2.20231122164209.xml" with DDI "ddi-SAMPLETEST-PARADATA-v2.xml"
+      Then For SurveyUnit "<InterrogationId>" there should be at least one "<ExpectedStatus>" SurveyUnit Model
       Examples:
-        | SurveyUnitId | ExpectedStatus |
+        | InterrogationId | ExpectedStatus |
         | 0000007      | COLLECTED      |
         | 0000007      | EDITED         |
         | 0000007      | FORCED         |
@@ -36,10 +36,10 @@ Feature: Do we extract data ?
 
   Scenario Outline: Collected data extraction content
     Given We have data in directory "<Directory>"
-    When We create DTOs from file "<FileName>" with DDI "<DDIFileName>"
-    Then We should have a "<ExpectedDataState>" DTO for survey unit "<SurveyUnitId>" with "<VariableName>" filled with "<ExpectedValue>" at index <ExpectedIndex>
+    When We create survey unit models from file "<FileName>" with DDI "<DDIFileName>"
+    Then We should have a "<ExpectedDataState>" Survey Unit model with id "<InterrogationId>" with "<VariableName>" filled with "<ExpectedValue>" at index <ExpectedIndex>
     Examples:
-      | Directory              | FileName                                                          | DDIFileName                   |  ExpectedDataState | SurveyUnitId | VariableName   | ExpectedValue  | ExpectedIndex |
+      | Directory              | FileName                                                          | DDIFileName                   |  ExpectedDataState | InterrogationId | VariableName   | ExpectedValue  | ExpectedIndex |
       | SAMPLETEST-PARADATA-v1 | reponse-platine/data.complete.validated.STPDv1.20231122164209.xml |ddi-SAMPLETEST-PARADATA-v1.xml | COLLECTED          | 0000007      | PRENOM_C       | TESTPRENOM7    | 0             |
       | SAMPLETEST-PARADATA-v2 | reponse-platine/data.complete.validated.STPDv2.20231122164209.xml |ddi-SAMPLETEST-PARADATA-v2.xml | COLLECTED          | 0000007      | PRENOM_C       | TESTPRENOM7    | 0             |
       | SAMPLETEST-PARADATA-v2 | reponse-platine/data.complete.validated.STPDv2.20231122164209.xml |ddi-SAMPLETEST-PARADATA-v2.xml | EDITED             | 0000007      | SANTE_ENFLOG71 | TESTSANTE7E    | 0             |

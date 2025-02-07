@@ -36,23 +36,23 @@ class DataVerifierTest {
 
         // Setup survey units
         VariableModel collectedVariable1 = VariableModel.builder()
-                .idVar("var1")
+                .varId("var1")
                 .values(List.of("123"))
-                .idLoop("loop1")
-                .idParent("parent1")
+                .loopId("loop1")
+                .parentId("parent1")
                 .build();
 
         VariableModel collectedVariable2 = VariableModel.builder()
-                .idVar("var2")
+                .varId("var2")
                 .values(List.of("true"))
-                .idLoop("loop2")
-                .idParent("parent2")
+                .loopId("loop2")
+                .parentId("parent2")
                 .build();
 
         SurveyUnitModel surveyUnit = SurveyUnitModel.builder()
-                .idUE("UE1100000001")
-                .idQuest("Quest1")
-                .idCampaign("Camp1")
+                .interrogationId("UE1100000001")
+                .questionnaireId("Quest1")
+                .campaignId("Camp1")
                 .state(DataState.COLLECTED)
                 .collectedVariables(List.of(collectedVariable1, collectedVariable2))
                 .externalVariables(List.of())
@@ -63,13 +63,13 @@ class DataVerifierTest {
 
     @Test
     void shouldHandleEmptyValuesList() {
-        List<SurveyUnitModel> suDtosList = new ArrayList<>();
+        List<SurveyUnitModel> surveyUnitModelsList = new ArrayList<>();
 
         // When
-        DataVerifier.verifySurveyUnits(suDtosList, null);
+        DataVerifier.verifySurveyUnits(surveyUnitModelsList, null);
 
         // Then
-        assertTrue(suDtosList.isEmpty()); // Empty list, nothing invalid, so should return null
+        assertTrue(surveyUnitModelsList.isEmpty()); // Empty list, nothing invalid, so should return null
     }
 
     @Test
@@ -78,21 +78,21 @@ class DataVerifierTest {
         // Add invalid value
         surveyUnits.clear();
         VariableModel collectedVariable1 = VariableModel.builder()
-                .idVar("var1")
+                .varId("var1")
                 .values(List.of("invalid"))
-                .idLoop("loop1")
-                .idParent("parent1")
+                .loopId("loop1")
+                .parentId("parent1")
                 .build();
         VariableModel collectedVariable2 = VariableModel.builder()
-                .idVar("var2")
+                .varId("var2")
                 .values(List.of("true"))
-                .idLoop("loop2")
-                .idParent("parent2")
+                .loopId("loop2")
+                .parentId("parent2")
                 .build();
         SurveyUnitModel surveyUnit = SurveyUnitModel.builder()
-                .idUE("UE1100000001")
-                .idQuest("Quest1")
-                .idCampaign("Camp1")
+                .interrogationId("UE1100000001")
+                .questionnaireId("Quest1")
+                .campaignId("Camp1")
                 .state(DataState.COLLECTED)
                 .collectedVariables(List.of(collectedVariable1, collectedVariable2))
                 .externalVariables(List.of())
@@ -120,15 +120,15 @@ class DataVerifierTest {
     @Test
     void shouldAddForcedSurveyUnit_WhenInvalidExternalVariable() {
         //Add surveyUnit with invalid external Variable
-        VariableModel extVar = VariableModel.builder().idVar("var2").values(List.of(
+        VariableModel extVar = VariableModel.builder().varId("var2").values(List.of(
                 "notBoolean")).build();
         List<VariableModel> listVarExt = new ArrayList<>();
         listVarExt.add(extVar);
 
         SurveyUnitModel surveyUnitWithInvalidExt = SurveyUnitModel.builder()
-                .idUE("UE1100000002")
-                .idQuest("Quest1")
-                .idCampaign("Camp1")
+                .interrogationId("UE1100000002")
+                .questionnaireId("Quest1")
+                .campaignId("Camp1")
                 .state(DataState.COLLECTED)
                 .collectedVariables(List.of())
                 .externalVariables(listVarExt)
@@ -151,21 +151,21 @@ class DataVerifierTest {
         // ADD invalid values
         surveyUnits.clear();
         VariableModel collectedVariable1 = VariableModel.builder()
-                .idVar("var1")
+                .varId("var1")
                 .values(List.of("invalid", "456"))
-                .idLoop("loop1")
-                .idParent("parent1")
+                .loopId("loop1")
+                .parentId("parent1")
                 .build();
         VariableModel collectedVariable2 = VariableModel.builder()
-                .idVar("var2")
+                .varId("var2")
                 .values(List.of("false"))
-                .idLoop("loop2")
-                .idParent("parent2")
+                .loopId("loop2")
+                .parentId("parent2")
                 .build();
         SurveyUnitModel surveyUnit = SurveyUnitModel.builder()
-                .idUE("UE1100000001")
-                .idQuest("Quest1")
-                .idCampaign("Camp1")
+                .interrogationId("UE1100000001")
+                .questionnaireId("Quest1")
+                .campaignId("Camp1")
                 .state(DataState.COLLECTED)
                 .collectedVariables(List.of(collectedVariable1, collectedVariable2))
                 .externalVariables(List.of())

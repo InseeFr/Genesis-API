@@ -43,23 +43,23 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 	}
 
 	@Override
-	public List<SurveyUnitModel> findByIds(String idUE, String idQuest) {
-		List<SurveyUnitDocument> surveyUnits = mongoRepository.findByIdUEAndIdQuestionnaire(idUE, idQuest);
+	public List<SurveyUnitModel> findByIds(String interrogationId, String questionnaireId) {
+		List<SurveyUnitDocument> surveyUnits = mongoRepository.findByInterrogationIdAndQuestionnaireId(interrogationId, questionnaireId);
 		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnits);
 	}
 
 	@Override
-	public List<SurveyUnitModel> findByIdUE(String idUE) {
-		List<SurveyUnitDocument> surveyUnits = mongoRepository.findByIdUE(idUE);
+	public List<SurveyUnitModel> findByInterrogationId(String questionnaireId) {
+		List<SurveyUnitDocument> surveyUnits = mongoRepository.findByInterrogationId(questionnaireId);
 		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnits);
 	}
 
 	@Override
-	public List<SurveyUnitModel> findByIdUEsAndIdQuestionnaire(List<SurveyUnitModel> idUEs, String idQuestionnaire) {
+	public List<SurveyUnitModel> findByInterrogationIdsAndQuestionnaireId(List<SurveyUnitModel> questionnaireIds, String questionnaireId) {
 		List<SurveyUnitDocument> surveyUnits= new ArrayList<>();
 		// TODO: 18-10-2023 : find a way to do this in one query
-		idUEs.forEach(su -> {
-			List<SurveyUnitDocument> docs = mongoRepository.findByIdUEAndIdQuestionnaire(su.getIdUE(), idQuestionnaire);
+		questionnaireIds.forEach(su -> {
+			List<SurveyUnitDocument> docs = mongoRepository.findByInterrogationIdAndQuestionnaireId(su.getInterrogationId(), questionnaireId);
 			surveyUnits.addAll(docs);
 		});
 		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnits);
@@ -67,14 +67,14 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 
 
 	@Override
-	public Stream<SurveyUnitModel> findByIdQuestionnaire(String idQuestionnaire) {
-		Stream<SurveyUnitDocument> surveyUnits = mongoRepository.findByIdQuestionnaire(idQuestionnaire);
+	public Stream<SurveyUnitModel> findByQuestionnaireId(String questionnaireId) {
+		Stream<SurveyUnitDocument> surveyUnits = mongoRepository.findByQuestionnaireId(questionnaireId);
 		return surveyUnits.map(SurveyUnitDocumentMapper.INSTANCE::documentToModel);
 	}
 
 	@Override
-	public Long deleteByIdQuestionnaire(String idQuestionnaire) {
-		return mongoRepository.deleteByIdQuestionnaire(idQuestionnaire);
+	public Long deleteByQuestionnaireId(String questionnaireId) {
+		return mongoRepository.deleteByQuestionnaireId(questionnaireId);
 	}
 
 	@Override
@@ -83,80 +83,80 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 	}
 
 	@Override
-	public Set<String> findIdQuestionnairesByIdCampaign(String idCampaign){
+	public Set<String> findQuestionnaireIdsByCampaignId(String campaignId){
 		Set<String> mongoResponse =
-				mongoRepository.findIdQuestionnairesByIdCampaign(idCampaign);
+				mongoRepository.findQuestionnaireIdsByCampaignId(campaignId);
 
-		//Extract idQuestionnaires from JSON response
-		Set<String> idQuestionnaires = new HashSet<>();
+		//Extract questionnaireIds from JSON response
+		Set<String> questionnaireIds = new HashSet<>();
 		for(String line : mongoResponse){
 			ObjectMapper objectMapper = new ObjectMapper();
 			try{
 				JsonNode jsonNode = objectMapper.readTree(line);
-				idQuestionnaires.add(jsonNode.get("idQuestionnaire").asText());
+				questionnaireIds.add(jsonNode.get("questionnaireId").asText());
 			}catch (JsonProcessingException e){
 				log.error(e.getMessage());
 			}
 		}
 
-		return idQuestionnaires;
+		return questionnaireIds;
 	}
 
 	@Override
-	public Set<String> findDistinctIdCampaigns() {
-		Set<String> idCampaigns = new HashSet<>();
-		for(String idCampaign : mongoTemplate.getCollection(Constants.MONGODB_RESPONSE_COLLECTION_NAME).distinct("idCampaign",
+	public Set<String> findDistinctCampaignIds() {
+		Set<String> campaignIds = new HashSet<>();
+		for(String campaignId : mongoTemplate.getCollection(Constants.MONGODB_RESPONSE_COLLECTION_NAME).distinct("campaignId",
 				String.class)){
-			idCampaigns.add(idCampaign);
+			campaignIds.add(campaignId);
 		}
-		return idCampaigns;
+		return campaignIds;
 	}
 
 	@Override
-	public List<SurveyUnitModel> findIdUEsByIdQuestionnaire(String idQuestionnaire) {
-		List<SurveyUnitDocument> surveyUnits = mongoRepository.findIdUEsByIdQuestionnaire(idQuestionnaire);
+	public List<SurveyUnitModel> findInterrogationIdsByQuestionnaireId(String questionnaireId) {
+		List<SurveyUnitDocument> surveyUnits = mongoRepository.findInterrogationIdsByQuestionnaireId(questionnaireId);
 		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnits);
 	}
 
 	@Override
-	public List<SurveyUnitModel> findIdUEsByIdCampaign(String idCampaign) {
-		List<SurveyUnitDocument> surveyUnits = mongoRepository.findIdUEsByIdCampaign(idCampaign);
+	public List<SurveyUnitModel> findInterrogationIdsByCampaignId(String campaignId) {
+		List<SurveyUnitDocument> surveyUnits = mongoRepository.findInterrogationIdsByCampaignId(campaignId);
 		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnits);
 
 	}
 
-	public long countByIdCampaign(String idCampaign){
-		return mongoRepository.countByIdCampaign(idCampaign);
+	public long countByCampaignId(String campaignId){
+		return mongoRepository.countByCampaignId(campaignId);
 	}
 
 	@Override
-	public Set<String> findDistinctIdQuestionnaires() {
-		Set<String> idQuestionnaires = new HashSet<>();
-		for(String idQuestionnaire : mongoTemplate.getCollection(Constants.MONGODB_RESPONSE_COLLECTION_NAME).distinct(
-				"idQuestionnaire",
+	public Set<String> findDistinctQuestionnaireIds() {
+		Set<String> questionnaireIds = new HashSet<>();
+		for(String questionnaireId : mongoTemplate.getCollection(Constants.MONGODB_RESPONSE_COLLECTION_NAME).distinct(
+				"questionnaireId",
 				String.class)){
-			idQuestionnaires.add(idQuestionnaire);
+			questionnaireIds.add(questionnaireId);
 		}
-		return idQuestionnaires;
+		return questionnaireIds;
 	}
 
 	@Override
-	public Set<String> findIdCampaignsByIdQuestionnaire(String idQuestionnaire) {
+	public Set<String> findCampaignIdsByQuestionnaireId(String questionnaireId) {
 		List<String> mongoResponse =
-				mongoRepository.findIdCampaignsByIdQuestionnaire(idQuestionnaire).stream().distinct().toList();
+				mongoRepository.findCampaignIdsByQuestionnaireId(questionnaireId).stream().distinct().toList();
 
 		//Extract idCampagigns from JSON response
-		Set<String> idCampaigns = new HashSet<>();
+		Set<String> campaignIds = new HashSet<>();
 		for(String line : mongoResponse){
 			ObjectMapper objectMapper = new ObjectMapper();
 			try{
 				JsonNode jsonNode = objectMapper.readTree(line);
-				idCampaigns.add(jsonNode.get("idCampaign").asText());
+				campaignIds.add(jsonNode.get("campaignId").asText());
 			}catch (JsonProcessingException e){
 				log.error(e.getMessage());
 			}
 		}
 
-		return idCampaigns;
+		return campaignIds;
 	}
 }
