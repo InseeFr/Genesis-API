@@ -87,8 +87,9 @@ public class DataVerifier {
             newForcedSurveyUnitModel.getCollectedVariables().add(
                 VariableModel.builder()
                         .varId(correctedCollectedVariable.varId())
-                        .values(correctedCollectedVariable.values())
-                        .loopId(correctedCollectedVariable.loopId())
+                        .value(correctedCollectedVariable.value())
+                        .scope(correctedCollectedVariable.scope())
+                        .iteration(correctedCollectedVariable.iteration())
                         .parentId(correctedCollectedVariable.parentId())
                         .build()
             );
@@ -98,8 +99,9 @@ public class DataVerifier {
             newForcedSurveyUnitModel.getExternalVariables().add(
                     VariableModel.builder()
                             .varId(correctedExternalVariable.varId())
-                            .values(correctedExternalVariable.values())
-                            .loopId(correctedExternalVariable.loopId())
+                            .value(correctedExternalVariable.value())
+                            .scope(correctedExternalVariable.scope())
+                            .iteration(correctedExternalVariable.iteration())
                             .parentId(correctedExternalVariable.parentId())
                             .build()
             );
@@ -149,7 +151,7 @@ public class DataVerifier {
         for(VariableModel collectedVariableToVerify : variablesToVerify){
             if(variablesMap.hasVariable(collectedVariableToVerify.varId()))
             {
-                VariableModel correctedCollectedVariable = verifyCollectedVariable(
+                VariableModel correctedCollectedVariable = verifyVariable(
                         collectedVariableToVerify,
                         variablesMap.getVariable(collectedVariableToVerify.varId())
                 );
@@ -161,40 +163,32 @@ public class DataVerifier {
         }
     }
 
-    private static VariableModel verifyCollectedVariable(VariableModel collectedVariable, fr.insee.bpm.metadata.model.Variable variableDefinition) {
-        List<String> newValues = new ArrayList<>();
-        boolean isInvalid = false;
-
-        for (String value : collectedVariable.values()){
-            if(isParseError(value, variableDefinition.getType())){
-                isInvalid = true;
-                newValues.add("");
-            }else{
-                newValues.add(value);
-            }
+    private static VariableModel verifyVariable(VariableModel variableModel, fr.insee.bpm.metadata.model.Variable variableDefinition) {
+        if(isParseError(variableModel.value(), variableDefinition.getType())){
+            return VariableModel.builder()
+                    .varId(variableModel.varId())
+                    .value("")
+                    .scope(variableModel.scope())
+                    .iteration(variableModel.iteration())
+                    .parentId(variableModel.parentId())
+                    .build();
         }
-
-        return isInvalid ? VariableModel.builder()
-                .varId(collectedVariable.varId())
-                .values(newValues)
-                .loopId(collectedVariable.loopId())
-                .parentId(collectedVariable.parentId())
-                .build() : null;
+        return null;
     }
 
-    private static void externalVariablesManagement(List<SurveyUnitModel> srcSurveyUnitModelsOfInterrogationId, VariablesMap variablesMap, List<VariableModel> correctedExternalVariables) {
+    private static void externalVariablesManagement(List<SurveyUnitModel> srcSuModels, VariablesMap variablesMap, List<VariableModel> correctedExternalVariables) {
         //COLLECTED only
-        Optional<SurveyUnitModel> collectedSurveyUnitModelOpt = srcSurveyUnitModelsOfInterrogationId.stream().filter(
+        Optional<SurveyUnitModel> surveyUnitModelOptional = srcSurveyUnitModelsOfInterrogationId.stream().filter(
                 surveyUnitModel -> surveyUnitModel.getState().equals(DataState.COLLECTED)
         ).findFirst();
 
         //Verify variables
-        if(collectedSurveyUnitModelOpt.isPresent()){
-            for(VariableModel variable: collectedSurveyUnitModelOpt.get().getExternalVariables()){
-                if(variablesMap.hasVariable(variable.varId())) {
-                    VariableModel correctedExternalVariable = verifyExternalVariable(
-                            variable,
-                            variablesMap.getVariable(variable.varId())
+        if(surveyUnitModelOptional.isPresent()){
+            for(VariableModel externalVariable: surveyUnitModelOptional.get().getExternalVariables()){
+                if(variablesMap.hasVariable(externalVariable.varId())) {
+                    VariableModel correctedExternalVariable = verifyVariable(
+                            externalVariable,
+                            variablesMap.getVariable(externalVariable.varId())
                     );
                     if (correctedExternalVariable != null) {
                         correctedExternalVariables.add(correctedExternalVariable);
@@ -202,31 +196,6 @@ public class DataVerifier {
                 }
             }
         }
-    }
-
-    /**
-     * Verify one external variable
-     * @param externalVariable external variable DTO to verify
-     * @param variableDefinition variable definition of the variable
-     * @return a corrected external variable if there is any parsing error, null otherwise
-     */
-    private static VariableModel verifyExternalVariable(VariableModel externalVariable, fr.insee.bpm.metadata.model.Variable variableDefinition) {
-        List<String> newValues = new ArrayList<>();
-        boolean isInvalid = false;
-
-        for (String value : externalVariable.values()){
-            if(isParseError(value, variableDefinition.getType())){
-                isInvalid = true;
-                newValues.add("");
-            }else{
-                newValues.add(value);
-            }
-        }
-
-        return isInvalid ? VariableModel.builder()
-                .varId(externalVariable.varId())
-                .values(newValues)
-                .build() : null;
     }
 
     /**

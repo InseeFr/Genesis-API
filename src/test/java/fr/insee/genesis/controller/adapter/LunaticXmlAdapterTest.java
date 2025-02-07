@@ -269,7 +269,8 @@ class LunaticXmlAdapterTest {
 
         //Content check
         for (VariableModel collectedVariable : editedDTO.get().getCollectedVariables()) {
-            Assertions.assertThat(collectedVariable.values()).containsAnyOf("1e", "2e").doesNotContain("1", "2");
+            Assertions.assertThat(collectedVariable.value()).containsAnyOf("1e","2e").isNotEqualTo("1").isNotEqualTo(
+                    "2");
         }
     }
 
@@ -363,15 +364,20 @@ class LunaticXmlAdapterTest {
         // Then
         Assertions.assertThat(surveyUnitModels).hasSize(1);
         Assertions.assertThat(surveyUnitModels.getFirst().getCollectedVariables()).hasSize(3);
-        Assertions.assertThat(surveyUnitModels.getFirst().getCollectedVariables()).filteredOn(collectedVariableDto ->
-                collectedVariableDto.varId().equals("var1")).isNotEmpty();
-        Assertions.assertThat(surveyUnitModels.getFirst().getCollectedVariables()).filteredOn(collectedVariableDto ->
-                collectedVariableDto.loopId().equals("BOUCLE1_1")).isEmpty();
-        Assertions.assertThat(surveyUnitModels.getFirst().getCollectedVariables().stream().filter(collectedVariableDto ->
-                collectedVariableDto.loopId().equals("BOUCLE1_2")).toList().getFirst().values().getFirst()).isEqualTo("1");
-        Assertions.assertThat(surveyUnitModels.getFirst().getCollectedVariables().stream().filter(collectedVariableDto ->
-                collectedVariableDto.loopId().equals("BOUCLE1_3")).toList().getFirst().values().getFirst()).isEqualTo("2");
-
+        Assertions.assertThat(surveyUnitModels.getFirst().getCollectedVariables()).filteredOn(collectedVariableModel ->
+                collectedVariableModel.varId().equals("var1")).isNotEmpty();
+        Assertions.assertThat(surveyUnitModels.getFirst().getCollectedVariables()).filteredOn(collectedVariableModel ->
+                collectedVariableModel.scope().equals("BOUCLE1")
+                && collectedVariableModel.iteration().equals(1)
+        ).isEmpty();
+        Assertions.assertThat(surveyUnitModels.getFirst().getCollectedVariables().stream().filter(collectedVariableModel ->
+                collectedVariableModel.scope().equals("BOUCLE1")
+                && collectedVariableModel.iteration().equals(2)
+        ).toList().getFirst().value()).isEqualTo("1");
+        Assertions.assertThat(surveyUnitModels.getFirst().getCollectedVariables().stream().filter(collectedVariableModel ->
+                collectedVariableModel.scope().equals("BOUCLE1")
+                && collectedVariableModel.iteration().equals(3)
+        ).toList().getFirst().value()).isEqualTo("2");
     }
 
     @Test
@@ -384,9 +390,9 @@ class LunaticXmlAdapterTest {
         Assertions.assertThat(suDtos.getFirst().getCollectedVariables()).isEmpty();
         Assertions.assertThat(suDtos.getFirst().getExternalVariables()).hasSize(1);
         Assertions.assertThat(suDtos.getFirst().getExternalVariables().getFirst().varId()).isEqualTo("extvar1");
-        Assertions.assertThat(suDtos.getFirst().getExternalVariables().getFirst().values()).hasSize(1);
-        Assertions.assertThat(suDtos.getFirst().getExternalVariables().getFirst().values().getFirst()).isEqualTo("ext");
-        Assertions.assertThat(suDtos.getFirst().getExternalVariables().getFirst().loopId()).isEqualTo(LOOP_NAME+"_1");
+        Assertions.assertThat(suDtos.getFirst().getExternalVariables().getFirst().value()).isEqualTo("ext");
+        Assertions.assertThat(suDtos.getFirst().getExternalVariables().getFirst().scope()).isEqualTo(LOOP_NAME);
+        Assertions.assertThat(suDtos.getFirst().getExternalVariables().getFirst().iteration()).isEqualTo(1);
         Assertions.assertThat(suDtos.getFirst().getExternalVariables().getFirst().parentId()).isEqualTo(Constants.ROOT_GROUP_NAME);
     }
 }

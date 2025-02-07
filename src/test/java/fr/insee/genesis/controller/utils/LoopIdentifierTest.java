@@ -29,24 +29,24 @@ class LoopIdentifierTest {
 	}
 
 	@Test
-	@DisplayName("Should return <LOOP_NAME>_2")
+	@DisplayName("Should return <LOOP_NAME>")
 	void test01() {
 		//When + Then
-		Assertions.assertThat(LoopIdentifier.getLoopIdentifier("var1", metadataModel.getVariables(), 2)).isEqualTo(String.format("%s_2",LOOP_NAME));
+		Assertions.assertThat(LoopIdentifier.getLoopIdentifier("var1", metadataModel.getVariables())).isEqualTo(LOOP_NAME);
 	}
 
 	@Test
 	@DisplayName("Should return the root group name")
 	void test02() {
 		//When + Then
-		Assertions.assertThat(LoopIdentifier.getLoopIdentifier("var2", metadataModel.getVariables(), 1)).isEqualTo(Constants.ROOT_GROUP_NAME);
+		Assertions.assertThat(LoopIdentifier.getLoopIdentifier("var2", metadataModel.getVariables())).isEqualTo(Constants.ROOT_GROUP_NAME);
 	}
 
 	@Test
 	@DisplayName("Should return the root group name if the variable is not present in the variables map")
 	void test03(){
 		//When + Then
-		Assertions.assertThat(LoopIdentifier.getLoopIdentifier("var3", metadataModel.getVariables(), 2)).isEqualTo(Constants.ROOT_GROUP_NAME);
+		Assertions.assertThat(LoopIdentifier.getLoopIdentifier("var3", metadataModel.getVariables())).isEqualTo(Constants.ROOT_GROUP_NAME);
 	}
 
 	@Test
@@ -67,7 +67,7 @@ class LoopIdentifierTest {
 	@DisplayName("Should return var1 group if missing suffix")
 	void test06(){
 		//When + Then
-		Assertions.assertThat(LoopIdentifier.getLoopIdentifier("var1_MISSING", metadataModel.getVariables(),1)).isEqualTo(LOOP_NAME);
+		Assertions.assertThat(LoopIdentifier.getLoopIdentifier("var1_MISSING", metadataModel.getVariables())).isEqualTo(LOOP_NAME);
 	}
 
 	@Test
@@ -81,7 +81,7 @@ class LoopIdentifierTest {
 	@DisplayName("Should return var1 group if filter result prefix")
 	void test08(){
 		//When + Then
-		Assertions.assertThat(LoopIdentifier.getLoopIdentifier("FILTER_RESULT_var1", metadataModel.getVariables(),1)).isEqualTo(LOOP_NAME);
+		Assertions.assertThat(LoopIdentifier.getLoopIdentifier("FILTER_RESULT_var1", metadataModel.getVariables())).isEqualTo(LOOP_NAME);
 	}
 
 	@Test

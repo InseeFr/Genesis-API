@@ -8,6 +8,7 @@ import fr.insee.bpm.metadata.reader.lunatic.LunaticReader;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.adapter.LunaticXmlAdapter;
 import fr.insee.genesis.controller.dto.SurveyUnitDto;
+import fr.insee.genesis.controller.dto.SurveyUnitQualityToolDto;
 import fr.insee.genesis.controller.dto.InterrogationId;
 import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
 import fr.insee.genesis.controller.dto.SurveyUnitSimplified;
@@ -17,6 +18,7 @@ import fr.insee.genesis.controller.sources.xml.LunaticXmlDataSequentialParser;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
 import fr.insee.genesis.controller.utils.AuthUtils;
 import fr.insee.genesis.controller.utils.ControllerUtils;
+import fr.insee.genesis.controller.utils.DataTransformer;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
@@ -274,11 +276,12 @@ public class ResponseController {
 
     @Operation(summary = "Retrieve responses for an interrogation, using interrogationId and questionnaireId from Genesis Database with the latest value for each available state of every variable")
     @GetMapping(path = "/by-ue-and-questionnaire/latest-states")
-    public ResponseEntity<SurveyUnitDto> findResponsesByInterrogationAndQuestionnaireLatestStates(
+    public ResponseEntity<SurveyUnitQualityToolDto> findResponsesByInterrogationAndQuestionnaireLatestStates(
             @RequestParam("interrogationId") String interrogationId,
             @RequestParam("questionnaireId") String questionnaireId) {
         SurveyUnitDto response = surveyUnitService.findLatestValuesByStateByIdAndByQuestionnaireId(interrogationId, questionnaireId);
-        return ResponseEntity.ok(response);
+        SurveyUnitQualityToolDto responseQualityTool = DataTransformer.transformSurveyUnitDto(response);
+        return ResponseEntity.ok(responseQualityTool);
     }
 
     @Operation(summary = "Retrieve all responses (for all interrogations) of one questionnaire")

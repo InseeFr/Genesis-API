@@ -115,19 +115,17 @@ public class LunaticXmlAdapter {
                 default:
                     return null;
             }
-
             if(valueTypeList == null) {
                 continue; //Go to next data
             }
             for (int i = 1; i <= valueTypeList.size(); i++) {
-                List<String> variableValues = new ArrayList<>();
                 if (valueTypeList.get(i-1).getValue()!=null) {
-                    variableValues.add(valueTypeList.get(i-1).getValue());
                     variableModels.add(VariableModel.builder()
                             .varId(lunaticXmlCollectedData.getVariableName())
-                            .values(variableValues)
-                            .loopId(LoopIdentifier.getLoopIdentifier(lunaticXmlCollectedData.getVariableName(), variablesMap, i))
+                            .value(valueTypeList.get(i-1).getValue())
+                            .scope(LoopIdentifier.getLoopIdentifier(lunaticXmlCollectedData.getVariableName(), variablesMap))
                             .parentId(LoopIdentifier.getRelatedVariableName(lunaticXmlCollectedData.getVariableName(), variablesMap))
+                            .iteration(i)
                             .build());
                     dataCount++;
                 }
@@ -158,13 +156,12 @@ public class LunaticXmlAdapter {
                 continue; //Go to next data
             }
             for (int i = 1; i <= valueTypeList.size(); i++) {
-                List<String> variableValues = new ArrayList<>();
                 if (valueTypeList.get(i-1).getValue()!=null) {
-                    variableValues.add(valueTypeList.get(i-1).getValue());
                     variableModels.add(VariableModel.builder()
                             .varId(lunaticXmlExternalData.getVariableName())
-                            .values(variableValues)
-                            .loopId(LoopIdentifier.getLoopIdentifier(lunaticXmlExternalData.getVariableName(), variablesMap, i))
+                            .value(valueTypeList.get(i-1).getValue())
+                            .scope(LoopIdentifier.getLoopIdentifier(lunaticXmlExternalData.getVariableName(), variablesMap))
+                            .iteration(i)
                             .parentId(LoopIdentifier.getRelatedVariableName(lunaticXmlExternalData.getVariableName(), variablesMap))
                             .build());
                 }

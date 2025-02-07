@@ -43,19 +43,34 @@ class SurveyUnitServiceTest {
         surveyUnitPersistencePortStub.getMongoStub().clear();
         List<VariableModel> externalVariableList = new ArrayList<>();
         VariableModel variable = VariableModel.builder()
-                .varId("TESTIDVAR")
-                .values(List.of(new String[]{"V1", "V2"})).build();
+                .varId("TESTVARID")
+                .value("V1")
+                .iteration(1)
+                .build();
+        externalVariableList.add(variable);
+        variable = VariableModel.builder()
+                .varId("TESTVARID")
+                .value("V2")
+                .iteration(2)
+                .build();
         externalVariableList.add(variable);
 
         List<VariableModel> collectedVariableList = new ArrayList<>();
         VariableModel collectedVariable = VariableModel.builder()
-                .varId("TESTIDVAR")
-                .values(List.of(new String[]{"V1", "V2"}))
-                .loopId("TESTIDLOOP")
+                .varId("TESTVARID")
+                .value("V1")
+                .scope("TESTSCOPE")
+                .iteration(1)
                 .parentId("TESTIDPARENT")
                 .build();
-
-
+        collectedVariableList.add(collectedVariable);
+        collectedVariable = VariableModel.builder()
+                .varId("TESTVARID")
+                .value("V2")
+                .scope("TESTSCOPE")
+                .iteration(2)
+                .parentId("TESTIDPARENT")
+                .build();
         collectedVariableList.add(collectedVariable);
         surveyUnitPersistencePortStub.getMongoStub().add(SurveyUnitModel.builder()
                 .campaignId("TESTCAMPAIGNID")
@@ -78,18 +93,35 @@ class SurveyUnitServiceTest {
 
         List<VariableModel> externalVariableList = new ArrayList<>();
         VariableModel externalVariableModel = VariableModel.builder()
-                .varId("TESTIDVAR")
-                .values(List.of(new String[]{"V1", "V2"})).build();
+                .varId("TESTVARID")
+                .value("V1")
+                .iteration(1)
+                .build();
         externalVariableList.add(externalVariableModel);
+        externalVariableModel = VariableModel.builder()
+                .varId("TESTVARID")
+                .value("V2")
+                .iteration(2)
+                .build();
+        externalVariableList.add(externalVariableModel);
+
 
         List<VariableModel> collectedVariableList = new ArrayList<>();
         VariableModel collectedVariableModel = VariableModel.builder()
-                .varId("TESTIDVAR")
-                .values(List.of(new String[]{"V1", "V2"}))
-                .loopId("TESTIDLOOP")
+                .varId("TESTVARID")
+                .value("V1")
+                .scope("TESTSCOPE")
+                .iteration(1)
                 .parentId("TESTIDPARENT")
                 .build();
-
+        collectedVariableList.add(collectedVariableModel);
+        collectedVariableModel = VariableModel.builder()
+                .varId("TESTVARID")
+                .value("V2")
+                .scope("TESTSCOPE")
+                .iteration(2)
+                .parentId("TESTIDPARENT")
+                .build();
         collectedVariableList.add(collectedVariableModel);
 
         newSurveyUnitModelList.add(
@@ -109,21 +141,23 @@ class SurveyUnitServiceTest {
         surveyUnitServiceStatic.saveSurveyUnits(newSurveyUnitModelList);
 
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).filteredOn(surveyUnitModel ->
-                surveyUnitModel.getCampaignId().equals("TESTCAMPAIGNID")
-                && surveyUnitModel.getMode().equals(Mode.WEB)
-                && surveyUnitModel.getInterrogationId().equals("TESTINTERROGATIONID2")
-                && surveyUnitModel.getQuestionnaireId().equals(DEFAULT_QUESTIONNAIRE_ID)
-                && surveyUnitModel.getState().equals(DataState.COLLECTED)
-                && surveyUnitModel.getFileDate().equals(LocalDateTime.of(2023,1,1,0,0,0))
-                && surveyUnitModel.getRecordDate().equals(LocalDateTime.of(2024,1,1,0,0,0))
-                && !surveyUnitModel.getExternalVariables().stream().filter(
-                        externalVariable -> externalVariable.varId().equals("TESTIDVAR")
-                        && externalVariable.values().containsAll(List.of(new String[]{"V1", "V2"}))
-                ).toList().isEmpty()
+                        surveyUnitModel.getCampaignId().equals("TESTCAMPAIGNID")
+                        && surveyUnitModel.getMode().equals(Mode.WEB)
+                        && surveyUnitModel.getInterrogationId().equals("TESTINTERROGATIONID2")
+                        && surveyUnitModel.getQuestionnaireId().equals(DEFAULT_QUESTIONNAIRE_ID)
+                        && surveyUnitModel.getState().equals(DataState.COLLECTED)
+                        && surveyUnitModel.getFileDate().equals(LocalDateTime.of(2023,1,1,0,0,0))
+                        && surveyUnitModel.getRecordDate().equals(LocalDateTime.of(2024,1,1,0,0,0))
+                        && !surveyUnitModel.getExternalVariables().stream().filter(
+                                externalVariable -> externalVariable.varId().equals("TESTVARID")
+                                        && externalVariable.iteration().equals(1)
+                                        && externalVariable.value().equals("V1")
+                        ).toList().isEmpty()
                         && !surveyUnitModel.getCollectedVariables().stream().filter(
-                        collectedVariable -> collectedVariable.varId().equals("TESTIDVAR")
-                                && collectedVariable.values().containsAll(List.of(new String[]{"V1", "V2"}))
-                ).toList().isEmpty()
+                                collectedVariable -> collectedVariable.varId().equals("TESTVARID")
+                                        && collectedVariable.iteration().equals(2)
+                                        && collectedVariable.value().equals("V2")
+                        ).toList().isEmpty()
                 ).isNotEmpty();
     }
 
@@ -264,7 +298,7 @@ class SurveyUnitServiceTest {
         Assertions.assertThat(surveyUnitDto.getInterrogationId()).isEqualTo(DEFAULT_INTERROGATION_ID);
 
         Assertions.assertThat(surveyUnitDto.getCollectedVariables().getFirst().getVariableName())
-                .isEqualTo("TESTIDVAR");
+                .isEqualTo("TESTVARID");
         Assertions.assertThat(surveyUnitDto.getCollectedVariables().getFirst().getVariableStateDtoList()
                         .stream().filter(
                             variableStatePerret -> variableStatePerret.getState().equals(DataState.COLLECTED)
@@ -287,7 +321,7 @@ class SurveyUnitServiceTest {
                 .isTrue();
 
         Assertions.assertThat(surveyUnitDto.getExternalVariables().getFirst().getVariableName())
-                .isEqualTo("TESTIDVAR");
+                .isEqualTo("TESTVARID");
         Assertions.assertThat(surveyUnitDto.getExternalVariables().getFirst().getVariableStateDtoList()
                         .stream().filter(
                                 variableStatePerret -> variableStatePerret.getState().equals(DataState.COLLECTED)
@@ -333,7 +367,7 @@ class SurveyUnitServiceTest {
         Assertions.assertThat(surveyUnitDto.getInterrogationId()).isEqualTo(DEFAULT_INTERROGATION_ID);
 
         Assertions.assertThat(surveyUnitDto.getCollectedVariables().getFirst().getVariableName())
-                .isEqualTo("TESTIDVAR");
+                .isEqualTo("TESTVARID");
         Assertions.assertThat(surveyUnitDto.getCollectedVariables().getFirst().getVariableStateDtoList()
                         .stream().filter(
                                 variableStatePerret -> variableStatePerret.getState().equals(DataState.COLLECTED)
@@ -346,7 +380,7 @@ class SurveyUnitServiceTest {
                 .isTrue();
 
         Assertions.assertThat(surveyUnitDto.getExternalVariables().getFirst().getVariableName())
-                .isEqualTo("TESTIDVAR");
+                .isEqualTo("TESTVARID");
         Assertions.assertThat(surveyUnitDto.getExternalVariables().getFirst().getVariableStateDtoList()
                         .stream().filter(
                                 variableStatePerret -> variableStatePerret.getState().equals(DataState.COLLECTED)
@@ -392,7 +426,7 @@ class SurveyUnitServiceTest {
         Assertions.assertThat(surveyUnitDto.getInterrogationId()).isEqualTo(DEFAULT_INTERROGATION_ID);
 
         Assertions.assertThat(surveyUnitDto.getCollectedVariables().getFirst().getVariableName())
-                .isEqualTo("TESTIDVAR");
+                .isEqualTo("TESTVARID");
         Assertions.assertThat(surveyUnitDto.getCollectedVariables().getFirst().getVariableStateDtoList()
                         .stream().filter(
                                 variableStatePerret -> variableStatePerret.getState().equals(DataState.COLLECTED)
@@ -415,7 +449,7 @@ class SurveyUnitServiceTest {
                 .isTrue();
 
         Assertions.assertThat(surveyUnitDto.getExternalVariables().getFirst().getVariableName())
-                .isEqualTo("TESTIDVAR");
+                .isEqualTo("TESTVARID");
         Assertions.assertThat(surveyUnitDto.getExternalVariables().getFirst().getVariableStateDtoList()
                         .stream().filter(
                                 variableStatePerret -> variableStatePerret.getState().equals(DataState.COLLECTED)
@@ -430,14 +464,25 @@ class SurveyUnitServiceTest {
 
     private void addAdditionnalDtoToMongoStub(){
         List<VariableModel> externalVariableList = new ArrayList<>();
-        VariableModel externalVariableModel = VariableModel.builder().varId("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
+        VariableModel externalVariableModel = VariableModel.builder()
+                .varId("TESTVARID")
+                .value("V1")
+                .iteration(1)
+                .build();
+        externalVariableList.add(externalVariableModel);
+        externalVariableModel = VariableModel.builder()
+                .varId("TESTVARID")
+                .value("V2")
+                .iteration(2)
+                .build();
         externalVariableList.add(externalVariableModel);
 
         List<VariableModel> collectedVariableList = new ArrayList<>();
         VariableModel collectedVariableModel = VariableModel.builder()
-                .varId("TESTIDVAR")
-                .values(List.of(new String[]{"V1", "V2"}))
-                .loopId("TESTIDLOOP")
+                .varId("TESTVARID")
+                .value("V1")
+                .scope("TESTSCOPE")
+                .iteration(1)
                 .parentId("TESTIDPARENT")
                 .build();
         collectedVariableList.add(collectedVariableModel);
@@ -456,16 +501,35 @@ class SurveyUnitServiceTest {
         surveyUnitPersistencePortStub.getMongoStub().add(recentDTO);
     }
 
-    private void addAdditionnalDtoToMongoStub(String questionnaireId) {
+    private void addAdditionnalDtoToMongoStub(String idQuestionnaire) {
         List<VariableModel> externalVariableList = new ArrayList<>();
-        VariableModel externalVariableModel = VariableModel.builder().varId("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
+        VariableModel externalVariableModel = VariableModel.builder()
+                .varId("TESTVARID")
+                .value("V1")
+                .iteration(1)
+                .build();
+        externalVariableList.add(externalVariableModel);
+        externalVariableModel = VariableModel.builder()
+                .varId("TESTVARID")
+                .value("V2")
+                .iteration(2)
+                .build();
         externalVariableList.add(externalVariableModel);
 
         List<VariableModel> collectedVariableList = new ArrayList<>();
         VariableModel collectedVariableModel = VariableModel.builder()
-                .varId("TESTIDVAR")
-                .values(List.of(new String[]{"V1", "V2"}))
-                .loopId("TESTIDLOOP")
+                .varId("TESTVARID")
+                .value("V1")
+                .scope("TESTSCOPE")
+                .iteration(1)
+                .parentId("TESTIDPARENT")
+                .build();
+        collectedVariableList.add(collectedVariableModel);
+        collectedVariableModel = VariableModel.builder()
+                .varId("TESTVARID")
+                .value("V2")
+                .scope("TESTSCOPE")
+                .iteration(2)
                 .parentId("TESTIDPARENT")
                 .build();
         collectedVariableList.add(collectedVariableModel);
@@ -490,14 +554,20 @@ class SurveyUnitServiceTest {
                                                          LocalDateTime fileDate,
                                                          LocalDateTime recordDate) {
         List<VariableModel> externalVariableList = new ArrayList<>();
-        VariableModel externalVariableModel = VariableModel.builder().varId("TESTIDVAR").values(List.of(new String[]{externalVariableValue})).build();
+        VariableModel externalVariableModel =
+                VariableModel.builder()
+                        .varId("TESTVARID")
+                        .value(externalVariableValue)
+                        .iteration(1)
+                        .build();
         externalVariableList.add(externalVariableModel);
 
         List<VariableModel> collectedVariableList = new ArrayList<>();
         VariableModel collectedVariable = VariableModel.builder()
-                .varId("TESTIDVAR")
-                .values(List.of(new String[]{collectedVariableValue}))
-                .loopId("TESTIDLOOP")
+                .varId("TESTVARID")
+                .value(collectedVariableValue)
+                .scope("TESTSCOPE")
+                .iteration(1)
                 .parentId("TESTIDPARENT")
                 .build();
         collectedVariableList.add(collectedVariable);

@@ -184,17 +184,35 @@ class Utils {
                                              LocalDateTime fileDate, LocalDateTime recordDate,
                                              SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) {
         List<VariableModel> externalVariableList = new ArrayList<>();
-        VariableModel externalVariable = VariableModel.builder().varId("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
+        VariableModel externalVariable = VariableModel.builder()
+                .varId("TESTIDVAR")
+                .value("V1")
+                .iteration(1)
+                .build();
+        externalVariableList.add(externalVariable);
+        externalVariable = VariableModel.builder()
+                .varId("TESTIDVAR")
+                .value("V2")
+                .iteration(2)
+                .build();
         externalVariableList.add(externalVariable);
 
         List<VariableModel> collectedVariableList = new ArrayList<>();
         VariableModel collectedVariable = VariableModel.builder()
                 .varId("TESTIDVAR")
-                .values(List.of(new String[]{"V1", "V2"}))
-                .loopId("TESTIDLOOP")
+                .value("V1")
+                .scope("TESTIDLOOP")
+                .iteration(1)
                 .parentId("TESTIDPARENT")
                 .build();
-
+        collectedVariableList.add(collectedVariable);
+        collectedVariable = VariableModel.builder()
+                .varId("TESTIDVAR")
+                .value("V2")
+                .scope("TESTIDLOOP")
+                .iteration(2)
+                .parentId("TESTIDPARENT")
+                .build();
         collectedVariableList.add(collectedVariable);
 
         SurveyUnitModel recentDTO = SurveyUnitModel.builder()
@@ -220,14 +238,19 @@ class Utils {
                                             LocalDateTime recordDate,
                                             SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) {
         List<VariableModel> externalVariableList = new ArrayList<>();
-        VariableModel variable = VariableModel.builder().varId("TESTIDVAR").values(List.of(new String[]{externalVariableValue})).build();
+        VariableModel variable = VariableModel.builder()
+                .varId("TESTIDVAR")
+                .value(externalVariableValue)
+                .iteration(1)
+                .build();
         externalVariableList.add(variable);
 
         List<VariableModel> collectedVariableList = new ArrayList<>();
         VariableModel collectedVariable = VariableModel.builder()
                 .varId("TESTIDVAR")
-                .values(List.of(new String[]{collectedVariableValue}))
-                .loopId("TESTIDLOOP")
+                .value(collectedVariableValue)
+                .scope("TESTIDLOOP")
+                .iteration(1)
                 .parentId("TESTIDPARENT")
                 .build();
 

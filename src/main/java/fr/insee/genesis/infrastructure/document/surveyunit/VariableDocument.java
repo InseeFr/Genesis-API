@@ -2,7 +2,6 @@ package fr.insee.genesis.infrastructure.document.surveyunit;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.List;
 
 import lombok.Data;
 
@@ -12,7 +11,8 @@ public class VariableDocument implements Serializable {
 	@Serial
 	private static final long serialVersionUID = -1576556180669134053L;
 	private String varId;
-	private String loopId;
+	private String scope;
+	private Integer iteration;
 	private String parentId;
-	private List<String> values;
+	private String value;
 }

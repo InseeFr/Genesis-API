@@ -37,15 +37,17 @@ class DataVerifierTest {
         // Setup survey units
         VariableModel collectedVariable1 = VariableModel.builder()
                 .varId("var1")
-                .values(List.of("123"))
-                .loopId("loop1")
+                .value("123")
+                .scope("loop1")
+                .iteration(1)
                 .parentId("parent1")
                 .build();
 
         VariableModel collectedVariable2 = VariableModel.builder()
                 .varId("var2")
-                .values(List.of("true"))
-                .loopId("loop2")
+                .value("true")
+                .scope("loop2")
+                .iteration(1)
                 .parentId("parent2")
                 .build();
 
@@ -79,14 +81,16 @@ class DataVerifierTest {
         surveyUnits.clear();
         VariableModel collectedVariable1 = VariableModel.builder()
                 .varId("var1")
-                .values(List.of("invalid"))
-                .loopId("loop1")
+                .value("invalid")
+                .scope("loop1")
+                .iteration(1)
                 .parentId("parent1")
                 .build();
         VariableModel collectedVariable2 = VariableModel.builder()
                 .varId("var2")
-                .values(List.of("true"))
-                .loopId("loop2")
+                .value("true")
+                .scope("loop2")
+                .iteration(1)
                 .parentId("parent2")
                 .build();
         SurveyUnitModel surveyUnit = SurveyUnitModel.builder()
@@ -120,8 +124,10 @@ class DataVerifierTest {
     @Test
     void shouldAddForcedSurveyUnit_WhenInvalidExternalVariable() {
         //Add surveyUnit with invalid external Variable
-        VariableModel extVar = VariableModel.builder().varId("var2").values(List.of(
-                "notBoolean")).build();
+        VariableModel extVar = VariableModel.builder()
+                .varId("var2")
+                .value("notBoolean")
+                .build();
         List<VariableModel> listVarExt = new ArrayList<>();
         listVarExt.add(extVar);
 
@@ -152,14 +158,23 @@ class DataVerifierTest {
         surveyUnits.clear();
         VariableModel collectedVariable1 = VariableModel.builder()
                 .varId("var1")
-                .values(List.of("invalid", "456"))
-                .loopId("loop1")
+                .value("invalid")
+                .scope("loop1")
+                .iteration(1)
                 .parentId("parent1")
                 .build();
         VariableModel collectedVariable2 = VariableModel.builder()
+                .varId("var1")
+                .value("456")
+                .scope("loop1")
+                .iteration(2)
+                .parentId("parent1")
+                .build();
+        VariableModel collectedVariable3 = VariableModel.builder()
                 .varId("var2")
-                .values(List.of("false"))
-                .loopId("loop2")
+                .value("false")
+                .scope("loop2")
+                .iteration(1)
                 .parentId("parent2")
                 .build();
         SurveyUnitModel surveyUnit = SurveyUnitModel.builder()
@@ -167,7 +182,7 @@ class DataVerifierTest {
                 .questionnaireId("Quest1")
                 .campaignId("Camp1")
                 .state(DataState.COLLECTED)
-                .collectedVariables(List.of(collectedVariable1, collectedVariable2))
+                .collectedVariables(List.of(collectedVariable1, collectedVariable2, collectedVariable3))
                 .externalVariables(List.of())
                 .build();
         surveyUnits.add(surveyUnit);
@@ -179,7 +194,7 @@ class DataVerifierTest {
         SurveyUnitModel forcedUnit = surveyUnits.get(1);
         Assertions.assertEquals(DataState.FORCED, forcedUnit.getState());
         Assertions.assertEquals(1, forcedUnit.getCollectedVariables().size());
-        Assertions.assertEquals("", forcedUnit.getCollectedVariables().getFirst().values().getFirst()); // Corrected values
+        Assertions.assertEquals("", forcedUnit.getCollectedVariables().getFirst().value()); // Corrected values
     }
 
 }
