@@ -148,12 +148,12 @@ public class MainDefinitions {
 
     @Then("We should have a {string} Survey Unit model for survey unit {string} with {string} filled with {string} for iteration " +
             "{int}")
-    public void check_survey_unit_model_content(String dataState, String surveyUnitId, String variableName,
+    public void check_survey_unit_model_content(String dataState, String interrogationId, String variableName,
                                               String expectedValue, int iteration) {
         //Get model
        List<SurveyUnitModel> concernedSurveyUnitModels = this.surveyUnitModels.stream().filter(surveyUnitModel ->
                 surveyUnitModel.getState().toString().equals(dataState)
-                && surveyUnitModel.getInterrogationId().equals(surveyUnitId)
+                && surveyUnitModel.getInterrogationId().equals(interrogationId)
         ).toList();
 
         Assertions.assertThat(concernedSurveyUnitModels).isNotEmpty();

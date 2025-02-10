@@ -31,7 +31,7 @@ public class DataTransformer {
         }
 
         return SurveyUnitQualityToolDto.builder()
-                .surveyUnitId(dto.getInterrogationId())
+                .interrogationId(dto.getInterrogationId())
                 .collectedVariables(transformedCollectedVariables)
                 .externalVariables(transformedExternalVariables)
                 .build();

@@ -10,7 +10,7 @@ import fr.insee.genesis.controller.dto.VariableDto;
 import fr.insee.genesis.controller.dto.VariableInputDto;
 import fr.insee.genesis.controller.dto.VariableStateDto;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
-import fr.insee.genesis.domain.model.surveyunit.IdLoopTuple;
+import fr.insee.genesis.domain.model.surveyunit.VarIdScopeTuple;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
@@ -83,7 +83,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             //We had all the variables of the oldest update
             latestUpdatesbyVariables.add(suByMode.getFirst());
             //We keep the name of already added variables to skip them in older updates
-            List<IdLoopTuple> addedVariables = new ArrayList<>();
+            List<VarIdScopeTuple> addedVariables = new ArrayList<>();
             SurveyUnitModel latestUpdate = suByMode.getFirst();
 
             if(latestUpdate.getCollectedVariables() == null){
@@ -92,26 +92,28 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             if(latestUpdate.getExternalVariables() == null){
                 latestUpdate.setExternalVariables(new ArrayList<>());
             }
-            latestUpdate.getCollectedVariables().forEach(colVar -> addedVariables.add(new IdLoopTuple(colVar.varId(),
-                    colVar.scope())));
-            latestUpdate.getExternalVariables().forEach(extVar -> addedVariables.add(new IdLoopTuple(extVar.varId(), "")));
+            latestUpdate.getCollectedVariables().forEach(colVar -> addedVariables.add(new VarIdScopeTuple(colVar.varId(),
+                    colVar.scope(), colVar.iteration())));
+            latestUpdate.getExternalVariables().forEach(extVar -> addedVariables.add(new VarIdScopeTuple(extVar.varId(), "", extVar.iteration())));
 
             suByMode.forEach(surveyUnitModel -> {
                 List<VariableModel> collectedVariablesToKeep = new ArrayList<>();
                 List<VariableModel> externalVariablesToKeep = new ArrayList<>();
                 // We iterate over the variables of the update and add them to the list if they are not already added
                 surveyUnitModel.getCollectedVariables().stream()
-                        .filter(colVar -> !addedVariables.contains(new IdLoopTuple(colVar.varId(), colVar.scope())))
+                        .filter(colVar -> !addedVariables.contains(new VarIdScopeTuple(colVar.varId(), colVar.scope()
+                                , colVar.iteration())))
                         .forEach(colVar -> {
                             collectedVariablesToKeep.add(colVar);
-                           addedVariables.add(new IdLoopTuple(colVar.varId(), colVar.scope()));
+                           addedVariables.add(new VarIdScopeTuple(colVar.varId(), colVar.scope(), colVar.iteration()));
                         });
                 if (surveyUnitModel.getExternalVariables() != null){
                     surveyUnitModel.getExternalVariables().stream()
-                         .filter(extVar -> !addedVariables.contains(new IdLoopTuple(extVar.varId(), "")))
+                         .filter(extVar -> !addedVariables.contains(new VarIdScopeTuple(extVar.varId(), extVar.scope(),
+                                 extVar.iteration())))
                          .forEach(extVar -> {
                             externalVariablesToKeep.add(extVar);
-                            addedVariables.add(new IdLoopTuple(extVar.varId(), ""));
+                            addedVariables.add(new VarIdScopeTuple(extVar.varId(), extVar.scope(), extVar.iteration()));
                          });
                 }
 
@@ -135,8 +137,8 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                 .build();
 
         //Extract variables
-        Map<IdLoopTuple, VariableDto> collectedVariableMap = new HashMap<>();
-        Map<IdLoopTuple, VariableDto> externalVariableMap = new HashMap<>();
+        Map<VarIdScopeTuple, VariableDto> collectedVariableMap = new HashMap<>();
+        Map<VarIdScopeTuple, VariableDto> externalVariableMap = new HashMap<>();
         List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findByIds(interrogationId, questionnaireId);
         List<Mode> modes = getDistinctsModes(surveyUnitModels);
         modes.forEach(mode -> {
@@ -258,7 +260,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                     .campaignId(surveyUnitInputDto.getCampaignId())
                     .mode(surveyUnitInputDto.getMode())
                     .questionnaireId(surveyUnitInputDto.getQuestionnaireId())
-                    .interrogationId(surveyUnitInputDto.getSurveyUnitId())
+                    .interrogationId(surveyUnitInputDto.getInterrogationId())
                     .state(state)
                     .recordDate(LocalDateTime.now())
                     .collectedVariables(new ArrayList<>())
@@ -303,14 +305,15 @@ public class SurveyUnitService implements SurveyUnitApiPort {
      * @param externalVariableMap External variable DTO map to populate
      */
     private void extractVariables(SurveyUnitModel surveyUnitModel,
-                                           Map<IdLoopTuple, VariableDto> collectedVariableMap,
-                                           Map<IdLoopTuple, VariableDto> externalVariableMap) {
+                                           Map<VarIdScopeTuple, VariableDto> collectedVariableMap,
+                                           Map<VarIdScopeTuple, VariableDto> externalVariableMap) {
 
         if(surveyUnitModel.getCollectedVariables() == null){
             surveyUnitModel.setCollectedVariables(new ArrayList<>());
         }
         for (VariableModel collectedVariable : surveyUnitModel.getCollectedVariables()) {
-            IdLoopTuple loopIdTuple = new IdLoopTuple(collectedVariable.varId(), collectedVariable.scope());
+            VarIdScopeTuple loopIdTuple = new VarIdScopeTuple(collectedVariable.varId(), collectedVariable.scope(),
+                    collectedVariable.iteration());
             VariableDto variableDto = collectedVariableMap.get(loopIdTuple);
 
             //Create variable into map if not exists
@@ -340,7 +343,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             surveyUnitModel.setExternalVariables(new ArrayList<>());
         }
         for(VariableModel externalVariable : surveyUnitModel.getExternalVariables()){
-            IdLoopTuple loopIdTuple = new IdLoopTuple(externalVariable.varId(), externalVariable.scope());
+            VarIdScopeTuple loopIdTuple = new VarIdScopeTuple(externalVariable.varId(), externalVariable.scope(), externalVariable.iteration());
             VariableDto variableDto = externalVariableMap.get(loopIdTuple);
 
             //Create variable into map if not exists
@@ -348,6 +351,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                 variableDto = VariableDto.builder()
                         .variableName(externalVariable.varId())
                         .scope(externalVariable.scope())
+                        .iteration(externalVariable.iteration())
                         .variableStateDtoList(new ArrayList<>())
                         .build();
                 externalVariableMap.put(loopIdTuple, variableDto);

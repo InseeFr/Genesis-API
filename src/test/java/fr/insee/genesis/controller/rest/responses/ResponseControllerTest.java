@@ -335,7 +335,7 @@ class ResponseControllerTest {
         SurveyUnitQualityToolDto surveyUnitDto = response.getBody();
         Assertions.assertThat(surveyUnitDto).isNotNull();
 
-        Assertions.assertThat(surveyUnitDto.getSurveyUnitId()).isEqualTo(DEFAULT_INTERROGATION_ID);
+        Assertions.assertThat(surveyUnitDto.getInterrogationId()).isEqualTo(DEFAULT_INTERROGATION_ID);
 
         Assertions.assertThat(surveyUnitDto.getCollectedVariables().getFirst().getVariableName())
                 .isEqualTo("TESTVARID");
@@ -412,7 +412,7 @@ class ResponseControllerTest {
                 .campaignId(campaignId)
                 .mode(Mode.WEB)
                 .questionnaireId(questionnaireId)
-                .surveyUnitId(DEFAULT_INTERROGATION_ID)
+                .interrogationId(DEFAULT_INTERROGATION_ID)
                 .collectedVariables(newVariables)
                 .build();
 
@@ -477,7 +477,7 @@ class ResponseControllerTest {
                 .campaignId(campaignId)
                 .mode(Mode.WEB)
                 .questionnaireId(questionnaireId)
-                .surveyUnitId(DEFAULT_INTERROGATION_ID)
+                .interrogationId(DEFAULT_INTERROGATION_ID)
                 .collectedVariables(newVariables)
                 .build();
 
@@ -541,7 +541,7 @@ class ResponseControllerTest {
                 .campaignId(campaignId)
                 .mode(Mode.WEB)
                 .questionnaireId(questionnaireId)
-                .surveyUnitId(DEFAULT_INTERROGATION_ID)
+                .interrogationId(DEFAULT_INTERROGATION_ID)
                 .collectedVariables(newVariables)
                 .build();
 
@@ -591,7 +591,7 @@ class ResponseControllerTest {
                 .campaignId(campaignId)
                 .mode(Mode.WEB)
                 .questionnaireId(DEFAULT_QUESTIONNAIRE_ID)
-                .surveyUnitId(DEFAULT_INTERROGATION_ID)
+                .interrogationId(DEFAULT_INTERROGATION_ID)
                 .collectedVariables(newVariables)
                 .build();
 
@@ -625,7 +625,7 @@ class ResponseControllerTest {
                 .campaignId(CAMPAIGN_ID_WITH_DDI)
                 .mode(Mode.WEB)
                 .questionnaireId(DEFAULT_QUESTIONNAIRE_ID)
-                .surveyUnitId(DEFAULT_INTERROGATION_ID)
+                .interrogationId(DEFAULT_INTERROGATION_ID)
                 .collectedVariables(newVariables)
                 .build();
 
