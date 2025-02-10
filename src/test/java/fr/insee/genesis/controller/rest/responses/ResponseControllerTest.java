@@ -8,6 +8,7 @@ import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
 import fr.insee.genesis.controller.dto.SurveyUnitQualityToolDto;
 import fr.insee.genesis.controller.dto.SurveyUnitSimplified;
 import fr.insee.genesis.controller.dto.VariableInputDto;
+import fr.insee.genesis.controller.dto.VariableQualityToolDto;
 import fr.insee.genesis.controller.dto.VariableStateInputDto;
 import fr.insee.genesis.controller.utils.AuthUtils;
 import fr.insee.genesis.controller.utils.ControllerUtils;
@@ -337,48 +338,60 @@ class ResponseControllerTest {
 
         Assertions.assertThat(surveyUnitDto.getInterrogationId()).isEqualTo(DEFAULT_INTERROGATION_ID);
 
-        Assertions.assertThat(surveyUnitDto.getCollectedVariables().getFirst().getVariableName())
-                .isEqualTo("TESTVARID");
+        List<VariableQualityToolDto> variableQualityToolDtos = surveyUnitDto.getCollectedVariables().stream().filter(
+                variableQualityToolDto -> variableQualityToolDto.getVariableName().equals("TESTVARID")
+                && variableQualityToolDto.getIteration().equals(1)
+        ).toList();
+        Assertions.assertThat(variableQualityToolDtos).hasSize(1);
+        VariableQualityToolDto variableQualityToolDto = variableQualityToolDtos.getFirst();
 
-        Assertions.assertThat(surveyUnitDto.getCollectedVariables().getFirst().getVariableStateDtoList()
+        Assertions.assertThat(variableQualityToolDto.getVariableStateDtoList()
                         .stream().filter(
                                 variableStatePerret -> variableStatePerret.getState().equals(DataState.COLLECTED)
                         ).toList().getFirst().getValue())
                 .isEqualTo("V1");
-        Assertions.assertThat(surveyUnitDto.getCollectedVariables().getFirst().getVariableStateDtoList()
+        Assertions.assertThat(variableQualityToolDto.getVariableStateDtoList()
                         .stream().filter(
                                 variableStatePerret -> variableStatePerret.getState().equals(DataState.EDITED)
                         ).toList().getFirst().getValue())
                 .isEqualTo("C NEW E");
-        Assertions.assertThat(surveyUnitDto.getCollectedVariables().getFirst().getVariableStateDtoList()
+        Assertions.assertThat(variableQualityToolDto.getVariableStateDtoList()
                         .stream().filter(
                                 variableStatePerret -> variableStatePerret.getState().equals(DataState.COLLECTED)
                         ).toList().getFirst().isActive())
                 .isFalse();
-        Assertions.assertThat(surveyUnitDto.getCollectedVariables().getFirst().getVariableStateDtoList()
+        Assertions.assertThat(variableQualityToolDto.getVariableStateDtoList()
                         .stream().filter(
                                 variableStatePerret -> variableStatePerret.getState().equals(DataState.EDITED)
                         ).toList().getFirst().isActive())
                 .isTrue();
 
-        Assertions.assertThat(surveyUnitDto.getExternalVariables().getFirst().getVariableName())
+
+        variableQualityToolDtos = surveyUnitDto.getExternalVariables().stream().filter(
+                variableQualityToolDto1 -> variableQualityToolDto1.getVariableName().equals("TESTVARID")
+                        && variableQualityToolDto1.getIteration().equals(1)
+        ).toList();
+        Assertions.assertThat(variableQualityToolDtos).hasSize(1);
+        variableQualityToolDto = variableQualityToolDtos.getFirst();
+
+        Assertions.assertThat(variableQualityToolDto.getVariableName())
                 .isEqualTo("TESTVARID");
-        Assertions.assertThat(surveyUnitDto.getExternalVariables().getFirst().getVariableStateDtoList()
+        Assertions.assertThat(variableQualityToolDto.getVariableStateDtoList()
                         .stream().filter(
                                 variableStatePerret -> variableStatePerret.getState().equals(DataState.COLLECTED)
                         ).toList().getFirst().getValue())
                 .isEqualTo("V1");
-        Assertions.assertThat(surveyUnitDto.getExternalVariables().getFirst().getVariableStateDtoList()
+        Assertions.assertThat(variableQualityToolDto.getVariableStateDtoList()
                         .stream().filter(
                                 variableStatePerret -> variableStatePerret.getState().equals(DataState.EDITED)
                         ).toList().getFirst().getValue())
                 .isEqualTo("E NEW E");
-        Assertions.assertThat(surveyUnitDto.getExternalVariables().getFirst().getVariableStateDtoList()
+        Assertions.assertThat(variableQualityToolDto.getVariableStateDtoList()
                         .stream().filter(
                                 variableStatePerret -> variableStatePerret.getState().equals(DataState.COLLECTED)
                         ).toList().getFirst().isActive())
                 .isFalse();
-        Assertions.assertThat(surveyUnitDto.getExternalVariables().getFirst().getVariableStateDtoList()
+        Assertions.assertThat(variableQualityToolDto.getVariableStateDtoList()
                         .stream().filter(
                                 variableStatePerret -> variableStatePerret.getState().equals(DataState.EDITED)
                         ).toList().getFirst().isActive())
