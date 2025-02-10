@@ -6,6 +6,9 @@ import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.bpm.metadata.reader.ddi.DDIReader;
 import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.controller.adapter.LunaticXmlAdapter;
+import fr.insee.genesis.controller.dto.SurveyUnitQualityToolDto;
+import fr.insee.genesis.controller.dto.VariableQualityToolDto;
+import fr.insee.genesis.controller.dto.VariableStateDto;
 import fr.insee.genesis.controller.rest.responses.ResponseController;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlCampaign;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlDataParser;
@@ -171,9 +174,41 @@ public class MainDefinitions {
         Assertions.assertThat(concernedCollectedVariable.value()).isEqualTo(expectedValue);
     }
 
+    @Then("For collected variable {string} in survey unit {string} we should have {string} and scope {string} for " +
+            "iteration {int}")
+    public void check_collected_variable_content_in_mongo(String collectedVariableName,
+                                                         String interrogationId,
+                                                         String expectedValue,
+                                                         String expectedLoopId,
+                                                         Integer iteration
+    ) {
+        //Get SurveyUnitModel
+        List<SurveyUnitModel> concernedSurveyUnitModels = surveyUnitPersistence.getMongoStub().stream().filter(surveyUnitModel ->
+                surveyUnitModel.getState().equals(DataState.COLLECTED)
+                        && surveyUnitModel.getInterrogationId().equals(interrogationId)
+        ).toList();
+        Assertions.assertThat(concernedSurveyUnitModels).hasSize(1);
+
+        SurveyUnitModel surveyUnitModel = concernedSurveyUnitModels.getFirst();
+
+        //Get Variable
+        List<VariableModel> concernedCollectedVariables =
+                surveyUnitModel.getCollectedVariables().stream().filter(variableModel ->
+                        variableModel.varId().equals(collectedVariableName)
+                                && Objects.equals(variableModel.scope(), expectedLoopId)
+                                && variableModel.iteration().equals(iteration)
+                ).toList();
+        Assertions.assertThat(concernedCollectedVariables).hasSize(1);
+
+        VariableModel variableModel = concernedCollectedVariables.getFirst();
+
+        //Value content assertion
+        Assertions.assertThat(variableModel.value()).isEqualTo(expectedValue);
+    }
+
     @Then("For external variable {string} in survey unit {string} we should have {string} and scope {string} for " +
             "iteration {int}")
-    public void forExternalVariableInSurveyUnitWeShouldHaveForLoop(String externalVariableName,
+    public void check_external_variable_content_in_mongo(String externalVariableName,
                                                                    String interrogationId,
                                                                    String expectedValue,
                                                                    String expectedLoopId,
@@ -195,11 +230,52 @@ public class MainDefinitions {
                         && Objects.equals(variableModel.scope(), expectedLoopId)
                         && variableModel.iteration().equals(iteration)
         ).toList();
+        Assertions.assertThat(concernedExternalVariables).hasSize(1);
 
         VariableModel variableModel = concernedExternalVariables.getFirst();
 
         //Value content assertion
         Assertions.assertThat(variableModel.value()).isEqualTo(expectedValue);
+    }
+
+    @Then("If we get latest states for {string} in collected variable {string}, survey unit {string} we should have {string} for iteration {int}")
+    public void check_latest_state_collected(String questionnaireId, String variableName, String interrogationId, String expectedValue, int iteration) {
+        SurveyUnitQualityToolDto surveyUnitQualityToolDto = responseController.findResponsesByInterrogationAndQuestionnaireLatestStates(interrogationId, questionnaireId).getBody();
+
+        List<VariableQualityToolDto> variableQualityToolDtos = surveyUnitQualityToolDto.getCollectedVariables().stream().filter(
+                variableQualityToolDto -> variableQualityToolDto.getVariableName().equals(variableName)
+                        && variableQualityToolDto.getIteration().equals(iteration)
+        ).toList();
+
+        Assertions.assertThat(variableQualityToolDtos).hasSize(1);
+
+        List<VariableStateDto> variableStateDtoList =
+                variableQualityToolDtos.getFirst().getVariableStateDtoList().stream().filter(
+                        variableStateDto -> variableStateDto.getState().equals(DataState.COLLECTED)
+                ).toList();
+        Assertions.assertThat(variableStateDtoList).hasSize(1);
+
+        Assertions.assertThat(variableStateDtoList.getFirst().getValue()).isEqualTo(expectedValue);
+    }
+
+    @Then("If we get latest states for {string} in external variable {string}, survey unit {string} we should have {string} for iteration {int}")
+    public void check_latest_state_external(String questionnaireId, String variableName, String interrogationId, String expectedValue, int iteration) {
+        SurveyUnitQualityToolDto surveyUnitQualityToolDto = responseController.findResponsesByInterrogationAndQuestionnaireLatestStates(interrogationId, questionnaireId).getBody();
+
+        List<VariableQualityToolDto> variableQualityToolDtos = surveyUnitQualityToolDto.getExternalVariables().stream().filter(
+                variableQualityToolDto -> variableQualityToolDto.getVariableName().equals(variableName)
+                && variableQualityToolDto.getIteration().equals(iteration)
+        ).toList();
+
+        Assertions.assertThat(variableQualityToolDtos).hasSize(1);
+
+        List<VariableStateDto> variableStateDtoList =
+                variableQualityToolDtos.getFirst().getVariableStateDtoList().stream().filter(
+                        variableStateDto -> variableStateDto.getState().equals(DataState.COLLECTED)
+                ).toList();
+        Assertions.assertThat(variableStateDtoList).hasSize(1);
+
+        Assertions.assertThat(variableStateDtoList.getFirst().getValue()).isEqualTo(expectedValue);
     }
 
     @After
