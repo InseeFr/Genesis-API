@@ -35,6 +35,7 @@ import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.assertj.core.api.Assertions;
+import org.springframework.http.ResponseEntity;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -47,6 +48,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 public class MainDefinitions {
     String directory;
@@ -56,6 +58,8 @@ public class MainDefinitions {
     SurveyUnitQualityService surveyUnitQualityService = new SurveyUnitQualityService();
     SurveyUnitPersistencePortStub surveyUnitPersistence = new SurveyUnitPersistencePortStub();
     Config config = new ConfigStub();
+    ResponseEntity<List<SurveyUnitModel>> surveyUnitModelResponse;
+    ResponseEntity<SurveyUnitQualityToolDto> surveyUnitLatestStatesResponse;
 
     ResponseController responseController = new ResponseController(
             new SurveyUnitService(surveyUnitPersistence),
@@ -69,10 +73,14 @@ public class MainDefinitions {
 
     List<SurveyUnitModel> surveyUnitModels;
 
+    //BEFOREs
+
     @Before
     public void init() {
         this.surveyUnitPersistence.getMongoStub().clear();
     }
+
+    //GIVENs
 
     @Given("We have data in directory {string}")
     public void init_folder(String directory) throws IOException {
@@ -87,6 +95,8 @@ public class MainDefinitions {
         Files.copy(dataFilePath, this.inDirectory.resolve(dataFilePath.getFileName().toString()),
                 StandardCopyOption.REPLACE_EXISTING);
     }
+
+    //WHENs
 
     @When("We create survey unit models from file {string} with DDI {string}")
     public void get_models(String fileName, String ddiName) throws IOException, ParserConfigurationException,
@@ -120,6 +130,20 @@ public class MainDefinitions {
     public void delete_directory() throws IOException {
         org.springframework.util.FileSystemUtils.deleteRecursively(inDirectory);
     }
+
+    @When("We extract survey unit data with questionnaireId {string} and interrogationId {string}")
+    public void extract_survey_data(String questionnaireId, String interrogationId) {
+        this.surveyUnitModelResponse = responseController.getLatestByInterrogation(interrogationId, questionnaireId);
+    }
+
+    @When("We extract survey unit latest states with questionnaireId {string} and interrogationId {string}")
+    public void extract_survey_unit_latest_states(String questionnaireId, String interrogationId) {
+        this.surveyUnitLatestStatesResponse =
+                responseController.findResponsesByInterrogationAndQuestionnaireLatestStates(interrogationId,
+                questionnaireId);
+    }
+
+    //THENs
 
     @Then("There should be {int} {string} SurveyUnit in database")
     public void check_surveyunits_by_state(int expectedCount, String expectedStatus) {
@@ -278,10 +302,92 @@ public class MainDefinitions {
         Assertions.assertThat(variableStateDtoList.getFirst().getValue()).isEqualTo(expectedValue);
     }
 
+    @Then("The extracted survey unit data response should have a survey unit model with interrogationId {string}")
+    public void check_su_model_interrogationId(String interrogationId) {
+        Assertions.assertThat(surveyUnitModelResponse).isNotNull();
+        Assertions.assertThat(surveyUnitModelResponse.getBody()).isNotNull().hasSize(1);
+        Assertions.assertThat(surveyUnitModelResponse.getBody().getFirst().getInterrogationId()).isEqualTo(interrogationId);
+    }
+
+    @Then("The extracted survey unit data response should have a survey unit model for interrogationId {string} with " +
+            "{int} collected variables")
+    public void check_su_model_collected_variables_volumetry(
+            String interrogationId,
+            int expectedVolumetry
+    ){
+        Assertions.assertThat(surveyUnitModelResponse).isNotNull();
+        Assertions.assertThat(surveyUnitModelResponse.getBody()).isNotNull();
+
+        List<SurveyUnitModel> filteredList = surveyUnitModelResponse.getBody().stream().filter(
+                surveyUnitModel -> surveyUnitModel.getInterrogationId().equals(interrogationId)
+        ).toList();
+
+        Assertions.assertThat(filteredList)
+                .isNotNull().hasSize(1);
+
+        Assertions.assertThat(filteredList.getFirst().getCollectedVariables()).hasSize(expectedVolumetry);
+    }
+
+    @Then("The extracted survey unit data response should have a survey unit model for interrogationId {string} with " +
+            "{int} external variables")
+    public void check_su_model_external_variables_volumetry(
+            String interrogationId,
+            int expectedVolumetry
+    ){
+        Assertions.assertThat(surveyUnitModelResponse).isNotNull();
+        Assertions.assertThat(surveyUnitModelResponse.getBody()).isNotNull();
+
+        List<SurveyUnitModel> filteredList = surveyUnitModelResponse.getBody().stream().filter(
+                surveyUnitModel -> surveyUnitModel.getInterrogationId().equals(interrogationId)
+        ).toList();
+
+        Assertions.assertThat(filteredList)
+                .isNotNull().hasSize(1);
+
+        Assertions.assertThat(filteredList.getFirst().getExternalVariables()).hasSize(expectedVolumetry);
+    }
+
+    @Then("The extracted survey unit latest states response should have a survey unit DTO has interrogationId " +
+            "{string}" +
+            " with {int} collected variables")
+    public void check_su_latest_states_collected_variables_volumetry(String interrogationId, int expectedVolumetry) {
+        Assertions.assertThat(surveyUnitLatestStatesResponse).isNotNull();
+        Assertions.assertThat(surveyUnitLatestStatesResponse.getBody()).isNotNull();
+        Assertions.assertThat(surveyUnitLatestStatesResponse.getBody().getInterrogationId()).isEqualTo(interrogationId);
+        Assertions.assertThat(surveyUnitLatestStatesResponse.getBody().getCollectedVariables()).hasSize(expectedVolumetry);
+    }
+
+    @Then("The extracted survey unit latest states response should have a survey unit DTO has interrogationId " +
+            "{string}" +
+            " with {int} external variables")
+    public void check_su_latest_states_external_variables_volumetry(String interrogationId, int expectedVolumetry) {
+        Assertions.assertThat(surveyUnitLatestStatesResponse).isNotNull();
+        Assertions.assertThat(surveyUnitLatestStatesResponse.getBody()).isNotNull();
+        Assertions.assertThat(surveyUnitLatestStatesResponse.getBody().getInterrogationId()).isEqualTo(interrogationId);
+        Assertions.assertThat(surveyUnitLatestStatesResponse.getBody().getExternalVariables()).hasSize(expectedVolumetry);
+    }
+
+    //AFTERs
     @After
     public void clean() throws IOException {
+        //Move from DONE to IN
+        Path doneDirectory = Path.of(TestConstants.TEST_RESOURCES_DIRECTORY, "DONE");
+        if (doneDirectory
+                .resolve(inDirectory.getParent().getFileName())
+                .resolve(inDirectory.getFileName()).toFile().exists()
+        ){
+            try (Stream<Path> stream = Files.list(doneDirectory
+                    .resolve(inDirectory.getParent().getFileName())
+                    .resolve(inDirectory.getFileName())
+            )){
+                for (Path filePath : stream.filter(path -> !path.toFile().isDirectory()).toList()) {
+                    Files.copy(filePath, inDirectory.resolve(filePath.getFileName()),
+                            StandardCopyOption.REPLACE_EXISTING);
+                }
+            }
+        }
+
         //Clean DONE test folder
-        org.springframework.util.FileSystemUtils.deleteRecursively(Path.of(TestConstants.TEST_RESOURCES_DIRECTORY,
-                "DONE"));
+        org.springframework.util.FileSystemUtils.deleteRecursively(doneDirectory);
     }
 }

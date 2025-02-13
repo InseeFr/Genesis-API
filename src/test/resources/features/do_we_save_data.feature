@@ -1,7 +1,7 @@
 Feature: Do we save data ?
   Everybody wants to know if we save data correctly
 
-  Scenario Outline: Collected data extraction (COLLECTED only)
+  Scenario Outline: Collected data saving (COLLECTED only)
     Given We have data in directory "SAMPLETEST-PARADATA-v1"
     When We create survey unit models from file "reponse-platine/data.complete.validated.STPDv1.20231122164209.xml" with DDI "ddi-SAMPLETEST-PARADATA-v1.xml"
     Then For SurveyUnit "<InterrogationId>" there should be at least one "<ExpectedStatus>" SurveyUnit Model
@@ -9,7 +9,7 @@ Feature: Do we save data ?
       | InterrogationId | ExpectedStatus |
       | 0000007      | COLLECTED      |
 
-  Scenario Outline: Collected data extraction (COLLECTED only)
+  Scenario Outline: Collected data saving (COLLECTED only)
     Given We have data in directory "SAMPLETEST-PARADATA-v1"
     When We create survey unit models from file "reponse-platine/data.complete.validated.STPDv1.20231122164209.xml" with DDI "ddi-SAMPLETEST-PARADATA-v1.xml"
     Then For SurveyUnit "<InterrogationId>" there shouldn't be a "<UnexpectedStatus>" SurveyUnit Model
@@ -22,7 +22,7 @@ Feature: Do we save data ?
 
 
 
-  Scenario Outline: Collected data extraction (all states)
+  Scenario Outline: Collected data saving (all states)
     Given We have data in directory "SAMPLETEST-PARADATA-v2"
     When We create survey unit models from file "reponse-platine/data.complete.validated.STPDv2.20231122164209.xml" with DDI "ddi-SAMPLETEST-PARADATA-v2.xml"
     Then For SurveyUnit "<InterrogationId>" there should be at least one "<ExpectedStatus>" SurveyUnit Model
@@ -34,7 +34,7 @@ Feature: Do we save data ?
       | 0000007      | INPUTED        |
       | 0000007      | PREVIOUS       |
 
-  Scenario Outline: Collected data extraction content
+  Scenario Outline: Collected data saved content
     Given We have data in directory "<Directory>"
     When We create survey unit models from file "<FileName>" with DDI "<DDIFileName>"
     Then We should have a "<ExpectedDataState>" Survey Unit model for survey unit "<interrogationId>" with "<VariableName>" filled with "<ExpectedValue>" for iteration <Iteration>
@@ -48,7 +48,7 @@ Feature: Do we save data ?
       | SAMPLETEST-PARADATA-v2 | reponse-platine/data.complete.validated.STPDv2.20231122164209.xml |ddi-SAMPLETEST-PARADATA-v2.xml | PREVIOUS           | 0000007      | AVIS_FILTRE    | 1              | 1             |
 
 
-  Scenario Outline: External data extraction
+  Scenario Outline: External data saving
     Given We have data in directory "<Directory>"
     Given We copy data file "data_backup/data.complete.validated.STPDv1.20231122164209.xml" to that directory
     When We save data from that directory
@@ -65,7 +65,6 @@ Feature: Do we save data ?
     When We copy data file "data_backup/data.complete.partial.STPDv1.20231122164209.xml" to that directory
     When We copy data file "data_backup/data.complete.validated.STPDv1.20231122164209.xml" to that directory
     When We save data from that directory
-    When We delete that directory
 
     Then There should be <ExpectedCount> "<ExpectedStatus>" SurveyUnit in database
     Examples:
