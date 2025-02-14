@@ -20,8 +20,8 @@ class CampaignControllerTest {
     static SurveyUnitPersistencePortStub surveyUnitPersistencePortStub;
 
     //Constants
-    static final String defaultIdUE = "TESTIDUE";
-    static final String defaultIdQuest = "TESTIDQUESTIONNAIRE";
+    static final String DEFAULT_INTERROGATION_ID = "TESTINTERROGATIONID";
+    static final String DEFAULT_QUESTIONNAIRE_ID = "TESTQUESTIONNAIREID";
 
     @BeforeAll
     static void init() {
@@ -42,36 +42,36 @@ class CampaignControllerTest {
 
     @Test
     void getCampaignsTest() {
-        Utils.addAdditionalDtoToMongoStub("TESTCAMPAIGN2","TESTQUESTIONNAIRE2", surveyUnitPersistencePortStub);
+        Utils.addAdditionalSurveyUnitModelToMongoStub("TESTCAMPAIGN2","TESTQUESTIONNAIRE2", surveyUnitPersistencePortStub);
 
         ResponseEntity<Set<String>> response = campaignControllerStatic.getCampaigns();
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().containsExactly(
-                "TESTIDCAMPAIGN","TESTCAMPAIGN2");
+        Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().containsOnly(
+                "TESTCAMPAIGNID","TESTCAMPAIGN2");
     }
 
     @Test
     void getCampaignsWithQuestionnairesTest() {
-        Utils.addAdditionalDtoToMongoStub("TESTQUESTIONNAIRE2", surveyUnitPersistencePortStub);
-        Utils.addAdditionalDtoToMongoStub("TESTCAMPAIGN2","TESTQUESTIONNAIRE2", surveyUnitPersistencePortStub);
+        Utils.addAdditionalSurveyUnitModelToMongoStub("TESTQUESTIONNAIRE2", surveyUnitPersistencePortStub);
+        Utils.addAdditionalSurveyUnitModelToMongoStub("TESTCAMPAIGN2","TESTQUESTIONNAIRE2", surveyUnitPersistencePortStub);
 
         ResponseEntity<List<CampaignWithQuestionnaire>> response = campaignControllerStatic.getCampaignsWithQuestionnaires();
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
         Assertions.assertThat(response.getBody().stream().filter(campaignWithQuestionnaire ->
-                        campaignWithQuestionnaire.getIdCampaign().equals("TESTIDCAMPAIGN")
-                                || campaignWithQuestionnaire.getIdCampaign().equals("TESTCAMPAIGN2")
+                        campaignWithQuestionnaire.getCampaignId().equals("TESTCAMPAIGNID")
+                                || campaignWithQuestionnaire.getCampaignId().equals("TESTCAMPAIGN2")
         )).isNotNull().isNotEmpty().hasSize(2);
 
         Assertions.assertThat(response.getBody().stream().filter(
-                campaignWithQuestionnaire -> campaignWithQuestionnaire.getIdCampaign().equals("TESTIDCAMPAIGN")
-        ).findFirst().get().getQuestionnaires()).containsExactly(defaultIdQuest, "TESTQUESTIONNAIRE2");
+                campaignWithQuestionnaire -> campaignWithQuestionnaire.getCampaignId().equals("TESTCAMPAIGNID")
+        ).findFirst().get().getQuestionnaires()).containsOnly(DEFAULT_QUESTIONNAIRE_ID, "TESTQUESTIONNAIRE2");
 
         Assertions.assertThat(response.getBody().stream().filter(
-                campaignWithQuestionnaire -> campaignWithQuestionnaire.getIdCampaign().equals("TESTCAMPAIGN2")
-        ).findFirst().get().getQuestionnaires()).containsExactly("TESTQUESTIONNAIRE2");
+                campaignWithQuestionnaire -> campaignWithQuestionnaire.getCampaignId().equals("TESTCAMPAIGN2")
+        ).findFirst().get().getQuestionnaires()).containsOnly("TESTQUESTIONNAIRE2");
     }
 
 }

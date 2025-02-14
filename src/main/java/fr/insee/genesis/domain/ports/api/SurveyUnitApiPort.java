@@ -7,7 +7,7 @@ import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.controller.dto.QuestionnaireWithCampaign;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
-import fr.insee.genesis.controller.dto.SurveyUnitId;
+import fr.insee.genesis.controller.dto.InterrogationId;
 import fr.insee.genesis.exceptions.GenesisException;
 
 import java.util.List;
@@ -19,34 +19,34 @@ public interface SurveyUnitApiPort {
 
     void saveSurveyUnits(List<SurveyUnitModel> suList);
 
-    List<SurveyUnitModel> findByIdsUEAndQuestionnaire(String idUE, String idQuest);
+    List<SurveyUnitModel> findByIdsInterrogationAndQuestionnaire(String interrogationId, String questionnaireId);
 
-    List<SurveyUnitModel> findByIdUE(String idUE);
+    List<SurveyUnitModel> findByInterrogationId(String interrogationId);
 
-    Stream<SurveyUnitModel> findByIdQuestionnaire(String idQuestionnaire);
+    Stream<SurveyUnitModel> findByQuestionnaireId(String questionnaireId);
 
-    List<SurveyUnitModel> findLatestByIdAndByIdQuestionnaire(String idUE, String idQuest);
-    SurveyUnitDto findLatestValuesByStateByIdAndByIdQuestionnaire(String idUE, String idQuest);
+    List<SurveyUnitModel> findLatestByIdAndByQuestionnaireId(String interrogationId, String questionnaireId);
+    SurveyUnitDto findLatestValuesByStateByIdAndByQuestionnaireId(String interrogationId, String questionnaireId);
 
-    List<SurveyUnitModel> findIdUEsAndModesByIdQuestionnaire(String idQuestionnaire);
+    List<SurveyUnitModel> findInterrogationIdsAndModesByQuestionnaireId(String questionnaireId);
 
-    List<SurveyUnitId> findDistinctIdUEsByIdQuestionnaire(String idQuestionnaire);
+    List<InterrogationId> findDistinctInterrogationIdsByQuestionnaireId(String questionnaireId);
 
-    List<Mode> findModesByIdQuestionnaire(String idQuestionnaire);
+    List<Mode> findModesByQuestionnaireId(String questionnaireId);
 
-    List<Mode> findModesByIdCampaign(String idCampaign);
+    List<Mode> findModesByCampaignId(String campaignId);
 
-    Long deleteByIdQuestionnaire(String idQuestionnaire);
+    Long deleteByQuestionnaireId(String questionnaireId);
 
     long countResponses();
 
-    Set<String> findIdQuestionnairesByIdCampaign(String idCampaign);
+    Set<String> findQuestionnaireIdsByCampaignId(String campaignId);
 
-    Set<String> findDistinctIdCampaigns();
+    Set<String> findDistinctCampaignIds();
 
-    long countResponsesByIdCampaign(String idCampaign);
+    long countResponsesByCampaignId(String campaignId);
 
-    Set<String> findDistinctIdQuestionnaires();
+    Set<String> findDistinctQuestionnaireIds();
 
     List<CampaignWithQuestionnaire> findCampaignsWithQuestionnaires();
 

@@ -1,6 +1,6 @@
 package fr.insee.genesis.controller.rest.responses;
 
-import fr.insee.genesis.controller.dto.SurveyUnitId;
+import fr.insee.genesis.controller.dto.InterrogationId;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
@@ -13,20 +13,20 @@ import org.springframework.http.ResponseEntity;
 import java.io.IOException;
 import java.util.List;
 
-class IdUEControllerTest {
+import static fr.insee.genesis.TestConstants.DEFAULT_INTERROGATION_ID;
+import static fr.insee.genesis.TestConstants.DEFAULT_QUESTIONNAIRE_ID;
+
+class InterrogationControllerTest {
     //Given
-    static IdUEController idUeControllerStatic;
+    static InterrogationController interrogationControllerStatic;
     static SurveyUnitPersistencePortStub surveyUnitPersistencePortStub;
-    //Constants
-    static final String defaultIdUE = "TESTIDUE";
-    static final String defaultIdQuest = "TESTIDQUESTIONNAIRE";
 
     @BeforeAll
     static void init() {
         surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
         SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(surveyUnitPersistencePortStub);
 
-        idUeControllerStatic = new IdUEController( surveyUnitApiPort );
+        interrogationControllerStatic = new InterrogationController( surveyUnitApiPort );
 
     }
 
@@ -38,12 +38,12 @@ class IdUEControllerTest {
 
     //When + Then
       @Test
-    void getAllIdUEsByQuestionnaireTest() {
-        ResponseEntity<List<SurveyUnitId>> response = idUeControllerStatic.getAllIdUEsByQuestionnaire(defaultIdQuest);
+    void getAllInterrogationIdsByQuestionnaireTest() {
+        ResponseEntity<List<InterrogationId>> response = interrogationControllerStatic.getAllInterrogationIdsByQuestionnaire(DEFAULT_QUESTIONNAIRE_ID);
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
-        Assertions.assertThat(response.getBody().getFirst().getIdUE()).isEqualTo(defaultIdUE);
+        Assertions.assertThat(response.getBody().getFirst().getInterrogationId()).isEqualTo(DEFAULT_INTERROGATION_ID);
     }
 
 

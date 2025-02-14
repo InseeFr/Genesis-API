@@ -9,7 +9,7 @@ import java.util.List;
 public class LunaticJsonDataFile {
 
     @JsonProperty("Id")
-    String idQuest;
+    String questionnaireId;
 
     @JsonProperty("Label")
     String labelQuest;

@@ -296,6 +296,7 @@ class ScheduleControllerTest {
     void deleteExpiredScheduleTest_execution() throws NotFoundException, IOException {
         //Given
         ScheduleModel scheduleModel = new ScheduleModel(
+                null,
                 "TESTSURVEYADDED",
                 null,
                 new ArrayList<>()
@@ -341,6 +342,7 @@ class ScheduleControllerTest {
     void deleteExpiredScheduleTest_wholeSurvey() throws NotFoundException, IOException {
         //Given
         ScheduleModel scheduleModel = new ScheduleModel(
+                null,
                 "TESTSURVEYADDED",
                 null,
                 new ArrayList<>()
@@ -383,6 +385,7 @@ class ScheduleControllerTest {
     void deleteExpiredScheduleTest_appendLog() throws NotFoundException, IOException {
         //Given
         ScheduleModel scheduleModel = new ScheduleModel(
+                null,
                 "TESTSURVEYADDED2",
                 null,
                 new ArrayList<>()

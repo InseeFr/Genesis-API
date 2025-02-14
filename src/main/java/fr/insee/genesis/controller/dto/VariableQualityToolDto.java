@@ -4,12 +4,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.List;
+
 @Builder
 @Data
-public class VariableInputDto {
+public class VariableQualityToolDto {
     private String variableName;
-    private int iteration;
+    private Integer iteration;
 
-    @JsonProperty("newVariableState")
-    private VariableStateInputDto variableStateInputDto;
+    @JsonProperty("variableStates")
+    private List<VariableStateDto> variableStateDtoList;
 }

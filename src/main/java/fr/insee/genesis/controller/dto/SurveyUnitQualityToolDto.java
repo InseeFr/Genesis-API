@@ -7,8 +7,8 @@ import java.util.List;
 
 @Builder
 @Data
-public class SurveyUnitDto {
+public class SurveyUnitQualityToolDto {
     private String interrogationId;
-    private List<VariableDto> collectedVariables;
-    private List<VariableDto> externalVariables;
+    private List<VariableQualityToolDto> collectedVariables;
+    private List<VariableQualityToolDto> externalVariables;
 }

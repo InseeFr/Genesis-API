@@ -12,14 +12,12 @@ import java.util.List;
 public interface SurveyUnitDocumentMapper {
 	SurveyUnitDocumentMapper INSTANCE = Mappers.getMapper(SurveyUnitDocumentMapper.class);
 
-	@Mapping(source = "idQuestionnaire", target = "idQuest")
 	SurveyUnitModel documentToModel(SurveyUnitDocument surveyUnit);
 
-	@Mapping(source = "idQuest", target = "idQuestionnaire")
 	SurveyUnitDocument modelToDocument(SurveyUnitModel surveyUnitModel);
 
 	List<SurveyUnitModel> listDocumentToListModel(List<SurveyUnitDocument> surveyUnits);
 
-	List<SurveyUnitDocument> listModelToListDocument(List<SurveyUnitModel> surveyUnitsDtoModel);
+	List<SurveyUnitDocument> listModelToListDocument(List<SurveyUnitModel> surveyUnitModels);
 
 }

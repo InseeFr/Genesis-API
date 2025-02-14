@@ -9,11 +9,9 @@ import java.util.List;
 @Builder
 @Data
 public class SurveyUnitInputDto {
-
-    private String surveyUnitId;
+    private String interrogationId;
     private String campaignId;
     private Mode mode;
-    private String idQuestionnaire;
+    private String questionnaireId;
     private List<VariableInputDto> collectedVariables;
-
 }

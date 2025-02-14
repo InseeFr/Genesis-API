@@ -36,16 +36,16 @@ class RundeckExecutionDocumentMapperImplTest {
     }
 
     @Test
-    @DisplayName("Should convert document to DTO")
-    void shouldReturnDocumentDtoFromDocument(){
+    @DisplayName("Should convert document to model")
+    void shouldReturnModelFromDocument(){
         RundeckExecution rundeckModel = rundeckExecutionDocumentMapperImplStatic.documentToModel(rundeckExecutionDocument);
 
         Assertions.assertThat(rundeckModel.getIdExecution()).isEqualTo(1236589);
     }
 
     @Test
-    @DisplayName("Should convert DTO to document")
-    void shouldReturnDocumentFromDocumentDto(){
+    @DisplayName("Should convert model to document")
+    void shouldReturnDocumentFromModel(){
         RundeckExecutionDocument rundeckDocument = rundeckExecutionDocumentMapperImplStatic.modelToDocument(rundeckExecution);
 
         Assertions.assertThat(rundeckDocument.getIdExecution()).isEqualTo(1236589);

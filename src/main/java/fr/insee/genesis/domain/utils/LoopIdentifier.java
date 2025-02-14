@@ -15,7 +15,7 @@ public class LoopIdentifier {
 		throw new IllegalStateException("Utility class");
 	}
 
-	public static String getLoopIdentifier(String variableName, VariablesMap variablesMap, int index) {
+	public static String getLoopIdentifier(String variableName, VariablesMap variablesMap) {
 		Variable variable = variablesMap.getVariable(variableName);
 		if (variable == null) {
 			if(variableName.startsWith(Constants.FILTER_RESULT_PREFIX)
@@ -31,10 +31,7 @@ public class LoopIdentifier {
 			log.debug("Variable {} not found in variablesMap and assigned in root group", variableName);
 			return Constants.ROOT_GROUP_NAME;
 		}
-		if (variable.getGroup().isRoot()) {
-			return variable.getGroup().getName();
-		}
-		return String.format("%s_%d", variable.getGroup().getName() ,index);
+		return variable.getGroup().getName();
 	}
 
 	private static String getRelatedVariableGroupName(VariablesMap variablesMap, String variableName, String constantToReplace) {

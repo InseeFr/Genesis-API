@@ -1,6 +1,7 @@
 package fr.insee.genesis.domain.service;
 
 import fr.insee.genesis.controller.dto.SurveyUnitDto;
+import fr.insee.genesis.controller.dto.VariableDto;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
@@ -28,8 +29,8 @@ class SurveyUnitServiceTest {
     static SurveyUnitPersistencePortStub surveyUnitPersistencePortStub;
 
     //Constants
-    static final String DEFAULT_ID_UE = "TESTIDUE";
-    static final String DEFAULT_ID_QUEST = "TESTIDQUESTIONNAIRE";
+    static final String DEFAULT_INTERROGATION_ID = "TESTINTERROGATIONID";
+    static final String DEFAULT_QUESTIONNAIRE_ID = "TESTQUESTIONNAIREID";
 
     @BeforeAll
     static void init(){
@@ -43,25 +44,40 @@ class SurveyUnitServiceTest {
         surveyUnitPersistencePortStub.getMongoStub().clear();
         List<VariableModel> externalVariableList = new ArrayList<>();
         VariableModel variable = VariableModel.builder()
-                .idVar("TESTIDVAR")
-                .values(List.of(new String[]{"V1", "V2"})).build();
+                .varId("TESTVARID")
+                .value("V1")
+                .iteration(1)
+                .build();
+        externalVariableList.add(variable);
+        variable = VariableModel.builder()
+                .varId("TESTVARID")
+                .value("V2")
+                .iteration(2)
+                .build();
         externalVariableList.add(variable);
 
         List<VariableModel> collectedVariableList = new ArrayList<>();
         VariableModel collectedVariable = VariableModel.builder()
-                .idVar("TESTIDVAR")
-                .values(List.of(new String[]{"V1", "V2"}))
-                .idLoop("TESTIDLOOP")
-                .idParent("TESTIDPARENT")
+                .varId("TESTVARID")
+                .value("V1")
+                .scope("TESTSCOPE")
+                .iteration(1)
+                .parentId("TESTPARENTID")
                 .build();
-
-
+        collectedVariableList.add(collectedVariable);
+        collectedVariable = VariableModel.builder()
+                .varId("TESTVARID")
+                .value("V2")
+                .scope("TESTSCOPE")
+                .iteration(2)
+                .parentId("TESTPARENTID")
+                .build();
         collectedVariableList.add(collectedVariable);
         surveyUnitPersistencePortStub.getMongoStub().add(SurveyUnitModel.builder()
-                .idCampaign("TESTIDCAMPAIGN")
+                .campaignId("TESTCAMPAIGNID")
                 .mode(Mode.WEB)
-                .idUE(DEFAULT_ID_UE)
-                .idQuest(DEFAULT_ID_QUEST)
+                .interrogationId(DEFAULT_INTERROGATION_ID)
+                .questionnaireId(DEFAULT_QUESTIONNAIRE_ID)
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2023,1,1,0,0,0))
                 .recordDate(LocalDateTime.of(2024,1,1,0,0,0))
@@ -78,26 +94,43 @@ class SurveyUnitServiceTest {
 
         List<VariableModel> externalVariableList = new ArrayList<>();
         VariableModel externalVariableModel = VariableModel.builder()
-                .idVar("TESTIDVAR")
-                .values(List.of(new String[]{"V1", "V2"})).build();
+                .varId("TESTVARID")
+                .value("V1")
+                .iteration(1)
+                .build();
         externalVariableList.add(externalVariableModel);
+        externalVariableModel = VariableModel.builder()
+                .varId("TESTVARID")
+                .value("V2")
+                .iteration(2)
+                .build();
+        externalVariableList.add(externalVariableModel);
+
 
         List<VariableModel> collectedVariableList = new ArrayList<>();
         VariableModel collectedVariableModel = VariableModel.builder()
-                .idVar("TESTIDVAR")
-                .values(List.of(new String[]{"V1", "V2"}))
-                .idLoop("TESTIDLOOP")
-                .idParent("TESTIDPARENT")
+                .varId("TESTVARID")
+                .value("V1")
+                .scope("TESTSCOPE")
+                .iteration(1)
+                .parentId("TESTPARENTID")
                 .build();
-
+        collectedVariableList.add(collectedVariableModel);
+        collectedVariableModel = VariableModel.builder()
+                .varId("TESTVARID")
+                .value("V2")
+                .scope("TESTSCOPE")
+                .iteration(2)
+                .parentId("TESTPARENTID")
+                .build();
         collectedVariableList.add(collectedVariableModel);
 
         newSurveyUnitModelList.add(
                 SurveyUnitModel.builder()
-                        .idCampaign("TESTIDCAMPAIGN")
+                        .campaignId("TESTCAMPAIGNID")
                         .mode(Mode.WEB)
-                        .idUE("TESTIDUE2")
-                        .idQuest(DEFAULT_ID_QUEST)
+                        .interrogationId("TESTINTERROGATIONID2")
+                        .questionnaireId(DEFAULT_QUESTIONNAIRE_ID)
                         .state(DataState.COLLECTED)
                         .fileDate(LocalDateTime.of(2023,1,1,0,0,0))
                         .recordDate(LocalDateTime.of(2024,1,1,0,0,0))
@@ -109,62 +142,64 @@ class SurveyUnitServiceTest {
         surveyUnitServiceStatic.saveSurveyUnits(newSurveyUnitModelList);
 
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).filteredOn(surveyUnitModel ->
-                surveyUnitModel.getIdCampaign().equals("TESTIDCAMPAIGN")
-                && surveyUnitModel.getMode().equals(Mode.WEB)
-                && surveyUnitModel.getIdUE().equals("TESTIDUE2")
-                && surveyUnitModel.getIdQuest().equals(DEFAULT_ID_QUEST)
-                && surveyUnitModel.getState().equals(DataState.COLLECTED)
-                && surveyUnitModel.getFileDate().equals(LocalDateTime.of(2023,1,1,0,0,0))
-                && surveyUnitModel.getRecordDate().equals(LocalDateTime.of(2024,1,1,0,0,0))
-                && !surveyUnitModel.getExternalVariables().stream().filter(
-                        externalVariable -> externalVariable.idVar().equals("TESTIDVAR")
-                        && externalVariable.values().containsAll(List.of(new String[]{"V1", "V2"}))
-                ).toList().isEmpty()
+                        surveyUnitModel.getCampaignId().equals("TESTCAMPAIGNID")
+                        && surveyUnitModel.getMode().equals(Mode.WEB)
+                        && surveyUnitModel.getInterrogationId().equals("TESTINTERROGATIONID2")
+                        && surveyUnitModel.getQuestionnaireId().equals(DEFAULT_QUESTIONNAIRE_ID)
+                        && surveyUnitModel.getState().equals(DataState.COLLECTED)
+                        && surveyUnitModel.getFileDate().equals(LocalDateTime.of(2023,1,1,0,0,0))
+                        && surveyUnitModel.getRecordDate().equals(LocalDateTime.of(2024,1,1,0,0,0))
+                        && !surveyUnitModel.getExternalVariables().stream().filter(
+                                externalVariable -> externalVariable.varId().equals("TESTVARID")
+                                        && externalVariable.iteration().equals(1)
+                                        && externalVariable.value().equals("V1")
+                        ).toList().isEmpty()
                         && !surveyUnitModel.getCollectedVariables().stream().filter(
-                        collectedVariable -> collectedVariable.idVar().equals("TESTIDVAR")
-                                && collectedVariable.values().containsAll(List.of(new String[]{"V1", "V2"}))
-                ).toList().isEmpty()
+                                collectedVariable -> collectedVariable.varId().equals("TESTVARID")
+                                        && collectedVariable.iteration().equals(2)
+                                        && collectedVariable.value().equals("V2")
+                        ).toList().isEmpty()
                 ).isNotEmpty();
     }
 
     @Test
     void findByIdsUEAndQuestionnaireTest(){
-        Assertions.assertThat(surveyUnitServiceStatic.findByIdsUEAndQuestionnaire(DEFAULT_ID_UE, DEFAULT_ID_QUEST)).filteredOn(
-                surveyUnitDto ->
-                        surveyUnitDto.getIdUE().equals(DEFAULT_ID_UE)
-                        && surveyUnitDto.getIdQuest().equals(DEFAULT_ID_QUEST)
+        Assertions.assertThat(surveyUnitServiceStatic.findByIdsInterrogationAndQuestionnaire(DEFAULT_INTERROGATION_ID, DEFAULT_QUESTIONNAIRE_ID)).filteredOn(
+                surveyUnitModel ->
+                        surveyUnitModel.getInterrogationId().equals(DEFAULT_INTERROGATION_ID)
+                        && surveyUnitModel.getQuestionnaireId().equals(DEFAULT_QUESTIONNAIRE_ID)
         ).isNotEmpty();
     }
 
     @Test
-    void findByIdUETest(){
-        Assertions.assertThat(surveyUnitServiceStatic.findByIdUE(DEFAULT_ID_UE)).filteredOn(
-                surveyUnitDto ->
-                        surveyUnitDto.getIdUE().equals(DEFAULT_ID_UE)
+    void findByInterrogationIdTest(){
+        Assertions.assertThat(surveyUnitServiceStatic.findByInterrogationId(DEFAULT_INTERROGATION_ID)).filteredOn(
+                surveyUnitModel ->
+                        surveyUnitModel.getInterrogationId().equals(DEFAULT_INTERROGATION_ID)
         ).isNotEmpty();
     }
 
     @Test
-    void findByIdQuestionnaireTest(){
-        Assertions.assertThat(surveyUnitServiceStatic.findByIdQuestionnaire(DEFAULT_ID_QUEST)).filteredOn(
-                surveyUnitDto -> surveyUnitDto.getIdQuest().equals(DEFAULT_ID_QUEST)
+    void findByQuestionnaireIdTest(){
+        Assertions.assertThat(surveyUnitServiceStatic.findByQuestionnaireId(DEFAULT_QUESTIONNAIRE_ID)).filteredOn(
+                surveyUnitModel -> surveyUnitModel.getQuestionnaireId().equals(DEFAULT_QUESTIONNAIRE_ID)
         ).isNotEmpty();
     }
 
     @Test
     void findLatestByIdAndByModeTest(){
-        addAdditionnalDtoToMongoStub();
+        addAdditionnalSurveyUnitModelToMongoStub();
 
-        Assertions.assertThat(surveyUnitServiceStatic.findLatestByIdAndByIdQuestionnaire(DEFAULT_ID_UE, DEFAULT_ID_QUEST)).filteredOn(
-                surveyUnitDto -> surveyUnitDto.getIdUE().equals(DEFAULT_ID_UE)
-                && surveyUnitDto.getIdQuest().equals(DEFAULT_ID_QUEST)
-                && surveyUnitDto.getFileDate().getMonth().equals(Month.FEBRUARY)
+        Assertions.assertThat(surveyUnitServiceStatic.findLatestByIdAndByQuestionnaireId(DEFAULT_INTERROGATION_ID, DEFAULT_QUESTIONNAIRE_ID)).filteredOn(
+                surveyUnitModel -> surveyUnitModel.getInterrogationId().equals(DEFAULT_INTERROGATION_ID)
+                && surveyUnitModel.getQuestionnaireId().equals(DEFAULT_QUESTIONNAIRE_ID)
+                && surveyUnitModel.getFileDate().getMonth().equals(Month.FEBRUARY)
         ).isNotEmpty();
     }
 
     @Test
     void findResponsesByUEAndQuestionnaireTest_null_collectedVariables() {
-        addAdditionnalDtoToMongoStub(DataState.EDITED,
+        addAdditionnalSurveyUnitModelToMongoStub(DataState.EDITED,
                 "C NEW E",
                 "E NEW E",
                 LocalDateTime.of(2025,2,2,0,0,0),
@@ -172,15 +207,15 @@ class SurveyUnitServiceTest {
         );
         surveyUnitPersistencePortStub.getMongoStub().getLast().setCollectedVariables(null);
 
-        Assertions.assertThat(surveyUnitServiceStatic.findLatestByIdAndByIdQuestionnaire(DEFAULT_ID_UE, DEFAULT_ID_QUEST)).filteredOn(
-                surveyUnitDto -> surveyUnitDto.getIdUE().equals(DEFAULT_ID_UE)
-                        && surveyUnitDto.getIdQuest().equals(DEFAULT_ID_QUEST)
-                        && surveyUnitDto.getFileDate().getMonth().equals(Month.FEBRUARY)
+        Assertions.assertThat(surveyUnitServiceStatic.findLatestByIdAndByQuestionnaireId(DEFAULT_INTERROGATION_ID, DEFAULT_QUESTIONNAIRE_ID)).filteredOn(
+                surveyUnitModel -> surveyUnitModel.getInterrogationId().equals(DEFAULT_INTERROGATION_ID)
+                        && surveyUnitModel.getQuestionnaireId().equals(DEFAULT_QUESTIONNAIRE_ID)
+                        && surveyUnitModel.getFileDate().getMonth().equals(Month.FEBRUARY)
         ).isNotEmpty();
     }
     @Test
     void findResponsesByUEAndQuestionnaireTest_null_externalVariables() {
-        addAdditionnalDtoToMongoStub(DataState.EDITED,
+        addAdditionnalSurveyUnitModelToMongoStub(DataState.EDITED,
                 "C NEW E",
                 "E NEW E",
                 LocalDateTime.of(2025,2,2,0,0,0),
@@ -188,48 +223,48 @@ class SurveyUnitServiceTest {
         );
         surveyUnitPersistencePortStub.getMongoStub().getLast().setExternalVariables(null);
 
-        Assertions.assertThat(surveyUnitServiceStatic.findLatestByIdAndByIdQuestionnaire(DEFAULT_ID_UE, DEFAULT_ID_QUEST)).filteredOn(
-                surveyUnitDto -> surveyUnitDto.getIdUE().equals(DEFAULT_ID_UE)
-                        && surveyUnitDto.getIdQuest().equals(DEFAULT_ID_QUEST)
-                        && surveyUnitDto.getFileDate().getMonth().equals(Month.FEBRUARY)
+        Assertions.assertThat(surveyUnitServiceStatic.findLatestByIdAndByQuestionnaireId(DEFAULT_INTERROGATION_ID, DEFAULT_QUESTIONNAIRE_ID)).filteredOn(
+                surveyUnitModel -> surveyUnitModel.getInterrogationId().equals(DEFAULT_INTERROGATION_ID)
+                        && surveyUnitModel.getQuestionnaireId().equals(DEFAULT_QUESTIONNAIRE_ID)
+                        && surveyUnitModel.getFileDate().getMonth().equals(Month.FEBRUARY)
         ).isNotEmpty();
     }
 
     @Test
-    void findDistinctIdUEsByIdQuestionnaireTest(){
-        addAdditionnalDtoToMongoStub();
+    void findDistinctInterrogationIdsByQuestionnaireIdTest(){
+        addAdditionnalSurveyUnitModelToMongoStub();
 
-        Assertions.assertThat(surveyUnitServiceStatic.findDistinctIdUEsByIdQuestionnaire(DEFAULT_ID_QUEST)).filteredOn(
-                surveyUnitId -> surveyUnitId.getIdUE().equals(DEFAULT_ID_UE)
+        Assertions.assertThat(surveyUnitServiceStatic.findDistinctInterrogationIdsByQuestionnaireId(DEFAULT_QUESTIONNAIRE_ID)).filteredOn(
+                interrogationId -> interrogationId.getInterrogationId().equals(DEFAULT_INTERROGATION_ID)
         ).isNotEmpty().hasSize(1);
     }
 
     @Test
-    void findIdUEsByIdQuestionnaireTest(){
-        Assertions.assertThat(surveyUnitServiceStatic.findModesByIdQuestionnaire(DEFAULT_ID_QUEST)).filteredOn(
+    void findInterrogationIdsByQuestionnaireIdTest(){
+        Assertions.assertThat(surveyUnitServiceStatic.findModesByQuestionnaireId(DEFAULT_QUESTIONNAIRE_ID)).filteredOn(
                 mode -> mode.equals(Mode.WEB)
         ).isNotEmpty();
     }
 
     @Test
     void getQuestionnairesByCampaignTest() {
-        addAdditionnalDtoToMongoStub("TESTQUESTIONNAIRE2");
+        addAdditionnalSurveyUnitModelToMongoStub("TESTQUESTIONNAIRE2");
 
-        Assertions.assertThat(surveyUnitServiceStatic.findIdQuestionnairesByIdCampaign("TESTIDCAMPAIGN")).isNotEmpty().hasSize(2);
+        Assertions.assertThat(surveyUnitServiceStatic.findQuestionnaireIdsByCampaignId("TESTCAMPAIGNID")).isNotEmpty().hasSize(2);
 
     }
 
     @Test
     void getAllCampaignsTest() {
-        Assertions.assertThat(surveyUnitServiceStatic.findDistinctIdCampaigns()).contains("TESTIDCAMPAIGN");
+        Assertions.assertThat(surveyUnitServiceStatic.findDistinctCampaignIds()).contains("TESTCAMPAIGNID");
     }
 
     @Test
-    void findLatestByIdAndByIdQuestionnairePerretTest(){
+    void findLatestByIdAndByQuestionnaireIdPerretTest(){
         //Given
         //Recent Collected already in stub
         //Old Collected
-        addAdditionnalDtoToMongoStub(DataState.COLLECTED,
+        addAdditionnalSurveyUnitModelToMongoStub(DataState.COLLECTED,
                 "C OLD C", //<Collected/External> <NEW or OLD> <Collected/Edited>
             "E OLD C",
             LocalDateTime.of(1999,2,2,0,0,0),
@@ -237,7 +272,7 @@ class SurveyUnitServiceTest {
         );
 
         //Recent Edited
-        addAdditionnalDtoToMongoStub(DataState.EDITED,
+        addAdditionnalSurveyUnitModelToMongoStub(DataState.EDITED,
                 "C NEW E",
                 "E NEW E",
                 LocalDateTime.of(2025,2,2,0,0,0),
@@ -245,7 +280,7 @@ class SurveyUnitServiceTest {
         );
 
         //Old Edited
-        addAdditionnalDtoToMongoStub(DataState.EDITED,
+        addAdditionnalSurveyUnitModelToMongoStub(DataState.EDITED,
                 "C OLD E",
                 "E OLD E",
                 LocalDateTime.of(1999,2,2,0,0,0),
@@ -254,40 +289,46 @@ class SurveyUnitServiceTest {
 
 
         //When
-        SurveyUnitDto surveyUnitDto = surveyUnitServiceStatic.findLatestValuesByStateByIdAndByIdQuestionnaire(
-                DEFAULT_ID_UE,
-                DEFAULT_ID_QUEST
+        SurveyUnitDto surveyUnitDto = surveyUnitServiceStatic.findLatestValuesByStateByIdAndByQuestionnaireId(
+                DEFAULT_INTERROGATION_ID,
+                DEFAULT_QUESTIONNAIRE_ID
         );
 
 
         //Then
-        Assertions.assertThat(surveyUnitDto.getSurveyUnitId()).isEqualTo(DEFAULT_ID_UE);
+        Assertions.assertThat(surveyUnitDto.getInterrogationId()).isEqualTo(DEFAULT_INTERROGATION_ID);
 
-        Assertions.assertThat(surveyUnitDto.getCollectedVariables().getFirst().getVariableName())
-                .isEqualTo("TESTIDVAR");
-        Assertions.assertThat(surveyUnitDto.getCollectedVariables().getFirst().getVariableStateDtoList()
+        List<VariableDto> variableDtos = surveyUnitDto.getCollectedVariables().stream().filter(
+                variableDto -> variableDto.getVariableName().equals("TESTVARID")
+                && variableDto.getIteration() == 1
+        ).toList();
+        Assertions.assertThat(variableDtos).hasSize(1);
+
+        Assertions.assertThat(variableDtos.getFirst().getVariableName())
+                .isEqualTo("TESTVARID");
+        Assertions.assertThat(variableDtos.getFirst().getVariableStateDtoList()
                         .stream().filter(
                             variableStatePerret -> variableStatePerret.getState().equals(DataState.COLLECTED)
                         ).toList().getFirst().getValue())
                 .isEqualTo("V1");
-        Assertions.assertThat(surveyUnitDto.getCollectedVariables().getFirst().getVariableStateDtoList()
+        Assertions.assertThat(variableDtos.getFirst().getVariableStateDtoList()
                         .stream().filter(
                                 variableStatePerret -> variableStatePerret.getState().equals(DataState.EDITED)
                         ).toList().getFirst().getValue())
                 .isEqualTo("C NEW E");
-        Assertions.assertThat(surveyUnitDto.getCollectedVariables().getFirst().getVariableStateDtoList()
+        Assertions.assertThat(variableDtos.getFirst().getVariableStateDtoList()
                 .stream().filter(
                         variableStatePerret -> variableStatePerret.getState().equals(DataState.COLLECTED)
                 ).toList().getFirst().isActive())
                 .isFalse();
-        Assertions.assertThat(surveyUnitDto.getCollectedVariables().getFirst().getVariableStateDtoList()
+        Assertions.assertThat(variableDtos.getFirst().getVariableStateDtoList()
                 .stream().filter(
                         variableStatePerret -> variableStatePerret.getState().equals(DataState.EDITED)
                 ).toList().getFirst().isActive())
                 .isTrue();
 
         Assertions.assertThat(surveyUnitDto.getExternalVariables().getFirst().getVariableName())
-                .isEqualTo("TESTIDVAR");
+                .isEqualTo("TESTVARID");
         Assertions.assertThat(surveyUnitDto.getExternalVariables().getFirst().getVariableStateDtoList()
                         .stream().filter(
                                 variableStatePerret -> variableStatePerret.getState().equals(DataState.COLLECTED)
@@ -311,9 +352,9 @@ class SurveyUnitServiceTest {
     }
 
     @Test
-    void findLatestByIdAndByIdQuestionnairePerretTest_null_collectedVariables(){
+    void findLatestByIdAndByQuestionnaireIdPerretTest_null_collectedVariables(){
         //Given
-        addAdditionnalDtoToMongoStub(DataState.EDITED,
+        addAdditionnalSurveyUnitModelToMongoStub(DataState.EDITED,
                 "C NEW E",
                 "E NEW E",
                 LocalDateTime.of(2025,2,2,0,0,0),
@@ -323,46 +364,60 @@ class SurveyUnitServiceTest {
 
 
         //When
-        SurveyUnitDto surveyUnitDto = surveyUnitServiceStatic.findLatestValuesByStateByIdAndByIdQuestionnaire(
-                DEFAULT_ID_UE,
-                DEFAULT_ID_QUEST
+        SurveyUnitDto surveyUnitDto = surveyUnitServiceStatic.findLatestValuesByStateByIdAndByQuestionnaireId(
+                DEFAULT_INTERROGATION_ID,
+                DEFAULT_QUESTIONNAIRE_ID
         );
 
 
         //Then
-        Assertions.assertThat(surveyUnitDto.getSurveyUnitId()).isEqualTo(DEFAULT_ID_UE);
+        Assertions.assertThat(surveyUnitDto.getInterrogationId()).isEqualTo(DEFAULT_INTERROGATION_ID);
 
-        Assertions.assertThat(surveyUnitDto.getCollectedVariables().getFirst().getVariableName())
-                .isEqualTo("TESTIDVAR");
-        Assertions.assertThat(surveyUnitDto.getCollectedVariables().getFirst().getVariableStateDtoList()
+        List<VariableDto> variableDtos = surveyUnitDto.getCollectedVariables().stream().filter(
+                variableDto -> variableDto.getVariableName().equals("TESTVARID")
+                        && variableDto.getIteration() == 1
+        ).toList();
+        Assertions.assertThat(variableDtos).hasSize(1);
+
+        Assertions.assertThat(variableDtos.getFirst().getVariableName())
+                .isEqualTo("TESTVARID");
+        Assertions.assertThat(variableDtos.getFirst().getVariableStateDtoList()
                         .stream().filter(
                                 variableStatePerret -> variableStatePerret.getState().equals(DataState.COLLECTED)
                         ).toList().getFirst().getValue())
                 .isEqualTo("V1");
-        Assertions.assertThat(surveyUnitDto.getCollectedVariables().getFirst().getVariableStateDtoList()
+        Assertions.assertThat(variableDtos.getFirst().getVariableStateDtoList()
                         .stream().filter(
                                 variableStatePerret -> variableStatePerret.getState().equals(DataState.COLLECTED)
                         ).toList().getFirst().isActive())
                 .isTrue();
 
-        Assertions.assertThat(surveyUnitDto.getExternalVariables().getFirst().getVariableName())
-                .isEqualTo("TESTIDVAR");
-        Assertions.assertThat(surveyUnitDto.getExternalVariables().getFirst().getVariableStateDtoList()
+
+
+        variableDtos = surveyUnitDto.getExternalVariables().stream().filter(
+                variableDto -> variableDto.getVariableName().equals("TESTVARID")
+                        && variableDto.getIteration() == 1
+        ).toList();
+        Assertions.assertThat(variableDtos).hasSize(1);
+
+        Assertions.assertThat(variableDtos.getFirst().getVariableName())
+                .isEqualTo("TESTVARID");
+        Assertions.assertThat(variableDtos.getFirst().getVariableStateDtoList()
                         .stream().filter(
                                 variableStatePerret -> variableStatePerret.getState().equals(DataState.COLLECTED)
                         ).toList().getFirst().getValue())
                 .isEqualTo("V1");
-        Assertions.assertThat(surveyUnitDto.getExternalVariables().getFirst().getVariableStateDtoList()
+        Assertions.assertThat(variableDtos.getFirst().getVariableStateDtoList()
                         .stream().filter(
                                 variableStatePerret -> variableStatePerret.getState().equals(DataState.EDITED)
                         ).toList().getFirst().getValue())
                 .isEqualTo("E NEW E");
-        Assertions.assertThat(surveyUnitDto.getExternalVariables().getFirst().getVariableStateDtoList()
+        Assertions.assertThat(variableDtos.getFirst().getVariableStateDtoList()
                         .stream().filter(
                                 variableStatePerret -> variableStatePerret.getState().equals(DataState.COLLECTED)
                         ).toList().getFirst().isActive())
                 .isFalse();
-        Assertions.assertThat(surveyUnitDto.getExternalVariables().getFirst().getVariableStateDtoList()
+        Assertions.assertThat(variableDtos.getFirst().getVariableStateDtoList()
                         .stream().filter(
                                 variableStatePerret -> variableStatePerret.getState().equals(DataState.EDITED)
                         ).toList().getFirst().isActive())
@@ -370,9 +425,9 @@ class SurveyUnitServiceTest {
     }
 
     @Test
-    void findLatestByIdAndByIdQuestionnairePerretTest_null_externalVariables(){
+    void findLatestByIdAndByQuestionnaireIdPerretTest_null_externalVariables(){
         //Given
-        addAdditionnalDtoToMongoStub(DataState.EDITED,
+        addAdditionnalSurveyUnitModelToMongoStub(DataState.EDITED,
                 "C NEW E",
                 "E NEW E",
                 LocalDateTime.of(2025,2,2,0,0,0),
@@ -382,71 +437,94 @@ class SurveyUnitServiceTest {
 
 
         //When
-        SurveyUnitDto surveyUnitDto = surveyUnitServiceStatic.findLatestValuesByStateByIdAndByIdQuestionnaire(
-                DEFAULT_ID_UE,
-                DEFAULT_ID_QUEST
+        SurveyUnitDto surveyUnitDto = surveyUnitServiceStatic.findLatestValuesByStateByIdAndByQuestionnaireId(
+                DEFAULT_INTERROGATION_ID,
+                DEFAULT_QUESTIONNAIRE_ID
         );
 
 
         //Then
-        Assertions.assertThat(surveyUnitDto.getSurveyUnitId()).isEqualTo(DEFAULT_ID_UE);
+        Assertions.assertThat(surveyUnitDto.getInterrogationId()).isEqualTo(DEFAULT_INTERROGATION_ID);
 
-        Assertions.assertThat(surveyUnitDto.getCollectedVariables().getFirst().getVariableName())
-                .isEqualTo("TESTIDVAR");
-        Assertions.assertThat(surveyUnitDto.getCollectedVariables().getFirst().getVariableStateDtoList()
+        List<VariableDto> variableDtos = surveyUnitDto.getCollectedVariables().stream().filter(
+                variableDto -> variableDto.getVariableName().equals("TESTVARID")
+                        && variableDto.getIteration() == 1
+        ).toList();
+        Assertions.assertThat(variableDtos).hasSize(1);
+
+        Assertions.assertThat(variableDtos.getFirst().getVariableName())
+                .isEqualTo("TESTVARID");
+        Assertions.assertThat(variableDtos.getFirst().getVariableStateDtoList()
                         .stream().filter(
                                 variableStatePerret -> variableStatePerret.getState().equals(DataState.COLLECTED)
                         ).toList().getFirst().getValue())
                 .isEqualTo("V1");
-        Assertions.assertThat(surveyUnitDto.getCollectedVariables().getFirst().getVariableStateDtoList()
+        Assertions.assertThat(variableDtos.getFirst().getVariableStateDtoList()
                         .stream().filter(
                                 variableStatePerret -> variableStatePerret.getState().equals(DataState.EDITED)
                         ).toList().getFirst().getValue())
                 .isEqualTo("C NEW E");
-        Assertions.assertThat(surveyUnitDto.getCollectedVariables().getFirst().getVariableStateDtoList()
+        Assertions.assertThat(variableDtos.getFirst().getVariableStateDtoList()
                         .stream().filter(
                                 variableStatePerret -> variableStatePerret.getState().equals(DataState.COLLECTED)
                         ).toList().getFirst().isActive())
                 .isFalse();
-        Assertions.assertThat(surveyUnitDto.getCollectedVariables().getFirst().getVariableStateDtoList()
+        Assertions.assertThat(variableDtos.getFirst().getVariableStateDtoList()
                         .stream().filter(
                                 variableStatePerret -> variableStatePerret.getState().equals(DataState.EDITED)
                         ).toList().getFirst().isActive())
                 .isTrue();
 
-        Assertions.assertThat(surveyUnitDto.getExternalVariables().getFirst().getVariableName())
-                .isEqualTo("TESTIDVAR");
-        Assertions.assertThat(surveyUnitDto.getExternalVariables().getFirst().getVariableStateDtoList()
+        variableDtos = surveyUnitDto.getExternalVariables().stream().filter(
+                variableDto -> variableDto.getVariableName().equals("TESTVARID")
+                        && variableDto.getIteration() == 1
+        ).toList();
+        Assertions.assertThat(variableDtos).hasSize(1);
+
+        Assertions.assertThat(variableDtos.getFirst().getVariableName())
+                .isEqualTo("TESTVARID");
+        Assertions.assertThat(variableDtos.getFirst().getVariableStateDtoList()
                         .stream().filter(
                                 variableStatePerret -> variableStatePerret.getState().equals(DataState.COLLECTED)
                         ).toList().getFirst().getValue())
                 .isEqualTo("V1");
-        Assertions.assertThat(surveyUnitDto.getExternalVariables().getFirst().getVariableStateDtoList()
+        Assertions.assertThat(variableDtos.getFirst().getVariableStateDtoList()
                         .stream().filter(
                                 variableStatePerret -> variableStatePerret.getState().equals(DataState.COLLECTED)
                         ).toList().getFirst().isActive())
                 .isTrue();
     }
 
-    private void addAdditionnalDtoToMongoStub(){
+    private void addAdditionnalSurveyUnitModelToMongoStub(){
         List<VariableModel> externalVariableList = new ArrayList<>();
-        VariableModel externalVariableModel = VariableModel.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
+        VariableModel externalVariableModel = VariableModel.builder()
+                .varId("TESTVARID")
+                .value("V1")
+                .iteration(1)
+                .build();
+        externalVariableList.add(externalVariableModel);
+        externalVariableModel = VariableModel.builder()
+                .varId("TESTVARID")
+                .value("V2")
+                .iteration(2)
+                .build();
         externalVariableList.add(externalVariableModel);
 
         List<VariableModel> collectedVariableList = new ArrayList<>();
         VariableModel collectedVariableModel = VariableModel.builder()
-                .idVar("TESTIDVAR")
-                .values(List.of(new String[]{"V1", "V2"}))
-                .idLoop("TESTIDLOOP")
-                .idParent("TESTIDPARENT")
+                .varId("TESTVARID")
+                .value("V1")
+                .scope("TESTSCOPE")
+                .iteration(1)
+                .parentId("TESTPARENTID")
                 .build();
         collectedVariableList.add(collectedVariableModel);
 
         SurveyUnitModel recentDTO = SurveyUnitModel.builder()
-                .idCampaign("TESTIDCAMPAIGN")
+                .campaignId("TESTCAMPAIGNID")
                 .mode(Mode.WEB)
-                .idUE(DEFAULT_ID_UE)
-                .idQuest(DEFAULT_ID_QUEST)
+                .interrogationId(DEFAULT_INTERROGATION_ID)
+                .questionnaireId(DEFAULT_QUESTIONNAIRE_ID)
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2023,2,2,0,0,0))
                 .recordDate(LocalDateTime.of(2024,2,2,0,0,0))
@@ -456,25 +534,44 @@ class SurveyUnitServiceTest {
         surveyUnitPersistencePortStub.getMongoStub().add(recentDTO);
     }
 
-    private void addAdditionnalDtoToMongoStub(String idQuestionnaire) {
+    private void addAdditionnalSurveyUnitModelToMongoStub(String questionnaireId) {
         List<VariableModel> externalVariableList = new ArrayList<>();
-        VariableModel externalVariableModel = VariableModel.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
+        VariableModel externalVariableModel = VariableModel.builder()
+                .varId("TESTVARID")
+                .value("V1")
+                .iteration(1)
+                .build();
+        externalVariableList.add(externalVariableModel);
+        externalVariableModel = VariableModel.builder()
+                .varId("TESTVARID")
+                .value("V2")
+                .iteration(2)
+                .build();
         externalVariableList.add(externalVariableModel);
 
         List<VariableModel> collectedVariableList = new ArrayList<>();
         VariableModel collectedVariableModel = VariableModel.builder()
-                .idVar("TESTIDVAR")
-                .values(List.of(new String[]{"V1", "V2"}))
-                .idLoop("TESTIDLOOP")
-                .idParent("TESTIDPARENT")
+                .varId("TESTVARID")
+                .value("V1")
+                .scope("TESTSCOPE")
+                .iteration(1)
+                .parentId("TESTPARENTID")
+                .build();
+        collectedVariableList.add(collectedVariableModel);
+        collectedVariableModel = VariableModel.builder()
+                .varId("TESTVARID")
+                .value("V2")
+                .scope("TESTSCOPE")
+                .iteration(2)
+                .parentId("TESTPARENTID")
                 .build();
         collectedVariableList.add(collectedVariableModel);
 
         SurveyUnitModel recentDTO = SurveyUnitModel.builder()
-                .idCampaign("TESTIDCAMPAIGN")
+                .campaignId("TESTCAMPAIGNID")
                 .mode(Mode.WEB)
-                .idUE(DEFAULT_ID_UE)
-                .idQuest(idQuestionnaire)
+                .interrogationId(DEFAULT_INTERROGATION_ID)
+                .questionnaireId(questionnaireId)
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2023, 2, 2, 0, 0, 0))
                 .recordDate(LocalDateTime.of(2024, 2, 2, 0, 0, 0))
@@ -484,29 +581,35 @@ class SurveyUnitServiceTest {
         surveyUnitPersistencePortStub.getMongoStub().add(recentDTO);
     }
 
-    private void addAdditionnalDtoToMongoStub(DataState state,
-                                                         String collectedVariableValue,
-                                                         String externalVariableValue,
-                                                         LocalDateTime fileDate,
-                                                         LocalDateTime recordDate) {
+    private void addAdditionnalSurveyUnitModelToMongoStub(DataState state,
+                                                          String collectedVariableValue,
+                                                          String externalVariableValue,
+                                                          LocalDateTime fileDate,
+                                                          LocalDateTime recordDate) {
         List<VariableModel> externalVariableList = new ArrayList<>();
-        VariableModel externalVariableModel = VariableModel.builder().idVar("TESTIDVAR").values(List.of(new String[]{externalVariableValue})).build();
+        VariableModel externalVariableModel =
+                VariableModel.builder()
+                        .varId("TESTVARID")
+                        .value(externalVariableValue)
+                        .iteration(1)
+                        .build();
         externalVariableList.add(externalVariableModel);
 
         List<VariableModel> collectedVariableList = new ArrayList<>();
         VariableModel collectedVariable = VariableModel.builder()
-                .idVar("TESTIDVAR")
-                .values(List.of(new String[]{collectedVariableValue}))
-                .idLoop("TESTIDLOOP")
-                .idParent("TESTIDPARENT")
+                .varId("TESTVARID")
+                .value(collectedVariableValue)
+                .scope("TESTSCOPE")
+                .iteration(1)
+                .parentId("TESTPARENTID")
                 .build();
         collectedVariableList.add(collectedVariable);
 
         SurveyUnitModel recentDTO = SurveyUnitModel.builder()
-                .idCampaign("TESTIDCAMPAIGN")
+                .campaignId("TESTCAMPAIGNID")
                 .mode(Mode.WEB)
-                .idUE(DEFAULT_ID_UE)
-                .idQuest(DEFAULT_ID_QUEST)
+                .interrogationId(DEFAULT_INTERROGATION_ID)
+                .questionnaireId(DEFAULT_QUESTIONNAIRE_ID)
                 .state(state)
                 .fileDate(fileDate)
                 .recordDate(recordDate)
