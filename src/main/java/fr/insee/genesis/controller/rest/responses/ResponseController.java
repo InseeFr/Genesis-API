@@ -1,17 +1,14 @@
 package fr.insee.genesis.controller.rest.responses;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import fr.insee.bpm.exceptions.MetadataParserException;
 import fr.insee.bpm.metadata.model.VariablesMap;
-import fr.insee.bpm.metadata.reader.ddi.DDIReader;
-import fr.insee.bpm.metadata.reader.lunatic.LunaticReader;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.adapter.LunaticXmlAdapter;
-import fr.insee.genesis.controller.dto.SurveyUnitDto;
-import fr.insee.genesis.controller.dto.SurveyUnitQualityToolDto;
 import fr.insee.genesis.controller.dto.InterrogationId;
+import fr.insee.genesis.controller.dto.SurveyUnitDto;
 import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
+import fr.insee.genesis.controller.dto.SurveyUnitQualityToolDto;
 import fr.insee.genesis.controller.dto.SurveyUnitSimplified;
+import fr.insee.genesis.controller.services.MetadataService;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlCampaign;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlDataParser;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlDataSequentialParser;
@@ -70,6 +67,7 @@ public class ResponseController {
     private static final String CAMPAIGN_ERROR = "Error for campaign {}: {}";
     private static final String SUCCESS_MESSAGE = "Data saved";
     private static final String SUCCESS_NO_DATA_MESSAGE = "No data has been saved";
+    public static final String TRY_TO_READ_XML_FILE = "Try to read Xml file : {}";
     private final SurveyUnitApiPort surveyUnitService;
     private final SurveyUnitQualityService surveyUnitQualityService;
     private final LunaticXmlRawDataApiPort lunaticXmlRawDataApiPort;
@@ -77,6 +75,7 @@ public class ResponseController {
     private final FileUtils fileUtils;
     private final ControllerUtils controllerUtils;
     private final AuthUtils authUtils;
+    private final MetadataService metadataService;
 
 
     public ResponseController(SurveyUnitApiPort surveyUnitService,
@@ -85,7 +84,8 @@ public class ResponseController {
                               LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort,
                               FileUtils fileUtils,
                               ControllerUtils controllerUtils,
-                              AuthUtils authUtils
+                              AuthUtils authUtils,
+                              MetadataService metadataService
     ) {
         this.surveyUnitService = surveyUnitService;
         this.surveyUnitQualityService = surveyUnitQualityService;
@@ -94,35 +94,26 @@ public class ResponseController {
         this.fileUtils = fileUtils;
         this.controllerUtils = controllerUtils;
         this.authUtils = authUtils;
+        this.metadataService = metadataService;
     }
 
     //SAVE
     @Operation(summary = "Save one file of responses to Genesis Database, passing its path as a parameter")
-    @PutMapping(path = "/lunatic-xml/save-one")
-    public ResponseEntity<Object> saveResponsesFromXmlFile(@RequestParam("pathLunaticXml") String xmlFile,
+    @PutMapping(path = "/lunatic-xml/save-one-file")
+    public ResponseEntity<Object> saveResponsesFromXmlFile(@RequestParam("pathLunaticDataXml") String xmlFile,
                                                            @RequestParam(value = "pathSpecFile") String metadataFilePath,
                                                            @RequestParam(value = "mode") Mode modeSpecified,
                                                            @RequestParam(value = "withDDI", defaultValue = "true") boolean withDDI
-    )throws Exception {
-        VariablesMap variablesMap;
-        if(withDDI) {
-            //Parse DDI
-            log.info(String.format("Try to read DDI file : %s", metadataFilePath));
-            try {
-                variablesMap =
-                        DDIReader.getMetadataFromDDI(Path.of(metadataFilePath).toFile().toURI().toURL().toString(),
-                                new FileInputStream(metadataFilePath)).getVariables();
-            } catch (MetadataParserException e) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-            }
-        }else{
-            //Parse Lunatic
-            log.info(String.format("Try to read lunatic file : %s", metadataFilePath));
-
-            variablesMap = LunaticReader.getMetadataFromLunatic(new FileInputStream(metadataFilePath)).getVariables();
+    ) throws XMLStreamException, IOException, ParserConfigurationException, SAXException {
+        VariablesMap variablesMap = metadataService.parseMetadata(metadataFilePath,withDDI);
+        if (variablesMap == null){
+            return ResponseEntity.status(500).body("Can't parse metadata from "+ metadataFilePath);
         }
+        return processXmlDataFile(xmlFile, modeSpecified, variablesMap);
+    }
 
-        log.info(String.format("Try to read Xml file : %s", xmlFile));
+    private ResponseEntity<Object> processXmlDataFile(String xmlFile, Mode modeSpecified, VariablesMap variablesMap) throws IOException, ParserConfigurationException, SAXException, XMLStreamException {
+        log.info(TRY_TO_READ_XML_FILE, xmlFile);
         Path filepath = Paths.get(xmlFile);
 
         if (filepath.toFile().length() / 1024 / 1024 <= Constants.MAX_FILE_SIZE_UNTIL_SEQUENTIAL) {
@@ -160,62 +151,6 @@ public class ResponseController {
             return ResponseEntity.ok(getSuccessMessage(isAnyDataSaved));
         }
         return ResponseEntity.internalServerError().body(errors.getFirst().getMessage());
-    }
-
-    @Operation(summary = "Save one file of raw responses to Genesis Database, passing its path as a parameter")
-    @PutMapping(path = "/lunatic-xml/raw/save-one")
-    public ResponseEntity<Object> saveRawResponsesFromXmlFile(@RequestParam("pathLunaticXml") String xmlFile,
-                                                           @RequestParam(value = "mode") Mode modeSpecified
-    )throws Exception {
-        log.info(String.format("Try to read Xml file : %s", xmlFile));
-        Path filepath = Paths.get(xmlFile);
-
-        return processRawXmlFile(filepath, modeSpecified);
-    }
-
-    @Operation(summary = "Save multiple raw files to Genesis Database from the campaign root folder")
-    @PutMapping(path = "/lunatic-xml/raw/save-folder")
-    public ResponseEntity<Object> saveRawResponsesFromXmlCampaignFolder(@RequestParam("campaignName") String campaignName,
-                                                                     @RequestParam(value = "mode", required = false) Mode modeSpecified
-    )throws Exception {
-        boolean isAnyDataSaved = false;
-
-        log.info("Try to import raw lunatic XML data for campaign: {}", campaignName);
-
-        List<Mode> modesList = controllerUtils.getModesList(campaignName, modeSpecified);
-        for (Mode currentMode : modesList) {
-            try {
-                processRawCampaignWithMode(campaignName, currentMode, null);
-                isAnyDataSaved = true;
-            }catch (NoDataException nde){
-                //Don't stop if NoDataError thrown
-                log.warn(nde.getMessage());
-            }catch (Exception e){
-                log.error(CAMPAIGN_ERROR, campaignName, e.toString());
-                return ResponseEntity.status(500).body(e.getMessage());
-            }
-        }
-
-        return ResponseEntity.ok(getSuccessMessage(isAnyDataSaved));
-    }
-
-    //JSON
-    @Operation(summary = "Save lunatic json data to Genesis Database from the campaign root folder")
-    @PutMapping(path = "/lunatic-json/raw/save")
-    public ResponseEntity<Object> saveRawResponsesFromJsonBody(
-            @RequestParam("campaignName") String campaignName,
-            @RequestParam(value = "mode", required = false) Mode modeSpecified,
-            @RequestBody String dataJson
-    ) {
-        log.info("Try to import raw lunatic JSON data for campaign: {}", campaignName);
-        try {
-            lunaticJsonRawDataApiPort.saveData(campaignName, dataJson, modeSpecified);
-        }catch (JsonProcessingException jpe){
-            log.error(jpe.toString());
-            return ResponseEntity.badRequest().body("Invalid JSON synthax");
-        }
-        log.info("Data saved for {}", campaignName);
-        return ResponseEntity.ok(SUCCESS_MESSAGE);
     }
 
 
@@ -377,10 +312,10 @@ public class ResponseController {
         //Parse metadata
         //Try to look for DDI first, if no DDI found looks for lunatic components
         List<GenesisError> errors = new ArrayList<>();
-        VariablesMap variablesMap = readMetadatas(surveyUnitInputDto.getCampaignId(), surveyUnitInputDto.getMode(), errors, true);
+        VariablesMap variablesMap = metadataService.readMetadatas(surveyUnitInputDto.getCampaignId(), surveyUnitInputDto.getMode().getModeName(), fileUtils,errors);
         if(variablesMap == null){
             log.warn("Can't find DDI, trying with lunatic...");
-            variablesMap = readMetadatas(surveyUnitInputDto.getCampaignId(), surveyUnitInputDto.getMode(), errors, false);
+            variablesMap = metadataService.readMetadatas(surveyUnitInputDto.getCampaignId(), surveyUnitInputDto.getMode().getModeName(), fileUtils, errors);
             if(variablesMap == null){
                 return ResponseEntity.status(404).body(errors.getLast().getMessage());
             }
@@ -470,7 +405,7 @@ public class ResponseController {
             throw new NoDataException("No data file found in folder %s".formatted(dataFolder));
         }
 
-        VariablesMap variablesMap = readMetadatas(campaignName, mode, errors, withDDI);
+        VariablesMap variablesMap = metadataService.readMetadatas(campaignName, mode.getModeName(), fileUtils, errors);
         if (variablesMap == null){
             return;
         }
@@ -486,7 +421,7 @@ public class ResponseController {
                 continue; //Go to next file
             }
             //Read file
-            log.info("Try to read Xml file : {}", fileName);
+            log.info(TRY_TO_READ_XML_FILE, fileName);
             ResponseEntity<Object> response;
             if (filepath.toFile().length() / 1024 / 1024 <= Constants.MAX_FILE_SIZE_UNTIL_SEQUENTIAL) {
                 response = processXmlFileWithMemory(filepath, mode, variablesMap);
@@ -529,7 +464,7 @@ public class ResponseController {
                 return;
             }
             //Read file
-            log.info("Try to read Xml file : {}", fileName);
+            log.info(TRY_TO_READ_XML_FILE, fileName);
             ResponseEntity<Object> response = processRawXmlFile(filepath, mode);
 
             log.debug("File {} saved", fileName);
@@ -541,34 +476,7 @@ public class ResponseController {
         }
     }
 
-    private VariablesMap readMetadatas(String campaignName, Mode mode, List<GenesisError> errors, boolean withDDI) {
-        VariablesMap variablesMap;
-        if(withDDI){
-            //Read DDI
-            try {
-                Path ddiFilePath = fileUtils.findFile(String.format(S_S, fileUtils.getSpecFolder(campaignName),
-                            mode.getModeName()), DDI_REGEX);
-                variablesMap = DDIReader.getMetadataFromDDI(ddiFilePath.toUri().toURL().toString(),
-                        new FileInputStream(ddiFilePath.toString())).getVariables();
-            } catch (Exception e) {
-                log.error(e.toString());
-                errors.add(new GenesisError(e.toString()));
-                return null;
-            }
-            return variablesMap;
-        }
-        //Read Lunatic
-        try {
-            Path lunaticFilePath = fileUtils.findFile(String.format(S_S, fileUtils.getSpecFolder(campaignName),
-                    mode.getModeName()), "lunatic[\\w," + "\\s-]+\\.json");
-            variablesMap = LunaticReader.getMetadataFromLunatic(new FileInputStream(lunaticFilePath.toString())).getVariables();
-        } catch (Exception e) {
-            log.error(e.toString());
-            errors.add(new GenesisError(e.toString()));
-            return null;
-        }
-        return variablesMap;
-    }
+
 
     private boolean isDataFileInDoneFolder(Path filepath, String campaignName, String modeFolder) {
         return Path.of(fileUtils.getDoneFolder(campaignName, modeFolder)).resolve(filepath.getFileName()).toFile().exists();

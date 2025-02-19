@@ -1,0 +1,81 @@
+package fr.insee.genesis.controller.services;
+
+import fr.insee.bpm.exceptions.MetadataParserException;
+import fr.insee.bpm.metadata.model.VariablesMap;
+import fr.insee.bpm.metadata.reader.ddi.DDIReader;
+import fr.insee.bpm.metadata.reader.lunatic.LunaticReader;
+import fr.insee.genesis.exceptions.GenesisError;
+import fr.insee.genesis.infrastructure.utils.FileUtils;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.List;
+@Slf4j
+@Service
+public class MetadataService {
+
+    private static final String DDI_FILE_PATTERN = "ddi[\\w,\\s-]+\\.xml";
+    private static final String LUNATIC_FILE_PATTERN = "lunatic[\\w,\\s-]+\\.json";
+
+    /**
+     * Parse metadata file, either DDI or Lunatic, depending on the withDDI flag.
+     *
+     * @param metadataFilePath path to the metadata file
+     * @param withDDI          true for DDI parsing, false for Lunatic parsing
+     * @return VariablesMap or null if an error occurs
+     */
+    public VariablesMap parseMetadata(String metadataFilePath, boolean withDDI) {
+        try {
+            log.info("Try to read {} file: {}", withDDI ? "DDI" : "Lunatic", metadataFilePath);
+            if (withDDI) {
+                return DDIReader.getMetadataFromDDI(
+                        Path.of(metadataFilePath).toFile().toURI().toURL().toString(),
+                        new FileInputStream(metadataFilePath)).getVariables();
+            } else {
+                return LunaticReader.getMetadataFromLunatic(
+                        new FileInputStream(metadataFilePath)).getVariables();
+            }
+        } catch (MetadataParserException | IOException e) {
+            log.error("Error reading metadata file", e);
+            return null;
+        }
+    }
+
+    /**
+     * By folder defined by campaignName
+     * Attempt to parse DDI metadata first; if it fails, fall back to Lunatic parsing.
+     *
+     * @param campaignName name of the campaign
+     * @param modeName     mode associated with the data
+     * @param fileUtils    utility for file operations
+     * @param errors       list to populate with errors
+     * @return VariablesMap or null if parsing fails
+     */
+    public VariablesMap readMetadatas(String campaignName, String modeName, FileUtils fileUtils, List<GenesisError> errors) {
+
+        Path ddiFilePath = null;
+        VariablesMap variablesMap = null;
+        try {
+            ddiFilePath = fileUtils.findFile(String.format("%s/%s", fileUtils.getSpecFolder(campaignName), modeName), DDI_FILE_PATTERN);
+            variablesMap = parseMetadata(ddiFilePath.toString(), true);
+
+        } catch (IOException e) {
+            log.warn("Can't find DDI, trying with lunatic...");
+        }
+        if(variablesMap == null){
+            log.warn("DDI not found or error occurred. Trying Lunatic metadata...");
+            try {
+                Path lunaticFilePath = fileUtils.findFile(String.format("%s/%s", fileUtils.getSpecFolder(campaignName), modeName), LUNATIC_FILE_PATTERN);
+                return parseMetadata(lunaticFilePath.toString(), false);
+            } catch (Exception ex) {
+                log.error("Error reading Lunatic metadata file", ex);
+                errors.add(new GenesisError(ex.toString()));
+                return null;
+            }
+        }
+        return variablesMap;
+    }
+}

@@ -10,6 +10,7 @@ import fr.insee.genesis.controller.dto.SurveyUnitQualityToolDto;
 import fr.insee.genesis.controller.dto.VariableQualityToolDto;
 import fr.insee.genesis.controller.dto.VariableStateDto;
 import fr.insee.genesis.controller.rest.responses.ResponseController;
+import fr.insee.genesis.controller.services.MetadataService;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlCampaign;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlDataParser;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
@@ -68,7 +69,8 @@ public class MainDefinitions {
             new LunaticJsonRawDataService(new LunaticJsonPersistanceStub()),
             new FileUtils(config),
             new ControllerUtils(new FileUtils(config)),
-            new AuthUtils(config)
+            new AuthUtils(config),
+            new MetadataService()
         );
 
     List<SurveyUnitModel> surveyUnitModels;
