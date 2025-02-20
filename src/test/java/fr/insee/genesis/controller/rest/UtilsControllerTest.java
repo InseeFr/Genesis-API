@@ -2,7 +2,7 @@ package fr.insee.genesis.controller.rest;
 
 import cucumber.TestConstants;
 import fr.insee.genesis.Constants;
-import fr.insee.genesis.controller.dto.SurveyUnitId;
+import fr.insee.genesis.controller.dto.InterrogationId;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
@@ -35,10 +35,10 @@ class UtilsControllerTest {
     static UtilsController utilsControllerStatic;
     static SurveyUnitPersistencePortStub surveyUnitPersistencePortStub;
 
-    static List<SurveyUnitId> surveyUnitIdList;
+    static List<InterrogationId> interrogationIdList;
     //Constants
-    static final String defaultIdUE = "TESTIDUE";
-    static final String defaultIdQuest = "TESTIDQUESTIONNAIRE";
+    static final String DEFAULT_INTERROGATION_ID = "TESTINTERROGATIONID";
+    static final String DEFAULT_QUESTIONNAIRE_ID = "TESTQUESTIONNAIREID";
 
     @BeforeAll
     static void init() {
@@ -50,8 +50,8 @@ class UtilsControllerTest {
                 , new VolumetryLogService(new ConfigStub())
         );
 
-        surveyUnitIdList = new ArrayList<>();
-        surveyUnitIdList.add(new SurveyUnitId(defaultIdUE));
+        interrogationIdList = new ArrayList<>();
+        interrogationIdList.add(new InterrogationId(DEFAULT_INTERROGATION_ID));
     }
 
     @BeforeEach
@@ -60,23 +60,42 @@ class UtilsControllerTest {
         surveyUnitPersistencePortStub.getMongoStub().clear();
 
         List<VariableModel> externalVariableList = new ArrayList<>();
-        VariableModel variable = VariableModel.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
+        VariableModel variable = VariableModel.builder()
+                .varId("TESTVARID")
+                .value("V1")
+                .iteration(1)
+                .build();
+        externalVariableList.add(variable);
+        variable = VariableModel.builder()
+                .varId("TESTVARID")
+                .value("V2")
+                .iteration(2)
+                .build();
         externalVariableList.add(variable);
 
         List<VariableModel> collectedVariableList = new ArrayList<>();
         VariableModel collectedVariable = VariableModel.builder()
-                .idVar("TESTIDVAR")
-                .values(List.of(new String[]{"V1", "V2"}))
-                .idLoop("TESTIDLOOP")
-                .idParent("TESTIDPARENT")
+                .varId("TESTVARID")
+                .value("V1")
+                .scope("TESTSCOPE")
+                .iteration(1)
+                .parentId("TESTPARENTID")
                 .build();
-
         collectedVariableList.add(collectedVariable);
+        collectedVariable = VariableModel.builder()
+                .varId("TESTVARID")
+                .value("V2")
+                .scope("TESTSCOPE")
+                .iteration(2)
+                .parentId("TESTPARENTID")
+                .build();
+        collectedVariableList.add(collectedVariable);
+
         surveyUnitPersistencePortStub.getMongoStub().add(SurveyUnitModel.builder()
-                .idCampaign("TESTIDCAMPAIGN")
+                .campaignId("TESTCAMPAIGNID")
                 .mode(Mode.WEB)
-                .idUE(defaultIdUE)
-                .idQuest(defaultIdQuest)
+                .interrogationId(DEFAULT_INTERROGATION_ID)
+                .questionnaireId(DEFAULT_QUESTIONNAIRE_ID)
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2023, 1, 1, 0, 0, 0))
                 .recordDate(LocalDateTime.of(2024, 1, 1, 0, 0, 0))
@@ -248,7 +267,7 @@ class UtilsControllerTest {
                         .resolve(LocalDate.now().format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
                                 + Constants.VOLUMETRY_FILE_SUFFIX + ".csv");
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TESTIDCAMPAIGN;1");
+        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TESTCAMPAIGNID;1");
 
         //CLEAN
         Files.deleteIfExists(logFilePath);
@@ -267,7 +286,7 @@ class UtilsControllerTest {
                 .resolve(LocalDate.now().format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
                         + Constants.VOLUMETRY_FILE_SUFFIX + ".csv");
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TESTIDCAMPAIGN;1").doesNotContain("TESTIDCAMPAIGN;1\nTESTIDCAMPAIGN;1");
+        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TESTCAMPAIGNID;1").doesNotContain("TESTCAMPAIGNID;1\nTESTCAMPAIGNID;1");
 
         //CLEAN
         Files.deleteIfExists(logFilePath);
@@ -276,7 +295,7 @@ class UtilsControllerTest {
     @Test
     void saveVolumetryTest_additionnal_campaign() throws IOException {
         //Given
-        addAdditionalDtoToMongoStub("TESTIDCAMPAIGN2","TESTQUEST2");
+        addAdditionalSurveyUnitModelToMongoStub("TESTCAMPAIGNID2","TESTQUEST2");
 
         //WHEN
         ResponseEntity<Object> response = utilsControllerStatic.saveVolumetry();
@@ -288,7 +307,7 @@ class UtilsControllerTest {
                 .resolve(LocalDate.now().format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
                         + Constants.VOLUMETRY_FILE_SUFFIX + ".csv");
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TESTIDCAMPAIGN;1").contains("TESTIDCAMPAIGN2;1");
+        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TESTCAMPAIGNID;1").contains("TESTCAMPAIGNID2;1");
 
         //CLEAN
         Files.deleteIfExists(logFilePath);
@@ -296,8 +315,8 @@ class UtilsControllerTest {
     @Test
     void saveVolumetryTest_additionnal_campaign_and_document() throws IOException {
         //Given
-        addAdditionalDtoToMongoStub("TESTQUEST");
-        addAdditionalDtoToMongoStub("TESTIDCAMPAIGN2","TESTQUEST2");
+        addAdditionalSurveyUnitModelToMongoStub("TESTQUEST");
+        addAdditionalSurveyUnitModelToMongoStub("TESTCAMPAIGNID2","TESTQUEST2");
 
         //WHEN
         ResponseEntity<Object> response = utilsControllerStatic.saveVolumetry();
@@ -309,7 +328,7 @@ class UtilsControllerTest {
                 .resolve(LocalDate.now().format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
                         + Constants.VOLUMETRY_FILE_SUFFIX + ".csv");
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TESTIDCAMPAIGN;2").contains("TESTIDCAMPAIGN2;1");
+        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TESTCAMPAIGNID;2").contains("TESTCAMPAIGNID2;1");
 
         //CLEAN
         Files.deleteIfExists(logFilePath);
@@ -347,36 +366,55 @@ class UtilsControllerTest {
 
     // Utilities
 
-    private void addAdditionalDtoToMongoStub(String idQuestionnaire) {
-        addAdditionalDtoToMongoStub("TESTIDCAMPAIGN",idQuestionnaire);
+    private void addAdditionalSurveyUnitModelToMongoStub(String questionnaireId) {
+        addAdditionalSurveyUnitModelToMongoStub("TESTCAMPAIGNID",questionnaireId);
     }
 
-    private void addAdditionalDtoToMongoStub(String idCampaign, String idQuestionnaire) {
+    private void addAdditionalSurveyUnitModelToMongoStub(String campaignId, String questionnaireId) {
         List<VariableModel> externalVariableList = new ArrayList<>();
-        VariableModel variable = VariableModel.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
+        VariableModel variable = VariableModel.builder()
+                .varId("TESTVARID")
+                .value("V1")
+                .iteration(1)
+                .build();
+        externalVariableList.add(variable);
+        variable = VariableModel.builder()
+                .varId("TESTVARID")
+                .value("V2")
+                .iteration(2)
+                .build();
         externalVariableList.add(variable);
 
         List<VariableModel> collectedVariableList = new ArrayList<>();
         VariableModel collectedVariable = VariableModel.builder()
-                .idVar("TESTIDVAR")
-                .values(List.of(new String[]{"V1", "V2"}))
-                .idLoop("TESTIDLOOP")
-                .idParent("TESTIDPARENT")
+                .varId("TESTVARID")
+                .value("V1")
+                .scope("TESTSCOPE")
+                .iteration(1)
+                .parentId("TESTPARENTID")
+                .build();
+        collectedVariableList.add(collectedVariable);
+        collectedVariable = VariableModel.builder()
+                .varId("TESTVARID")
+                .value("V2")
+                .scope("TESTSCOPE")
+                .iteration(2)
+                .parentId("TESTPARENTID")
                 .build();
         collectedVariableList.add(collectedVariable);
 
-        SurveyUnitModel recentDTO = SurveyUnitModel.builder()
-                .idCampaign(idCampaign)
+        SurveyUnitModel recentSurveyUnitModel = SurveyUnitModel.builder()
+                .campaignId(campaignId)
                 .mode(Mode.WEB)
-                .idUE(defaultIdUE)
-                .idQuest(idQuestionnaire)
+                .interrogationId(DEFAULT_INTERROGATION_ID)
+                .questionnaireId(questionnaireId)
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2023, 2, 2, 0, 0, 0))
                 .recordDate(LocalDateTime.of(2024, 2, 2, 0, 0, 0))
                 .externalVariables(externalVariableList)
                 .collectedVariables(collectedVariableList)
                 .build();
-        surveyUnitPersistencePortStub.getMongoStub().add(recentDTO);
+        surveyUnitPersistencePortStub.getMongoStub().add(recentSurveyUnitModel);
     }
 
 }

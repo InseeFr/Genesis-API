@@ -28,11 +28,11 @@ class ScheduleDocumentMapperImplTest {
         scheduleDocumentMapperImplStatic = new ScheduleDocumentMapperImpl();
 
         scheduleDocument = new ScheduleDocument();
-        scheduleDocument.setSurveyName("TESTIDCAMPAIGN");
+        scheduleDocument.setSurveyName("TESTCAMPAIGNID");
         scheduleDocument.setKraftwerkExecutionScheduleList(new ArrayList<>());
 
         scheduleModel = ScheduleModel.builder()
-                .surveyName("TESTIDCAMPAIGN")
+                .surveyName("TESTCAMPAIGNID")
                 .kraftwerkExecutionScheduleList(new ArrayList<>())
                 .build();
 
@@ -59,11 +59,11 @@ class ScheduleDocumentMapperImplTest {
     }
 
     @Test
-    @DisplayName("Should convert document to DTO")
-    void shouldReturnDocumentDtoFromDocument(){
+    @DisplayName("Should convert document to model")
+    void shouldReturnDocumentModelFromDocument(){
         ScheduleModel scheduleModel1 = scheduleDocumentMapperImplStatic.documentToModel(scheduleDocument);
 
-        Assertions.assertThat(scheduleModel1.getSurveyName()).isEqualTo("TESTIDCAMPAIGN");
+        Assertions.assertThat(scheduleModel1.getSurveyName()).isEqualTo("TESTCAMPAIGNID");
         Assertions.assertThat(scheduleModel1.getLastExecution()).isNull();
         Assertions.assertThat(scheduleModel1.getKraftwerkExecutionScheduleList()).hasSize(1);
 
@@ -73,11 +73,11 @@ class ScheduleDocumentMapperImplTest {
     }
 
     @Test
-    @DisplayName("Should convert DTO to document")
-    void shouldReturnDocumentFromDocumentDto(){
+    @DisplayName("Should convert model to document")
+    void shouldReturnDocumentFromModel(){
         ScheduleDocument scheduleDocument1 = scheduleDocumentMapperImplStatic.modelToDocument(scheduleModel);
 
-        Assertions.assertThat(scheduleDocument1.getSurveyName()).isEqualTo("TESTIDCAMPAIGN");
+        Assertions.assertThat(scheduleDocument1.getSurveyName()).isEqualTo("TESTCAMPAIGNID");
         Assertions.assertThat(scheduleDocument1.getLastExecution()).isNull();
         Assertions.assertThat(scheduleDocument1.getKraftwerkExecutionScheduleList()).hasSize(1);
 
@@ -88,14 +88,14 @@ class ScheduleDocumentMapperImplTest {
 
 
     @Test
-    @DisplayName("Should convert document list to DTO list")
-    void shouldReturnDocumentLDtoListFromDocumentList(){
+    @DisplayName("Should convert document list to model list")
+    void shouldReturnModelListFromDocumentList(){
         List<ScheduleDocument> scheduleDocumentList = new ArrayList<>();
         scheduleDocumentList.add(scheduleDocument);
 
         List<ScheduleModel> scheduleModelList = scheduleDocumentMapperImplStatic.listDocumentToListModel(scheduleDocumentList);
 
-        Assertions.assertThat(scheduleModelList.getFirst().getSurveyName()).isEqualTo("TESTIDCAMPAIGN");
+        Assertions.assertThat(scheduleModelList.getFirst().getSurveyName()).isEqualTo("TESTCAMPAIGNID");
         Assertions.assertThat(scheduleModelList.getFirst().getLastExecution()).isNull();
         Assertions.assertThat(scheduleModelList.getFirst().getKraftwerkExecutionScheduleList()).hasSize(1);
 
@@ -109,14 +109,14 @@ class ScheduleDocumentMapperImplTest {
     }
 
     @Test
-    @DisplayName("Should convert DTO list to document list")
-    void shouldReturnDocumentListFromDocumentDtoList(){
+    @DisplayName("Should convert model list to document list")
+    void shouldReturnDocumentListFromModelList(){
         List<ScheduleModel> scheduleModelList = new ArrayList<>();
         scheduleModelList.add(scheduleModel);
 
         List<ScheduleDocument> scheduleDocumentList = scheduleDocumentMapperImplStatic.listModelToListDocument(scheduleModelList);
 
-        Assertions.assertThat(scheduleDocumentList.getFirst().getSurveyName()).isEqualTo("TESTIDCAMPAIGN");
+        Assertions.assertThat(scheduleDocumentList.getFirst().getSurveyName()).isEqualTo("TESTCAMPAIGNID");
         Assertions.assertThat(scheduleDocumentList.getFirst().getLastExecution()).isNull();
         Assertions.assertThat(scheduleDocumentList.getFirst().getKraftwerkExecutionScheduleList()).hasSize(1);
 

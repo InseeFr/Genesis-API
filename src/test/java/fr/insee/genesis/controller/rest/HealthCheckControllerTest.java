@@ -30,24 +30,41 @@ class HealthCheckControllerTest {
         surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
         SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(surveyUnitPersistencePortStub);
         List<VariableModel> externalVariableList = new ArrayList<>();
-        VariableModel variable = VariableModel.builder().idVar("TESTIDVAR").values(List.of(new String[]{"V1", "V2"})).build();
+        VariableModel variable = VariableModel.builder()
+                .varId("TESTVARID")
+                .value("V1")
+                .iteration(1)
+                .build();
+        externalVariableList.add(variable);
+        variable = VariableModel.builder()
+                .varId("TESTVARID")
+                .value("V2")
+                .iteration(2)
+                .build();
         externalVariableList.add(variable);
 
         List<VariableModel> collectedVariableList = new ArrayList<>();
         VariableModel collectedVariable = VariableModel.builder()
-                .idVar("TESTIDVAR")
-                .values(List.of(new String[]{"V1", "V2"}))
-                .idLoop("TESTIDLOOP")
-                .idParent("TESTIDPARENT")
+                .varId("TESTVARID")
+                .value("V1")
+                .scope("TESTSCOPE")
+                .iteration(1)
+                .parentId("TESTPARENTID")
                 .build();
-
-
+        collectedVariableList.add(collectedVariable);
+        collectedVariable = VariableModel.builder()
+                .varId("TESTVARID")
+                .value("V2")
+                .scope("TESTSCOPE")
+                .iteration(2)
+                .parentId("TESTPARENTID")
+                .build();
         collectedVariableList.add(collectedVariable);
         surveyUnitPersistencePortStub.getMongoStub().add(SurveyUnitModel.builder()
-                .idCampaign("TESTIDCAMPAIGN")
+                .campaignId("TESTCAMPAIGNID")
                 .mode(Mode.WEB)
-                .idUE("TESTIDUE")
-                .idQuest("TESTIDQUESTIONNAIRE")
+                .interrogationId("TESTINTERROGATIONID")
+                .questionnaireId("TESTQUESTIONNAIREID")
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2023, 1, 1, 0, 0, 0))
                 .recordDate(LocalDateTime.of(2024, 1, 1, 0, 0, 0))

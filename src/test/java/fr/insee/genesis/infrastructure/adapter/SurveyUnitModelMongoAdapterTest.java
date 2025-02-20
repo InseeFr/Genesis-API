@@ -38,9 +38,9 @@ class SurveyUnitModelMongoAdapterTest {
 	static void setUp() {
 		surveyUnitMongoAdapter = new SurveyUnitMongoAdapter(mongoRepository, null);
 		suDoc= new SurveyUnitDocument();
-		suDoc.setIdCampaign("idCampaign");
-		suDoc.setIdUE("UE1100000001");
-		suDoc.setIdQuestionnaire("TEST2023X01");
+		suDoc.setCampaignId("campaignId");
+		suDoc.setInterrogationId("UE1100000001");
+		suDoc.setQuestionnaireId("TEST2023X01");
 		suDoc.setState("COLLECTED");
 		suDoc.setMode("WEB");
 		suDoc.setRecordDate(LocalDateTime.now());
@@ -48,9 +48,9 @@ class SurveyUnitModelMongoAdapterTest {
 		suDoc.setExternalVariables(List.of(new VariableDocument()));
 
 		suDoc2= new SurveyUnitDocument();
-		suDoc2.setIdCampaign("idCampaign");
-		suDoc2.setIdUE("UE1100000001");
-		suDoc2.setIdQuestionnaire("TEST2023X01");
+		suDoc2.setCampaignId("campaignId");
+		suDoc2.setInterrogationId("UE1100000001");
+		suDoc2.setQuestionnaireId("TEST2023X01");
 		suDoc2.setState("COLLECTED");
 		suDoc2.setMode("TEL");
 		suDoc2.setRecordDate(LocalDateTime.now());
@@ -58,9 +58,9 @@ class SurveyUnitModelMongoAdapterTest {
 		suDoc2.setExternalVariables(List.of(new VariableDocument()));
 
 		suDoc3= new SurveyUnitDocument();
-		suDoc3.setIdCampaign("idCampaign");
-		suDoc3.setIdUE("UE1100000002");
-		suDoc3.setIdQuestionnaire("TEST2023X01");
+		suDoc3.setCampaignId("campaignId");
+		suDoc3.setInterrogationId("UE1100000002");
+		suDoc3.setQuestionnaireId("TEST2023X01");
 		suDoc3.setState("COLLECTED");
 		suDoc3.setMode("WEB");
 		suDoc3.setRecordDate(LocalDateTime.now());
@@ -69,12 +69,12 @@ class SurveyUnitModelMongoAdapterTest {
 	}
 
 	@Test
-	void shouldReturnListOfSurveyUnitDto_IfIdsFoundInDataBase() {
+	void shouldReturnListOfSurveyUnitModels_IfIdsFoundInDataBase() {
 		//Given
 		List<SurveyUnitDocument> responses = new ArrayList<>();
 		responses.add(suDoc);
 		responses.add(suDoc2);
-		when(mongoRepository.findByIdUEAndIdQuestionnaire(any(String.class), any(String.class))).thenReturn(responses);
+		when(mongoRepository.findByInterrogationIdAndQuestionnaireId(any(String.class), any(String.class))).thenReturn(responses);
 		// When
 		List<SurveyUnitModel> updates = surveyUnitMongoAdapter.findByIds("UE1100000001", "TEST2023X01");
 		// Then
@@ -85,7 +85,7 @@ class SurveyUnitModelMongoAdapterTest {
 	@Test
 	void shouldReturnEmptyList_IfIdsNotFoundInDataBase() {
 		//Given
-		when(mongoRepository.findByIdUEAndIdQuestionnaire(any(String.class), any(String.class))).thenReturn(List.of());
+		when(mongoRepository.findByInterrogationIdAndQuestionnaireId(any(String.class), any(String.class))).thenReturn(List.of());
 		// When
 		List<SurveyUnitModel> updates = surveyUnitMongoAdapter.findByIds("UE1100000001", "TEST2023X01");
 		// Then
@@ -93,83 +93,83 @@ class SurveyUnitModelMongoAdapterTest {
 	}
 
 	@Test
-	void shouldReturnListOfSurveyUnitDto_IfIdUEFoundInDataBase() {
+	void shouldReturnListOfSurveyUnitModels_IfInterrogationIdFoundInDataBase() {
 		//Given
 		List<SurveyUnitDocument> responses = new ArrayList<>();
 		responses.add(suDoc);
 		responses.add(suDoc2);
-		when(mongoRepository.findByIdUE(any(String.class))).thenReturn(responses);
+		when(mongoRepository.findByInterrogationId(any(String.class))).thenReturn(responses);
 		// When
-		List<SurveyUnitModel> updates = surveyUnitMongoAdapter.findByIdUE("UE1100000001");
+		List<SurveyUnitModel> updates = surveyUnitMongoAdapter.findByInterrogationId("UE1100000001");
 		// Then
 		Assertions.assertThat(updates).isNotNull().hasSize(2);
 		Assertions.assertThat(updates.getFirst().getMode()).isEqualTo(Mode.WEB);
 	}
 
 	@Test
-	void shouldReturnEmptyList_IfIdUENotFoundInDataBase() {
+	void shouldReturnEmptyList_IfInterrogationIdNotFoundInDataBase() {
 		//Given
-		when(mongoRepository.findByIdUE(any(String.class))).thenReturn(List.of());
+		when(mongoRepository.findByInterrogationId(any(String.class))).thenReturn(List.of());
 		// When
-		List<SurveyUnitModel> updates = surveyUnitMongoAdapter.findByIdUE("UE1100000001");
+		List<SurveyUnitModel> updates = surveyUnitMongoAdapter.findByInterrogationId("UE1100000001");
 		// Then
 		Assertions.assertThat(updates).isEmpty();
 	}
 
 	@Test
-	void shouldReturnListOfSurveyUnitDto_IfIdQuestionnaireFoundInDataBase() {
+	void shouldReturnListOfSurveyUnitModels_IfQuestionnaireIdFoundInDataBase() {
 		//Given
 		List<SurveyUnitDocument> responses = new ArrayList<>();
 		responses.add(suDoc);
 		responses.add(suDoc2);
 		responses.add(suDoc3);
-		when(mongoRepository.findByIdQuestionnaire(any(String.class))).thenReturn(responses.stream());
+		when(mongoRepository.findByQuestionnaireId(any(String.class))).thenReturn(responses.stream());
 		// When
-		Stream<SurveyUnitModel> updates = surveyUnitMongoAdapter.findByIdQuestionnaire("TEST2023X01");
+		Stream<SurveyUnitModel> updates = surveyUnitMongoAdapter.findByQuestionnaireId("TEST2023X01");
 		// Then
 		Assertions.assertThat(updates).isNotNull().hasSize(3);
 		//Assertions.assertThat(updates.get(2).getMode()).isEqualTo(Mode.WEB);
 	}
 
 	@Test
-	void shouldReturnEmptyList_IfIdQuestionnaireNotFoundInDataBase() {
+	void shouldReturnEmptyList_IfQuestionnaireIdNotFoundInDataBase() {
 		//Given
-		when(mongoRepository.findByIdQuestionnaire(any(String.class))).thenReturn(Stream.empty());
+		when(mongoRepository.findByQuestionnaireId(any(String.class))).thenReturn(Stream.empty());
 		// When
-		List<SurveyUnitModel> updates = surveyUnitMongoAdapter.findByIdQuestionnaire("TEST2023X01").toList();
+		List<SurveyUnitModel> updates = surveyUnitMongoAdapter.findByQuestionnaireId("TEST2023X01").toList();
 		// Then
 		Assertions.assertThat(updates).isEmpty();
 	}
 
 	@Test
-	void shouldReturnListOfSurveyUnitDto_WhenGivenAListOfIdUEs() {
+	void shouldReturnListOfSurveyUnitModels_WhenGivenAListOfInterrogationIds() {
 		//Given
 		List<SurveyUnitDocument> responses1 = new ArrayList<>();
 		responses1.add(suDoc);
 		responses1.add(suDoc2);
 		List<SurveyUnitDocument> responses2 = new ArrayList<>();
 		responses2.add(suDoc3);
-		when(mongoRepository.findByIdUEAndIdQuestionnaire("UE1100000001", "TEST2023X01")).thenReturn(responses1);
-		when(mongoRepository.findByIdUEAndIdQuestionnaire("UE1100000002", "TEST2023X01")).thenReturn(responses2);
-		SurveyUnitModel id1 = SurveyUnitModel.builder().idUE("UE1100000001").build();
-		SurveyUnitModel id2 = SurveyUnitModel.builder().idUE("UE1100000002").build();
+		when(mongoRepository.findByInterrogationIdAndQuestionnaireId("UE1100000001", "TEST2023X01")).thenReturn(responses1);
+		when(mongoRepository.findByInterrogationIdAndQuestionnaireId("UE1100000002", "TEST2023X01")).thenReturn(responses2);
+		SurveyUnitModel id1 = SurveyUnitModel.builder().interrogationId("UE1100000001").build();
+		SurveyUnitModel id2 = SurveyUnitModel.builder().interrogationId("UE1100000002").build();
 		List<SurveyUnitModel> ids = List.of(id1, id2);
 		// When
-		List<SurveyUnitModel> updates = surveyUnitMongoAdapter.findByIdUEsAndIdQuestionnaire(ids, "TEST2023X01");
+		List<SurveyUnitModel> updates = surveyUnitMongoAdapter.findByInterrogationIdsAndQuestionnaireId(ids, "TEST2023X01");
 		// Then
 		Assertions.assertThat(updates).isNotNull().hasSize(3);
 		Assertions.assertThat(updates.getFirst().getMode()).isEqualTo(Mode.WEB);
 	}
 
 	@Test
-	void shouldReturnEmptyList_IfIdUEsNotFoundInDataBase() {
+	void shouldReturnEmptyList_IfInterrogationIdsNotFoundInDataBase() {
 		//Given
-		when(mongoRepository.findByIdUEAndIdQuestionnaire(any(String.class),any(String.class))).thenReturn(List.of());
-		SurveyUnitModel id1 = SurveyUnitModel.builder().idUE("UE1100000001").build();
-		SurveyUnitModel id2 = SurveyUnitModel.builder().idUE("UE1100000002").build();
+		when(mongoRepository.findByInterrogationIdAndQuestionnaireId(any(String.class),any(String.class))).thenReturn(List.of());
+		SurveyUnitModel id1 = SurveyUnitModel.builder().interrogationId("UE1100000001").build();
+		SurveyUnitModel id2 = SurveyUnitModel.builder().interrogationId("UE1100000002").build();
 		List<SurveyUnitModel> ids = List.of(id1, id2);
 		// When
-		List<SurveyUnitModel> updates = surveyUnitMongoAdapter.findByIdUEsAndIdQuestionnaire(ids, "TEST2023X01");
+		List<SurveyUnitModel> updates = surveyUnitMongoAdapter.findByInterrogationIdsAndQuestionnaireId(ids, "TEST2023X01");
 		// Then
 		Assertions.assertThat(updates).isEmpty();
 	}

@@ -16,9 +16,9 @@ import java.util.Objects;
 @AllArgsConstructor
 public class SurveyUnitModel {
 
-	private String idQuest;
-	private String idCampaign;
-	private String idUE;
+	private String questionnaireId;
+	private String campaignId;
+	private String interrogationId;
 	private DataState state;
 	private Mode mode;
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'hh:mm")
@@ -31,8 +31,8 @@ public class SurveyUnitModel {
 
 	private String modifiedBy;
 
-	public SurveyUnitModel(String idUE, Mode mode) {
-		this.idUE = idUE;
+	public SurveyUnitModel(String interrogationId, Mode mode) {
+		this.interrogationId = interrogationId;
 		this.mode = mode;
 	}
 
@@ -45,11 +45,11 @@ public class SurveyUnitModel {
 			return false;
 		}
 		SurveyUnitModel that = (SurveyUnitModel) o;
-		return Objects.equals(idUE, that.idUE) && Objects.equals(mode, that.mode);
+		return Objects.equals(interrogationId, that.interrogationId) && Objects.equals(mode, that.mode);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(idUE) + Objects.hash(mode);
+		return Objects.hash(interrogationId) + Objects.hash(mode);
 	}
 }
