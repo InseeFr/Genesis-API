@@ -57,7 +57,6 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 	@Override
 	public List<SurveyUnitModel> findByInterrogationIdsAndQuestionnaireId(List<SurveyUnitModel> questionnaireIds, String questionnaireId) {
 		List<SurveyUnitDocument> surveyUnits= new ArrayList<>();
-		// TODO: 18-10-2023 : find a way to do this in one query
 		questionnaireIds.forEach(su -> {
 			List<SurveyUnitDocument> docs = mongoRepository.findByInterrogationIdAndQuestionnaireId(su.getInterrogationId(), questionnaireId);
 			surveyUnits.addAll(docs);

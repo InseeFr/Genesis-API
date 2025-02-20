@@ -19,7 +19,6 @@ import fr.insee.genesis.controller.utils.DataTransformer;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
-import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.exceptions.GenesisError;
@@ -61,7 +60,6 @@ import java.util.stream.Stream;
 @Slf4j
 public class ResponseController {
 
-    private static final String DDI_REGEX = "ddi[\\w,\\s-]+\\.xml";
     public static final String S_S = "%s/%s";
     private static final String CAMPAIGN_ERROR = "Error for campaign {}: {}";
     private static final String SUCCESS_MESSAGE = "Data saved";
@@ -69,7 +67,6 @@ public class ResponseController {
     public static final String TRY_TO_READ_XML_FILE = "Try to read Xml file : {}";
     private final SurveyUnitApiPort surveyUnitService;
     private final SurveyUnitQualityService surveyUnitQualityService;
-    private final LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort;
     private final FileUtils fileUtils;
     private final ControllerUtils controllerUtils;
     private final AuthUtils authUtils;
@@ -78,7 +75,6 @@ public class ResponseController {
 
     public ResponseController(SurveyUnitApiPort surveyUnitService,
                               SurveyUnitQualityService surveyUnitQualityService,
-                              LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort,
                               FileUtils fileUtils,
                               ControllerUtils controllerUtils,
                               AuthUtils authUtils,
@@ -86,7 +82,6 @@ public class ResponseController {
     ) {
         this.surveyUnitService = surveyUnitService;
         this.surveyUnitQualityService = surveyUnitQualityService;
-        this.lunaticJsonRawDataApiPort = lunaticJsonRawDataApiPort;
         this.fileUtils = fileUtils;
         this.controllerUtils = controllerUtils;
         this.authUtils = authUtils;

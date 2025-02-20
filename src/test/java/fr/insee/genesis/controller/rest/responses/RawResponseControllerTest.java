@@ -1,18 +1,9 @@
 package fr.insee.genesis.controller.rest.responses;
 
-import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.controller.dto.InterrogationId;
-import fr.insee.genesis.controller.services.MetadataService;
-import fr.insee.genesis.controller.utils.AuthUtils;
-import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
-import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService;
-import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
-import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
-import fr.insee.genesis.infrastructure.utils.FileUtils;
-import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.LunaticJsonPersistanceStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import org.assertj.core.api.Assertions;
@@ -32,30 +23,15 @@ class RawResponseControllerTest {
     static List<InterrogationId> interrogationIdList;
     //Constants
     static final String DEFAULT_INTERROGATION_ID = "TESTINTERROGATIONID";
-    static final String DEFAULT_QUESTIONNAIRE_ID = "TESTQUESTIONNAIREID";
-    static final String CAMPAIGN_ID_WITH_DDI = "SAMPLETEST-PARADATA-v1";
-    static final String QUESTIONNAIRE_ID_WITH_DDI = "SAMPLETEST-PARADATA-v1";
 
     @BeforeAll
     static void init() {
         surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
-        SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(surveyUnitPersistencePortStub);
-
 
         lunaticJsonPersistanceStub = new LunaticJsonPersistanceStub();
         LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort = new LunaticJsonRawDataService(lunaticJsonPersistanceStub);
 
-        Config config = new ConfigStub();
-        FileUtils fileUtils = new FileUtils(config);
-        rawResponseControllerStatic = new RawResponseController(
-                surveyUnitApiPort
-                , new SurveyUnitQualityService()
-                , lunaticJsonRawDataApiPort
-                , fileUtils
-                , new ControllerUtils(fileUtils)
-                , new AuthUtils(config),
-                new MetadataService()
-        );
+        rawResponseControllerStatic = new RawResponseController(lunaticJsonRawDataApiPort);
 
         interrogationIdList = new ArrayList<>();
         interrogationIdList.add(new InterrogationId(DEFAULT_INTERROGATION_ID));

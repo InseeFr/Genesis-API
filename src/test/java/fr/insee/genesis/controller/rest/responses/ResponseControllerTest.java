@@ -16,9 +16,7 @@ import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
-import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
-import fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
@@ -60,14 +58,12 @@ class ResponseControllerTest {
         SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(surveyUnitPersistencePortStub);
 
         lunaticJsonPersistanceStub = new LunaticJsonPersistanceStub();
-        LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort = new LunaticJsonRawDataService(lunaticJsonPersistanceStub);
 
         Config config = new ConfigStub();
         FileUtils fileUtils = new FileUtils(config);
         responseControllerStatic = new ResponseController(
                 surveyUnitApiPort
                 , new SurveyUnitQualityService()
-                , lunaticJsonRawDataApiPort
                 , fileUtils
                 , new ControllerUtils(fileUtils)
                 , new AuthUtils(config),
