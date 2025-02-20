@@ -340,18 +340,17 @@ class LunaticXmlAdapterTest {
     }
 
     @Test
-    @DisplayName("If a variable A not present in DDI and is the extension of a known variable B, then the variable A has B as related and is in the same group")
+    @DisplayName("If a variable A not present in DDI and is the extension of a known variable B, then the variable A is in the same group")
     void test10() {
         // When
         List<SurveyUnitModel> surveyUnitModels = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit7, metadataModel.getVariables(), CAMPAIGN_ID, Mode.WEB);
 
         // Then
         Assertions.assertThat(surveyUnitModels).hasSize(1);
-
         Assertions.assertThat(surveyUnitModels.getFirst().getCollectedVariables()).filteredOn(collectedVariableModel ->
-                collectedVariableModel.varId().equals("var1_MISSING")).isNotEmpty();
+                collectedVariableModel.varId().equals("var1_MISSING")).hasSize(2);
         Assertions.assertThat(surveyUnitModels.getFirst().getCollectedVariables().stream().filter(collectedVariableModel ->
-                collectedVariableModel.varId().equals("var1_MISSING")).toList().getFirst().parentId()).isNotNull().isEqualTo("var1");
+                collectedVariableModel.varId().equals("var1_MISSING")).toList().getFirst().parentId()).isNotNull().isEqualTo(Constants.ROOT_GROUP_NAME);
         Assertions.assertThat(surveyUnitModels.getFirst().getCollectedVariables().stream().filter(collectedVariableModel ->
                 collectedVariableModel.varId().equals("var1_MISSING")).toList().getFirst().scope()).isNotEqualTo(Constants.ROOT_GROUP_NAME).isEqualTo(LOOP_NAME);
     }
@@ -395,4 +394,5 @@ class LunaticXmlAdapterTest {
         Assertions.assertThat(surveyUnitModels.getFirst().getExternalVariables().getFirst().iteration()).isEqualTo(1);
         Assertions.assertThat(surveyUnitModels.getFirst().getExternalVariables().getFirst().parentId()).isEqualTo(Constants.ROOT_GROUP_NAME);
     }
+
 }
