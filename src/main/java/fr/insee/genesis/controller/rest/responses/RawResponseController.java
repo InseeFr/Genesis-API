@@ -6,7 +6,6 @@ import fr.insee.genesis.controller.utils.AuthUtils;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
-import fr.insee.genesis.domain.ports.api.LunaticXmlRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
@@ -34,7 +33,6 @@ public class RawResponseController {
     public static final String TRY_TO_READ_XML_FILE = "Try to read Xml file : {}";
     private final SurveyUnitApiPort surveyUnitService;
     private final SurveyUnitQualityService surveyUnitQualityService;
-    private final LunaticXmlRawDataApiPort lunaticXmlRawDataApiPort;
     private final LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort;
     private final FileUtils fileUtils;
     private final ControllerUtils controllerUtils;
@@ -44,7 +42,6 @@ public class RawResponseController {
 
     public RawResponseController(SurveyUnitApiPort surveyUnitService,
                                  SurveyUnitQualityService surveyUnitQualityService,
-                                 LunaticXmlRawDataApiPort lunaticXmlRawDataApiPort,
                                  LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort,
                                  FileUtils fileUtils,
                                  ControllerUtils controllerUtils,
@@ -53,7 +50,6 @@ public class RawResponseController {
     ) {
         this.surveyUnitService = surveyUnitService;
         this.surveyUnitQualityService = surveyUnitQualityService;
-        this.lunaticXmlRawDataApiPort = lunaticXmlRawDataApiPort;
         this.lunaticJsonRawDataApiPort = lunaticJsonRawDataApiPort;
         this.fileUtils = fileUtils;
         this.controllerUtils = controllerUtils;

@@ -24,7 +24,6 @@ import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.LunaticJsonPersistanceStub;
-import fr.insee.genesis.stubs.LunaticXmlPersistanceStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -47,7 +46,6 @@ class ResponseControllerTest {
     //Given
     static ResponseController responseControllerStatic;
     static SurveyUnitPersistencePortStub surveyUnitPersistencePortStub;
-    static LunaticXmlPersistanceStub lunaticXmlPersistanceStub;
     static LunaticJsonPersistanceStub lunaticJsonPersistanceStub;
     static List<InterrogationId> interrogationIdList;
     //Constants
@@ -60,8 +58,6 @@ class ResponseControllerTest {
     static void init() {
         surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
         SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(surveyUnitPersistencePortStub);
-
-        lunaticXmlPersistanceStub = new LunaticXmlPersistanceStub();
 
         lunaticJsonPersistanceStub = new LunaticJsonPersistanceStub();
         LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort = new LunaticJsonRawDataService(lunaticJsonPersistanceStub);

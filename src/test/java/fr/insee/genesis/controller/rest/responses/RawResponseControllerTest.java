@@ -7,16 +7,13 @@ import fr.insee.genesis.controller.utils.AuthUtils;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
-import fr.insee.genesis.domain.ports.api.LunaticXmlRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService;
-import fr.insee.genesis.domain.service.rawdata.LunaticXmlRawDataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.LunaticJsonPersistanceStub;
-import fr.insee.genesis.stubs.LunaticXmlPersistanceStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -31,7 +28,6 @@ class RawResponseControllerTest {
     //Given
     static RawResponseController rawResponseControllerStatic;
     static SurveyUnitPersistencePortStub surveyUnitPersistencePortStub;
-    static LunaticXmlPersistanceStub lunaticXmlPersistanceStub;
     static LunaticJsonPersistanceStub lunaticJsonPersistanceStub;
     static List<InterrogationId> interrogationIdList;
     //Constants
@@ -45,8 +41,6 @@ class RawResponseControllerTest {
         surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
         SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(surveyUnitPersistencePortStub);
 
-        lunaticXmlPersistanceStub = new LunaticXmlPersistanceStub();
-        LunaticXmlRawDataApiPort lunaticXmlRawDataApiPort = new LunaticXmlRawDataService(lunaticXmlPersistanceStub);
 
         lunaticJsonPersistanceStub = new LunaticJsonPersistanceStub();
         LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort = new LunaticJsonRawDataService(lunaticJsonPersistanceStub);
@@ -56,7 +50,6 @@ class RawResponseControllerTest {
         rawResponseControllerStatic = new RawResponseController(
                 surveyUnitApiPort
                 , new SurveyUnitQualityService()
-                , lunaticXmlRawDataApiPort
                 , lunaticJsonRawDataApiPort
                 , fileUtils
                 , new ControllerUtils(fileUtils)
