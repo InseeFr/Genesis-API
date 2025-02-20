@@ -122,7 +122,7 @@ public class MainDefinitions {
 
     @When("We save data from that directory")
     public void get_su_models_from_folder() throws Exception {
-        responseController.saveResponsesFromXmlCampaignFolder(this.inDirectory.getFileName().toString(), null, true);
+        responseController.saveResponsesFromXmlCampaignFolder(this.inDirectory.getFileName().toString(), null);
     }
 
     @When("We delete that directory")

@@ -121,8 +121,7 @@ public class ResponseController {
     @Operation(summary = "Save multiple files to Genesis Database from the campaign root folder")
     @PutMapping(path = "/lunatic-xml/save-folder")
     public ResponseEntity<Object> saveResponsesFromXmlCampaignFolder(@RequestParam("campaignName") String campaignName,
-                                                                     @RequestParam(value = "mode", required = false) Mode modeSpecified,
-                                                                     @RequestParam(value = "withDDI", defaultValue = "true") boolean withDDI
+                                                                     @RequestParam(value = "mode", required = false) Mode modeSpecified
     )throws Exception {
         List<GenesisError> errors = new ArrayList<>();
         boolean isAnyDataSaved = false;
@@ -132,7 +131,7 @@ public class ResponseController {
         List<Mode> modesList = controllerUtils.getModesList(campaignName, modeSpecified);
         for (Mode currentMode : modesList) {
             try {
-                processCampaignWithMode(campaignName, currentMode, errors, null, withDDI);
+                processCampaignWithMode(campaignName, currentMode, errors, null);
                 isAnyDataSaved = true;
             }catch (NoDataException nde){
                 //Don't stop if NoDataError thrown
@@ -353,43 +352,13 @@ public class ResponseController {
     }
 
     //Utilities
-
-    /**
-     * Checks if DDI is present for a campaign and mode or not and processes it accordingly
-     * @param campaignName name of campaign
-     * @param currentMode mode of collected data
-     * @param errors error list to fill
-     */
-    private void processCampaignWithMode(String campaignName, Mode currentMode, List<GenesisError> errors, String rootDataFolder) throws GenesisException,
-            SAXException, XMLStreamException, NoDataException {
-        try {
-            fileUtils.findFile(String.format(S_S, fileUtils.getSpecFolder(campaignName),currentMode), DDI_REGEX);
-            //DDI if DDI file found
-            processCampaignWithMode(campaignName, currentMode, errors, rootDataFolder, true);
-        }catch (RuntimeException re){
-            //Lunatic if no DDI
-            log.info("No DDI File found for {}, {} mode. Will try to use Lunatic...", campaignName,
-                    currentMode.getModeName());
-            try{
-                processCampaignWithMode(campaignName, currentMode, errors, rootDataFolder, false);
-            } catch (IOException | ParserConfigurationException e) {
-                throw new GenesisException(500, e.toString());
-            }
-        }catch (IOException | ParserConfigurationException e){
-            log.error(e.toString());
-            throw new GenesisException(500, e.toString());
-        }
-    }
-
-
     /**
      * Process a campaign with a specific mode
      * @param campaignName name of campaign
      * @param mode mode of collected data
      * @param errors error list to fill
-     * @param withDDI true if it uses DDI, false if Lunatic
      */
-    private void processCampaignWithMode(String campaignName, Mode mode, List<GenesisError> errors, String rootDataFolder, boolean withDDI)
+    private void processCampaignWithMode(String campaignName, Mode mode, List<GenesisError> errors, String rootDataFolder)
             throws IOException, ParserConfigurationException, SAXException, XMLStreamException, NoDataException {
         log.info("Try to import data for mode : {}", mode.getModeName());
         String dataFolder = rootDataFolder == null ?

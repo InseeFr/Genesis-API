@@ -63,10 +63,10 @@ public class MetadataService {
             variablesMap = parseMetadata(ddiFilePath.toString(), true);
 
         } catch (IOException e) {
-            log.warn("Can't find DDI, trying with lunatic...");
+            log.warn("No DDI File found for {}, {} mode. Will try to use Lunatic...", campaignName, modeName);
         }
-        if(variablesMap == null){
-            log.warn("DDI not found or error occurred. Trying Lunatic metadata...");
+        if(variablesMap == null ){
+            log.warn("DDI not found or error occurred. Trying Lunatic metadata...for {}, {} mode", campaignName, modeName);
             try {
                 Path lunaticFilePath = fileUtils.findFile(String.format("%s/%s", fileUtils.getSpecFolder(campaignName), modeName), LUNATIC_FILE_PATTERN);
                 return parseMetadata(lunaticFilePath.toString(), false);

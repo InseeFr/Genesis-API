@@ -115,7 +115,6 @@ class ResponseControllerTest {
         responseControllerStatic.saveResponsesFromXmlCampaignFolder(
                 "SAMPLETEST-PARADATA-v1"
                 , Mode.WEB
-                , true
         );
 
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).isNotEmpty();
@@ -128,7 +127,6 @@ class ResponseControllerTest {
         responseControllerStatic.saveResponsesFromXmlCampaignFolder(
                 "TESTNODATA"
                 , Mode.WEB
-                , true
         );
 
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).isEmpty();
