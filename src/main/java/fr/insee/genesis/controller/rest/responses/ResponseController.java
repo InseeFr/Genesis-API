@@ -20,7 +20,6 @@ import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
-import fr.insee.genesis.domain.ports.api.LunaticXmlRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.exceptions.GenesisError;
@@ -70,7 +69,6 @@ public class ResponseController {
     public static final String TRY_TO_READ_XML_FILE = "Try to read Xml file : {}";
     private final SurveyUnitApiPort surveyUnitService;
     private final SurveyUnitQualityService surveyUnitQualityService;
-    private final LunaticXmlRawDataApiPort lunaticXmlRawDataApiPort;
     private final LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort;
     private final FileUtils fileUtils;
     private final ControllerUtils controllerUtils;
@@ -80,7 +78,6 @@ public class ResponseController {
 
     public ResponseController(SurveyUnitApiPort surveyUnitService,
                               SurveyUnitQualityService surveyUnitQualityService,
-                              LunaticXmlRawDataApiPort lunaticXmlRawDataApiPort,
                               LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort,
                               FileUtils fileUtils,
                               ControllerUtils controllerUtils,
@@ -89,7 +86,6 @@ public class ResponseController {
     ) {
         this.surveyUnitService = surveyUnitService;
         this.surveyUnitQualityService = surveyUnitQualityService;
-        this.lunaticXmlRawDataApiPort = lunaticXmlRawDataApiPort;
         this.lunaticJsonRawDataApiPort = lunaticJsonRawDataApiPort;
         this.fileUtils = fileUtils;
         this.controllerUtils = controllerUtils;
@@ -439,43 +435,6 @@ public class ResponseController {
         }
     }
 
-    private void processRawCampaignWithMode(String campaignName,
-                                            Mode mode,
-                                            String rootDataFolder
-    ) throws IOException, ParserConfigurationException, SAXException, NoDataException {
-        log.info("Try to import data for mode : {}", mode.getModeName());
-        String dataFolder = rootDataFolder == null ?
-                fileUtils.getDataFolder(campaignName, mode.getFolder(), null)
-                : fileUtils.getDataFolder(campaignName, mode.getFolder(), rootDataFolder);
-        List<String> dataFiles = fileUtils.listFiles(dataFolder);
-        log.info("Numbers of files to load in folder {} : {}", dataFolder, dataFiles.size());
-        if (dataFiles.isEmpty()) {
-            throw new NoDataException("No data file found in folder %s".formatted(dataFolder));
-        }
-
-        //For each XML data file
-        for (String fileName : dataFiles.stream().filter(s -> s.endsWith(".xml")).toList()) {
-            String filepathString = String.format(S_S, dataFolder, fileName);
-            Path filepath = Paths.get(filepathString);
-            //Check if file not in done folder, delete if true
-            if(isDataFileInDoneFolder(filepath, campaignName, mode.getFolder())){
-                log.warn("File {} already exists in DONE folder ! Deleting...", fileName);
-                Files.deleteIfExists(filepath);
-                return;
-            }
-            //Read file
-            log.info(TRY_TO_READ_XML_FILE, fileName);
-            ResponseEntity<Object> response = processRawXmlFile(filepath, mode);
-
-            log.debug("File {} saved", fileName);
-            if(response.getStatusCode() == HttpStatus.OK){
-                fileUtils.moveDataFile(campaignName, mode.getFolder(), filepath);
-                return;
-            }
-            log.error("Error on file {}", fileName);
-        }
-    }
-
 
 
     private boolean isDataFileInDoneFolder(Path filepath, String campaignName, String modeFolder) {
@@ -507,26 +466,6 @@ public class ResponseController {
         return ResponseEntity.ok().build();
     }
 
-    private ResponseEntity<Object> processRawXmlFile(Path filepath, Mode modeSpecified) throws IOException,
-            ParserConfigurationException, SAXException {
-        LunaticXmlCampaign campaign;
-        // DOM method
-        LunaticXmlDataParser parser = new LunaticXmlDataParser();
-        try {
-            campaign = parser.parseDataFile(filepath);
-        } catch (GenesisException e) {
-            log.error(e.toString());
-            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
-        }
-
-        log.debug("Begin saving raw xml data file {}", filepath);
-        lunaticXmlRawDataApiPort.saveData(campaign, modeSpecified);
-        log.debug(SUCCESS_MESSAGE);
-
-
-        log.info("File {} processed" , filepath.getFileName());
-        return ResponseEntity.ok().build();
-    }
 
     private ResponseEntity<Object> processXmlFileSequentially(Path filepath, Mode modeSpecified, VariablesMap variablesMap) throws IOException, XMLStreamException {
         LunaticXmlCampaign campaign;

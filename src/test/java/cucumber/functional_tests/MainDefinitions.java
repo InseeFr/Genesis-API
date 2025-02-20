@@ -21,14 +21,12 @@ import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService;
-import fr.insee.genesis.domain.service.rawdata.LunaticXmlRawDataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.LunaticJsonPersistanceStub;
-import fr.insee.genesis.stubs.LunaticXmlPersistanceStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
@@ -65,7 +63,6 @@ public class MainDefinitions {
     ResponseController responseController = new ResponseController(
             new SurveyUnitService(surveyUnitPersistence),
             surveyUnitQualityService,
-            new LunaticXmlRawDataService(new LunaticXmlPersistanceStub()),
             new LunaticJsonRawDataService(new LunaticJsonPersistanceStub()),
             new FileUtils(config),
             new ControllerUtils(new FileUtils(config)),
