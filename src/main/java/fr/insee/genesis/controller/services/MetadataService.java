@@ -62,6 +62,8 @@ public class MetadataService {
             ddiFilePath = fileUtils.findFile(String.format("%s/%s", fileUtils.getSpecFolder(campaignName), modeName), DDI_FILE_PATTERN);
             variablesMap = parseMetadata(ddiFilePath.toString(), true);
 
+        } catch (RuntimeException e) {
+            //DDI file not found and already log - Go to next step
         } catch (IOException e) {
             log.warn("No DDI File found for {}, {} mode. Will try to use Lunatic...", campaignName, modeName);
         }
