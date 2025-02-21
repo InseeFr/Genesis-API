@@ -1,21 +1,26 @@
 package fr.insee.genesis.domain.service.rawdata;
 
 import com.fasterxml.jackson.core.JacksonException;
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.dto.rawdata.LunaticJsonRawDataUnprocessedDto;
-import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
-import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonDataModel;
+import fr.insee.genesis.domain.model.surveyunit.VariableModel;
+import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawData;
+import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataCollectedVariable;
+import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
+import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataVariable;
+import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataVariableType;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
-import fr.insee.genesis.domain.ports.spi.LunaticJsonPersistancePort;
+import fr.insee.genesis.domain.ports.spi.LunaticJsonRawDataPersistancePort;
 import fr.insee.genesis.domain.utils.LoopIdentifier;
-import fr.insee.genesis.infrastructure.document.rawdata.LunaticJsonDataDocument;
+import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.infrastructure.mappers.LunaticJsonDocumentMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -23,46 +28,67 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Service
 @Slf4j
 public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     @Qualifier("lunaticJsonMongoAdapter")
-    private final LunaticJsonPersistancePort lunaticJsonPersistancePort;
+    private final LunaticJsonRawDataPersistancePort lunaticJsonRawDataPersistancePort;
 
     @Autowired
-    public LunaticJsonRawDataService(LunaticJsonPersistancePort lunaticJsonPersistancePort) {
-        this.lunaticJsonPersistancePort = lunaticJsonPersistancePort;
+    public LunaticJsonRawDataService(LunaticJsonRawDataPersistancePort lunaticJsonRawDataPersistancePort) {
+        this.lunaticJsonRawDataPersistancePort = lunaticJsonRawDataPersistancePort;
     }
 
     @Override
-    public void saveData(String campaignName, String idQuest, String idUE, String dataJson, Mode mode) throws JsonParseException {
-        if(!isJsonValid(dataJson)){
-            throw new JsonParseException("Invalid JSON synthax");
-        }
-        LunaticJsonDataModel lunaticJsonDataModel = LunaticJsonDataModel.builder()
-                .campaignId(campaignName)
-                .idQuest(idQuest)
-                .idUE(idUE)
-                .mode(mode)
-                .dataJson(dataJson)
-                .recordDate(LocalDateTime.now())
-                .build();
+    public void saveData(String campaignName, String questionnaireId, String interrogationId, String dataJson,
+                         Mode mode) throws GenesisException {
+        ObjectMapper mapper = new ObjectMapper()
+                .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
+        try {
+            JsonNode rootNode = mapper.readTree(dataJson);
+            if (!rootNode.has(LunaticJsonRawDataVariableType.COLLECTED.getJsonNodeName())
+                    && !rootNode.has(LunaticJsonRawDataVariableType.EXTERNAL.getJsonNodeName())
+            ) {
+                throw new GenesisException(400, "Invalid JSON : needs at least COLLECTED or EXTERNAL in root");
+            }
 
-        lunaticJsonPersistancePort.save(lunaticJsonDataModel);
+            LunaticJsonRawData rawData = new LunaticJsonRawData(
+                    getCollectedVariablesFromJson(rootNode),
+                    getOtherVariablesFromJson(rootNode, LunaticJsonRawDataVariableType.EXTERNAL)
+            );
+
+            LunaticJsonRawDataModel lunaticJsonRawDataModel = LunaticJsonRawDataModel.builder()
+                    .campaignId(campaignName)
+                    .questionnaireId(questionnaireId)
+                    .interrogationId(interrogationId)
+                    .mode(mode)
+                    .data(rawData)
+                    .recordDate(LocalDateTime.now())
+                    .build();
+
+            lunaticJsonRawDataPersistancePort.save(lunaticJsonRawDataModel);
+        } catch (JacksonException e) {
+            throw new GenesisException(400, "Invalid JSON synthax : %s".formatted(e.getOriginalMessage()));
+        }
     }
 
     @Override
     public List<LunaticJsonRawDataUnprocessedDto> getUnprocessedDataIds() {
         List<LunaticJsonRawDataUnprocessedDto> dtos = new ArrayList<>();
 
-        for(LunaticJsonDataModel dataModel : lunaticJsonPersistancePort.getAllUnprocessedData()){
+        for (LunaticJsonRawDataModel dataModel : lunaticJsonRawDataPersistancePort.getAllUnprocessedData()) {
             dtos.add(LunaticJsonRawDataUnprocessedDto.builder()
                     .campaignId(dataModel.campaignId())
-                    .idUE(dataModel.idUE())
+                    .interrogationId(dataModel.interrogationId())
                     .build()
             );
         }
@@ -74,47 +100,158 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     public List<SurveyUnitModel> parseRawData(
             String campaignName,
             Mode mode,
-            List<String> idUEList,
+            List<String> interrogationIdList,
             VariablesMap variablesMap
     ) {
         //Get concerned raw data
-        List<LunaticJsonDataDocument> rawDataList = lunaticJsonPersistancePort.findRawData(campaignName, mode, idUEList);
-
+        List<LunaticJsonRawDataModel> rawDataList = LunaticJsonDocumentMapper.INSTANCE.listDocumentToListModel(
+                lunaticJsonRawDataPersistancePort.findRawData(campaignName, mode, interrogationIdList)
+        );
         //Convert to genesis model
         List<SurveyUnitModel> surveyUnitModels = new ArrayList<>();
-        for(LunaticJsonDataDocument rawData : rawDataList){
-            SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
-                            .idCampaign(campaignName)
-                            .idQuest(rawData.getIdQuest())
-                            .mode(rawData.getMode())
-                            .idUE(rawData.getIdUE())
-                            .state(DataState.COLLECTED)
-                            .fileDate(rawData.getRecordDate())
-                            .recordDate(LocalDateTime.now())
-                            .collectedVariables(new ArrayList<>())
-                    .build();
 
-            //Data variables convertion
-            for(String variableName : rawData.getData().keySet()){
-                VariableModel variableModel = VariableModel.builder()
-                        .idVar(variableName)
-                        .values(new ArrayList<>())
-                        .idLoop(getIdLoop(variablesMap, variableName))
-                        .idParent(LoopIdentifier.getRelatedVariableName(variableName, variablesMap))
+        //For each possible data state
+        for(DataState dataState : getRawDataStates(rawDataList)){
+            for (LunaticJsonRawDataModel rawData : rawDataList) {
+                SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
+                        .campaignId(campaignName)
+                        .questionnaireId(rawData.questionnaireId())
+                        .mode(rawData.mode())
+                        .interrogationId(rawData.interrogationId())
+                        .state(dataState)
+                        .fileDate(rawData.recordDate())
+                        .recordDate(LocalDateTime.now())
+                        .collectedVariables(new ArrayList<>())
+                        .externalVariables(new ArrayList<>())
                         .build();
 
-                variableModel.values().add(rawData.getData().get(variableName).toString());
+                //Data collected variables conversion
+                processRawDataCollectedVariables(rawData, surveyUnitModel, dataState, variablesMap);
 
-                surveyUnitModel.getCollectedVariables().add(variableModel);
+                //External variables conversion into COLLECTED document
+                if(dataState.equals(DataState.COLLECTED)){
+                    processRawDataExtractedVariables(rawData, surveyUnitModel, variablesMap);
+                }
+
+                if(!surveyUnitModel.getCollectedVariables().isEmpty()
+                    || !surveyUnitModel.getExternalVariables().isEmpty()
+                ){
+                    surveyUnitModels.add(surveyUnitModel);
+                }
             }
-            surveyUnitModels.add(surveyUnitModel);
         }
 
         return surveyUnitModels;
     }
 
+    private static void processRawDataExtractedVariables(
+            LunaticJsonRawDataModel srcRawData,
+            SurveyUnitModel dstSurveyUnitModel,
+            VariablesMap variablesMap
+    ) {
+        for(Map.Entry<String, LunaticJsonRawDataVariable> externalVariableEntry
+                : srcRawData.data().externalVariables().entrySet()){
+            //Value
+            if(externalVariableEntry.getValue().value() != null){
+                VariableModel externalVariableModel = VariableModel.builder()
+                        .varId(externalVariableEntry.getKey())
+                        .value(externalVariableEntry.getValue().value())
+                        .scope(getIdLoop(variablesMap, externalVariableEntry.getKey()))
+                        .iteration(1)
+                        .parentId(LoopIdentifier.getRelatedVariableName(externalVariableEntry.getKey(), variablesMap))
+                        .build();
+
+                dstSurveyUnitModel.getExternalVariables().add(externalVariableModel);
+                continue;
+            }
+            //Array of values
+            if(externalVariableEntry.getValue().valuesArray() != null){
+                int iteration = 1;
+                for(String value : externalVariableEntry.getValue().valuesArray()) {
+                    VariableModel externalVariableModel = VariableModel.builder()
+                            .varId(externalVariableEntry.getKey())
+                            .value(value)
+                            .scope(getIdLoop(variablesMap, externalVariableEntry.getKey()))
+                            .iteration(iteration)
+                            .parentId(LoopIdentifier.getRelatedVariableName(externalVariableEntry.getKey(),
+                                    variablesMap))
+                            .build();
+
+                    dstSurveyUnitModel.getExternalVariables().add(externalVariableModel);
+                    iteration++;
+                }
+            }
+        }
+    }
+
+    private void processRawDataCollectedVariables(
+            LunaticJsonRawDataModel srcRawData,
+            SurveyUnitModel dstSurveyUnitModel,
+            DataState dataState,
+            VariablesMap variablesMap
+    ) {
+        for(Map.Entry<String, LunaticJsonRawDataCollectedVariable> collectedVariable
+                : srcRawData.data().collectedVariables().entrySet()) {
+
+            //Skip if collected variable does not have state
+            if(!collectedVariable.getValue().collectedVariableByStateMap().containsKey(dataState)){
+                continue;
+            }
+
+            //Value
+            if (collectedVariable.getValue().collectedVariableByStateMap().get(dataState).value() != null
+                    //To avoid case when both values
+                    && collectedVariable.getValue().collectedVariableByStateMap().get(dataState).valuesArray() == null
+            ) {
+                VariableModel collectedVariableModel = VariableModel.builder()
+                        .varId(collectedVariable.getKey())
+                        .value(collectedVariable.getValue().collectedVariableByStateMap().get(dataState).value())
+                        .scope(getIdLoop(variablesMap, collectedVariable.getKey()))
+                        .iteration(1)
+                        .parentId(LoopIdentifier.getRelatedVariableName(collectedVariable.getKey(), variablesMap))
+                        .build();
+                dstSurveyUnitModel.getCollectedVariables().add(collectedVariableModel);
+            }
+
+            //Array of values
+            if(collectedVariable.getValue().collectedVariableByStateMap().get(dataState).valuesArray() != null) {
+                int iteration = 1;
+                for (String value :
+                        collectedVariable.getValue().collectedVariableByStateMap().get(dataState).valuesArray()) {
+                    VariableModel collectedVariableModel = VariableModel.builder()
+                            .varId(collectedVariable.getKey())
+                            .value(value)
+                            .scope(getIdLoop(variablesMap, collectedVariable.getKey()))
+                            .iteration(iteration)
+                            .parentId(LoopIdentifier.getRelatedVariableName(collectedVariable.getKey(), variablesMap))
+                            .build();
+                    dstSurveyUnitModel.getCollectedVariables().add(collectedVariableModel);
+                    iteration++;
+                }
+            }
+        }
+    }
+
+    /**
+     * Get all possible DataStates in a list of raw data models
+     * @param rawDataList a list containing raw data models
+     * @return a set containing all present DataStates
+     */
+    Set<DataState> getRawDataStates(List<LunaticJsonRawDataModel> rawDataList) {
+        Set<DataState> dataStates = new HashSet<>();
+        for(LunaticJsonRawDataModel lunaticJsonRawDataModel : rawDataList){
+            for(Map.Entry<String, LunaticJsonRawDataCollectedVariable> variable : lunaticJsonRawDataModel.data().collectedVariables().entrySet()){
+                dataStates.addAll(variable.getValue().collectedVariableByStateMap().keySet());
+            }
+            if(!lunaticJsonRawDataModel.data().externalVariables().isEmpty()){
+                dataStates.add(DataState.COLLECTED);
+            }
+        }
+        return dataStates;
+    }
+
     private static String getIdLoop(VariablesMap variablesMap, String variableName) {
-        if (variablesMap.getVariable(variableName) == null){
+        if (variablesMap.getVariable(variableName) == null) {
             log.warn("Variable {} not present in metadatas, assigning to {}", variableName, Constants.ROOT_GROUP_NAME);
             return Constants.ROOT_GROUP_NAME;
         }
@@ -124,31 +261,126 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     @Override
     public void updateProcessDates(List<SurveyUnitModel> surveyUnitModels) {
         Set<String> campaignIds = new HashSet<>();
-        for(SurveyUnitModel surveyUnitModel : surveyUnitModels){
-            campaignIds.add(surveyUnitModel.getIdCampaign());
+        for (SurveyUnitModel surveyUnitModel : surveyUnitModels) {
+            campaignIds.add(surveyUnitModel.getCampaignId());
         }
 
-        for(String campaignId : campaignIds){
-            Set<String> idUEs = new HashSet<>();
-            for(SurveyUnitModel surveyUnitModel :
+        for (String campaignId : campaignIds) {
+            Set<String> interrogationIds = new HashSet<>();
+            for (SurveyUnitModel surveyUnitModel :
                     surveyUnitModels.stream().filter(
-                            surveyUnitModel -> surveyUnitModel.getIdCampaign().equals(campaignId)
-                            ).toList()){
-                idUEs.add(surveyUnitModel.getIdUE());
+                            surveyUnitModel -> surveyUnitModel.getCampaignId().equals(campaignId)
+                    ).toList()) {
+                interrogationIds.add(surveyUnitModel.getInterrogationId());
             }
-            lunaticJsonPersistancePort.updateProcessDates(campaignId, idUEs);
+            lunaticJsonRawDataPersistancePort.updateProcessDates(campaignId, interrogationIds);
         }
     }
 
+    /**
+     * Parse collected variables from raw data JSON
+     * @param rootNode root JSON node of input raw data
+     * @return a map of collected variables with the name of the variable as key
+     * @throws GenesisException if any problem during parsing
+     */
+    private Map<String, LunaticJsonRawDataCollectedVariable> getCollectedVariablesFromJson(JsonNode rootNode) throws GenesisException {
+        Map<String, LunaticJsonRawDataCollectedVariable> lunaticJsonRawDataCollectedVariables = new HashMap<>();
 
-    private boolean isJsonValid(String json) {
-        ObjectMapper mapper = new ObjectMapper()
-                .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
-        try {
-            mapper.readTree(json);
-        } catch (JacksonException e) {
-            return false;
+        if(!rootNode.has(LunaticJsonRawDataVariableType.COLLECTED.getJsonNodeName())){
+            return lunaticJsonRawDataCollectedVariables;
         }
-        return true;
+
+        Iterator<Map.Entry<String, JsonNode>> variables =
+                rootNode.get(LunaticJsonRawDataVariableType.COLLECTED.getJsonNodeName()).fields();
+        while (variables.hasNext()) {
+            Map.Entry<String, JsonNode> variableNode = variables.next();
+            LunaticJsonRawDataCollectedVariable lunaticJsonRawDataCollectedVariable =
+                    LunaticJsonRawDataCollectedVariable.builder()
+                            .collectedVariableByStateMap(new EnumMap<>(DataState.class))
+                            .build();
+            Iterator<Map.Entry<String, JsonNode>> states =
+                    variableNode.getValue().fields();
+
+            if(!states.hasNext()){
+                throw new GenesisException(400, "Invalid JSON structure: Variable %s does not have any state (%s)"
+                        .formatted(variableNode.getKey(), Arrays.stream(DataState.values()).toList()));
+            }
+
+            while (states.hasNext()){
+                Map.Entry<String, JsonNode> stateNode = states.next();
+
+                DataState dataState;
+                //Check if data state (ex: COLLECTED) is in enum
+                try{
+                    dataState = DataState.valueOf(stateNode.getKey());
+                }catch (IllegalArgumentException e){
+                    throw new GenesisException(400, "Invalid JSON : Data state %s contained in variable %s is not supported"
+                            .formatted(stateNode.getKey(), variableNode.getKey()));
+                }
+
+                //Parse values
+                LunaticJsonRawDataVariable lunaticJsonRawDataVariable;
+                if (stateNode.getValue().isArray()) {
+                    //If is array of values
+                    lunaticJsonRawDataVariable = LunaticJsonRawDataVariable.builder()
+                            .valuesArray(new ArrayList<>())
+                            .build();
+                    for (JsonNode valueNode : stateNode.getValue()) {
+                        lunaticJsonRawDataVariable.valuesArray().add(valueNode.asText());
+                    }
+                } else {
+                    //If only 1 value
+                    lunaticJsonRawDataVariable = LunaticJsonRawDataVariable.builder()
+                            .value(stateNode.getValue().asText())
+                            .build();
+                }
+                lunaticJsonRawDataCollectedVariable.collectedVariableByStateMap().put(dataState, lunaticJsonRawDataVariable);
+            }
+            lunaticJsonRawDataCollectedVariables.put(variableNode.getKey(), lunaticJsonRawDataCollectedVariable);
+        }
+        return lunaticJsonRawDataCollectedVariables;
+    }
+
+    /**
+     * Parse other than collected variables from raw data JSON
+     * These variables are defined by the lack of state (COLLECTED, EDITED...) in their structure
+     * @param rootNode root JSON node of input raw data
+     * @return a map of variables with the name of the variable as key
+     * @throws GenesisException if any problem during parsing
+     */
+    private Map<String, LunaticJsonRawDataVariable> getOtherVariablesFromJson(
+            JsonNode rootNode,
+            //Don't mind the warning, we expect only EXTERNAL for now but this method is open for another types
+            LunaticJsonRawDataVariableType variableType
+    ) {
+
+        if (!rootNode.has(variableType.getJsonNodeName())) {
+            return new HashMap<>();
+        }
+
+        //Parse from json
+        Map<String, LunaticJsonRawDataVariable> lunaticJsonRawDataVariables = new HashMap<>();
+        Iterator<Map.Entry<String, JsonNode>> variables = rootNode.get(variableType.getJsonNodeName()).fields();
+        while (variables.hasNext()) {
+            Map.Entry<String, JsonNode> variableNode = variables.next();
+            LunaticJsonRawDataVariable lunaticJsonRawDataVariable;
+            if (variableNode.getValue().isArray()) {
+                //If is array of values
+                lunaticJsonRawDataVariable = LunaticJsonRawDataVariable.builder()
+                        .valuesArray(new ArrayList<>())
+                        .build();
+                for (JsonNode valueNode : variableNode.getValue()) {
+                    lunaticJsonRawDataVariable.valuesArray().add(valueNode.asText());
+                }
+                lunaticJsonRawDataVariables.put(variableNode.getKey(), lunaticJsonRawDataVariable);
+            } else {
+                //If only 1 value
+                lunaticJsonRawDataVariable = LunaticJsonRawDataVariable.builder()
+                        .value(variableNode.getValue().asText())
+                        .build();
+            }
+            lunaticJsonRawDataVariables.put(variableNode.getKey(), lunaticJsonRawDataVariable);
+        }
+        return lunaticJsonRawDataVariables;
     }
 }

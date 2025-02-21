@@ -1,16 +1,15 @@
 package fr.insee.genesis.controller.rest.responses;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import fr.insee.bpm.exceptions.MetadataParserException;
 import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.bpm.metadata.reader.ddi.DDIReader;
 import fr.insee.bpm.metadata.reader.lunatic.LunaticReader;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.adapter.LunaticXmlAdapter;
-import fr.insee.genesis.controller.dto.SurveyUnitDto;
-import fr.insee.genesis.controller.dto.SurveyUnitQualityToolDto;
 import fr.insee.genesis.controller.dto.InterrogationId;
+import fr.insee.genesis.controller.dto.SurveyUnitDto;
 import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
+import fr.insee.genesis.controller.dto.SurveyUnitQualityToolDto;
 import fr.insee.genesis.controller.dto.SurveyUnitSimplified;
 import fr.insee.genesis.controller.dto.rawdata.LunaticJsonRawDataUnprocessedDto;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlCampaign;
@@ -210,24 +209,24 @@ public class ResponseController {
     @PutMapping(path = "/lunatic-json/raw/save-one")
     public ResponseEntity<Object> saveRawResponsesFromJsonBody(
             @RequestParam("campaignName") String campaignName,
-            @RequestParam("idQuest") String idQuest,
-            @RequestParam("idUE") String idUE,
+            @RequestParam("questionnaireId") String questionnaireId,
+            @RequestParam("interrogationId") String interrogationId,
             @RequestParam(value = "mode") Mode modeSpecified,
             @RequestBody String dataJson
     ) {
         log.info("Try to import raw lunatic JSON data for campaign: {}", campaignName);
         try {
-            lunaticJsonRawDataApiPort.saveData(campaignName, idQuest, idUE, dataJson, modeSpecified);
-        }catch (JsonProcessingException jpe){
-            log.error(jpe.toString());
-            return ResponseEntity.badRequest().body("Invalid JSON synthax");
+            lunaticJsonRawDataApiPort.saveData(campaignName, questionnaireId, interrogationId, dataJson, modeSpecified);
+        }catch (GenesisException e){
+            log.error(e.getMessage());
+            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
         }
         log.info("Data saved for {}", campaignName);
         return ResponseEntity.ok(SUCCESS_MESSAGE);
     }
 
     //GET unprocessed
-    @Operation(summary = "Get campaign id and idUE from all unprocessed raw json data")
+    @Operation(summary = "Get campaign id and interrogationId from all unprocessed raw json data")
     @GetMapping(path = "/lunatic-json/raw/get/unprocessed")
     public ResponseEntity<List<LunaticJsonRawDataUnprocessedDto>> getUnproccessedJsonRawData(){
         log.info("Try to get unprocessed raw JSON datas...");
@@ -240,9 +239,9 @@ public class ResponseController {
     public ResponseEntity<Object> processJsonRawData(
             @RequestParam("campaignName") String campaignName,
             @RequestParam("questionnaireId") String questionnaireId,
-            @RequestBody List<String> idUEList
+            @RequestBody List<String> interrogationIdList
     ){
-        log.info("Try to process raw JSON datas for campaign {} and {} idUEs", campaignName, idUEList.size());
+        log.info("Try to process raw JSON datas for campaign {} and {} interrogationIds", campaignName, interrogationIdList.size());
 
         int dataCount = 0;
         List<GenesisError> errors = new ArrayList<>();
@@ -263,7 +262,7 @@ public class ResponseController {
                 List<SurveyUnitModel> surveyUnitModels = lunaticJsonRawDataApiPort.parseRawData(
                         campaignName,
                         mode,
-                        idUEList,
+                        interrogationIdList,
                         variablesMap
                 );
                 surveyUnitService.saveSurveyUnits(surveyUnitModels);

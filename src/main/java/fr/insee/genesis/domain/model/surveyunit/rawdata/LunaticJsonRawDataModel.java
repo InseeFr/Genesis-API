@@ -8,13 +8,13 @@ import java.time.LocalDateTime;
 
 
 @Builder
-public record LunaticJsonDataModel(
+public record LunaticJsonRawDataModel(
     ObjectId id,
     String campaignId,
-    String idQuest,
-    String idUE,
+    String questionnaireId,
+    String interrogationId,
     Mode mode,
-    String dataJson,
+    LunaticJsonRawData data,
     LocalDateTime recordDate,
     LocalDateTime processDate
 ){}

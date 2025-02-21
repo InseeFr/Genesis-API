@@ -27,7 +27,7 @@ import fr.insee.genesis.domain.service.variabletype.VariableTypeService;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
-import fr.insee.genesis.stubs.LunaticJsonPersistanceStub;
+import fr.insee.genesis.stubs.LunaticJsonRawDataPersistanceStub;
 import fr.insee.genesis.stubs.LunaticXmlPersistanceStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import fr.insee.genesis.stubs.VariableTypePersistanceStub;
@@ -67,7 +67,7 @@ public class MainDefinitions {
             new SurveyUnitService(surveyUnitPersistence),
             surveyUnitQualityService,
             new LunaticXmlRawDataService(new LunaticXmlPersistanceStub()),
-            new LunaticJsonRawDataService(new LunaticJsonPersistanceStub()),
+            new LunaticJsonRawDataService(new LunaticJsonRawDataPersistanceStub()),
             new VariableTypeService(new VariableTypePersistanceStub()),
             new FileUtils(config),
             new ControllerUtils(new FileUtils(config)),
