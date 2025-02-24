@@ -25,12 +25,15 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     }
 
     @Override
-    public void saveData(String campaignName, String dataJson, Mode mode) throws JsonParseException {
+    public void saveData(String campaignName, String interrogationId, String idUE, String questionnaireId, Mode mode, String dataJson) throws JsonParseException {
         if(!isJsonValid(dataJson)){
-            throw new JsonParseException("Invalid JSON synthax");
+            throw new JsonParseException("Invalid JSON syntax");
         }
         LunaticJsonDataModel lunaticJsonDataModel = LunaticJsonDataModel.builder()
                 .campaignId(campaignName)
+                .questionnaireId(questionnaireId)
+                .interrogationId(interrogationId)
+                .idUE(idUE)
                 .mode(mode)
                 .dataJson(dataJson)
                 .recordDate(LocalDateTime.now())

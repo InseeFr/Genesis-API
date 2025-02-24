@@ -17,10 +17,12 @@ class LunaticJsonRawDataServiceTest {
 
         Assertions.assertThatThrownBy(() -> {
             lunaticJsonRawDataService.saveData(
-                    campaignId
-                    ,"{\"testdata\": \"ERROR"
-                    , Mode.WEB
-            );
+                    campaignId,
+                    "interrogationId",
+                    "idUE",
+                    "questionnaireId",
+                    Mode.WEB,
+                    "{\"testdata\": \"ERROR");
         }).isInstanceOf(JsonParseException.class);
     }
 }

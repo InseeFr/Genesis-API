@@ -10,6 +10,7 @@ import fr.insee.genesis.controller.dto.SurveyUnitQualityToolDto;
 import fr.insee.genesis.controller.dto.VariableQualityToolDto;
 import fr.insee.genesis.controller.dto.VariableStateDto;
 import fr.insee.genesis.controller.rest.responses.ResponseController;
+import fr.insee.genesis.controller.services.MetadataService;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlCampaign;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlDataParser;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
@@ -19,15 +20,11 @@ import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
-import fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService;
-import fr.insee.genesis.domain.service.rawdata.LunaticXmlRawDataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
-import fr.insee.genesis.stubs.LunaticJsonPersistanceStub;
-import fr.insee.genesis.stubs.LunaticXmlPersistanceStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
@@ -64,11 +61,10 @@ public class MainDefinitions {
     ResponseController responseController = new ResponseController(
             new SurveyUnitService(surveyUnitPersistence),
             surveyUnitQualityService,
-            new LunaticXmlRawDataService(new LunaticXmlPersistanceStub()),
-            new LunaticJsonRawDataService(new LunaticJsonPersistanceStub()),
             new FileUtils(config),
             new ControllerUtils(new FileUtils(config)),
-            new AuthUtils(config)
+            new AuthUtils(config),
+            new MetadataService()
         );
 
     List<SurveyUnitModel> surveyUnitModels;
@@ -123,7 +119,7 @@ public class MainDefinitions {
 
     @When("We save data from that directory")
     public void get_su_models_from_folder() throws Exception {
-        responseController.saveResponsesFromXmlCampaignFolder(this.inDirectory.getFileName().toString(), null, true);
+        responseController.saveResponsesFromXmlCampaignFolder(this.inDirectory.getFileName().toString(), null);
     }
 
     @When("We delete that directory")
