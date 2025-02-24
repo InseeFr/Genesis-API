@@ -203,11 +203,12 @@ public class MainDefinitions {
 
     @Then("For collected variable {string} in survey unit {string} we should have {string} and scope {string} for " +
             "iteration {int}")
-    public void check_collected_variable_content_in_mongo(String collectedVariableName,
-                                                         String interrogationId,
-                                                         String expectedValue,
-                                                         String expectedLoopId,
-                                                         Integer iteration
+    public void check_collected_variable_content_in_mongo(
+            String collectedVariableName,
+            String interrogationId,
+            String expectedValue,
+            String expectedScope,
+            Integer iteration
     ) {
         //Get SurveyUnitModel
         List<SurveyUnitModel> concernedSurveyUnitModels = surveyUnitPersistence.getMongoStub().stream().filter(surveyUnitModel ->
@@ -222,7 +223,7 @@ public class MainDefinitions {
         List<VariableModel> concernedCollectedVariables =
                 surveyUnitModel.getCollectedVariables().stream().filter(variableModel ->
                         variableModel.varId().equals(collectedVariableName)
-                                && Objects.equals(variableModel.scope(), expectedLoopId)
+                                && Objects.equals(variableModel.scope(), expectedScope)
                                 && variableModel.iteration().equals(iteration)
                 ).toList();
         Assertions.assertThat(concernedCollectedVariables).hasSize(1);
@@ -235,12 +236,13 @@ public class MainDefinitions {
 
     @Then("For external variable {string} in survey unit {string} we should have {string} and scope {string} for " +
             "iteration {int}")
-    public void check_external_variable_content_in_mongo(String externalVariableName,
-                                                                   String interrogationId,
-                                                                   String expectedValue,
-                                                                   String expectedLoopId,
-                                                                   Integer iteration
-                                                                   ) {
+    public void check_external_variable_content_in_mongo(
+            String externalVariableName,
+            String interrogationId,
+            String expectedValue,
+            String expectedScope,
+            Integer iteration
+    ) {
         //Get SurveyUnitModel
         List<SurveyUnitModel> concernedSurveyUnitModels = surveyUnitPersistence.getMongoStub().stream().filter(surveyUnitModel ->
                 surveyUnitModel.getState().equals(DataState.COLLECTED)
@@ -254,7 +256,7 @@ public class MainDefinitions {
         List<VariableModel> concernedExternalVariables =
                 surveyUnitModel.getExternalVariables().stream().filter(variableModel ->
                 variableModel.varId().equals(externalVariableName)
-                        && Objects.equals(variableModel.scope(), expectedLoopId)
+                        && Objects.equals(variableModel.scope(), expectedScope)
                         && variableModel.iteration().equals(iteration)
         ).toList();
         Assertions.assertThat(concernedExternalVariables).hasSize(1);
