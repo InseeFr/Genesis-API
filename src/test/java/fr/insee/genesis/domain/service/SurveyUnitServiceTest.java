@@ -20,9 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 class SurveyUnitServiceTest {
-
-    
-    
     
     //Given
     static SurveyUnitService surveyUnitServiceStatic;
