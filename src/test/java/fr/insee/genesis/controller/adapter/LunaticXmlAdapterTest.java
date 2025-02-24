@@ -157,7 +157,7 @@ class LunaticXmlAdapterTest {
         lunaticXmlSurveyUnit6.setQuestionnaireModelId("questionnaireId1");
         lunaticXmlSurveyUnit6.setData(lunaticXmlData);
 
-        //SurveyUnit 7 : COLLECTED only, has one unknown variable with known variable prefix
+        //SurveyUnit 7 : COLLECTED only, has two unknown variables with known variable prefix or suffix
         lunaticXmlData = new LunaticXmlData();
 
         lunaticXmlCollectedData = new LunaticXmlCollectedData();
@@ -168,7 +168,11 @@ class LunaticXmlAdapterTest {
         lunaticXmlCollectedData2.setVariableName("var1_MISSING");
         lunaticXmlCollectedData2.setCollected(List.of(new ValueType("1", "string"), new ValueType("2", "string")));
 
-        collected = List.of(lunaticXmlCollectedData, lunaticXmlCollectedData2);
+        LunaticXmlCollectedData lunaticXmlCollectedData3 = new LunaticXmlCollectedData();
+        lunaticXmlCollectedData3.setVariableName("FILTER_RESULT_var1");
+        lunaticXmlCollectedData3.setCollected(List.of(new ValueType("1", "string"), new ValueType("1", "string")));
+
+        collected = List.of(lunaticXmlCollectedData, lunaticXmlCollectedData2, lunaticXmlCollectedData3);
         lunaticXmlData.setCollected(collected);
 
         lunaticXmlData.setExternal(external);
@@ -353,6 +357,10 @@ class LunaticXmlAdapterTest {
                 collectedVariableModel.varId().equals("var1_MISSING")).toList().getFirst().parentId()).isNotNull().isEqualTo(Constants.ROOT_GROUP_NAME);
         Assertions.assertThat(surveyUnitModels.getFirst().getCollectedVariables().stream().filter(collectedVariableModel ->
                 collectedVariableModel.varId().equals("var1_MISSING")).toList().getFirst().scope()).isNotEqualTo(Constants.ROOT_GROUP_NAME).isEqualTo(LOOP_NAME);
+        Assertions.assertThat(surveyUnitModels.getFirst().getCollectedVariables().stream().filter(collectedVariableModel ->
+                collectedVariableModel.varId().equals("FILTER_RESULT_var1")).toList().getFirst().parentId()).isNotNull().isEqualTo(Constants.ROOT_GROUP_NAME);
+        Assertions.assertThat(surveyUnitModels.getFirst().getCollectedVariables().stream().filter(collectedVariableModel ->
+                collectedVariableModel.varId().equals("FILTER_RESULT_var1")).toList().getFirst().scope()).isNotEqualTo(Constants.ROOT_GROUP_NAME).isEqualTo(LOOP_NAME);
     }
 
     @Test
