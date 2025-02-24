@@ -19,6 +19,7 @@ import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
 import fr.insee.genesis.controller.utils.AuthUtils;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.controller.utils.DataTransformer;
+import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
@@ -244,6 +245,7 @@ public class ResponseController {
         log.info("Try to process raw JSON datas for campaign {} and {} interrogationIds", campaignName, interrogationIdList.size());
 
         int dataCount = 0;
+        int forcedDataCount = 0;
         List<GenesisError> errors = new ArrayList<>();
 
         try {
@@ -265,6 +267,7 @@ public class ResponseController {
                         interrogationIdList,
                         variablesMap
                 );
+                surveyUnitQualityService.verifySurveyUnits(surveyUnitModels, variablesMap);
                 surveyUnitService.saveSurveyUnits(surveyUnitModels);
 
                 //Update process dates
@@ -273,9 +276,17 @@ public class ResponseController {
                 //Save metadatas
                 //TODO Enable when mapping problem solved for get metadatas step
                 //variableTypeApiPort.saveMetadatas(campaignName, questionnaireId, mode, variablesMap);
+
+                //Increment data count
                 dataCount += surveyUnitModels.size();
+                forcedDataCount += surveyUnitModels.stream().filter(
+                        surveyUnitModel -> surveyUnitModel.getState().equals(DataState.FORCED)
+                ).toList().size();
             }
-            return ResponseEntity.ok("%d document(s) processed".formatted(dataCount));
+            return forcedDataCount == 0 ?
+                    ResponseEntity.ok("%d document(s) processed".formatted(dataCount))
+                    : ResponseEntity.ok("%d document(s) processed, including %d FORCED after data verification"
+                        .formatted(dataCount, forcedDataCount));
         }catch (GenesisException e){ //TODO replace with spring exception handler
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
         }
