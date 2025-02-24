@@ -66,15 +66,13 @@ public class GroupUtils {
 	private static String getRelatedVariableName(String variableName, VariablesMap variablesMap) {
 		Variable variable = variablesMap.getVariable(variableName);
 		if ( variable == null ) {
-			if(variableName.startsWith(Constants.FILTER_RESULT_PREFIX)
-					&& variablesMap.hasVariable(variableName.replace(Constants.FILTER_RESULT_PREFIX,""))
-			){
-				return variableName.replace(Constants.FILTER_RESULT_PREFIX,"");
+			if(variablesMap.hasVariable(removePrefixOrSuffix(variableName, Constants.FILTER_RESULT_PREFIX)))
+			{
+				return removePrefixOrSuffix(variableName, Constants.FILTER_RESULT_PREFIX);
 			}
-			if(variableName.endsWith(Constants.MISSING_SUFFIX)
-					&& variablesMap.hasVariable(variableName.replace(Constants.MISSING_SUFFIX,""))
+			if(variablesMap.hasVariable(removePrefixOrSuffix(variableName, Constants.MISSING_SUFFIX))
 			){
-				return variableName.replace(Constants.MISSING_SUFFIX,"");
+				return removePrefixOrSuffix(variableName, Constants.MISSING_SUFFIX);
 			}
 			return null;
 		}
@@ -84,5 +82,14 @@ public class GroupUtils {
 		return variable.getGroup().getParentName();
 	}
 
+	private static String removePrefixOrSuffix(String variableName, String pattern) {
+		if (variableName.startsWith(pattern)){
+			return variableName.replace(pattern, "");
+		}
+		if (variableName.endsWith(pattern)){
+			return variableName.replace(pattern, "");
+		}
+		return variableName;
+	}
 
 }
