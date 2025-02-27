@@ -48,18 +48,24 @@ class RawResponseControllerTest {
     void saveJsonRawDataFromStringTest(){
         lunaticJsonPersistanceStub.getMongoStub().clear();
         String campaignId = "SAMPLETEST-PARADATA-v1";
+        String interrogationId = "TESTUE1";
+        String idUE = "TESTUE1";
+        String questionnaireId = "SAMPLETEST-PARADATA-v1_quest";
 
         rawResponseControllerStatic.saveRawResponsesFromJsonBody(
                 campaignId,
-                "interrogationId",
-                "idUE",
-                "questionnaireId",
+                interrogationId,
+                idUE,
+                questionnaireId,
                 Mode.WEB,
                 "{\"testdata\": \"test\"}"
         );
 
         Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub()).isNotEmpty();
         Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getCampaignId()).isNotNull().isEqualTo(campaignId);
+        Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getInterrogationId()).isNotNull().isEqualTo(interrogationId);
+        Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getIdUE()).isNotNull().isEqualTo(idUE);
+        Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getQuestionnaireId()).isNotNull().isEqualTo(questionnaireId);
         Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getMode()).isEqualTo(Mode.WEB);
         Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getData().get("testdata")).isNotNull();
         Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getData().get("testdata")).isNotNull().isEqualTo("test");

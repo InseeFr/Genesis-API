@@ -19,6 +19,9 @@ public class LunaticJsonDataDocument {
     @Id
     private ObjectId id;
     private String campaignId;
+    private String interrogationId;
+    private String idUE;
+    private String questionnaireId;
     private Mode mode;
     private Map<String, Object> data;
     private LocalDateTime recordDate;
