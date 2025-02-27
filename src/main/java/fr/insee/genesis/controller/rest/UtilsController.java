@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,6 +36,7 @@ public class UtilsController {
 
 	@Operation(summary = "Split a XML file into smaller ones")
 	@PutMapping(path = "/utils/split/lunatic-xml")
+	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<Object> saveResponsesFromXmlFile(@RequestParam("inputFolder") String inputFolder,
 														   @RequestParam("outputFolder") String outputFolder,
 														   @RequestParam("filename") String filename,
@@ -47,6 +49,7 @@ public class UtilsController {
 
 	@Operation(summary = "Record volumetrics of each campaign in a folder")
 	@PutMapping(path = "/volumetrics/save-all-campaigns")
+	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<Object> saveVolumetry() throws IOException {
 		volumetryLogService.writeVolumetries(surveyUnitService);
 		volumetryLogService.cleanOldFiles();

@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -18,6 +19,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import java.util.Collection;
@@ -27,6 +29,7 @@ import java.util.Map;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 @Slf4j
 @ConditionalOnProperty(name = "fr.insee.genesis.authentication", havingValue = "OIDC")
 @ConfigurationProperties(prefix = "fr.insee.genesis.security")
@@ -53,9 +56,14 @@ public class OIDCSecurityConfig {
         }
         http
                 .authorizeHttpRequests(configurer -> configurer
+                        .requestMatchers("/questionnaires/**").hasRole(String.valueOf(ApplicationRole.READER))
+                        .requestMatchers("/modes/**").hasRole(String.valueOf(ApplicationRole.READER))
+                        .requestMatchers("/interrogations/**").hasRole(String.valueOf(ApplicationRole.READER))
+                        .requestMatchers("/campaigns/**").hasRole(String.valueOf(ApplicationRole.READER))
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
+        http.addFilterBefore(new DebugSecurityFilter(), BasicAuthenticationFilter.class);
         return http.build();
     }
 
