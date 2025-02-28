@@ -16,7 +16,7 @@ import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
-import fr.insee.genesis.domain.utils.LoopIdentifier;
+import fr.insee.genesis.domain.utils.GroupUtils;
 import fr.insee.genesis.exceptions.GenesisException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -280,7 +280,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                 VariableModel collectedVariable = VariableModel.builder()
                         .varId(editedVariableDto.getVariableName())
                         .value(editedVariableDto.getVariableStateInputDto().getValue())
-                        .parentId(LoopIdentifier.getRelatedVariableName(editedVariableDto.getVariableName(), variablesMap))
+                        .parentId(GroupUtils.getParentGroupName(editedVariableDto.getVariableName(), variablesMap))
                         .scope(variablesMap.getVariable(editedVariableDto.getVariableName()).getGroupName())
                         .iteration(editedVariableDto.getIteration())
                         .build();

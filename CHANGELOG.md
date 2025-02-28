@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.1 [2025-02-24]
+
+### Fixed
+- Bug on missing/filter_result variables in loops/tables incorrectly persisted in database
+
 ## 1.4.0 [2025-02-18]
 
 ### Changed
