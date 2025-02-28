@@ -10,7 +10,7 @@ import fr.insee.genesis.exceptions.GenesisException;
 import java.util.List;
 
 public interface LunaticJsonRawDataApiPort {
-    void saveData(String campaignName, String questionnaireId, String interrogationId, String dataJson, Mode mode) throws GenesisException;
+    void saveData(String campaignName, String questionnaireId, String interrogationId, String idUE, String dataJson, Mode mode) throws GenesisException;
     List<LunaticJsonRawDataUnprocessedDto> getUnprocessedDataIds();
 
     List<SurveyUnitModel> parseRawData(

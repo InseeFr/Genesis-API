@@ -18,6 +18,7 @@ public record LunaticJsonDataDocument(
     String campaignId,
     String questionnaireId,
     String interrogationId,
+    String idUE,
     Mode mode,
     LunaticJsonRawData data,
     LocalDateTime recordDate,

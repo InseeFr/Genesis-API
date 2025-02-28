@@ -49,7 +49,8 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     }
 
     @Override
-    public void saveData(String campaignName, String questionnaireId, String interrogationId, String dataJson,
+    public void saveData(String campaignName, String questionnaireId, String interrogationId,
+                         String idUE, String dataJson,
                          Mode mode) throws GenesisException {
         ObjectMapper mapper = new ObjectMapper()
                 .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
@@ -70,6 +71,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
                     .campaignId(campaignName)
                     .questionnaireId(questionnaireId)
                     .interrogationId(interrogationId)
+                    .idUE(idUE)
                     .mode(mode)
                     .data(rawData)
                     .recordDate(LocalDateTime.now())

@@ -2,7 +2,8 @@ package cucumber.functional_tests;
 
 import fr.insee.genesis.TestConstants;
 import fr.insee.genesis.configuration.Config;
-import fr.insee.genesis.controller.rest.responses.ResponseController;
+import fr.insee.genesis.controller.rest.responses.RawResponseController;
+import fr.insee.genesis.controller.services.MetadataService;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
@@ -39,15 +40,13 @@ public class RawDataDefinitions {
     FileUtils fileUtils = new FileUtils(config);
     SurveyUnitPersistencePortStub surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
     SurveyUnitQualityService surveyUnitQualityService = new SurveyUnitQualityService();
-    ResponseController responseController = new ResponseController(
+    RawResponseController rawResponseController = new RawResponseController(
+            lunaticJsonRawDataApiPort,
+            new ControllerUtils(fileUtils),
+            new MetadataService(),
             new SurveyUnitService(surveyUnitPersistencePortStub),
             surveyUnitQualityService,
-            null,
-            lunaticJsonRawDataApiPort,
-            null,
-            fileUtils,
-            new ControllerUtils(fileUtils),
-            null
+            fileUtils
     );
     Path rawDataFilePath;
     ResponseEntity<Object> response;
@@ -69,10 +68,11 @@ public class RawDataDefinitions {
             throw new RuntimeException("Raw data file path is null !");
         }
 
-        response = responseController.saveRawResponsesFromJsonBody(
+        response = rawResponseController.saveRawResponsesFromJsonBody(
                 campaignId,
                 questionnaireId,
                 interrogationId,
+                null,
                 Mode.WEB,
                 Files.readString(rawDataFilePath)
         );
@@ -87,7 +87,7 @@ public class RawDataDefinitions {
     ) {
         List<String> interrogationIdList = Collections.singletonList(interrogationId);
 
-        response = responseController.processJsonRawData(
+        response = rawResponseController.processJsonRawData(
                 campaignId,
                 questionnaireId,
                 interrogationIdList

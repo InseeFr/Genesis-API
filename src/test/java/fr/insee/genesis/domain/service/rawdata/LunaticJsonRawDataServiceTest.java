@@ -41,6 +41,7 @@ class LunaticJsonRawDataServiceTest {
                 campaignId
                 ,"TESTIDQUEST"
                 ,"TESTinterrogationId"
+                ,null
                 , dataJson
                 , Mode.WEB
         )).isInstanceOf(GenesisException.class);
@@ -59,6 +60,7 @@ class LunaticJsonRawDataServiceTest {
                 campaignId
                 , questionnaireId
                 , interrogationId
+                , null
                 ,"{\"COLLECTED\": {\"TESTVAR\": {\"COLLECTED\": [\"test\"]}}}"
                 , Mode.WEB
         );
@@ -98,6 +100,7 @@ class LunaticJsonRawDataServiceTest {
                 campaignId
                 , questionnaireId
                 , interrogationId
+                , null
                 ,"{\"COLLECTED\": {\"TESTVAR\": {\"COLLECTED\": \"test\"}}}"
                 , Mode.WEB
         );
@@ -136,6 +139,7 @@ class LunaticJsonRawDataServiceTest {
                 campaignId
                 , questionnaireId
                 , interrogationId
+                , null
                 ,"{\"EXTERNAL\": {\"TESTVAR_EXT\": [\"test\"]}}"
                 , Mode.WEB
         );
@@ -171,6 +175,7 @@ class LunaticJsonRawDataServiceTest {
                 campaignId
                 , questionnaireId
                 , interrogationId
+                , null
                 ,"{\"EXTERNAL\": {\"TESTVAR_EXT\": \"test\"}}"
                 , Mode.WEB
         );
@@ -206,6 +211,7 @@ class LunaticJsonRawDataServiceTest {
                 campaignId
                 , questionnaireId
                 , interrogationId
+                , null
                 ,"{\"EXTERNAL\": {\"TESTVAR_EXT\": \"test_ext\"}, " +
                         "\"COLLECTED\": {\"TESTVAR\": {\"COLLECTED\": [\"test\"]}}}"
                 , Mode.WEB
@@ -251,6 +257,7 @@ class LunaticJsonRawDataServiceTest {
                 campaignId
                 , questionnaireId
                 , interrogationId
+                , null
                 ,"{\"EXTERNAL\": {\"TESTVAR_EXT\": \"test_ext\"}, " +
                         "\"COLLECTED\": {\"TESTVAR\": {\"COLLECTED\": [\"test\"], \"EDITED\": [\"test_ed\"]}}}"
                 , Mode.WEB
