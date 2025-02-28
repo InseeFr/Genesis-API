@@ -63,7 +63,7 @@ public class GroupUtils {
 		return variable.getGroup().isRoot() ? null : variable.getGroup().getParentName();
 	}
 
-	private static String getRelatedVariableName(String variableName, VariablesMap variablesMap) {
+	public static String getRelatedVariableName(String variableName, VariablesMap variablesMap) {
 		Variable variable = variablesMap.getVariable(variableName);
 		if ( variable == null ) {
 			if(variablesMap.hasVariable(removePrefixOrSuffix(variableName, Constants.FILTER_RESULT_PREFIX)))

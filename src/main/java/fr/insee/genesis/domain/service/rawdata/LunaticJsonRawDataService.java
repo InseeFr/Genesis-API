@@ -18,7 +18,7 @@ import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataVariab
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataVariableType;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.spi.LunaticJsonRawDataPersistancePort;
-import fr.insee.genesis.domain.utils.LoopIdentifier;
+import fr.insee.genesis.domain.utils.GroupUtils;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.mappers.LunaticJsonDocumentMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -160,7 +160,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
                         .value(externalVariableEntry.getValue().value())
                         .scope(getIdLoop(variablesMap, externalVariableEntry.getKey()))
                         .iteration(1)
-                        .parentId(LoopIdentifier.getRelatedVariableName(externalVariableEntry.getKey(), variablesMap))
+                        .parentId(GroupUtils.getRelatedVariableName(externalVariableEntry.getKey(), variablesMap))
                         .build();
 
                 dstSurveyUnitModel.getExternalVariables().add(externalVariableModel);
@@ -175,7 +175,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
                             .value(value)
                             .scope(getIdLoop(variablesMap, externalVariableEntry.getKey()))
                             .iteration(iteration)
-                            .parentId(LoopIdentifier.getRelatedVariableName(externalVariableEntry.getKey(),
+                            .parentId(GroupUtils.getRelatedVariableName(externalVariableEntry.getKey(),
                                     variablesMap))
                             .build();
 
@@ -210,7 +210,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
                         .value(collectedVariable.getValue().collectedVariableByStateMap().get(dataState).value())
                         .scope(getIdLoop(variablesMap, collectedVariable.getKey()))
                         .iteration(1)
-                        .parentId(LoopIdentifier.getRelatedVariableName(collectedVariable.getKey(), variablesMap))
+                        .parentId(GroupUtils.getRelatedVariableName(collectedVariable.getKey(), variablesMap))
                         .build();
                 dstSurveyUnitModel.getCollectedVariables().add(collectedVariableModel);
             }
@@ -225,7 +225,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
                             .value(value)
                             .scope(getIdLoop(variablesMap, collectedVariable.getKey()))
                             .iteration(iteration)
-                            .parentId(LoopIdentifier.getRelatedVariableName(collectedVariable.getKey(), variablesMap))
+                            .parentId(GroupUtils.getRelatedVariableName(collectedVariable.getKey(), variablesMap))
                             .build();
                     dstSurveyUnitModel.getCollectedVariables().add(collectedVariableModel);
                     iteration++;
