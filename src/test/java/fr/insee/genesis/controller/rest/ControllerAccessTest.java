@@ -1,6 +1,7 @@
 package fr.insee.genesis.controller.rest;
 
 import fr.insee.genesis.domain.ports.api.ScheduleApiPort;
+import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.infrastructure.repository.LunaticJsonMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.LunaticXmlMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.RundeckExecutionDBRepository;
@@ -8,6 +9,9 @@ import fr.insee.genesis.infrastructure.repository.ScheduleMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.SurveyUnitMongoDBRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.MockedStatic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,6 +31,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -59,6 +64,8 @@ class ControllerAccessTest {
     @MockitoBean
     private ScheduleApiPort scheduleApiPort;
     @MockitoBean
+    private SurveyUnitApiPort surveyUnitApiPort;
+    @MockitoBean
     private SurveyUnitMongoDBRepository surveyUnitMongoDBRepository;
     @MockitoBean
     private LunaticJsonMongoDBRepository lunaticJsonMongoDBRepository;
@@ -75,6 +82,87 @@ class ControllerAccessTest {
     private static final String USER_PLATINE = "USER_PLATINE";
     private static final String ADMIN = "ADMIN";
     private static final String READER = "READER";
+
+    /**
+     * Provides a stream of URIs that are allowed for reader.
+     */
+    private static Stream<Arguments> endpointsReader(){
+        return Stream.of(
+                Arguments.of("/questionnaires/with-campaigns"),
+                Arguments.of("/questionnaires/by-campaign?campaignId=CAMPAIGNTEST"),
+                Arguments.of("/questionnaires/"),
+                Arguments.of("/modes/by-questionnaire?questionnaireId=QUESTTEST"),
+                Arguments.of("/modes/by-campaign?campaignId=CAMPAIGNTEST"),
+                Arguments.of("/interrogations/by-questionnaire?questionnaireId=QUESTTEST"),
+                Arguments.of("/campaigns/with-questionnaires"),
+                Arguments.of("/campaigns/")
+        );
+    }
+
+    /**
+     * Tests that users with the "ADMIN" role can access read-only endpoints.
+     */
+    @ParameterizedTest
+    @MethodSource("endpointsReader")
+    @DisplayName("Admins should access reader-allowed services")
+    void admin_should_access_reader_allowed_services(String endpointURI) throws Exception{
+        Jwt jwt = generateJwt(List.of("administrateur_traiter"), ADMIN);
+        when(jwtDecoder.decode(anyString())).thenReturn(jwt);
+        mockMvc.perform(get(endpointURI).header("Authorization", "bearer token_blabla"))
+                .andExpect(status().isOk());
+    }
+
+    /**
+     * Tests that users with the "USER_KRAFTWERK" role can access read-only endpoints.
+     */
+    @ParameterizedTest
+    @MethodSource("endpointsReader")
+    @DisplayName("Kraftwerk users should access reader-allowed services")
+    void kraftwerk_users_should_access_reader_allowed_services(String endpointURI) throws Exception{
+        Jwt jwt = generateJwt(List.of("utilisateur_Kraftwerk"), USER_KRAFTWERK);
+        when(jwtDecoder.decode(anyString())).thenReturn(jwt);
+        mockMvc.perform(get(endpointURI).header("Authorization", "bearer token_blabla"))
+                .andExpect(status().isOk());
+    }
+
+    /**
+     * Tests that users with the "USER_PLATINE" role can access read-only endpoints.
+     */
+    @ParameterizedTest
+    @MethodSource("endpointsReader")
+    @DisplayName("Platine users should access reader-allowed services")
+    void platine_users_should_access_reader_allowed_services(String endpointURI) throws Exception{
+        Jwt jwt = generateJwt(List.of("utilisateur_Platine"), USER_PLATINE);
+        when(jwtDecoder.decode(anyString())).thenReturn(jwt);
+        mockMvc.perform(get(endpointURI).header("Authorization", "bearer token_blabla"))
+                .andExpect(status().isOk());
+    }
+
+    /**
+     * Tests that users with the "READER" role can access read-only endpoints.
+     */
+    @ParameterizedTest
+    @MethodSource("endpointsReader")
+    @DisplayName("Readers should access reader-allowed services")
+    void reader_should_access_reader_allowed_services(String endpointURI) throws Exception{
+        Jwt jwt = generateJwt(List.of("lecteur_traiter"), "reader");
+        when(jwtDecoder.decode(anyString())).thenReturn(jwt);
+        mockMvc.perform(get(endpointURI).header("Authorization", "bearer token_blabla"))
+                .andExpect(status().isOk());
+    }
+
+    /**
+     * Tests that users with invalid role are denied.
+     */
+    @ParameterizedTest
+    @MethodSource("endpointsReader")
+    @DisplayName("User with invalid roles should not access reader-allowed services")
+    void invalid_user_should_not_access_reader_allowed_services(String endpointURI) throws Exception{
+        Jwt jwt = generateJwt(List.of("toto"), "invalid_role");
+        when(jwtDecoder.decode(anyString())).thenReturn(jwt);
+        mockMvc.perform(get(endpointURI).header("Authorization", "bearer token_blabla"))
+                .andExpect(status().isForbidden());
+    }
 
     /**
      * Test that reader can access the schedule/all endpoint.
