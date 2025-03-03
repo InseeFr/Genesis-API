@@ -32,7 +32,7 @@
         <pitest.version>1.18.2</pitest.version>
         <pitest.junit.version>1.2.2</pitest.junit.version>
         <jackson.version>2.18.2</jackson.version>
-        <bpm.version>1.0.5</bpm.version>
+        <bpm.version>1.0.6</bpm.version>
     </properties>
     <dependencies>
         <dependency>
