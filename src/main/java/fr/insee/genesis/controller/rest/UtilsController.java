@@ -40,7 +40,6 @@ public class UtilsController {
 														   @RequestParam("filename") String filename,
 														   @RequestParam("nbResponsesByFile") int nbSU)
 			throws Exception {
-		log.info("Split XML file : {} into {} SU by file", filename, nbSU);
 		XMLSplitter.split(inputFolder, filename, outputFolder, "SurveyUnit", nbSU);
 		return ResponseEntity.ok("File split");
 	}

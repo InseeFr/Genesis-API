@@ -81,7 +81,6 @@ public class ScheduleController {
                         encryptionVaultPath,
                         useSignature
                 );
-                log.info("New schedule request for survey {} with encryption", surveyName);
                 scheduleApiPort.addSchedule(surveyName,
                         serviceToCall == null ? ServiceToCall.MAIN : serviceToCall,
                         frequency,
@@ -89,7 +88,6 @@ public class ScheduleController {
                         scheduleEndDate,
                         trustParameters);
             }else{
-                log.info("New schedule request for survey {}", surveyName);
                 scheduleApiPort.addSchedule(surveyName,
                         serviceToCall == null ? ServiceToCall.MAIN : serviceToCall,
                         frequency,
@@ -112,7 +110,6 @@ public class ScheduleController {
             @Parameter(description = "Survey name of the schedule(s) to delete") @RequestParam("surveyName") String surveyName
     ){
         try {
-            log.info("Delete schedule request for survey {}", surveyName);
             scheduleApiPort.deleteSchedule(surveyName);
         }catch (NotFoundException e){
             log.warn("Survey {} not found for deletion !", surveyName);
@@ -130,7 +127,6 @@ public class ScheduleController {
             @Parameter(description = "Date to save as last execution date", example = "2024-01-01T12:00:00") @RequestParam("newDate") LocalDateTime newDate
             ) {
         try {
-            log.debug("Got update last execution on {} with data param {}", surveyName, newDate);
             scheduleApiPort.updateLastExecutionName(surveyName, newDate);
             log.info("{} last execution updated at {} !", surveyName, newDate);
         }catch (NotFoundException e){
