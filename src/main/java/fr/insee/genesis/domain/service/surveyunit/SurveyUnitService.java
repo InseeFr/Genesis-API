@@ -294,6 +294,15 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         return surveyUnitModels;
     }
 
+    @Override
+    public String findQuestionnaireIdByInterrogationId(String interrogationId) throws GenesisException {
+        List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findByInterrogationId(interrogationId);
+        if (surveyUnitModels.isEmpty()){
+            throw new GenesisException(404,String.format("The interrogationId %s is not in database",interrogationId));
+        }
+        return surveyUnitModels.getFirst().getQuestionnaireId();
+    }
+
     //Utils
     private static List<Mode> getDistinctsModes(List<SurveyUnitModel> surveyUnitModels) {
         List<Mode> sources = new ArrayList<>();
