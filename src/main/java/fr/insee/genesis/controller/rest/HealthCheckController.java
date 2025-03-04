@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RequestMapping("/health-check")
 @RestController
-public class HealthCheckController {
+public class HealthCheckController implements CommonApiResponse{
     private final SurveyUnitApiPort surveyUnitApiPort;
     private final ScheduleApiPort scheduleApiPort;
     @Value("${fr.insee.genesis.version}")

@@ -36,7 +36,7 @@ import java.util.Set;
 @RequestMapping(path = "/schedule")
 @Controller
 @Slf4j
-public class ScheduleController {
+public class ScheduleController implements CommonApiResponse{
 
     private final ScheduleApiPort scheduleApiPort;
     private final FileUtils fileUtils;
