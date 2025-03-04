@@ -1,6 +1,7 @@
 package fr.insee.genesis.controller.rest.responses;
 
 import fr.insee.genesis.controller.dto.QuestionnaireWithCampaign;
+import fr.insee.genesis.controller.rest.CommonApiResponse;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.exceptions.GenesisException;
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,7 +19,7 @@ import java.util.Set;
 @RequestMapping(path = "/questionnaires" )
 @Controller
 @Slf4j
-public class QuestionnaireController {
+public class QuestionnaireController implements CommonApiResponse {
 
     private final SurveyUnitApiPort surveyUnitService;
 
