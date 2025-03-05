@@ -63,23 +63,16 @@ public class GroupUtils {
 		return variable.getGroup().isRoot() ? null : variable.getGroup().getParentName();
 	}
 
-	public static String getRelatedVariableName(String variableName, VariablesMap variablesMap) {
-		Variable variable = variablesMap.getVariable(variableName);
-		if ( variable == null ) {
-			if(variablesMap.hasVariable(removePrefixOrSuffix(variableName, Constants.FILTER_RESULT_PREFIX)))
-			{
-				return removePrefixOrSuffix(variableName, Constants.FILTER_RESULT_PREFIX);
-			}
-			if(variablesMap.hasVariable(removePrefixOrSuffix(variableName, Constants.MISSING_SUFFIX))
-			){
-				return removePrefixOrSuffix(variableName, Constants.MISSING_SUFFIX);
-			}
-			return null;
+	private static String getRelatedVariableName(String variableName, VariablesMap variablesMap) {
+		if(variablesMap.hasVariable(removePrefixOrSuffix(variableName, Constants.FILTER_RESULT_PREFIX)))
+		{
+			return removePrefixOrSuffix(variableName, Constants.FILTER_RESULT_PREFIX);
 		}
-		if (variable.getGroup().isRoot()) {
-			return null;
+		if(variablesMap.hasVariable(removePrefixOrSuffix(variableName, Constants.MISSING_SUFFIX))
+		){
+			return removePrefixOrSuffix(variableName, Constants.MISSING_SUFFIX);
 		}
-		return variable.getGroup().getParentName();
+		return null;
 	}
 
 	private static String removePrefixOrSuffix(String variableName, String pattern) {

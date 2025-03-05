@@ -160,7 +160,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
                         .value(externalVariableEntry.getValue().value())
                         .scope(getIdLoop(variablesMap, externalVariableEntry.getKey()))
                         .iteration(1)
-                        .parentId(GroupUtils.getRelatedVariableName(externalVariableEntry.getKey(), variablesMap))
+                        .parentId(GroupUtils.getParentGroupName(externalVariableEntry.getKey(), variablesMap))
                         .build();
 
                 dstSurveyUnitModel.getExternalVariables().add(externalVariableModel);
@@ -175,7 +175,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
                             .value(value)
                             .scope(getIdLoop(variablesMap, externalVariableEntry.getKey()))
                             .iteration(iteration)
-                            .parentId(GroupUtils.getRelatedVariableName(externalVariableEntry.getKey(),
+                            .parentId(GroupUtils.getParentGroupName(externalVariableEntry.getKey(),
                                     variablesMap))
                             .build();
 
@@ -210,7 +210,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
                         .value(collectedVariable.getValue().collectedVariableByStateMap().get(dataState).value())
                         .scope(getIdLoop(variablesMap, collectedVariable.getKey()))
                         .iteration(1)
-                        .parentId(GroupUtils.getRelatedVariableName(collectedVariable.getKey(), variablesMap))
+                        .parentId(GroupUtils.getParentGroupName(collectedVariable.getKey(), variablesMap))
                         .build();
                 dstSurveyUnitModel.getCollectedVariables().add(collectedVariableModel);
             }
@@ -225,7 +225,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
                             .value(value)
                             .scope(getIdLoop(variablesMap, collectedVariable.getKey()))
                             .iteration(iteration)
-                            .parentId(GroupUtils.getRelatedVariableName(collectedVariable.getKey(), variablesMap))
+                            .parentId(GroupUtils.getParentGroupName(collectedVariable.getKey(), variablesMap))
                             .build();
                     dstSurveyUnitModel.getCollectedVariables().add(collectedVariableModel);
                     iteration++;
