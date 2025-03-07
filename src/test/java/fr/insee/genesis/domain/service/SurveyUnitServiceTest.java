@@ -492,6 +492,32 @@ class SurveyUnitServiceTest {
                 .isTrue();
     }
 
+    @Test
+    void findLatestValuesByStateByIdAndByQuestionnaireId_should_return_empty_values_too(){
+        //Given
+        addAdditionnalSurveyUnitModelToMongoStub(DataState.FORCED,
+                "",
+                "",
+                LocalDateTime.of(2025,2,2,0,0,0),
+                LocalDateTime.of(2025,2,2,0,0,0)
+        );
+
+        //When
+        SurveyUnitDto surveyUnitDto = surveyUnitServiceStatic.findLatestValuesByStateByIdAndByQuestionnaireId(
+                DEFAULT_INTERROGATION_ID,
+                DEFAULT_QUESTIONNAIRE_ID
+        );
+        List<VariableDto> variableDtos = surveyUnitDto.getCollectedVariables().stream().filter(
+                variableDto -> variableDto.getVariableName().equals("TESTVARID")
+                        && variableDto.getIteration() == 1
+        ).toList();
+        //THEN
+        Assertions.assertThat(variableDtos).isNotEmpty();
+        Assertions.assertThat(variableDtos.getFirst().getVariableStateDtoList()).hasSize(2);
+        Assertions.assertThat(variableDtos.getFirst().getVariableStateDtoList().getFirst().getValue()).isEmpty();
+
+    }
+
     private void addAdditionnalSurveyUnitModelToMongoStub(){
         List<VariableModel> externalVariableList = new ArrayList<>();
         VariableModel externalVariableModel = VariableModel.builder()
