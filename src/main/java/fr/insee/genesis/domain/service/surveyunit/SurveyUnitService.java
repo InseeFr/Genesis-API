@@ -330,7 +330,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                 collectedVariableMap.put(loopIdTuple, variableDto);
             }
             //Extract variable state
-            if (!collectedVariable.value().isEmpty() && isMostRecentForSameState(surveyUnitModel, variableDto)) {
+            if (isMostRecentForSameState(surveyUnitModel, variableDto)) {
                 variableDto.getVariableStateDtoList().add(
                         VariableStateDto.builder()
                                 .state(surveyUnitModel.getState())
@@ -360,7 +360,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                 externalVariableMap.put(loopIdTuple, variableDto);
             }
             //Extract variable state
-            if(!externalVariable.value().isEmpty() && isMostRecentForSameState(surveyUnitModel, variableDto)){
+            if(isMostRecentForSameState(surveyUnitModel, variableDto)){
                 variableDto.getVariableStateDtoList().add(
                         VariableStateDto.builder()
                                 .state(surveyUnitModel.getState())
