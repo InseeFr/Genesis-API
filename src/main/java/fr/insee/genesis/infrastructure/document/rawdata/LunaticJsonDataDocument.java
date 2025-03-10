@@ -1,26 +1,26 @@
 package fr.insee.genesis.infrastructure.document.rawdata;
 
+import fr.insee.genesis.Constants;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawData;
+import lombok.Builder;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Document(collection = "lunaticjsondata")
-public class LunaticJsonDataDocument {
+@Builder
+@Document(collection = Constants.MONGODB_LUNATIC_RAWDATA_COLLECTION_NAME)
+public record LunaticJsonDataDocument(
     @Id
-    private ObjectId id;
-    private String campaignId;
-    private Mode mode;
-    private Map<String, Object> data;
-    private LocalDateTime recordDate;
-    private LocalDateTime processDate;
-}
+    ObjectId id,
+    String campaignId,
+    String questionnaireId,
+    String interrogationId,
+    String idUE,
+    Mode mode,
+    LunaticJsonRawData data,
+    LocalDateTime recordDate,
+    LocalDateTime processDate
+){}

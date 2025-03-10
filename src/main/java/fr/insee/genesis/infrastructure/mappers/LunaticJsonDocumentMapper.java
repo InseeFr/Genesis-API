@@ -3,10 +3,9 @@ package fr.insee.genesis.infrastructure.mappers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonDataModel;
+import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
 import fr.insee.genesis.infrastructure.document.rawdata.LunaticJsonDataDocument;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
@@ -17,15 +16,15 @@ import java.util.Map;
 public interface LunaticJsonDocumentMapper {
 	LunaticJsonDocumentMapper INSTANCE = Mappers.getMapper(LunaticJsonDocumentMapper.class);
 
-	@Mapping(source = "data", target = "dataJson", qualifiedByName = "fromMapToJson")
-	LunaticJsonDataModel documentToModel(LunaticJsonDataDocument lunaticJsonDataDocument);
+	//@Mapping(source = "data", target = "dataJson", qualifiedByName = "fromMapToJson")
+    LunaticJsonRawDataModel documentToModel(LunaticJsonDataDocument lunaticJsonDataDocument);
 
-	@Mapping(source = "dataJson", target = "data", qualifiedByName = "fromJsonToMap")
-	LunaticJsonDataDocument modelToDocument(LunaticJsonDataModel lunaticJsonDataModel);
+	//@Mapping(source = "dataJson", target = "data", qualifiedByName = "fromJsonToMap")
+	LunaticJsonDataDocument modelToDocument(LunaticJsonRawDataModel lunaticJsonRawDataModel);
 
-	List<LunaticJsonDataModel> listDocumentToListModel(List<LunaticJsonDataDocument> lunaticJsonDataDocuments);
+	List<LunaticJsonRawDataModel> listDocumentToListModel(List<LunaticJsonDataDocument> lunaticJsonDataDocuments);
 
-	List<LunaticJsonDataDocument> listModelToListDocument(List<LunaticJsonDataModel> lunaticJsonDataModels);
+	List<LunaticJsonDataDocument> listModelToListDocument(List<LunaticJsonRawDataModel> lunaticJsonRawDataModels);
 
 
 	@Named(value = "fromJsonToMap")
