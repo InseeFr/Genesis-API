@@ -35,6 +35,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -99,6 +100,7 @@ public class ResponseController {
     //SAVE
     @Operation(summary = "Save one file of responses to Genesis Database, passing its path as a parameter")
     @PutMapping(path = "/lunatic-xml/save-one")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Object> saveResponsesFromXmlFile(@RequestParam("pathLunaticXml") String xmlFile,
                                                            @RequestParam(value = "pathSpecFile") String metadataFilePath,
                                                            @RequestParam(value = "mode") Mode modeSpecified,
@@ -133,6 +135,7 @@ public class ResponseController {
 
     @Operation(summary = "Save multiple files to Genesis Database from the campaign root folder")
     @PutMapping(path = "/lunatic-xml/save-folder")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Object> saveResponsesFromXmlCampaignFolder(@RequestParam("campaignName") String campaignName,
                                                                      @RequestParam(value = "mode", required = false) Mode modeSpecified,
                                                                      @RequestParam(value = "withDDI", defaultValue = "true") boolean withDDI
@@ -164,6 +167,7 @@ public class ResponseController {
 
     @Operation(summary = "Save one file of raw responses to Genesis Database, passing its path as a parameter")
     @PutMapping(path = "/lunatic-xml/raw/save-one")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Object> saveRawResponsesFromXmlFile(@RequestParam("pathLunaticXml") String xmlFile,
                                                            @RequestParam(value = "mode") Mode modeSpecified
     )throws Exception {
@@ -175,6 +179,7 @@ public class ResponseController {
 
     @Operation(summary = "Save multiple raw files to Genesis Database from the campaign root folder")
     @PutMapping(path = "/lunatic-xml/raw/save-folder")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Object> saveRawResponsesFromXmlCampaignFolder(@RequestParam("campaignName") String campaignName,
                                                                      @RequestParam(value = "mode", required = false) Mode modeSpecified
     )throws Exception {
@@ -202,6 +207,7 @@ public class ResponseController {
     //JSON
     @Operation(summary = "Save lunatic json data to Genesis Database from the campaign root folder")
     @PutMapping(path = "/lunatic-json/raw/save")
+    @PreAuthorize("hasRole('COLLECT_PLATFORM')")
     public ResponseEntity<Object> saveRawResponsesFromJsonBody(
             @RequestParam("campaignName") String campaignName,
             @RequestParam(value = "mode", required = false) Mode modeSpecified,
@@ -222,6 +228,7 @@ public class ResponseController {
     //SAVE ALL
     @Operation(summary = "Save all files to Genesis Database (differential data folder only), regardless of the campaign")
     @PutMapping(path = "/lunatic-xml/save-all-campaigns")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Object> saveResponsesFromAllCampaignFolders(){
         List<GenesisError> errors = new ArrayList<>();
         List<File> campaignFolders = fileUtils.listAllSpecsFolders();
@@ -258,6 +265,7 @@ public class ResponseController {
     //DELETE
     @Operation(summary = "Delete all responses associated with a questionnaire")
     @DeleteMapping(path = "/delete/by-questionnaire")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Object> deleteAllResponsesByQuestionnaire(@RequestParam("questionnaireId") String questionnaireId) {
         log.info("Try to delete all responses of questionnaire : {}", questionnaireId);
         Long ndDocuments = surveyUnitService.deleteByQuestionnaireId(questionnaireId);
@@ -268,6 +276,7 @@ public class ResponseController {
     //GET
     @Operation(summary = "Retrieve responses for an interrogation, using interrogationId and questionnaireId from Genesis Database")
     @GetMapping(path = "/by-ue-and-questionnaire")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<SurveyUnitModel>> findResponsesByInterrogationAndQuestionnaire(@RequestParam("interrogationId") String interrogationId,
                                                                                    @RequestParam("questionnaireId") String questionnaireId) {
         List<SurveyUnitModel> responses = surveyUnitService.findByIdsInterrogationAndQuestionnaire(interrogationId, questionnaireId);
@@ -276,6 +285,7 @@ public class ResponseController {
 
     @Operation(summary = "Retrieve responses for an interrogation, using interrogationId and questionnaireId from Genesis Database with the latest value for each available state of every variable")
     @GetMapping(path = "/by-ue-and-questionnaire/latest-states")
+    @PreAuthorize("hasRole('USER_PLATINE')")
     public ResponseEntity<SurveyUnitQualityToolDto> findResponsesByInterrogationAndQuestionnaireLatestStates(
             @RequestParam("interrogationId") String interrogationId,
             @RequestParam("questionnaireId") String questionnaireId) {
@@ -286,6 +296,7 @@ public class ResponseController {
 
     @Operation(summary = "Retrieve all responses (for all interrogations) of one questionnaire")
     @GetMapping(path = "/by-questionnaire")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Path> findAllResponsesByQuestionnaire(@RequestParam("questionnaireId") String questionnaireId) {
         log.info("Try to find all responses of questionnaire : {}", questionnaireId);
 
@@ -308,6 +319,7 @@ public class ResponseController {
 
     @Operation(summary = "Retrieve responses for an interrogation, using interrogationId and questionnaireId from Genesis Database. It returns only the latest value of each variable regardless of the state.")
     @GetMapping(path = "/by-ue-and-questionnaire/latest")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<SurveyUnitModel>> getLatestByInterrogation(@RequestParam("interrogationId") String interrogationId,
                                                                @RequestParam("questionnaireId") String questionnaireId) {
         List<SurveyUnitModel> responses = surveyUnitService.findLatestByIdAndByQuestionnaireId(interrogationId, questionnaireId);
@@ -316,6 +328,7 @@ public class ResponseController {
 
     @Operation(summary = "Retrieve responses for an interrogation, using interrogationId and questionnaireId from Genesis Database. For a given mode, it returns only the latest value of each variable regardless of the state. The result is one object by mode in the output")
     @GetMapping(path = "/simplified/by-ue-questionnaire-and-mode/latest")
+    @PreAuthorize("hasRole('USER_KRAFTWERK')")
     public ResponseEntity<SurveyUnitSimplified> getLatestByInterrogationOneObject(@RequestParam("interrogationId") String interrogationId,
                                                                              @RequestParam("questionnaireId") String questionnaireId,
                                                                              @RequestParam("mode") Mode mode) {
@@ -340,6 +353,7 @@ public class ResponseController {
             description = "Return the latest state for each variable for the given ids and a given questionnaire.<br>" +
                     "For a given id, the endpoint returns a document by collection mode (if there is more than one).")
     @PostMapping(path = "/simplified/by-list-interrogation-and-questionnaire/latest")
+    @PreAuthorize("hasRole('USER_KRAFTWERK')")
     public ResponseEntity<List<SurveyUnitSimplified>> getLatestForInterrogationList(@RequestParam("questionnaireId") String questionnaireId,
                                                                                @RequestBody List<InterrogationId> interrogationIds) {
         List<SurveyUnitSimplified> results = new ArrayList<>();
@@ -371,6 +385,7 @@ public class ResponseController {
     @Operation(summary = "Save edited variables",
             description = "Save edited variables document into database")
     @PostMapping(path = "/save-edited")
+    @PreAuthorize("hasRole('USER_PLATINE')")
     public ResponseEntity<Object> saveEditedVariables(
             @RequestBody SurveyUnitInputDto surveyUnitInputDto
     ){
