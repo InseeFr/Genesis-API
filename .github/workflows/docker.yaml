@@ -60,11 +60,20 @@ jobs:
           name: app-jar
           path: target/
 
+      - name: Create docker version tag
+        id: docker-version
+        run: |
+          # replace '/' by '-' for docker tags
+          docker_tag="${{ needs.build-snapshot.outputs.branch }}"
+          docker_tag=$(echo "$docker_tag" | sed 's/[\/+]/-/g')
+          echo "docker_tag=${docker_tag}" >> $GITHUB_ENV
+
       - name: Publish to Docker Hub
         uses: elgohr/Publish-Docker-Github-Action@v5
         with:
           name: inseefr/genesis-api
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-          tags: "snapshot-${{ needs.build-snapshot.outputs.branch }}"
+          default_branch: ${{ github.ref }}
+          tags: "snapshot-${{ env.docker_tag }}"
           workdir: .
