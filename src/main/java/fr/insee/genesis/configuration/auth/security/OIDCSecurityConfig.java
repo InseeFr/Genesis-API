@@ -9,6 +9,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -56,14 +57,13 @@ public class OIDCSecurityConfig {
         }
         http
                 .authorizeHttpRequests(configurer -> configurer
-                        .requestMatchers("/questionnaires/**").hasRole(String.valueOf(ApplicationRole.READER))
-                        .requestMatchers("/modes/**").hasRole(String.valueOf(ApplicationRole.READER))
-                        .requestMatchers("/interrogations/**").hasRole(String.valueOf(ApplicationRole.READER))
-                        .requestMatchers("/campaigns/**").hasRole(String.valueOf(ApplicationRole.READER))
+                        .requestMatchers(HttpMethod.GET,"/questionnaires/**").hasRole(String.valueOf(ApplicationRole.READER))
+                        .requestMatchers(HttpMethod.GET,"/modes/**").hasRole(String.valueOf(ApplicationRole.READER))
+                        .requestMatchers(HttpMethod.GET,"/interrogations/**").hasRole(String.valueOf(ApplicationRole.READER))
+                        .requestMatchers(HttpMethod.GET,"/campaigns/**").hasRole(String.valueOf(ApplicationRole.READER))
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
-        http.addFilterBefore(new DebugSecurityFilter(), BasicAuthenticationFilter.class);
         return http.build();
     }
 
@@ -83,7 +83,6 @@ public class OIDCSecurityConfig {
             public Collection<GrantedAuthority> convert(Jwt source) {
 
                 String[] claimPath = inseeSecurityTokenProperties.getOidcClaimRole().split("\\.");
-                System.out.println("test");
                 Map<String, Object> claims = source.getClaims();
                 try {
 
