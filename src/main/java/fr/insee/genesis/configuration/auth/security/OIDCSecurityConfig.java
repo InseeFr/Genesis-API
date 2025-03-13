@@ -85,34 +85,36 @@ public class OIDCSecurityConfig {
                 String[] claimPath = inseeSecurityTokenProperties.getOidcClaimRole().split("\\.");
                 Map<String, Object> claims = source.getClaims();
                 try {
+                    if (!claims.isEmpty()) {
+                        for (int i = 0; i < claimPath.length - 1; i++) {
+                            claims = (Map<String, Object>) claims.get(claimPath[i]);
+                        }
 
-                    for (int i = 0; i < claimPath.length - 1; i++) {
-                        claims = (Map<String, Object>) claims.get(claimPath[i]);
+                        List<String> tokenClaims = (List<String>) claims.getOrDefault(claimPath[claimPath.length - 1], List.of());
+                        // Collect distinct values from mapping associated with input keys
+                        List<String> claimedRoles = tokenClaims.stream()
+                                .filter(roleConfiguration.getRolesByClaim()::containsKey) // Ensure the key exists in the mapping
+                                .flatMap(key -> roleConfiguration.getRolesByClaim().get(key).stream()) // Get the list of values associated with the key
+                                .distinct() // Remove duplicates
+                                .toList();
+
+                        return Collections.unmodifiableCollection(claimedRoles.stream().map(s -> new GrantedAuthority() {
+                            @Override
+                            public String getAuthority() {
+                                return ROLE_PREFIX + s;
+                            }
+
+                            @Override
+                            public String toString() {
+                                return getAuthority();
+                            }
+                        }).toList());
                     }
-
-                    List<String> tokenClaims = (List<String>) claims.getOrDefault(claimPath[claimPath.length - 1], List.of());
-                    // Collect distinct values from mapping associated with input keys
-                    List<String> claimedRoles = tokenClaims.stream()
-                            .filter(roleConfiguration.getRolesByClaim()::containsKey) // Ensure the key exists in the mapping
-                            .flatMap(key -> roleConfiguration.getRolesByClaim().get(key).stream()) // Get the list of values associated with the key
-                            .distinct() // Remove duplicates
-                            .toList();
-
-                    return Collections.unmodifiableCollection(claimedRoles.stream().map(s -> new GrantedAuthority() {
-                        @Override
-                        public String getAuthority() {
-                            return ROLE_PREFIX + s;
-                        }
-
-                        @Override
-                        public String toString() {
-                            return getAuthority();
-                        }
-                    }).toList());
                 } catch (ClassCastException e) {
                     // role path not correctly found, assume that no role for this user
                     return List.of();
                 }
+                return List.of();
             }
         };
     }
