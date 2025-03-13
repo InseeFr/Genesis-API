@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.4.1 [2025-02-24]
+
+### Fixed
+- Bug on missing/filter_result variables in loops/tables incorrectly persisted in database
+
+## 1.4.0 [2025-02-18]
+
+### Changed
+- Rename all identifiers and refactor values
+### Fixed
+- Bug on export of data to Kraftwerk
+### Updated
+- pitest 1.18.2
+- springdoc 2.8.5
+- cucumber 7.21.1
+  
 ## 1.3.2 [2025-01-31]
 
 ### Added

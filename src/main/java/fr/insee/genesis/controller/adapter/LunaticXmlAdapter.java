@@ -6,7 +6,7 @@ import fr.insee.genesis.controller.sources.xml.LunaticXmlOtherData;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
 import fr.insee.genesis.controller.sources.xml.ValueType;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
-import fr.insee.genesis.domain.utils.LoopIdentifier;
+import fr.insee.genesis.domain.utils.GroupUtils;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
@@ -123,8 +123,8 @@ public class LunaticXmlAdapter {
                     variableModels.add(VariableModel.builder()
                             .varId(lunaticXmlCollectedData.getVariableName())
                             .value(valueTypeList.get(i-1).getValue())
-                            .scope(LoopIdentifier.getLoopIdentifier(lunaticXmlCollectedData.getVariableName(), variablesMap))
-                            .parentId(LoopIdentifier.getRelatedVariableName(lunaticXmlCollectedData.getVariableName(), variablesMap))
+                            .scope(GroupUtils.getGroupName(lunaticXmlCollectedData.getVariableName(), variablesMap))
+                            .parentId(GroupUtils.getParentGroupName(lunaticXmlCollectedData.getVariableName(), variablesMap))
                             .iteration(i)
                             .build());
                     dataCount++;
@@ -160,9 +160,9 @@ public class LunaticXmlAdapter {
                     variableModels.add(VariableModel.builder()
                             .varId(lunaticXmlExternalData.getVariableName())
                             .value(valueTypeList.get(i-1).getValue())
-                            .scope(LoopIdentifier.getLoopIdentifier(lunaticXmlExternalData.getVariableName(), variablesMap))
+                            .scope(GroupUtils.getGroupName(lunaticXmlExternalData.getVariableName(), variablesMap))
                             .iteration(i)
-                            .parentId(LoopIdentifier.getRelatedVariableName(lunaticXmlExternalData.getVariableName(), variablesMap))
+                            .parentId(GroupUtils.getParentGroupName(lunaticXmlExternalData.getVariableName(), variablesMap))
                             .build());
                 }
             }
