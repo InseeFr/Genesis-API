@@ -13,12 +13,10 @@ import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
-import fr.insee.genesis.infrastructure.document.rawdata.LunaticJsonDataDocumentTest;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -44,19 +42,14 @@ public class RawResponseController {
     private final SurveyUnitService surveyUnitService;
     private final SurveyUnitQualityService surveyUnitQualityService;
     private final FileUtils fileUtils;
-
-    @Qualifier("lunaticJsonMongoAdapter")
-    private final LunaticJsonRawDataPersistancePort lunaticJsonRawDataPersistancePort;
-
-    @Autowired
-    public RawResponseController(LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort, ControllerUtils controllerUtils, MetadataService metadataService, SurveyUnitService surveyUnitService, SurveyUnitQualityService surveyUnitQualityService, FileUtils fileUtils, LunaticJsonRawDataPersistancePort lunaticJsonRawDataPersistancePort) {
+    
+    public RawResponseController(LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort, ControllerUtils controllerUtils, MetadataService metadataService, SurveyUnitService surveyUnitService, SurveyUnitQualityService surveyUnitQualityService, FileUtils fileUtils) {
         this.lunaticJsonRawDataApiPort = lunaticJsonRawDataApiPort;
         this.controllerUtils = controllerUtils;
         this.metadataService = metadataService;
         this.surveyUnitService = surveyUnitService;
         this.surveyUnitQualityService = surveyUnitQualityService;
         this.fileUtils = fileUtils;
-        this.lunaticJsonRawDataPersistancePort = lunaticJsonRawDataPersistancePort;
     }
 
     @Operation(summary = "Save lunatic json data to Genesis Database from the campaign root folder")
