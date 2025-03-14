@@ -8,13 +8,17 @@ import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
+import fr.insee.genesis.domain.ports.spi.LunaticJsonRawDataPersistancePort;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.infrastructure.document.rawdata.LunaticJsonDataDocumentTest;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,7 +33,7 @@ import java.util.List;
 
 @Slf4j
 @Controller
-@RequestMapping(path = "/" )
+@RequestMapping(path = "/responses/raw" )
 public class RawResponseController {
 
     private static final String SUCCESS_MESSAGE = "Data saved";
@@ -41,17 +45,22 @@ public class RawResponseController {
     private final SurveyUnitQualityService surveyUnitQualityService;
     private final FileUtils fileUtils;
 
-    public RawResponseController(LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort, ControllerUtils controllerUtils, MetadataService metadataService, SurveyUnitService surveyUnitService, SurveyUnitQualityService surveyUnitQualityService, FileUtils fileUtils) {
+    @Qualifier("lunaticJsonMongoAdapter")
+    private final LunaticJsonRawDataPersistancePort lunaticJsonRawDataPersistancePort;
+
+    @Autowired
+    public RawResponseController(LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort, ControllerUtils controllerUtils, MetadataService metadataService, SurveyUnitService surveyUnitService, SurveyUnitQualityService surveyUnitQualityService, FileUtils fileUtils, LunaticJsonRawDataPersistancePort lunaticJsonRawDataPersistancePort) {
         this.lunaticJsonRawDataApiPort = lunaticJsonRawDataApiPort;
         this.controllerUtils = controllerUtils;
         this.metadataService = metadataService;
         this.surveyUnitService = surveyUnitService;
         this.surveyUnitQualityService = surveyUnitQualityService;
         this.fileUtils = fileUtils;
+        this.lunaticJsonRawDataPersistancePort = lunaticJsonRawDataPersistancePort;
     }
 
     @Operation(summary = "Save lunatic json data to Genesis Database from the campaign root folder")
-    @PutMapping(path = "/lunatic-json/raw/save-one")
+    @PutMapping(path = "/lunatic-json/save")
     public ResponseEntity<Object> saveRawResponsesFromJsonBody(
             @RequestParam("campaignName") String campaignName,
             @RequestParam("questionnaireId") String questionnaireId,
@@ -60,20 +69,23 @@ public class RawResponseController {
             @RequestParam(value = "mode") Mode modeSpecified,
             @RequestBody String dataJson
     ) {
+        log.info("Try to save interrogationId {} for campaign {}",interrogationId,campaignName);
         try {
             lunaticJsonRawDataApiPort.saveData(campaignName, questionnaireId, interrogationId, idUE, dataJson,
                     modeSpecified);
-        }catch (GenesisException e){
+        } catch (GenesisException e){
             log.error(e.getMessage());
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
+        } catch (Exception e){
+            return ResponseEntity.status(500).body("Unexpected error");
         }
-        log.info("Data saved for {}", campaignName);
+        log.info("Data saved for interrogationId {} and campaign {}",interrogationId, campaignName);
         return ResponseEntity.ok(SUCCESS_MESSAGE);
     }
 
     //GET unprocessed
     @Operation(summary = "Get campaign id and interrogationId from all unprocessed raw json data")
-    @GetMapping(path = "/lunatic-json/raw/get/unprocessed")
+    @GetMapping(path = "/lunatic-json/get/unprocessed")
     public ResponseEntity<List<LunaticJsonRawDataUnprocessedDto>> getUnproccessedJsonRawData(){
         log.info("Try to get unprocessed raw JSON datas...");
         return ResponseEntity.ok(lunaticJsonRawDataApiPort.getUnprocessedDataIds());
@@ -81,7 +93,7 @@ public class RawResponseController {
 
     //PROCESS
     @Operation(summary = "Process raw data of a campaign")
-    @PostMapping(path = "/lunatic-json/raw/process")
+    @PostMapping(path = "/lunatic-json/process")
     public ResponseEntity<Object> processJsonRawData(
             @RequestParam("campaignName") String campaignName,
             @RequestParam("questionnaireId") String questionnaireId,
