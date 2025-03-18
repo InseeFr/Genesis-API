@@ -52,7 +52,7 @@ public class RawResponseController {
         this.fileUtils = fileUtils;
     }
 
-    @Operation(summary = "Save lunatic json data to Genesis Database from the campaign root folder")
+    @Operation(summary = "Save lunatic json data from one interrogation in Genesis Database")
     @PutMapping(path = "/lunatic-json/save")
     public ResponseEntity<Object> saveRawResponsesFromJsonBody(
             @RequestParam("campaignName") String campaignName,

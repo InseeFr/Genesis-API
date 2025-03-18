@@ -94,7 +94,6 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
                     .build()
             );
         }
-
         return dtos;
     }
 

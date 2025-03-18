@@ -12,7 +12,7 @@ import org.mapstruct.factory.Mappers;
 import java.util.List;
 import java.util.Map;
 
-@Mapper(componentModel = "spring")
+@Mapper(uses = LunaticJsonRawDataDocumentMapperImpl.class)
 public interface LunaticJsonDocumentMapper {
 	LunaticJsonDocumentMapper INSTANCE = Mappers.getMapper(LunaticJsonDocumentMapper.class);
 

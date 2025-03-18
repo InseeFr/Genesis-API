@@ -10,8 +10,6 @@ import java.util.Set;
 public interface LunaticJsonRawDataPersistancePort {
     void save(LunaticJsonRawDataModel lunaticJsonRawDataModel);
     List<LunaticJsonRawDataModel> getAllUnprocessedData();
-
     List<LunaticJsonDataDocument> findRawData(String campaignName, Mode mode, List<String> interrogationIdList);
-
     void updateProcessDates(String campaignId, Set<String> interrogationIds);
 }

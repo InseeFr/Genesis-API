@@ -2,7 +2,6 @@ package fr.insee.genesis.infrastructure.document.rawdata;
 
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
-import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawData;
 import lombok.Builder;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
@@ -20,7 +19,7 @@ public record LunaticJsonDataDocument(
     String interrogationId,
     String idUE,
     Mode mode,
-    LunaticJsonRawData data,
+    LunaticJsonRawDataDocument data,
     LocalDateTime recordDate,
     LocalDateTime processDate
 ){}
