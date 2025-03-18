@@ -74,15 +74,16 @@ class LunaticJsonRawDataServiceTest {
         Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().collectedVariables()).isNotNull().hasSize(1);
         Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().collectedVariables()).containsOnlyKeys("TESTVAR");
 
-        Map<DataState, LunaticJsonRawDataVariable> lunaticJsonRawDataVariableMap =
-                lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().collectedVariables().get("TESTVAR")
-                        .collectedVariableByStateMap();
+        Map<DataState, Object> lunaticJsonRawDataVariableMap =
+                lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().collectedVariables().get("TESTVAR");
 
         Assertions.assertThat(lunaticJsonRawDataVariableMap).isNotNull().hasSize(1).containsKey(DataState.COLLECTED);
-        Assertions.assertThat(lunaticJsonRawDataVariableMap.get(DataState.COLLECTED).valuesArray()).isNotNull().containsExactly(
-                "test");
 
-        Assertions.assertThat(lunaticJsonRawDataVariableMap.get(DataState.COLLECTED).value()).isNull();
+        Assertions.assertThat(lunaticJsonRawDataVariableMap.get(DataState.COLLECTED)).isNotNull();
+        Assertions.assertThat(lunaticJsonRawDataVariableMap.get(DataState.COLLECTED)).isInstanceOf(List.class);
+        List<String> list = (List<String>) lunaticJsonRawDataVariableMap.get(DataState.COLLECTED);
+        Assertions.assertThat(list).containsExactly("test");
+
 
         Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().externalVariables()).isNotNull().isEmpty();
     }
@@ -114,14 +115,12 @@ class LunaticJsonRawDataServiceTest {
         Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().collectedVariables()).isNotNull().hasSize(1);
         Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().collectedVariables()).containsOnlyKeys("TESTVAR");
 
-        Map<DataState, LunaticJsonRawDataVariable> lunaticJsonRawDataVariableMap =
-                lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().collectedVariables().get("TESTVAR")
-                        .collectedVariableByStateMap();
+        Map<DataState, Object> lunaticJsonRawDataVariableMap =
+                lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().collectedVariables().get("TESTVAR");
 
         Assertions.assertThat(lunaticJsonRawDataVariableMap).isNotNull().hasSize(1).containsKey(DataState.COLLECTED);
-        Assertions.assertThat(lunaticJsonRawDataVariableMap.get(DataState.COLLECTED).value()).isNotNull().isEqualTo("test");
-
-        Assertions.assertThat(lunaticJsonRawDataVariableMap.get(DataState.COLLECTED).valuesArray()).isNull();
+        Assertions.assertThat(lunaticJsonRawDataVariableMap.get(DataState.COLLECTED)).isNotNull().isEqualTo("test");
+        Assertions.assertThat(lunaticJsonRawDataVariableMap.get(DataState.COLLECTED)).isInstanceOf(String.class);
 
         Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().externalVariables()).isNotNull().isEmpty();
     }
@@ -153,11 +152,10 @@ class LunaticJsonRawDataServiceTest {
         Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().externalVariables()).isNotNull().hasSize(1);
         Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().externalVariables()).containsOnlyKeys("TESTVAR_EXT");
 
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().externalVariables().get("TESTVAR_EXT").valuesArray())
-                .isNotNull().containsExactly("test");
-
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().externalVariables().get("TESTVAR_EXT").value())
-                .isNull();
+        Object extVarValue = lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().externalVariables().get("TESTVAR_EXT");
+        Assertions.assertThat(extVarValue).isNotNull().isInstanceOf(List.class);
+        List<String> extValCast = (List<String>) extVarValue;
+        Assertions.assertThat(extValCast).containsExactly("test");
 
         Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().collectedVariables()).isNotNull().isEmpty();
     }
@@ -189,11 +187,10 @@ class LunaticJsonRawDataServiceTest {
         Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().externalVariables()).isNotNull().hasSize(1);
         Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().externalVariables()).containsOnlyKeys("TESTVAR_EXT");
 
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().externalVariables().get("TESTVAR_EXT").value())
+        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().externalVariables().get("TESTVAR_EXT"))
                 .isNotNull().isEqualTo("test");
 
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().externalVariables().get("TESTVAR_EXT").valuesArray())
-                .isNull();
+        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().externalVariables().get("TESTVAR_EXT")).isInstanceOf(String.class);
 
         Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().collectedVariables()).isNotNull().isEmpty();
     }
@@ -226,22 +223,20 @@ class LunaticJsonRawDataServiceTest {
         Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().externalVariables()).isNotNull().hasSize(1);
         Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().externalVariables()).containsOnlyKeys("TESTVAR_EXT");
 
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().externalVariables().get("TESTVAR_EXT").value())
+        //External variable
+        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().externalVariables().get("TESTVAR_EXT"))
                 .isNotNull().isEqualTo("test_ext");
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().externalVariables().get("TESTVAR_EXT").valuesArray())
-                .isNull();
+        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().externalVariables().get("TESTVAR_EXT")).isInstanceOf(String.class);
 
+        //Collected variable
         Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().collectedVariables()).isNotNull().hasSize(1);
         Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().collectedVariables()).containsOnlyKeys("TESTVAR");
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().collectedVariables().get("TESTVAR").collectedVariableByStateMap())
-                .containsOnlyKeys(DataState.COLLECTED);
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().collectedVariables().get("TESTVAR").collectedVariableByStateMap()
-                        .get(DataState.COLLECTED).valuesArray())
-                .isNotNull().containsExactly("test");
-
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().collectedVariables().get("TESTVAR").collectedVariableByStateMap()
-                        .get(DataState.COLLECTED).value())
-                .isNull();
+        Map<DataState,Object> colVarValue = lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().collectedVariables().get("TESTVAR");
+        Assertions.assertThat(colVarValue).containsOnlyKeys(DataState.COLLECTED);
+        Assertions.assertThat(colVarValue.get(DataState.COLLECTED)).isNotNull();
+        Assertions.assertThat(colVarValue.get(DataState.COLLECTED)).isInstanceOf(List.class);
+        List<String> colVarCast = (List<String>) colVarValue.get(DataState.COLLECTED);
+        Assertions.assertThat(colVarCast).containsExactly("test");
     }
 
     @Test
@@ -272,28 +267,22 @@ class LunaticJsonRawDataServiceTest {
         Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().externalVariables()).isNotNull().hasSize(1);
         Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().externalVariables()).containsOnlyKeys("TESTVAR_EXT");
 
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().externalVariables().get("TESTVAR_EXT").value())
+        //External variables
+        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().externalVariables().get("TESTVAR_EXT"))
                 .isNotNull().isEqualTo("test_ext");
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().externalVariables().get("TESTVAR_EXT").valuesArray())
-                .isNull();
+        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().externalVariables().get("TESTVAR_EXT")).isInstanceOf(String.class);
 
+        //Collected variables
         Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().collectedVariables()).isNotNull().hasSize(1);
         Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().collectedVariables()).containsOnlyKeys("TESTVAR");
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().collectedVariables().get("TESTVAR").collectedVariableByStateMap())
-                .containsOnlyKeys(DataState.COLLECTED, DataState.EDITED);
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().collectedVariables().get("TESTVAR").collectedVariableByStateMap()
-                        .get(DataState.COLLECTED).valuesArray())
-                .isNotNull().containsExactly("test");
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().collectedVariables().get("TESTVAR").collectedVariableByStateMap()
-                        .get(DataState.EDITED).valuesArray())
-                .isNotNull().containsExactly("test_ed");
-
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().collectedVariables().get("TESTVAR").collectedVariableByStateMap()
-                        .get(DataState.COLLECTED).value())
-                .isNull();
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().collectedVariables().get("TESTVAR").collectedVariableByStateMap()
-                        .get(DataState.EDITED).value())
-                .isNull();
+        Map<DataState,Object> colVar = lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().collectedVariables().get("TESTVAR");
+        Assertions.assertThat(colVar).containsOnlyKeys(DataState.COLLECTED, DataState.EDITED);
+        Assertions.assertThat(colVar.get(DataState.COLLECTED)).isNotNull();
+        Assertions.assertThat((List<String>)colVar.get(DataState.COLLECTED)).containsExactly("test");
+        Assertions.assertThat(colVar.get(DataState.EDITED)).isNotNull();
+        Assertions.assertThat((List<String>)colVar.get(DataState.EDITED)).containsExactly("test_ed");
+        Assertions.assertThat(colVar.get(DataState.COLLECTED)).isInstanceOf(List.class);
+        Assertions.assertThat(colVar.get(DataState.EDITED)).isInstanceOf(List.class);
     }
 
     @Test

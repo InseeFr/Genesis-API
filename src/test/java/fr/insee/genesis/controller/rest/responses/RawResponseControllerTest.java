@@ -13,6 +13,7 @@ import fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.infrastructure.document.rawdata.LunaticJsonDataDocument;
+import fr.insee.genesis.infrastructure.document.rawdata.LunaticJsonRawDataDocument;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.LunaticJsonRawDataPersistanceStub;
@@ -70,13 +71,12 @@ class RawResponseControllerTest {
 
         Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().collectedVariables().get(
                 "testdata")).isNotNull();
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().collectedVariables().get(
-                        "testdata").collectedVariableByStateMap().get(DataState.COLLECTED).valuesArray())
-                .isNotNull().hasSize(1);
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().collectedVariables().get(
-                        "testdata").collectedVariableByStateMap().get(DataState.COLLECTED).valuesArray().getFirst())
-                .isEqualTo("test");
-
+        Object value = lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().collectedVariables().get(
+                "testdata").get(DataState.COLLECTED);
+        Assertions.assertThat(value).isNotNull();
+        Assertions.assertThat(value).isInstanceOf(List.class);
+        List<?> list = (List<?>) value;
+        Assertions.assertThat(list).hasSize(1);
         Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().recordDate()).isNotNull();
         Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().processDate()).isNull();
     }
@@ -185,30 +185,16 @@ class RawResponseControllerTest {
                                                      LocalDateTime processDate,
                                                      String variableName, String variableValue) {
         //COLLECTED
-        LunaticJsonRawData lunaticJsonRawData = LunaticJsonRawData.builder()
+        LunaticJsonRawDataDocument lunaticJsonRawDataDoc = LunaticJsonRawDataDocument.builder()
                 .collectedVariables(new HashMap<>())
                 .externalVariables(new HashMap<>())
                 .build();
 
-        LunaticJsonRawDataCollectedVariable lunaticJsonRawDataCollectedVariable = LunaticJsonRawDataCollectedVariable.builder()
-                .collectedVariableByStateMap(new EnumMap<>(DataState.class))
-                .build();
-
-        LunaticJsonRawDataVariable lunaticJsonRawDataVariable = LunaticJsonRawDataVariable.builder()
-                .value(variableValue)
-                .build();
-
-        lunaticJsonRawDataCollectedVariable.collectedVariableByStateMap().put(DataState.COLLECTED,lunaticJsonRawDataVariable);
-        lunaticJsonRawData.collectedVariables().put(variableName, lunaticJsonRawDataCollectedVariable);
+        lunaticJsonRawDataDoc.collectedVariables().put(variableName,new HashMap<>());
+        lunaticJsonRawDataDoc.collectedVariables().get(variableName).put(DataState.COLLECTED,variableValue);
 
         //EXTERNAL
-        lunaticJsonRawDataVariable = LunaticJsonRawDataVariable.builder()
-                .value(variableValue + "_EXTERNAL")
-                .build();
-
-        lunaticJsonRawData.externalVariables().put(variableName + "_EXTERNAL", lunaticJsonRawDataVariable);
-
-
+        lunaticJsonRawDataDoc.externalVariables().put(variableName+"_EXTERNAL",variableValue+"_EXTERNAL");
 
         LunaticJsonDataDocument lunaticJsonDataDocument = LunaticJsonDataDocument.builder()
                 .campaignId(campaignId)
@@ -217,7 +203,7 @@ class RawResponseControllerTest {
                 .interrogationId(interrogationId)
                 .recordDate(LocalDateTime.now())
                 .processDate(processDate)
-                .data(lunaticJsonRawData)
+                .data(lunaticJsonRawDataDoc)
                 .build();
 
         lunaticJsonRawDataPersistanceStub.getMongoStub().add(lunaticJsonDataDocument);
