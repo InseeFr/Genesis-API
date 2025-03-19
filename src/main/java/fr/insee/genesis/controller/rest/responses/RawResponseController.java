@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -69,6 +70,8 @@ public class RawResponseController {
                 .idUE(idUE)
                 .mode(modeSpecified)
                 .data(dataJson)
+                .recordDate(LocalDateTime.now())
+                .processDate(null)
                 .build();
         try {
             lunaticJsonRawDataApiPort.save(rawData);
