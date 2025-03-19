@@ -13,7 +13,9 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -132,7 +134,8 @@ public class DataVerifier {
      * @param correctedCollectedVariables FORCED document variables
      */
     private static void collectedVariablesManagement(List<SurveyUnitModel> srcSurveyUnitModelsOfInterrogationId, VariablesMap variablesMap, List<VariableModel> correctedCollectedVariables){
-        Set<String> variableNames = new HashSet<>();
+        Map<String,List<Integer>> variableIterations = new LinkedHashMap<>();
+
         List<VariableModel> variablesToVerify = new ArrayList<>();
 
         //Sort from more priority to less
@@ -141,10 +144,7 @@ public class DataVerifier {
         //Get more priority variables to verify
         for(SurveyUnitModel srcSurveyUnitModel : sortedSurveyUnitModels){
             for(VariableModel collectedVariable : srcSurveyUnitModel.getCollectedVariables()){
-                if(!variableNames.contains(collectedVariable.varId())){
-                    variableNames.add(collectedVariable.varId());
-                    variablesToVerify.add(collectedVariable);
-                }
+                addIteration(collectedVariable, variableIterations, variablesToVerify);
             }
         }
 
@@ -164,6 +164,24 @@ public class DataVerifier {
         }
     }
 
+    private static void addIteration(VariableModel variableToCheck, Map<String, List<Integer>> variableIterations, List<VariableModel> variablesToVerify) {
+        if(!variableIterations.containsKey(variableToCheck.varId())
+                || !variableIterations.get(variableToCheck.varId()).contains(variableToCheck.iteration())){
+            List<Integer> iterations = variableIterations.containsKey(variableToCheck.varId()) ?
+                    variableIterations.get(variableToCheck.varId())
+                    : new ArrayList<>();
+            if(!iterations.contains(variableToCheck.iteration())){
+                iterations.add(variableToCheck.iteration());
+            }
+            variableIterations.put(
+                    variableToCheck.varId(),
+                    iterations
+            );
+
+            variablesToVerify.add(variableToCheck);
+        }
+    }
+
     private static VariableModel verifyVariable(VariableModel variableModel, fr.insee.bpm.metadata.model.Variable variableDefinition) {
         if(isParseError(variableModel.value(), variableDefinition.getType())){
             return VariableModel.builder()
@@ -178,7 +196,7 @@ public class DataVerifier {
     }
 
     private static void externalVariablesManagement(List<SurveyUnitModel> srcSuModels, VariablesMap variablesMap, List<VariableModel> correctedExternalVariables) {
-        //COLLECTED only
+        //External variables are in COLLECTED documents only
         Optional<SurveyUnitModel> surveyUnitModelOptional = srcSuModels.stream().filter(
                 surveyUnitModel -> surveyUnitModel.getState().equals(DataState.COLLECTED)
         ).findFirst();

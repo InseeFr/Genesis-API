@@ -247,7 +247,8 @@ class DataVerifierTest {
         Assertions.assertTrue(surveyUnits.size() > 1);
         SurveyUnitModel forcedUnit = surveyUnits.get(1);
         Assertions.assertEquals(DataState.FORCED, forcedUnit.getState());
-        Assertions.assertEquals(1, forcedUnit.getCollectedVariables().size());
+        Assertions.assertEquals(2, forcedUnit.getCollectedVariables().size());
         Assertions.assertEquals("", forcedUnit.getCollectedVariables().getFirst().value()); // Corrected values
+        Assertions.assertEquals("", forcedUnit.getCollectedVariables().get(1).value());
     }
 }
