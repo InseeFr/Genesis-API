@@ -14,11 +14,5 @@ public interface LunaticJsonRawDataApiPort {
     List<LunaticJsonRawDataModel> getRawData(String campaignName, Mode mode, List<String> interrogationIdList);
     List<SurveyUnitModel> convertRawData(List<LunaticJsonRawDataModel> rawData, VariablesMap variablesMap);
     List<LunaticJsonRawDataUnprocessedDto> getUnprocessedDataIds();
-    List<SurveyUnitModel> parseRawData(
-            String campaignName,
-            Mode mode,
-            List<String> interrogationIdList,
-            VariablesMap variablesMap
-    );
     void updateProcessDates(List<SurveyUnitModel> surveyUnitModels);
 }
