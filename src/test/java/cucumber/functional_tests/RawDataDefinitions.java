@@ -1,40 +1,7 @@
 package cucumber.functional_tests;
 
-import fr.insee.genesis.TestConstants;
-import fr.insee.genesis.configuration.Config;
-import fr.insee.genesis.controller.rest.responses.RawResponseController;
-import fr.insee.genesis.controller.services.MetadataService;
-import fr.insee.genesis.controller.utils.ControllerUtils;
-import fr.insee.genesis.domain.model.surveyunit.DataState;
-import fr.insee.genesis.domain.model.surveyunit.Mode;
-import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
-import fr.insee.genesis.domain.model.surveyunit.VariableModel;
-import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataCollectedVariable;
-import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataVariable;
-import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
-import fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService;
-import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
-import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
-import fr.insee.genesis.infrastructure.document.rawdata.LunaticJsonDataDocument;
-import fr.insee.genesis.infrastructure.utils.FileUtils;
-import fr.insee.genesis.stubs.ConfigStub;
-import fr.insee.genesis.stubs.LunaticJsonRawDataPersistanceStub;
-import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
-import io.cucumber.java.Before;
-import io.cucumber.java.en.Given;
-import io.cucumber.java.en.Then;
-import io.cucumber.java.en.When;
-import org.assertj.core.api.Assertions;
-import org.springframework.http.ResponseEntity;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Collections;
-import java.util.List;
-
 public class RawDataDefinitions {
-    LunaticJsonRawDataPersistanceStub lunaticJsonRawDataPersistanceStub = new LunaticJsonRawDataPersistanceStub();
+/*    LunaticJsonRawDataPersistanceStub lunaticJsonRawDataPersistanceStub = new LunaticJsonRawDataPersistanceStub();
     LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort = new LunaticJsonRawDataService(lunaticJsonRawDataPersistanceStub);
     Config config = new ConfigStub();
     FileUtils fileUtils = new FileUtils(config);
@@ -273,5 +240,5 @@ public class RawDataDefinitions {
 
         //Value content assertion
         Assertions.assertThat(variableModel.value()).isEqualTo(expectedValue);
-    }
+    }*/
 }

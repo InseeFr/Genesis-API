@@ -7,8 +7,8 @@ import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
+import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
-import fr.insee.genesis.domain.ports.spi.LunaticJsonRawDataPersistancePort;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.exceptions.GenesisError;
@@ -16,7 +16,6 @@ import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Controller
@@ -35,7 +35,6 @@ import java.util.List;
 public class RawResponseController {
 
     private static final String SUCCESS_MESSAGE = "Data saved";
-
     private final LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort;
     private final ControllerUtils controllerUtils;
     private final MetadataService metadataService;
@@ -60,20 +59,25 @@ public class RawResponseController {
             @RequestParam("interrogationId") String interrogationId,
             @RequestParam(value = "surveyUnitId", required = false) String idUE,
             @RequestParam(value = "mode") Mode modeSpecified,
-            @RequestBody String dataJson
+            @RequestBody Map<String, Object> dataJson
     ) {
         log.info("Try to save interrogationId {} for campaign {}",interrogationId,campaignName);
+        LunaticJsonRawDataModel rawData = LunaticJsonRawDataModel.builder()
+                .campaignId(campaignName)
+                .questionnaireId(questionnaireId)
+                .interrogationId(interrogationId)
+                .idUE(idUE)
+                .mode(modeSpecified)
+                .data(dataJson)
+                .build();
         try {
-            lunaticJsonRawDataApiPort.saveData(campaignName, questionnaireId, interrogationId, idUE, dataJson,
-                    modeSpecified);
-        } catch (GenesisException e){
-            log.error(e.getMessage());
-            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
+            lunaticJsonRawDataApiPort.save(rawData);
         } catch (Exception e){
             return ResponseEntity.status(500).body("Unexpected error");
         }
         log.info("Data saved for interrogationId {} and campaign {}",interrogationId, campaignName);
-        return ResponseEntity.ok(SUCCESS_MESSAGE);
+        // Collect platform prefer code 201 in case of success
+        return ResponseEntity.status(201).body(SUCCESS_MESSAGE);
     }
 
     //GET unprocessed
@@ -111,13 +115,13 @@ public class RawResponseController {
                     );
                 }
 
+                List<LunaticJsonRawDataModel> rawData = lunaticJsonRawDataApiPort.getRawData(campaignName,mode,interrogationIdList);
                 //Save converted data
-                List<SurveyUnitModel> surveyUnitModels = lunaticJsonRawDataApiPort.parseRawData(
-                        campaignName,
-                        mode,
-                        interrogationIdList,
+                List<SurveyUnitModel> surveyUnitModels = lunaticJsonRawDataApiPort.convertRawData(
+                        rawData,
                         variablesMap
                 );
+
                 surveyUnitQualityService.verifySurveyUnits(surveyUnitModels, variablesMap);
                 surveyUnitService.saveSurveyUnits(surveyUnitModels);
 
@@ -142,7 +146,5 @@ public class RawResponseController {
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
         }
     }
-
-
 
 }

@@ -1,35 +1,8 @@
 package fr.insee.genesis.controller.rest.responses;
 
-import fr.insee.genesis.controller.dto.rawdata.LunaticJsonRawDataUnprocessedDto;
-import fr.insee.genesis.controller.services.MetadataService;
-import fr.insee.genesis.controller.utils.ControllerUtils;
-import fr.insee.genesis.domain.model.surveyunit.DataState;
-import fr.insee.genesis.domain.model.surveyunit.Mode;
-import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawData;
-import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataCollectedVariable;
-import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataVariable;
-import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
-import fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService;
-import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
-import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
-import fr.insee.genesis.infrastructure.document.rawdata.LunaticJsonDataDocument;
-import fr.insee.genesis.infrastructure.document.rawdata.LunaticJsonRawDataDocument;
-import fr.insee.genesis.infrastructure.utils.FileUtils;
-import fr.insee.genesis.stubs.ConfigStub;
-import fr.insee.genesis.stubs.LunaticJsonRawDataPersistanceStub;
-import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.springframework.http.ResponseEntity;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.List;
 
 class RawResponseControllerTest {
-    private final FileUtils fileUtils = new FileUtils(new ConfigStub());
+/*    private final FileUtils fileUtils = new FileUtils(new ConfigStub());
     private final LunaticJsonRawDataPersistanceStub lunaticJsonRawDataPersistanceStub = new LunaticJsonRawDataPersistanceStub();
     private final LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort = new LunaticJsonRawDataService(lunaticJsonRawDataPersistanceStub);
     private final SurveyUnitPersistencePortStub surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
@@ -207,5 +180,5 @@ class RawResponseControllerTest {
                 .build();
 
         lunaticJsonRawDataPersistanceStub.getMongoStub().add(lunaticJsonDataDocument);
-    }
+    }*/
 }

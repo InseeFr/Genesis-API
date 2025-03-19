@@ -2,9 +2,9 @@ package fr.insee.genesis.stubs;
 
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
-import fr.insee.genesis.domain.ports.spi.LunaticJsonRawDataPersistancePort;
-import fr.insee.genesis.infrastructure.document.rawdata.LunaticJsonDataDocument;
-import fr.insee.genesis.infrastructure.mappers.LunaticJsonDocumentMapper;
+import fr.insee.genesis.domain.ports.spi.LunaticJsonRawDataPersistencePort;
+import fr.insee.genesis.infrastructure.document.rawdata.LunaticJsonRawDataDocument;
+import fr.insee.genesis.infrastructure.mappers.LunaticJsonRawDataDocumentMapper;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -13,17 +13,17 @@ import java.util.List;
 import java.util.Set;
 
 @Getter
-public class LunaticJsonRawDataPersistanceStub implements LunaticJsonRawDataPersistancePort {
-    List<LunaticJsonDataDocument> mongoStub = new ArrayList<>();
+public class LunaticJsonRawDataPersistanceStub implements LunaticJsonRawDataPersistencePort {
+    List<LunaticJsonRawDataDocument> mongoStub = new ArrayList<>();
 
     @Override
     public void save(LunaticJsonRawDataModel lunaticJsonRawDataModel) {
-        mongoStub.add(LunaticJsonDocumentMapper.INSTANCE.modelToDocument(lunaticJsonRawDataModel));
+        mongoStub.add(LunaticJsonRawDataDocumentMapper.INSTANCE.modelToDocument(lunaticJsonRawDataModel));
     }
 
     @Override
     public List<LunaticJsonRawDataModel> getAllUnprocessedData() {
-        return LunaticJsonDocumentMapper.INSTANCE.listDocumentToListModel(
+        return LunaticJsonRawDataDocumentMapper.INSTANCE.listDocumentToListModel(
                 mongoStub.stream().filter(
                         lunaticJsonDataDocument -> lunaticJsonDataDocument.processDate() == null
                         )
@@ -32,23 +32,24 @@ public class LunaticJsonRawDataPersistanceStub implements LunaticJsonRawDataPers
     }
 
     @Override
-    public List<LunaticJsonDataDocument> findRawData(String campaignName, Mode mode, List<String> interrogationIdList) {
-        return
-            mongoStub.stream().filter(lunaticJsonDataDocument ->
-                    lunaticJsonDataDocument.campaignId().equals(campaignName)
-                            && lunaticJsonDataDocument.mode().equals(mode)
-                            && interrogationIdList.contains(lunaticJsonDataDocument.interrogationId())
-            ).toList();
+    public List<LunaticJsonRawDataModel> findRawData(String campaignName, Mode mode, List<String> interrogationIdList) {
+        List<LunaticJsonRawDataDocument> docs = mongoStub.stream().filter(lunaticJsonRawDataDocument ->
+                lunaticJsonRawDataDocument.campaignId().equals(campaignName)
+                        && lunaticJsonRawDataDocument.mode().equals(mode)
+                        && interrogationIdList.contains(lunaticJsonRawDataDocument.interrogationId())
+        ).toList();
+        return LunaticJsonRawDataDocumentMapper.INSTANCE.listDocumentToListModel(docs);
     }
+
 
     @Override
     public void updateProcessDates(String campaignId, Set<String> interrogationIds) {
-        for(LunaticJsonDataDocument document : mongoStub.stream().filter(
+        for(LunaticJsonRawDataDocument document : mongoStub.stream().filter(
                 lunaticJsonDataDocument -> lunaticJsonDataDocument.campaignId().equals(campaignId)
                 && interrogationIds.contains(lunaticJsonDataDocument.interrogationId())
         ).toList()
         ){
-            LunaticJsonDataDocument newDocument = LunaticJsonDataDocument.builder()
+            LunaticJsonRawDataDocument newDocument = LunaticJsonRawDataDocument.builder()
                     .id(document.id())
                     .campaignId(document.campaignId())
                     .questionnaireId(document.questionnaireId())
