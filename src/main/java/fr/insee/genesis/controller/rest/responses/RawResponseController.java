@@ -17,6 +17,7 @@ import fr.insee.genesis.infrastructure.utils.FileUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -54,6 +55,7 @@ public class RawResponseController {
 
     @Operation(summary = "Save lunatic json data from one interrogation in Genesis Database")
     @PutMapping(path = "/lunatic-json/save")
+    @PreAuthorize("hasRole('COLLECT_PLATFORM')")
     public ResponseEntity<Object> saveRawResponsesFromJsonBody(
             @RequestParam("campaignName") String campaignName,
             @RequestParam("questionnaireId") String questionnaireId,
@@ -85,6 +87,7 @@ public class RawResponseController {
     //GET unprocessed
     @Operation(summary = "Get campaign id and interrogationId from all unprocessed raw json data")
     @GetMapping(path = "/lunatic-json/get/unprocessed")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<LunaticJsonRawDataUnprocessedDto>> getUnproccessedJsonRawData(){
         log.info("Try to get unprocessed raw JSON datas...");
         return ResponseEntity.ok(lunaticJsonRawDataApiPort.getUnprocessedDataIds());
@@ -93,6 +96,7 @@ public class RawResponseController {
     //PROCESS
     @Operation(summary = "Process raw data of a campaign")
     @PostMapping(path = "/lunatic-json/process")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Object> processJsonRawData(
             @RequestParam("campaignName") String campaignName,
             @RequestParam("questionnaireId") String questionnaireId,
