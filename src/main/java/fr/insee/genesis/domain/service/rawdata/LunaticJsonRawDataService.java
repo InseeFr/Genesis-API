@@ -47,6 +47,8 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
 
     @Override
     public List<SurveyUnitModel> convertRawData(List<LunaticJsonRawDataModel> rawDataList, VariablesMap variablesMap) {
+        //WIP
+        /*
         //Convert to genesis model
         List<SurveyUnitModel> surveyUnitModels = new ArrayList<>();
         //For each possible data state (we receive COLLECTED or EDITED)
@@ -81,6 +83,8 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
         }
 
         return surveyUnitModels;
+
+         */
         return List.of();
     }
 
@@ -193,6 +197,8 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
             DataState dataState,
             VariablesMap variablesMap
     ) {
+        // WIP
+        /*
         Map<String,Object> collectedMap = (Map<String, Object>) srcRawData.data().get("COLLECTED");
         if (!collectedMap.isEmpty()){
             for(Map.Entry<String, Object> collectedVariable : collectedMap.entrySet()) {
@@ -231,7 +237,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
                     }
                 }
             }
-        }
+        }*/
     }
 
 
