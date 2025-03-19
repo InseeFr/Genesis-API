@@ -35,6 +35,7 @@ public class LogRequestFilter extends OncePerRequestFilter {
 		//	+ "Content-Type : {} \n "
 		//	+ "Headers : {} \n "
 			+ "Body : {} \n";
+	private static final int MAX_RESPONSE_SIZE = 10000;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -66,6 +67,7 @@ public class LogRequestFilter extends OncePerRequestFilter {
     }
 
 	private String getResponseBody(ContentCachingRequestWrapper req, ContentCachingResponseWrapper resp) {
+		if(req.getContentAsByteArray().length >= MAX_RESPONSE_SIZE) return "Swagger response too long";
 		if (req.getRequestURI().contains("swagger-ui") ||req.getRequestURI().contains("api-docs")) return "Hidden Swagger response";
 		return new String(resp.getContentAsByteArray(), StandardCharsets.UTF_8);
 	}
