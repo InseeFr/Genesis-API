@@ -71,7 +71,6 @@ public class RawResponseController {
                 .mode(modeSpecified)
                 .data(dataJson)
                 .recordDate(LocalDateTime.now())
-                .processDate(null)
                 .build();
         try {
             lunaticJsonRawDataApiPort.save(rawData);
