@@ -26,15 +26,11 @@ public class LogRequestFilter extends OncePerRequestFilter {
 			 "CALL {} {} - "
 		//	+ "Content-Type :  {} \n "
 		//	+ "Headers : {} \n "
-			+ "Params : {} - "
-			+ "Body : {} \n ";
+			+ "Params : {}";
 	
 	private static final String RESPONSE_MESSAGE_FORMAT = 
 			 "END {} {}  - "
-			+ "Status :  {} - "
-		//	+ "Content-Type : {} \n "
-		//	+ "Headers : {} \n "
-			+ "Body : {} \n";
+			+ "Status :  {} - ";
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -45,11 +41,10 @@ public class LogRequestFilter extends OncePerRequestFilter {
         ContentCachingResponseWrapper resp = new ContentCachingResponseWrapper(response);
         
         log.info(REQUEST_MESSAGE_FORMAT, 
-        		req.getMethod(), req.getRequestURI(), 
+        		req.getMethod(), req.getRequestURI(),
         	//	req.getContentType(),
             //    new ServletServerHttpRequest(req).getHeaders(), //Headers
-                request.getQueryString(),//Params
-                new String(req.getContentAsByteArray(), StandardCharsets.UTF_8));//Body
+                request.getQueryString());//Params
 
 
         // Execution request chain
@@ -57,9 +52,8 @@ public class LogRequestFilter extends OncePerRequestFilter {
                
 
         log.info(RESPONSE_MESSAGE_FORMAT, 
-        		req.getMethod(), req.getRequestURI(), 
-        		resp.getStatus(),
-                getResponseBody(req, resp)); //Body
+        		req.getMethod(), req.getRequestURI(),
+        		resp.getStatus()); //Body
         
         // Finally remember to respond to the client with the cached data.
         resp.copyBodyToResponse();
