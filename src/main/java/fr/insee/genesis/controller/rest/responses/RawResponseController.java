@@ -35,7 +35,7 @@ import java.util.Map;
 @RequestMapping(path = "/responses/raw" )
 public class RawResponseController {
 
-    private static final String SUCCESS_MESSAGE = "Data saved";
+    private static final String SUCCESS_MESSAGE = "Interrogation %s saved";
     private final LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort;
     private final ControllerUtils controllerUtils;
     private final MetadataService metadataService;
@@ -80,7 +80,7 @@ public class RawResponseController {
         }
         log.info("Data saved for interrogationId {} and campaign {}",interrogationId, campaignName);
         // Collect platform prefer code 201 in case of success
-        return ResponseEntity.status(201).body(SUCCESS_MESSAGE);
+        return ResponseEntity.status(201).body(String.format(SUCCESS_MESSAGE,interrogationId));
     }
 
     //GET unprocessed
