@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.5.0 [2025-03-20]
+
+### Added
+- Role based authorization to endpoints
+- Refactor of raw data save endpoint
+
 ## 1.4.1 [2025-02-24]
 
 ### Fixed
