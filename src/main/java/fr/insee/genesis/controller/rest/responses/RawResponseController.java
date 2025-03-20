@@ -56,7 +56,8 @@ public class RawResponseController {
     @Operation(summary = "Save lunatic json data from one interrogation in Genesis Database")
     @PutMapping(path = "/lunatic-json/save")
     @PreAuthorize("hasRole('COLLECT_PLATFORM')")
-    public ResponseEntity<Object> saveRawResponsesFromJsonBody(
+    public ResponseEntity<String> saveRawResponsesFromJsonBody(
+
             @RequestParam("campaignName") String campaignName,
             @RequestParam("questionnaireId") String questionnaireId,
             @RequestParam("interrogationId") String interrogationId,
