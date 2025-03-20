@@ -48,15 +48,14 @@ public class RawDataDefinitions {
     @Autowired
     private TestRestTemplate rest;
 
-
     LunaticJsonRawDataPersistanceStub lunaticJsonRawDataPersistanceStub = new LunaticJsonRawDataPersistanceStub();
-    LunaticJsonRawDataService lunaticJsonRawDataApiPort = new LunaticJsonRawDataService(lunaticJsonRawDataPersistanceStub);
+    LunaticJsonRawDataService lunaticJsonRawDataService = new LunaticJsonRawDataService(lunaticJsonRawDataPersistanceStub);
     Config config = new ConfigStub();
     FileUtils fileUtils = new FileUtils(config);
     SurveyUnitPersistencePortStub surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
     SurveyUnitQualityService surveyUnitQualityService = new SurveyUnitQualityService();
     RawResponseController rawResponseController = new RawResponseController(
-            lunaticJsonRawDataApiPort
+            lunaticJsonRawDataService
 //           , new ControllerUtils(fileUtils),
 //            new MetadataService(),
 //            new SurveyUnitService(surveyUnitPersistencePortStub),
