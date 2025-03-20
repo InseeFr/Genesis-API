@@ -6,6 +6,7 @@ import fr.insee.genesis.infrastructure.repository.LunaticJsonMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.RundeckExecutionDBRepository;
 import fr.insee.genesis.infrastructure.repository.ScheduleMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.SurveyUnitMongoDBRepository;
+import fr.insee.genesis.infrastructure.repository.VariableTypeMongoDBRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -43,7 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @EnableAutoConfiguration(exclude = {MongoAutoConfiguration.class, MongoDataAutoConfiguration.class})
 class ControllerAccessTest {
 
-/*    // JWT claim properties loaded from application properties
+    // JWT claim properties loaded from application properties
     @Value("${fr.insee.genesis.security.token.oidc-claim-role}")
     private String claimRoleDotRoles;
     @Value("${fr.insee.genesis.security.token.oidc-claim-username}")
@@ -67,6 +68,8 @@ class ControllerAccessTest {
     private RundeckExecutionDBRepository rundeckExecutionDBRepository;
     @MockitoBean
     private ScheduleMongoDBRepository scheduleMongoDBRepository;
+    @MockitoBean
+    private VariableTypeMongoDBRepository variableTypeMongoDBRepository;
 
     // Constants for user roles
     private static final String USER = "USER";
@@ -75,9 +78,9 @@ class ControllerAccessTest {
     private static final String ADMIN = "ADMIN";
     private static final String READER = "READER";
 
-    *//**
+    /**
      * Provides a stream of URIs that are allowed for reader.
-     *//*
+     */
     private static Stream<Arguments> endpointsReader(){
         return Stream.of(
                 Arguments.of("/questionnaires/with-campaigns"),
@@ -91,9 +94,9 @@ class ControllerAccessTest {
         );
     }
 
-    *//**
+    /**
      * Tests that users with the "ADMIN" role can access read-only endpoints.
-     *//*
+     */
     @ParameterizedTest
     @MethodSource("endpointsReader")
     @DisplayName("Admins should access reader-allowed services")
@@ -104,9 +107,9 @@ class ControllerAccessTest {
                 .andExpect(status().isOk());
     }
 
-    *//**
+    /**
      * Tests that users with the "USER_KRAFTWERK" role can access read-only endpoints.
-     *//*
+     */
     @ParameterizedTest
     @MethodSource("endpointsReader")
     @DisplayName("Kraftwerk users should access reader-allowed services")
@@ -117,9 +120,9 @@ class ControllerAccessTest {
                 .andExpect(status().isOk());
     }
 
-    *//**
+    /**
      * Tests that users with the "USER_PLATINE" role can access read-only endpoints.
-     *//*
+     */
     @ParameterizedTest
     @MethodSource("endpointsReader")
     @DisplayName("Platine users should access reader-allowed services")
@@ -130,9 +133,9 @@ class ControllerAccessTest {
                 .andExpect(status().isOk());
     }
 
-    *//**
+    /**
      * Tests that users with the "READER" role can access read-only endpoints.
-     *//*
+     */
     @ParameterizedTest
     @MethodSource("endpointsReader")
     @DisplayName("Readers should access reader-allowed services")
@@ -143,9 +146,9 @@ class ControllerAccessTest {
                 .andExpect(status().isOk());
     }
 
-    *//**
+    /**
      * Tests that users with invalid role are denied.
-     *//*
+     */
     @ParameterizedTest
     @MethodSource("endpointsReader")
     @DisplayName("User with invalid roles should not access reader-allowed services")
@@ -156,9 +159,9 @@ class ControllerAccessTest {
                 .andExpect(status().isForbidden());
     }
 
-    *//**
+    /**
      * Test that reader can access the schedule/all endpoint.
-     *//*
+     */
     @Test
     @DisplayName("Reader should access schedule/all endpoint")
     void reader_should_access_schedules_services() throws Exception{
@@ -168,9 +171,9 @@ class ControllerAccessTest {
                 .andExpect(status().isOk());
     }
 
-    *//**
+    /**
      * Test that reader can not access other schedule endpoints.
-     *//*
+     */
     @Test
     @DisplayName("Reader should not access other schedule endpoints")
     void reader_should_not_access_other_schedules_services() throws Exception{
@@ -181,9 +184,9 @@ class ControllerAccessTest {
                 .andExpect(status().isForbidden());
     }
 
-    *//**
+    /**
      * Test that kraftwerk users can't access the schedule endpoints.
-     *//*
+     */
     @Test
     @DisplayName("Kraftwerk users should access schedules service")
     void kraftwerk_users_should_not_access_schedules_services() throws Exception{
@@ -193,9 +196,9 @@ class ControllerAccessTest {
                 .andExpect(status().isOk());
     }
 
-    *//**
+    /**
      * Test that admins can access the schedule endpoints.
-     *//*
+     */
     @Test
     @DisplayName("Admins should access schedules service")
     void admins_should_access_schedules_services() throws Exception{
@@ -205,9 +208,9 @@ class ControllerAccessTest {
                 .andExpect(status().isOk());
     }
 
-    *//**
+    /**
      * Test that invalid roles can't access the schedule endpoints.
-     *//*
+     */
     @Test
     @DisplayName("Invalid roles should not access schedules service")
     void invalid_roles_should_access_schedules_services() throws Exception{
@@ -215,15 +218,15 @@ class ControllerAccessTest {
         when(jwtDecoder.decode(anyString())).thenReturn(jwt);
         mockMvc.perform(get("/schedule/all").header("Authorization", "bearer token_blabla"))
                 .andExpect(status().isForbidden());
-    }*/
+    }
 
- /*   *//**
+    /**
      * Generates a mock JWT token with specified roles and username.
      *
      * @param roles List of roles assigned to the user.
      * @param name  Username for the JWT.
      * @return A mock Jwt object.
-     *//*
+     */
     public Jwt generateJwt(List<String> roles, String name) {
         Date issuedAt = new Date();
         Date expiresAT = Date.from((new Date()).toInstant().plusSeconds(100));
@@ -235,6 +238,6 @@ class ControllerAccessTest {
                         claimName, name
                 )
         );
-    }*/
+    }
 
 }

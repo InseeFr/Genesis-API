@@ -1,15 +1,12 @@
 package cucumber.functional_tests;
 
+import cucumber.config.CucumberSpringConfiguration;
 import fr.insee.genesis.TestConstants;
 import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.controller.rest.responses.RawResponseController;
-import fr.insee.genesis.controller.services.MetadataService;
-import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
-import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
-import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.LunaticJsonRawDataPersistanceStub;
@@ -29,12 +26,18 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ContextConfiguration;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.interfaces.RSAPublicKey;
 
 @Slf4j
+@ContextConfiguration(classes = CucumberSpringConfiguration.class)
 public class RawDataDefinitions {
 
 
@@ -45,19 +48,20 @@ public class RawDataDefinitions {
     @Autowired
     private TestRestTemplate rest;
 
+
     LunaticJsonRawDataPersistanceStub lunaticJsonRawDataPersistanceStub = new LunaticJsonRawDataPersistanceStub();
-    LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort = new LunaticJsonRawDataService(lunaticJsonRawDataPersistanceStub);
+    LunaticJsonRawDataService lunaticJsonRawDataApiPort = new LunaticJsonRawDataService(lunaticJsonRawDataPersistanceStub);
     Config config = new ConfigStub();
     FileUtils fileUtils = new FileUtils(config);
     SurveyUnitPersistencePortStub surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
     SurveyUnitQualityService surveyUnitQualityService = new SurveyUnitQualityService();
     RawResponseController rawResponseController = new RawResponseController(
-            lunaticJsonRawDataApiPort,
-            new ControllerUtils(fileUtils),
-            new MetadataService(),
-            new SurveyUnitService(surveyUnitPersistencePortStub),
-            surveyUnitQualityService,
-            fileUtils
+            lunaticJsonRawDataApiPort
+//           , new ControllerUtils(fileUtils),
+//            new MetadataService(),
+//            new SurveyUnitService(surveyUnitPersistencePortStub),
+//            surveyUnitQualityService,
+//            fileUtils
     );
     Path rawDataFilePath;
     String rawJsonData;
@@ -69,6 +73,16 @@ public class RawDataDefinitions {
         this.lunaticJsonRawDataPersistanceStub.getMongoStub().clear();
         log.info("rest autowired : {}", rest.getRootUri());
         BASE_URL = "http://localhost:" + port + "/";
+
+    }
+
+    private RSAPublicKey generateTestKey() {
+        try {
+            KeyPair keyPair = KeyPairGenerator.getInstance("RSA").generateKeyPair();
+            return (RSAPublicKey) keyPair.getPublic();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Given("We have raw data file in {string}")
@@ -81,7 +95,7 @@ public class RawDataDefinitions {
     public void save_raw_data(String campaignId, String questionnaireId, String interrogationId) throws IOException {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-
+        headers.set("Authorization", "Bearer fake_token");
         String url = String.format("%sresponses/raw/lunatic-json/save?campaignName=%s&questionnaireId=%s&interrogationId=%s&surveyUnitId=%s&mode=%s",
                 BASE_URL,
                 campaignId,
@@ -111,5 +125,8 @@ public class RawDataDefinitions {
     public void check_response_status_code(int expectedStatusCode){
         Assertions.assertThat(response.getStatusCode().value()).isEqualTo(expectedStatusCode);
     }
+
+
+
 
 }
