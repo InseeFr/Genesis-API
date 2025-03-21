@@ -47,7 +47,7 @@ public class DataVerifier {
      * @param variablesMap VariablesMap containing definitions of each variable
      */
     public static void verifySurveyUnits(List<SurveyUnitModel> surveyUnitModelsList, VariablesMap variablesMap){
-        List<SurveyUnitModel> surveyUnitModelsListForced = new ArrayList<>(); // Created FORCED SU models
+        List<SurveyUnitModel> surveyUnitModelsListFormatted = new ArrayList<>(); // Created FORCED SU models
 
         for(String interrogationId : getInterrogationIds(surveyUnitModelsList)) { // For each id of the list
             List<SurveyUnitModel> srcSurveyUnitModelsOfInterrogationId = surveyUnitModelsList.stream().filter(element -> element.getInterrogationId().equals(interrogationId)).toList();
@@ -60,25 +60,25 @@ public class DataVerifier {
 
             //Create FORCED if any corrected variable
             if(!correctedCollectedVariables.isEmpty() || !correctedExternalVariables.isEmpty()){
-                SurveyUnitModel newForcedSurveyUnitModel = createForcedSurveyUnitModel(surveyUnitModelsList, interrogationId, correctedCollectedVariables, correctedExternalVariables);
-                surveyUnitModelsListForced.add(newForcedSurveyUnitModel);
+                SurveyUnitModel newFormattedSurveyUnitModel = createFormattedSurveyUnitModel(surveyUnitModelsList, interrogationId, correctedCollectedVariables, correctedExternalVariables);
+                surveyUnitModelsListFormatted.add(newFormattedSurveyUnitModel);
             }
         }
-        surveyUnitModelsList.addAll(surveyUnitModelsListForced);
+        surveyUnitModelsList.addAll(surveyUnitModelsListFormatted);
     }
 
-    private static SurveyUnitModel createForcedSurveyUnitModel(
+    private static SurveyUnitModel createFormattedSurveyUnitModel(
             List<SurveyUnitModel> surveyUnitModelsList,
             String interrogationId,
             List<VariableModel> correctedCollectedVariables,
             List<VariableModel> correctedExternalVariables
     ) {
         SurveyUnitModel sampleSurveyUnitModel = surveyUnitModelsList.stream().filter(element -> element.getInterrogationId().equals(interrogationId)).toList().getFirst();
-        SurveyUnitModel newForcedSurveyUnitModel = SurveyUnitModel.builder()
+        SurveyUnitModel newFormattedSurveyUnitModel = SurveyUnitModel.builder()
                 .questionnaireId(sampleSurveyUnitModel.getQuestionnaireId())
                 .campaignId(sampleSurveyUnitModel.getCampaignId())
                 .interrogationId(interrogationId)
-                .state(DataState.FORCED)
+                .state(DataState.FORMATTED)
                 .mode(sampleSurveyUnitModel.getMode())
                 .recordDate(LocalDateTime.now().plusSeconds(1)) // Add 1 second to avoid same recordDate as COLLECTED
                 .fileDate(sampleSurveyUnitModel.getFileDate())
@@ -87,7 +87,7 @@ public class DataVerifier {
                 .build();
 
         for(VariableModel correctedCollectedVariable : correctedCollectedVariables){
-            newForcedSurveyUnitModel.getCollectedVariables().add(
+            newFormattedSurveyUnitModel.getCollectedVariables().add(
                 VariableModel.builder()
                         .varId(correctedCollectedVariable.varId())
                         .value(correctedCollectedVariable.value())
@@ -99,7 +99,7 @@ public class DataVerifier {
         }
 
         for(VariableModel correctedExternalVariable : correctedExternalVariables){
-            newForcedSurveyUnitModel.getExternalVariables().add(
+            newFormattedSurveyUnitModel.getExternalVariables().add(
                     VariableModel.builder()
                             .varId(correctedExternalVariable.varId())
                             .value(correctedExternalVariable.value())
@@ -109,7 +109,7 @@ public class DataVerifier {
                             .build()
             );
         }
-        return newForcedSurveyUnitModel;
+        return newFormattedSurveyUnitModel;
     }
 
     /**

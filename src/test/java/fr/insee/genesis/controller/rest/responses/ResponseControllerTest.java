@@ -517,7 +517,7 @@ class ResponseControllerTest {
     }
 
     @Test
-    void saveEditedTest_DocumentForced() {
+    void saveEditedTest_DocumentFormatted() {
         //GIVEN
         surveyUnitPersistencePortStub.getMongoStub().clear();
         String campaignId = CAMPAIGN_ID_WITH_DDI;
@@ -564,10 +564,10 @@ class ResponseControllerTest {
         //THEN
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).hasSize(2);
 
-        //FORCED document assertions
+        //FORMATTED document assertions
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getCampaignId()).isEqualTo(campaignId);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getQuestionnaireId()).isEqualTo(questionnaireId);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getState()).isEqualTo(DataState.FORCED);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getState()).isEqualTo(DataState.FORMATTED);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getMode()).isEqualTo(Mode.WEB);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getFileDate()).isNull();
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getRecordDate()).isNotNull();
