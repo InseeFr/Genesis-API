@@ -80,7 +80,7 @@ public class DataVerifier {
                 .interrogationId(interrogationId)
                 .state(DataState.FORCED)
                 .mode(sampleSurveyUnitModel.getMode())
-                .recordDate(LocalDateTime.now())
+                .recordDate(LocalDateTime.now().plusSeconds(1)) // Add 1 second to avoid same recordDate as COLLECTED
                 .fileDate(sampleSurveyUnitModel.getFileDate())
                 .collectedVariables(new ArrayList<>())
                 .externalVariables(new ArrayList<>())
