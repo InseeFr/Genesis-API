@@ -160,7 +160,7 @@ public class ResponseController {
     //SAVE ALL
     @Operation(summary = "Save all files to Genesis Database (differential data folder only), regardless of the campaign")
     @PutMapping(path = "/lunatic-xml/save-all-campaigns")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SCHEDULER')")
     public ResponseEntity<Object> saveResponsesFromAllCampaignFolders(){
         List<GenesisError> errors = new ArrayList<>();
         List<File> campaignFolders = fileUtils.listAllSpecsFolders();

@@ -5,6 +5,7 @@ public enum ApplicationRole {
     USER_KRAFTWERK,
     USER_PLATINE,
     COLLECT_PLATFORM,
+    SCHEDULER,
     READER
 }
 

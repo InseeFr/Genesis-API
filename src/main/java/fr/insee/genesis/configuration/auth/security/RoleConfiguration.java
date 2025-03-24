@@ -31,6 +31,9 @@ public class RoleConfiguration {
     @Value("#{'${app.role.collect-platform.claims}'.split(',')}")
     private List<String> collectPlatformClaims;
 
+    @Value("#{'${app.role.scheduler.claims}'.split(',')}")
+    private List<String> schedulerClaims;
+
     public Map<String, List<String>> getRolesByClaim() {
         return rolesByClaim;
     }
@@ -38,15 +41,17 @@ public class RoleConfiguration {
     private Map<String, List<String>> rolesByClaim;
 
     //Defines a role hierarchy
+    //For example if
     //ADMIN implies USER   role too
     //USER  implies READER role too
-    //so an admin has 2 roles: ADMIN/USER
+    //so an admin has 3 roles: ADMIN/USER/READER
     @Bean
     static RoleHierarchy roleHierarchy() {
         return RoleHierarchyImpl.withDefaultRolePrefix()
                 .role(ApplicationRole.ADMIN.toString()).implies(ApplicationRole.USER_KRAFTWERK.toString())
                 .role(ApplicationRole.ADMIN.toString()).implies(ApplicationRole.USER_PLATINE.toString())
                 .role(ApplicationRole.ADMIN.toString()).implies(ApplicationRole.COLLECT_PLATFORM.toString())
+                .role(ApplicationRole.ADMIN.toString()).implies(ApplicationRole.SCHEDULER.toString())
                 .role(ApplicationRole.USER_KRAFTWERK.toString()).implies(ApplicationRole.READER.toString())
                 .role(ApplicationRole.USER_PLATINE.toString()).implies(ApplicationRole.READER.toString())
                 .build();
@@ -65,31 +70,35 @@ public class RoleConfiguration {
 
         rolesByClaim = new HashMap<>();
 
-        // Ajout des claims pour le rôle ADMIN
+        // Add claims for the ADMIN role
         adminClaims.forEach(claim -> rolesByClaim
                 .computeIfAbsent(claim, k -> new ArrayList<>())
                 .add(String.valueOf(ApplicationRole.ADMIN)));
 
-        // Ajout des claims pour le rôle USER_KRAFTWERK
+        // Add claims for the USER_KRAFTWERK role
         userKraftwerkClaims.forEach(claim -> rolesByClaim
                 .computeIfAbsent(claim, k -> new ArrayList<>())
                 .add(String.valueOf(ApplicationRole.USER_KRAFTWERK)));
 
-        // Ajout des claims pour le rôle USER_PLATINE
+        // Ajout des claims pour le rôle USER_PLATINE role
         userPlatineClaims.forEach(claim -> rolesByClaim
                 .computeIfAbsent(claim, k -> new ArrayList<>())
                 .add(String.valueOf(ApplicationRole.USER_PLATINE)));
 
-        // Ajout des claims pour le rôle COLLECT_PLATFORM
+        // Add claims for the COLLECT_PLATFORM role
         collectPlatformClaims.forEach(claim -> rolesByClaim
                 .computeIfAbsent(claim, k -> new ArrayList<>())
                 .add(String.valueOf(ApplicationRole.COLLECT_PLATFORM)));
 
-        // Ajout des claims pour le rôle READER
+        // Add claims for the READER role
         readerClaims.forEach(claim -> rolesByClaim
                 .computeIfAbsent(claim, k -> new ArrayList<>())
                 .add(String.valueOf(ApplicationRole.READER)));
 
+        //Add claims for the SCHEDULER role
+        schedulerClaims.forEach(claim -> rolesByClaim
+                .computeIfAbsent(claim, k -> new ArrayList<>())
+                .add(String.valueOf(ApplicationRole.SCHEDULER)));
 
         log.info("Roles configuration : {}", rolesByClaim);
     }
