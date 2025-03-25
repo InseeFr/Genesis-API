@@ -4,6 +4,7 @@ import fr.insee.genesis.controller.dto.rawdata.LunaticJsonRawDataUnprocessedDto;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
 import fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -84,6 +85,18 @@ public class RawResponseController {
     public ResponseEntity<List<LunaticJsonRawDataUnprocessedDto>> getUnproccessedJsonRawData(){
         log.info("Try to get unprocessed raw JSON datas...");
         return ResponseEntity.ok(lunaticJsonRawDataApiPort.getUnprocessedDataIds());
+    }
+
+    @Hidden
+    @GetMapping(path= "/lunatic-json/get/by-interrogation-mode-and-campaign")
+    @PreAuthorize("hasRole('ADMIN')")
+            public ResponseEntity<LunaticJsonRawDataModel> getJsonRawData(
+                @RequestParam("interrogationId") String interrogationId,
+                @RequestParam("campaignName") String campaignName,
+                @RequestParam(value = "mode") Mode modeSpecified
+            ){
+        List<LunaticJsonRawDataModel> data = lunaticJsonRawDataApiPort.getRawData(campaignName,modeSpecified,List.of(interrogationId));
+        return ResponseEntity.ok(data.getFirst());
     }
 
     //PROCESS
