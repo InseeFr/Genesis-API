@@ -13,7 +13,9 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -45,7 +47,7 @@ public class DataVerifier {
      * @param variablesMap VariablesMap containing definitions of each variable
      */
     public static void verifySurveyUnits(List<SurveyUnitModel> surveyUnitModelsList, VariablesMap variablesMap){
-        List<SurveyUnitModel> surveyUnitModelsListForced = new ArrayList<>(); // Created FORCED SU models
+        List<SurveyUnitModel> surveyUnitModelsListFormatted = new ArrayList<>(); // Created FORCED SU models
 
         for(String interrogationId : getInterrogationIds(surveyUnitModelsList)) { // For each id of the list
             List<SurveyUnitModel> srcSurveyUnitModelsOfInterrogationId = surveyUnitModelsList.stream().filter(element -> element.getInterrogationId().equals(interrogationId)).toList();
@@ -58,34 +60,34 @@ public class DataVerifier {
 
             //Create FORCED if any corrected variable
             if(!correctedCollectedVariables.isEmpty() || !correctedExternalVariables.isEmpty()){
-                SurveyUnitModel newForcedSurveyUnitModel = createForcedSurveyUnitModel(surveyUnitModelsList, interrogationId, correctedCollectedVariables, correctedExternalVariables);
-                surveyUnitModelsListForced.add(newForcedSurveyUnitModel);
+                SurveyUnitModel newFormattedSurveyUnitModel = createFormattedSurveyUnitModel(surveyUnitModelsList, interrogationId, correctedCollectedVariables, correctedExternalVariables);
+                surveyUnitModelsListFormatted.add(newFormattedSurveyUnitModel);
             }
         }
-        surveyUnitModelsList.addAll(surveyUnitModelsListForced);
+        surveyUnitModelsList.addAll(surveyUnitModelsListFormatted);
     }
 
-    private static SurveyUnitModel createForcedSurveyUnitModel(
+    private static SurveyUnitModel createFormattedSurveyUnitModel(
             List<SurveyUnitModel> surveyUnitModelsList,
             String interrogationId,
             List<VariableModel> correctedCollectedVariables,
             List<VariableModel> correctedExternalVariables
     ) {
         SurveyUnitModel sampleSurveyUnitModel = surveyUnitModelsList.stream().filter(element -> element.getInterrogationId().equals(interrogationId)).toList().getFirst();
-        SurveyUnitModel newForcedSurveyUnitModel = SurveyUnitModel.builder()
+        SurveyUnitModel newFormattedSurveyUnitModel = SurveyUnitModel.builder()
                 .questionnaireId(sampleSurveyUnitModel.getQuestionnaireId())
                 .campaignId(sampleSurveyUnitModel.getCampaignId())
                 .interrogationId(interrogationId)
-                .state(DataState.FORCED)
+                .state(DataState.FORMATTED)
                 .mode(sampleSurveyUnitModel.getMode())
-                .recordDate(LocalDateTime.now())
+                .recordDate(LocalDateTime.now().plusSeconds(1)) // Add 1 second to avoid same recordDate as COLLECTED
                 .fileDate(sampleSurveyUnitModel.getFileDate())
                 .collectedVariables(new ArrayList<>())
                 .externalVariables(new ArrayList<>())
                 .build();
 
         for(VariableModel correctedCollectedVariable : correctedCollectedVariables){
-            newForcedSurveyUnitModel.getCollectedVariables().add(
+            newFormattedSurveyUnitModel.getCollectedVariables().add(
                 VariableModel.builder()
                         .varId(correctedCollectedVariable.varId())
                         .value(correctedCollectedVariable.value())
@@ -97,7 +99,7 @@ public class DataVerifier {
         }
 
         for(VariableModel correctedExternalVariable : correctedExternalVariables){
-            newForcedSurveyUnitModel.getExternalVariables().add(
+            newFormattedSurveyUnitModel.getExternalVariables().add(
                     VariableModel.builder()
                             .varId(correctedExternalVariable.varId())
                             .value(correctedExternalVariable.value())
@@ -107,7 +109,7 @@ public class DataVerifier {
                             .build()
             );
         }
-        return newForcedSurveyUnitModel;
+        return newFormattedSurveyUnitModel;
     }
 
     /**
@@ -132,7 +134,8 @@ public class DataVerifier {
      * @param correctedCollectedVariables FORCED document variables
      */
     private static void collectedVariablesManagement(List<SurveyUnitModel> srcSurveyUnitModelsOfInterrogationId, VariablesMap variablesMap, List<VariableModel> correctedCollectedVariables){
-        Set<String> variableNames = new HashSet<>();
+        Map<String,List<Integer>> variableIterations = new LinkedHashMap<>();
+
         List<VariableModel> variablesToVerify = new ArrayList<>();
 
         //Sort from more priority to less
@@ -141,10 +144,7 @@ public class DataVerifier {
         //Get more priority variables to verify
         for(SurveyUnitModel srcSurveyUnitModel : sortedSurveyUnitModels){
             for(VariableModel collectedVariable : srcSurveyUnitModel.getCollectedVariables()){
-                if(!variableNames.contains(collectedVariable.varId())){
-                    variableNames.add(collectedVariable.varId());
-                    variablesToVerify.add(collectedVariable);
-                }
+                addIteration(collectedVariable, variableIterations, variablesToVerify);
             }
         }
 
@@ -164,6 +164,27 @@ public class DataVerifier {
         }
     }
 
+    private static void addIteration(VariableModel variableToCheck, Map<String, List<Integer>> variableIterations, List<VariableModel> variablesToVerify) {
+        String varIdToCheck = variableToCheck.varId();
+        Integer iterationToCheck = variableToCheck.iteration();
+
+        if(!variableIterations.containsKey(varIdToCheck)
+                || !variableIterations.get(varIdToCheck).contains(iterationToCheck)){
+            List<Integer> iterations = variableIterations.containsKey(varIdToCheck) ?
+                    variableIterations.get(varIdToCheck)
+                    : new ArrayList<>();
+            if(!iterations.contains(iterationToCheck)){
+                iterations.add(iterationToCheck);
+            }
+            variableIterations.put(
+                    varIdToCheck,
+                    iterations
+            );
+
+            variablesToVerify.add(variableToCheck);
+        }
+    }
+
     private static VariableModel verifyVariable(VariableModel variableModel, fr.insee.bpm.metadata.model.Variable variableDefinition) {
         if(isParseError(variableModel.value(), variableDefinition.getType())){
             return VariableModel.builder()
@@ -178,7 +199,7 @@ public class DataVerifier {
     }
 
     private static void externalVariablesManagement(List<SurveyUnitModel> srcSuModels, VariablesMap variablesMap, List<VariableModel> correctedExternalVariables) {
-        //COLLECTED only
+        //External variables are in COLLECTED documents only
         Optional<SurveyUnitModel> surveyUnitModelOptional = srcSuModels.stream().filter(
                 surveyUnitModel -> surveyUnitModel.getState().equals(DataState.COLLECTED)
         ).findFirst();
