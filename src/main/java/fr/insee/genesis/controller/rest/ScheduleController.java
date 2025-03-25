@@ -126,7 +126,7 @@ public class ScheduleController {
 
     @Operation(summary = "Set last execution date with new date or empty")
     @PostMapping(path = "/setLastExecutionDate")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SCHEDULER')")
     public ResponseEntity<Object> setSurveyLastExecution(
             @Parameter(description = "Survey name to call Kraftwerk on") @RequestBody String surveyName,
             @Parameter(description = "Date to save as last execution date", example = "2024-01-01T12:00:00") @RequestParam("newDate") LocalDateTime newDate
@@ -143,7 +143,7 @@ public class ScheduleController {
 
     @Operation(summary = "Delete expired schedules")
     @DeleteMapping(path = "/delete/expired-schedules")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SCHEDULER')")
     public ResponseEntity<Object> deleteExpiredSchedules() throws NotFoundException, IOException {
         Set<String> storedSurveySchedulesNames = new HashSet<>();
         for(ScheduleModel scheduleModel : scheduleApiPort.getAllSchedules()){

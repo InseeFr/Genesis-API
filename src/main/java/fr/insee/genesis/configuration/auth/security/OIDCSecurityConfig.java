@@ -56,7 +56,7 @@ public class OIDCSecurityConfig {
             );
         }
         http
-                .authorizeHttpRequests(configurer -> configurer
+                .authorizeHttpRequests(configure -> configure
                         .requestMatchers(HttpMethod.GET,"/questionnaires/**").hasRole(String.valueOf(ApplicationRole.READER))
                         .requestMatchers(HttpMethod.GET,"/modes/**").hasRole(String.valueOf(ApplicationRole.READER))
                         .requestMatchers(HttpMethod.GET,"/interrogations/**").hasRole(String.valueOf(ApplicationRole.READER))

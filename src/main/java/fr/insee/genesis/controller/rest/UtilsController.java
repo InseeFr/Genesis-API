@@ -48,7 +48,7 @@ public class UtilsController {
 
 	@Operation(summary = "Record volumetrics of each campaign in a folder")
 	@PutMapping(path = "/volumetrics/save-all-campaigns")
-	@PreAuthorize("hasRole('ADMIN')")
+	@PreAuthorize("hasRole('SCHEDULER')")
 	public ResponseEntity<Object> saveVolumetry() throws IOException {
 		volumetryLogService.writeVolumetries(surveyUnitService);
 		volumetryLogService.cleanOldFiles();
