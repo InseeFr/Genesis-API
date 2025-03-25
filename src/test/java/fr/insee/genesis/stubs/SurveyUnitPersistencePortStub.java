@@ -115,10 +115,9 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     @Override
     public Set<String> findDistinctCampaignIds() {
         Set<String> campaignIds = new HashSet<>();
-        for(SurveyUnitModel SurveyUnitModel : mongoStub){
-            campaignIds.add(SurveyUnitModel.getCampaignId());
+        for(SurveyUnitModel surveyUnitModel : mongoStub){
+            campaignIds.add(surveyUnitModel.getCampaignId());
         }
-
         return campaignIds;
     }
 

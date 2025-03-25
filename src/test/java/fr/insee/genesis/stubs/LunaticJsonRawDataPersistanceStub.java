@@ -9,6 +9,7 @@ import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -66,5 +67,19 @@ public class LunaticJsonRawDataPersistanceStub implements LunaticJsonRawDataPers
 
             mongoStub.add(newDocument);
         }
+    }
+
+    @Override
+    public Set<String> findDistinctQuestionnaireIds() {
+        Set<String> questionnaireIds = new HashSet<>();
+        for(LunaticJsonRawDataDocument rawDataDoc : mongoStub){
+            questionnaireIds.add(rawDataDoc.questionnaireId());
+        }
+        return questionnaireIds;
+    }
+
+    @Override
+    public long countResponsesByQuestionnaireId(String questionnaireId) {
+        return mongoStub.size();
     }
 }

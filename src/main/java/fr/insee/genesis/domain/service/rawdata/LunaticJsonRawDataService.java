@@ -268,6 +268,16 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
         }
     }
 
+    @Override
+    public Set<String> findDistinctQuestionnaireIds() {
+        return lunaticJsonRawDataPersistencePort.findDistinctQuestionnaireIds();
+    }
+
+    @Override
+    public long countResponsesByQuestionnaireId(String campaignId) {
+        return lunaticJsonRawDataPersistencePort.countResponsesByQuestionnaireId(campaignId);
+    }
+
     /*
     *//**
      * Parse collected variables from raw data JSON
