@@ -10,11 +10,13 @@ public class Constants {
             "(^([0-9]|[0-2][0-9]|3[0-1])[\\-\\/]([0-9]|1[0-2]|0[1-9])[\\-\\/]([0-9]{4})$)";
     public static final String FILTER_RESULT_PREFIX = "FILTER_RESULT_";
     public static final String MISSING_SUFFIX = "_MISSING";
+    public static final String MONGODB_LUNATIC_RAWDATA_COLLECTION_NAME = "lunaticjsondata";
     private static final String[] ENO_VARIABLES = {"COMMENT_QE","COMMENT_UE","HEURE_REMPL","MIN_REMPL"};
 
     public static final String MONGODB_SCHEDULE_COLLECTION_NAME = "schedules";
     public static final String LOOP_NAME_PREFIX = "BOUCLE";
     public static final String MONGODB_RESPONSE_COLLECTION_NAME = "responses";
+    public static final String MONGODB_VARIABLETYPE_COLLECTION_NAME = "variabletypes";
     public static final String VOLUMETRY_FOLDER_NAME = "genesis_volumetries";
     public static final String VOLUMETRY_FILE_SUFFIX = "_VOLUMETRY";
     public static final String VOLUMETRY_FILE_DATE_FORMAT = "yyyy_MM_dd";

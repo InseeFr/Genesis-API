@@ -10,22 +10,18 @@ import fr.insee.genesis.controller.dto.SurveyUnitSimplified;
 import fr.insee.genesis.controller.dto.VariableInputDto;
 import fr.insee.genesis.controller.dto.VariableQualityToolDto;
 import fr.insee.genesis.controller.dto.VariableStateInputDto;
+import fr.insee.genesis.controller.services.MetadataService;
 import fr.insee.genesis.controller.utils.AuthUtils;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
-import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
-import fr.insee.genesis.domain.ports.api.LunaticXmlRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
-import fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService;
-import fr.insee.genesis.domain.service.rawdata.LunaticXmlRawDataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
-import fr.insee.genesis.stubs.LunaticJsonPersistanceStub;
-import fr.insee.genesis.stubs.LunaticXmlPersistanceStub;
+import fr.insee.genesis.stubs.LunaticJsonRawDataPersistanceStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -48,8 +44,8 @@ class ResponseControllerTest {
     //Given
     static ResponseController responseControllerStatic;
     static SurveyUnitPersistencePortStub surveyUnitPersistencePortStub;
-    static LunaticXmlPersistanceStub lunaticXmlPersistanceStub;
-    static LunaticJsonPersistanceStub lunaticJsonPersistanceStub;
+    static LunaticJsonRawDataPersistanceStub lunaticJsonPersistanceStub;
+
     static List<InterrogationId> interrogationIdList;
     //Constants
     static final String DEFAULT_INTERROGATION_ID = "TESTINTERROGATIONID";
@@ -62,22 +58,16 @@ class ResponseControllerTest {
         surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
         SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(surveyUnitPersistencePortStub);
 
-        lunaticXmlPersistanceStub = new LunaticXmlPersistanceStub();
-        LunaticXmlRawDataApiPort lunaticXmlRawDataApiPort = new LunaticXmlRawDataService(lunaticXmlPersistanceStub);
-
-        lunaticJsonPersistanceStub = new LunaticJsonPersistanceStub();
-        LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort = new LunaticJsonRawDataService(lunaticJsonPersistanceStub);
-
         Config config = new ConfigStub();
         FileUtils fileUtils = new FileUtils(config);
+
         responseControllerStatic = new ResponseController(
                 surveyUnitApiPort
                 , new SurveyUnitQualityService()
-                , lunaticXmlRawDataApiPort
-                , lunaticJsonRawDataApiPort
                 , fileUtils
                 , new ControllerUtils(fileUtils)
                 , new AuthUtils(config)
+                , new MetadataService()
         );
 
         interrogationIdList = new ArrayList<>();
@@ -121,7 +111,6 @@ class ResponseControllerTest {
         responseControllerStatic.saveResponsesFromXmlCampaignFolder(
                 "SAMPLETEST-PARADATA-v1"
                 , Mode.WEB
-                , true
         );
 
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).isNotEmpty();
@@ -134,67 +123,10 @@ class ResponseControllerTest {
         responseControllerStatic.saveResponsesFromXmlCampaignFolder(
                 "TESTNODATA"
                 , Mode.WEB
-                , true
         );
 
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).isEmpty();
     }
-
-    //Raw data
-    //xml
-    @Test
-    void saveXmlRawDataFromFileTest() throws Exception {
-        lunaticXmlPersistanceStub.getMongoStub().clear();
-
-        responseControllerStatic.saveRawResponsesFromXmlFile(
-                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY, "IN/WEB/SAMPLETEST-PARADATA-v1/reponse-platine/data.complete.validated.STPDv1.20231122164209.xml").toString()
-                , Mode.WEB
-        );
-
-        Assertions.assertThat(lunaticXmlPersistanceStub.getMongoStub()).isNotEmpty();
-        Assertions.assertThat(lunaticXmlPersistanceStub.getMongoStub().getFirst().getRecordDate()).isNotNull();
-        Assertions.assertThat(lunaticXmlPersistanceStub.getMongoStub().getFirst().getProcessDate()).isNull();
-        Assertions.assertThat(lunaticXmlPersistanceStub.getMongoStub().getFirst().getLunaticXmlData()).isNotNull();
-        Assertions.assertThat(lunaticXmlPersistanceStub.getMongoStub().getFirst().getLunaticXmlData().getSurveyUnits()).isNotNull().isNotEmpty();
-
-
-    }
-
-    @Test
-    void saveXmlRawDataFromFolderTest() throws Exception {
-        lunaticXmlPersistanceStub.getMongoStub().clear();
-
-        responseControllerStatic.saveRawResponsesFromXmlCampaignFolder(
-                "SAMPLETEST-PARADATA-v1"
-                , Mode.WEB
-        );
-
-        Assertions.assertThat(lunaticXmlPersistanceStub.getMongoStub()).isNotEmpty();
-    }
-
-    //json
-    @Test
-    void saveJsonRawDataFromStringTest(){
-        lunaticJsonPersistanceStub.getMongoStub().clear();
-        String campaignId = "SAMPLETEST-PARADATA-v1";
-
-        responseControllerStatic.saveRawResponsesFromJsonBody(
-                campaignId
-                , Mode.WEB
-                , "{\"testdata\": \"test\"}"
-        );
-
-        Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub()).isNotEmpty();
-        Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getCampaignId()).isNotNull().isEqualTo(campaignId);
-        Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getMode()).isEqualTo(Mode.WEB);
-        Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getData().get("testdata")).isNotNull();
-        Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getData().get("testdata")).isNotNull().isEqualTo("test");
-
-        Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getRecordDate()).isNotNull();
-        Assertions.assertThat(lunaticJsonPersistanceStub.getMongoStub().getFirst().getProcessDate()).isNull();
-
-    }
-
     //All data
     @Test
     void saveResponsesFromAllCampaignFoldersTests(){
@@ -428,7 +360,6 @@ class ResponseControllerTest {
                 .interrogationId(DEFAULT_INTERROGATION_ID)
                 .collectedVariables(newVariables)
                 .build();
-
 
         //WHEN
         responseControllerStatic.saveEditedVariables(surveyUnitInputDto);
