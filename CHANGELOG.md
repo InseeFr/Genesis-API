@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.5.1 [2025-03-25]
+
+### Fixed
+- Bug with scheduler : add role for it
+### Updated
+- springboot 3.4.4
+- springdoc-openapi-starter-webmvc-ui 2.8.6
+
+
 ## 1.5.0 [2025-03-20]
 
 ### Added
