@@ -165,16 +165,19 @@ public class DataVerifier {
     }
 
     private static void addIteration(VariableModel variableToCheck, Map<String, List<Integer>> variableIterations, List<VariableModel> variablesToVerify) {
-        if(!variableIterations.containsKey(variableToCheck.varId())
-                || !variableIterations.get(variableToCheck.varId()).contains(variableToCheck.iteration())){
-            List<Integer> iterations = variableIterations.containsKey(variableToCheck.varId()) ?
-                    variableIterations.get(variableToCheck.varId())
+        String varIdToCheck = variableToCheck.varId();
+        Integer iterationToCheck = variableToCheck.iteration();
+
+        if(!variableIterations.containsKey(varIdToCheck)
+                || !variableIterations.get(varIdToCheck).contains(iterationToCheck)){
+            List<Integer> iterations = variableIterations.containsKey(varIdToCheck) ?
+                    variableIterations.get(varIdToCheck)
                     : new ArrayList<>();
-            if(!iterations.contains(variableToCheck.iteration())){
-                iterations.add(variableToCheck.iteration());
+            if(!iterations.contains(iterationToCheck)){
+                iterations.add(iterationToCheck);
             }
             variableIterations.put(
-                    variableToCheck.varId(),
+                    varIdToCheck,
                     iterations
             );
 
