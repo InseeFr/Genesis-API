@@ -49,7 +49,7 @@ public class ScheduleController {
 
     @Operation(summary = "Fetch all schedules")
     @GetMapping(path = "/all")
-    @PreAuthorize("hasRole('READER')")
+    @PreAuthorize("hasAnyRole('SCHEDULER','READER')")
     public ResponseEntity<Object> getAllSchedules() {
         log.debug("Got GET all schedules request");
 
