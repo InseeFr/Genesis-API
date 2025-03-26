@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.2 [2025-03-26]
+### Added
+- Add volumetrics to quantify raw data received
+
 ## 1.5.1 [2025-03-25]
 
 ### Fixed
