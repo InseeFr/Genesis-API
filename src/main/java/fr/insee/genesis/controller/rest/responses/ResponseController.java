@@ -28,6 +28,7 @@ import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.exceptions.NoDataException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -225,6 +226,7 @@ public class ResponseController {
         return ResponseEntity.ok(responseQualityTool);
     }
 
+    @Hidden
     @Operation(summary = "Retrieve all responses (for all interrogations) of one questionnaire")
     @GetMapping(path = "/by-questionnaire")
     @PreAuthorize("hasRole('ADMIN')")
