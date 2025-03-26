@@ -1,5 +1,6 @@
 package fr.insee.genesis.controller.rest;
 
+import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.service.volumetry.VolumetryLogService;
 import fr.insee.genesis.domain.utils.XMLSplitter;
@@ -23,14 +24,15 @@ public class UtilsController {
 
 	private final VolumetryLogService volumetryLogService;
 	private final SurveyUnitApiPort surveyUnitService;
+	private final LunaticJsonRawDataApiPort lunaticJsonRawDataService;
 
 
 
-	public UtilsController(SurveyUnitApiPort surveyUnitService,VolumetryLogService volumetryLogService) {
+	public UtilsController(SurveyUnitApiPort surveyUnitService, VolumetryLogService volumetryLogService, LunaticJsonRawDataApiPort lunaticJsonRawDataService) {
 		this.surveyUnitService = surveyUnitService;
 		this.volumetryLogService = volumetryLogService;
-
-	}
+        this.lunaticJsonRawDataService = lunaticJsonRawDataService;
+    }
 
 
 
@@ -51,6 +53,7 @@ public class UtilsController {
 	@PreAuthorize("hasRole('SCHEDULER')")
 	public ResponseEntity<Object> saveVolumetry() throws IOException {
 		volumetryLogService.writeVolumetries(surveyUnitService);
+		volumetryLogService.writeRawDataVolumetries(lunaticJsonRawDataService);
 		volumetryLogService.cleanOldFiles();
 		return ResponseEntity.ok("Volumetric saved");
 	}

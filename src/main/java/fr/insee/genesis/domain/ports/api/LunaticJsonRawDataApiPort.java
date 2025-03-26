@@ -7,6 +7,7 @@ import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
 
 import java.util.List;
+import java.util.Set;
 
 public interface LunaticJsonRawDataApiPort {
 
@@ -21,4 +22,6 @@ public interface LunaticJsonRawDataApiPort {
             VariablesMap variablesMap
     );
     void updateProcessDates(List<SurveyUnitModel> surveyUnitModels);
+    Set<String> findDistinctQuestionnaireIds();
+    long countResponsesByQuestionnaireId(String campaignId);
 }

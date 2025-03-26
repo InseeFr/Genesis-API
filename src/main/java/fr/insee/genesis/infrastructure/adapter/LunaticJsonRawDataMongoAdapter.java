@@ -16,6 +16,7 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -44,8 +45,7 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
 
     @Override
     public List<LunaticJsonRawDataModel> findRawData(String campaignName, Mode mode, List<String> interrogationIdList) {
-        List<LunaticJsonRawDataDocument> rawDataDocs = repository.findModesByCampaignIdAndByModeAndinterrogationIdIninterrogationIdList(campaignName, mode, interrogationIdList);
-        return LunaticJsonRawDataDocumentMapper.INSTANCE.listDocumentToListModel(rawDataDocs);
+        List<LunaticJsonRawDataDocument> rawDataDocs = repository.findModesByCampaignIdAndByModeAndinterrogationIdIninterrogationIdList(campaignName, mode, interrogationIdList);return LunaticJsonRawDataDocumentMapper.INSTANCE.listDocumentToListModel(rawDataDocs);
     }
 
     @Override
@@ -55,5 +55,21 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
                 , new Update().set("processDate", LocalDateTime.now())
                 , Constants.MONGODB_LUNATIC_RAWDATA_COLLECTION_NAME
         );
+    }
+
+    @Override
+    public Set<String> findDistinctQuestionnaireIds() {
+        Set<String> questionnaireIds = new HashSet<>();
+        for(String questionnaireId : mongoTemplate.getCollection(Constants.MONGODB_RESPONSE_RAW_COLLECTION_NAME).distinct(
+                "questionnaireId",
+                String.class)){
+            questionnaireIds.add(questionnaireId);
+        }
+        return questionnaireIds;
+    }
+
+    @Override
+    public long countResponsesByQuestionnaireId(String questionnaireId) {
+        return repository.countByQuestionnaireId(questionnaireId);
     }
 }

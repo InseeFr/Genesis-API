@@ -3,6 +3,7 @@ package fr.insee.genesis.domain.service.volumetry;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
+import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -47,17 +48,40 @@ public class VolumetryLogService {
 
             Files.writeString(logFilePath, line, StandardOpenOption.APPEND);
         }
+    }
 
+    public void writeRawDataVolumetries(LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort) throws IOException {
+        Path logFilePath = Path.of(config.getLogFolder()).resolve(Constants.VOLUMETRY_FOLDER_NAME)
+                .resolve(
+                        LocalDate.now().format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
+                                + Constants.VOLUMETRY_RAW_FILE_SUFFIX + ".csv");
+        Files.createDirectories(logFilePath.getParent());
+        //Overwrite log file with header if exists
+        if (Files.exists(logFilePath)){
+            Files.delete(logFilePath);
+        }
+        Files.writeString(logFilePath, "questionnaire;volumetry\n");
+
+        //Write lines
+        Set<String> questionnaires = lunaticJsonRawDataApiPort.findDistinctQuestionnaireIds();
+        for (String questionnaireId : questionnaires) {
+            long countResult = lunaticJsonRawDataApiPort.countResponsesByQuestionnaireId(questionnaireId);
+
+            String line = questionnaireId + ";" + countResult + "\n";
+
+            Files.writeString(logFilePath, line, StandardOpenOption.APPEND);
+        }
     }
 
     public void cleanOldFiles() throws IOException {
         try (Stream<Path> pathStream = Files.walk(Path.of(config.getLogFolder()).resolve(Constants.VOLUMETRY_FOLDER_NAME))){
             for (Path logFilePath : pathStream.filter(path -> path.getFileName().toString().endsWith(".csv")).toList()){
                 //If older than x months
-                if (LocalDate.parse(
-                        logFilePath.getFileName().toString().replace(Constants.VOLUMETRY_FILE_SUFFIX + ".csv", ""),
-                        DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT)
-                ).isBefore(LocalDate.now().minusDays(Constants.VOLUMETRY_FILE_EXPIRATION_DAYS))
+                //Extract date
+                String datePart = logFilePath.getFileName().toString().split("_VOLUMETRY\\.csv")[0] // Delete common suffix
+                        .replace("_RAW", ""); // Delete "_RAW" if present
+                if (LocalDate.parse(datePart, DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
+                        .isBefore(LocalDate.now().minusDays(Constants.VOLUMETRY_FILE_EXPIRATION_DAYS))
                 ) {
                     Files.deleteIfExists(logFilePath);
                     log.info("Deleted {}", logFilePath);
