@@ -81,7 +81,7 @@ public class RawResponseController {
     //GET unprocessed
     @Operation(summary = "Get campaign id and interrogationId from all unprocessed raw json data")
     @GetMapping(path = "/lunatic-json/get/unprocessed")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SCHEDULER')")
     public ResponseEntity<List<LunaticJsonRawDataUnprocessedDto>> getUnproccessedJsonRawData(){
         log.info("Try to get unprocessed raw JSON datas...");
         return ResponseEntity.ok(lunaticJsonRawDataApiPort.getUnprocessedDataIds());
