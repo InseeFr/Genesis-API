@@ -70,7 +70,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
 
                 //External variables conversion into COLLECTED document
                 if(dataState.equals(DataState.COLLECTED)){
-                    processRawDataExtractedVariables(rawData, surveyUnitModel, variablesMap);
+                    processRawDataExternalVariables(rawData, surveyUnitModel, variablesMap);
                 }
 
                 if(!surveyUnitModel.getCollectedVariables().isEmpty()
@@ -98,13 +98,13 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
         return dtos;
     }
 
-    private static void processRawDataExtractedVariables(
+    private static void processRawDataExternalVariables(
             LunaticJsonRawDataModel srcRawData,
             SurveyUnitModel dstSurveyUnitModel,
             VariablesMap variablesMap
     ) {
         Map<String,Object> externalMap = JsonUtils.asMap(srcRawData.data().get("EXTERNAL"));
-        if (!externalMap.isEmpty()){
+        if (externalMap != null && !externalMap.isEmpty()){
             for(Map.Entry<String, Object> externalVariableEntry : externalMap.entrySet()){
                 Object valueObject = externalVariableEntry.getValue();
                 if (valueObject instanceof List<?>){
@@ -150,7 +150,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
             VariablesMap variablesMap
     ) {
         Map<String,Object> collectedMap = JsonUtils.asMap(srcRawData.data().get("COLLECTED"));
-        if (!collectedMap.isEmpty()){
+        if (collectedMap != null && !collectedMap.isEmpty()){
             for(Map.Entry<String, Object> collectedVariable : collectedMap.entrySet()) {
 
                 //Skip if collected variable does not have state
