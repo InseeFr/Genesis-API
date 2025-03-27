@@ -7,12 +7,16 @@ import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
+import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
+import fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.domain.service.volumetry.VolumetryLogService;
 import fr.insee.genesis.stubs.ConfigStub;
+import fr.insee.genesis.stubs.LunaticJsonRawDataPersistanceStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,7 +38,7 @@ class UtilsControllerTest {
     //Given
     static UtilsController utilsControllerStatic;
     static SurveyUnitPersistencePortStub surveyUnitPersistencePortStub;
-
+    static LunaticJsonRawDataPersistanceStub lunaticJsonRawDataPersistencePort;
     static List<InterrogationId> interrogationIdList;
     //Constants
     static final String DEFAULT_INTERROGATION_ID = "TESTINTERROGATIONID";
@@ -43,11 +47,14 @@ class UtilsControllerTest {
     @BeforeAll
     static void init() {
         surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
+        lunaticJsonRawDataPersistencePort = new LunaticJsonRawDataPersistanceStub();
         SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(surveyUnitPersistencePortStub);
+        LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort = new LunaticJsonRawDataService(lunaticJsonRawDataPersistencePort);
 
         utilsControllerStatic = new UtilsController(
                 surveyUnitApiPort
                 , new VolumetryLogService(new ConfigStub())
+                , lunaticJsonRawDataApiPort
         );
 
         interrogationIdList = new ArrayList<>();
@@ -252,8 +259,15 @@ class UtilsControllerTest {
         }
     }
 
-
-
+    @AfterAll
+    static void cleanRewFiles() throws IOException {
+        Path logFilePathRaw = Path.of(
+                        new ConfigStub().getLogFolder())
+                .resolve(Constants.VOLUMETRY_FOLDER_NAME)
+                .resolve(LocalDate.now().format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
+                        + Constants.VOLUMETRY_RAW_FILE_SUFFIX + ".csv");
+        Files.deleteIfExists(logFilePathRaw);
+    }
 
     @Test
     void saveVolumetryTest() throws IOException {

@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.5.2 [2025-03-26]
+### Added
+- Add volumetrics to quantify raw data received
+
+## 1.5.1 [2025-03-25]
+
+### Fixed
+- Bug with scheduler : add role for it
+### Updated
+- springboot 3.4.4
+- springdoc-openapi-starter-webmvc-ui 2.8.6
+
+
+## 1.5.0 [2025-03-20]
+
+### Added
+- Role based authorization to endpoints
+- Refactor of raw data save endpoint
+
 ## 1.4.1 [2025-02-24]
 
 ### Fixed

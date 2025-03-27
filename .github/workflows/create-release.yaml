@@ -47,9 +47,40 @@ jobs:
           else
             echo "should_continue=true" >> $GITHUB_OUTPUT
           fi
+  build-sources:
+    needs: check-version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Clone BPM
+        uses: actions/checkout@master
+        with:
+          repository: InseeFr/BPM
+          path: bpm
+
+      - name: Build BPM
+        run: |
+          cd bpm
+          mvn clean install --no-transfer-progress
+          cd ..
+
+      - uses: actions/checkout@v4
+      - name: Build app
+        run: mvn package --no-transfer-progress
+
+      - name: Upload app jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-jar
+          path: target/*.jar
 
   create-release:
-    needs: [ check-version ]
+    needs: [ check-version, build-sources ]
     if: needs.check-version.outputs.should_run_next_job == 'true'
     runs-on: ubuntu-latest
     steps:
@@ -80,3 +111,25 @@ jobs:
           body: ${{steps.changeLogContent.outputs.changes}}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-docker:
+    needs: [ check-version, create-release ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download uploaded jar
+        uses: actions/download-artifact@v4
+        with:
+          name: app-jar
+          path: target/
+
+      - name: Publish to Docker Hub
+        uses: elgohr/Publish-Docker-Github-Action@v5
+        with:
+          name: inseefr/genesis-api
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          default_branch: ${{ github.ref }}
+          tags: ${{ needs.check-version.outputs.release-tag }}
+          workdir: .

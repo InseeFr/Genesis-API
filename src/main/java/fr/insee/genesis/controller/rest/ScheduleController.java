@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -48,6 +49,7 @@ public class ScheduleController {
 
     @Operation(summary = "Fetch all schedules")
     @GetMapping(path = "/all")
+    @PreAuthorize("hasAnyRole('SCHEDULER','READER')")
     public ResponseEntity<Object> getAllSchedules() {
         log.debug("Got GET all schedules request");
 
@@ -59,6 +61,7 @@ public class ScheduleController {
 
     @Operation(summary = "Schedule a Kraftwerk execution")
     @PutMapping(path = "/create")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Object> addSchedule(
             @Parameter(description = "Survey name to call Kraftwerk on") @RequestParam("surveyName") String surveyName,
             @Parameter(description = "Kraftwerk endpoint") @RequestParam(value = "serviceTocall", defaultValue = Constants.KRAFTWERK_MAIN_ENDPOINT) ServiceToCall serviceToCall,
@@ -81,7 +84,6 @@ public class ScheduleController {
                         encryptionVaultPath,
                         useSignature
                 );
-                log.info("New schedule request for survey {} with encryption", surveyName);
                 scheduleApiPort.addSchedule(surveyName,
                         serviceToCall == null ? ServiceToCall.MAIN : serviceToCall,
                         frequency,
@@ -89,7 +91,6 @@ public class ScheduleController {
                         scheduleEndDate,
                         trustParameters);
             }else{
-                log.info("New schedule request for survey {}", surveyName);
                 scheduleApiPort.addSchedule(surveyName,
                         serviceToCall == null ? ServiceToCall.MAIN : serviceToCall,
                         frequency,
@@ -108,11 +109,11 @@ public class ScheduleController {
 
     @Operation(summary = "Delete a Kraftwerk execution schedule(s) by its survey name")
     @DeleteMapping(path = "/delete")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Object> deleteSchedule(
             @Parameter(description = "Survey name of the schedule(s) to delete") @RequestParam("surveyName") String surveyName
     ){
         try {
-            log.info("Delete schedule request for survey {}", surveyName);
             scheduleApiPort.deleteSchedule(surveyName);
         }catch (NotFoundException e){
             log.warn("Survey {} not found for deletion !", surveyName);
@@ -125,12 +126,12 @@ public class ScheduleController {
 
     @Operation(summary = "Set last execution date with new date or empty")
     @PostMapping(path = "/setLastExecutionDate")
+    @PreAuthorize("hasRole('SCHEDULER')")
     public ResponseEntity<Object> setSurveyLastExecution(
             @Parameter(description = "Survey name to call Kraftwerk on") @RequestBody String surveyName,
             @Parameter(description = "Date to save as last execution date", example = "2024-01-01T12:00:00") @RequestParam("newDate") LocalDateTime newDate
             ) {
         try {
-            log.debug("Got update last execution on {} with data param {}", surveyName, newDate);
             scheduleApiPort.updateLastExecutionName(surveyName, newDate);
             log.info("{} last execution updated at {} !", surveyName, newDate);
         }catch (NotFoundException e){
@@ -142,6 +143,7 @@ public class ScheduleController {
 
     @Operation(summary = "Delete expired schedules")
     @DeleteMapping(path = "/delete/expired-schedules")
+    @PreAuthorize("hasRole('SCHEDULER')")
     public ResponseEntity<Object> deleteExpiredSchedules() throws NotFoundException, IOException {
         Set<String> storedSurveySchedulesNames = new HashSet<>();
         for(ScheduleModel scheduleModel : scheduleApiPort.getAllSchedules()){

@@ -1,0 +1,71 @@
+{
+  "company": {
+    "name": "TechCorp",
+    "founded": 2005,
+    "isActive": true,
+    "departments": [
+      {
+        "name": "Engineering",
+        "employees": [
+          {
+            "id": 101,
+            "name": "Alice Johnson",
+            "role": "Software Engineer",
+            "skills": ["Java", "Spring Boot", "Docker"],
+            "salary": 75000.50,
+            "hireDate": "2018-06-15T08:30:00Z"
+          },
+          {
+            "id": 102,
+            "name": "Bob Smith",
+            "role": "DevOps Engineer",
+            "skills": ["AWS", "Kubernetes", "Terraform"],
+            "salary": 82000.75,
+            "hireDate": "2019-09-20T10:15:00Z"
+          }
+        ]
+      },
+      {
+        "name": "Marketing",
+        "employees": [
+          {
+            "id": 201,
+            "name": "Carol White",
+            "role": "Marketing Manager",
+            "skills": ["SEO", "Google Ads", "Content Strategy"],
+            "salary": 68000.00,
+            "hireDate": "2017-03-12T09:45:00Z"
+          }
+        ]
+      }
+    ],
+    "offices": [
+      {
+        "location": "New York",
+        "address": {
+          "street": "123 5th Avenue",
+          "city": "New York",
+          "zip": "10001",
+          "country": "USA"
+        },
+        "phone": "+1-212-555-1234"
+      },
+      {
+        "location": "San Francisco",
+        "address": {
+          "street": "456 Market Street",
+          "city": "San Francisco",
+          "zip": "94103",
+          "country": "USA"
+        },
+        "phone": "+1-415-555-5678"
+      }
+    ],
+    "financials": {
+      "revenue": 12500000.99,
+      "expenses": 7400000.75,
+      "profit": 5099999.24,
+      "currency": "USD"
+    }
+  }
+}

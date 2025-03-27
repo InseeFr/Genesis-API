@@ -75,7 +75,7 @@ class DataVerifierTest {
     }
 
     @Test
-    void shouldAddForcedSurveyUnit_WhenInvalidCollectedVariable() {
+    void shouldAddFormattedSurveyUnit_WhenInvalidCollectedVariable() {
         // GIVEN
         // Add invalid value
         surveyUnits.clear();
@@ -107,13 +107,13 @@ class DataVerifierTest {
         // WHEN
         DataVerifier.verifySurveyUnits(surveyUnits, variablesMap);
 
-        // THEN, check FORCED value was added
+        // THEN, check FORMATTED value was added
         Assertions.assertEquals(2, surveyUnits.size());
-        Assertions.assertEquals(DataState.FORCED, surveyUnits.get(1).getState());
+        Assertions.assertEquals(DataState.FORMATTED, surveyUnits.get(1).getState());
     }
 
     @Test
-    void shouldNotAddForcedSurveyUnit_WhenAllVariablesAreValid() {
+    void shouldNotAddFormattedSurveyUnit_WhenAllVariablesAreValid() {
         // WHEN
         DataVerifier.verifySurveyUnits(surveyUnits, variablesMap);
 
@@ -122,7 +122,7 @@ class DataVerifierTest {
     }
 
     @Test
-    void shouldAddForcedSurveyUnit_WhenInvalidExternalVariable() {
+    void shouldAddFormattedSurveyUnit_WhenInvalidExternalVariable() {
         //Add surveyUnit with invalid external Variable
         VariableModel extVar = VariableModel.builder()
                 .varId("var2")
@@ -147,12 +147,12 @@ class DataVerifierTest {
 
         // THEN
         Assertions.assertEquals(3, surveyUnits.size());
-        Assertions.assertEquals(DataState.FORCED, surveyUnits.get(2).getState());
+        Assertions.assertEquals(DataState.FORMATTED, surveyUnits.get(2).getState());
         Assertions.assertEquals(1, surveyUnits.get(1).getExternalVariables().size());
     }
 
     @Test
-    void shouldCorrectInvalidValuesInForcedSurveyUnit() {
+    void shouldCorrectInvalidValuesInFormattedSurveyUnit() {
         // GIVEN
         // ADD invalid values
         surveyUnits.clear();
@@ -190,11 +190,65 @@ class DataVerifierTest {
         // WHEN
         DataVerifier.verifySurveyUnits(surveyUnits, variablesMap);
 
-        // FORCED values added
+        // THEN FORMATTED values added
         SurveyUnitModel forcedUnit = surveyUnits.get(1);
-        Assertions.assertEquals(DataState.FORCED, forcedUnit.getState());
+        Assertions.assertEquals(DataState.FORMATTED, forcedUnit.getState());
         Assertions.assertEquals(1, forcedUnit.getCollectedVariables().size());
         Assertions.assertEquals("", forcedUnit.getCollectedVariables().getFirst().value()); // Corrected values
     }
 
+    @Test
+    void shouldCorrectInvalidIterationOnFormattedSurveyUnit() {
+        // GIVEN
+        // ADD invalid values
+        surveyUnits.clear();
+        VariableModel collectedVariable1 = VariableModel.builder()
+                .varId("var1")
+                .value("123")
+                .scope("loop1")
+                .iteration(1)
+                .parentId("parent1")
+                .build();
+        VariableModel collectedVariable2 = VariableModel.builder()
+                .varId("var1")
+                .value("invalid")
+                .scope("loop1")
+                .iteration(2)
+                .parentId("parent1")
+                .build();
+        VariableModel collectedVariable3 = VariableModel.builder()
+                .varId("var2")
+                .value("false")
+                .scope("loop2")
+                .iteration(1)
+                .parentId("parent2")
+                .build();
+        VariableModel collectedVariable4 = VariableModel.builder()
+                .varId("var2")
+                .value("Not a boolean")
+                .scope("loop2")
+                .iteration(2)
+                .parentId("parent2")
+                .build();
+        SurveyUnitModel surveyUnit = SurveyUnitModel.builder()
+                .interrogationId("UE1100000001")
+                .questionnaireId("Quest1")
+                .campaignId("Camp1")
+                .state(DataState.COLLECTED)
+                .collectedVariables(List.of(collectedVariable1, collectedVariable2, collectedVariable3, collectedVariable4))
+                .externalVariables(List.of())
+                .build();
+        surveyUnits.add(surveyUnit);
+
+        // WHEN
+        DataVerifier.verifySurveyUnits(surveyUnits, variablesMap);
+
+        // THEN FORMATTED values added
+        Assertions.assertTrue(surveyUnits.size() > 1);
+        SurveyUnitModel forcedUnit = surveyUnits.get(1);
+        Assertions.assertEquals(DataState.FORMATTED, forcedUnit.getState());
+        Assertions.assertEquals(2, forcedUnit.getCollectedVariables().size());
+        Assertions.assertEquals("", forcedUnit.getCollectedVariables().getFirst().value()); // Corrected values
+        Assertions.assertEquals("", forcedUnit.getCollectedVariables().get(1).value());
+    }
 }

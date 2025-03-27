@@ -1,0 +1,79 @@
+name: Build snapshot docker image
+
+on:
+  push:
+    branches-ignore:
+      - main
+
+jobs:
+  build-snapshot:
+    runs-on: ubuntu-latest
+    outputs:
+      branch: ${{ steps.extract_branch.outputs.branch }}
+    steps:
+      - name: Extract branch name
+        shell: bash
+        run: echo "branch=$(echo ${GITHUB_REF#refs/heads/})" >>$GITHUB_OUTPUT
+        id: extract_branch
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.extract_branch.outputs.branch }}
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+
+      - name: Clone BPM
+        uses: actions/checkout@master
+        with:
+          repository: InseeFr/BPM
+          path: bpm
+
+      - name: Build BPM
+        run: |
+          cd bpm
+          mvn clean install --no-transfer-progress
+          cd ..
+
+      - name: Build API
+        run: mvn package --no-transfer-progress
+
+      - name: Upload API jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-jar
+          path: target/*.jar
+
+  docker:
+    needs:
+      - build-snapshot
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download uploaded jar
+        uses: actions/download-artifact@v4
+        with:
+          name: app-jar
+          path: target/
+
+      - name: Create docker version tag
+        id: docker-version
+        run: |
+          # replace '/' by '-' for docker tags
+          docker_tag="${{ needs.build-snapshot.outputs.branch }}"
+          docker_tag=$(echo "$docker_tag" | sed 's/[\/+]/-/g')
+          echo "docker_tag=${docker_tag}" >> $GITHUB_ENV
+
+      - name: Publish to Docker Hub
+        uses: elgohr/Publish-Docker-Github-Action@v5
+        with:
+          name: inseefr/genesis-api
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          default_branch: ${{ github.ref }}
+          tags: "snapshot-${{ env.docker_tag }}"
+          workdir: .

@@ -220,4 +220,121 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
         }
     }
 
+    @Override
+    public Set<String> findDistinctQuestionnaireIds() {
+        return lunaticJsonRawDataPersistencePort.findDistinctQuestionnaireIds();
+    }
+
+    @Override
+    public long countResponsesByQuestionnaireId(String campaignId) {
+        return lunaticJsonRawDataPersistencePort.countResponsesByQuestionnaireId(campaignId);
+    }
+
+    /*
+    *//**
+     * Parse collected variables from raw data JSON
+     * @param rootNode root JSON node of input raw data
+     * @return a map of collected variables with the name of the variable as key
+     * @throws GenesisException if any problem during parsing
+     *//*
+    private Map<String, LunaticJsonRawDataCollectedVariable> getCollectedVariablesFromJson(JsonNode rootNode) throws GenesisException {
+        Map<String, LunaticJsonRawDataCollectedVariable> lunaticJsonRawDataCollectedVariables = new HashMap<>();
+
+        if(!rootNode.has(LunaticJsonRawDataVariableType.COLLECTED.getJsonNodeName())){
+            return lunaticJsonRawDataCollectedVariables;
+        }
+
+        Iterator<Map.Entry<String, JsonNode>> variables =
+                rootNode.get(LunaticJsonRawDataVariableType.COLLECTED.getJsonNodeName()).fields();
+        while (variables.hasNext()) {
+            Map.Entry<String, JsonNode> variableNode = variables.next();
+            LunaticJsonRawDataCollectedVariable lunaticJsonRawDataCollectedVariable =
+                    LunaticJsonRawDataCollectedVariable.builder()
+                            .collectedVariableByStateMap(new EnumMap<>(DataState.class))
+                            .build();
+            Iterator<Map.Entry<String, JsonNode>> states =
+                    variableNode.getValue().fields();
+
+            if(!states.hasNext()){
+                throw new GenesisException(400, "Invalid JSON structure: Variable %s does not have any state (%s)"
+                        .formatted(variableNode.getKey(), Arrays.stream(DataState.values()).toList()));
+            }
+
+            while (states.hasNext()){
+                Map.Entry<String, JsonNode> stateNode = states.next();
+
+                DataState dataState;
+                //Check if data state (ex: COLLECTED) is in enum
+                try{
+                    dataState = DataState.valueOf(stateNode.getKey());
+                }catch (IllegalArgumentException e){
+                    throw new GenesisException(400, "Invalid JSON : Data state %s contained in variable %s is not supported"
+                            .formatted(stateNode.getKey(), variableNode.getKey()));
+                }
+
+                //Parse values
+                LunaticJsonRawDataVariable lunaticJsonRawDataVariable;
+                if (stateNode.getValue().isArray()) {
+                    //If is array of values
+                    lunaticJsonRawDataVariable = LunaticJsonRawDataVariable.builder()
+                            .valuesArray(new ArrayList<>())
+                            .build();
+                    for (JsonNode valueNode : stateNode.getValue()) {
+                        lunaticJsonRawDataVariable.valuesArray().add(valueNode.asText());
+                    }
+                } else {
+                    //If only 1 value
+                    lunaticJsonRawDataVariable = LunaticJsonRawDataVariable.builder()
+                            .value(stateNode.getValue().asText())
+                            .build();
+                }
+                lunaticJsonRawDataCollectedVariable.collectedVariableByStateMap().put(dataState, lunaticJsonRawDataVariable);
+            }
+            lunaticJsonRawDataCollectedVariables.put(variableNode.getKey(), lunaticJsonRawDataCollectedVariable);
+        }
+        return lunaticJsonRawDataCollectedVariables;
+    }
+
+    *//**
+     * Parse other than collected variables from raw data JSON
+     * These variables are defined by the lack of state (COLLECTED, EDITED...) in their structure
+     * @param rootNode root JSON node of input raw data
+     * @return a map of variables with the name of the variable as key
+     * @throws GenesisException if any problem during parsing
+     *//*
+    private Map<String, LunaticJsonRawDataVariable> getOtherVariablesFromJson(
+            JsonNode rootNode,
+            //Don't mind the warning, we expect only EXTERNAL for now but this method is open for another types
+            LunaticJsonRawDataVariableType variableType
+    ) {
+
+        if (!rootNode.has(variableType.getJsonNodeName())) {
+            return new HashMap<>();
+        }
+
+        //Parse from json
+        Map<String, LunaticJsonRawDataVariable> lunaticJsonRawDataVariables = new HashMap<>();
+        Iterator<Map.Entry<String, JsonNode>> variables = rootNode.get(variableType.getJsonNodeName()).fields();
+        while (variables.hasNext()) {
+            Map.Entry<String, JsonNode> variableNode = variables.next();
+            LunaticJsonRawDataVariable lunaticJsonRawDataVariable;
+            if (variableNode.getValue().isArray()) {
+                //If is array of values
+                lunaticJsonRawDataVariable = LunaticJsonRawDataVariable.builder()
+                        .valuesArray(new ArrayList<>())
+                        .build();
+                for (JsonNode valueNode : variableNode.getValue()) {
+                    lunaticJsonRawDataVariable.valuesArray().add(valueNode.asText());
+                }
+                lunaticJsonRawDataVariables.put(variableNode.getKey(), lunaticJsonRawDataVariable);
+            } else {
+                //If only 1 value
+                lunaticJsonRawDataVariable = LunaticJsonRawDataVariable.builder()
+                        .value(variableNode.getValue().asText())
+                        .build();
+            }
+            lunaticJsonRawDataVariables.put(variableNode.getKey(), lunaticJsonRawDataVariable);
+        }
+        return lunaticJsonRawDataVariables;
+    }*/
 }
