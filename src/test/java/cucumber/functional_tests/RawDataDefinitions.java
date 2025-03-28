@@ -1,5 +1,6 @@
 package cucumber.functional_tests;
 
+import cucumber.config.CucumberSpringConfiguration;
 import fr.insee.genesis.TestConstants;
 import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.controller.rest.responses.RawResponseController;
@@ -25,6 +26,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ContextConfiguration;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -35,6 +37,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPublicKey;
 
 @Slf4j
+@ContextConfiguration(classes = CucumberSpringConfiguration.class)
 public class RawDataDefinitions {
 
 

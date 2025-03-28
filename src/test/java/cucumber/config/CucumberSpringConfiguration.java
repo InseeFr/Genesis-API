@@ -1,6 +1,8 @@
 package cucumber.config;
 
 import fr.insee.genesis.GenesisApi;
+import fr.insee.genesis.domain.ports.api.ScheduleApiPort;
+import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.infrastructure.repository.LunaticJsonMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.RundeckExecutionDBRepository;
 import fr.insee.genesis.infrastructure.repository.ScheduleMongoDBRepository;
