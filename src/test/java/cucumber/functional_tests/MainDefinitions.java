@@ -1,6 +1,7 @@
 package cucumber.functional_tests;
 
 import cucumber.TestConstants;
+import cucumber.config.CucumberSpringConfiguration;
 import fr.insee.bpm.exceptions.MetadataParserException;
 import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.bpm.metadata.reader.ddi.DDIReader;
@@ -31,7 +32,9 @@ import io.cucumber.java.Before;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import io.cucumber.spring.CucumberContextConfiguration;
 import org.assertj.core.api.Assertions;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.ResponseEntity;
 import org.xml.sax.SAXException;
 
@@ -47,6 +50,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
+@CucumberContextConfiguration
+@SpringBootTest(classes = CucumberSpringConfiguration.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class MainDefinitions {
     String directory;
     Path inDirectory = Paths.get(TestConstants.FUNCTIONAL_TESTS_WEB_DIRECTORY);
