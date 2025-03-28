@@ -55,4 +55,6 @@ public interface SurveyUnitApiPort {
     List<SurveyUnitModel> parseEditedVariables(SurveyUnitInputDto surveyUnitInputDto,
                                          String userIdentifier,
                                          VariablesMap variablesMap) throws GenesisException;
+
+    String findQuestionnaireIdByInterrogationId(String interrogationId) throws GenesisException;
 }

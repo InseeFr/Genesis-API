@@ -20,7 +20,7 @@ import java.io.IOException;
 @Controller
 @Slf4j
 @Tag(name = "Technical services")
-public class UtilsController {
+public class UtilsController implements CommonApiResponse{
 
 	private final VolumetryLogService volumetryLogService;
 	private final SurveyUnitApiPort surveyUnitService;

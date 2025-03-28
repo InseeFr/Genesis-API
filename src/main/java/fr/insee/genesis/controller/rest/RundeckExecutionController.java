@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping(path = "/rundeck-execution")
 @Controller
 @Slf4j
-public class RundeckExecutionController {
+public class RundeckExecutionController implements CommonApiResponse{
 
     private final RundeckExecutionApiPort rundeckExecutionApiPort;
 
