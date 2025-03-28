@@ -3,15 +3,23 @@ package fr.insee.genesis.domain.service.rawdata;
 import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.dto.rawdata.LunaticJsonRawDataUnprocessedDto;
+import fr.insee.genesis.controller.services.MetadataService;
+import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
+import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.spi.LunaticJsonRawDataPersistencePort;
+import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
+import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.domain.utils.GroupUtils;
 import fr.insee.genesis.domain.utils.JsonUtils;
+import fr.insee.genesis.exceptions.GenesisError;
+import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.infrastructure.utils.FileUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -28,11 +36,22 @@ import java.util.Set;
 @Slf4j
 public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
 
+    private final ControllerUtils controllerUtils;
+    private final MetadataService metadataService;
+    private final SurveyUnitService surveyUnitService;
+    private final SurveyUnitQualityService surveyUnitQualityService;
+    private final FileUtils fileUtils;
+
     @Qualifier("lunaticJsonMongoAdapterNew")
     private final LunaticJsonRawDataPersistencePort lunaticJsonRawDataPersistencePort;
 
     @Autowired
-    public LunaticJsonRawDataService(LunaticJsonRawDataPersistencePort lunaticJsonRawDataNewPersistencePort) {
+    public LunaticJsonRawDataService(LunaticJsonRawDataPersistencePort lunaticJsonRawDataNewPersistencePort, ControllerUtils controllerUtils, MetadataService metadataService, SurveyUnitService surveyUnitService, SurveyUnitQualityService surveyUnitQualityService, FileUtils fileUtils) {
+        this.controllerUtils = controllerUtils;
+        this.metadataService = metadataService;
+        this.surveyUnitService = surveyUnitService;
+        this.surveyUnitQualityService = surveyUnitQualityService;
+        this.fileUtils = fileUtils;
         this.lunaticJsonRawDataPersistencePort = lunaticJsonRawDataNewPersistencePort;
     }
 
@@ -44,6 +63,43 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     @Override
     public List<LunaticJsonRawDataModel> getRawData(String campaignName, Mode mode, List<String> interrogationIdList) {
         return lunaticJsonRawDataPersistencePort.findRawData(campaignName, mode, interrogationIdList);
+    }
+
+    @Override
+    public DataProcessResult processRawData(String campaignName, List<String> interrogationIdList, List<GenesisError> errors, int dataCount, int forcedDataCount) throws GenesisException {
+        List<Mode> modesList = controllerUtils.getModesList(campaignName, null);
+        for (Mode mode : modesList) {
+            //Load and save metadatas into database, throw exception if none
+            VariablesMap variablesMap = metadataService.readMetadatas(campaignName, mode.getModeName(), fileUtils,
+                    errors);
+            if (variablesMap == null) {
+                throw new GenesisException(400,
+                        "Error during metadata parsing for mode %s :%n%s"
+                                .formatted(mode, errors.getLast().getMessage())
+                );
+            }
+
+            List<LunaticJsonRawDataModel> rawData = getRawData(campaignName,mode, interrogationIdList);
+            //Save converted data
+            List<SurveyUnitModel> surveyUnitModels = convertRawData(
+                    rawData,
+                    variablesMap
+            );
+
+            surveyUnitQualityService.verifySurveyUnits(surveyUnitModels, variablesMap);
+            surveyUnitService.saveSurveyUnits(surveyUnitModels);
+
+            //Update process dates
+            updateProcessDates(surveyUnitModels);
+
+            //Increment data count
+            dataCount += surveyUnitModels.size();
+            forcedDataCount += surveyUnitModels.stream().filter(
+                    surveyUnitModel -> surveyUnitModel.getState().equals(DataState.FORCED)
+            ).toList().size();
+        }
+        DataProcessResult result = new DataProcessResult(dataCount, forcedDataCount);
+        return result;
     }
 
     @Override
@@ -66,11 +122,11 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
                         .build();
 
                 //Data collected variables conversion
-                processRawDataCollectedVariables(rawData, surveyUnitModel, dataState, variablesMap);
+                convertRawDataCollectedVariables(rawData, surveyUnitModel, dataState, variablesMap);
 
                 //External variables conversion into COLLECTED document
                 if(dataState.equals(DataState.COLLECTED)){
-                    processRawDataExternalVariables(rawData, surveyUnitModel, variablesMap);
+                    convertRawDataExternalVariables(rawData, surveyUnitModel, variablesMap);
                 }
 
                 if(!surveyUnitModel.getCollectedVariables().isEmpty()
@@ -98,7 +154,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
         return dtos;
     }
 
-    private static void processRawDataExternalVariables(
+    private static void convertRawDataExternalVariables(
             LunaticJsonRawDataModel srcRawData,
             SurveyUnitModel dstSurveyUnitModel,
             VariablesMap variablesMap
@@ -143,7 +199,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
         }
     }
 
-    private void processRawDataCollectedVariables(
+    private void convertRawDataCollectedVariables(
             LunaticJsonRawDataModel srcRawData,
             SurveyUnitModel dstSurveyUnitModel,
             DataState dataState,
@@ -191,7 +247,6 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
             }
         }
     }
-
 
     private static String getIdLoop(VariablesMap variablesMap, String variableName) {
         if (variablesMap.getVariable(variableName) == null) {
