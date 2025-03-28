@@ -1,5 +1,6 @@
 package fr.insee.genesis.controller.rest;
 
+import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.ScheduleApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.infrastructure.repository.LunaticJsonMongoDBRepository;
@@ -60,6 +61,8 @@ class ControllerAccessTest {
     private ScheduleApiPort scheduleApiPort;
     @MockitoBean
     private SurveyUnitApiPort surveyUnitApiPort;
+    @MockitoBean
+    private LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort;
     @MockitoBean
     private SurveyUnitMongoDBRepository surveyUnitMongoDBRepository;
     @MockitoBean
