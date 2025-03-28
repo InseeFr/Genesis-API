@@ -36,6 +36,7 @@ import io.cucumber.spring.CucumberContextConfiguration;
 import org.assertj.core.api.Assertions;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ActiveProfiles;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -52,6 +53,7 @@ import java.util.stream.Stream;
 
 @CucumberContextConfiguration
 @SpringBootTest(classes = CucumberSpringConfiguration.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test-cucumber")
 public class MainDefinitions {
     String directory;
     Path inDirectory = Paths.get(TestConstants.FUNCTIONAL_TESTS_WEB_DIRECTORY);
