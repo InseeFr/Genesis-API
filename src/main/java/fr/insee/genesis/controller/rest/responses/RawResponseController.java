@@ -109,13 +109,10 @@ public class RawResponseController {
             @RequestBody List<String> interrogationIdList
     ){
         log.info("Try to process raw JSON datas for campaign {} and {} interrogationIds", campaignName, interrogationIdList.size());
-
-        int dataCount = 0;
-        int forcedDataCount = 0;
         List<GenesisError> errors = new ArrayList<>();
 
         try {
-            DataProcessResult result = lunaticJsonRawDataApiPort.processRawData(campaignName, interrogationIdList, errors, dataCount, forcedDataCount);
+            DataProcessResult result = lunaticJsonRawDataApiPort.processRawData(campaignName, interrogationIdList, errors);
             return result.forcedDataCount() == 0 ?
                     ResponseEntity.ok("%d document(s) processed".formatted(result.dataCount()))
                     : ResponseEntity.ok("%d document(s) processed, including %d FORCED after data verification"

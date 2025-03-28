@@ -22,5 +22,5 @@ public interface LunaticJsonRawDataApiPort {
     Set<String> findDistinctQuestionnaireIds();
     long countResponsesByQuestionnaireId(String campaignId);
 
-    DataProcessResult processRawData(String campaignName, List<String> interrogationIdList, List<GenesisError> errors, int dataCount, int forcedDataCount) throws GenesisException;
+    DataProcessResult processRawData(String campaignName, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException;
 }
