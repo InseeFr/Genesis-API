@@ -1,7 +1,9 @@
 package cucumber.functional_tests;
 
 import fr.insee.genesis.TestConstants;
+import fr.insee.genesis.controller.rest.LunaticModelController;
 import fr.insee.genesis.domain.model.lunaticmodel.LunaticModelModel;
+import fr.insee.genesis.domain.service.lunaticmodel.LunaticModelService;
 import fr.insee.genesis.domain.utils.JsonUtils;
 import fr.insee.genesis.infrastructure.document.lunaticmodel.LunaticModelDocument;
 import fr.insee.genesis.infrastructure.mappers.LunaticModelMapper;
@@ -33,6 +35,7 @@ public class LunaticModelDefinitions {
     private static final String LUNATIC_FILE_PATTERN = "lunatic[\\w,\\s-]+\\.json";
 
     LunaticModelPersistanceStub lunaticModelPersistanceStub = new LunaticModelPersistanceStub();
+    LunaticModelController lunaticModelController = new LunaticModelController(new LunaticModelService(lunaticModelPersistanceStub));
 
     private String baseUrl;
     @LocalServerPort
@@ -52,12 +55,6 @@ public class LunaticModelDefinitions {
         lunaticModelPersistanceStub.getMongoStub().clear();
         baseUrl = "http://localhost:" + port + "/";
         log.info("rest autowired : {}", rest.getRootUri());
-
-        //Clean variables
-//        questionnaireId = null;
-//        lunaticModelJsonPath = null;
-//        lunaticModelSaveBody = null;
-//        lastResponse = null;
     }
 
 
@@ -85,7 +82,17 @@ public class LunaticModelDefinitions {
 
     //WHENS
     @When("We save that lunatic model json file with questionnaire id {string}")
-    public void save_lunatic_model(String questionnaireId) throws IOException {
+    public void save_lunatic_model(String questionnaireId) throws Exception {
+        this.questionnaireId = questionnaireId;
+        lunaticModelSaveBody = Files.readString(lunaticModelJsonPath);
+
+        lastResponse = lunaticModelController.saveRawResponsesFromJsonBody(
+                questionnaireId,
+                JsonUtils.jsonToMap(lunaticModelSaveBody)
+        );
+    }
+    @When("We try to save that lunatic model json file with questionnaire id {string} with Spring context")
+    public void save_lunatic_model_spring(String questionnaireId) throws IOException {
         this.questionnaireId = questionnaireId;
         lunaticModelSaveBody = Files.readString(lunaticModelJsonPath);
 
