@@ -166,7 +166,7 @@ class RawResponseControllerTest {
 
     private void addJsonRawDataDocumentToStub(String campaignId, String questionnaireId, String interrogationId,
                                                      LocalDateTime processDate,
-                                                     String variableName, String variableValue) throws Exception {
+                                                     String variableName, String variableValue)  {
 
         Map<String, Object> jsonMap = Map.of(
                 "COLLECTED", Map.of(variableName, Map.of("COLLECTED", variableValue)),

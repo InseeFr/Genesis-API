@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import javax.xml.stream.XMLStreamException;
 import java.io.IOException;
 
 @RequestMapping(path = "/")
@@ -43,7 +44,7 @@ public class UtilsController {
 														   @RequestParam("outputFolder") String outputFolder,
 														   @RequestParam("filename") String filename,
 														   @RequestParam("nbResponsesByFile") int nbSU)
-			throws Exception {
+			throws XMLStreamException, IOException {
 		XMLSplitter.split(inputFolder, filename, outputFolder, "SurveyUnit", nbSU);
 		return ResponseEntity.ok("File split");
 	}

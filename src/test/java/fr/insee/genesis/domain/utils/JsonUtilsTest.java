@@ -1,7 +1,7 @@
 package fr.insee.genesis.domain.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
+import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -10,7 +10,9 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
+@Slf4j
 class JsonUtilsTest {
 
     @Test
@@ -53,14 +55,14 @@ class JsonUtilsTest {
     @Test
     void asMap_ifNull(){
         Object obj = null;
-        Map<String,Object> objectMap = JsonUtils.asMap(obj);
-        System.out.println("Arret");
+        assertNull(JsonUtils.asMap(obj));
+        log.info("Arret");
     }
 
     @Test
     void asStringList_shouldConvertValidList() {
         Object obj = Arrays.asList(1, "text", null);
-        System.out.println("test");
+        log.info("test");
         List<String> result = JsonUtils.asStringList(obj);
 
         Assertions.assertThat(result).containsExactly("1", "text", "");

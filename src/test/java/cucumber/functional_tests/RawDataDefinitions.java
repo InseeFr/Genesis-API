@@ -47,7 +47,7 @@ public class RawDataDefinitions {
     @LocalServerPort
     private int port;
 
-    private String BASE_URL;
+    private String baseUrl;
     @Autowired
     private TestRestTemplate rest;
 
@@ -72,7 +72,7 @@ public class RawDataDefinitions {
     public void init(){
         this.lunaticJsonRawDataPersistanceStub.getMongoStub().clear();
         log.info("rest autowired : {}", rest.getRootUri());
-        BASE_URL = "http://localhost:" + port + "/";
+        baseUrl = "http://localhost:" + port + "/";
 
     }
 
@@ -92,12 +92,12 @@ public class RawDataDefinitions {
     }
 
     @When("We save that raw data for web campaign {string}, questionnaire {string}, interrogation {string}")
-    public void save_raw_data(String campaignId, String questionnaireId, String interrogationId) throws IOException {
+    public void save_raw_data(String campaignId, String questionnaireId, String interrogationId)  {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Authorization", "Bearer fake_token");
         String url = String.format("%sresponses/raw/lunatic-json/save?campaignName=%s&questionnaireId=%s&interrogationId=%s&surveyUnitId=%s&mode=%s",
-                BASE_URL,
+                baseUrl,
                 campaignId,
                 questionnaireId,
                 interrogationId,
