@@ -4,9 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.insee.genesis.domain.model.lunaticmodel.LunaticModelModel;
 import fr.insee.genesis.domain.ports.api.LunaticModelApiPort;
+import fr.insee.genesis.exceptions.GenesisException;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -23,7 +23,8 @@ import java.util.Map;
 @Slf4j
 public class LunaticModelController {
     private final LunaticModelApiPort lunaticModelApiPort;
-    @Autowired
+
+
     public LunaticModelController(LunaticModelApiPort lunaticModelApiPort) {
         this.lunaticModelApiPort = lunaticModelApiPort;
     }
@@ -45,8 +46,12 @@ public class LunaticModelController {
     public ResponseEntity<String> getLunaticModelFromQuestionnaireId(
             @RequestParam("questionnaireId") String questionnaireId
     ) throws JsonProcessingException {
-        LunaticModelModel lunaticModelModel = lunaticModelApiPort.get(questionnaireId);
-        ObjectMapper objectMapper = new ObjectMapper();
-        return ResponseEntity.ok(objectMapper.writeValueAsString(lunaticModelModel.lunaticModel()));
+        try {
+            LunaticModelModel lunaticModelModel = lunaticModelApiPort.get(questionnaireId);
+            ObjectMapper objectMapper = new ObjectMapper();
+            return ResponseEntity.ok(objectMapper.writeValueAsString(lunaticModelModel.lunaticModel()));
+        } catch (GenesisException e) {
+            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
+        }
     }
 }

@@ -3,19 +3,23 @@ package fr.insee.genesis.domain.service.lunaticmodel;
 import fr.insee.genesis.domain.model.lunaticmodel.LunaticModelModel;
 import fr.insee.genesis.domain.ports.api.LunaticModelApiPort;
 import fr.insee.genesis.domain.ports.spi.LunaticModelPersistancePort;
+import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.mappers.LunaticModelMapper;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Map;
 
 @Service
-@AllArgsConstructor
-@NoArgsConstructor
 public class LunaticModelService implements LunaticModelApiPort {
+    @Qualifier("lunaticModelMongoAdapter")
     LunaticModelPersistancePort lunaticModelPersistancePort;
+
+    @Autowired
+    public LunaticModelService(LunaticModelPersistancePort lunaticModelPersistancePort) {
+        this.lunaticModelPersistancePort = lunaticModelPersistancePort;
+    }
 
     @Override
     public void save(String questionnaireId, Map<String, Object> lunaticModel) {
@@ -28,7 +32,10 @@ public class LunaticModelService implements LunaticModelApiPort {
     }
 
     @Override
-    public LunaticModelModel get(String questionnaireId) {
+    public LunaticModelModel get(String questionnaireId) throws GenesisException {
+        if(lunaticModelPersistancePort.find(questionnaireId).isEmpty()){
+            throw new GenesisException(404,"Questionnaire not found");
+        }
         return LunaticModelMapper.INSTANCE.documentToModel(lunaticModelPersistancePort.find(questionnaireId).getFirst());
     }
 }
