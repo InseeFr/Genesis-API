@@ -71,7 +71,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
         int forcedDataCount=0;
         List<Mode> modesList = controllerUtils.getModesList(campaignName, null);
         for (Mode mode : modesList) {
-            //Load and save metadatas into database, throw exception if none
+            //Load and save metadata into database, throw exception if none
             VariablesMap variablesMap = metadataService.readMetadatas(campaignName, mode.getModeName(), fileUtils,
                     errors);
             if (variablesMap == null) {
@@ -162,42 +162,34 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     ) {
         Map<String,Object> externalMap = JsonUtils.asMap(srcRawData.data().get("EXTERNAL"));
         if (externalMap != null && !externalMap.isEmpty()){
-            for(Map.Entry<String, Object> externalVariableEntry : externalMap.entrySet()){
-                Object valueObject = externalVariableEntry.getValue();
-                if (valueObject instanceof List<?>){
-                    //Array of values
-                    List<String> values = JsonUtils.asStringList(valueObject);
-                    if(!values.isEmpty()){
-                        int iteration = 1;
-                        for(String value : values) {
-                            VariableModel externalVariableModel = VariableModel.builder()
-                                    .varId(externalVariableEntry.getKey())
-                                    .value(value)
-                                    .scope(getIdLoop(variablesMap, externalVariableEntry.getKey()))
-                                    .iteration(iteration)
-                                    .parentId(GroupUtils.getParentGroupName(externalVariableEntry.getKey(),
-                                            variablesMap))
-                                    .build();
+            convertToExternalVar(dstSurveyUnitModel, variablesMap, externalMap);
+        }
+    }
 
-                            dstSurveyUnitModel.getExternalVariables().add(externalVariableModel);
-                            iteration++;
-                        }
-                    }
-                    continue;
-                }
-                //Value
-                if (valueObject != null) {
-                    VariableModel externalVariableModel = VariableModel.builder()
-                            .varId(externalVariableEntry.getKey())
-                            .value(valueObject.toString())
-                            .scope(getIdLoop(variablesMap, externalVariableEntry.getKey()))
-                            .iteration(1)
-                            .parentId(GroupUtils.getParentGroupName(externalVariableEntry.getKey(), variablesMap))
-                            .build();
-                    dstSurveyUnitModel.getExternalVariables().add(externalVariableModel);
-                }
+    private static void convertToExternalVar(SurveyUnitModel dstSurveyUnitModel, VariablesMap variablesMap, Map<String, Object> externalMap) {
+        for(Map.Entry<String, Object> externalVariableEntry : externalMap.entrySet()){
+            Object valueObject = externalVariableEntry.getValue();
+            if (valueObject instanceof List<?>){
+                //Array of values
+                convertListVar(valueObject, externalVariableEntry, variablesMap, dstSurveyUnitModel.getExternalVariables());
+                continue;
+            }
+            //Value
+            if (valueObject != null) {
+                convertOneVar(externalVariableEntry, valueObject.toString(), variablesMap, 1, dstSurveyUnitModel.getExternalVariables());
             }
         }
+    }
+
+    private static void convertOneVar(Map.Entry<String, Object> externalVariableEntry, String valueObject, VariablesMap variablesMap, int iteration, List<VariableModel> dstSurveyUnitModel) {
+        VariableModel externalVariableModel = VariableModel.builder()
+                .varId(externalVariableEntry.getKey())
+                .value(valueObject)
+                .scope(getIdLoop(variablesMap, externalVariableEntry.getKey()))
+                .iteration(iteration)
+                .parentId(GroupUtils.getParentGroupName(externalVariableEntry.getKey(), variablesMap))
+                .build();
+        dstSurveyUnitModel.add(externalVariableModel);
     }
 
     private void convertRawDataCollectedVariables(
@@ -207,44 +199,38 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
             VariablesMap variablesMap
     ) {
         Map<String,Object> collectedMap = JsonUtils.asMap(srcRawData.data().get("COLLECTED"));
-        if (collectedMap != null && !collectedMap.isEmpty()){
-            for(Map.Entry<String, Object> collectedVariable : collectedMap.entrySet()) {
+        if (collectedMap == null || collectedMap.isEmpty()){return;}
+        convertToCollectedVar(dstSurveyUnitModel, dataState, variablesMap, collectedMap);
 
-                //Skip if collected variable does not have state
-                if(!JsonUtils.asMap(collectedVariable.getValue()).containsKey(dataState.toString())){
+    }
+
+    private static void convertToCollectedVar(SurveyUnitModel dstSurveyUnitModel, DataState dataState, VariablesMap variablesMap, Map<String, Object> collectedMap) {
+        for(Map.Entry<String, Object> collectedVariable : collectedMap.entrySet()) {
+
+            //Skip if collected variable does not have state
+            if(!JsonUtils.asMap(collectedVariable.getValue()).containsKey(dataState.toString())){
+                continue;
+            }
+
+            //Value
+            Object valuesForState = JsonUtils.asMap(collectedVariable.getValue()).get(dataState.toString());
+            if (valuesForState != null) {
+                if (valuesForState instanceof List<?>) {
+                    convertListVar(valuesForState, collectedVariable, variablesMap, dstSurveyUnitModel.getCollectedVariables());
                     continue;
                 }
+                convertOneVar(collectedVariable, valuesForState.toString(), variablesMap, 1, dstSurveyUnitModel.getCollectedVariables());
+            }
+        }
+    }
 
-                //Value
-                Object valuesForState = JsonUtils.asMap(collectedVariable.getValue()).get(dataState.toString());
-                if (valuesForState != null) {
-                    if (valuesForState instanceof List<?>) {
-                        List<String> values = JsonUtils.asStringList(valuesForState);
-                        if (!values.isEmpty()) {
-                            int iteration = 1;
-                            for (String value : values) {
-                                VariableModel collectedVariableModel = VariableModel.builder()
-                                        .varId(collectedVariable.getKey())
-                                        .value(value)
-                                        .scope(getIdLoop(variablesMap, collectedVariable.getKey()))
-                                        .iteration(iteration)
-                                        .parentId(GroupUtils.getParentGroupName(collectedVariable.getKey(), variablesMap))
-                                        .build();
-                                dstSurveyUnitModel.getCollectedVariables().add(collectedVariableModel);
-                                iteration++;
-                            }
-                        }
-                        continue;
-                    }
-                    VariableModel collectedVariableModel = VariableModel.builder()
-                            .varId(collectedVariable.getKey())
-                            .value(valuesForState.toString())
-                            .scope(getIdLoop(variablesMap, collectedVariable.getKey()))
-                            .iteration(1)
-                            .parentId(GroupUtils.getParentGroupName(collectedVariable.getKey(), variablesMap))
-                            .build();
-                    dstSurveyUnitModel.getCollectedVariables().add(collectedVariableModel);
-                }
+    private static void convertListVar(Object valuesForState, Map.Entry<String, Object> collectedVariable, VariablesMap variablesMap, List<VariableModel> dstSurveyUnitModel) {
+        List<String> values = JsonUtils.asStringList(valuesForState);
+        if (!values.isEmpty()) {
+            int iteration = 1;
+            for (String value : values) {
+                convertOneVar(collectedVariable, value, variablesMap, iteration, dstSurveyUnitModel);
+                iteration++;
             }
         }
     }

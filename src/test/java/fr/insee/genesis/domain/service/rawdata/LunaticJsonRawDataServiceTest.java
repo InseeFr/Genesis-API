@@ -105,7 +105,7 @@ class LunaticJsonRawDataServiceTest {
         Assertions.assertThat(collectedData).isNotNull().hasSize(1);
         Assertions.assertThat(collectedData).containsOnlyKeys("TESTVAR");
 
-        Map<String, Object> testVarMap = JsonUtils.asMap(collectedData.get("TESTVAR"));;
+        Map<String, Object> testVarMap = JsonUtils.asMap(collectedData.get("TESTVAR"));
         Assertions.assertThat(testVarMap).isNotNull().hasSize(1).containsKey(DataState.COLLECTED.toString());
         Assertions.assertThat(testVarMap.get(DataState.COLLECTED.toString())).isNotNull().isEqualTo("test");
         Assertions.assertThat(testVarMap.get(DataState.COLLECTED.toString())).isInstanceOf(String.class);
@@ -275,16 +275,20 @@ class LunaticJsonRawDataServiceTest {
 
         //Collected variables
         Map<String, Object> collectedData = JsonUtils.asMap(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().get("COLLECTED"));
-        Assertions.assertThat(collectedData).isNotNull().hasSize(1);
-        Assertions.assertThat(collectedData).containsOnlyKeys("TESTVAR");
+        Assertions.assertThat(collectedData)
+                .isNotNull()
+                .hasSize(1)
+                .containsOnlyKeys("TESTVAR");
         Map<String,Object> colVar = JsonUtils.asMap(collectedData.get("TESTVAR"));
         Assertions.assertThat(colVar).containsOnlyKeys(DataState.COLLECTED.toString(), DataState.EDITED.toString());
-        Assertions.assertThat(colVar.get(DataState.COLLECTED.toString())).isNotNull();
+        Assertions.assertThat(colVar.get(DataState.COLLECTED.toString()))
+                .isNotNull()
+                .isInstanceOf(List.class);
         Assertions.assertThat(JsonUtils.asStringList(colVar.get(DataState.COLLECTED.toString()))).containsExactly("test");
-        Assertions.assertThat(colVar.get(DataState.EDITED.toString())).isNotNull();
+        Assertions.assertThat(colVar.get(DataState.EDITED.toString()))
+                .isNotNull()
+                .isInstanceOf(List.class);
         Assertions.assertThat(JsonUtils.asStringList(colVar.get(DataState.EDITED.toString()))).containsExactly("test_ed");
-        Assertions.assertThat(colVar.get(DataState.COLLECTED.toString())).isInstanceOf(List.class);
-        Assertions.assertThat(colVar.get(DataState.EDITED.toString())).isInstanceOf(List.class);
     }
 
     @Test

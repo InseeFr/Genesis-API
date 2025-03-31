@@ -13,7 +13,6 @@ import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 
 
 @Component
@@ -24,8 +23,6 @@ public class LogRequestFilter extends OncePerRequestFilter {
 	
 	private static final String REQUEST_MESSAGE_FORMAT = 
 			 "CALL {} {} - "
-		//	+ "Content-Type :  {} \n "
-		//	+ "Headers : {} \n "
 			+ "Params : {}";
 	
 	private static final String RESPONSE_MESSAGE_FORMAT = 
@@ -59,9 +56,4 @@ public class LogRequestFilter extends OncePerRequestFilter {
         resp.copyBodyToResponse();
     }
 
-	private String getResponseBody(ContentCachingRequestWrapper req, ContentCachingResponseWrapper resp) {
-		if (req.getRequestURI().contains("swagger-ui") ||req.getRequestURI().contains("api-docs")) return "Hidden Swagger response";
-		return new String(resp.getContentAsByteArray(), StandardCharsets.UTF_8);
-	}
-    
 }
