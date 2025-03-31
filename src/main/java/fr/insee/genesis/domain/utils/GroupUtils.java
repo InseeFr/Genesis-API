@@ -3,17 +3,15 @@ package fr.insee.genesis.domain.utils;
 import fr.insee.genesis.Constants;
 import fr.insee.bpm.metadata.model.Variable;
 import fr.insee.bpm.metadata.model.VariablesMap;
+import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
+@UtilityClass
 public class GroupUtils {
-
-	private GroupUtils() {
-		throw new IllegalStateException("Utility class");
-	}
 
 	public static String getGroupName(String variableName, VariablesMap variablesMap){
 		List<String> varsEno = Arrays.asList(Constants.getEnoVariables());
