@@ -1,13 +1,20 @@
 package cucumber.functional_tests;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.insee.genesis.TestConstants;
 import fr.insee.genesis.controller.rest.LunaticModelController;
-import fr.insee.genesis.domain.model.lunaticmodel.LunaticModelModel;
+import fr.insee.genesis.controller.rest.responses.QuestionnaireController;
+import fr.insee.genesis.domain.model.surveyunit.DataState;
+import fr.insee.genesis.domain.model.surveyunit.Mode;
+import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.service.lunaticmodel.LunaticModelService;
+import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.domain.utils.JsonUtils;
 import fr.insee.genesis.infrastructure.document.lunaticmodel.LunaticModelDocument;
-import fr.insee.genesis.infrastructure.mappers.LunaticModelMapper;
 import fr.insee.genesis.stubs.LunaticModelPersistanceStub;
+import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import io.cucumber.java.Before;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -26,6 +33,7 @@ import org.springframework.http.ResponseEntity;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -36,6 +44,11 @@ public class LunaticModelDefinitions {
 
     LunaticModelPersistanceStub lunaticModelPersistanceStub = new LunaticModelPersistanceStub();
     LunaticModelController lunaticModelController = new LunaticModelController(new LunaticModelService(lunaticModelPersistanceStub));
+
+    SurveyUnitPersistencePortStub surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
+    QuestionnaireController questionnaireController = new QuestionnaireController(
+            new SurveyUnitService(surveyUnitPersistencePortStub)
+    );
 
     private String baseUrl;
     @LocalServerPort
@@ -65,11 +78,11 @@ public class LunaticModelDefinitions {
             String campaignId
     ) throws Exception {
         this.questionnaireId = questionnaireId;
-        Path jsonPath = getLunaticJsonPath(campaignId);
+        lunaticModelJsonPath = getLunaticJsonPath(campaignId);
 
         LunaticModelDocument lunaticModelDocument = LunaticModelDocument.builder()
                 .questionnaireId(questionnaireId)
-                .lunaticModel(JsonUtils.jsonToMap(Files.readString(jsonPath)))
+                .lunaticModel(JsonUtils.jsonToMap(Files.readString(lunaticModelJsonPath)))
                 .build();
         lunaticModelPersistanceStub.getMongoStub().add(lunaticModelDocument);
     }
@@ -77,6 +90,18 @@ public class LunaticModelDefinitions {
     @Given("We have a lunatic model json file in spec folder {string}")
     public void load_lunatic_model_json_file(String specFolderName) throws IOException {
         lunaticModelJsonPath = getLunaticJsonPath(specFolderName);
+    }
+
+    @Given("We have a response in database with campaign id {string}, questionnaire id {string} and interrogation id " +
+            "{string}")
+    public void load_response(String campaignId, String questionnaireId, String interrogationId) {
+        surveyUnitPersistencePortStub.getMongoStub().add(
+                SurveyUnitModel.builder()
+                        .campaignId(campaignId)
+                        .questionnaireId(questionnaireId)
+                        .interrogationId(interrogationId)
+                        .build()
+        );
     }
 
 
@@ -109,52 +134,24 @@ public class LunaticModelDefinitions {
     }
 
     @When("We get lunatic model for questionnaire {string}")
-    public void get_lunatic_model(String questionnaireId){
-        this.questionnaireId = questionnaireId;
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Authorization", "Bearer fake_token");
-        String url = String.format("%slunatic-model/get?questionnaireId=%s",
-                baseUrl,
-                questionnaireId
-        );
-
-        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
-        lastResponse = rest.exchange(url, HttpMethod.GET, requestEntity, String.class);
+    public void get_lunatic_model(String questionnaireId) throws JsonProcessingException {
+        lastResponse = lunaticModelController.getLunaticModelFromQuestionnaireId(questionnaireId);
     }
 
     @When("We get questionnaire id for interrogation {string}")
     public void get_questionnaire_id(String interrogationId) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer fake_token");
-        String url = String.format("%squestionnaires/by-interrogation?interrogationId=%s",
-                baseUrl,
-                interrogationId
-        );
-
-        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
-        lastResponse = rest.exchange(url, HttpMethod.GET, requestEntity, String.class);
+        lastResponse = questionnaireController.getQuestionnaireByInterrogation(interrogationId);
     }
 
 
     //THENS
     @Then("We should have that lunatic model as response")
     public void check_lunatic_model() throws Exception {
-        if(!lastResponse.getStatusCode().is2xxSuccessful()) {
-            log.error("Got error code {} with body {}",
-                    lastResponse.getStatusCode().value(), lastResponse.getBody());
-        }
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode originalLunaticModel = objectMapper.readTree(Files.readString(lunaticModelJsonPath));
+        JsonNode gotLunaticModel = objectMapper.readTree(lastResponse.getBody());
 
-        Assertions.assertThat(lastResponse.getStatusCode().is2xxSuccessful()).isTrue();
-        LunaticModelModel lunaticModelModel = LunaticModelModel.builder()
-                .questionnaireId(questionnaireId)
-                .lunaticModel(JsonUtils.jsonToMap(lastResponse.getBody()))
-                .build();
-
-        LunaticModelModel inDatabaseLunaticModel =
-                LunaticModelMapper.INSTANCE.documentToModel(lunaticModelPersistanceStub.getMongoStub().getFirst());
-
-        Assertions.assertThat(inDatabaseLunaticModel.lunaticModel().equals(lunaticModelModel.lunaticModel())).isTrue();
+        Assertions.assertThat(originalLunaticModel).isEqualTo(gotLunaticModel);
     }
 
     @Then("We should have a document with id {string} and the contents from the body")

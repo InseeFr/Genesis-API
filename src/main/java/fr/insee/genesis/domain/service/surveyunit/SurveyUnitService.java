@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -300,7 +301,18 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         if (surveyUnitModels.isEmpty()){
             throw new GenesisException(404,String.format("The interrogationId %s is not in database",interrogationId));
         }
-        return surveyUnitModels.getFirst().getQuestionnaireId();
+        Set<String> questionnaireIds = new HashSet<>();
+        for(SurveyUnitModel surveyUnitModel : surveyUnitModels){
+            questionnaireIds.add(surveyUnitModel.getQuestionnaireId());
+        }
+        if(questionnaireIds.size() > 1){
+            throw new GenesisException(207,String.format("Multiple questionnaires for %s :%n%s",
+                    interrogationId,
+                    String.join("\n", questionnaireIds)
+            ));
+        }
+
+        return questionnaireIds.iterator().next(); //Return first (and supposed only) element of set
     }
 
     //Utils

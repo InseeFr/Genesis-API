@@ -1,5 +1,8 @@
 package fr.insee.genesis.controller.rest;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.insee.genesis.domain.model.lunaticmodel.LunaticModelModel;
 import fr.insee.genesis.domain.ports.api.LunaticModelApiPort;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
@@ -7,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,4 +39,14 @@ public class LunaticModelController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Get lunatic model from one interrogation in Genesis Database")
+    @GetMapping(path = "/get")
+    @PreAuthorize("hasRole('READER')")
+    public ResponseEntity<String> getLunaticModelFromQuestionnaireId(
+            @RequestParam("questionnaireId") String questionnaireId
+    ) throws JsonProcessingException {
+        LunaticModelModel lunaticModelModel = lunaticModelApiPort.get(questionnaireId);
+        ObjectMapper objectMapper = new ObjectMapper();
+        return ResponseEntity.ok(objectMapper.writeValueAsString(lunaticModelModel.lunaticModel()));
+    }
 }
