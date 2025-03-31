@@ -79,7 +79,6 @@ class ControllerAccessTest {
     private LunaticModelMongoDBRepository lunaticModelMongoDBRepository;
 
     // Constants for user roles
-    private static final String USER = "USER";
     private static final String USER_KRAFTWERK = "USER_KRAFTWERK";
     private static final String USER_PLATINE = "USER_PLATINE";
     private static final String ADMIN = "ADMIN";

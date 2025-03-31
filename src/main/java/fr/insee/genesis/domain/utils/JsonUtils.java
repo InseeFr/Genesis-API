@@ -1,14 +1,19 @@
 package fr.insee.genesis.domain.utils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.stream.Collectors;
+
 import java.util.List;
 import java.util.Map;
 
 public class JsonUtils {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    public static Map<String, Object> jsonToMap(String json) throws Exception {
+    private JsonUtils() {
+        //Utility class
+    }
+
+    public static Map<String, Object> jsonToMap(String json) throws JsonProcessingException {
         return objectMapper.readValue(json, Map.class);
     }
 
