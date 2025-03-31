@@ -2,16 +2,14 @@ package fr.insee.genesis.domain.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.experimental.UtilityClass;
 
 import java.util.List;
 import java.util.Map;
 
+@UtilityClass
 public class JsonUtils {
     private static final ObjectMapper objectMapper = new ObjectMapper();
-
-    private JsonUtils() {
-        //Utility class
-    }
 
     public static Map<String, Object> jsonToMap(String json) throws JsonProcessingException {
         return objectMapper.readValue(json, Map.class);
