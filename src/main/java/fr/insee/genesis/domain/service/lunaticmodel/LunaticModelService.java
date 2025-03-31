@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 
 @Service
@@ -27,6 +28,7 @@ public class LunaticModelService implements LunaticModelApiPort {
                 LunaticModelModel.builder()
                         .questionnaireId(questionnaireId)
                         .lunaticModel(lunaticModel)
+                        .recordDate(LocalDateTime.now())
                         .build()
         );
     }
