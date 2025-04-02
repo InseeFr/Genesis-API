@@ -6,13 +6,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.insee.genesis.TestConstants;
 import fr.insee.genesis.controller.rest.LunaticModelController;
 import fr.insee.genesis.controller.rest.responses.QuestionnaireController;
-import fr.insee.genesis.domain.model.surveyunit.DataState;
-import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.service.lunaticmodel.LunaticModelService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.domain.utils.JsonUtils;
-import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.document.lunaticmodel.LunaticModelDocument;
 import fr.insee.genesis.stubs.LunaticModelPersistanceStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
@@ -34,7 +31,6 @@ import org.springframework.http.ResponseEntity;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -59,7 +55,6 @@ public class LunaticModelDefinitions {
     TestRestTemplate rest;
 
     //Test variables
-    private String questionnaireId;
     private Path lunaticModelJsonPath;
     private String lunaticModelSaveBody;
     private ResponseEntity<String> lastResponse;
@@ -135,7 +130,7 @@ public class LunaticModelDefinitions {
     }
 
     @When("We get lunatic model for questionnaire {string}")
-    public void get_lunatic_model(String questionnaireId) throws JsonProcessingException, GenesisException {
+    public void get_lunatic_model(String questionnaireId) throws JsonProcessingException {
         lastResponse = lunaticModelController.getLunaticModelFromQuestionnaireId(questionnaireId);
     }
 
@@ -167,9 +162,7 @@ public class LunaticModelDefinitions {
         ).toList();
 
         Assertions.assertThat(lunaticModelDocuments).hasSize(1);
-        Assertions.assertThat(lunaticModelDocuments.getFirst().lunaticModel()
-                .equals(JsonUtils.jsonToMap(lunaticModelSaveBody))
-        ).isTrue();
+        Assertions.assertThat(lunaticModelDocuments.getFirst().lunaticModel()).isEqualTo(JsonUtils.jsonToMap(lunaticModelSaveBody));
     }
 
     @Then("We should have {string} as response")

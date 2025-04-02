@@ -111,7 +111,7 @@ class RawResponseControllerTest {
     //raw data process
     //json
     @Test
-    void processJsonRawDataTest() throws Exception {
+    void processJsonRawDataTest() {
         //GIVEN
         lunaticJsonRawDataPersistanceStub.getMongoStub().clear();
         surveyUnitPersistencePortStub.getMongoStub().clear();
