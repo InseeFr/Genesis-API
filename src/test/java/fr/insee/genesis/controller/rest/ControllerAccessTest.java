@@ -1,5 +1,6 @@
 package fr.insee.genesis.controller.rest;
 
+import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.ScheduleApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.infrastructure.repository.LunaticJsonMongoDBRepository;
@@ -61,6 +62,8 @@ class ControllerAccessTest {
     @MockitoBean
     private SurveyUnitApiPort surveyUnitApiPort;
     @MockitoBean
+    private LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort;
+    @MockitoBean
     private SurveyUnitMongoDBRepository surveyUnitMongoDBRepository;
     @MockitoBean
     private LunaticJsonMongoDBRepository lunaticJsonMongoDBRepository;
@@ -72,7 +75,6 @@ class ControllerAccessTest {
     private VariableTypeMongoDBRepository variableTypeMongoDBRepository;
 
     // Constants for user roles
-    private static final String USER = "USER";
     private static final String USER_KRAFTWERK = "USER_KRAFTWERK";
     private static final String USER_PLATINE = "USER_PLATINE";
     private static final String ADMIN = "ADMIN";

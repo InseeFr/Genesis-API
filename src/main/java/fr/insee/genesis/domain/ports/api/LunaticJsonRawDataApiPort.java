@@ -4,7 +4,10 @@ import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.controller.dto.rawdata.LunaticJsonRawDataUnprocessedDto;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
+import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
+import fr.insee.genesis.exceptions.GenesisError;
+import fr.insee.genesis.exceptions.GenesisException;
 
 import java.util.List;
 import java.util.Set;
@@ -15,13 +18,9 @@ public interface LunaticJsonRawDataApiPort {
     List<LunaticJsonRawDataModel> getRawData(String campaignName, Mode mode, List<String> interrogationIdList);
     List<SurveyUnitModel> convertRawData(List<LunaticJsonRawDataModel> rawData, VariablesMap variablesMap);
     List<LunaticJsonRawDataUnprocessedDto> getUnprocessedDataIds();
-    List<SurveyUnitModel> parseRawData(
-            String campaignName,
-            Mode mode,
-            List<String> interrogationIdList,
-            VariablesMap variablesMap
-    );
     void updateProcessDates(List<SurveyUnitModel> surveyUnitModels);
     Set<String> findDistinctQuestionnaireIds();
     long countResponsesByQuestionnaireId(String campaignId);
+
+    DataProcessResult processRawData(String campaignName, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException;
 }
