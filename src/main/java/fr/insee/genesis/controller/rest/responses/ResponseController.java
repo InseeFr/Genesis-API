@@ -67,7 +67,6 @@ import java.util.stream.Stream;
 public class ResponseController implements CommonApiResponse {
 
     public static final String PATH_FORMAT = "%s/%s";
-    public static final String S_S = "%s/%s";
     private static final String CAMPAIGN_ERROR = "Error for campaign {}: {}";
     private static final String SUCCESS_MESSAGE = "Data saved";
     private static final String SUCCESS_NO_DATA_MESSAGE = "No data has been saved";

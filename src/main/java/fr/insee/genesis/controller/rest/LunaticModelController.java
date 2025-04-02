@@ -21,7 +21,7 @@ import java.util.Map;
 @RequestMapping(path = "/lunatic-model")
 @Controller
 @Slf4j
-public class LunaticModelController {
+public class LunaticModelController implements CommonApiResponse{
     private final LunaticModelApiPort lunaticModelApiPort;
 
 
