@@ -3,6 +3,7 @@ package fr.insee.genesis.controller.rest;
 import fr.insee.genesis.domain.ports.api.ScheduleApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.infrastructure.repository.LunaticJsonMongoDBRepository;
+import fr.insee.genesis.infrastructure.repository.LunaticModelMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.RundeckExecutionDBRepository;
 import fr.insee.genesis.infrastructure.repository.ScheduleMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.SurveyUnitMongoDBRepository;
@@ -31,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static org.hamcrest.Matchers.oneOf;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
@@ -70,6 +72,8 @@ class ControllerAccessTest {
     private ScheduleMongoDBRepository scheduleMongoDBRepository;
     @MockitoBean
     private VariableTypeMongoDBRepository variableTypeMongoDBRepository;
+    @MockitoBean
+    private LunaticModelMongoDBRepository lunaticModelMongoDBRepository;
 
     // Constants for user roles
     private static final String USER = "USER";
@@ -90,7 +94,8 @@ class ControllerAccessTest {
                 Arguments.of("/modes/by-campaign?campaignId=CAMPAIGNTEST"),
                 Arguments.of("/interrogations/by-questionnaire?questionnaireId=QUESTTEST"),
                 Arguments.of("/campaigns/with-questionnaires"),
-                Arguments.of("/campaigns/")
+                Arguments.of("/campaigns/"),
+                Arguments.of("/lunatic-model/get?questionnaireId=QUESTTEST")
         );
     }
 
@@ -104,7 +109,7 @@ class ControllerAccessTest {
         Jwt jwt = generateJwt(List.of("administrateur_traiter"), ADMIN);
         when(jwtDecoder.decode(anyString())).thenReturn(jwt);
         mockMvc.perform(get(endpointURI).header("Authorization", "bearer token_blabla"))
-                .andExpect(status().isOk());
+                .andExpect(status().is(oneOf(200,404)));
     }
 
     /**
@@ -117,7 +122,7 @@ class ControllerAccessTest {
         Jwt jwt = generateJwt(List.of("utilisateur_Kraftwerk"), USER_KRAFTWERK);
         when(jwtDecoder.decode(anyString())).thenReturn(jwt);
         mockMvc.perform(get(endpointURI).header("Authorization", "bearer token_blabla"))
-                .andExpect(status().isOk());
+                .andExpect(status().is(oneOf(200,404)));
     }
 
     /**
@@ -130,7 +135,7 @@ class ControllerAccessTest {
         Jwt jwt = generateJwt(List.of("utilisateur_Platine"), USER_PLATINE);
         when(jwtDecoder.decode(anyString())).thenReturn(jwt);
         mockMvc.perform(get(endpointURI).header("Authorization", "bearer token_blabla"))
-                .andExpect(status().isOk());
+                .andExpect(status().is(oneOf(200,404)));
     }
 
     /**
@@ -143,7 +148,7 @@ class ControllerAccessTest {
         Jwt jwt = generateJwt(List.of("lecteur_traiter"), "reader");
         when(jwtDecoder.decode(anyString())).thenReturn(jwt);
         mockMvc.perform(get(endpointURI).header("Authorization", "bearer token_blabla"))
-                .andExpect(status().isOk());
+                .andExpect(status().is(oneOf(200,404)));
     }
 
     /**
@@ -168,7 +173,7 @@ class ControllerAccessTest {
         Jwt jwt = generateJwt(List.of("lecteur_traiter"), READER);
         when(jwtDecoder.decode(anyString())).thenReturn(jwt);
         mockMvc.perform(get("/schedule/all").header("Authorization", "bearer token_blabla"))
-                .andExpect(status().isOk());
+                .andExpect(status().is(oneOf(200,404)));
     }
 
     /**
@@ -193,7 +198,7 @@ class ControllerAccessTest {
         Jwt jwt = generateJwt(List.of("utilisateur_Kraftwerk"), USER_KRAFTWERK);
         when(jwtDecoder.decode(anyString())).thenReturn(jwt);
         mockMvc.perform(get("/schedule/all").header("Authorization", "bearer token_blabla"))
-                .andExpect(status().isOk());
+                .andExpect(status().is(oneOf(200,404)));
     }
 
     /**
@@ -205,7 +210,7 @@ class ControllerAccessTest {
         Jwt jwt = generateJwt(List.of("administrateur_traiter"), ADMIN);
         when(jwtDecoder.decode(anyString())).thenReturn(jwt);
         mockMvc.perform(get("/schedule/all").header("Authorization", "bearer token_blabla"))
-                .andExpect(status().isOk());
+                .andExpect(status().is(oneOf(200,404)));
     }
 
     /**

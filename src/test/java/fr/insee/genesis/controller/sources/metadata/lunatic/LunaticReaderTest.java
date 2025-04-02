@@ -23,7 +23,7 @@ class LunaticReaderTest {
     void readVariablesFromLogX21WebLunaticFile() throws FileNotFoundException {
         //
         VariablesMap variables = LunaticReader.getMetadataFromLunatic(
-                new FileInputStream(lunaticSamplesPath.resolve("log2021x21_web.json").toString())).getVariables();
+                new FileInputStream(lunaticSamplesPath.resolve("lunaticlog2021x21_web.json").toString())).getVariables();
 
         //
         assertNotNull(variables);

@@ -1,5 +1,6 @@
 package fr.insee.genesis.controller.rest.responses;
 
+import fr.insee.genesis.controller.rest.CommonApiResponse;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,7 +16,7 @@ import java.util.List;
 @RequestMapping(path = "/modes" )
 @Controller
 @Slf4j
-public class ModeController {
+public class ModeController implements CommonApiResponse {
 
     private final SurveyUnitApiPort surveyUnitService;
 

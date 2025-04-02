@@ -1,6 +1,6 @@
 package cucumber.functional_tests;
 
-import cucumber.config.CucumberSpringConfiguration;
+import cucumber.functional_tests.config.CucumberSpringConfiguration;
 import fr.insee.genesis.TestConstants;
 import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.controller.rest.responses.RawResponseController;

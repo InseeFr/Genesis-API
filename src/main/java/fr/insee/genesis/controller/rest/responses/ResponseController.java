@@ -12,6 +12,7 @@ import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
 import fr.insee.genesis.controller.dto.SurveyUnitQualityToolDto;
 import fr.insee.genesis.controller.dto.SurveyUnitSimplified;
 import fr.insee.genesis.controller.services.MetadataService;
+import fr.insee.genesis.controller.rest.CommonApiResponse;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlCampaign;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlDataParser;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlDataSequentialParser;
@@ -63,7 +64,8 @@ import java.util.stream.Stream;
 @Controller
 @Tag(name = "Response services", description = "A **response** is considered the entire set of data associated with an interrogation (survey unit x questionnaireId). \n\n These data may have different state (collected, edited, external, ...) ")
 @Slf4j
-public class ResponseController {
+public class ResponseController implements CommonApiResponse {
+
     public static final String PATH_FORMAT = "%s/%s";
     private static final String CAMPAIGN_ERROR = "Error for campaign {}: {}";
     private static final String SUCCESS_MESSAGE = "Data saved";
