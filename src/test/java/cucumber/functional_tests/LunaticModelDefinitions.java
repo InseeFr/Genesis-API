@@ -73,7 +73,6 @@ public class LunaticModelDefinitions {
             String questionnaireId,
             String campaignId
     ) throws Exception {
-        this.questionnaireId = questionnaireId;
         lunaticModelJsonPath = getLunaticJsonPath(campaignId);
 
         LunaticModelDocument lunaticModelDocument = LunaticModelDocument.builder()
@@ -104,7 +103,6 @@ public class LunaticModelDefinitions {
     //WHENS
     @When("We save that lunatic model json file with questionnaire id {string}")
     public void save_lunatic_model(String questionnaireId) throws Exception {
-        this.questionnaireId = questionnaireId;
         lunaticModelSaveBody = Files.readString(lunaticModelJsonPath);
 
         lastResponse = lunaticModelController.saveRawResponsesFromJsonBody(
@@ -114,7 +112,6 @@ public class LunaticModelDefinitions {
     }
     @When("We try to save that lunatic model json file with questionnaire id {string} with Spring context")
     public void save_lunatic_model_spring(String questionnaireId) throws IOException {
-        this.questionnaireId = questionnaireId;
         lunaticModelSaveBody = Files.readString(lunaticModelJsonPath);
 
         HttpHeaders headers = new HttpHeaders();
