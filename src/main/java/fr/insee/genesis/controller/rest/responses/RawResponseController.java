@@ -102,7 +102,7 @@ public class RawResponseController {
     //PROCESS
     @Operation(summary = "Process raw data of a campaign")
     @PostMapping(path = "/lunatic-json/process")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SCHEDULER')")
     public ResponseEntity<Object> processJsonRawData(
             @RequestParam("campaignName") String campaignName,
             @RequestParam("questionnaireId") String questionnaireId,
