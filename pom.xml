@@ -20,7 +20,7 @@
         <mapstruct.version>1.6.3</mapstruct.version>
         <cucumber.version>7.21.1</cucumber.version>
         <!-- Proprietes sonar -->
-        <jacoco.version>0.8.12</jacoco.version>
+        <jacoco.version>0.8.13</jacoco.version>
         <sonar.core.codeCoveragePlugin>jacoco</sonar.core.codeCoveragePlugin>
         <sonar.language>java</sonar.language>
         <sonar.sourceEncoding>UTF-8</sonar.sourceEncoding>
