@@ -412,4 +412,10 @@ public class MainDefinitions {
         //Clean DONE test folder
         org.springframework.util.FileSystemUtils.deleteRecursively(doneDirectory);
     }
+
+    @After("@NeedsLogPrepare")
+    public void print_log(){
+        System.setOut(standardOut);
+        System.out.println(outputStreamCaptor);
+    }
 }

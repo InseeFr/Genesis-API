@@ -1,0 +1,59 @@
+{
+    "EXTERNAL": {
+        "RPPRENOM": [
+            "Robert"
+        ],
+        "RPNAIPAR1": [
+            "4"
+        ],
+        "RPNAIPAR2": [
+            "4"
+        ],
+        "RPNBQUEST": "1",
+        "RPSEXCONJ": [
+            null
+        ],
+        "RPSEXPAR1": [
+            null
+        ],
+        "RPSEXPAR2": [
+            null
+        ],
+        "RPANAISENQ": [
+            "2006"
+        ],
+        "RPJNAISENQ": [
+            "30"
+        ],
+        "RPMNAISENQ": [
+            "05"
+        ],
+        "RPPNAIPAR1": [
+            ""
+        ],
+        "RPPNAIPAR2": [
+            ""
+        ],
+        "TYPE_QUEST": "2",
+        "RPANAISCONJ": [
+            null
+        ],
+        "RPANAISPAR1": [
+            null
+        ],
+        "RPANAISPAR2": [
+            null
+        ],
+        "RPTYPEQUEST": "femmes",
+        "RPPRENOMCONJ": [
+            null
+        ],
+        "RPPRENOMPAR1": [
+            null
+        ],
+        "RPPRENOMPAR2": [
+            null
+        ],
+        "RPLISTEPRENOMS": "Robert"
+    }
+}

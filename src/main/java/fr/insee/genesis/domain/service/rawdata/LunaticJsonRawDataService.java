@@ -133,7 +133,9 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
                 if(surveyUnitModel.getCollectedVariables().isEmpty()
                         && surveyUnitModel.getExternalVariables().isEmpty()
                 ){
-                    log.warn("No collected or external variable for interrogation {}, raw data is ignored.", rawData.interrogationId());
+                    if(surveyUnitModel.getState() == DataState.COLLECTED){
+                        log.warn("No collected or external variable for interrogation {}, raw data is ignored.", rawData.interrogationId());
+                    }
                     continue;
                 }
                 surveyUnitModels.add(surveyUnitModel);
@@ -203,7 +205,9 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     ) {
         Map<String,Object> collectedMap = JsonUtils.asMap(srcRawData.data().get("COLLECTED"));
         if (collectedMap == null || collectedMap.isEmpty()){
-            log.warn("No collected data for interrogation {}", srcRawData.interrogationId());
+            if(dataState.equals(DataState.COLLECTED)) {
+                log.warn("No collected data for interrogation {}", srcRawData.interrogationId());
+            }
             return;
         }
         convertToCollectedVar(dstSurveyUnitModel, dataState, variablesMap, collectedMap);
