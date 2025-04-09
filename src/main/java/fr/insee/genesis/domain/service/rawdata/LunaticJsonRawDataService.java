@@ -130,11 +130,13 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
                     convertRawDataExternalVariables(rawData, surveyUnitModel, variablesMap);
                 }
 
-                if(!surveyUnitModel.getCollectedVariables().isEmpty()
-                        || !surveyUnitModel.getExternalVariables().isEmpty()
+                if(surveyUnitModel.getCollectedVariables().isEmpty()
+                        && surveyUnitModel.getExternalVariables().isEmpty()
                 ){
-                    surveyUnitModels.add(surveyUnitModel);
+                    log.warn("No collected or external variable for interrogation {}, raw data is ignored.", rawData.interrogationId());
+                    continue;
                 }
+                surveyUnitModels.add(surveyUnitModel);
             }
         }
 
@@ -161,9 +163,10 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
             VariablesMap variablesMap
     ) {
         Map<String,Object> externalMap = JsonUtils.asMap(srcRawData.data().get("EXTERNAL"));
-        if (externalMap != null && !externalMap.isEmpty()){
-            convertToExternalVar(dstSurveyUnitModel, variablesMap, externalMap);
+        if (externalMap == null || externalMap.isEmpty()){
+            return;
         }
+        convertToExternalVar(dstSurveyUnitModel, variablesMap, externalMap);
     }
 
     private static void convertToExternalVar(SurveyUnitModel dstSurveyUnitModel, VariablesMap variablesMap, Map<String, Object> externalMap) {
@@ -199,7 +202,10 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
             VariablesMap variablesMap
     ) {
         Map<String,Object> collectedMap = JsonUtils.asMap(srcRawData.data().get("COLLECTED"));
-        if (collectedMap == null || collectedMap.isEmpty()){return;}
+        if (collectedMap == null || collectedMap.isEmpty()){
+            log.warn("No collected data for interrogation {}", srcRawData.interrogationId());
+            return;
+        }
         convertToCollectedVar(dstSurveyUnitModel, dataState, variablesMap, collectedMap);
 
     }
