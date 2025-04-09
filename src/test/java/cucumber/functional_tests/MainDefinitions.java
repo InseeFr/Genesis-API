@@ -365,6 +365,15 @@ public class MainDefinitions {
         Assertions.assertThat(surveyUnitLatestStatesResponse.getBody().getExternalVariables()).hasSize(expectedVolumetry);
     }
 
+    @Then("We shouldn't have any response for campaign {string}")
+    public void weShouldnTHaveAnyResponseForCampaign(String campaignId) {
+        List<SurveyUnitModel> concernedSurveyUnitModels = surveyUnitPersistence.getMongoStub().stream().filter(surveyUnitModel ->
+                surveyUnitModel.getState().equals(DataState.COLLECTED)
+                        && surveyUnitModel.getCampaignId().equals(campaignId)
+        ).toList();
+        Assertions.assertThat(concernedSurveyUnitModels).isEmpty();
+    }
+
     //AFTERs
     @After
     public void clean() throws IOException {
