@@ -41,6 +41,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     private final SurveyUnitService surveyUnitService;
     private final SurveyUnitQualityService surveyUnitQualityService;
     private final FileUtils fileUtils;
+    private static final int BATCH_SIZE = 1000;
 
     @Qualifier("lunaticJsonMongoAdapterNew")
     private final LunaticJsonRawDataPersistencePort lunaticJsonRawDataPersistencePort;
@@ -80,25 +81,39 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
                                 .formatted(mode, errors.getLast().getMessage())
                 );
             }
+            int totalBatchs = Math.ceilDiv(interrogationIdList.size() , BATCH_SIZE);
+            int batchNumber = 1;
+            List<String> interrogationIdListForMode = new ArrayList<>(interrogationIdList);
+            while(!interrogationIdListForMode.isEmpty()){
+                log.info("Processing raw data batch {}/{}", batchNumber, totalBatchs);
+                int maxIndex = Math.min(interrogationIdListForMode.size(), BATCH_SIZE);
+                List<String> interrogationIdToProcess = interrogationIdListForMode.subList(0, maxIndex);
 
-            List<LunaticJsonRawDataModel> rawData = getRawData(campaignName,mode, interrogationIdList);
-            //Save converted data
-            List<SurveyUnitModel> surveyUnitModels = convertRawData(
-                    rawData,
-                    variablesMap
-            );
+                List<LunaticJsonRawDataModel> rawData = getRawData(campaignName,mode, interrogationIdToProcess);
 
-            surveyUnitQualityService.verifySurveyUnits(surveyUnitModels, variablesMap);
-            surveyUnitService.saveSurveyUnits(surveyUnitModels);
+                List<SurveyUnitModel> surveyUnitModels = convertRawData(
+                        rawData,
+                        variablesMap
+                );
 
-            //Update process dates
-            updateProcessDates(surveyUnitModels);
+                //Save converted data
+                surveyUnitQualityService.verifySurveyUnits(surveyUnitModels, variablesMap);
+                surveyUnitService.saveSurveyUnits(surveyUnitModels);
 
-            //Increment data count
-            dataCount += surveyUnitModels.size();
-            formattedDataCount += surveyUnitModels.stream().filter(
-                    surveyUnitModel -> surveyUnitModel.getState().equals(DataState.FORMATTED)
-            ).toList().size();
+                //Update process dates
+                updateProcessDates(surveyUnitModels);
+
+                //Increment data count
+                dataCount += surveyUnitModels.size();
+                formattedDataCount += surveyUnitModels.stream().filter(
+                        surveyUnitModel -> surveyUnitModel.getState().equals(DataState.FORMATTED)
+                ).toList().size();
+
+                //Remove processed ids from list
+                interrogationIdListForMode = interrogationIdListForMode.subList(maxIndex, interrogationIdListForMode.size());
+
+                batchNumber++;
+            }
         }
         return new DataProcessResult(dataCount, formattedDataCount);
     }

@@ -8,16 +8,20 @@ import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
+import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.domain.utils.JsonUtils;
+import fr.insee.genesis.infrastructure.mappers.LunaticJsonRawDataDocumentMapper;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.LunaticJsonRawDataPersistanceStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
@@ -31,7 +35,9 @@ class LunaticJsonRawDataServiceTest {
     FileUtils fileUtils = new FileUtils(new ConfigStub());
     ControllerUtils controllerUtils = new ControllerUtils(fileUtils);
     MetadataService metadataService = new MetadataService();
-    SurveyUnitService surveyUnitService = new SurveyUnitService(new SurveyUnitPersistencePortStub());
+
+    SurveyUnitPersistencePortStub surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
+    SurveyUnitService surveyUnitService = new SurveyUnitService(surveyUnitPersistencePortStub);
     SurveyUnitQualityService surveyUnitQualityService = new SurveyUnitQualityService();
 
     LunaticJsonRawDataService lunaticJsonRawDataService = new LunaticJsonRawDataService(lunaticJsonRawDataPersistanceStub,controllerUtils,metadataService,surveyUnitService,surveyUnitQualityService,fileUtils);
@@ -377,17 +383,21 @@ class LunaticJsonRawDataServiceTest {
         Assertions.assertThat(suModels.getFirst().getCollectedVariables()).isEmpty();
     }
 
-    @Test
-    void convertRawData_multipleBatchs() throws Exception {
+
+    @ParameterizedTest
+    @ValueSource(ints = {5,500,5000,10000})
+    void convertRawData_multipleBatchs(int rawDataSize) throws Exception {
+        //CLEAN
+        surveyUnitPersistencePortStub.getMongoStub().clear();
+
         //To avoid log spam
         Logger logger = (Logger) LoggerFactory.getLogger(LunaticJsonRawDataService.class);
         Level initialLevel = logger.getLevel();
         try{
             //GIVEN
-            List<LunaticJsonRawDataModel> rawDataModelList = new ArrayList<>();
-            int numberOfRawData = 50000;
-            for(int i = 0; i < numberOfRawData; i++){
-                String campaignId = "SAMPLETEST-PARADATA-v1";
+            List<String> interrogationIdList = new ArrayList<>();
+            String campaignId = "SAMPLETEST-PARADATA-v1";
+            for(int i = 0; i < rawDataSize; i++){
                 String questionnaireId = "TESTIDQUEST";
                 String interrogationId = "TESTinterrogationId"+(i+1);
                 String json = "{\"EXTERNAL\": {\"TESTVAR_EXT\": \"test_ext%d\"}, ".formatted(i) +
@@ -402,16 +412,20 @@ class LunaticJsonRawDataServiceTest {
                         .mode(Mode.WEB)
                         .build();
 
-                rawDataModelList.add(rawDataModel);
+                interrogationIdList.add(interrogationId);
+                lunaticJsonRawDataPersistanceStub.getMongoStub()
+                        .add(LunaticJsonRawDataDocumentMapper.INSTANCE.modelToDocument(rawDataModel));
             }
 
             logger.setLevel(Level.ERROR);
 
             //WHEN
-            List<SurveyUnitModel> suModels =  lunaticJsonRawDataService.convertRawData(rawDataModelList,new VariablesMap());
+            DataProcessResult dataProcessResult =  lunaticJsonRawDataService.processRawData(campaignId, interrogationIdList,
+                    new ArrayList<>());
 
             //THEN
-            Assertions.assertThat(suModels).hasSize(numberOfRawData * 2/*EDITED*/);
+            Assertions.assertThat(dataProcessResult.dataCount()).isEqualTo(rawDataSize * 2/*EDITED*/);
+            Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).hasSize(rawDataSize * 2);
         }finally {
             logger.setLevel(initialLevel);
         }
