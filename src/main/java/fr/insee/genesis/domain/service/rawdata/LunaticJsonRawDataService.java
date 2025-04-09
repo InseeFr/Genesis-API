@@ -68,7 +68,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     @Override
     public DataProcessResult processRawData(String campaignName, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException {
         int dataCount=0;
-        int forcedDataCount=0;
+        int formattedDataCount=0;
         List<Mode> modesList = controllerUtils.getModesList(campaignName, null);
         for (Mode mode : modesList) {
             //Load and save metadata into database, throw exception if none
@@ -96,11 +96,11 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
 
             //Increment data count
             dataCount += surveyUnitModels.size();
-            forcedDataCount += surveyUnitModels.stream().filter(
-                    surveyUnitModel -> surveyUnitModel.getState().equals(DataState.FORCED)
+            formattedDataCount += surveyUnitModels.stream().filter(
+                    surveyUnitModel -> surveyUnitModel.getState().equals(DataState.FORMATTED)
             ).toList().size();
         }
-        return new DataProcessResult(dataCount, forcedDataCount);
+        return new DataProcessResult(dataCount, formattedDataCount);
     }
 
     @Override
