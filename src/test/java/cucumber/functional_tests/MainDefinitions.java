@@ -36,8 +36,10 @@ import org.springframework.http.ResponseEntity;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
+import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -48,6 +50,8 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 public class MainDefinitions {
+    private final PrintStream standardOut = System.out;
+    private final ByteArrayOutputStream outputStreamCaptor = new ByteArrayOutputStream();
     String directory;
     Path inDirectory = Paths.get(TestConstants.FUNCTIONAL_TESTS_WEB_DIRECTORY);
     final Path ddiDirectory = Paths.get(TestConstants.FUNCTIONAL_TESTS_DDI_DIRECTORY);
@@ -74,6 +78,11 @@ public class MainDefinitions {
     @Before
     public void init() {
         this.surveyUnitPersistence.getMongoStub().clear();
+    }
+
+    @Before("@NeedsLogPrepare")
+    public void prepare_log_check(){
+        System.setOut(new PrintStream(outputStreamCaptor));
     }
 
     //GIVENs
@@ -365,9 +374,24 @@ public class MainDefinitions {
         Assertions.assertThat(surveyUnitLatestStatesResponse.getBody().getExternalVariables()).hasSize(expectedVolumetry);
     }
 
+    @Then("We shouldn't have any response for campaign {string}")
+    public void check_response_not_present(String campaignId) {
+        List<SurveyUnitModel> concernedSurveyUnitModels = surveyUnitPersistence.getMongoStub().stream().filter(surveyUnitModel ->
+                surveyUnitModel.getState().equals(DataState.COLLECTED)
+                        && surveyUnitModel.getCampaignId().equals(campaignId)
+        ).toList();
+        Assertions.assertThat(concernedSurveyUnitModels).isEmpty();
+    }
+
+    @Then("We should have {string} in the logs")
+    public void check_log(String expectedLogContent) {
+        Assertions.assertThat(outputStreamCaptor.toString()).contains(expectedLogContent);
+    }
+
     //AFTERs
     @After
     public void clean() throws IOException {
+        System.setOut(standardOut);
         //Move from DONE to IN
         Path doneDirectory = Path.of(TestConstants.TEST_RESOURCES_DIRECTORY, "DONE");
         if (doneDirectory
@@ -387,5 +411,11 @@ public class MainDefinitions {
 
         //Clean DONE test folder
         org.springframework.util.FileSystemUtils.deleteRecursively(doneDirectory);
+    }
+
+    @After("@NeedsLogPrepare")
+    public void print_log(){
+        System.setOut(standardOut);
+        System.out.println(outputStreamCaptor);
     }
 }

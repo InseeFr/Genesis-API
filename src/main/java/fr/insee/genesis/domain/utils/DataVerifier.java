@@ -6,6 +6,7 @@ import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.bpm.metadata.model.VariableType;
 import fr.insee.bpm.metadata.model.VariablesMap;
+import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
@@ -22,6 +23,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Slf4j
+@UtilityClass
 public class DataVerifier {
 
     //DataStates priority
@@ -32,10 +34,6 @@ public class DataVerifier {
         dataStatesPriority.put(DataState.FORCED, 3);
         dataStatesPriority.put(DataState.COLLECTED, 4);
         dataStatesPriority.put(DataState.PREVIOUS, 5);
-    }
-
-    private DataVerifier() {
-        throw new IllegalStateException("Utility class");
     }
 
     /**
