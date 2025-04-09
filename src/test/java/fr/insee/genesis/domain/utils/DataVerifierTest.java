@@ -191,10 +191,10 @@ class DataVerifierTest {
         DataVerifier.verifySurveyUnits(surveyUnits, variablesMap);
 
         // THEN FORMATTED values added
-        SurveyUnitModel forcedUnit = surveyUnits.get(1);
-        Assertions.assertEquals(DataState.FORMATTED, forcedUnit.getState());
-        Assertions.assertEquals(1, forcedUnit.getCollectedVariables().size());
-        Assertions.assertEquals("", forcedUnit.getCollectedVariables().getFirst().value()); // Corrected values
+        SurveyUnitModel formattedUnit = surveyUnits.get(1);
+        Assertions.assertEquals(DataState.FORMATTED, formattedUnit.getState());
+        Assertions.assertEquals(1, formattedUnit.getCollectedVariables().size());
+        Assertions.assertEquals("", formattedUnit.getCollectedVariables().getFirst().value()); // Corrected values
     }
 
     @Test
@@ -245,10 +245,10 @@ class DataVerifierTest {
 
         // THEN FORMATTED values added
         Assertions.assertTrue(surveyUnits.size() > 1);
-        SurveyUnitModel forcedUnit = surveyUnits.get(1);
-        Assertions.assertEquals(DataState.FORMATTED, forcedUnit.getState());
-        Assertions.assertEquals(2, forcedUnit.getCollectedVariables().size());
-        Assertions.assertEquals("", forcedUnit.getCollectedVariables().getFirst().value()); // Corrected values
-        Assertions.assertEquals("", forcedUnit.getCollectedVariables().get(1).value());
+        SurveyUnitModel formattedUnit = surveyUnits.get(1);
+        Assertions.assertEquals(DataState.FORMATTED, formattedUnit.getState());
+        Assertions.assertEquals(2, formattedUnit.getCollectedVariables().size());
+        Assertions.assertEquals("", formattedUnit.getCollectedVariables().getFirst().value()); // Corrected values
+        Assertions.assertEquals("", formattedUnit.getCollectedVariables().get(1).value());
     }
 }
