@@ -40,7 +40,7 @@ public class RawResponseController {
     @Operation(summary = "Save lunatic json data from one interrogation in Genesis Database")
     @PutMapping(path = "/lunatic-json/save")
     @PreAuthorize("hasRole('COLLECT_PLATFORM')")
-    public ResponseEntity<Object> saveRawResponsesFromJsonBody(
+    public ResponseEntity<String> saveRawResponsesFromJsonBody(
 
             @RequestParam("campaignName") String campaignName,
             @RequestParam("questionnaireId") String questionnaireId,
@@ -94,7 +94,7 @@ public class RawResponseController {
     @Operation(summary = "Process raw data of a campaign")
     @PostMapping(path = "/lunatic-json/process")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Object> processJsonRawData(
+    public ResponseEntity<String> processJsonRawData(
             @RequestParam("campaignName") String campaignName,
             @RequestParam("questionnaireId") String questionnaireId,
             @RequestBody List<String> interrogationIdList

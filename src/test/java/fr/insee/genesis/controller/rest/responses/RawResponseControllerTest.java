@@ -48,7 +48,7 @@ class RawResponseControllerTest {
         Map<String,Object> json = JsonUtils.jsonToMap("{\"COLLECTED\": {\"testdata\": {\"COLLECTED\": [\"test\"]}}}");
 
         //WHEN
-        ResponseEntity<Object> response = rawResponseController.saveRawResponsesFromJsonBody(
+        ResponseEntity<String> response = rawResponseController.saveRawResponsesFromJsonBody(
                 campaignId
                 , questionnaireId
                 , interrogationId

@@ -71,7 +71,7 @@ public class RawDataDefinitions {
     );
     Path rawDataFilePath;
     String rawJsonData;
-    ResponseEntity<Object> response;
+    ResponseEntity<String> response;
     int nbRawSaved = 0;
 
     @Before
@@ -113,7 +113,7 @@ public class RawDataDefinitions {
 
         HttpEntity<String> requestEntity = new HttpEntity<>(rawJsonData.trim(), headers);
         try {
-            response = rest.exchange(url, HttpMethod.PUT, requestEntity, Object.class);
+            response = rest.exchange(url, HttpMethod.PUT, requestEntity, String.class);
             if(response.getStatusCode().is2xxSuccessful()){nbRawSaved++;}
         } catch (Exception e) {
             response = new ResponseEntity<>("Unexpected error", HttpStatus.INTERNAL_SERVER_ERROR);
