@@ -113,10 +113,10 @@ public class RawResponseController {
 
         try {
             DataProcessResult result = lunaticJsonRawDataApiPort.processRawData(campaignName, interrogationIdList, errors);
-            return result.forcedDataCount() == 0 ?
+            return result.formattedDataCount() == 0 ?
                     ResponseEntity.ok("%d document(s) processed".formatted(result.dataCount()))
-                    : ResponseEntity.ok("%d document(s) processed, including %d FORCED after data verification"
-                    .formatted(result.dataCount(), result.forcedDataCount()));
+                    : ResponseEntity.ok("%d document(s) processed, including %d FORMATTED after data verification"
+                    .formatted(result.dataCount(), result.formattedDataCount()));
         }catch (GenesisException e){
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
         }
