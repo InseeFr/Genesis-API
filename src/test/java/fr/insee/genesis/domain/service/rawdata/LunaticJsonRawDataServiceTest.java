@@ -390,44 +390,35 @@ class LunaticJsonRawDataServiceTest {
         //CLEAN
         surveyUnitPersistencePortStub.getMongoStub().clear();
 
-        //To avoid log spam
-        Logger logger = (Logger) LoggerFactory.getLogger(LunaticJsonRawDataService.class);
-        Level initialLevel = logger.getLevel();
-        try{
-            //GIVEN
-            List<String> interrogationIdList = new ArrayList<>();
-            String campaignId = "SAMPLETEST-PARADATA-v1";
-            for(int i = 0; i < rawDataSize; i++){
-                String questionnaireId = "TESTIDQUEST";
-                String interrogationId = "TESTinterrogationId"+(i+1);
-                String json = "{\"EXTERNAL\": {\"TESTVAR_EXT\": \"test_ext%d\"}, ".formatted(i) +
-                        "\"COLLECTED\": {\"TESTVAR\": {\"COLLECTED\": [\"test%d\"], \"EDITED\": [\"test_ed%d\"]}}}"
-                                .formatted(i,i);
+        //GIVEN
+        List<String> interrogationIdList = new ArrayList<>();
+        String campaignId = "SAMPLETEST-PARADATA-v1";
+        for (int i = 0; i < rawDataSize; i++) {
+            String questionnaireId = "TESTIDQUEST";
+            String interrogationId = "TESTinterrogationId" + (i + 1);
+            String json = "{\"EXTERNAL\": {\"RPPRENOM\": \"TEST_EXT%d\"}, ".formatted(i) +
+                    "\"COLLECTED\": {\"PRENOMREP\": {\"COLLECTED\": [\"test%d\"], \"EDITED\": [\"test_ed%d\"]}}}"
+                            .formatted(i, i);
 
-                LunaticJsonRawDataModel rawDataModel = LunaticJsonRawDataModel.builder()
-                        .campaignId(campaignId)
-                        .questionnaireId(questionnaireId)
-                        .interrogationId(interrogationId)
-                        .data(JsonUtils.jsonToMap(json))
-                        .mode(Mode.WEB)
-                        .build();
+            LunaticJsonRawDataModel rawDataModel = LunaticJsonRawDataModel.builder()
+                    .campaignId(campaignId)
+                    .questionnaireId(questionnaireId)
+                    .interrogationId(interrogationId)
+                    .data(JsonUtils.jsonToMap(json))
+                    .mode(Mode.WEB)
+                    .build();
 
-                interrogationIdList.add(interrogationId);
-                lunaticJsonRawDataPersistanceStub.getMongoStub()
-                        .add(LunaticJsonRawDataDocumentMapper.INSTANCE.modelToDocument(rawDataModel));
-            }
-
-            logger.setLevel(Level.ERROR);
-
-            //WHEN
-            DataProcessResult dataProcessResult =  lunaticJsonRawDataService.processRawData(campaignId, interrogationIdList,
-                    new ArrayList<>());
-
-            //THEN
-            Assertions.assertThat(dataProcessResult.dataCount()).isEqualTo(rawDataSize * 2/*EDITED*/);
-            Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).hasSize(rawDataSize * 2);
-        }finally {
-            logger.setLevel(initialLevel);
+            interrogationIdList.add(interrogationId);
+            lunaticJsonRawDataPersistanceStub.getMongoStub()
+                    .add(LunaticJsonRawDataDocumentMapper.INSTANCE.modelToDocument(rawDataModel));
         }
+
+        //WHEN
+        DataProcessResult dataProcessResult = lunaticJsonRawDataService.processRawData(campaignId, interrogationIdList,
+                new ArrayList<>());
+
+        //THEN
+        Assertions.assertThat(dataProcessResult.dataCount()).isEqualTo(rawDataSize * 2/*EDITED*/);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).hasSize(rawDataSize * 2);
     }
 }
