@@ -1,9 +1,8 @@
-package cucumber.config;
+package cucumber.functional_tests.config;
 
 import fr.insee.genesis.GenesisApi;
-import fr.insee.genesis.domain.ports.api.ScheduleApiPort;
-import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.infrastructure.repository.LunaticJsonMongoDBRepository;
+import fr.insee.genesis.infrastructure.repository.LunaticModelMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.RundeckExecutionDBRepository;
 import fr.insee.genesis.infrastructure.repository.ScheduleMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.SurveyUnitMongoDBRepository;
@@ -34,5 +33,7 @@ public class CucumberSpringConfiguration {
     private ScheduleMongoDBRepository scheduleMongoDBRepository;
     @MockitoBean
     private VariableTypeMongoDBRepository variableTypeMongoDBRepository;
+    @MockitoBean
+    private LunaticModelMongoDBRepository lunaticModelMongoDBRepository;
 }
 

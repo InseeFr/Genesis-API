@@ -1,6 +1,7 @@
 package fr.insee.genesis.controller.rest.responses;
 
 import fr.insee.genesis.controller.dto.InterrogationId;
+import fr.insee.genesis.controller.rest.CommonApiResponse;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +16,7 @@ import java.util.List;
 @RequestMapping(path = "/interrogations" )
 @Controller
 @Slf4j
-public class InterrogationController {
+public class InterrogationController implements CommonApiResponse {
 
     private final SurveyUnitApiPort surveyUnitService;
 
