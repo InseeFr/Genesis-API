@@ -1,5 +1,7 @@
 package fr.insee.genesis.domain.service.rawdata;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
 import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.controller.services.MetadataService;
 import fr.insee.genesis.controller.utils.ControllerUtils;
@@ -16,7 +18,9 @@ import fr.insee.genesis.stubs.LunaticJsonRawDataPersistanceStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -373,6 +377,43 @@ class LunaticJsonRawDataServiceTest {
         Assertions.assertThat(suModels.getFirst().getCollectedVariables()).isEmpty();
     }
 
+    @Test
+    void convertRawData_multipleBatchs() throws Exception {
+        //To avoid log spam
+        Logger logger = (Logger) LoggerFactory.getLogger(LunaticJsonRawDataService.class);
+        Level initialLevel = logger.getLevel();
+        try{
+            //GIVEN
+            List<LunaticJsonRawDataModel> rawDataModelList = new ArrayList<>();
+            int numberOfRawData = 50000;
+            for(int i = 0; i < numberOfRawData; i++){
+                String campaignId = "SAMPLETEST-PARADATA-v1";
+                String questionnaireId = "TESTIDQUEST";
+                String interrogationId = "TESTinterrogationId"+(i+1);
+                String json = "{\"EXTERNAL\": {\"TESTVAR_EXT\": \"test_ext%d\"}, ".formatted(i) +
+                        "\"COLLECTED\": {\"TESTVAR\": {\"COLLECTED\": [\"test%d\"], \"EDITED\": [\"test_ed%d\"]}}}"
+                                .formatted(i,i);
 
+                LunaticJsonRawDataModel rawDataModel = LunaticJsonRawDataModel.builder()
+                        .campaignId(campaignId)
+                        .questionnaireId(questionnaireId)
+                        .interrogationId(interrogationId)
+                        .data(JsonUtils.jsonToMap(json))
+                        .mode(Mode.WEB)
+                        .build();
 
+                rawDataModelList.add(rawDataModel);
+            }
+
+            logger.setLevel(Level.ERROR);
+
+            //WHEN
+            List<SurveyUnitModel> suModels =  lunaticJsonRawDataService.convertRawData(rawDataModelList,new VariablesMap());
+
+            //THEN
+            Assertions.assertThat(suModels).hasSize(numberOfRawData * 2/*EDITED*/);
+        }finally {
+            logger.setLevel(initialLevel);
+        }
+    }
 }
