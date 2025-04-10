@@ -81,8 +81,9 @@ class RawResponseControllerTest {
         //GIVEN
         lunaticJsonRawDataPersistanceStub.getMongoStub().clear();
         String campaignId = "SAMPLETEST1";
+        String questionnaireId = "QUEST1";
         String interrogationId = "testinterrogationId1";
-        addJsonRawDataDocumentToStub(campaignId, interrogationId, null);
+        addJsonRawDataDocumentToStub(campaignId, questionnaireId, interrogationId, null);
 
         //WHEN
         List<LunaticJsonRawDataUnprocessedDto> dtos = rawResponseController.getUnproccessedJsonRawData().getBody();
@@ -90,6 +91,7 @@ class RawResponseControllerTest {
         //THEN
         Assertions.assertThat(dtos).isNotNull().isNotEmpty().hasSize(1);
         Assertions.assertThat(dtos.getFirst().campaignId()).isEqualTo(campaignId);
+        Assertions.assertThat(dtos.getFirst().questionnaireId()).isEqualTo(questionnaireId);
         Assertions.assertThat(dtos.getFirst().interrogationId()).isEqualTo(interrogationId);
     }
 
@@ -98,8 +100,9 @@ class RawResponseControllerTest {
         //GIVEN
         lunaticJsonRawDataPersistanceStub.getMongoStub().clear();
         String campaignId = "SAMPLETEST2";
+        String questionnaireId = "QUEST2";
         String interrogationId = "testinterrogationId2";
-        addJsonRawDataDocumentToStub(campaignId, interrogationId, LocalDateTime.now());
+        addJsonRawDataDocumentToStub(campaignId, questionnaireId, interrogationId, LocalDateTime.now());
 
         //WHEN
         List<LunaticJsonRawDataUnprocessedDto> dtos = rawResponseController.getUnproccessedJsonRawData().getBody();
@@ -111,7 +114,7 @@ class RawResponseControllerTest {
     //raw data process
     //json
     @Test
-    void processJsonRawDataTest() {
+    void processJsonRawDataTest(){
         //GIVEN
         lunaticJsonRawDataPersistanceStub.getMongoStub().clear();
         surveyUnitPersistencePortStub.getMongoStub().clear();
@@ -151,10 +154,11 @@ class RawResponseControllerTest {
 
 
     //Utils
-    private void addJsonRawDataDocumentToStub(String campaignId, String interrogationId,
+    private void addJsonRawDataDocumentToStub(String campaignId, String questionnaireId, String interrogationId,
                                                      LocalDateTime processDate) {
         LunaticJsonRawDataDocument lunaticJsonDataDocument = LunaticJsonRawDataDocument.builder()
                 .campaignId(campaignId)
+                .questionnaireId(questionnaireId)
                 .mode(Mode.WEB)
                 .interrogationId(interrogationId)
                 .recordDate(LocalDateTime.now())

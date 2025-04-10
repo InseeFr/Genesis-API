@@ -148,6 +148,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
         for (LunaticJsonRawDataModel dataModel : lunaticJsonRawDataPersistencePort.getAllUnprocessedData()) {
             dtos.add(LunaticJsonRawDataUnprocessedDto.builder()
                     .campaignId(dataModel.campaignId())
+                    .questionnaireId(dataModel.questionnaireId())
                     .interrogationId(dataModel.interrogationId())
                     .build()
             );
