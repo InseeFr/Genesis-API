@@ -1,5 +1,7 @@
 package fr.insee.genesis.domain.utils;
 
+import lombok.experimental.UtilityClass;
+
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -19,14 +21,10 @@ import javax.xml.stream.events.StartDocument;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
-
+@UtilityClass
 public class XMLSplitter {
 
 	// We use StAX in this class to deal with memory issues on huge XML files
-	private XMLSplitter() {
-		throw new IllegalStateException("Utility class");
-	}
-
 	public static void split(String inputfolder, String xmlfile, String outputFolder, String condition, int nbElementsByFile) throws XMLStreamException, IOException  {
 
 		String xmlResource = inputfolder + xmlfile;

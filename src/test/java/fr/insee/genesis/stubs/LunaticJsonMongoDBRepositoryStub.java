@@ -17,7 +17,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Getter
 public class LunaticJsonMongoDBRepositoryStub implements LunaticJsonMongoDBRepository {
@@ -29,7 +28,7 @@ public class LunaticJsonMongoDBRepositoryStub implements LunaticJsonMongoDBRepos
     public List<LunaticJsonRawDataDocument> findByNullProcessDate() {
         return documents.stream()
                 .filter(doc -> doc.processDate() == null)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -48,7 +47,7 @@ public class LunaticJsonMongoDBRepositoryStub implements LunaticJsonMongoDBRepos
                 .filter(doc -> Objects.equals(doc.campaignId(), campaignName)
                         && Objects.equals(doc.mode(), mode)
                         && interrogationIdList.contains(doc.interrogationId()))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -59,21 +58,22 @@ public class LunaticJsonMongoDBRepositoryStub implements LunaticJsonMongoDBRepos
     // Implémentations vides requises par MongoRepository
     @Override public <S extends LunaticJsonRawDataDocument> S save(S entity) { return null; }
     @Override public Optional<LunaticJsonRawDataDocument> findById(String s) { return Optional.empty(); }
-    @Override public void delete(LunaticJsonRawDataDocument entity) {}
+    @Override public void delete(LunaticJsonRawDataDocument entity) {//empty impl for MongoRepository
+    }
 
     @Override
     public void deleteAllById(Iterable<? extends String> strings) {
-
+        //empty impl for MongoRepository
     }
 
     @Override
     public void deleteAll(Iterable<? extends LunaticJsonRawDataDocument> entities) {
-
+        //empty impl for MongoRepository
     }
 
     @Override
     public void deleteAll() {
-
+        //empty impl for MongoRepository
     }
 
     @Override
@@ -95,7 +95,7 @@ public class LunaticJsonMongoDBRepositoryStub implements LunaticJsonMongoDBRepos
 
     @Override
     public void deleteById(String s) {
-
+        //empty impl for MongoRepository
     }
 
     @Override public boolean existsById(String s) { return false; }
