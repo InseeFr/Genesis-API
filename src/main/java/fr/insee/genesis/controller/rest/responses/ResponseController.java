@@ -57,7 +57,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 @RequestMapping(path = "/responses" )
@@ -324,9 +326,18 @@ public class ResponseController implements CommonApiResponse {
     public ResponseEntity<Object> saveEditedVariables(
             @RequestBody SurveyUnitInputDto surveyUnitInputDto
     ){
+        //Code quality : we need to put all that logic out of this controller
         //Parse metadata
         //Try to look for DDI first, if no DDI found looks for lunatic components
         List<GenesisError> errors = new ArrayList<>();
+        //We need to retrieve campaignId
+        HashSet<String> campaignIds = findCampaignId(surveyUnitInputDto);
+        if (campaignIds.size() != 1){
+            return ResponseEntity.status(500).body("Impossible to assign one campaignId to that response");
+        }
+        // If the size is equal to 1 we get this campaignId
+        String campaignId = campaignIds.iterator().next();
+        surveyUnitInputDto.setCampaignId(campaignId);
         VariablesMap variablesMap = metadataService.readMetadatas(surveyUnitInputDto.getCampaignId(),
                 surveyUnitInputDto.getMode().getModeName(), fileUtils, errors);
         if(variablesMap == null){
@@ -371,6 +382,15 @@ public class ResponseController implements CommonApiResponse {
         //Save documents
         surveyUnitService.saveSurveyUnits(surveyUnitModels);
         return ResponseEntity.ok(SUCCESS_MESSAGE);
+    }
+
+    private HashSet<String> findCampaignId(SurveyUnitInputDto surveyUnitInputDto) {
+        List<SurveyUnitModel> responses = surveyUnitService.findByIdsInterrogationAndQuestionnaire(surveyUnitInputDto.getInterrogationId(), surveyUnitInputDto.getQuestionnaireId());
+        HashSet<String> campaignIds = new HashSet<>();
+        for(SurveyUnitModel response : responses){
+            campaignIds.add(response.getCampaignId());
+        }
+        return campaignIds;
     }
 
     //Utilities
@@ -489,7 +509,6 @@ public class ResponseController implements CommonApiResponse {
 
             log.info("Saved {} survey units updates from Xml file {}", suCount,  filepath.getFileName());
         }
-
         return ResponseEntity.ok().build();
     }
 
