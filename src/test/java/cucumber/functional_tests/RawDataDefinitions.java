@@ -4,9 +4,12 @@ import cucumber.functional_tests.config.CucumberSpringConfiguration;
 import fr.insee.genesis.TestConstants;
 import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.controller.rest.responses.RawResponseController;
+import fr.insee.genesis.controller.services.MetadataService;
+import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
+import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.LunaticJsonRawDataPersistanceStub;
@@ -44,23 +47,21 @@ public class RawDataDefinitions {
     @LocalServerPort
     private int port;
 
-    private String BASE_URL;
+    private String baseUrl;
     @Autowired
     private TestRestTemplate rest;
 
     LunaticJsonRawDataPersistanceStub lunaticJsonRawDataPersistanceStub = new LunaticJsonRawDataPersistanceStub();
-    LunaticJsonRawDataService lunaticJsonRawDataService = new LunaticJsonRawDataService(lunaticJsonRawDataPersistanceStub);
+    MetadataService metadataService = new MetadataService();
+    SurveyUnitService surveyUnitService = new SurveyUnitService(new SurveyUnitPersistencePortStub());
     Config config = new ConfigStub();
     FileUtils fileUtils = new FileUtils(config);
-    SurveyUnitPersistencePortStub surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
+    ControllerUtils controllerUtils = new ControllerUtils(fileUtils);
     SurveyUnitQualityService surveyUnitQualityService = new SurveyUnitQualityService();
+    LunaticJsonRawDataService lunaticJsonRawDataService = new LunaticJsonRawDataService(lunaticJsonRawDataPersistanceStub,controllerUtils,metadataService,surveyUnitService,surveyUnitQualityService,fileUtils);
+    SurveyUnitPersistencePortStub surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
     RawResponseController rawResponseController = new RawResponseController(
             lunaticJsonRawDataService
-//           , new ControllerUtils(fileUtils),
-//            new MetadataService(),
-//            new SurveyUnitService(surveyUnitPersistencePortStub),
-//            surveyUnitQualityService,
-//            fileUtils
     );
     Path rawDataFilePath;
     String rawJsonData;
@@ -71,7 +72,7 @@ public class RawDataDefinitions {
     public void init(){
         this.lunaticJsonRawDataPersistanceStub.getMongoStub().clear();
         log.info("rest autowired : {}", rest.getRootUri());
-        BASE_URL = "http://localhost:" + port + "/";
+        baseUrl = "http://localhost:" + port + "/";
 
     }
 
@@ -91,12 +92,12 @@ public class RawDataDefinitions {
     }
 
     @When("We save that raw data for web campaign {string}, questionnaire {string}, interrogation {string}")
-    public void save_raw_data(String campaignId, String questionnaireId, String interrogationId) throws IOException {
+    public void save_raw_data(String campaignId, String questionnaireId, String interrogationId)  {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Authorization", "Bearer fake_token");
         String url = String.format("%sresponses/raw/lunatic-json/save?campaignName=%s&questionnaireId=%s&interrogationId=%s&surveyUnitId=%s&mode=%s",
-                BASE_URL,
+                baseUrl,
                 campaignId,
                 questionnaireId,
                 interrogationId,

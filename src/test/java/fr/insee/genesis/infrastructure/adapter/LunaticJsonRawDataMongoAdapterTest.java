@@ -46,7 +46,7 @@ class LunaticJsonRawDataMongoAdapterTest {
         //WHEN
         adapter.save(rawData);
         //THEN
-        Assertions.assertThat(repository.getDocuments().size()).isEqualTo(1);
+        Assertions.assertThat(repository.getDocuments()).hasSize(1);
     }
 
     @Test

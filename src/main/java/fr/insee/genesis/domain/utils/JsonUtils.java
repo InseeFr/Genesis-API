@@ -1,14 +1,17 @@
 package fr.insee.genesis.domain.utils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.experimental.UtilityClass;
 
 import java.util.List;
 import java.util.Map;
 
+@UtilityClass
 public class JsonUtils {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    public static Map<String, Object> jsonToMap(String json) throws Exception {
+    public static Map<String, Object> jsonToMap(String json) throws JsonProcessingException {
         return objectMapper.readValue(json, Map.class);
     }
 
@@ -17,8 +20,12 @@ public class JsonUtils {
         return (Map<String, Object>) obj;
     }
 
-    @SuppressWarnings("unchecked")
-    public static List<String> asStringList(Object obj){
-        return (List<String>) obj;
+    public static List<String> asStringList(Object obj) {
+        if (obj instanceof List<?> list) {
+            return list.stream()
+                    .map(e -> e == null ? "" : String.valueOf(e))
+                    .toList();
+        }
+        throw new IllegalArgumentException("Object is not a List");
     }
 }

@@ -127,7 +127,6 @@ class SurveyUnitModelMongoAdapterTest {
 		Stream<SurveyUnitModel> updates = surveyUnitMongoAdapter.findByQuestionnaireId("TEST2023X01");
 		// Then
 		Assertions.assertThat(updates).isNotNull().hasSize(3);
-		//Assertions.assertThat(updates.get(2).getMode()).isEqualTo(Mode.WEB);
 	}
 
 	@Test
