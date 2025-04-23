@@ -114,7 +114,7 @@ class RawResponseControllerTest {
     //raw data process
     //json
     @Test
-    void processJsonRawDataTest() throws Exception {
+    void processJsonRawDataTest(){
         //GIVEN
         lunaticJsonRawDataPersistanceStub.getMongoStub().clear();
         surveyUnitPersistencePortStub.getMongoStub().clear();
@@ -154,12 +154,13 @@ class RawResponseControllerTest {
 
 
     //Utils
-    private void addJsonRawDataDocumentToStub(String campaignId, String interrogationId,
+    private void addJsonRawDataDocumentToStub(String campaignId, String questionnaireId, String interrogationId,
                                                      LocalDateTime processDate) {
         LunaticJsonRawDataDocument lunaticJsonDataDocument = LunaticJsonRawDataDocument.builder()
                 .campaignId(campaignId)
                 .mode(Mode.WEB)
                 .interrogationId(interrogationId)
+                .questionnaireId(questionnaireId)
                 .recordDate(LocalDateTime.now())
                 .processDate(processDate)
                 .build();
