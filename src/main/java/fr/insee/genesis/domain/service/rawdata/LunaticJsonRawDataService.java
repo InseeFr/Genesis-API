@@ -167,6 +167,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
         for (LunaticJsonRawDataModel dataModel : lunaticJsonRawDataPersistencePort.getAllUnprocessedData()) {
             dtos.add(LunaticJsonRawDataUnprocessedDto.builder()
                     .campaignId(dataModel.campaignId())
+                    .questionnaireId(dataModel.questionnaireId())
                     .interrogationId(dataModel.interrogationId())
                     .build()
             );
@@ -180,10 +181,9 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
             VariablesMap variablesMap
     ) {
         Map<String,Object> externalMap = JsonUtils.asMap(srcRawData.data().get("EXTERNAL"));
-        if (externalMap == null || externalMap.isEmpty()){
-            return;
+        if (externalMap != null && !externalMap.isEmpty()){
+            convertToExternalVar(dstSurveyUnitModel, variablesMap, externalMap);
         }
-        convertToExternalVar(dstSurveyUnitModel, variablesMap, externalMap);
     }
 
     private static void convertToExternalVar(SurveyUnitModel dstSurveyUnitModel, VariablesMap variablesMap, Map<String, Object> externalMap) {

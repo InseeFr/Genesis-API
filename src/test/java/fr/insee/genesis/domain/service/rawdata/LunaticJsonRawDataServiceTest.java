@@ -1,7 +1,5 @@
 package fr.insee.genesis.domain.service.rawdata;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
 import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.controller.services.MetadataService;
 import fr.insee.genesis.controller.utils.ControllerUtils;
@@ -22,7 +20,6 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -71,8 +68,10 @@ class LunaticJsonRawDataServiceTest {
 
         // We retrieve and cast the Map "COLLECTED"
         Map<String, Object> collectedData = JsonUtils.asMap(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().get("COLLECTED"));
-        Assertions.assertThat(collectedData).isNotNull().hasSize(1);
-        Assertions.assertThat(collectedData).containsOnlyKeys("TESTVAR");
+        Assertions.assertThat(collectedData)
+                .isNotNull()
+                .hasSize(1)
+                .containsOnlyKeys("TESTVAR");
 
         // We retrieve and cast the Map "TESTVAR"
         Map<String, Object> testVarMap = JsonUtils.asMap(collectedData.get("TESTVAR"));
@@ -112,8 +111,10 @@ class LunaticJsonRawDataServiceTest {
         Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data()).isNotNull();
 
         Map<String, Object> collectedData = JsonUtils.asMap(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().get("COLLECTED"));
-        Assertions.assertThat(collectedData).isNotNull().hasSize(1);
-        Assertions.assertThat(collectedData).containsOnlyKeys("TESTVAR");
+        Assertions.assertThat(collectedData)
+                .isNotNull()
+                .hasSize(1)
+                .containsOnlyKeys("TESTVAR");
 
         Map<String, Object> testVarMap = JsonUtils.asMap(collectedData.get("TESTVAR"));
         Assertions.assertThat(testVarMap).isNotNull().hasSize(1).containsKey(DataState.COLLECTED.toString());
@@ -150,8 +151,10 @@ class LunaticJsonRawDataServiceTest {
         Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data()).isNotNull();
 
         Map<String, Object> externalData = JsonUtils.asMap(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().get("EXTERNAL"));
-        Assertions.assertThat(externalData).isNotNull().hasSize(1);
-        Assertions.assertThat(externalData).containsOnlyKeys("TESTVAR_EXT");
+        Assertions.assertThat(externalData)
+                .isNotNull()
+                .hasSize(1)
+                .containsOnlyKeys("TESTVAR_EXT");
 
         Object extVarValue = externalData.get("TESTVAR_EXT");
         Assertions.assertThat(extVarValue).isNotNull().isInstanceOf(List.class);
@@ -188,8 +191,10 @@ class LunaticJsonRawDataServiceTest {
         Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data()).isNotNull();
 
         Map<String, Object> externalData = JsonUtils.asMap(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().get("EXTERNAL"));
-        Assertions.assertThat(externalData).isNotNull().hasSize(1);
-        Assertions.assertThat(externalData).containsOnlyKeys("TESTVAR_EXT");
+        Assertions.assertThat(externalData)
+                .isNotNull()
+                .hasSize(1)
+                .containsOnlyKeys("TESTVAR_EXT");
 
 
         Assertions.assertThat(externalData.get("TESTVAR_EXT")).isNotNull().isEqualTo("test");
@@ -228,8 +233,10 @@ class LunaticJsonRawDataServiceTest {
         Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data()).isNotNull();
 
         Map<String, Object> externalData = JsonUtils.asMap(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().get("EXTERNAL"));
-        Assertions.assertThat(externalData).isNotNull().hasSize(1);
-        Assertions.assertThat(externalData).containsOnlyKeys("TESTVAR_EXT");
+        Assertions.assertThat(externalData)
+                .isNotNull()
+                .hasSize(1)
+                .containsOnlyKeys("TESTVAR_EXT");
 
         //External variable
         Assertions.assertThat(externalData.get("TESTVAR_EXT")).isNotNull().isEqualTo("test_ext");
@@ -237,12 +244,15 @@ class LunaticJsonRawDataServiceTest {
 
         //Collected variable
         Map<String, Object> collectedData = JsonUtils.asMap(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().get("COLLECTED"));
-        Assertions.assertThat(collectedData).isNotNull().hasSize(1);
-        Assertions.assertThat(collectedData).containsOnlyKeys("TESTVAR");
+        Assertions.assertThat(collectedData)
+                .isNotNull()
+                .hasSize(1)
+                .containsOnlyKeys("TESTVAR");
         Map<String,Object> colVarValue = JsonUtils.asMap(collectedData.get("TESTVAR"));
         Assertions.assertThat(colVarValue).containsOnlyKeys(DataState.COLLECTED.toString());
-        Assertions.assertThat(colVarValue.get(DataState.COLLECTED.toString())).isNotNull();
-        Assertions.assertThat(colVarValue.get(DataState.COLLECTED.toString())).isInstanceOf(List.class);
+        Assertions.assertThat(colVarValue.get(DataState.COLLECTED.toString()))
+                .isNotNull()
+                .isInstanceOf(List.class);
         List<String> colVarCast = JsonUtils.asStringList(colVarValue.get(DataState.COLLECTED.toString()));
         Assertions.assertThat(colVarCast).containsExactly("test");
     }
@@ -276,12 +286,16 @@ class LunaticJsonRawDataServiceTest {
         Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data()).isNotNull();
 
         Map<String, Object> externalData = JsonUtils.asMap(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().get("EXTERNAL"));
-        Assertions.assertThat(externalData).isNotNull().hasSize(1);
-        Assertions.assertThat(externalData).containsOnlyKeys("TESTVAR_EXT");
+        Assertions.assertThat(externalData)
+                .isNotNull()
+                .hasSize(1)
+                .containsOnlyKeys("TESTVAR_EXT");
 
         //External variables
-        Assertions.assertThat(externalData.get("TESTVAR_EXT")).isNotNull().isEqualTo("test_ext");
-        Assertions.assertThat(externalData.get("TESTVAR_EXT")).isInstanceOf(String.class);
+        Assertions.assertThat(externalData.get("TESTVAR_EXT"))
+                .isNotNull()
+                .isEqualTo("test_ext")
+                .isInstanceOf(String.class);
 
         //Collected variables
         Map<String, Object> collectedData = JsonUtils.asMap(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().get("COLLECTED"));
