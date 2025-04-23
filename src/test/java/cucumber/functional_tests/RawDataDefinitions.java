@@ -6,10 +6,14 @@ import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.controller.rest.responses.RawResponseController;
 import fr.insee.genesis.controller.services.MetadataService;
 import fr.insee.genesis.controller.utils.ControllerUtils;
+import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
+import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
+import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
+import fr.insee.genesis.domain.utils.JsonUtils;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.LunaticJsonRawDataPersistanceStub;
@@ -38,6 +42,8 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPublicKey;
+import java.util.Collections;
+import java.util.List;
 
 @Slf4j
 @ContextConfiguration(classes = CucumberSpringConfiguration.class)
@@ -53,13 +59,13 @@ public class RawDataDefinitions {
 
     LunaticJsonRawDataPersistanceStub lunaticJsonRawDataPersistanceStub = new LunaticJsonRawDataPersistanceStub();
     MetadataService metadataService = new MetadataService();
-    SurveyUnitService surveyUnitService = new SurveyUnitService(new SurveyUnitPersistencePortStub());
+    SurveyUnitPersistencePortStub surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
+    SurveyUnitService surveyUnitService = new SurveyUnitService(surveyUnitPersistencePortStub);
     Config config = new ConfigStub();
     FileUtils fileUtils = new FileUtils(config);
     ControllerUtils controllerUtils = new ControllerUtils(fileUtils);
     SurveyUnitQualityService surveyUnitQualityService = new SurveyUnitQualityService();
     LunaticJsonRawDataService lunaticJsonRawDataService = new LunaticJsonRawDataService(lunaticJsonRawDataPersistanceStub,controllerUtils,metadataService,surveyUnitService,surveyUnitQualityService,fileUtils);
-    SurveyUnitPersistencePortStub surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
     RawResponseController rawResponseController = new RawResponseController(
             lunaticJsonRawDataService
     );
@@ -91,8 +97,8 @@ public class RawDataDefinitions {
         rawJsonData = Files.readString(rawDataFilePath);
     }
 
-    @When("We save that raw data for web campaign {string}, questionnaire {string}, interrogation {string}")
-    public void save_raw_data(String campaignId, String questionnaireId, String interrogationId)  {
+    @When("We call save raw data endpoint for web campaign {string}, questionnaire {string}, interrogation {string}")
+    public void save_raw_data_spring(String campaignId, String questionnaireId, String interrogationId)  {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Authorization", "Bearer fake_token");
@@ -115,6 +121,39 @@ public class RawDataDefinitions {
 
     }
 
+    @When("We save that raw data for web campaign {string}, questionnaire {string}, interrogation {string}")
+    public void save_raw_data(String campaignId, String questionnaireId, String interrogationId) throws IOException {
+        if(rawDataFilePath == null){
+            throw new RuntimeException("Raw data file path is null !");
+        }
+
+        response = rawResponseController.saveRawResponsesFromJsonBody(
+                campaignId,
+                questionnaireId,
+                interrogationId,
+                null,
+                Mode.WEB,
+                JsonUtils.jsonToMap(Files.readString(rawDataFilePath))
+        );
+    }
+
+    @When("We process raw data for campaign {string}, questionnaire {string} and interrogation {string}")
+    public void process_raw_data(
+            String campaignId,
+            String questionnaireId,
+            String interrogationId
+
+    ) {
+        List<String> interrogationIdList = Collections.singletonList(interrogationId);
+
+        response = rawResponseController.processJsonRawData(
+                campaignId,
+                questionnaireId,
+                interrogationIdList
+        );
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+    }
+
     @Then("We should have {int} raw data document")
     public void check_document_count(int expectedCount){
         Assertions.assertThat(nbRawSaved).isEqualTo(expectedCount);
@@ -126,7 +165,67 @@ public class RawDataDefinitions {
         Assertions.assertThat(response.getStatusCode().value()).isEqualTo(expectedStatusCode);
     }
 
+    @Then("For collected variable {string} in survey unit {string} we should have {string} for " +
+            "iteration {int}")
+    public void check_collected_variable_content_in_mongo(
+            String collectedVariableName,
+            String interrogationId,
+            String expectedValue,
+            Integer iteration
+    ) {
+        //Get SurveyUnitModel
+        List<SurveyUnitModel> concernedSurveyUnitModels = surveyUnitPersistencePortStub.getMongoStub().stream().filter(surveyUnitModel ->
+                surveyUnitModel.getState().equals(DataState.COLLECTED)
+                        && surveyUnitModel.getInterrogationId().equals(interrogationId)
+        ).toList();
+        Assertions.assertThat(concernedSurveyUnitModels).hasSize(1);
 
+        SurveyUnitModel surveyUnitModel = concernedSurveyUnitModels.getFirst();
+
+        //Get Variable
+        List<VariableModel> concernedCollectedVariables =
+                surveyUnitModel.getCollectedVariables().stream().filter(variableModel ->
+                        variableModel.varId().equals(collectedVariableName)
+                                && variableModel.iteration().equals(iteration)
+                ).toList();
+        Assertions.assertThat(concernedCollectedVariables).hasSize(1);
+
+        VariableModel variableModel = concernedCollectedVariables.getFirst();
+
+        //Value content assertion
+        Assertions.assertThat(variableModel.value()).isEqualTo(expectedValue);
+    }
+
+    @Then("For external variable {string} in survey unit {string} we should have {string} for " +
+            "iteration {int}")
+    public void check_external_variable_content_in_mongo(
+            String externalVariableName,
+            String interrogationId,
+            String expectedValue,
+            Integer iteration
+    ) {
+        //Get SurveyUnitModel
+        List<SurveyUnitModel> concernedSurveyUnitModels = surveyUnitPersistencePortStub.getMongoStub().stream().filter(surveyUnitModel ->
+                surveyUnitModel.getState().equals(DataState.COLLECTED)
+                        && surveyUnitModel.getInterrogationId().equals(interrogationId)
+        ).toList();
+        Assertions.assertThat(concernedSurveyUnitModels).hasSize(1);
+
+        SurveyUnitModel surveyUnitModel = concernedSurveyUnitModels.getFirst();
+
+        //Get Variable
+        List<VariableModel> concernedExternalVariables =
+                surveyUnitModel.getExternalVariables().stream().filter(variableModel ->
+                        variableModel.varId().equals(externalVariableName)
+                                && variableModel.iteration().equals(iteration)
+                ).toList();
+        Assertions.assertThat(concernedExternalVariables).hasSize(1);
+
+        VariableModel variableModel = concernedExternalVariables.getFirst();
+
+        //Value content assertion
+        Assertions.assertThat(variableModel.value()).isEqualTo(expectedValue);
+    }
 
 
 }

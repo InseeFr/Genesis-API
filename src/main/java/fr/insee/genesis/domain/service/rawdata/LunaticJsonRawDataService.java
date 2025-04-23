@@ -41,6 +41,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     private final SurveyUnitService surveyUnitService;
     private final SurveyUnitQualityService surveyUnitQualityService;
     private final FileUtils fileUtils;
+    private static final int BATCH_SIZE = 1000;
 
     @Qualifier("lunaticJsonMongoAdapterNew")
     private final LunaticJsonRawDataPersistencePort lunaticJsonRawDataPersistencePort;
@@ -80,25 +81,39 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
                                 .formatted(mode, errors.getLast().getMessage())
                 );
             }
+            int totalBatchs = Math.ceilDiv(interrogationIdList.size() , BATCH_SIZE);
+            int batchNumber = 1;
+            List<String> interrogationIdListForMode = new ArrayList<>(interrogationIdList);
+            while(!interrogationIdListForMode.isEmpty()){
+                log.info("Processing raw data batch {}/{}", batchNumber, totalBatchs);
+                int maxIndex = Math.min(interrogationIdListForMode.size(), BATCH_SIZE);
+                List<String> interrogationIdToProcess = interrogationIdListForMode.subList(0, maxIndex);
 
-            List<LunaticJsonRawDataModel> rawData = getRawData(campaignName,mode, interrogationIdList);
-            //Save converted data
-            List<SurveyUnitModel> surveyUnitModels = convertRawData(
-                    rawData,
-                    variablesMap
-            );
+                List<LunaticJsonRawDataModel> rawData = getRawData(campaignName,mode, interrogationIdToProcess);
 
-            surveyUnitQualityService.verifySurveyUnits(surveyUnitModels, variablesMap);
-            surveyUnitService.saveSurveyUnits(surveyUnitModels);
+                List<SurveyUnitModel> surveyUnitModels = convertRawData(
+                        rawData,
+                        variablesMap
+                );
 
-            //Update process dates
-            updateProcessDates(surveyUnitModels);
+                //Save converted data
+                surveyUnitQualityService.verifySurveyUnits(surveyUnitModels, variablesMap);
+                surveyUnitService.saveSurveyUnits(surveyUnitModels);
 
-            //Increment data count
-            dataCount += surveyUnitModels.size();
-            formattedDataCount += surveyUnitModels.stream().filter(
-                    surveyUnitModel -> surveyUnitModel.getState().equals(DataState.FORMATTED)
-            ).toList().size();
+                //Update process dates
+                updateProcessDates(surveyUnitModels);
+
+                //Increment data count
+                dataCount += surveyUnitModels.size();
+                formattedDataCount += surveyUnitModels.stream().filter(
+                        surveyUnitModel -> surveyUnitModel.getState().equals(DataState.FORMATTED)
+                ).toList().size();
+
+                //Remove processed ids from list
+                interrogationIdListForMode = interrogationIdListForMode.subList(maxIndex, interrogationIdListForMode.size());
+
+                batchNumber++;
+            }
         }
         return new DataProcessResult(dataCount, formattedDataCount);
     }
@@ -130,11 +145,15 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
                     convertRawDataExternalVariables(rawData, surveyUnitModel, variablesMap);
                 }
 
-                if(!surveyUnitModel.getCollectedVariables().isEmpty()
-                        || !surveyUnitModel.getExternalVariables().isEmpty()
+                if(surveyUnitModel.getCollectedVariables().isEmpty()
+                        && surveyUnitModel.getExternalVariables().isEmpty()
                 ){
-                    surveyUnitModels.add(surveyUnitModel);
+                    if(surveyUnitModel.getState() == DataState.COLLECTED){
+                        log.warn("No collected or external variable for interrogation {}, raw data is ignored.", rawData.interrogationId());
+                    }
+                    continue;
                 }
+                surveyUnitModels.add(surveyUnitModel);
             }
         }
 
@@ -200,7 +219,12 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
             VariablesMap variablesMap
     ) {
         Map<String,Object> collectedMap = JsonUtils.asMap(srcRawData.data().get("COLLECTED"));
-        if (collectedMap == null || collectedMap.isEmpty()){return;}
+        if (collectedMap == null || collectedMap.isEmpty()){
+            if(dataState.equals(DataState.COLLECTED)) {
+                log.warn("No collected data for interrogation {}", srcRawData.interrogationId());
+            }
+            return;
+        }
         convertToCollectedVar(dstSurveyUnitModel, dataState, variablesMap, collectedMap);
 
     }
@@ -262,7 +286,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
             lunaticJsonRawDataPersistencePort.updateProcessDates(campaignId, interrogationIds);
         }
     }
-
+    
     @Override
     public Set<String> findDistinctQuestionnaireIds() {
         return lunaticJsonRawDataPersistencePort.findDistinctQuestionnaireIds();
@@ -272,5 +296,4 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     public long countResponsesByQuestionnaireId(String campaignId) {
         return lunaticJsonRawDataPersistencePort.countResponsesByQuestionnaireId(campaignId);
     }
-
 }

@@ -158,9 +158,9 @@ class RawResponseControllerTest {
                                                      LocalDateTime processDate) {
         LunaticJsonRawDataDocument lunaticJsonDataDocument = LunaticJsonRawDataDocument.builder()
                 .campaignId(campaignId)
-                .questionnaireId(questionnaireId)
                 .mode(Mode.WEB)
                 .interrogationId(interrogationId)
+                .questionnaireId(questionnaireId)
                 .recordDate(LocalDateTime.now())
                 .processDate(processDate)
                 .build();
