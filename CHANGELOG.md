@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.4 [2025-04-24]
+### Fixed
+- kraftwerk users can create and delete schedules
+
 ## 1.5.3 [2025-04-24]
 ### Added
 - Add transformation from raw data to Genesis model
