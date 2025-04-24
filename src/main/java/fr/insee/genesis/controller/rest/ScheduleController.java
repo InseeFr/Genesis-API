@@ -61,7 +61,7 @@ public class ScheduleController implements CommonApiResponse{
 
     @Operation(summary = "Schedule a Kraftwerk execution")
     @PutMapping(path = "/create")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('USER_KRAFTWERK')")
     public ResponseEntity<Object> addSchedule(
             @Parameter(description = "Survey name to call Kraftwerk on") @RequestParam("surveyName") String surveyName,
             @Parameter(description = "Kraftwerk endpoint") @RequestParam(value = "serviceTocall", defaultValue = Constants.KRAFTWERK_MAIN_ENDPOINT) ServiceToCall serviceToCall,
@@ -109,7 +109,7 @@ public class ScheduleController implements CommonApiResponse{
 
     @Operation(summary = "Delete a Kraftwerk execution schedule(s) by its survey name")
     @DeleteMapping(path = "/delete")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('USER_KRAFTWERK')")
     public ResponseEntity<Object> deleteSchedule(
             @Parameter(description = "Survey name of the schedule(s) to delete") @RequestParam("surveyName") String surveyName
     ){
