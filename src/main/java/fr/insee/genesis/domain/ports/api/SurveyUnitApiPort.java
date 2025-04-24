@@ -32,6 +32,13 @@ public interface SurveyUnitApiPort {
 
     List<InterrogationId> findDistinctInterrogationIdsByQuestionnaireId(String questionnaireId);
 
+    //========= OPTIMISATIONS PERFS (START) ==========
+    long countInterrogationIdsByQuestionnaireId(String questionnaireId);
+
+    List<InterrogationId> findDistinctPageableInterrogationIdsByQuestionnaireId(String questionnaireId,
+                                                                                long totalSize, int workersNumbers, int workerId, long blockSize, long page);
+    //========= OPTIMISATIONS PERFS (END) ==========
+
     List<Mode> findModesByQuestionnaireId(String questionnaireId);
 
     List<Mode> findModesByCampaignId(String campaignId);

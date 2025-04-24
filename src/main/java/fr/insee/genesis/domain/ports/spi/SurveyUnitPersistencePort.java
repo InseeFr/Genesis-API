@@ -20,6 +20,12 @@ public interface SurveyUnitPersistencePort {
 
     List<SurveyUnitModel> findInterrogationIdsByQuestionnaireId(String questionnaireId);
 
+    //======== OPTIMISATIONS PERFS (START) ========
+    long countInterrogationIdsByQuestionnaireId(String questionnaireId);
+
+    List<SurveyUnitModel> findPageableInterrogationIdsByQuestionnaireId(String questionnaireId, Long skip, Long limit);
+    //======= OPTIMISATIONS PERFS (END) =========
+
     List<SurveyUnitModel> findInterrogationIdsByCampaignId(String campaignId);
 
     Long deleteByQuestionnaireId(String questionnaireId);

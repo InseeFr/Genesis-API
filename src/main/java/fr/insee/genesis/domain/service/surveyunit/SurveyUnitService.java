@@ -165,6 +165,47 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         return suIds.stream().distinct().toList();
     }
 
+    //============ OPTIMISATIONS PERFS (START) ============
+
+    /**
+     * @author Adrien Marchal
+     */
+    @Override
+    public List<InterrogationId> findDistinctPageableInterrogationIdsByQuestionnaireId(String questionnaireId,
+                                                                                       long totalSize, int workersNumbers, int workerId,
+                                                                                       long blockSize, long page) {
+        long calculatedTotalSize;
+        if(totalSize == 0) {
+            calculatedTotalSize = countInterrogationIdsByQuestionnaireId(questionnaireId);
+        } else {
+            calculatedTotalSize = totalSize;
+        }
+        long workerSize = calculatedTotalSize / workersNumbers;
+        long workerOffset = (workerId - 1) * workerSize;
+        long skip = workerOffset + blockSize * page;
+        long calculatedBlockSize = (skip + blockSize) > (workerOffset + workerSize) ? (workerOffset + workerSize) - (blockSize * page) : blockSize;
+        // processing of the last element on the last worker
+        if(workerId == workersNumbers) {
+            calculatedBlockSize = calculatedBlockSize + 1;
+        }
+
+        List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findPageableInterrogationIdsByQuestionnaireId(questionnaireId, skip, calculatedBlockSize);
+        List<InterrogationId> suIds = new ArrayList<>();
+        surveyUnitModels.forEach(surveyUnitModel -> suIds.add(new InterrogationId(surveyUnitModel.getInterrogationId())));
+        return suIds.stream().distinct().toList();
+    }
+
+
+    /**
+     * @author Adrien Marchal
+     */
+    @Override
+    public long countInterrogationIdsByQuestionnaireId(String questionnaireId) {
+        return surveyUnitPersistencePort.countInterrogationIdsByQuestionnaireId(questionnaireId);
+    }
+    //=========== OPTIMISATIONS PERFS (END) =============
+
+
     @Override
     public List<SurveyUnitModel> findInterrogationIdsAndModesByQuestionnaireId(String questionnaireId) {
         List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findInterrogationIdsByQuestionnaireId(questionnaireId);
