@@ -12,6 +12,13 @@ public interface SurveyUnitPersistencePort {
 
     List<SurveyUnitModel> findByIds(String interrogationId, String questionnaireId);
 
+    //========= OPTIMISATIONS PERFS (START) ==========
+    /**
+     * @author Adrien Marchal
+     */
+    List<SurveyUnitModel> findBySetOfIdsAndQuestionnaireIdAndMode(String questionnaireId, String mode, List<String> interrogationIdSet);
+    //========= OPTIMISATIONS PERFS (START) ==========
+
     List<SurveyUnitModel> findByInterrogationId(String interrogationId);
 
     List<SurveyUnitModel> findByInterrogationIdsAndQuestionnaireId(List<SurveyUnitModel> interrogationIds, String questionnaireId);

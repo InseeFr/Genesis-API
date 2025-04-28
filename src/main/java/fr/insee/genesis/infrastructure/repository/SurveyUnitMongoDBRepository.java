@@ -18,6 +18,14 @@ public interface SurveyUnitMongoDBRepository extends MongoRepository<SurveyUnitD
 
 	List<SurveyUnitDocument> findByInterrogationIdAndQuestionnaireId(String interrogationId, String questionnaireId);
 
+	//========= OPTIMISATIONS PERFS (START) ==========
+	/**
+	 * @author Adrien Marchal
+	 */
+	@Query("{ 'questionnaireId' : ?0, 'mode' : ?1, 'interrogationId' : { $in: ?2 } }")
+	List<SurveyUnitDocument> findBySetOfIdsAndQuestionnaireIdAndMode(String questionnaireId, String mode, List<String> interrogationIdSet);
+	//========= OPTIMISATIONS PERFS (END) ==========
+
 	@Query(value = "{ 'questionnaireId' : ?0 }", fields = "{ 'interrogationId' : 1, 'mode' :  1 }")
 	List<SurveyUnitDocument> findInterrogationIdsByQuestionnaireId(String questionnaireId);
 

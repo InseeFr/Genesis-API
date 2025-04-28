@@ -132,6 +132,109 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         return latestUpdatesbyVariables;
     }
 
+
+    //========= OPTIMISATIONS PERFS (START) ==========
+    /**
+     * @author Adrien Marchal
+     */
+    @Override
+    public List<List<SurveyUnitModel>> findLatestByIdAndByQuestionnaireIdAndModeOrdered(String questionnaireId, String mode,
+                                                                                        List<InterrogationId> interrogationIds) {
+        //return object
+        List<List<SurveyUnitModel>> listLatestUpdatesbyVariables = new ArrayList<>();
+
+        //1) QUERY
+        // => convertion of "List<InterrogationId>" -> "List<String>" for query
+        List<String> queryInParam = new ArrayList<String>();
+        for(InterrogationId interrId : interrogationIds) {
+            queryInParam.add(interrId.getInterrogationId());
+        }
+        //Get !!!all versions!!! of a set of "interrogationIds"
+        List<SurveyUnitModel> allResponsesVersionsSet = surveyUnitPersistencePort.findBySetOfIdsAndQuestionnaireIdAndMode(questionnaireId, mode, queryInParam);
+
+        //2) FILTER BY interrogationId AND ORDER BY DATE (MOST RECENT FIRST, oldest last)
+        interrogationIds.forEach(interrogationId -> {
+            List<SurveyUnitModel> allResponsesVersionsForSingleInterrId = allResponsesVersionsSet.stream()
+                            .filter(surveyUnitModel -> surveyUnitModel.getInterrogationId().equals(interrogationId.getInterrogationId()))
+                            .sorted((o1, o2) -> o2.getRecordDate().compareTo(o1.getRecordDate())) //Sorting update by date (latest updates first by date of upload in database)
+                            .toList();
+
+            List<SurveyUnitModel> LatestUpdates = extractLatestUpdates(allResponsesVersionsForSingleInterrId);
+
+            //3) add to result (: keep same existing process)
+            listLatestUpdatesbyVariables.add(LatestUpdates);
+        });
+
+        return listLatestUpdatesbyVariables;
+    }
+
+
+    private List<SurveyUnitModel> extractLatestUpdates(List<SurveyUnitModel> allResponsesVersionsForSingleInterrId) {
+        //return
+        List<SurveyUnitModel> latestUpdatesbyVariables = new ArrayList<>();
+
+        //We keep the name of already added variables to skip them in older updates
+        List<VarIdScopeTuple> addedVariables = new ArrayList<>();
+
+        //Pas de traitement superflux s'il y a un seul élément ou aucun (optimisations de performances)
+        if(allResponsesVersionsForSingleInterrId.size() <= 1) {
+            //We add all the variables of the LATEST update
+            latestUpdatesbyVariables.add(allResponsesVersionsForSingleInterrId.getFirst());
+        }
+        //ELSE -> CASE WHERE THERE ARE MORE THAN ONE VERSION!
+        else {
+
+            /*
+            //We add all the variables of the LATEST update
+            latestUpdatesbyVariables.add(surveyUnitModelsSorted.getFirst());
+
+            SurveyUnitModel latestUpdate = surveyUnitModelsSorted.getFirst();
+            if(latestUpdate.getCollectedVariables() == null){
+                latestUpdate.setCollectedVariables(new ArrayList<>());
+            }
+            if(latestUpdate.getExternalVariables() == null){
+                latestUpdate.setExternalVariables(new ArrayList<>());
+            }
+
+            latestUpdate.getCollectedVariables().forEach(colVar -> addedVariables.add(new VarIdScopeTuple(colVar.varId(), colVar.scope(), colVar.iteration())));
+            latestUpdate.getExternalVariables().forEach(extVar -> addedVariables.add(new VarIdScopeTuple(extVar.varId(), extVar.scope(), extVar.iteration())));
+            */
+
+            allResponsesVersionsForSingleInterrId.forEach(surveyUnitModel -> {
+                List<VariableModel> collectedVariablesToKeep = new ArrayList<>();
+                List<VariableModel> externalVariablesToKeep = new ArrayList<>();
+                // We iterate over the variables of the update and add them to the list if they are not already added
+                if (surveyUnitModel.getCollectedVariables() != null) {
+                    surveyUnitModel.getCollectedVariables().stream()
+                            .filter(colVar -> !addedVariables.contains(new VarIdScopeTuple(colVar.varId(), colVar.scope(), colVar.iteration())))
+                            .forEach(colVar -> {
+                                collectedVariablesToKeep.add(colVar);
+                                addedVariables.add(new VarIdScopeTuple(colVar.varId(), colVar.scope(), colVar.iteration()));
+                            });
+                }
+                if (surveyUnitModel.getExternalVariables() != null){
+                    surveyUnitModel.getExternalVariables().stream()
+                            .filter(extVar -> !addedVariables.contains(new VarIdScopeTuple(extVar.varId(), extVar.scope(), extVar.iteration())))
+                            .forEach(extVar -> {
+                                externalVariablesToKeep.add(extVar);
+                                addedVariables.add(new VarIdScopeTuple(extVar.varId(), extVar.scope(), extVar.iteration()));
+                            });
+                }
+
+                // If there are new variables, we add the update to the list of latest updates
+                if (!collectedVariablesToKeep.isEmpty() || !externalVariablesToKeep.isEmpty()){
+                    surveyUnitModel.setCollectedVariables(collectedVariablesToKeep);
+                    surveyUnitModel.setExternalVariables(externalVariablesToKeep);
+                    latestUpdatesbyVariables.add(surveyUnitModel);
+                }
+            });
+        }
+
+        return latestUpdatesbyVariables;
+    }
+    //========= OPTIMISATIONS PERFS (END) ==========
+
+
     @Override
     public SurveyUnitDto findLatestValuesByStateByIdAndByQuestionnaireId(String interrogationId, String questionnaireId) {
         SurveyUnitDto surveyUnitDto = SurveyUnitDto.builder()
@@ -184,8 +287,8 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         long workerOffset = (workerId - 1) * workerSize;
         long skip = workerOffset + blockSize * page;
         long calculatedBlockSize = (skip + blockSize) > (workerOffset + workerSize) ? (workerOffset + workerSize) - (blockSize * page) : blockSize;
-        // processing of the last element on the last worker
-        if(workerId == workersNumbers) {
+        // processing of the last element on the last worker if division result is a decimal number (modulo operator)
+        if(workerId == workersNumbers && calculatedTotalSize % workersNumbers != 0) {
             calculatedBlockSize = calculatedBlockSize + 1;
         }
 

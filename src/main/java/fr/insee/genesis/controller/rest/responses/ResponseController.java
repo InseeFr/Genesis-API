@@ -317,6 +317,103 @@ public class ResponseController implements CommonApiResponse {
         return ResponseEntity.ok(results);
     }
 
+
+    //========= OPTIMISATIONS PERFS (START) ==========
+    /**
+     * @author Adrien Marchal
+     */
+    @Operation(summary = "Retrieve all responses for a questionnaire and a list of UE",
+            description = "Return the latest state for each variable for the given ids and a given questionnaire.<br>" +
+                    "For a given id, the endpoint returns a document by collection mode (if there is more than one).")
+    @PostMapping(path = "/simplified/by-list-interrogation-and-questionnaire/latestV2")
+    @PreAuthorize("hasRole('USER_KRAFTWERK')")
+    public ResponseEntity<List<SurveyUnitSimplified>> getLatestForInterrogationListV2(@RequestParam("questionnaireId") String questionnaireId,
+                                                                                      @RequestParam List<String> modes,
+                                                                                        @RequestBody List<InterrogationId> interrogationIds) {
+        long FullEndpointStartTimeStamp = System.currentTimeMillis();
+
+        List<SurveyUnitSimplified> results = new ArrayList<>();
+
+        //!!!WARNING!!! : FOR PERFORMANCES PURPOSES, WE DONT'MAKE REQUESTS ON INDIVIDUAL ELEMENTS ANYMORE? BUT ON A SUBLIST OF THE INPUTLIST
+        final int SUBBLOCK_SIZE = 100;
+        int offset = 0;
+        List<InterrogationId> interrogationIdsSubList = null;
+
+        for(String mode : modes) {
+
+            long modeLoopStartTimeStamp = System.currentTimeMillis();
+            while(offset <= interrogationIds.size()) {
+                //extract part of input list
+                int endOffset = Math.min(offset + SUBBLOCK_SIZE, interrogationIds.size());
+                interrogationIdsSubList = interrogationIds.subList(offset, endOffset);
+
+                //1) For each InterrogationId, we collect all responses versions, in which ONLY THE LATEST VERSION of each variable is kept.
+                long queryIdQMOrderedStartTimeStamp = System.currentTimeMillis();
+                List<List<SurveyUnitModel>> responses = surveyUnitService.findLatestByIdAndByQuestionnaireIdAndModeOrdered(questionnaireId, mode, interrogationIdsSubList);
+                long queryIdQMOrderedEndTimeStamp = System.currentTimeMillis();
+                long queryIdQMOrderedDeltaTimeStamp = queryIdQMOrderedEndTimeStamp - queryIdQMOrderedStartTimeStamp;
+                log.info("================ (Genesis-API-V2) query findLatestByIdAndByQuestionnaireIdAndModeOrdered duration : {}",
+                    queryIdQMOrderedDeltaTimeStamp);
+
+                responses.forEach(responsesForSingleInterrId -> {
+                    SurveyUnitSimplified simplifiedResponse = fusionWIthLastUpdated(responsesForSingleInterrId, mode);
+                    if(simplifiedResponse != null) {
+                        results.add(simplifiedResponse);
+                    }
+                });
+
+
+
+                offset = offset + SUBBLOCK_SIZE;
+            }
+            long modeLoopEndTimeStamp = System.currentTimeMillis();
+            long modeLoopDeltaTimeStamp = modeLoopEndTimeStamp - modeLoopStartTimeStamp;
+            log.info("############# (Genesis-API-V2) modeLoop duration for mode {} : {}", mode, modeLoopDeltaTimeStamp);
+        }
+
+        long FullEndpointEndTimeStamp = System.currentTimeMillis();
+        long FullEndpointDeltaTimeStamp = FullEndpointEndTimeStamp - FullEndpointStartTimeStamp;
+        log.info("############# (Genesis-API-V2) FullEndpoint duration : {}", FullEndpointDeltaTimeStamp);
+
+        return ResponseEntity.ok(results);
+    }
+
+
+    private SurveyUnitSimplified fusionWIthLastUpdated(List<SurveyUnitModel> responsesForSingleInterrId, String mode) {
+        //NOTE : 1) "responses" in input here corresponds to all collected responses versions of a given "InterrogationId",
+        //       in which ONLY THE LATEST VERSION of each variable is kept.
+
+        //return simplifiedResponse
+        SurveyUnitSimplified simplifiedResponse = null;
+
+        //2) storage of the !!!FUSION!!! OF ALL LATEST UPDATED variables (located in the different versions of the stored "InterrogationId")
+        List<VariableModel> outputVariables = new ArrayList<>();
+        List<VariableModel> outputExternalVariables = new ArrayList<>();
+
+        responsesForSingleInterrId.forEach(response -> {
+            outputVariables.addAll(response.getCollectedVariables());
+            outputExternalVariables.addAll(response.getExternalVariables());
+        });
+
+        //3) add to the result list the compiled fusion of all the latest variables
+        if (!outputVariables.isEmpty() || !outputExternalVariables.isEmpty()) {
+            Mode modeWrapped = Mode.getEnumFromModeName(mode);
+
+            simplifiedResponse = SurveyUnitSimplified.builder()
+                    .questionnaireId(responsesForSingleInterrId.getFirst().getQuestionnaireId())
+                    .campaignId(responsesForSingleInterrId.getFirst().getCampaignId())
+                    .interrogationId(responsesForSingleInterrId.getFirst().getInterrogationId())
+                    .mode(modeWrapped)
+                    .variablesUpdate(outputVariables)
+                    .externalVariables(outputExternalVariables)
+                    .build();
+        }
+
+        return simplifiedResponse;
+    }
+    //========= OPTIMISATIONS PERFS (END) ==========
+
+
     @Operation(summary = "Save edited variables",
             description = "Save edited variables document into database")
     @PostMapping(path = "/save-edited")
