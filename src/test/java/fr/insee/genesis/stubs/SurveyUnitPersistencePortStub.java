@@ -30,6 +30,17 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
         return surveyUnitModelList;
     }
 
+    //========= OPTIMISATIONS PERFS (START) ==========
+    /**
+     * @author Adrien Marchal
+     */
+    public List<SurveyUnitModel> findBySetOfIdsAndQuestionnaireIdAndMode(String questionnaireId, String mode, List<String> interrogationIdSet) {
+        //TODO : TO BE IMPLEMENTED
+        return new ArrayList<SurveyUnitModel>();
+    }
+    //========= OPTIMISATIONS PERFS (START) ==========
+
+
     @Override
     public List<SurveyUnitModel> findByInterrogationId(String interrogationId) {
         List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
@@ -77,6 +88,26 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
 
         return surveyUnitModelList;
     }
+
+
+    //======== OPTIMISATIONS PERFS (START) ========
+    /**
+     * @author Adrien Marchal
+     */
+    public long countInterrogationIdsByQuestionnaireId(String questionnaireId) {
+        //TODO : TO BE IMPLEMENTED
+        return 0L;
+    }
+
+    /**
+     * @author Adrien Marchal
+     */
+    public List<SurveyUnitModel> findPageableInterrogationIdsByQuestionnaireId(String questionnaireId, Long skip, Long limit) {
+        //TODO : TO BE IMPLEMENTED
+        return new ArrayList<SurveyUnitModel>();
+    }
+    //======= OPTIMISATIONS PERFS (END) =========
+
 
     @Override
     public List<SurveyUnitModel> findInterrogationIdsByCampaignId(String campaignId) {

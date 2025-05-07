@@ -334,7 +334,7 @@ public class ResponseController implements CommonApiResponse {
 
         List<SurveyUnitSimplified> results = new ArrayList<>();
 
-        //!!!WARNING!!! : FOR PERFORMANCES PURPOSES, WE DONT'MAKE REQUESTS ON INDIVIDUAL ELEMENTS ANYMORE? BUT ON A SUBLIST OF THE INPUTLIST
+        //!!!WARNING!!! : FOR PERFORMANCES PURPOSES, WE DONT'MAKE REQUESTS ON INDIVIDUAL ELEMENTS ANYMORE, BUT ON A SUBLIST OF THE INPUTLIST
         final int SUBBLOCK_SIZE = 100;
         int offset = 0;
         List<InterrogationId> interrogationIdsSubList = null;
@@ -361,8 +361,6 @@ public class ResponseController implements CommonApiResponse {
                         results.add(simplifiedResponse);
                     }
                 });
-
-
 
                 offset = offset + SUBBLOCK_SIZE;
             }
