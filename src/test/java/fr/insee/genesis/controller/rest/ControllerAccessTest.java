@@ -37,7 +37,6 @@ import java.util.stream.Stream;
 import static org.hamcrest.Matchers.oneOf;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -110,9 +109,10 @@ class ControllerAccessTest {
     @MethodSource("endpointsReader")
     @DisplayName("Admins should access reader-allowed services")
     void admin_should_access_reader_allowed_services(String endpointURI) throws Exception{
-        Jwt jwt = generateJwt(List.of("administrateur_traiter"), ADMIN);
-        when(jwtDecoder.decode(anyString())).thenReturn(jwt);
-        mockMvc.perform(get(endpointURI).header("Authorization", "bearer token_blabla"))
+        mockMvc.perform(
+                    get(endpointURI)
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_ADMIN")))
+                )
                 .andExpect(status().is(oneOf(200,404)));
     }
 
@@ -120,8 +120,8 @@ class ControllerAccessTest {
     @DisplayName("Reader should access schedule/all endpoint")
     void reader_should_access_schedules_services() throws Exception{
         mockMvc.perform(
-                        get("/schedule/all").with(jwt()
-                                .authorities(new SimpleGrantedAuthority("ROLE_READER")))
+                        get("/schedule/all")
+                                .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_READER")))
                 )
                 .andExpect(status().is(oneOf(200,404)));
     }
@@ -134,9 +134,9 @@ class ControllerAccessTest {
     @MethodSource("endpointsReader")
     @DisplayName("Kraftwerk users should access reader-allowed services")
     void kraftwerk_users_should_access_reader_allowed_services(String endpointURI) throws Exception{
-        Jwt jwt = generateJwt(List.of("utilisateur_Kraftwerk"), USER_KRAFTWERK);
-        when(jwtDecoder.decode(anyString())).thenReturn(jwt);
-        mockMvc.perform(get(endpointURI).header("Authorization", "bearer token_blabla"))
+        mockMvc.perform(get(endpointURI)
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_USER_KRAFTWERK")))
+                )
                 .andExpect(status().is(oneOf(200,404)));
     }
 
@@ -147,9 +147,9 @@ class ControllerAccessTest {
     @MethodSource("endpointsReader")
     @DisplayName("Platine users should access reader-allowed services")
     void platine_users_should_access_reader_allowed_services(String endpointURI) throws Exception{
-        Jwt jwt = generateJwt(List.of("utilisateur_Platine"), USER_PLATINE);
-        when(jwtDecoder.decode(anyString())).thenReturn(jwt);
-        mockMvc.perform(get(endpointURI).header("Authorization", "bearer token_blabla"))
+        mockMvc.perform(get(endpointURI)
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_USER_PLATINE")))
+                )
                 .andExpect(status().is(oneOf(200,404)));
     }
 
@@ -160,9 +160,9 @@ class ControllerAccessTest {
     @MethodSource("endpointsReader")
     @DisplayName("Readers should access reader-allowed services")
     void reader_should_access_reader_allowed_services(String endpointURI) throws Exception{
-        Jwt jwt = generateJwt(List.of("lecteur_traiter"), "reader");
-        when(jwtDecoder.decode(anyString())).thenReturn(jwt);
-        mockMvc.perform(get(endpointURI).header("Authorization", "bearer token_blabla"))
+        mockMvc.perform(get(endpointURI)
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_READER")))
+                )
                 .andExpect(status().is(oneOf(200,404)));
     }
 
@@ -173,9 +173,7 @@ class ControllerAccessTest {
     @MethodSource("endpointsReader")
     @DisplayName("User with invalid roles should not access reader-allowed services")
     void invalid_user_should_not_access_reader_allowed_services(String endpointURI) throws Exception{
-        Jwt jwt = generateJwt(List.of("toto"), "invalid_role");
-        when(jwtDecoder.decode(anyString())).thenReturn(jwt);
-        mockMvc.perform(get(endpointURI).header("Authorization", "bearer token_blabla"))
+        mockMvc.perform(get(endpointURI) .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_INVALID"))))
                 .andExpect(status().isForbidden());
     }
 
@@ -188,9 +186,8 @@ class ControllerAccessTest {
     @DisplayName("Reader should not access other schedule endpoints")
     void reader_should_not_access_other_schedules_services() throws Exception{
         doNothing().when(scheduleApiPort).deleteSchedule(anyString());
-        Jwt jwt = generateJwt(List.of("lecteur_traiter"), READER);
-        when(jwtDecoder.decode(anyString())).thenReturn(jwt);
-        mockMvc.perform(delete("/schedule/delete?surveyName=ENQ_TEST").header("Authorization", "bearer token_blabla"))
+        mockMvc.perform(delete("/schedule/delete?surveyName=ENQ_TEST")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_READER"))))
                 .andExpect(status().isForbidden());
     }
 
@@ -200,9 +197,8 @@ class ControllerAccessTest {
     @Test
     @DisplayName("Kraftwerk users should access schedules service")
     void kraftwerk_users_should_not_access_schedules_services() throws Exception{
-        Jwt jwt = generateJwt(List.of("utilisateur_Kraftwerk"), USER_KRAFTWERK);
-        when(jwtDecoder.decode(anyString())).thenReturn(jwt);
-        mockMvc.perform(get("/schedule/all").header("Authorization", "bearer token_blabla"))
+        mockMvc.perform(get("/schedule/all")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_USER_KRAFTWERK"))))
                 .andExpect(status().is(oneOf(200,404)));
     }
 
@@ -214,9 +210,9 @@ class ControllerAccessTest {
     @Test
     @DisplayName("Admins should access schedules service")
     void admins_should_access_schedules_services() throws Exception{
-        Jwt jwt = generateJwt(List.of("administrateur_traiter"), ADMIN);
-        when(jwtDecoder.decode(anyString())).thenReturn(jwt);
-        mockMvc.perform(get("/schedule/all").header("Authorization", "bearer token_blabla"))
+
+        mockMvc.perform(get("/schedule/all")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_ADMIN"))))
                 .andExpect(status().is(oneOf(200,404)));
     }
 
@@ -226,9 +222,7 @@ class ControllerAccessTest {
     @Test
     @DisplayName("Invalid roles should not access schedules service")
     void invalid_roles_should_access_schedules_services() throws Exception{
-        Jwt jwt = generateJwt(List.of("invalid_role"), "invalid_role");
-        when(jwtDecoder.decode(anyString())).thenReturn(jwt);
-        mockMvc.perform(get("/schedule/all").header("Authorization", "bearer token_blabla"))
+        mockMvc.perform(get("/schedule/all") .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_INVALID"))))
                 .andExpect(status().isForbidden());
     }
 
