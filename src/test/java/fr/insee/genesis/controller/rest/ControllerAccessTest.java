@@ -22,6 +22,7 @@ import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.ActiveProfiles;
@@ -37,6 +38,7 @@ import static org.hamcrest.Matchers.oneOf;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -114,6 +116,17 @@ class ControllerAccessTest {
                 .andExpect(status().is(oneOf(200,404)));
     }
 
+    @Test
+    @DisplayName("Reader should access schedule/all endpoint")
+    void reader_should_access_schedules_services() throws Exception{
+        mockMvc.perform(
+                        get("/schedule/all").with(jwt()
+                                .authorities(new SimpleGrantedAuthority("ROLE_READER")))
+                )
+                .andExpect(status().is(oneOf(200,404)));
+    }
+
+
     /**
      * Tests that users with the "USER_KRAFTWERK" role can access read-only endpoints.
      */
@@ -166,17 +179,7 @@ class ControllerAccessTest {
                 .andExpect(status().isForbidden());
     }
 
-    /**
-     * Test that reader can access the schedule/all endpoint.
-     */
-    @Test
-    @DisplayName("Reader should access schedule/all endpoint")
-    void reader_should_access_schedules_services() throws Exception{
-        Jwt jwt = generateJwt(List.of("lecteur_traiter"), READER);
-        when(jwtDecoder.decode(anyString())).thenReturn(jwt);
-        mockMvc.perform(get("/schedule/all").header("Authorization", "bearer token_blabla"))
-                .andExpect(status().is(oneOf(200,404)));
-    }
+
 
     /**
      * Test that reader can not access other schedule endpoints.
@@ -202,6 +205,8 @@ class ControllerAccessTest {
         mockMvc.perform(get("/schedule/all").header("Authorization", "bearer token_blabla"))
                 .andExpect(status().is(oneOf(200,404)));
     }
+
+
 
     /**
      * Test that admins can access the schedule endpoints.
