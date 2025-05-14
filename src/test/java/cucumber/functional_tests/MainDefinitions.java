@@ -101,6 +101,11 @@ public class MainDefinitions {
                 StandardCopyOption.REPLACE_EXISTING);
     }
 
+    @Given("We have a context in database for that data")
+    public void create_context() {
+        //TODO
+    }
+
     //WHENs
 
     @When("We create survey unit models from file {string} with DDI {string}")
@@ -386,6 +391,11 @@ public class MainDefinitions {
     @Then("We should have {string} in the logs")
     public void check_log(String expectedLogContent) {
         Assertions.assertThat(outputStreamCaptor.toString()).contains(expectedLogContent);
+    }
+
+    @Then("The response of get latest states should have {int} status code")
+    public void check_latest_status_status_code(int expectedStatusCode) {
+        Assertions.assertThat(surveyUnitLatestStatesResponse.getStatusCode().value()).isEqualTo(expectedStatusCode);
     }
 
     //AFTERs

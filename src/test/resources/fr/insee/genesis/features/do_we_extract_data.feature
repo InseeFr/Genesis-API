@@ -12,12 +12,23 @@ Feature: Do we extract data ?
       | CampaignId       | InterrogationId  | ExpectedCollectedVariablesCount   | ExpectedExternalVariablesCount    |
       | TEST-TABLEAUX    | AUTO11000        | 49                                | 4                                 |
 
-
-  Scenario Outline: Survey Unit latest states extraction
+  Scenario Outline: Survey Unit latest states extraction (withReview false)
     Given We have data in directory "<CampaignId>"
     When We save data from that directory
     And We extract survey unit latest states with questionnaireId "<CampaignId>" and interrogationId "<InterrogationId>"
-    And The extracted survey unit latest states response should have a survey unit DTO has interrogationId "<InterrogationId>" with <ExpectedCollectedVariablesCount> collected variables
+    Then The response of get latest states should have 403 status code
+
+    Examples:
+      | CampaignId       | InterrogationId  |
+      | TEST-TABLEAUX    | AUTO11000        |
+
+
+  Scenario Outline: Survey Unit latest states extraction (withReview true)
+    Given We have data in directory "<CampaignId>"
+    And We have a context in database for that data
+    When We save data from that directory
+    And We extract survey unit latest states with questionnaireId "<CampaignId>" and interrogationId "<InterrogationId>"
+    Then The extracted survey unit latest states response should have a survey unit DTO has interrogationId "<InterrogationId>" with <ExpectedCollectedVariablesCount> collected variables
     And The extracted survey unit latest states response should have a survey unit DTO has interrogationId "<InterrogationId>" with <ExpectedExternalVariablesCount> external variables
     Examples:
       | CampaignId       | InterrogationId  | ExpectedCollectedVariablesCount   | ExpectedExternalVariablesCount    |
