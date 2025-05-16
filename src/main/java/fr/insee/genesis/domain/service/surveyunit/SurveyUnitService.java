@@ -10,9 +10,9 @@ import fr.insee.genesis.controller.dto.VariableDto;
 import fr.insee.genesis.controller.dto.VariableInputDto;
 import fr.insee.genesis.controller.dto.VariableStateDto;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
-import fr.insee.genesis.domain.model.surveyunit.VarIdScopeTuple;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
+import fr.insee.genesis.domain.model.surveyunit.VarIdScopeTuple;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
@@ -29,6 +29,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
@@ -313,6 +314,17 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         }
 
         return questionnaireIds.iterator().next(); //Return first (and supposed only) element of set
+    }
+
+    @Override
+    public Set<String> findCampaignIdsFrom(SurveyUnitInputDto dto) {
+        List<SurveyUnitModel> responses = findByIdsInterrogationAndQuestionnaire(
+                dto.getInterrogationId(),
+                dto.getQuestionnaireId()
+        );
+        return responses.stream()
+                .map(SurveyUnitModel::getCampaignId)
+                .collect(Collectors.toSet());
     }
 
     //Utils
