@@ -89,7 +89,7 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 		//Extract questionnaireIds from JSON response
 		Set<String> questionnaireIds = new HashSet<>();
 		for(String line : mongoResponse){
-			ObjectMapper objectMapper = new ObjectMapper();
+			ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 			try{
 				JsonNode jsonNode = objectMapper.readTree(line);
 				questionnaireIds.add(jsonNode.get("questionnaireId").asText());
@@ -147,7 +147,7 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 		//Extract idCampagigns from JSON response
 		Set<String> campaignIds = new HashSet<>();
 		for(String line : mongoResponse){
-			ObjectMapper objectMapper = new ObjectMapper();
+			ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 			try{
 				JsonNode jsonNode = objectMapper.readTree(line);
 				campaignIds.add(jsonNode.get("campaignId").asText());

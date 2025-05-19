@@ -29,16 +29,16 @@ Feature: Schedule Kraftwerk executions for Bangles
   Scenario Outline: Delete schedule (existant context)
     Given We have a context in database with partition "<PartitionId>" and 1 valid schedule(s)
     When We delete the schedules of "<PartitionId>"
-    Then The context of "<PartitionId>" should have 0 schedule
+    Then The context of "<PartitionId>" should have 0 schedules
 
   Examples:
     | PartitionId |
     | PARTITION1  |
 
-  Scenario Outline: Delete schedule (existant context)
+  Scenario Outline: Delete multiple schedules
   Given We have a context in database with partition "<PartitionId>" and 3 valid schedule(s)
   When We delete the schedules of "<PartitionId>"
-  Then The context of "<PartitionId>" should have 0 schedule
+  Then The context of "<PartitionId>" should have 0 schedules
 
   Examples:
     | PartitionId |
@@ -50,19 +50,12 @@ Feature: Schedule Kraftwerk executions for Bangles
     And We have a context in database with partition "PARTITION3" and 1 valid schedule(s)
     When We get all the schedules
     Then The get all schedules should have 3 schedules, 1 per partition
-
     Examples:
-      | PartitionId1 |
-      | PARTITION1   |
 
   Scenario Outline: Delete expired schedules
     Given We have a context in database with partition "PARTITION1" and 1 valid schedule(s)
     And We have a context in database with partition "PARTITION2" and 1 expired schedule(s)
     And We have a context in database with partition "PARTITION3" and 1 valid schedule(s)
-    When We get all the schedules
-    Then We should have
-
+    When We delete the expired schedules
+    Then The get all schedules should have 2 schedules and no schedule for "PARTITION2"
     Examples:
-      | PartitionId1 |
-      | PARTITION1   |
-

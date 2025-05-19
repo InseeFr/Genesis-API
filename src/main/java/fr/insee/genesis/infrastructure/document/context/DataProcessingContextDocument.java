@@ -1,7 +1,7 @@
 package fr.insee.genesis.infrastructure.document.context;
 
 import fr.insee.genesis.Constants;
-import fr.insee.genesis.domain.model.schedule.KraftwerkExecutionSchedule;
+import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionSchedule;
 import lombok.Data;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;

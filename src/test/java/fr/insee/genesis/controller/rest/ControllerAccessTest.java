@@ -1,12 +1,12 @@
 package fr.insee.genesis.controller.rest;
 
+import fr.insee.genesis.domain.ports.api.DataProcessingContextApiPort;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
-import fr.insee.genesis.domain.ports.api.ScheduleApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
+import fr.insee.genesis.infrastructure.repository.DataProcessingContextMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.LunaticJsonMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.LunaticModelMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.RundeckExecutionDBRepository;
-import fr.insee.genesis.infrastructure.repository.ScheduleMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.SurveyUnitMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.VariableTypeMongoDBRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -60,7 +60,7 @@ class ControllerAccessTest {
     @MockitoBean
     private MongoTemplate mongoTemplate;
     @MockitoBean
-    private ScheduleApiPort scheduleApiPort;
+    private DataProcessingContextApiPort dataProcessingContextApiPort;
     @MockitoBean
     private SurveyUnitApiPort surveyUnitApiPort;
     @MockitoBean
@@ -72,7 +72,7 @@ class ControllerAccessTest {
     @MockitoBean
     private RundeckExecutionDBRepository rundeckExecutionDBRepository;
     @MockitoBean
-    private ScheduleMongoDBRepository scheduleMongoDBRepository;
+    private DataProcessingContextMongoDBRepository dataProcessingContextMongoDBRepository;
     @MockitoBean
     private VariableTypeMongoDBRepository variableTypeMongoDBRepository;
     @MockitoBean
@@ -174,7 +174,7 @@ class ControllerAccessTest {
     void reader_should_access_schedules_services() throws Exception{
         Jwt jwt = generateJwt(List.of("lecteur_traiter"), READER);
         when(jwtDecoder.decode(anyString())).thenReturn(jwt);
-        mockMvc.perform(get("/schedule/all").header("Authorization", "bearer token_blabla"))
+        mockMvc.perform(get("/context/schedules/all").header("Authorization", "bearer token_blabla"))
                 .andExpect(status().is(oneOf(200,404)));
     }
 
@@ -184,10 +184,10 @@ class ControllerAccessTest {
     @Test
     @DisplayName("Reader should not access other schedule endpoints")
     void reader_should_not_access_other_schedules_services() throws Exception{
-        doNothing().when(scheduleApiPort).deleteSchedule(anyString());
+        doNothing().when(dataProcessingContextApiPort).deleteSchedules(anyString());
         Jwt jwt = generateJwt(List.of("lecteur_traiter"), READER);
         when(jwtDecoder.decode(anyString())).thenReturn(jwt);
-        mockMvc.perform(delete("/schedule/delete?surveyName=ENQ_TEST").header("Authorization", "bearer token_blabla"))
+        mockMvc.perform(delete("/context/schedules/delete?partitionId=ENQ_TEST").header("Authorization", "bearer token_blabla"))
                 .andExpect(status().isForbidden());
     }
 
@@ -199,7 +199,7 @@ class ControllerAccessTest {
     void kraftwerk_users_should_not_access_schedules_services() throws Exception{
         Jwt jwt = generateJwt(List.of("utilisateur_Kraftwerk"), USER_KRAFTWERK);
         when(jwtDecoder.decode(anyString())).thenReturn(jwt);
-        mockMvc.perform(get("/schedule/all").header("Authorization", "bearer token_blabla"))
+        mockMvc.perform(get("/context/schedules/all").header("Authorization", "bearer token_blabla"))
                 .andExpect(status().is(oneOf(200,404)));
     }
 
@@ -211,7 +211,7 @@ class ControllerAccessTest {
     void admins_should_access_schedules_services() throws Exception{
         Jwt jwt = generateJwt(List.of("administrateur_traiter"), ADMIN);
         when(jwtDecoder.decode(anyString())).thenReturn(jwt);
-        mockMvc.perform(get("/schedule/all").header("Authorization", "bearer token_blabla"))
+        mockMvc.perform(get("/context/schedules/all").header("Authorization", "bearer token_blabla"))
                 .andExpect(status().is(oneOf(200,404)));
     }
 
@@ -223,7 +223,7 @@ class ControllerAccessTest {
     void invalid_roles_should_access_schedules_services() throws Exception{
         Jwt jwt = generateJwt(List.of("invalid_role"), "invalid_role");
         when(jwtDecoder.decode(anyString())).thenReturn(jwt);
-        mockMvc.perform(get("/schedule/all").header("Authorization", "bearer token_blabla"))
+        mockMvc.perform(get("/context/schedules").header("Authorization", "bearer token_blabla"))
                 .andExpect(status().isForbidden());
     }
 

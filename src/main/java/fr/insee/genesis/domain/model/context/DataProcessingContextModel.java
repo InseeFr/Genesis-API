@@ -1,6 +1,7 @@
 package fr.insee.genesis.domain.model.context;
 
-import fr.insee.genesis.domain.model.schedule.KraftwerkExecutionSchedule;
+import fr.insee.genesis.controller.dto.ScheduleDto;
+import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionSchedule;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,4 +27,12 @@ public class DataProcessingContextModel {
     List<KraftwerkExecutionSchedule> kraftwerkExecutionScheduleList;
 
     boolean withReview;
+
+    public ScheduleDto toScheduleDto(){
+        return ScheduleDto.builder()
+                .surveyName(partitionId)
+                .lastExecution(lastExecution)
+                .kraftwerkExecutionScheduleList(kraftwerkExecutionScheduleList)
+                .build();
+    }
 }

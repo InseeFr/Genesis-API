@@ -1,5 +1,7 @@
 package cucumber.functional_tests;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import cucumber.TestConstants;
 import fr.insee.bpm.exceptions.MetadataParserException;
 import fr.insee.bpm.metadata.model.VariablesMap;
@@ -20,11 +22,15 @@ import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
+import fr.insee.genesis.domain.ports.api.DataProcessingContextApiPort;
+import fr.insee.genesis.domain.service.context.DataProcessingContextService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.infrastructure.document.context.DataProcessingContextDocument;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
+import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
@@ -58,9 +64,16 @@ public class MainDefinitions {
 
     SurveyUnitQualityService surveyUnitQualityService = new SurveyUnitQualityService();
     SurveyUnitPersistencePortStub surveyUnitPersistence = new SurveyUnitPersistencePortStub();
+    DataProcessingContextPersistancePortStub dataProcessingContextPersistancePortStub =
+            new DataProcessingContextPersistancePortStub();
+    DataProcessingContextApiPort dataProcessingContextApiPort = new DataProcessingContextService(
+            dataProcessingContextPersistancePortStub,
+            surveyUnitPersistence
+    );
+
     Config config = new ConfigStub();
     ResponseEntity<List<SurveyUnitModel>> surveyUnitModelResponse;
-    ResponseEntity<SurveyUnitQualityToolDto> surveyUnitLatestStatesResponse;
+    ResponseEntity<String> surveyUnitLatestStatesResponse;
 
     ResponseController responseController = new ResponseController(
             new SurveyUnitService(surveyUnitPersistence),
@@ -68,7 +81,8 @@ public class MainDefinitions {
             new FileUtils(config),
             new ControllerUtils(new FileUtils(config)),
             new AuthUtils(config),
-            new MetadataService()
+            new MetadataService(),
+            dataProcessingContextApiPort
         );
 
     List<SurveyUnitModel> surveyUnitModels;
@@ -101,9 +115,34 @@ public class MainDefinitions {
                 StandardCopyOption.REPLACE_EXISTING);
     }
 
-    @Given("We have a context in database for that data")
-    public void create_context() {
-        //TODO
+    @Given("We have a context in database for that data with review {string}")
+    public void create_context(String withReviewString) {
+        dataProcessingContextPersistancePortStub.getMongoStub().add(
+                new DataProcessingContextDocument(
+                        directory,
+                        new ArrayList<>(),
+                        Boolean.parseBoolean(withReviewString)
+                )
+        );
+    }
+
+    @Given("We have a context in database for partitionId {string} with review {string}")
+    public void create_context(String partitionId, String withReviewString) {
+        dataProcessingContextPersistancePortStub.getMongoStub().add(
+                new DataProcessingContextDocument(
+                        partitionId,
+                        new ArrayList<>(),
+                        Boolean.parseBoolean(withReviewString)
+                )
+        );
+    }
+
+    @Given("We have a survey unit with campaignId {string} and interrogationId {string}")
+    public void create_light_surveyUnit(String campaignId, String interrogationId) {
+        surveyUnitPersistence.getMongoStub().add(SurveyUnitModel.builder()
+                        .campaignId(campaignId)
+                        .interrogationId(interrogationId)
+                .build());
     }
 
     //WHENs
@@ -136,6 +175,16 @@ public class MainDefinitions {
         responseController.saveResponsesFromXmlCampaignFolder(this.inDirectory.getFileName().toString(), null);
     }
 
+    @When("We allow review for that partition")
+    public void set_review_to_true() {
+        String partitionId = this.inDirectory.getFileName().toString();
+        dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(
+                dataProcessingContextDocument -> dataProcessingContextDocument.getPartitionId().equals(partitionId)
+        ).toList().forEach(
+                dataProcessingContextDocument -> dataProcessingContextDocument.setWithReview(true)
+        );
+    }
+
     @When("We delete that directory")
     public void delete_directory() throws IOException {
         org.springframework.util.FileSystemUtils.deleteRecursively(inDirectory);
@@ -147,10 +196,14 @@ public class MainDefinitions {
     }
 
     @When("We extract survey unit latest states with questionnaireId {string} and interrogationId {string}")
-    public void extract_survey_unit_latest_states(String questionnaireId, String interrogationId) {
-        this.surveyUnitLatestStatesResponse =
-                responseController.findResponsesByInterrogationAndQuestionnaireLatestStates(interrogationId,
-                questionnaireId);
+    public void extract_survey_unit_latest_states(String questionnaireId, String interrogationId){
+        try {
+            this.surveyUnitLatestStatesResponse =
+                    responseController.findResponsesByInterrogationAndQuestionnaireLatestStates(interrogationId,
+                    questionnaireId);
+        } catch (GenesisException e) {
+            this.surveyUnitLatestStatesResponse = ResponseEntity.status(e.getStatus()).body(e.getMessage());
+        }
     }
 
     //THENs
@@ -275,8 +328,16 @@ public class MainDefinitions {
     }
 
     @Then("If we get latest states for {string} in collected variable {string}, survey unit {string} we should have {string} for iteration {int}")
-    public void check_latest_state_collected(String questionnaireId, String variableName, String interrogationId, String expectedValue, int iteration) {
-        SurveyUnitQualityToolDto surveyUnitQualityToolDto = responseController.findResponsesByInterrogationAndQuestionnaireLatestStates(interrogationId, questionnaireId).getBody();
+    public void check_latest_state_collected(String questionnaireId, String variableName, String interrogationId, String expectedValue, int iteration) throws GenesisException, JsonProcessingException {
+        ResponseEntity<String> response =
+                responseController.findResponsesByInterrogationAndQuestionnaireLatestStates(interrogationId, questionnaireId);
+        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(200);
+
+        ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
+        SurveyUnitQualityToolDto surveyUnitQualityToolDto = objectMapper.readValue(
+                response.getBody()
+                , SurveyUnitQualityToolDto.class
+        );
 
         List<VariableQualityToolDto> variableQualityToolDtos = surveyUnitQualityToolDto.getCollectedVariables().stream().filter(
                 variableQualityToolDto -> variableQualityToolDto.getVariableName().equals(variableName)
@@ -295,8 +356,15 @@ public class MainDefinitions {
     }
 
     @Then("If we get latest states for {string} in external variable {string}, survey unit {string} we should have {string} for iteration {int}")
-    public void check_latest_state_external(String questionnaireId, String variableName, String interrogationId, String expectedValue, int iteration) {
-        SurveyUnitQualityToolDto surveyUnitQualityToolDto = responseController.findResponsesByInterrogationAndQuestionnaireLatestStates(interrogationId, questionnaireId).getBody();
+    public void check_latest_state_external(String questionnaireId, String variableName, String interrogationId, String expectedValue, int iteration) throws JsonProcessingException, GenesisException {
+        ResponseEntity<String> response =
+                responseController.findResponsesByInterrogationAndQuestionnaireLatestStates(interrogationId, questionnaireId);
+        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(200);
+        ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
+        SurveyUnitQualityToolDto surveyUnitQualityToolDto = objectMapper.readValue(
+                response.getBody()
+                , SurveyUnitQualityToolDto.class
+        );
 
         List<VariableQualityToolDto> variableQualityToolDtos = surveyUnitQualityToolDto.getExternalVariables().stream().filter(
                 variableQualityToolDto -> variableQualityToolDto.getVariableName().equals(variableName)
@@ -362,21 +430,35 @@ public class MainDefinitions {
     @Then("The extracted survey unit latest states response should have a survey unit DTO has interrogationId " +
             "{string}" +
             " with {int} collected variables")
-    public void check_su_latest_states_collected_variables_volumetry(String interrogationId, int expectedVolumetry) {
+    public void check_su_latest_states_collected_variables_volumetry(String interrogationId, int expectedVolumetry) throws JsonProcessingException {
         Assertions.assertThat(surveyUnitLatestStatesResponse).isNotNull();
         Assertions.assertThat(surveyUnitLatestStatesResponse.getBody()).isNotNull();
-        Assertions.assertThat(surveyUnitLatestStatesResponse.getBody().getInterrogationId()).isEqualTo(interrogationId);
-        Assertions.assertThat(surveyUnitLatestStatesResponse.getBody().getCollectedVariables()).hasSize(expectedVolumetry);
+        Assertions.assertThat(surveyUnitLatestStatesResponse.getStatusCode().value()).isEqualTo(200);
+
+        ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
+        SurveyUnitQualityToolDto surveyUnitQualityToolDto = objectMapper.readValue(
+                surveyUnitLatestStatesResponse.getBody()
+                , SurveyUnitQualityToolDto.class
+        );
+
+        Assertions.assertThat(surveyUnitQualityToolDto.getInterrogationId()).isEqualTo(interrogationId);
+        Assertions.assertThat(surveyUnitQualityToolDto.getCollectedVariables()).hasSize(expectedVolumetry);
     }
 
     @Then("The extracted survey unit latest states response should have a survey unit DTO has interrogationId " +
             "{string}" +
             " with {int} external variables")
-    public void check_su_latest_states_external_variables_volumetry(String interrogationId, int expectedVolumetry) {
+    public void check_su_latest_states_external_variables_volumetry(String interrogationId, int expectedVolumetry) throws JsonProcessingException {
         Assertions.assertThat(surveyUnitLatestStatesResponse).isNotNull();
         Assertions.assertThat(surveyUnitLatestStatesResponse.getBody()).isNotNull();
-        Assertions.assertThat(surveyUnitLatestStatesResponse.getBody().getInterrogationId()).isEqualTo(interrogationId);
-        Assertions.assertThat(surveyUnitLatestStatesResponse.getBody().getExternalVariables()).hasSize(expectedVolumetry);
+        ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
+        SurveyUnitQualityToolDto surveyUnitQualityToolDto = objectMapper.readValue(
+                surveyUnitLatestStatesResponse.getBody()
+                , SurveyUnitQualityToolDto.class
+        );
+
+        Assertions.assertThat(surveyUnitQualityToolDto.getInterrogationId()).isEqualTo(interrogationId);
+        Assertions.assertThat(surveyUnitQualityToolDto.getExternalVariables()).hasSize(expectedVolumetry);
     }
 
     @Then("We shouldn't have any response for campaign {string}")
