@@ -95,16 +95,18 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
      * @author Adrien Marchal
      */
     public long countInterrogationIdsByQuestionnaireId(String questionnaireId) {
-        //TODO : TO BE IMPLEMENTED
-        return 0L;
+        return mongoStub.size();
     }
 
     /**
      * @author Adrien Marchal
      */
     public List<SurveyUnitModel> findPageableInterrogationIdsByQuestionnaireId(String questionnaireId, Long skip, Long limit) {
-        //TODO : TO BE IMPLEMENTED
-        return new ArrayList<SurveyUnitModel>();
+        List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
+        if(skip < mongoStub.size()) {
+
+        }
+        return surveyUnitModelList;
     }
     //======= OPTIMISATIONS PERFS (END) =========
 

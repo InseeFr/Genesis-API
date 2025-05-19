@@ -183,23 +183,6 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         }
         //ELSE -> CASE WHERE THERE ARE MORE THAN ONE VERSION!
         else {
-
-            /*
-            //We add all the variables of the LATEST update
-            latestUpdatesbyVariables.add(surveyUnitModelsSorted.getFirst());
-
-            SurveyUnitModel latestUpdate = surveyUnitModelsSorted.getFirst();
-            if(latestUpdate.getCollectedVariables() == null){
-                latestUpdate.setCollectedVariables(new ArrayList<>());
-            }
-            if(latestUpdate.getExternalVariables() == null){
-                latestUpdate.setExternalVariables(new ArrayList<>());
-            }
-
-            latestUpdate.getCollectedVariables().forEach(colVar -> addedVariables.add(new VarIdScopeTuple(colVar.varId(), colVar.scope(), colVar.iteration())));
-            latestUpdate.getExternalVariables().forEach(extVar -> addedVariables.add(new VarIdScopeTuple(extVar.varId(), extVar.scope(), extVar.iteration())));
-            */
-
             allResponsesVersionsForSingleInterrId.forEach(surveyUnitModel -> {
                 List<VariableModel> collectedVariablesToKeep = new ArrayList<>();
                 List<VariableModel> externalVariablesToKeep = new ArrayList<>();
