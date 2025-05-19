@@ -29,10 +29,10 @@
         </sonar.exclusions>
         <skipSurefireReport>true</skipSurefireReport>
         <!-- Pi Test-->
-        <pitest.version>1.19.2</pitest.version>
+        <pitest.version>1.19.3</pitest.version>
         <pitest.junit.version>1.2.2</pitest.junit.version>
         <jackson.version>2.19.0</jackson.version>
-        <bpm.version>1.0.6</bpm.version>
+        <bpm.version>1.0.7</bpm.version>
     </properties>
     <dependencies>
         <dependency>
@@ -92,7 +92,7 @@
         <dependency>
             <groupId>net.sf.saxon</groupId>
             <artifactId>Saxon-HE</artifactId>
-            <version>12.6</version>
+            <version>12.7</version>
         </dependency>
 
         <!-- JSON -->
