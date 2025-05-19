@@ -11,8 +11,8 @@ import fr.insee.genesis.controller.dto.SurveyUnitDto;
 import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
 import fr.insee.genesis.controller.dto.SurveyUnitQualityToolDto;
 import fr.insee.genesis.controller.dto.SurveyUnitSimplified;
-import fr.insee.genesis.controller.services.MetadataService;
 import fr.insee.genesis.controller.rest.CommonApiResponse;
+import fr.insee.genesis.controller.services.MetadataService;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlCampaign;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlDataParser;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlDataSequentialParser;
@@ -58,6 +58,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 @RequestMapping(path = "/responses" )
@@ -76,7 +77,6 @@ public class ResponseController implements CommonApiResponse {
     private final ControllerUtils controllerUtils;
     private final AuthUtils authUtils;
     private final MetadataService metadataService;
-
 
     public ResponseController(SurveyUnitApiPort surveyUnitService,
                               SurveyUnitQualityService surveyUnitQualityService,
@@ -105,7 +105,7 @@ public class ResponseController implements CommonApiResponse {
         VariablesMap variablesMap;
         if(withDDI) {
             //Parse DDI
-            log.info(String.format("Try to read DDI file : %s", metadataFilePath));
+            log.info("Try to read DDI file : {}", metadataFilePath);
             try {
                 variablesMap =
                         DDIReader.getMetadataFromDDI(Path.of(metadataFilePath).toFile().toURI().toURL().toString(),
@@ -115,12 +115,12 @@ public class ResponseController implements CommonApiResponse {
             }
         }else{
             //Parse Lunatic
-            log.info(String.format("Try to read lunatic file : %s", metadataFilePath));
+            log.info("Try to read lunatic file : {}", metadataFilePath);
 
             variablesMap = LunaticReader.getMetadataFromLunatic(new FileInputStream(metadataFilePath)).getVariables();
         }
 
-        log.info(String.format("Try to read Xml file : %s", xmlFile));
+        log.info("Try to read Xml file : {}", xmlFile);
         Path filepath = Paths.get(xmlFile);
 
         if (getFileSizeInMB(filepath) <= Constants.MAX_FILE_SIZE_UNTIL_SEQUENTIAL) {
@@ -324,9 +324,18 @@ public class ResponseController implements CommonApiResponse {
     public ResponseEntity<Object> saveEditedVariables(
             @RequestBody SurveyUnitInputDto surveyUnitInputDto
     ){
+        //Code quality : we need to put all that logic out of this controller
         //Parse metadata
         //Try to look for DDI first, if no DDI found looks for lunatic components
         List<GenesisError> errors = new ArrayList<>();
+        //We need to retrieve campaignId
+        Set<String> campaignIds = surveyUnitService.findCampaignIdsFrom(surveyUnitInputDto);
+        if (campaignIds.size() != 1){
+            return ResponseEntity.status(500).body("Impossible to assign one campaignId to that response");
+        }
+        // If the size is equal to 1 we get this campaignId
+        String campaignId = campaignIds.iterator().next();
+        surveyUnitInputDto.setCampaignId(campaignId);
         VariablesMap variablesMap = metadataService.readMetadatas(surveyUnitInputDto.getCampaignId(),
                 surveyUnitInputDto.getMode().getModeName(), fileUtils, errors);
         if(variablesMap == null){
@@ -372,6 +381,8 @@ public class ResponseController implements CommonApiResponse {
         surveyUnitService.saveSurveyUnits(surveyUnitModels);
         return ResponseEntity.ok(SUCCESS_MESSAGE);
     }
+
+
 
     //Utilities
     /**
@@ -489,7 +500,6 @@ public class ResponseController implements CommonApiResponse {
 
             log.info("Saved {} survey units updates from Xml file {}", suCount,  filepath.getFileName());
         }
-
         return ResponseEntity.ok().build();
     }
 
