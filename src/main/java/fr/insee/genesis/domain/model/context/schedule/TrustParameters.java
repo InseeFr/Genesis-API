@@ -1,4 +1,4 @@
-package fr.insee.genesis.domain.model.schedule;
+package fr.insee.genesis.domain.model.context.schedule;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

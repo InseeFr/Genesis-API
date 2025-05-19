@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.5.4 [2025-04-24]
+### Fixed
+- kraftwerk users can create and delete schedules
+
+## 1.5.3 [2025-04-24]
+### Added
+- Add transformation from raw data to Genesis model
+- Save lunatic models in Genesis
+- Retrieve lunatic models from Genesis
+
+### Fixed
+- Allow scheduler to get all schedules and raw data dtos
+
+### Updated
+- jacoco-maven-plugin 0.8.13
+- pitest-maven 1.19.1
+- eclipse-temurin docker tag to v21.0.7_6-jre-alpine
+
+
 ## 1.5.2 [2025-03-26]
 ### Added
 - Add volumetrics to quantify raw data received

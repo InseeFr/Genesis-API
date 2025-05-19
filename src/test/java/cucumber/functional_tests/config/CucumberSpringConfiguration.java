@@ -1,10 +1,10 @@
 package cucumber.functional_tests.config;
 
 import fr.insee.genesis.GenesisApi;
+import fr.insee.genesis.infrastructure.repository.DataProcessingContextMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.LunaticJsonMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.LunaticModelMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.RundeckExecutionDBRepository;
-import fr.insee.genesis.infrastructure.repository.ScheduleMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.SurveyUnitMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.VariableTypeMongoDBRepository;
 import io.cucumber.spring.CucumberContextConfiguration;
@@ -30,10 +30,10 @@ public class CucumberSpringConfiguration {
     @MockitoBean
     private RundeckExecutionDBRepository rundeckExecutionDBRepository;
     @MockitoBean
-    private ScheduleMongoDBRepository scheduleMongoDBRepository;
-    @MockitoBean
     private VariableTypeMongoDBRepository variableTypeMongoDBRepository;
     @MockitoBean
     private LunaticModelMongoDBRepository lunaticModelMongoDBRepository;
+    @MockitoBean
+    private DataProcessingContextMongoDBRepository dataProcessingContextMongoDBRepository;
 }
 

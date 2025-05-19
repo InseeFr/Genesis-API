@@ -1,9 +1,14 @@
 package fr.insee.genesis.controller.services;
 
 import fr.insee.bpm.exceptions.MetadataParserException;
+import fr.insee.bpm.metadata.model.MetadataModel;
+import fr.insee.bpm.metadata.model.Variable;
+import fr.insee.bpm.metadata.model.VariableType;
 import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.bpm.metadata.reader.ddi.DDIReader;
 import fr.insee.bpm.metadata.reader.lunatic.LunaticReader;
+import fr.insee.genesis.Constants;
+import fr.insee.genesis.domain.utils.GroupUtils;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
 @Slf4j
 @Service
@@ -31,9 +37,16 @@ public class MetadataService {
         try {
             log.info("Try to read {} file: {}", withDDI ? "DDI" : "Lunatic", metadataFilePath);
             if (withDDI) {
-                return DDIReader.getMetadataFromDDI(
+                MetadataModel metadataModel = DDIReader.getMetadataFromDDI(
                         Path.of(metadataFilePath).toFile().toURI().toURL().toString(),
-                        new FileInputStream(metadataFilePath)).getVariables();
+                        new FileInputStream(metadataFilePath));
+                // Temporary solution
+                // the logic of adding variables from lunatic to the ones present in the DDI needs to be implemented in BPM
+                // (only in Kraftwerk for the moment)
+                for (String enoVar : Constants.getEnoVariables()){
+                    metadataModel.getVariables().putVariable(new Variable(enoVar, metadataModel.getRootGroup(), VariableType.STRING));
+                }
+                return metadataModel.getVariables();
             } else {
                 return LunaticReader.getMetadataFromLunatic(
                         new FileInputStream(metadataFilePath)).getVariables();
@@ -78,6 +91,11 @@ public class MetadataService {
                 return null;
             }
         }
+/*        // Adding Eno variables if necessary
+        // For review : not sure if this the best way to do it
+        for (String enoVar : Arrays.stream(Constants.getEnoVariables()).toList()){
+            variablesMap.putVariable(new Variable(enoVar, ));
+        }*/
         return variablesMap;
     }
 }

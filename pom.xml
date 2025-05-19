@@ -4,21 +4,21 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>fr.insee.genesis</groupId>
     <artifactId>genesis-api</artifactId>
-    <version>1.5.2</version>
+    <version>1.5.4</version>
     <packaging>jar</packaging>
     <name>genesis-api</name>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.4</version>
+        <version>3.4.5</version>
     </parent>
 
     <properties>
         <java.version>21</java.version>
-        <springdoc.version>2.8.6</springdoc.version>
+        <springdoc.version>2.8.8</springdoc.version>
         <mapstruct.version>1.6.3</mapstruct.version>
-        <cucumber.version>7.22.0</cucumber.version>
+        <cucumber.version>7.22.2</cucumber.version>
         <!-- Proprietes sonar -->
         <jacoco.version>0.8.13</jacoco.version>
         <sonar.core.codeCoveragePlugin>jacoco</sonar.core.codeCoveragePlugin>
@@ -29,10 +29,10 @@
         </sonar.exclusions>
         <skipSurefireReport>true</skipSurefireReport>
         <!-- Pi Test-->
-        <pitest.version>1.19.1</pitest.version>
+        <pitest.version>1.19.3</pitest.version>
         <pitest.junit.version>1.2.2</pitest.junit.version>
-        <jackson.version>2.18.3</jackson.version>
-        <bpm.version>1.0.6</bpm.version>
+        <jackson.version>2.19.0</jackson.version>
+        <bpm.version>1.0.7</bpm.version>
     </properties>
     <dependencies>
         <dependency>
@@ -92,15 +92,10 @@
         <dependency>
             <groupId>net.sf.saxon</groupId>
             <artifactId>Saxon-HE</artifactId>
-            <version>12.5</version>
+            <version>12.7</version>
         </dependency>
 
         <!-- JSON -->
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
-            <version>${jackson.version}</version>
-        </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
@@ -111,7 +106,16 @@
             <artifactId>jackson-datatype-jsr310</artifactId>
             <version>${jackson.version}</version>
         </dependency>
-
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
         <!-- generate implementation auto -->
         <dependency>
             <groupId>org.mapstruct</groupId>
