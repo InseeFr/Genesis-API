@@ -1,7 +1,7 @@
 package fr.insee.genesis.infrastructure.document.schedule;
 
 import fr.insee.genesis.Constants;
-import fr.insee.genesis.domain.model.schedule.KraftwerkExecutionSchedule;
+import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionSchedule;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
