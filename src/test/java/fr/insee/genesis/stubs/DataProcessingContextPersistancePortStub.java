@@ -5,6 +5,7 @@ import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionSchedule
 import fr.insee.genesis.domain.ports.spi.DataProcessingContextPersistancePort;
 import fr.insee.genesis.infrastructure.document.context.DataProcessingContextDocument;
 import fr.insee.genesis.infrastructure.mappers.DataProcessingContextMapper;
+import fr.insee.genesis.infrastructure.utils.context.ContextDedupUtils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -18,10 +19,12 @@ public class DataProcessingContextPersistancePortStub implements DataProcessingC
     List<DataProcessingContextDocument> mongoStub = new ArrayList<>();
 
     @Override
-    public List<DataProcessingContextDocument> findByPartitionId(String partitionId) {
-        return mongoStub.stream().filter(
-                dataProcessingContextDocument -> dataProcessingContextDocument.getPartitionId().equals(partitionId)
-        ).toList();
+    public DataProcessingContextDocument findByPartitionId(String partitionId) {
+        return ContextDedupUtils.deduplicateContexts(partitionId,
+                mongoStub.stream().filter(
+                        dataProcessingContextDocument -> dataProcessingContextDocument.getPartitionId().equals(partitionId)
+                ).toList()
+        );
     }
 
     @Override

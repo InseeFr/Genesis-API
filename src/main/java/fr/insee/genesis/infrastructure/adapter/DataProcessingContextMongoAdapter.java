@@ -6,6 +6,7 @@ import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionSchedule
 import fr.insee.genesis.domain.ports.spi.DataProcessingContextPersistancePort;
 import fr.insee.genesis.infrastructure.document.context.DataProcessingContextDocument;
 import fr.insee.genesis.infrastructure.repository.DataProcessingContextMongoDBRepository;
+import fr.insee.genesis.infrastructure.utils.context.ContextDedupUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -34,8 +35,10 @@ public class DataProcessingContextMongoAdapter implements DataProcessingContextP
 
 
     @Override
-    public List<DataProcessingContextDocument> findByPartitionId(String partitionId) {
-        return dataProcessingContextMongoDBRepository.findByPartitionIdList(List.of(partitionId));
+    public DataProcessingContextDocument findByPartitionId(String partitionId) {
+        List<DataProcessingContextDocument> existingDocuments =
+                dataProcessingContextMongoDBRepository.findByPartitionIdList(List.of(partitionId));
+        return ContextDedupUtils.deduplicateContexts(partitionId, existingDocuments);
     }
 
     @Override
@@ -55,7 +58,7 @@ public class DataProcessingContextMongoAdapter implements DataProcessingContextP
 
     @Override
     public List<DataProcessingContextDocument> findAll() {
-        return dataProcessingContextMongoDBRepository.findAll();
+        return ContextDedupUtils.deduplicateContexts(dataProcessingContextMongoDBRepository.findAll());
     }
 
     @Override

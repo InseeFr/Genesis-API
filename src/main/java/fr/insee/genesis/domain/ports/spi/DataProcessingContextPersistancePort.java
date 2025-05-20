@@ -7,7 +7,7 @@ import fr.insee.genesis.infrastructure.document.context.DataProcessingContextDoc
 import java.util.List;
 
 public interface DataProcessingContextPersistancePort {
-    List<DataProcessingContextDocument> findByPartitionId(String partitionId);
+    DataProcessingContextDocument findByPartitionId(String partitionId);
 
     void save(DataProcessingContextDocument dataProcessingContextDocument);
 
