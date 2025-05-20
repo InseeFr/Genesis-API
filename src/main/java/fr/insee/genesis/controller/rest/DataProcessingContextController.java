@@ -45,7 +45,7 @@ public class DataProcessingContextController {
     private final FileUtils fileUtils;
 
     @Operation(summary = "Create or update a data processing context")
-    @PutMapping(path = "/create")
+    @PutMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Object> saveContext(
             @Parameter(description = "Identifier of the partition", required = true) @RequestParam("partitionId") String partitionId,
@@ -61,7 +61,7 @@ public class DataProcessingContextController {
     }
 
     @Operation(summary = "Schedule a Kraftwerk execution")
-    @PutMapping(path = "/schedules/create")
+    @PutMapping(path = "/schedules")
     @PreAuthorize("hasRole('USER_KRAFTWERK')")
     public ResponseEntity<Object> saveSchedule(
             @Parameter(description = "Partition identifier to call Kraftwerk on") @RequestParam("partitionId") String partitionId,
@@ -117,8 +117,8 @@ public class DataProcessingContextController {
         return ResponseEntity.ok(surveyScheduleDocumentModels);
     }
 
-    @Operation(summary = "Set last execution date with new date or empty")
-    @PostMapping(path = "/schedules/setLastExecutionDate")
+    @Operation(summary = "Set last execution date of a partition with new date or nothing")
+    @PostMapping(path = "/schedules/lastExecutionDate")
     @PreAuthorize("hasRole('SCHEDULER')")
     public ResponseEntity<Object> setSurveyLastExecution(
             @Parameter(description = "Survey name to call Kraftwerk on") @RequestBody String partitionId,
@@ -133,8 +133,8 @@ public class DataProcessingContextController {
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "Delete a Kraftwerk execution schedule(s) by its survey name")
-    @DeleteMapping(path = "/schedules/delete")
+    @Operation(summary = "Delete the Kraftwerk execution schedules of a partition")
+    @DeleteMapping(path = "/schedules")
     @PreAuthorize("hasRole('USER_KRAFTWERK')")
     public ResponseEntity<Object> deleteSchedules(
             @Parameter(description = "Survey name of the schedule(s) to delete") @RequestParam("partitionId") String partitionId
@@ -149,7 +149,7 @@ public class DataProcessingContextController {
     }
 
     @Operation(summary = "Delete expired schedules")
-    @DeleteMapping(path = "/schedules/delete/expired-schedules")
+    @DeleteMapping(path = "/schedules/expired-schedules")
     @PreAuthorize("hasRole('SCHEDULER')")
     public ResponseEntity<Object> deleteExpiredSchedules() throws GenesisException, IOException {
         Set<String> storedSurveySchedulesNames = new HashSet<>();
