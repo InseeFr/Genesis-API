@@ -8,11 +8,34 @@ import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @UtilityClass
 @Slf4j
 public class ContextDedupUtils {
+    public static List<DataProcessingContextDocument> deduplicateContexts(List<DataProcessingContextDocument> dataProcessingContextDocuments) {
+        List<DataProcessingContextDocument> dedupContextDocuments = new ArrayList<>();
+
+        //Sort contexts per partitionId for dedup
+        Map<String, List<DataProcessingContextDocument>> documentsPerPartitionId = new HashMap<>();
+        for(DataProcessingContextDocument dataProcessingContextDocument : dataProcessingContextDocuments){
+            if(!documentsPerPartitionId.containsKey(dataProcessingContextDocument.getPartitionId())){
+                documentsPerPartitionId.put(dataProcessingContextDocument.getPartitionId(), new ArrayList<>());
+            }
+            documentsPerPartitionId.get(dataProcessingContextDocument.getPartitionId()).add(dataProcessingContextDocument);
+        }
+
+        //Dedup for each partition
+        for(Map.Entry<String, List<DataProcessingContextDocument>> entry : documentsPerPartitionId.entrySet()){
+            dedupContextDocuments.add(deduplicateContexts(entry.getKey(), entry.getValue()));
+        }
+
+        return dedupContextDocuments;
+    }
+
+
     public static DataProcessingContextDocument deduplicateContexts(String partitionId,
                                                                     List<DataProcessingContextDocument> dataProcessingContextDocuments) {
         if(dataProcessingContextDocuments.isEmpty()) {

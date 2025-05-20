@@ -58,7 +58,7 @@ public class DataProcessingContextMongoAdapter implements DataProcessingContextP
 
     @Override
     public List<DataProcessingContextDocument> findAll() {
-        return dataProcessingContextMongoDBRepository.findAll();
+        return ContextDedupUtils.deduplicateContexts(dataProcessingContextMongoDBRepository.findAll());
     }
 
     @Override

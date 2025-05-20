@@ -154,7 +154,7 @@ class ContextDedupUtilsTest {
     }
 
     @Test
-    void duplicateSheduleListTest() {
+    void duplicateScheduleListTest() {
         //Given
         List<DataProcessingContextDocument> dataProcessingContextDocuments = new ArrayList<>();
         DataProcessingContextDocument existingDocument = new DataProcessingContextDocument(
@@ -206,6 +206,114 @@ class ContextDedupUtilsTest {
         Assertions.assertThat(dataProcessingContextDocument).isNotNull();
         Assertions.assertThat(dataProcessingContextDocument.getPartitionId()).isEqualTo(partitionId);
         Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList()).isNotEmpty().hasSize(2);
+    }
+
+    @Test
+    void duplicateAllContextsTest() {
+        //Given
+        List<DataProcessingContextDocument> dataProcessingContextDocuments = new ArrayList<>();
+        DataProcessingContextDocument existingDocument = new DataProcessingContextDocument(
+                partitionId,
+                new ArrayList<>(),
+                false
+        );
+        existingDocument.getKraftwerkExecutionScheduleList().add(
+                new KraftwerkExecutionSchedule(
+                        "0 0 0 * * *",
+                        ServiceToCall.MAIN,
+                        LocalDateTime.MIN,
+                        LocalDateTime.MAX,
+                        null
+                )
+        );
+        existingDocument.getKraftwerkExecutionScheduleList().add(
+                new KraftwerkExecutionSchedule(
+                        "0 0 6 * * *",
+                        ServiceToCall.MAIN,
+                        LocalDateTime.now(),
+                        LocalDateTime.MAX,
+                        null
+                )
+        );
+        existingDocument.getKraftwerkExecutionScheduleList().add(
+                new KraftwerkExecutionSchedule(
+                        "0 0 12 * * *",
+                        ServiceToCall.MAIN,
+                        LocalDateTime.now(),
+                        LocalDateTime.MAX,
+                        null
+                )
+        );
+        dataProcessingContextDocuments.add(existingDocument);
+
+        existingDocument = new DataProcessingContextDocument(
+                partitionId,
+                new ArrayList<>(),
+                false
+        );
+        existingDocument.getKraftwerkExecutionScheduleList().add(
+                new KraftwerkExecutionSchedule(
+                        "0 0 0 * * *",
+                        ServiceToCall.MAIN,
+                        LocalDateTime.MIN,
+                        LocalDateTime.MAX,
+                        null
+                )
+        );
+        dataProcessingContextDocuments.add(existingDocument);
+
+        existingDocument = new DataProcessingContextDocument(
+                partitionId + "_2",
+                new ArrayList<>(),
+                false
+        );
+        existingDocument.getKraftwerkExecutionScheduleList().add(
+                new KraftwerkExecutionSchedule(
+                        "0 0 0 * * *",
+                        ServiceToCall.MAIN,
+                        LocalDateTime.MIN,
+                        LocalDateTime.MAX,
+                        null
+                )
+        );
+        existingDocument.getKraftwerkExecutionScheduleList().add(
+                new KraftwerkExecutionSchedule(
+                        "0 0 6 * * *",
+                        ServiceToCall.MAIN,
+                        LocalDateTime.MIN,
+                        LocalDateTime.MAX,
+                        null
+                )
+        );
+        dataProcessingContextDocuments.add(existingDocument);
+        existingDocument = new DataProcessingContextDocument(
+                partitionId + "_3",
+                new ArrayList<>(),
+                false
+        );
+        existingDocument.getKraftwerkExecutionScheduleList().add(
+                new KraftwerkExecutionSchedule(
+                        "0 0 6 * * *",
+                        ServiceToCall.MAIN,
+                        LocalDateTime.MIN,
+                        LocalDateTime.MAX,
+                        null
+                )
+        );
+        dataProcessingContextDocuments.add(existingDocument);
+        existingDocument = new DataProcessingContextDocument(
+                partitionId + "_4",
+                new ArrayList<>(),
+                false
+        );
+        dataProcessingContextDocuments.add(existingDocument);
+
+
+        //When
+        List<DataProcessingContextDocument> deduplicateContexts = ContextDedupUtils.deduplicateContexts(dataProcessingContextDocuments);
+
+        //Then
+        Assertions.assertThat(deduplicateContexts).isNotNull().hasSize(4);
     }
 
 }
