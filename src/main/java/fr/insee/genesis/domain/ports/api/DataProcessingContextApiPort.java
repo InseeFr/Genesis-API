@@ -20,7 +20,7 @@ public interface DataProcessingContextApiPort {
                                         LocalDateTime endDate,
                                         TrustParameters trustParameters) throws GenesisException;
 
-    void updateLastExecutionName(String surveyName, LocalDateTime newDate) throws GenesisException;
+    void updateLastExecutionDate(String surveyName, LocalDateTime newDate) throws GenesisException;
 
     void deleteSchedules(String surveyName) throws GenesisException;
 

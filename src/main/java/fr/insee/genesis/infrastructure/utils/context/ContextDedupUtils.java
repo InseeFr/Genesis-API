@@ -1,41 +1,43 @@
-package fr.insee.genesis.domain.service.context;
+package fr.insee.genesis.infrastructure.utils.context;
 
 import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
 import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionSchedule;
+import fr.insee.genesis.infrastructure.document.context.DataProcessingContextDocument;
+import fr.insee.genesis.infrastructure.mappers.DataProcessingContextMapper;
+import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Service
+@UtilityClass
 @Slf4j
-public class ContextUnicityService {
-    public DataProcessingContextModel deduplicateContexts(String partitionId,
-                                                          List<DataProcessingContextModel> dataProcessingContextModels) {
-        if(dataProcessingContextModels.isEmpty()) {
+public class ContextDedupUtils {
+    public static DataProcessingContextDocument deduplicateContexts(String partitionId,
+                                                                    List<DataProcessingContextDocument> dataProcessingContextDocuments) {
+        if(dataProcessingContextDocuments.isEmpty()) {
             return null;
         }
-        if(dataProcessingContextModels.size() == 1) {
-            return dataProcessingContextModels.getFirst();
+        if(dataProcessingContextDocuments.size() == 1) {
+            return dataProcessingContextDocuments.getFirst();
         }
 
-        log.info("{} survey descriptions found for {}, deduplicating...", dataProcessingContextModels.size(), partitionId);
+        log.info("{} survey descriptions found for {}, deduplicating...", dataProcessingContextDocuments.size(), partitionId);
 
         DataProcessingContextModel deduplicatedContext = DataProcessingContextModel.builder()
                 .partitionId(partitionId)
                 .kraftwerkExecutionScheduleList(new ArrayList<>())
-                .withReview(false)
+                .withReview(dataProcessingContextDocuments.getFirst().isWithReview())
                 .build();
 
         //Add schedule in dedup if doesn't exists already
-        for(DataProcessingContextModel dataProcessingContextModel : dataProcessingContextModels){
-            for(KraftwerkExecutionSchedule storedExecutionSchedule : dataProcessingContextModel.getKraftwerkExecutionScheduleList()){
+        for(DataProcessingContextDocument dataProcessingContextDocument : dataProcessingContextDocuments){
+            if(!dataProcessingContextDocument.isWithReview()){
+                deduplicatedContext.setWithReview(false);
+            }
+            for(KraftwerkExecutionSchedule storedExecutionSchedule : dataProcessingContextDocument.getKraftwerkExecutionScheduleList()){
                 if(deduplicatedContext.getKraftwerkExecutionScheduleList().isEmpty()){
                     deduplicatedContext.getKraftwerkExecutionScheduleList().add(storedExecutionSchedule);
-                }
-                if(!deduplicatedContext.isWithReview() && dataProcessingContextModel.isWithReview()){
-                    deduplicatedContext.setWithReview(true);
                 }
                 if(deduplicatedContext.getKraftwerkExecutionScheduleList().stream().filter(
                         schedule -> areSchedulesEquals(schedule,storedExecutionSchedule)).toList().isEmpty()){
@@ -44,8 +46,7 @@ public class ContextUnicityService {
             }
         }
 
-
-        return deduplicatedContext;
+        return DataProcessingContextMapper.INSTANCE.modelToDocument(deduplicatedContext);
     }
 
     private boolean areSchedulesEquals(KraftwerkExecutionSchedule schedule1, KraftwerkExecutionSchedule schedule2){

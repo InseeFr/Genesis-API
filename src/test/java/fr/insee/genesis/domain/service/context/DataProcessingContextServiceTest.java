@@ -121,7 +121,7 @@ class DataProcessingContextServiceTest {
         LocalDateTime localDateTime = LocalDateTime.now();
 
         //When
-        dataProcessingContextService.updateLastExecutionName("TEST", localDateTime);
+        dataProcessingContextService.updateLastExecutionDate("TEST", localDateTime);
 
         //Then
         Assertions.assertThat(dataProcessingContextPersistencePortStub.getMongoStub()).hasSize(1);

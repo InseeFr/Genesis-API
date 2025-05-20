@@ -125,7 +125,7 @@ public class DataProcessingContextController {
             @Parameter(description = "Date to save as last execution date", example = "2024-01-01T12:00:00") @RequestParam("newDate") LocalDateTime newDate
     ) {
         try {
-            dataProcessingContextApiPort.updateLastExecutionName(partitionId, newDate);
+            dataProcessingContextApiPort.updateLastExecutionDate(partitionId, newDate);
             log.info("{} last execution updated at {} !", partitionId, newDate);
         }catch (GenesisException e){
             return new ResponseEntity<>(e.getMessage(), HttpStatusCode.valueOf(e.getStatus()));
