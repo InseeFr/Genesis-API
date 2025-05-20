@@ -28,7 +28,7 @@ class ContextUnicityServiceTest {
         List<DataProcessingContextModel> dataProcessingContextModels = new ArrayList<>();
 
         //When
-        DataProcessingContextModel dataProcessingContextModel = contextUnicityServiceToTest.deduplicateSchedules(partitionId, dataProcessingContextModels);
+        DataProcessingContextModel dataProcessingContextModel = contextUnicityServiceToTest.deduplicateContexts(partitionId, dataProcessingContextModels);
 
         //Then
         Assertions.assertThat(dataProcessingContextModel).isNull();
@@ -54,7 +54,7 @@ class ContextUnicityServiceTest {
         );
 
         //When
-        DataProcessingContextModel dataProcessingContextModel = contextUnicityServiceToTest.deduplicateSchedules(partitionId, dataProcessingContextModels);
+        DataProcessingContextModel dataProcessingContextModel = contextUnicityServiceToTest.deduplicateContexts(partitionId, dataProcessingContextModels);
 
         //Then
         Assertions.assertThat(dataProcessingContextModel).isNotNull();
@@ -98,7 +98,7 @@ class ContextUnicityServiceTest {
 
 
         //When
-        DataProcessingContextModel dataProcessingContextModel = contextUnicityServiceToTest.deduplicateSchedules(partitionId, dataProcessingContextModels);
+        DataProcessingContextModel dataProcessingContextModel = contextUnicityServiceToTest.deduplicateContexts(partitionId, dataProcessingContextModels);
 
         //Then
         Assertions.assertThat(dataProcessingContextModel).isNotNull();
@@ -150,7 +150,7 @@ class ContextUnicityServiceTest {
         dataProcessingContextModels.add(surveySchedule);
 
         //When
-        DataProcessingContextModel dataProcessingContextModel = contextUnicityServiceToTest.deduplicateSchedules(partitionId, dataProcessingContextModels);
+        DataProcessingContextModel dataProcessingContextModel = contextUnicityServiceToTest.deduplicateContexts(partitionId, dataProcessingContextModels);
 
         //Then
         Assertions.assertThat(dataProcessingContextModel).isNotNull();

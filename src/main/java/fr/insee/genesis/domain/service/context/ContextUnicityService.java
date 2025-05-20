@@ -11,8 +11,8 @@ import java.util.List;
 @Service
 @Slf4j
 public class ContextUnicityService {
-    public DataProcessingContextModel deduplicateSchedules(String partitionId,
-                                                           List<DataProcessingContextModel> dataProcessingContextModels) {
+    public DataProcessingContextModel deduplicateContexts(String partitionId,
+                                                          List<DataProcessingContextModel> dataProcessingContextModels) {
         if(dataProcessingContextModels.isEmpty()) {
             return null;
         }
@@ -22,7 +22,7 @@ public class ContextUnicityService {
 
         log.info("{} survey descriptions found for {}, deduplicating...", dataProcessingContextModels.size(), partitionId);
 
-        DataProcessingContextModel deduplicatedSurveySchedule = DataProcessingContextModel.builder()
+        DataProcessingContextModel deduplicatedContext = DataProcessingContextModel.builder()
                 .partitionId(partitionId)
                 .kraftwerkExecutionScheduleList(new ArrayList<>())
                 .withReview(false)
@@ -31,21 +31,21 @@ public class ContextUnicityService {
         //Add schedule in dedup if doesn't exists already
         for(DataProcessingContextModel dataProcessingContextModel : dataProcessingContextModels){
             for(KraftwerkExecutionSchedule storedExecutionSchedule : dataProcessingContextModel.getKraftwerkExecutionScheduleList()){
-                if(deduplicatedSurveySchedule.getKraftwerkExecutionScheduleList().isEmpty()){
-                    deduplicatedSurveySchedule.getKraftwerkExecutionScheduleList().add(storedExecutionSchedule);
+                if(deduplicatedContext.getKraftwerkExecutionScheduleList().isEmpty()){
+                    deduplicatedContext.getKraftwerkExecutionScheduleList().add(storedExecutionSchedule);
                 }
-                if(!deduplicatedSurveySchedule.isWithReview() && dataProcessingContextModel.isWithReview()){
-                    deduplicatedSurveySchedule.setWithReview(true);
+                if(!deduplicatedContext.isWithReview() && dataProcessingContextModel.isWithReview()){
+                    deduplicatedContext.setWithReview(true);
                 }
-                if(deduplicatedSurveySchedule.getKraftwerkExecutionScheduleList().stream().filter(
+                if(deduplicatedContext.getKraftwerkExecutionScheduleList().stream().filter(
                         schedule -> areSchedulesEquals(schedule,storedExecutionSchedule)).toList().isEmpty()){
-                    deduplicatedSurveySchedule.getKraftwerkExecutionScheduleList().add(storedExecutionSchedule);
+                    deduplicatedContext.getKraftwerkExecutionScheduleList().add(storedExecutionSchedule);
                 }
             }
         }
 
 
-        return deduplicatedSurveySchedule;
+        return deduplicatedContext;
     }
 
     private boolean areSchedulesEquals(KraftwerkExecutionSchedule schedule1, KraftwerkExecutionSchedule schedule2){

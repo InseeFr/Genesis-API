@@ -71,7 +71,7 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
                 );
 
         DataProcessingContextModel dataProcessingContextModel =
-                new ContextUnicityService().deduplicateSchedules(partitionId, existingModels);
+                new ContextUnicityService().deduplicateContexts(partitionId, existingModels);
         if(existingModels.isEmpty()){
             //Create if not exist
             dataProcessingContextModel = DataProcessingContextModel.builder()
