@@ -1,5 +1,7 @@
 package fr.insee.genesis.controller.rest.responses;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.insee.bpm.exceptions.MetadataParserException;
 import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.bpm.metadata.reader.ddi.DDIReader;
@@ -20,9 +22,11 @@ import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
 import fr.insee.genesis.controller.utils.AuthUtils;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.controller.utils.DataTransformer;
+import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
+import fr.insee.genesis.domain.ports.api.DataProcessingContextApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.exceptions.GenesisError;
@@ -73,6 +77,7 @@ public class ResponseController implements CommonApiResponse {
     private static final String SUCCESS_NO_DATA_MESSAGE = "No data has been saved";
     private final SurveyUnitApiPort surveyUnitService;
     private final SurveyUnitQualityService surveyUnitQualityService;
+    private final DataProcessingContextApiPort contextService;
     private final FileUtils fileUtils;
     private final ControllerUtils controllerUtils;
     private final AuthUtils authUtils;
@@ -83,7 +88,8 @@ public class ResponseController implements CommonApiResponse {
                               FileUtils fileUtils,
                               ControllerUtils controllerUtils,
                               AuthUtils authUtils,
-                              MetadataService metadataService
+                              MetadataService metadataService,
+                              DataProcessingContextApiPort contextService
     ) {
         this.surveyUnitService = surveyUnitService;
         this.surveyUnitQualityService = surveyUnitQualityService;
@@ -91,6 +97,7 @@ public class ResponseController implements CommonApiResponse {
         this.controllerUtils = controllerUtils;
         this.authUtils = authUtils;
         this.metadataService = metadataService;
+        this.contextService = contextService;
     }
 
     //SAVE
@@ -220,12 +227,25 @@ public class ResponseController implements CommonApiResponse {
     @Operation(summary = "Retrieve responses for an interrogation, using interrogationId and questionnaireId from Genesis Database with the latest value for each available state of every variable")
     @GetMapping(path = "/by-ue-and-questionnaire/latest-states")
     @PreAuthorize("hasRole('USER_PLATINE')")
-    public ResponseEntity<SurveyUnitQualityToolDto> findResponsesByInterrogationAndQuestionnaireLatestStates(
+    public ResponseEntity<String> findResponsesByInterrogationAndQuestionnaireLatestStates(
             @RequestParam("interrogationId") String interrogationId,
-            @RequestParam("questionnaireId") String questionnaireId) {
+            @RequestParam("questionnaireId") String questionnaireId) throws GenesisException {
+        //Check context
+        DataProcessingContextModel dataProcessingContextModel =
+                contextService.getContext(interrogationId);
+
+        if(dataProcessingContextModel == null || !dataProcessingContextModel.isWithReview()){
+            return ResponseEntity.status(403).body("Review is disabled for that partition");
+        }
+
         SurveyUnitDto response = surveyUnitService.findLatestValuesByStateByIdAndByQuestionnaireId(interrogationId, questionnaireId);
-        SurveyUnitQualityToolDto responseQualityTool = DataTransformer.transformSurveyUnitDto(response);
-        return ResponseEntity.ok(responseQualityTool);
+        SurveyUnitQualityToolDto responseQualityToolDto = DataTransformer.transformSurveyUnitDto(response);
+        ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
+        try {
+            return ResponseEntity.ok(objectMapper.writeValueAsString(responseQualityToolDto));
+        }catch (JsonProcessingException e){
+            return ResponseEntity.badRequest().body(e.toString());
+        }
     }
 
     @Hidden
@@ -317,6 +337,101 @@ public class ResponseController implements CommonApiResponse {
         return ResponseEntity.ok(results);
     }
 
+
+    //========= OPTIMISATIONS PERFS (START) ==========
+    /**
+     * @author Adrien Marchal
+     */
+    @Operation(summary = "Retrieve all responses for a questionnaire and a list of UE",
+            description = "Return the latest state for each variable for the given ids and a given questionnaire.<br>" +
+                    "For a given id, the endpoint returns a document by collection mode (if there is more than one).")
+    @PostMapping(path = "/simplified/by-list-interrogation-and-questionnaire/latestV2")
+    @PreAuthorize("hasRole('USER_KRAFTWERK')")
+    public ResponseEntity<List<SurveyUnitSimplified>> getLatestForInterrogationListV2(@RequestParam("questionnaireId") String questionnaireId,
+                                                                                      @RequestParam List<String> modes,
+                                                                                        @RequestBody List<InterrogationId> interrogationIds) {
+        long FullEndpointStartTimeStamp = System.currentTimeMillis();
+
+        List<SurveyUnitSimplified> results = new ArrayList<>();
+
+        //!!!WARNING!!! : FOR PERFORMANCES PURPOSES, WE DONT'MAKE REQUESTS ON INDIVIDUAL ELEMENTS ANYMORE, BUT ON A SUBLIST OF THE INPUTLIST
+        final int SUBBLOCK_SIZE = 100;
+        int offset = 0;
+        List<InterrogationId> interrogationIdsSubList = null;
+
+        for(String mode : modes) {
+
+            long modeLoopStartTimeStamp = System.currentTimeMillis();
+            while(offset <= interrogationIds.size()) {
+                //extract part of input list
+                int endOffset = Math.min(offset + SUBBLOCK_SIZE, interrogationIds.size());
+                interrogationIdsSubList = interrogationIds.subList(offset, endOffset);
+
+                //1) For each InterrogationId, we collect all responses versions, in which ONLY THE LATEST VERSION of each variable is kept.
+                long queryIdQMOrderedStartTimeStamp = System.currentTimeMillis();
+                List<List<SurveyUnitModel>> responses = surveyUnitService.findLatestByIdAndByQuestionnaireIdAndModeOrdered(questionnaireId, mode, interrogationIdsSubList);
+                long queryIdQMOrderedEndTimeStamp = System.currentTimeMillis();
+                long queryIdQMOrderedDeltaTimeStamp = queryIdQMOrderedEndTimeStamp - queryIdQMOrderedStartTimeStamp;
+                log.info("================ (Genesis-API-V2) query findLatestByIdAndByQuestionnaireIdAndModeOrdered duration : {}",
+                    queryIdQMOrderedDeltaTimeStamp);
+
+                responses.forEach(responsesForSingleInterrId -> {
+                    SurveyUnitSimplified simplifiedResponse = fusionWIthLastUpdated(responsesForSingleInterrId, mode);
+                    if(simplifiedResponse != null) {
+                        results.add(simplifiedResponse);
+                    }
+                });
+
+                offset = offset + SUBBLOCK_SIZE;
+            }
+            long modeLoopEndTimeStamp = System.currentTimeMillis();
+            long modeLoopDeltaTimeStamp = modeLoopEndTimeStamp - modeLoopStartTimeStamp;
+            log.info("############# (Genesis-API-V2) modeLoop duration for mode {} : {}", mode, modeLoopDeltaTimeStamp);
+        }
+
+        long FullEndpointEndTimeStamp = System.currentTimeMillis();
+        long FullEndpointDeltaTimeStamp = FullEndpointEndTimeStamp - FullEndpointStartTimeStamp;
+        log.info("############# (Genesis-API-V2) FullEndpoint duration : {}", FullEndpointDeltaTimeStamp);
+
+        return ResponseEntity.ok(results);
+    }
+
+
+    private SurveyUnitSimplified fusionWIthLastUpdated(List<SurveyUnitModel> responsesForSingleInterrId, String mode) {
+        //NOTE : 1) "responses" in input here corresponds to all collected responses versions of a given "InterrogationId",
+        //       in which ONLY THE LATEST VERSION of each variable is kept.
+
+        //return simplifiedResponse
+        SurveyUnitSimplified simplifiedResponse = null;
+
+        //2) storage of the !!!FUSION!!! OF ALL LATEST UPDATED variables (located in the different versions of the stored "InterrogationId")
+        List<VariableModel> outputVariables = new ArrayList<>();
+        List<VariableModel> outputExternalVariables = new ArrayList<>();
+
+        responsesForSingleInterrId.forEach(response -> {
+            outputVariables.addAll(response.getCollectedVariables());
+            outputExternalVariables.addAll(response.getExternalVariables());
+        });
+
+        //3) add to the result list the compiled fusion of all the latest variables
+        if (!outputVariables.isEmpty() || !outputExternalVariables.isEmpty()) {
+            Mode modeWrapped = Mode.getEnumFromModeName(mode);
+
+            simplifiedResponse = SurveyUnitSimplified.builder()
+                    .questionnaireId(responsesForSingleInterrId.getFirst().getQuestionnaireId())
+                    .campaignId(responsesForSingleInterrId.getFirst().getCampaignId())
+                    .interrogationId(responsesForSingleInterrId.getFirst().getInterrogationId())
+                    .mode(modeWrapped)
+                    .variablesUpdate(outputVariables)
+                    .externalVariables(outputExternalVariables)
+                    .build();
+        }
+
+        return simplifiedResponse;
+    }
+    //========= OPTIMISATIONS PERFS (END) ==========
+
+
     @Operation(summary = "Save edited variables",
             description = "Save edited variables document into database")
     @PostMapping(path = "/save-edited")
@@ -392,7 +507,7 @@ public class ResponseController implements CommonApiResponse {
      * @param errors error list to fill
      */
     private void processCampaignWithMode(String campaignName, Mode mode, List<GenesisError> errors, String rootDataFolder)
-            throws IOException, ParserConfigurationException, SAXException, XMLStreamException, NoDataException {
+            throws IOException, ParserConfigurationException, SAXException, XMLStreamException, NoDataException, GenesisException {
         log.info("Starting data import for mode: {}", mode.getModeName());
         String dataFolder = rootDataFolder == null ?
                 fileUtils.getDataFolder(campaignName, mode.getFolder(), null)
@@ -412,13 +527,19 @@ public class ResponseController implements CommonApiResponse {
         for (String fileName : dataFiles.stream().filter(s -> s.endsWith(".xml")).toList()) {
             processOneXmlFileForCampaign(campaignName, mode, fileName, dataFolder, variablesMap);
         }
+
+        //Create context if not exist
+        if(contextService.getContextByPartitionId(campaignName) == null){
+            contextService.saveContext(campaignName, false);
+        }
+
     }
 
     private void processOneXmlFileForCampaign(String campaignName,
                                               Mode mode,
                                               String fileName,
                                               String dataFolder,
-                                              VariablesMap variablesMap) throws IOException, ParserConfigurationException, SAXException, XMLStreamException {
+                                              VariablesMap variablesMap) throws IOException, ParserConfigurationException, SAXException, XMLStreamException, GenesisException {
         String filepathString = String.format(PATH_FORMAT, dataFolder, fileName);
         Path filepath = Paths.get(filepathString);
         //Check if file not in done folder, delete if true
@@ -452,7 +573,7 @@ public class ResponseController implements CommonApiResponse {
         return Path.of(fileUtils.getDoneFolder(campaignName, modeFolder)).resolve(filepath.getFileName()).toFile().exists();
     }
 
-    private ResponseEntity<Object> processXmlFileWithMemory(Path filepath, Mode modeSpecified, VariablesMap variablesMap) throws IOException, ParserConfigurationException, SAXException {
+    private ResponseEntity<Object> processXmlFileWithMemory(Path filepath, Mode modeSpecified, VariablesMap variablesMap) throws IOException, ParserConfigurationException, SAXException, GenesisException {
         LunaticXmlCampaign campaign;
         // DOM method
         LunaticXmlDataParser parser = new LunaticXmlDataParser();
@@ -477,7 +598,7 @@ public class ResponseController implements CommonApiResponse {
         return ResponseEntity.ok().build();
     }
 
-    private ResponseEntity<Object> processXmlFileSequentially(Path filepath, Mode modeSpecified, VariablesMap variablesMap) throws IOException, XMLStreamException {
+    private ResponseEntity<Object> processXmlFileSequentially(Path filepath, Mode modeSpecified, VariablesMap variablesMap) throws IOException, XMLStreamException, GenesisException {
         LunaticXmlCampaign campaign;
         //Sequential method
         log.warn("File size > {} MB! Parsing XML file using sequential method...", Constants.MAX_FILE_SIZE_UNTIL_SEQUENTIAL);
@@ -487,6 +608,7 @@ public class ResponseController implements CommonApiResponse {
 
             campaign = parser.getCampaign();
             LunaticXmlSurveyUnit su = parser.readNextSurveyUnit();
+            contextService.saveContext(campaign.getCampaignId(), false);
 
             while (su != null) {
                 List<SurveyUnitModel> surveyUnitModels = new ArrayList<>(LunaticXmlAdapter.convert(su, variablesMap, campaign.getCampaignId(), modeSpecified));

@@ -9,7 +9,7 @@ import java.util.Map;
 
 @UtilityClass
 public class JsonUtils {
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
     public static Map<String, Object> jsonToMap(String json) throws JsonProcessingException {
         return objectMapper.readValue(json, Map.class);

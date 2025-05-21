@@ -1,5 +1,7 @@
 package fr.insee.genesis.controller.rest.responses;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import cucumber.TestConstants;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.configuration.Config;
@@ -17,11 +19,14 @@ import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
+import fr.insee.genesis.domain.service.context.DataProcessingContextService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
+import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.infrastructure.document.context.DataProcessingContextDocument;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
-import fr.insee.genesis.stubs.LunaticJsonRawDataPersistanceStub;
+import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -44,7 +49,7 @@ class ResponseControllerTest {
     //Given
     static ResponseController responseControllerStatic;
     static SurveyUnitPersistencePortStub surveyUnitPersistencePortStub;
-    static LunaticJsonRawDataPersistanceStub lunaticJsonPersistanceStub;
+    static DataProcessingContextPersistancePortStub dataProcessingContextPersistancePortStub;
 
     static List<InterrogationId> interrogationIdList;
     //Constants
@@ -58,6 +63,8 @@ class ResponseControllerTest {
         surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
         SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(surveyUnitPersistencePortStub);
 
+        dataProcessingContextPersistancePortStub = new DataProcessingContextPersistancePortStub();
+
         Config config = new ConfigStub();
         FileUtils fileUtils = new FileUtils(config);
 
@@ -68,6 +75,7 @@ class ResponseControllerTest {
                 , new ControllerUtils(fileUtils)
                 , new AuthUtils(config)
                 , new MetadataService()
+                , new DataProcessingContextService(dataProcessingContextPersistancePortStub, surveyUnitPersistencePortStub)
         );
 
         interrogationIdList = new ArrayList<>();
@@ -76,6 +84,8 @@ class ResponseControllerTest {
 
     @BeforeEach
     void reset() throws IOException {
+        dataProcessingContextPersistancePortStub.getMongoStub().clear();
+
         Utils.reset(surveyUnitPersistencePortStub);
     }
 
@@ -226,7 +236,7 @@ class ResponseControllerTest {
 
     // Perret tests
     @Test
-    void getLatestByStatesSurveyDataTest(){
+    void getLatestByStatesSurveyDataTest() throws GenesisException, JsonProcessingException {
         //GIVEN
         //Recent Collected already in stub
         //Old Collected
@@ -256,21 +266,29 @@ class ResponseControllerTest {
                 surveyUnitPersistencePortStub
         );
 
+        dataProcessingContextPersistancePortStub.getMongoStub().add(new DataProcessingContextDocument(
+                "TESTCAMPAIGNID", new ArrayList<>(), true
+
+        ));
+
 
         //WHEN
-        ResponseEntity<SurveyUnitQualityToolDto> response = responseControllerStatic.findResponsesByInterrogationAndQuestionnaireLatestStates(
+        ResponseEntity<String> response = responseControllerStatic.findResponsesByInterrogationAndQuestionnaireLatestStates(
                 DEFAULT_INTERROGATION_ID,
                 DEFAULT_QUESTIONNAIRE_ID
         );
 
 
         //THEN
-        SurveyUnitQualityToolDto surveyUnitDto = response.getBody();
-        Assertions.assertThat(surveyUnitDto).isNotNull();
+        ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
+        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(200);
+        SurveyUnitQualityToolDto surveyUnitQualityToolDto = objectMapper.readValue(response.getBody(), SurveyUnitQualityToolDto.class);
 
-        Assertions.assertThat(surveyUnitDto.getInterrogationId()).isEqualTo(DEFAULT_INTERROGATION_ID);
+        Assertions.assertThat(surveyUnitQualityToolDto).isNotNull();
 
-        List<VariableQualityToolDto> variableQualityToolDtos = surveyUnitDto.getCollectedVariables().stream().filter(
+        Assertions.assertThat(surveyUnitQualityToolDto.getInterrogationId()).isEqualTo(DEFAULT_INTERROGATION_ID);
+
+        List<VariableQualityToolDto> variableQualityToolDtos = surveyUnitQualityToolDto.getCollectedVariables().stream().filter(
                 variableQualityToolDto -> variableQualityToolDto.getVariableName().equals("TESTVARID")
                 && variableQualityToolDto.getIteration().equals(1)
         ).toList();
@@ -299,7 +317,7 @@ class ResponseControllerTest {
                 .isTrue();
 
 
-        variableQualityToolDtos = surveyUnitDto.getExternalVariables().stream().filter(
+        variableQualityToolDtos = surveyUnitQualityToolDto.getExternalVariables().stream().filter(
                 variableQualityToolDto1 -> variableQualityToolDto1.getVariableName().equals("TESTVARID")
                         && variableQualityToolDto1.getIteration().equals(1)
         ).toList();

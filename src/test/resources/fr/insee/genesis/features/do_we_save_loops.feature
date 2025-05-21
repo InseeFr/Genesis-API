@@ -5,7 +5,7 @@ Feature: Do we save loops ?
     Given We have data in directory "TEST-TABLEAUX"
     Given We copy data file "data_backup/data.complete.validated.TEST-TABLEAUX.xml" to that directory
     When We save data from that directory
-
+    And We allow review for that partition
     Then For collected variable "<VariableName>" in survey unit "<InterrogationId>" we should have "<ExpectedValue>" and scope "<ExpectedScope>" for iteration <Iteration>
     Then If we get latest states for "TEST-TABLEAUX" in collected variable "<VariableName>", survey unit "<InterrogationId>" we should have "<ExpectedValue>" for iteration <Iteration>
     Examples:
@@ -18,7 +18,7 @@ Feature: Do we save loops ?
     Given We have data in directory "TEST-TABLEAUX"
     Given We copy data file "data_backup/data.complete.validated.TEST-TABLEAUX.xml" to that directory
     When We save data from that directory
-
+    And We allow review for that partition
     Then For external variable "<VariableName>" in survey unit "<InterrogationId>" we should have "<ExpectedValue>" and scope "<ExpectedScope>" for iteration <Iteration>
     Then If we get latest states for "TEST-TABLEAUX" in external variable "<VariableName>", survey unit "<InterrogationId>" we should have "<ExpectedValue>" for iteration <Iteration>
     Examples:
