@@ -187,7 +187,7 @@ class ControllerAccessTest {
         doNothing().when(dataProcessingContextApiPort).deleteSchedules(anyString());
         Jwt jwt = generateJwt(List.of("lecteur_traiter"), READER);
         when(jwtDecoder.decode(anyString())).thenReturn(jwt);
-        mockMvc.perform(delete("/context/schedules/delete?partitionId=ENQ_TEST").header("Authorization", "bearer token_blabla"))
+        mockMvc.perform(delete("/context/schedules?partitionId=ENQ_TEST").header("Authorization", "bearer token_blabla"))
                 .andExpect(status().isForbidden());
     }
 
