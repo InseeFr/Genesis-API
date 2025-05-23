@@ -1,5 +1,11 @@
 package fr.insee.genesis.controller.rest.responses;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.networknt.schema.JsonSchema;
+import com.networknt.schema.JsonSchemaFactory;
+import com.networknt.schema.SpecVersion;
+import com.networknt.schema.ValidationMessage;
 import fr.insee.genesis.controller.dto.rawdata.LunaticJsonRawDataUnprocessedDto;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
@@ -22,8 +28,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Slf4j
 @Controller
@@ -67,6 +75,59 @@ public class RawResponseController {
         log.info("Data saved for interrogationId {} and campaign {}",interrogationId, campaignName);
         // Collect platform prefer code 201 in case of success
         return ResponseEntity.status(201).body(String.format(SUCCESS_MESSAGE,interrogationId));
+    }
+
+    @Operation(summary = "Save lunatic json data from one interrogation in Genesis Database")
+    @PutMapping(path = "/lunatic-json/with-validation")
+    @PreAuthorize("hasRole('COLLECT_PLATFORM')")
+    public ResponseEntity<String> saveRawResponsesFromJsonBodyWithValidation(
+            @RequestBody Map<String, Object> body
+    ) {
+        JsonSchema jsonSchema = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7).getSchema(
+                RawResponseController.class.getResourceAsStream("/json_schemas/RawResponse.json")
+        );
+        try{
+            Set<ValidationMessage> errors = jsonSchema.validate(
+                    new ObjectMapper().readTree(
+                            new ObjectMapper().writeValueAsString(body)
+                    )
+            );
+            if(!errors.isEmpty()){
+                throw new GenesisException(400, "Input data json is not valid \n%s".formatted(
+                        Arrays.toString(errors.toArray()))
+                );
+            }
+
+            //Check required ids
+            checkRequiredIds(body);
+        }catch (JsonProcessingException jpe){
+            return ResponseEntity.status(400).body(jpe.toString());
+        }catch (GenesisException ge){
+            return ResponseEntity.status(ge.getStatus()).body(ge.getMessage());
+        }
+
+        return saveRawResponsesFromJsonBody(
+                body.get("partitionId").toString(), //TODO Maybe adapt automatically to new models ?
+                body.get("questionnaireModelId").toString(),
+                body.get("interrogationId").toString(),
+                body.get("surveyUnitId").toString(),
+                Mode.getEnumFromJsonName(body.get("mode").toString()),
+                body
+        );
+    }
+
+    private void checkRequiredIds(Map<String, Object> body) throws GenesisException {
+        for(String requiredKey : List.of(
+                "partitionId",
+                "questionnaireModelId",
+                "interrogationId",
+                "surveyUnitId",
+                "mode"
+        )){
+            if(body.get(requiredKey) == null){
+                throw new GenesisException(400, "No %s found in json".formatted(requiredKey));
+            }
+        }
     }
 
     //GET unprocessed

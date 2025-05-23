@@ -116,6 +116,11 @@
             <artifactId>jackson-core</artifactId>
             <version>${jackson.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.networknt</groupId>
+            <artifactId>json-schema-validator</artifactId>
+            <version>1.5.6</version>
+        </dependency>
         <!-- generate implementation auto -->
         <dependency>
             <groupId>org.mapstruct</groupId>

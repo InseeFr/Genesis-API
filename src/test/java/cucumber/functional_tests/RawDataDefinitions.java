@@ -14,6 +14,7 @@ import fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.domain.utils.JsonUtils;
+import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.LunaticJsonRawDataPersistanceStub;
@@ -114,11 +115,36 @@ public class RawDataDefinitions {
         HttpEntity<String> requestEntity = new HttpEntity<>(rawJsonData.trim(), headers);
         try {
             response = rest.exchange(url, HttpMethod.PUT, requestEntity, String.class);
-            if(response.getStatusCode().is2xxSuccessful()){nbRawSaved++;}
+            if(response.getStatusCode().is2xxSuccessful()){
+                nbRawSaved++;
+                return;
+            }
+            log.error(response.getBody());
         } catch (Exception e) {
+            log.error(e.toString());
             response = new ResponseEntity<>("Unexpected error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
 
+    @When("We call save raw data endpoint with validation")
+    public void save_raw_data_validation_spring() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer fake_token");
+        String url = "%sresponses/raw/lunatic-json/with-validation".formatted(baseUrl);
+
+        HttpEntity<String> requestEntity = new HttpEntity<>(rawJsonData.trim(), headers);
+        try {
+            response = rest.exchange(url, HttpMethod.PUT, requestEntity, String.class);
+            if(response.getStatusCode().is2xxSuccessful()){
+                nbRawSaved++;
+                return;
+            }
+            log.error(response.getBody());
+        } catch (Exception e) {
+            log.error(e.toString());
+            response = new ResponseEntity<>("Unexpected error", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @When("We save that raw data for web campaign {string}, questionnaire {string}, interrogation {string}")

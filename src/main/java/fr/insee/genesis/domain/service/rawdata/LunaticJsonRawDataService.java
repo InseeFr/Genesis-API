@@ -11,6 +11,7 @@ import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
+import fr.insee.genesis.domain.model.surveyunit.rawdata.RawDataModelType;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.spi.LunaticJsonRawDataPersistencePort;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
@@ -125,6 +126,12 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
         //For each possible data state (we receive COLLECTED or EDITED)
         for(DataState dataState : List.of(DataState.COLLECTED,DataState.EDITED)){
             for (LunaticJsonRawDataModel rawData : rawDataList) {
+                RawDataModelType rawDataModelType =
+                        rawData.data().containsKey("data") ?
+                                RawDataModelType.FILIERE :
+                                RawDataModelType.DEFAULT;
+
+
                 SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
                         .campaignId(rawData.campaignId())
                         .questionnaireId(rawData.questionnaireId())
@@ -138,11 +145,11 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
                         .build();
 
                 //Data collected variables conversion
-                convertRawDataCollectedVariables(rawData, surveyUnitModel, dataState, variablesMap);
+                convertRawDataCollectedVariables(rawData, surveyUnitModel, dataState, rawDataModelType, variablesMap);
 
                 //External variables conversion into COLLECTED document
                 if(dataState.equals(DataState.COLLECTED)){
-                    convertRawDataExternalVariables(rawData, surveyUnitModel, variablesMap);
+                    convertRawDataExternalVariables(rawData, surveyUnitModel, rawDataModelType, variablesMap);
                 }
 
                 if(surveyUnitModel.getCollectedVariables().isEmpty()
@@ -175,12 +182,20 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
         return dtos;
     }
 
+    @SuppressWarnings("unchecked")
     private static void convertRawDataExternalVariables(
             LunaticJsonRawDataModel srcRawData,
             SurveyUnitModel dstSurveyUnitModel,
+            RawDataModelType rawDataModelType,
             VariablesMap variablesMap
     ) {
-        Map<String,Object> externalMap = JsonUtils.asMap(srcRawData.data().get("EXTERNAL"));
+        Map<String, Object> dataMap = srcRawData.data();
+        if (rawDataModelType.equals(RawDataModelType.FILIERE)) {
+            dataMap = (Map<String, Object>) dataMap.get("data");
+        }
+
+        dataMap = (Map<String, Object>)dataMap.get("EXTERNAL");
+        Map<String,Object> externalMap = JsonUtils.asMap(dataMap);
         if (externalMap != null && !externalMap.isEmpty()){
             convertToExternalVar(dstSurveyUnitModel, variablesMap, externalMap);
         }
@@ -212,13 +227,23 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
         dstSurveyUnitModel.add(externalVariableModel);
     }
 
+    @SuppressWarnings("unchecked")
     private void convertRawDataCollectedVariables(
             LunaticJsonRawDataModel srcRawData,
             SurveyUnitModel dstSurveyUnitModel,
             DataState dataState,
+            RawDataModelType rawDataModelType,
             VariablesMap variablesMap
     ) {
-        Map<String,Object> collectedMap = JsonUtils.asMap(srcRawData.data().get("COLLECTED"));
+        Map<String, Object> dataMap = srcRawData.data();
+        if (rawDataModelType.equals(RawDataModelType.FILIERE)) {
+            dataMap = (Map<String, Object>) dataMap.get("data");
+        }
+
+        dataMap = (Map<String, Object>)dataMap.get("COLLECTED");
+
+
+        Map<String,Object> collectedMap = JsonUtils.asMap(dataMap);
         if (collectedMap == null || collectedMap.isEmpty()){
             if(dataState.equals(DataState.COLLECTED)) {
                 log.warn("No collected data for interrogation {}", srcRawData.interrogationId());
