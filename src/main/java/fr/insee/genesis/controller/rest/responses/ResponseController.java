@@ -350,8 +350,6 @@ public class ResponseController implements CommonApiResponse {
     public ResponseEntity<List<SurveyUnitSimplified>> getLatestForInterrogationListV2(@RequestParam("questionnaireId") String questionnaireId,
                                                                                       @RequestParam List<String> modes,
                                                                                         @RequestBody List<InterrogationId> interrogationIds) {
-        long FullEndpointStartTimeStamp = System.currentTimeMillis();
-
         List<SurveyUnitSimplified> results = new ArrayList<>();
 
         //!!!WARNING!!! : FOR PERFORMANCES PURPOSES, WE DONT'MAKE REQUESTS ON INDIVIDUAL ELEMENTS ANYMORE, BUT ON A SUBLIST OF THE INPUTLIST
@@ -361,22 +359,16 @@ public class ResponseController implements CommonApiResponse {
 
         for(String mode : modes) {
 
-            long modeLoopStartTimeStamp = System.currentTimeMillis();
             while(offset <= interrogationIds.size()) {
                 //extract part of input list
                 int endOffset = Math.min(offset + SUBBLOCK_SIZE, interrogationIds.size());
                 interrogationIdsSubList = interrogationIds.subList(offset, endOffset);
 
                 //1) For each InterrogationId, we collect all responses versions, in which ONLY THE LATEST VERSION of each variable is kept.
-                long queryIdQMOrderedStartTimeStamp = System.currentTimeMillis();
                 List<List<SurveyUnitModel>> responses = surveyUnitService.findLatestByIdAndByQuestionnaireIdAndModeOrdered(questionnaireId, mode, interrogationIdsSubList);
-                long queryIdQMOrderedEndTimeStamp = System.currentTimeMillis();
-                long queryIdQMOrderedDeltaTimeStamp = queryIdQMOrderedEndTimeStamp - queryIdQMOrderedStartTimeStamp;
-                log.info("================ (Genesis-API-V2) query findLatestByIdAndByQuestionnaireIdAndModeOrdered duration : {}",
-                    queryIdQMOrderedDeltaTimeStamp);
 
                 responses.forEach(responsesForSingleInterrId -> {
-                    SurveyUnitSimplified simplifiedResponse = fusionWIthLastUpdated(responsesForSingleInterrId, mode);
+                    SurveyUnitSimplified simplifiedResponse = fusionWithLastUpdated(responsesForSingleInterrId, mode);
                     if(simplifiedResponse != null) {
                         results.add(simplifiedResponse);
                     }
@@ -384,20 +376,13 @@ public class ResponseController implements CommonApiResponse {
 
                 offset = offset + SUBBLOCK_SIZE;
             }
-            long modeLoopEndTimeStamp = System.currentTimeMillis();
-            long modeLoopDeltaTimeStamp = modeLoopEndTimeStamp - modeLoopStartTimeStamp;
-            log.info("############# (Genesis-API-V2) modeLoop duration for mode {} : {}", mode, modeLoopDeltaTimeStamp);
         }
-
-        long FullEndpointEndTimeStamp = System.currentTimeMillis();
-        long FullEndpointDeltaTimeStamp = FullEndpointEndTimeStamp - FullEndpointStartTimeStamp;
-        log.info("############# (Genesis-API-V2) FullEndpoint duration : {}", FullEndpointDeltaTimeStamp);
 
         return ResponseEntity.ok(results);
     }
 
 
-    private SurveyUnitSimplified fusionWIthLastUpdated(List<SurveyUnitModel> responsesForSingleInterrId, String mode) {
+    private SurveyUnitSimplified fusionWithLastUpdated(List<SurveyUnitModel> responsesForSingleInterrId, String mode) {
         //NOTE : 1) "responses" in input here corresponds to all collected responses versions of a given "InterrogationId",
         //       in which ONLY THE LATEST VERSION of each variable is kept.
 

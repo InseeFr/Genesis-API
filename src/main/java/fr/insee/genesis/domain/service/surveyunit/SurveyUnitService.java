@@ -145,11 +145,15 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         List<List<SurveyUnitModel>> listLatestUpdatesbyVariables = new ArrayList<>();
 
         //1) QUERY
-        // => convertion of "List<InterrogationId>" -> "List<String>" for query
+        // => convertion of "List<InterrogationId>" -> "List<String>" for query using lamda
+        /*
         List<String> queryInParam = new ArrayList<String>();
         for(InterrogationId interrId : interrogationIds) {
             queryInParam.add(interrId.getInterrogationId());
         }
+        */
+        List<String> queryInParam = interrogationIds.stream().map(InterrogationId::getInterrogationId).collect(Collectors.toList());
+
         //Get !!!all versions!!! of a set of "interrogationIds"
         List<SurveyUnitModel> allResponsesVersionsSet = surveyUnitPersistencePort.findBySetOfIdsAndQuestionnaireIdAndMode(questionnaireId, mode, queryInParam);
 
@@ -177,42 +181,42 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         //We keep the name of already added variables to skip them in older updates
         List<VarIdScopeTuple> addedVariables = new ArrayList<>();
 
-        //Pas de traitement superflux s'il y a un seul élément ou aucun (optimisations de performances)
+        //No useless process if there is only ONE or NONE element (performances optimisations)
         if(allResponsesVersionsForSingleInterrId.size() <= 1) {
             //We add all the variables of the LATEST update
             latestUpdatesbyVariables.add(allResponsesVersionsForSingleInterrId.getFirst());
+            return latestUpdatesbyVariables;
         }
-        //ELSE -> CASE WHERE THERE ARE MORE THAN ONE VERSION!
-        else {
-            allResponsesVersionsForSingleInterrId.forEach(surveyUnitModel -> {
-                List<VariableModel> collectedVariablesToKeep = new ArrayList<>();
-                List<VariableModel> externalVariablesToKeep = new ArrayList<>();
-                // We iterate over the variables of the update and add them to the list if they are not already added
-                if (surveyUnitModel.getCollectedVariables() != null) {
-                    surveyUnitModel.getCollectedVariables().stream()
-                            .filter(colVar -> !addedVariables.contains(new VarIdScopeTuple(colVar.varId(), colVar.scope(), colVar.iteration())))
-                            .forEach(colVar -> {
-                                collectedVariablesToKeep.add(colVar);
-                                addedVariables.add(new VarIdScopeTuple(colVar.varId(), colVar.scope(), colVar.iteration()));
-                            });
-                }
-                if (surveyUnitModel.getExternalVariables() != null){
-                    surveyUnitModel.getExternalVariables().stream()
-                            .filter(extVar -> !addedVariables.contains(new VarIdScopeTuple(extVar.varId(), extVar.scope(), extVar.iteration())))
-                            .forEach(extVar -> {
-                                externalVariablesToKeep.add(extVar);
-                                addedVariables.add(new VarIdScopeTuple(extVar.varId(), extVar.scope(), extVar.iteration()));
-                            });
-                }
 
-                // If there are new variables, we add the update to the list of latest updates
-                if (!collectedVariablesToKeep.isEmpty() || !externalVariablesToKeep.isEmpty()){
-                    surveyUnitModel.setCollectedVariables(collectedVariablesToKeep);
-                    surveyUnitModel.setExternalVariables(externalVariablesToKeep);
-                    latestUpdatesbyVariables.add(surveyUnitModel);
-                }
-            });
-        }
+        //ELSE -> CASE WHERE THERE ARE MORE THAN ONE VERSION!
+        allResponsesVersionsForSingleInterrId.forEach(surveyUnitModel -> {
+            List<VariableModel> collectedVariablesToKeep = new ArrayList<>();
+            List<VariableModel> externalVariablesToKeep = new ArrayList<>();
+            // We iterate over the variables of the update and add them to the list if they are not already added
+            if (surveyUnitModel.getCollectedVariables() != null) {
+                surveyUnitModel.getCollectedVariables().stream()
+                        .filter(colVar -> !addedVariables.contains(new VarIdScopeTuple(colVar.varId(), colVar.scope(), colVar.iteration())))
+                        .forEach(colVar -> {
+                            collectedVariablesToKeep.add(colVar);
+                            addedVariables.add(new VarIdScopeTuple(colVar.varId(), colVar.scope(), colVar.iteration()));
+                        });
+            }
+            if (surveyUnitModel.getExternalVariables() != null){
+                surveyUnitModel.getExternalVariables().stream()
+                        .filter(extVar -> !addedVariables.contains(new VarIdScopeTuple(extVar.varId(), extVar.scope(), extVar.iteration())))
+                        .forEach(extVar -> {
+                            externalVariablesToKeep.add(extVar);
+                            addedVariables.add(new VarIdScopeTuple(extVar.varId(), extVar.scope(), extVar.iteration()));
+                        });
+            }
+
+            // If there are new variables, we add the update to the list of latest updates
+            if (!collectedVariablesToKeep.isEmpty() || !externalVariablesToKeep.isEmpty()){
+                surveyUnitModel.setCollectedVariables(collectedVariablesToKeep);
+                surveyUnitModel.setExternalVariables(externalVariablesToKeep);
+                latestUpdatesbyVariables.add(surveyUnitModel);
+            }
+        });
 
         return latestUpdatesbyVariables;
     }
@@ -256,6 +260,8 @@ public class SurveyUnitService implements SurveyUnitApiPort {
 
     /**
      * @author Adrien Marchal
+     * Calculations made to establish the data a worker will be responsible of, among the whole data to be processed.
+     * (needed for distributed process / horizontal scaling)
      */
     @Override
     public List<InterrogationId> findDistinctPageableInterrogationIdsByQuestionnaireId(String questionnaireId,

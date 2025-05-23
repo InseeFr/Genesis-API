@@ -62,7 +62,6 @@ public class InterrogationController implements CommonApiResponse {
             @Parameter(description = "workerId", required = false) @RequestParam(defaultValue = "1") int workerId,
             @Parameter(description = "blockSize", required = false) @RequestParam(defaultValue = "1000") long blockSize,
             @Parameter(description = "page number", required = false) @RequestParam(defaultValue = "0") long page) {
-        //TODO return blocks like "List<SurveyUnitUpdateLatest> suLatest = client.getUEsLatestState(questionnaireId, listId);"
         List<InterrogationId> responses = surveyUnitService.findDistinctPageableInterrogationIdsByQuestionnaireId(questionnaireId, totalSize, workersNumbers, workerId, blockSize, page);
         return ResponseEntity.ok(responses);
     }
