@@ -358,6 +358,7 @@ public class MainDefinitions {
     @Then("If we get latest states for {string} in external variable {string}, survey unit {string} we should have {string} for iteration {int}")
     public void check_latest_state_external(String questionnaireId, String variableName, String interrogationId, String expectedValue, int iteration) throws JsonProcessingException, GenesisException {
         ResponseEntity<String> response =
+    public void check_latest_state_external(String questionnaireId, String variableName, String interrogationId, String expectedValue, int iteration) throws IOException, GenesisException {
                 responseController.findResponsesByInterrogationAndQuestionnaireLatestStates(interrogationId, questionnaireId);
         Assertions.assertThat(response.getStatusCode().value()).isEqualTo(200);
         ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
