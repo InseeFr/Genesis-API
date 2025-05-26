@@ -110,29 +110,12 @@ public class RawResponseController {
             return ResponseEntity.status(ge.getStatus()).body(ge.getMessage());
         }
 
-        //Get optional fields
-        String contextualId = null;
-        Boolean isCapturedIndirectly = null;
-        LocalDateTime validationDate = null;
-        try{
-            contextualId = body.get("contextualId") == null ? null : body.get("contextualId").toString();
-            isCapturedIndirectly = body.get("isCapturedIndirectly") == null ? null :
-                Boolean.parseBoolean(body.get("isCapturedIndirectly").toString());
-            validationDate = body.get("isCapturedIndirectly") == null ? null :
-                LocalDateTime.parse(body.get("validationDate").toString());
-        }catch(Exception e){
-            log.warn("Exception during optional fields parsing : %s".formatted(e.toString()));
-        }
-
         LunaticJsonRawDataModel rawData = LunaticJsonRawDataModel.builder()
                 .campaignId(body.get("partitionId").toString())
                 .questionnaireId(body.get("questionnaireModelId").toString())
                 .interrogationId(body.get("interrogationId").toString())
                 .idUE(body.get("surveyUnitId").toString())
-                .contextualId(contextualId)
-                .isCapturedIndirectly(isCapturedIndirectly)
                 .mode(Mode.getEnumFromJsonName(body.get("mode").toString()))
-                .validationDate(validationDate)
                 .data(body)
                 .recordDate(LocalDateTime.now())
                 .build();

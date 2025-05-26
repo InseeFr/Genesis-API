@@ -131,15 +131,28 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
                                 RawDataModelType.FILIERE :
                                 RawDataModelType.DEFAULT;
 
+                //Get optional fields
+                String contextualId = null;
+                Boolean isCapturedIndirectly = null;
+                LocalDateTime validationDate = null;
+                try{
+                    contextualId = rawData.data().get("contextualId") == null ? null : rawData.data().get("contextualId").toString();
+                    isCapturedIndirectly = rawData.data().get("isCapturedIndirectly") == null ? null :
+                            Boolean.parseBoolean(rawData.data().get("isCapturedIndirectly").toString());
+                    validationDate = rawData.data().get("isCapturedIndirectly") == null ? null :
+                            LocalDateTime.parse(rawData.data().get("validationDate").toString());
+                }catch(Exception e){
+                    log.warn("Exception during optional fields parsing : %s".formatted(e.toString()));
+                }
 
                 SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
                         .campaignId(rawData.campaignId())
                         .questionnaireId(rawData.questionnaireId())
                         .mode(rawData.mode())
                         .interrogationId(rawData.interrogationId())
-                        .contextualId(rawData.contextualId())
-                        .validationDate(rawData.validationDate())
-                        .isCapturedIndirectly(rawData.isCapturedIndirectly())
+                        .contextualId(contextualId)
+                        .validationDate(validationDate)
+                        .isCapturedIndirectly(isCapturedIndirectly)
                         .state(dataState)
                         .fileDate(rawData.recordDate())
                         .recordDate(LocalDateTime.now())
