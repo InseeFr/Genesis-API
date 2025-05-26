@@ -14,7 +14,6 @@ import fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.domain.utils.JsonUtils;
-import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.LunaticJsonRawDataPersistanceStub;
@@ -131,7 +130,7 @@ public class RawDataDefinitions {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Authorization", "Bearer fake_token");
-        String url = "%sresponses/raw/lunatic-json/with-validation".formatted(baseUrl);
+        String url = "%sresponses/raw/lunatic-json".formatted(baseUrl);
 
         HttpEntity<String> requestEntity = new HttpEntity<>(rawJsonData.trim(), headers);
         try {
@@ -159,6 +158,17 @@ public class RawDataDefinitions {
                 interrogationId,
                 null,
                 Mode.WEB,
+                JsonUtils.jsonToMap(Files.readString(rawDataFilePath))
+        );
+    }
+
+    @When("We save that raw data with validation")
+    public void save_raw_data_with_validation() throws IOException {
+        if(rawDataFilePath == null){
+            throw new RuntimeException("Raw data file path is null !");
+        }
+
+        response = rawResponseController.saveRawResponsesFromJsonBodyWithValidation(
                 JsonUtils.jsonToMap(Files.readString(rawDataFilePath))
         );
     }
@@ -254,4 +264,20 @@ public class RawDataDefinitions {
     }
 
 
+    @Then("In surveyUnit {string} of the campaign {string} we must have {string} as contextualId, " +
+            "isCapturedIndirectly to {string} and validationDate null")
+    public void check_optional_values(String interrogationId, String campaignId, String expectedContextualId,
+                                       String expectedCapturedIndirectly) {
+        //Get SurveyUnitModel
+        List<SurveyUnitModel> concernedSurveyUnitModels = surveyUnitPersistencePortStub.getMongoStub().stream().filter(surveyUnitModel ->
+                surveyUnitModel.getState().equals(DataState.COLLECTED)
+                        && surveyUnitModel.getCampaignId().equals(campaignId)
+                        && surveyUnitModel.getInterrogationId().equals(interrogationId)
+        ).toList();
+        Assertions.assertThat(concernedSurveyUnitModels).hasSize(1);
+
+        Assertions.assertThat(concernedSurveyUnitModels.getFirst().getContextualId()).isEqualTo(expectedContextualId);
+        Assertions.assertThat(concernedSurveyUnitModels.getFirst().getIsCapturedIndirectly()).isEqualTo(Boolean.parseBoolean(expectedCapturedIndirectly));
+        Assertions.assertThat(concernedSurveyUnitModels.getFirst().getValidationDate()).isNull();
+    }
 }

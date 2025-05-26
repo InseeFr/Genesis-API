@@ -16,6 +16,7 @@ Feature: Do we save raw data in genesis
     Then We should have <ExpectedStatusCode> status code
     And We should have <ExpectedDocumentCount> raw data document
     Examples:
-      | JsonFile                                  | ExpectedStatusCode | ExpectedDocumentCount |
-      | raw_data/rawdatasample_filieremodel.json  | 201                | 1                     |
-      | raw_data/rawdatasample.json               | 400                | 0                     |
+      | JsonFile                                            | ExpectedStatusCode | ExpectedDocumentCount |
+      | raw_data/rawdatasample_filieremodel.json            | 201                | 1                     |
+      | raw_data/rawdatasample_filieremodel_optionals.json  | 201                | 1                     |
+      | raw_data/rawdatasample.json                         | 400                | 0                     |

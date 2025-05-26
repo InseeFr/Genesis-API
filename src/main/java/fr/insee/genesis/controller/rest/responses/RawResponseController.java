@@ -77,16 +77,20 @@ public class RawResponseController {
         return ResponseEntity.status(201).body(String.format(SUCCESS_MESSAGE,interrogationId));
     }
 
-    @Operation(summary = "Save lunatic json data from one interrogation in Genesis Database")
-    @PutMapping(path = "/lunatic-json/with-validation")
+    @Operation(summary = "Save lunatic json data from one interrogation in Genesis Database (with json " +
+            "schema validation)")
+    @PutMapping(path = "/lunatic-json")
     @PreAuthorize("hasRole('COLLECT_PLATFORM')")
     public ResponseEntity<String> saveRawResponsesFromJsonBodyWithValidation(
             @RequestBody Map<String, Object> body
     ) {
         JsonSchema jsonSchema = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7).getSchema(
-                RawResponseController.class.getResourceAsStream("/json_schemas/RawResponse.json")
+                RawResponseController.class.getResourceAsStream("/jsonSchemas/RawResponse.json")
         );
         try{
+            if(jsonSchema == null){
+                throw new GenesisException(500, "No RawResponse json schema has been found");
+            }
             Set<ValidationMessage> errors = jsonSchema.validate(
                     new ObjectMapper().readTree(
                             new ObjectMapper().writeValueAsString(body)
@@ -106,14 +110,41 @@ public class RawResponseController {
             return ResponseEntity.status(ge.getStatus()).body(ge.getMessage());
         }
 
-        return saveRawResponsesFromJsonBody(
-                body.get("partitionId").toString(), //TODO Maybe adapt automatically to new models ?
-                body.get("questionnaireModelId").toString(),
-                body.get("interrogationId").toString(),
-                body.get("surveyUnitId").toString(),
-                Mode.getEnumFromJsonName(body.get("mode").toString()),
-                body
-        );
+        //Get optional fields
+        String contextualId = null;
+        Boolean isCapturedIndirectly = null;
+        LocalDateTime validationDate = null;
+        try{
+            contextualId = body.get("contextualId") == null ? null : body.get("contextualId").toString();
+            isCapturedIndirectly = body.get("isCapturedIndirectly") == null ? null :
+                Boolean.parseBoolean(body.get("isCapturedIndirectly").toString());
+            validationDate = body.get("isCapturedIndirectly") == null ? null :
+                LocalDateTime.parse(body.get("validationDate").toString());
+        }catch(Exception e){
+            log.warn("Exception during optional fields parsing : %s".formatted(e.toString()));
+        }
+
+        LunaticJsonRawDataModel rawData = LunaticJsonRawDataModel.builder()
+                .campaignId(body.get("partitionId").toString())
+                .questionnaireId(body.get("questionnaireModelId").toString())
+                .interrogationId(body.get("interrogationId").toString())
+                .idUE(body.get("surveyUnitId").toString())
+                .contextualId(contextualId)
+                .isCapturedIndirectly(isCapturedIndirectly)
+                .mode(Mode.getEnumFromJsonName(body.get("mode").toString()))
+                .validationDate(validationDate)
+                .data(body)
+                .recordDate(LocalDateTime.now())
+                .build();
+        try {
+            lunaticJsonRawDataApiPort.save(rawData);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Unexpected error");
+        }
+
+        log.info("Data saved for interrogationId {} and partition {}",body.get("interrogationId").toString(),
+                body.get("partitionId").toString());
+        return ResponseEntity.status(201).body(String.format(SUCCESS_MESSAGE,body.get("interrogationId").toString()));
     }
 
     private void checkRequiredIds(Map<String, Object> body) throws GenesisException {
@@ -125,7 +156,7 @@ public class RawResponseController {
                 "mode"
         )){
             if(body.get(requiredKey) == null){
-                throw new GenesisException(400, "No %s found in json".formatted(requiredKey));
+                throw new GenesisException(400, "No %s found in body".formatted(requiredKey));
             }
         }
     }
