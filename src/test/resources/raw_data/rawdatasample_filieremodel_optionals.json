@@ -1,0 +1,3541 @@
+{
+    "partitionId": "RAWDATATESTCAMPAIGN",
+    "questionnaireModelId": "TESTQUEST",
+    "surveyUnitId": "TESTUE00001",
+    "interrogationId": "TESTUE00001",
+    "contextualId": "TESTCONTEXT",
+    "isCapturedIndirectly": true,
+    "validationDate": "2024-01-01 12:00:00",
+    "mode": "CAWI",
+    "data": {
+        "EXTERNAL": {
+            "RPPRENOM": [
+                "Robert"
+            ],
+            "RPNAIPAR1": [
+                "4"
+            ],
+            "RPNAIPAR2": [
+                "4"
+            ],
+            "RPNBQUEST": "1",
+            "RPSEXCONJ": [
+                null
+            ],
+            "RPSEXPAR1": [
+                null
+            ],
+            "RPSEXPAR2": [
+                null
+            ],
+            "RPANAISENQ": [
+                "2006"
+            ],
+            "RPJNAISENQ": [
+                "30"
+            ],
+            "RPMNAISENQ": [
+                "05"
+            ],
+            "RPPNAIPAR1": [
+                ""
+            ],
+            "RPPNAIPAR2": [
+                ""
+            ],
+            "TYPE_QUEST": "2",
+            "RPANAISCONJ": [
+                null
+            ],
+            "RPANAISPAR1": [
+                null
+            ],
+            "RPANAISPAR2": [
+                null
+            ],
+            "RPTYPEQUEST": "femmes",
+            "RPPRENOMCONJ": [
+                null
+            ],
+            "RPPRENOMPAR1": [
+                null
+            ],
+            "RPPRENOMPAR2": [
+                null
+            ],
+            "RPLISTEPRENOMS": "Robert"
+        },
+        "COLLECTED": {
+            "ENF": {
+                "COLLECTED": [
+                    "2"
+                ]
+            },
+            "MARI": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PACS": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "NBENF": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "AUT_U2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "COUPLE": {
+                "COLLECTED": [
+                    "4"
+                ]
+            },
+            "FINETU": {
+                "COLLECTED": [
+                    "2"
+                ]
+            },
+            "HEBERG": {
+                "COLLECTED": [
+                    "2"
+                ]
+            },
+            "MINEUR": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SEPARE": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "VECU_C": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANNEE_D": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANNEE_S": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANNEE_U": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "DNAI_CF": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "DNAI_CH": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ENFAV_C": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "FR_PAR1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "FR_PAR2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "MARI_U1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "MARI_U2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PACS_U1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PACS_U2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PNAI_CF": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PNAI_CH": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "POSTENQ": {
+                "COLLECTED": [
+                    "2"
+                ]
+            },
+            "SEXE_CF": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SEXE_CH": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "TRAVACT": {
+                "COLLECTED": [
+                    "2"
+                ]
+            },
+            "ANNEE_U1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANNEE_U2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "CBENFAIL": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "CBENFLOG": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "COM_PAR1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "COM_PAR2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "DEP_PAR1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "DEP_PAR2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LOG_PAR1": {
+                "COLLECTED": [
+                    "1"
+                ]
+            },
+            "NBENFLOG": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PAY_PAR1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PAY_PAR2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PRENOM_C": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PRENOM_X": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PROF_C2F": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PROF_C2H": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PROF_CF1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PROF_CF2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PROF_CH1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PROF_CH2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SEXE_U1F": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SEXE_U1H": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SEXE_U2F": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SEXE_U2H": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "VIV_PAR1": {
+                "COLLECTED": [
+                    "1"
+                ]
+            },
+            "VIV_PAR2": {
+                "COLLECTED": [
+                    "1"
+                ]
+            },
+            "ANAI_PAR1": {
+                "COLLECTED": [
+                    "1984"
+                ]
+            },
+            "ANAI_PAR2": {
+                "COLLECTED": [
+                    "1986"
+                ]
+            },
+            "AUT_UNION": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "DATNAIS_C": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "DATNAIS_X": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "DEJATRAV1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "DEJATRAV2": {
+                "COLLECTED": [
+                    "2"
+                ]
+            },
+            "ETAB_PAR1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ETAB_PAR2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LOG_PAR2B": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "NBENFAV_C": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "NB_FRERES": {
+                "COLLECTED": [
+                    2
+                ]
+            },
+            "NB_SOEURS": {
+                "COLLECTED": [
+                    2
+                ]
+            },
+            "PETIT_ENF": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PNAI_PAR1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PNAI_PAR2": {
+                "COLLECTED": [
+                    "EUR"
+                ]
+            },
+            "PRENOM_U1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PRENOM_U2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SAL_FP_CF": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SAL_FP_CH": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SEPARE_U1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SEPARE_U2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SEXE_PAR1": {
+                "COLLECTED": [
+                    "2"
+                ]
+            },
+            "SEXE_PAR2": {
+                "COLLECTED": [
+                    "1"
+                ]
+            },
+            "STATUT_CF": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "STATUT_CH": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "TRAV_CF_C": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "TRAV_CF_P": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "TRAV_CH_C": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "TRAV_CH_P": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "TRAV_PAR1": {
+                "COLLECTED": [
+                    "1"
+                ]
+            },
+            "TRAV_PAR2": {
+                "COLLECTED": [
+                    "1"
+                ]
+            },
+            "AGE_FINEMP": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "AGE_FINETU": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANNEE_D_U1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANNEE_D_U2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANNEE_MARI": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANNEE_PACS": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANNEE_S_U1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANNEE_S_U2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "DC_ENFAIL1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "DC_ENFAIL2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "DC_ENFAIL3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "DC_ENFAIL4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "DC_ENFAIL5": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "DC_ENFAIL6": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "DC_ENFAIL7": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "DC_ENFAIL8": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ENFAV_C_U1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ENFAV_C_U2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "EXIST_PAR2": {
+                "COLLECTED": [
+                    "1"
+                ]
+            },
+            "FR_ENFAIL1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "FR_ENFAIL2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "FR_ENFAIL3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "FR_ENFAIL4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "FR_ENFAIL5": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "FR_ENFAIL6": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "FR_ENFAIL7": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "FR_ENFAIL8": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LOG_PAR2A1": {
+                "COLLECTED": [
+                    true
+                ]
+            },
+            "LOG_PAR2A2": {
+                "COLLECTED": [
+                    true
+                ]
+            },
+            "LOG_PAR2A3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "NATIO_PAR1": {
+                "COLLECTED": [
+                    "4"
+                ]
+            },
+            "NATIO_PAR2": {
+                "COLLECTED": [
+                    "4"
+                ]
+            },
+            "NBENF_ADOP": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PRENOM_FIN": {
+                "COLLECTED": [
+                    "1"
+                ]
+            },
+            "PROF_PAR1F": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PROF_PAR1H": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PROF_PAR2F": {
+                "COLLECTED": [
+                    "1085"
+                ]
+            },
+            "PROF_PAR2H": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SAL_ENT_CF": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SAL_ENT_CH": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SAL_IND_CF": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SAL_IND_CH": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "TYP_PLACE1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "TYP_PLACE2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "TYP_PLACE3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "TYP_PLACE4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "VAL_PRENOM": {
+                "COLLECTED": [
+                    "1"
+                ]
+            },
+            "VECU_PLACE": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "AGE_EMPLOI1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "AIDE_RECUE1": {
+                "COLLECTED": [
+                    true
+                ]
+            },
+            "AIDE_RECUE2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "AIDE_RECUE3": {
+                "COLLECTED": [
+                    true
+                ]
+            },
+            "AIDE_RECUE4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ASE_ENFAIL1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ASE_ENFAIL2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ASE_ENFAIL3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ASE_ENFAIL4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ASE_ENFAIL5": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ASE_ENFAIL6": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ASE_ENFAIL7": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ASE_ENFAIL8": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ASE_ENFLOG1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ASE_ENFLOG2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ASE_ENFLOG3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ASE_ENFLOG4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ASE_ENFLOG5": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ASE_ENFLOG6": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ASE_ENFLOG7": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ASE_ENFLOG8": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "COM_ENFAIL1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "COM_ENFAIL2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "COM_ENFAIL3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "COM_ENFAIL4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "COM_ENFAIL5": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "COM_ENFAIL6": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "COM_ENFAIL7": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "COM_ENFAIL8": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "DEP_ENFAIL1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "DEP_ENFAIL2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "DEP_ENFAIL3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "DEP_ENFAIL4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "DEP_ENFAIL5": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "DEP_ENFAIL6": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "DEP_ENFAIL7": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "DEP_ENFAIL8": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "INTER_TRAV1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "INTER_TRAV2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "INTER_TRAV3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LANGUE1_ENF": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LANGUE2_ENF": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LANGUE3_ENF": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LANGUE4_ENF": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LIEUNAIS_CF": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LIEUNAIS_CH": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LOG_ENFAIL1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LOG_ENFAIL2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LOG_ENFAIL3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LOG_ENFAIL4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LOG_ENFAIL5": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LOG_ENFAIL6": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LOG_ENFAIL7": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LOG_ENFAIL8": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "NBENFAIL_UN": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "NBENFLOG_UN": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PAY_ENFAIL1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PAY_ENFAIL2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PAY_ENFAIL3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PAY_ENFAIL4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PAY_ENFAIL5": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PAY_ENFAIL6": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PAY_ENFAIL7": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PAY_ENFAIL8": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "POSTENQ_TEL": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PRENOM_PAR1": {
+                "COLLECTED": [
+                    "Farid"
+                ]
+            },
+            "PRENOM_PAR2": {
+                "COLLECTED": [
+                    "Violette"
+                ]
+            },
+            "PRENOM_PROX": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PROF_PAR1_2": {
+                "COLLECTED": [
+                    "agent"
+                ]
+            },
+            "PROF_PAR2_2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SAL_FP_PAR1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SAL_FP_PAR2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "STATUT_PAR1": {
+                "COLLECTED": [
+                    "3"
+                ]
+            },
+            "STATUT_PAR2": {
+                "COLLECTED": [
+                    "3"
+                ]
+            },
+            "VAL_ANNAISS": {
+                "COLLECTED": [
+                    "1"
+                ]
+            },
+            "AG_PETIT_ENF": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "AIDE_APPORT1": {
+                "COLLECTED": [
+                    true
+                ]
+            },
+            "AIDE_APPORT2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "AIDE_APPORT3": {
+                "COLLECTED": [
+                    true
+                ]
+            },
+            "AIDE_APPORT4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "AIDE_APPORT5": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANAI_ENFAIL1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANAI_ENFAIL2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANAI_ENFAIL3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANAI_ENFAIL4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANAI_ENFAIL5": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANAI_ENFAIL6": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANAI_ENFAIL7": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANAI_ENFAIL8": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANAI_ENFLOG1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANAI_ENFLOG2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANAI_ENFLOG3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANAI_ENFLOG4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANAI_ENFLOG5": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANAI_ENFLOG6": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANAI_ENFLOG7": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANAI_ENFLOG8": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANNEE_FINEMP": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANNEE_FINETU": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "DORT_ENFAIL1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "DORT_ENFAIL2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "DORT_ENFAIL3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "DORT_ENFAIL4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "DORT_ENFAIL5": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "DORT_ENFAIL6": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "DORT_ENFAIL7": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "DORT_ENFAIL8": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "FREQ_VU_PAR1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "FREQ_VU_PAR2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LANGUE1_ENFL": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LANGUE1_PAR1": {
+                "COLLECTED": [
+                    "0376"
+                ]
+            },
+            "LANGUE1_PAR2": {
+                "COLLECTED": [
+                    "0376"
+                ]
+            },
+            "LANGUE2_ENFE": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LANGUE2_ENFL": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LANGUE2_PAR1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LANGUE2_PAR2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LANGUE3_ENFE": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LANGUE3_ENFL": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LANGUE3_PAR1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LANGUE3_PAR2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LANGUE4_ENFE": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LANGUE4_ENFL": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LANGUE4_PAR1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LANGUE4_PAR2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "NBENFAV_C_U1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "NBENFAV_C_U2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "NB_AUT_UNION": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "NB_PETIT_ENF": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "POSTENQ_MAIL": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PROX_VIE_CJT": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SAL_ENT_PAR1": {
+                "COLLECTED": [
+                    "1"
+                ]
+            },
+            "SAL_ENT_PAR2": {
+                "COLLECTED": [
+                    "1"
+                ]
+            },
+            "SAL_IND_PAR1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SAL_IND_PAR2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SEXE_ENFAIL1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SEXE_ENFAIL2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SEXE_ENFAIL3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SEXE_ENFAIL4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SEXE_ENFAIL5": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SEXE_ENFAIL6": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SEXE_ENFAIL7": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SEXE_ENFAIL8": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SEXE_ENFLOG1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SEXE_ENFLOG2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SEXE_ENFLOG3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SEXE_ENFLOG4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SEXE_ENFLOG5": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SEXE_ENFLOG6": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SEXE_ENFLOG7": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SEXE_ENFLOG8": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ADOPT_ENFAIL1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ADOPT_ENFAIL2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ADOPT_ENFAIL3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ADOPT_ENFAIL4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ADOPT_ENFAIL5": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ADOPT_ENFAIL6": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ADOPT_ENFAIL7": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ADOPT_ENFAIL8": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ADOPT_ENFLOG1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ADOPT_ENFLOG2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ADOPT_ENFLOG3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ADOPT_ENFLOG4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ADOPT_ENFLOG5": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ADOPT_ENFLOG6": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ADOPT_ENFLOG7": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ADOPT_ENFLOG8": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "AG_DC_ENFAIL1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "AG_DC_ENFAIL2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "AG_DC_ENFAIL3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "AG_DC_ENFAIL4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "AG_DC_ENFAIL5": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "AG_DC_ENFAIL6": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "AG_DC_ENFAIL7": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "AG_DC_ENFAIL8": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "AG_DEP_PARENT": {
+                "COLLECTED": [
+                    0
+                ]
+            },
+            "ANNEE_DC_PAR1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANNEE_DC_PAR2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANNEE_EMPLOI1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANNEE_MARI_U1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANNEE_MARI_U2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANNEE_PACS_U1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANNEE_PACS_U2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LANGUE1_ENTOU": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LANGUE1_PAR1L": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LANGUE1_PAR2L": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LANGUE2_ENTOU": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LANGUE2_PAR1E": {
+                "COLLECTED": [
+                    "2"
+                ]
+            },
+            "LANGUE2_PAR1L": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LANGUE2_PAR2E": {
+                "COLLECTED": [
+                    "2"
+                ]
+            },
+            "LANGUE2_PAR2L": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LANGUE3_ENTOU": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LANGUE3_PAR1E": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LANGUE3_PAR1L": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LANGUE3_PAR2E": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LANGUE3_PAR2L": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LANGUE4_PAR1E": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LANGUE4_PAR1L": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LANGUE4_PAR2E": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LANGUE4_PAR2L": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LIEUNAIS_PAR1": {
+                "COLLECTED": [
+                    "1"
+                ]
+            },
+            "LIEUNAIS_PAR2": {
+                "COLLECTED": [
+                    "2"
+                ]
+            },
+            "NBENF_ADOP_UN": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "NB_FRERES_VIV": {
+                "COLLECTED": [
+                    2
+                ]
+            },
+            "NB_SOEURS_VIV": {
+                "COLLECTED": [
+                    2
+                ]
+            },
+            "POSTENQ_CONT1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "POSTENQ_CONT2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PRECIS_VIECJT": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PROX_EGO_PAR1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PROX_EGO_PAR2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "RESID_ENFAIL1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "RESID_ENFAIL2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "RESID_ENFAIL3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "RESID_ENFAIL4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "RESID_ENFAIL5": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "RESID_ENFAIL6": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "RESID_ENFAIL7": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "RESID_ENFAIL8": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "RESID_ENFLOG1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "RESID_ENFLOG2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "RESID_ENFLOG3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "RESID_ENFLOG4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "RESID_ENFLOG5": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "RESID_ENFLOG6": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "RESID_ENFLOG7": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "RESID_ENFLOG8": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SANTE_ENFAIL1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SANTE_ENFAIL2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SANTE_ENFAIL3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SANTE_ENFAIL4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SANTE_ENFAIL5": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SANTE_ENFAIL6": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SANTE_ENFAIL7": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SANTE_ENFAIL8": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SANTE_ENFLOG1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SANTE_ENFLOG2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SANTE_ENFLOG3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SANTE_ENFLOG4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SANTE_ENFLOG5": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SANTE_ENFLOG6": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SANTE_ENFLOG7": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SANTE_ENFLOG8": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "FREQ_CONT_PAR1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "FREQ_CONT_PAR2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LANGUE1_ENTOUE": {
+                "COLLECTED": [
+                    "2"
+                ]
+            },
+            "LANGUE1_ENTOUL": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LANGUE2_ENTOUE": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LANGUE2_ENTOUL": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LANGUE3_ENTOUE": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "LANGUE3_ENTOUL": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "NBENFAV_VENU_C": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "NB_FRERES_VIV1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "NB_SOEURS_VIV1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PRENOM_ENFAIL1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PRENOM_ENFAIL2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PRENOM_ENFAIL3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PRENOM_ENFAIL4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PRENOM_ENFAIL5": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PRENOM_ENFAIL6": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PRENOM_ENFAIL7": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PRENOM_ENFAIL8": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PRENOM_ENFLOG1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PRENOM_ENFLOG2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PRENOM_ENFLOG3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PRENOM_ENFLOG4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PRENOM_ENFLOG5": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PRENOM_ENFLOG6": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PRENOM_ENFLOG7": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PRENOM_ENFLOG8": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PROX_FRAT_PAR1": {
+                "COLLECTED": [
+                    "2"
+                ]
+            },
+            "PROX_FRAT_PAR2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "RAISON_VIE_CJT": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "VECU_JEUNESSE1": {
+                "COLLECTED": [
+                    true
+                ]
+            },
+            "VECU_JEUNESSE2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "VECU_JEUNESSE3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "VECU_JEUNESSE4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "VECU_JEUNESSE5": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "VECU_JEUNESSE6": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "VECU_JEUNESSE7": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANADOPT_ENFAIL1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANADOPT_ENFAIL2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANADOPT_ENFAIL3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANADOPT_ENFAIL4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANADOPT_ENFAIL5": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANADOPT_ENFAIL6": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANADOPT_ENFAIL7": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANADOPT_ENFAIL8": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANADOPT_ENFLOG1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANADOPT_ENFLOG2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANADOPT_ENFLOG3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANADOPT_ENFLOG4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANADOPT_ENFLOG5": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANADOPT_ENFLOG6": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANADOPT_ENFLOG7": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ANADOPT_ENFLOG8": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "AUT_PAR_ENFAIL1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "AUT_PAR_ENFAIL2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "AUT_PAR_ENFAIL3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "AUT_PAR_ENFAIL4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "AUT_PAR_ENFAIL5": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "AUT_PAR_ENFAIL6": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "AUT_PAR_ENFAIL7": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "AUT_PAR_ENFAIL8": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ENF21_AUTPAR_C1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ENF21_AUTPAR_C2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ENF21_AUTPAR_C3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "ENF21_AUTPAR_C4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "NBENFAV_VENU_C1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_1A1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_1A2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_1A3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_1A4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_1AD": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_1B1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_1B2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_1B3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_1BD": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_1C1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_1C2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_1C3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_1CD": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_1D1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_1D2": {
+                "COLLECTED": [
+                    true
+                ]
+            },
+            "QUI_AID_APP_1DD": {
+                "COLLECTED": [
+                    "Frère et soeur"
+                ]
+            },
+            "QUI_AID_APP_2A1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_2A2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_2A3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_2A4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_2AD": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_2B1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_2B2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_2B3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_2BD": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_2C1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_2C2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_2C3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_2CD": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_2D1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_2D2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_2DD": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_3A1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_3A2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_3A3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_3A4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_3AD": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_3B1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_3B2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_3B3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_3BD": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_3C1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_3C2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_3C3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_3CD": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_3D1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_3D2": {
+                "COLLECTED": [
+                    true
+                ]
+            },
+            "QUI_AID_APP_3DD": {
+                "COLLECTED": [
+                    "Frères et soeur"
+                ]
+            },
+            "QUI_AID_APP_4A1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_4A2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_4A3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_4A4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_4AD": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_4B1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_4B2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_4B3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_4BD": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_4C1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_4C2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_4C3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_4CD": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_4D1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_4D2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_APP_4DD": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_1A1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_1A2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_1A3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_1A4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_1AD": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_1B1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_1B2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_1B3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_1BD": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_1C1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_1C2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_1C3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_1CD": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_1D1": {
+                "COLLECTED": [
+                    true
+                ]
+            },
+            "QUI_AID_REC_1D2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_1DD": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_2A1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_2A2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_2A3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_2A4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_2AD": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_2B1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_2B2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_2B3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_2BD": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_2C1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_2C2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_2C3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_2CD": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_2D1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_2D2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_2DD": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_3A1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_3A2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_3A3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_3A4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_3AD": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_3B1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_3B2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_3B3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_3BD": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_3C1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_3C2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_3C3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_3CD": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_3D1": {
+                "COLLECTED": [
+                    true
+                ]
+            },
+            "QUI_AID_REC_3D2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "QUI_AID_REC_3DD": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "NEFRANCE_ENFAIL1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "NEFRANCE_ENFAIL2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "NEFRANCE_ENFAIL3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "NEFRANCE_ENFAIL4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "NEFRANCE_ENFAIL5": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "NEFRANCE_ENFAIL6": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "NEFRANCE_ENFAIL7": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "NEFRANCE_ENFAIL8": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "NEFRANCE_ENFLOG1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "NEFRANCE_ENFLOG2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "NEFRANCE_ENFLOG3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "NEFRANCE_ENFLOG4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "NEFRANCE_ENFLOG5": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "NEFRANCE_ENFLOG6": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "NEFRANCE_ENFLOG7": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "NEFRANCE_ENFLOG8": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "AG_DEPART_ENFAIL1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "AG_DEPART_ENFAIL2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "AG_DEPART_ENFAIL3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "AG_DEPART_ENFAIL4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "AG_DEPART_ENFAIL5": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "AG_DEPART_ENFAIL6": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "AG_DEPART_ENFAIL7": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "AG_DEPART_ENFAIL8": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "NBENFAV_C_VENU_U1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "NBENFAV_C_VENU_U2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_FR_ENFLOG1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_FR_ENFLOG2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_FR_ENFLOG3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_FR_ENFLOG4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_FR_ENFLOG5": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_FR_ENFLOG6": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_FR_ENFLOG7": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_FR_ENFLOG8": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "FREQ_VU_PETIT_ENF1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "FREQ_VU_PETIT_ENF2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "FREQ_VU_PETIT_ENF3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "FREQ_VU_PETIT_ENF4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "NBENFAV_C1_VENU_U1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "NBENFAV_C1_VENU_U2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_COM_ENFLOG1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_COM_ENFLOG2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_COM_ENFLOG3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_COM_ENFLOG4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_COM_ENFLOG5": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_COM_ENFLOG6": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_COM_ENFLOG7": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_COM_ENFLOG8": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_DEP_ENFLOG1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_DEP_ENFLOG2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_DEP_ENFLOG3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_DEP_ENFLOG4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_DEP_ENFLOG5": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_DEP_ENFLOG6": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_DEP_ENFLOG7": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_DEP_ENFLOG8": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_PAY_ENFLOG1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_PAY_ENFLOG2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_PAY_ENFLOG3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_PAY_ENFLOG4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_PAY_ENFLOG5": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_PAY_ENFLOG6": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_PAY_ENFLOG7": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_PAY_ENFLOG8": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_VIT_ENFAIL1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_VIT_ENFAIL2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_VIT_ENFAIL3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_VIT_ENFAIL4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_VIT_ENFAIL5": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_VIT_ENFAIL6": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_VIT_ENFAIL7": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_VIT_ENFAIL8": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_VIT_ENFLOG1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_VIT_ENFLOG2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_VIT_ENFLOG3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_VIT_ENFLOG4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_VIT_ENFLOG5": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_VIT_ENFLOG6": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_VIT_ENFLOG7": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_VIT_ENFLOG8": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_DORT_ENFLOG1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_DORT_ENFLOG2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_DORT_ENFLOG3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_DORT_ENFLOG4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_DORT_ENFLOG5": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_DORT_ENFLOG6": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_DORT_ENFLOG7": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_DORT_ENFLOG8": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_FREQ_ENFAIL1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_FREQ_ENFAIL2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_FREQ_ENFAIL3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_FREQ_ENFAIL4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_FREQ_ENFAIL5": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_FREQ_ENFAIL6": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_FREQ_ENFAIL7": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_FREQ_ENFAIL8": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_FREQ_ENFLOG1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_FREQ_ENFLOG2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_FREQ_ENFLOG3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_FREQ_ENFLOG4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_FREQ_ENFLOG5": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_FREQ_ENFLOG6": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_FREQ_ENFLOG7": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_FREQ_ENFLOG8": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_VECU_ENFAIL1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_VECU_ENFAIL2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_VECU_ENFAIL3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_VECU_ENFAIL4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_VECU_ENFAIL5": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_VECU_ENFAIL6": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_VECU_ENFAIL7": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_VECU_ENFAIL8": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_VECU_ENFLOG1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_VECU_ENFLOG2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_VECU_ENFLOG3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_VECU_ENFLOG4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_VECU_ENFLOG5": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_VECU_ENFLOG6": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_VECU_ENFLOG7": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "PARENT_VECU_ENFLOG8": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SEP_AUT_PAR_ENFAIL1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SEP_AUT_PAR_ENFAIL2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SEP_AUT_PAR_ENFAIL3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SEP_AUT_PAR_ENFAIL4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SEP_AUT_PAR_ENFAIL5": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SEP_AUT_PAR_ENFAIL6": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SEP_AUT_PAR_ENFAIL7": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SEP_AUT_PAR_ENFAIL8": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SEP_AUT_PAR_ENFLOG1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SEP_AUT_PAR_ENFLOG2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SEP_AUT_PAR_ENFLOG3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SEP_AUT_PAR_ENFLOG4": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SEP_AUT_PAR_ENFLOG5": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SEP_AUT_PAR_ENFLOG6": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SEP_AUT_PAR_ENFLOG7": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "SEP_AUT_PAR_ENFLOG8": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "FREQ_CONT_PETIT_ENF1": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "FREQ_CONT_PETIT_ENF2": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "FREQ_CONT_PETIT_ENF3": {
+                "COLLECTED": [
+                    null
+                ]
+            },
+            "FREQ_CONT_PETIT_ENF4": {
+                "COLLECTED": [
+                    null
+                ]
+            }
+        }
+    }
+}

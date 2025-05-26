@@ -140,7 +140,7 @@ public class LunaticModelDefinitions {
     //THENS
     @Then("We should have that lunatic model as response")
     public void check_lunatic_model() throws Exception {
-        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
         JsonNode originalLunaticModel = objectMapper.readTree(Files.readString(lunaticModelJsonPath));
         JsonNode gotLunaticModel = objectMapper.readTree(lastResponse.getBody());
 

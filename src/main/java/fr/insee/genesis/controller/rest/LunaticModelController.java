@@ -48,7 +48,7 @@ public class LunaticModelController implements CommonApiResponse{
     ) throws JsonProcessingException {
         try {
             LunaticModelModel lunaticModelModel = lunaticModelApiPort.get(questionnaireId);
-            ObjectMapper objectMapper = new ObjectMapper();
+            ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
             return ResponseEntity.ok(objectMapper.writeValueAsString(lunaticModelModel.lunaticModel()));
         } catch (GenesisException e) {
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
