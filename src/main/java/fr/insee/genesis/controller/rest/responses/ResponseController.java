@@ -2,6 +2,7 @@ package fr.insee.genesis.controller.rest.responses;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import fr.insee.bpm.exceptions.MetadataParserException;
 import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.bpm.metadata.reader.ddi.DDIReader;
@@ -242,7 +243,7 @@ public class ResponseController implements CommonApiResponse {
         SurveyUnitQualityToolDto responseQualityToolDto = DataTransformer.transformSurveyUnitDto(response);
         ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
         try {
-            return ResponseEntity.ok(objectMapper.writeValueAsString(responseQualityToolDto));
+            return ResponseEntity.ok(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(responseQualityToolDto));
         }catch (JsonProcessingException e){
             return ResponseEntity.badRequest().body(e.toString());
         }
