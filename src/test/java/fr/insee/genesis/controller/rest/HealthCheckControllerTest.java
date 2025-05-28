@@ -1,11 +1,14 @@
 package fr.insee.genesis.controller.rest;
 
+import fr.insee.genesis.controller.services.MetadataService;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
+import fr.insee.genesis.infrastructure.utils.FileUtils;
+import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.ScheduleApiPortStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +31,11 @@ class HealthCheckControllerTest {
     @BeforeAll
     static void init() {
         surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
-        SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(surveyUnitPersistencePortStub);
+        SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(
+                surveyUnitPersistencePortStub,
+                new MetadataService(),
+                new FileUtils(new ConfigStub())
+        );
         List<VariableModel> externalVariableList = new ArrayList<>();
         VariableModel variable = VariableModel.builder()
                 .varId("TESTVARID")

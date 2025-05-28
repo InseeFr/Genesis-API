@@ -47,7 +47,7 @@ class UtilsControllerTest {
     static FileUtils fileUtils = new FileUtils(new ConfigStub());
     static ControllerUtils controllerUtils = new ControllerUtils(fileUtils);
     static MetadataService metadataService = new MetadataService();
-    static SurveyUnitService surveyUnitService = new SurveyUnitService(new SurveyUnitPersistencePortStub());
+    static SurveyUnitService surveyUnitService = new SurveyUnitService(new SurveyUnitPersistencePortStub(), metadataService, fileUtils);
     static SurveyUnitQualityService surveyUnitQualityService = new SurveyUnitQualityService();
     //Constants
     static final String DEFAULT_INTERROGATION_ID = "TESTINTERROGATIONID";
@@ -57,7 +57,7 @@ class UtilsControllerTest {
     static void init() {
         surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
         lunaticJsonRawDataPersistencePort = new LunaticJsonRawDataPersistanceStub();
-        SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(surveyUnitPersistencePortStub);
+        SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(surveyUnitPersistencePortStub, metadataService, fileUtils);
         LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort = new LunaticJsonRawDataService(lunaticJsonRawDataPersistencePort,controllerUtils,metadataService,surveyUnitService,surveyUnitQualityService,fileUtils);
 
         utilsControllerStatic = new UtilsController(

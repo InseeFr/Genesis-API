@@ -2,11 +2,14 @@ package fr.insee.genesis.domain.service;
 
 import fr.insee.genesis.controller.dto.SurveyUnitDto;
 import fr.insee.genesis.controller.dto.VariableDto;
+import fr.insee.genesis.controller.services.MetadataService;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
+import fr.insee.genesis.infrastructure.utils.FileUtils;
+import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -33,7 +36,8 @@ class SurveyUnitServiceTest {
     static void init(){
         surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
 
-        surveyUnitServiceStatic = new SurveyUnitService(surveyUnitPersistencePortStub);
+        surveyUnitServiceStatic = new SurveyUnitService(surveyUnitPersistencePortStub, new MetadataService(),
+                new FileUtils(new ConfigStub()));
     }
 
     @BeforeEach
@@ -514,7 +518,7 @@ class SurveyUnitServiceTest {
         //THEN
         Assertions.assertThat(variableDtos).isNotEmpty();
         Assertions.assertThat(variableDtos.getFirst().getVariableStateDtoList()).hasSize(2);
-        Assertions.assertThat(variableDtos.getFirst().getVariableStateDtoList().getFirst().getValue()).isEmpty();
+        Assertions.assertThat(variableDtos.getFirst().getVariableStateDtoList().getFirst().getValue().toString()).isEmpty();
 
     }
 

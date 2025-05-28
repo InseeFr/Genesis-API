@@ -223,7 +223,8 @@ public class ResponseController implements CommonApiResponse {
     public ResponseEntity<SurveyUnitQualityToolDto> findResponsesByInterrogationAndQuestionnaireLatestStates(
             @RequestParam("interrogationId") String interrogationId,
             @RequestParam("questionnaireId") String questionnaireId) {
-        SurveyUnitDto response = surveyUnitService.findLatestValuesByStateByIdAndByQuestionnaireId(interrogationId, questionnaireId);
+        SurveyUnitDto response = surveyUnitService.findLatestValuesByStateByIdAndByQuestionnaireId(interrogationId,
+                questionnaireId);
         SurveyUnitQualityToolDto responseQualityTool = DataTransformer.transformSurveyUnitDto(response);
         return ResponseEntity.ok(responseQualityTool);
     }

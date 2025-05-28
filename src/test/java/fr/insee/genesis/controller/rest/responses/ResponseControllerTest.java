@@ -56,10 +56,14 @@ class ResponseControllerTest {
     @BeforeAll
     static void init() {
         surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
-        SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(surveyUnitPersistencePortStub);
 
         Config config = new ConfigStub();
         FileUtils fileUtils = new FileUtils(config);
+        SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(
+                surveyUnitPersistencePortStub,
+                new MetadataService(),
+                fileUtils
+                );
 
         responseControllerStatic = new ResponseController(
                 surveyUnitApiPort
@@ -631,5 +635,70 @@ class ResponseControllerTest {
         surveyUnitPersistencePortStub.getMongoStub().add(suModel);
 
         Assertions.assertThat(responseControllerStatic.saveEditedVariables(surveyUnitInputDto).getStatusCode()).isEqualTo(HttpStatusCode.valueOf(400));
+    }
+
+    @Test
+    void saveEditedTest_int() {
+        //GIVEN
+        surveyUnitPersistencePortStub.getMongoStub().clear();
+        String campaignId = CAMPAIGN_ID_WITH_DDI;
+        String questionnaireId = QUESTIONNAIRE_ID_WITH_DDI;
+        String varId = "AGE";
+        String loopId = "B_PRENOMREP";
+        Integer editedValue = 5;
+
+        List<VariableInputDto> newVariables = new ArrayList<>();
+        VariableInputDto variableInputDto = VariableInputDto.builder()
+                .variableName(varId)
+                .iteration(1)
+                .build();
+
+        variableInputDto.setVariableStateInputDto(VariableStateInputDto.builder()
+                .state(DataState.EDITED)
+                .value(editedValue)
+                .build());
+
+        newVariables.add(variableInputDto);
+
+        SurveyUnitInputDto surveyUnitInputDto = SurveyUnitInputDto.builder()
+                .campaignId(campaignId)
+                .mode(Mode.WEB)
+                .questionnaireId(questionnaireId)
+                .interrogationId(DEFAULT_INTERROGATION_ID)
+                .collectedVariables(newVariables)
+                .build();
+
+        // We need a response in database to retrieve campaignId from interrogationId and questionnaireId
+        SurveyUnitModel suModel = SurveyUnitModel.builder()
+                .campaignId(campaignId)
+                .state(DataState.COLLECTED)
+                .mode(Mode.WEB)
+                .questionnaireId(questionnaireId)
+                .interrogationId(DEFAULT_INTERROGATION_ID)
+                .collectedVariables(List.of())
+                .build();
+        surveyUnitPersistencePortStub.getMongoStub().add(suModel);
+
+        //WHEN
+        responseControllerStatic.saveEditedVariables(surveyUnitInputDto);
+
+        //THEN
+        SurveyUnitModel docSaved = surveyUnitPersistencePortStub.getMongoStub().get(1);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).hasSize(2);
+        Assertions.assertThat(docSaved.getCampaignId()).isEqualTo(campaignId);
+        Assertions.assertThat(docSaved.getQuestionnaireId()).isEqualTo(questionnaireId);
+        Assertions.assertThat(docSaved.getMode()).isEqualTo(Mode.WEB);
+        Assertions.assertThat(docSaved.getState()).isEqualTo(DataState.EDITED);
+        Assertions.assertThat(docSaved.getFileDate()).isNull();
+        Assertions.assertThat(docSaved.getRecordDate()).isNotNull();
+        Assertions.assertThat(docSaved.getExternalVariables()).isEmpty();
+
+        Assertions.assertThat(docSaved.getCollectedVariables()).hasSize(1);
+        Assertions.assertThat(docSaved.getCollectedVariables().getFirst().varId()).isEqualTo(varId);
+        Assertions.assertThat(docSaved.getCollectedVariables().getFirst().scope()).isEqualTo(loopId);
+        Assertions.assertThat(docSaved.getCollectedVariables().getFirst().parentId()).isEqualTo(Constants.ROOT_GROUP_NAME);
+        Assertions.assertThat(docSaved.getCollectedVariables().getFirst().value()).isEqualTo(editedValue.toString());
+
+        Assertions.assertThat(docSaved.getModifiedBy()).isNull();
     }
 }

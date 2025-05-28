@@ -1,8 +1,11 @@
 package fr.insee.genesis.controller.rest.responses;
 
+import fr.insee.genesis.controller.services.MetadataService;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
+import fr.insee.genesis.infrastructure.utils.FileUtils;
+import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -23,7 +26,11 @@ class ModeControllerTest {
     @BeforeAll
     static void init() {
         surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
-        SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(surveyUnitPersistencePortStub);
+        SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(
+                surveyUnitPersistencePortStub,
+                new MetadataService(),
+                new FileUtils(new ConfigStub())
+        );
 
         modeControllerStatic = new ModeController( surveyUnitApiPort );
 

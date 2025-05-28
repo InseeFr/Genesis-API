@@ -34,7 +34,7 @@ class LunaticJsonRawDataServiceTest {
     MetadataService metadataService = new MetadataService();
 
     SurveyUnitPersistencePortStub surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
-    SurveyUnitService surveyUnitService = new SurveyUnitService(surveyUnitPersistencePortStub);
+    SurveyUnitService surveyUnitService = new SurveyUnitService(surveyUnitPersistencePortStub, metadataService, fileUtils);
     SurveyUnitQualityService surveyUnitQualityService = new SurveyUnitQualityService();
 
     LunaticJsonRawDataService lunaticJsonRawDataService = new LunaticJsonRawDataService(lunaticJsonRawDataPersistanceStub,controllerUtils,metadataService,surveyUnitService,surveyUnitQualityService,fileUtils);
