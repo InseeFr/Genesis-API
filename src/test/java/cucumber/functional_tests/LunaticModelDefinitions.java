@@ -6,11 +6,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.insee.genesis.TestConstants;
 import fr.insee.genesis.controller.rest.LunaticModelController;
 import fr.insee.genesis.controller.rest.responses.QuestionnaireController;
+import fr.insee.genesis.controller.services.MetadataService;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.service.lunaticmodel.LunaticModelService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.domain.utils.JsonUtils;
 import fr.insee.genesis.infrastructure.document.lunaticmodel.LunaticModelDocument;
+import fr.insee.genesis.infrastructure.utils.FileUtils;
+import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.LunaticModelPersistanceStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import io.cucumber.java.Before;
@@ -44,7 +47,11 @@ public class LunaticModelDefinitions {
 
     SurveyUnitPersistencePortStub surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
     QuestionnaireController questionnaireController = new QuestionnaireController(
-            new SurveyUnitService(surveyUnitPersistencePortStub)
+            new SurveyUnitService(
+                    surveyUnitPersistencePortStub,
+                    new MetadataService(),
+                    new FileUtils(new ConfigStub())
+            )
     );
 
     private String baseUrl;

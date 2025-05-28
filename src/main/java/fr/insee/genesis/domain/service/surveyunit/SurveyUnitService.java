@@ -9,6 +9,7 @@ import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
 import fr.insee.genesis.controller.dto.VariableDto;
 import fr.insee.genesis.controller.dto.VariableInputDto;
 import fr.insee.genesis.controller.dto.VariableStateDto;
+import fr.insee.genesis.controller.services.MetadataService;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
@@ -18,6 +19,8 @@ import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
 import fr.insee.genesis.domain.utils.GroupUtils;
 import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.infrastructure.utils.FileUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -33,14 +36,21 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
+@Slf4j
 public class SurveyUnitService implements SurveyUnitApiPort {
 
     @Qualifier("surveyUnitMongoAdapter")
     private final SurveyUnitPersistencePort surveyUnitPersistencePort;
 
+    private final MetadataService metadataService;
+    private final FileUtils fileUtils;
+
     @Autowired
-    public SurveyUnitService(SurveyUnitPersistencePort surveyUnitPersistencePort) {
+    public SurveyUnitService(SurveyUnitPersistencePort surveyUnitPersistencePort, MetadataService metadataService,
+                             FileUtils fileUtils) {
         this.surveyUnitPersistencePort = surveyUnitPersistencePort;
+        this.metadataService = metadataService;
+        this.fileUtils = fileUtils;
     }
 
     @Override
@@ -134,7 +144,8 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     }
 
     @Override
-    public SurveyUnitDto findLatestValuesByStateByIdAndByQuestionnaireId(String interrogationId, String questionnaireId) {
+    public SurveyUnitDto findLatestValuesByStateByIdAndByQuestionnaireId(String interrogationId,
+                                                                         String questionnaireId) {
         SurveyUnitDto surveyUnitDto = SurveyUnitDto.builder()
                 .interrogationId(interrogationId)
                 .collectedVariables(new ArrayList<>())
@@ -151,7 +162,18 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                     .filter(surveyUnitModel -> surveyUnitModel.getMode().equals(mode))
                     .sorted((o1, o2) -> o2.getRecordDate().compareTo(o1.getRecordDate())) //Sorting update by date (latest updates first by date of upload in database)
                     .toList();
-            suByMode.forEach(surveyUnitModel -> extractVariables(surveyUnitModel, collectedVariableMap,externalVariableMap));
+            VariablesMap variablesMap = null;
+            for(SurveyUnitModel surveyUnitModel : suByMode){
+                if(variablesMap == null){
+                    variablesMap = metadataService.readMetadatas(
+                            surveyUnitModel.getCampaignId(),
+                            surveyUnitModel.getMode().getModeName(),
+                            fileUtils,
+                            new ArrayList<>());
+                }
+                extractVariables(surveyUnitModel, collectedVariableMap,
+                        externalVariableMap, variablesMap);
+            }
         });
         collectedVariableMap.keySet().forEach(variableTuple -> surveyUnitDto.getCollectedVariables().add(collectedVariableMap.get(variableTuple)));
         externalVariableMap.keySet().forEach(variableName -> surveyUnitDto.getExternalVariables().add(externalVariableMap.get(variableName)));
@@ -281,7 +303,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             for(VariableInputDto editedVariableDto : editedCollectedVariables){
                 VariableModel collectedVariable = VariableModel.builder()
                         .varId(editedVariableDto.getVariableName())
-                        .value(editedVariableDto.getVariableStateInputDto().getValue())
+                        .value(editedVariableDto.getVariableStateInputDto().getValue().toString())
                         .parentId(GroupUtils.getParentGroupName(editedVariableDto.getVariableName(), variablesMap))
                         .scope(variablesMap.getVariable(editedVariableDto.getVariableName()).getGroupName())
                         .iteration(editedVariableDto.getIteration())
@@ -341,8 +363,10 @@ public class SurveyUnitService implements SurveyUnitApiPort {
      * @param externalVariableMap External variable DTO map to populate
      */
     private void extractVariables(SurveyUnitModel surveyUnitModel,
-                                           Map<VarIdScopeTuple, VariableDto> collectedVariableMap,
-                                           Map<VarIdScopeTuple, VariableDto> externalVariableMap) {
+                                  Map<VarIdScopeTuple, VariableDto> collectedVariableMap,
+                                  Map<VarIdScopeTuple, VariableDto> externalVariableMap,
+                                  VariablesMap variablesMap
+                                  ) {
 
         if(surveyUnitModel.getCollectedVariables() == null){
             surveyUnitModel.setCollectedVariables(new ArrayList<>());
@@ -368,7 +392,10 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                         VariableStateDto.builder()
                                 .state(surveyUnitModel.getState())
                                 .active(isLastVariableState(surveyUnitModel, variableDto))
-                                .value(collectedVariable.value())
+                                .value(getValueWithType(
+                                        collectedVariable.varId(),
+                                        collectedVariable.value(),
+                                        variablesMap))
                                 .date(surveyUnitModel.getRecordDate())
                                 .build()
                 );
@@ -398,10 +425,35 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                         VariableStateDto.builder()
                                 .state(surveyUnitModel.getState())
                                 .active(isLastVariableState(surveyUnitModel, variableDto))
-                                .value(externalVariable.value())
+                                .value(getValueWithType(
+                                        externalVariable.varId(),
+                                        externalVariable.value(),
+                                        variablesMap))
                                 .date(surveyUnitModel.getRecordDate())
                                 .build()
                 );
+            }
+        }
+    }
+
+    private Object getValueWithType(String variableName, String value, VariablesMap variablesMap) {
+        if(!variablesMap.hasVariable(variableName)){
+            log.warn("Variable {} not found in variableMap", variableName);
+            return value;
+        }
+        if(value.isEmpty()) return value;
+        switch (variablesMap.getVariable(variableName).getType()){
+            case INTEGER -> {
+                return Integer.parseInt(value);
+            }
+            case BOOLEAN -> {
+                return Boolean.parseBoolean(value);
+            }
+            case NUMBER -> {
+                return Double.parseDouble(value);
+            }
+            default -> {
+                return value;
             }
         }
     }

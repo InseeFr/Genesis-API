@@ -47,7 +47,7 @@ class UtilsControllerTest {
     static FileUtils fileUtils = new FileUtils(new ConfigStub());
     static ControllerUtils controllerUtils = new ControllerUtils(fileUtils);
     static MetadataService metadataService = new MetadataService();
-    static SurveyUnitService surveyUnitService = new SurveyUnitService(new SurveyUnitPersistencePortStub());
+    static SurveyUnitService surveyUnitService = new SurveyUnitService(new SurveyUnitPersistencePortStub(), metadataService, fileUtils);
     static SurveyUnitQualityService surveyUnitQualityService = new SurveyUnitQualityService();
     //Constants
     static final String DEFAULT_INTERROGATION_ID = "TESTINTERROGATIONID";
@@ -57,7 +57,7 @@ class UtilsControllerTest {
     static void init() {
         surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
         lunaticJsonRawDataPersistencePort = new LunaticJsonRawDataPersistanceStub();
-        SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(surveyUnitPersistencePortStub);
+        SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(surveyUnitPersistencePortStub, metadataService, fileUtils);
         LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort = new LunaticJsonRawDataService(lunaticJsonRawDataPersistencePort,controllerUtils,metadataService,surveyUnitService,surveyUnitQualityService,fileUtils);
 
         utilsControllerStatic = new UtilsController(
@@ -108,7 +108,7 @@ class UtilsControllerTest {
         collectedVariableList.add(collectedVariable);
 
         surveyUnitPersistencePortStub.getMongoStub().add(SurveyUnitModel.builder()
-                .campaignId("TESTCAMPAIGNID")
+                .campaignId("TEST-TABLEAUX")
                 .mode(Mode.WEB)
                 .interrogationId(DEFAULT_INTERROGATION_ID)
                 .questionnaireId(DEFAULT_QUESTIONNAIRE_ID)
@@ -290,7 +290,7 @@ class UtilsControllerTest {
                         .resolve(LocalDate.now().format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
                                 + Constants.VOLUMETRY_FILE_SUFFIX + ".csv");
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TESTCAMPAIGNID;1");
+        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TEST-TABLEAUX;1");
 
         //CLEAN
         Files.deleteIfExists(logFilePath);
@@ -309,7 +309,7 @@ class UtilsControllerTest {
                 .resolve(LocalDate.now().format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
                         + Constants.VOLUMETRY_FILE_SUFFIX + ".csv");
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TESTCAMPAIGNID;1").doesNotContain("TESTCAMPAIGNID;1\nTESTCAMPAIGNID;1");
+        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TEST-TABLEAUX;1").doesNotContain("TEST-TABLEAUX;1\nTEST-TABLEAUX;1");
 
         //CLEAN
         Files.deleteIfExists(logFilePath);
@@ -318,7 +318,7 @@ class UtilsControllerTest {
     @Test
     void saveVolumetryTest_additionnal_campaign() throws IOException {
         //Given
-        addAdditionalSurveyUnitModelToMongoStub("TESTCAMPAIGNID2","TESTQUEST2");
+        addAdditionalSurveyUnitModelToMongoStub("TEST-TABLEAUX2","TESTQUEST2");
 
         //WHEN
         ResponseEntity<Object> response = utilsControllerStatic.saveVolumetry();
@@ -330,7 +330,7 @@ class UtilsControllerTest {
                 .resolve(LocalDate.now().format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
                         + Constants.VOLUMETRY_FILE_SUFFIX + ".csv");
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TESTCAMPAIGNID;1").contains("TESTCAMPAIGNID2;1");
+        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TEST-TABLEAUX;1").contains("TEST-TABLEAUX2;1");
 
         //CLEAN
         Files.deleteIfExists(logFilePath);
@@ -339,7 +339,7 @@ class UtilsControllerTest {
     void saveVolumetryTest_additionnal_campaign_and_document() throws IOException {
         //Given
         addAdditionalSurveyUnitModelToMongoStub("TESTQUEST");
-        addAdditionalSurveyUnitModelToMongoStub("TESTCAMPAIGNID2","TESTQUEST2");
+        addAdditionalSurveyUnitModelToMongoStub("TEST-TABLEAUX2","TESTQUEST2");
 
         //WHEN
         ResponseEntity<Object> response = utilsControllerStatic.saveVolumetry();
@@ -351,7 +351,7 @@ class UtilsControllerTest {
                 .resolve(LocalDate.now().format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
                         + Constants.VOLUMETRY_FILE_SUFFIX + ".csv");
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TESTCAMPAIGNID;2").contains("TESTCAMPAIGNID2;1");
+        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TEST-TABLEAUX;2").contains("TEST-TABLEAUX2;1");
 
         //CLEAN
         Files.deleteIfExists(logFilePath);
@@ -390,7 +390,7 @@ class UtilsControllerTest {
     // Utilities
 
     private void addAdditionalSurveyUnitModelToMongoStub(String questionnaireId) {
-        addAdditionalSurveyUnitModelToMongoStub("TESTCAMPAIGNID",questionnaireId);
+        addAdditionalSurveyUnitModelToMongoStub("TEST-TABLEAUX",questionnaireId);
     }
 
     private void addAdditionalSurveyUnitModelToMongoStub(String campaignId, String questionnaireId) {
