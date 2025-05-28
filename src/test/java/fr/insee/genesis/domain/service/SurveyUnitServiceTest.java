@@ -75,7 +75,7 @@ class SurveyUnitServiceTest {
                 .build();
         collectedVariableList.add(collectedVariable);
         surveyUnitPersistencePortStub.getMongoStub().add(SurveyUnitModel.builder()
-                .campaignId("TESTCAMPAIGNID")
+                .campaignId("TEST-TABLEAUX")
                 .mode(Mode.WEB)
                 .interrogationId(DEFAULT_INTERROGATION_ID)
                 .questionnaireId(DEFAULT_QUESTIONNAIRE_ID)
@@ -128,7 +128,7 @@ class SurveyUnitServiceTest {
 
         newSurveyUnitModelList.add(
                 SurveyUnitModel.builder()
-                        .campaignId("TESTCAMPAIGNID")
+                        .campaignId("TEST-TABLEAUX")
                         .mode(Mode.WEB)
                         .interrogationId("TESTINTERROGATIONID2")
                         .questionnaireId(DEFAULT_QUESTIONNAIRE_ID)
@@ -143,7 +143,7 @@ class SurveyUnitServiceTest {
         surveyUnitServiceStatic.saveSurveyUnits(newSurveyUnitModelList);
 
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).filteredOn(surveyUnitModel ->
-                        surveyUnitModel.getCampaignId().equals("TESTCAMPAIGNID")
+                        surveyUnitModel.getCampaignId().equals("TEST-TABLEAUX")
                         && surveyUnitModel.getMode().equals(Mode.WEB)
                         && surveyUnitModel.getInterrogationId().equals("TESTINTERROGATIONID2")
                         && surveyUnitModel.getQuestionnaireId().equals(DEFAULT_QUESTIONNAIRE_ID)
@@ -251,13 +251,13 @@ class SurveyUnitServiceTest {
     void getQuestionnairesByCampaignTest() {
         addAdditionnalSurveyUnitModelToMongoStub("TESTQUESTIONNAIRE2");
 
-        Assertions.assertThat(surveyUnitServiceStatic.findQuestionnaireIdsByCampaignId("TESTCAMPAIGNID")).isNotEmpty().hasSize(2);
+        Assertions.assertThat(surveyUnitServiceStatic.findQuestionnaireIdsByCampaignId("TEST-TABLEAUX")).isNotEmpty().hasSize(2);
 
     }
 
     @Test
     void getAllCampaignsTest() {
-        Assertions.assertThat(surveyUnitServiceStatic.findDistinctCampaignIds()).contains("TESTCAMPAIGNID");
+        Assertions.assertThat(surveyUnitServiceStatic.findDistinctCampaignIds()).contains("TEST-TABLEAUX");
     }
 
     @Test
@@ -548,7 +548,7 @@ class SurveyUnitServiceTest {
         collectedVariableList.add(collectedVariableModel);
 
         SurveyUnitModel recentDTO = SurveyUnitModel.builder()
-                .campaignId("TESTCAMPAIGNID")
+                .campaignId("TEST-TABLEAUX")
                 .mode(Mode.WEB)
                 .interrogationId(DEFAULT_INTERROGATION_ID)
                 .questionnaireId(DEFAULT_QUESTIONNAIRE_ID)
@@ -595,7 +595,7 @@ class SurveyUnitServiceTest {
         collectedVariableList.add(collectedVariableModel);
 
         SurveyUnitModel recentDTO = SurveyUnitModel.builder()
-                .campaignId("TESTCAMPAIGNID")
+                .campaignId("TEST-TABLEAUX")
                 .mode(Mode.WEB)
                 .interrogationId(DEFAULT_INTERROGATION_ID)
                 .questionnaireId(questionnaireId)
@@ -633,7 +633,7 @@ class SurveyUnitServiceTest {
         collectedVariableList.add(collectedVariable);
 
         SurveyUnitModel recentDTO = SurveyUnitModel.builder()
-                .campaignId("TESTCAMPAIGNID")
+                .campaignId("TEST-TABLEAUX")
                 .mode(Mode.WEB)
                 .interrogationId(DEFAULT_INTERROGATION_ID)
                 .questionnaireId(DEFAULT_QUESTIONNAIRE_ID)

@@ -60,7 +60,7 @@ class QuestionnaireControllerTest {
     void getQuestionnairesByCampaignTest() {
         Utils.addAdditionalSurveyUnitModelToMongoStub("TESTQUESTIONNAIRE2", surveyUnitPersistencePortStub);
 
-        ResponseEntity<Set<String>> response = questionnaireControllerStatic.getQuestionnairesByCampaign("TESTCAMPAIGNID");
+        ResponseEntity<Set<String>> response = questionnaireControllerStatic.getQuestionnairesByCampaign("TEST-TABLEAUX");
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().containsOnly(
@@ -86,11 +86,11 @@ class QuestionnaireControllerTest {
 
         Assertions.assertThat(response.getBody().stream().filter(
                 questionnaireWithCampaign -> questionnaireWithCampaign.getQuestionnaireId().equals(DEFAULT_QUESTIONNAIRE_ID)
-        ).findFirst().get().getCampaigns()).containsExactly("TESTCAMPAIGNID");
+        ).findFirst().get().getCampaigns()).containsExactly("TEST-TABLEAUX");
 
         Assertions.assertThat(response.getBody().stream().filter(
                 questionnaireWithCampaign -> questionnaireWithCampaign.getQuestionnaireId().equals("TESTQUESTIONNAIRE2")
-        ).findFirst().get().getCampaigns()).containsExactly("TESTCAMPAIGNID", "TESTCAMPAIGN2");
+        ).findFirst().get().getCampaigns()).containsExactly("TEST-TABLEAUX", "TESTCAMPAIGN2");
     }
 
 }

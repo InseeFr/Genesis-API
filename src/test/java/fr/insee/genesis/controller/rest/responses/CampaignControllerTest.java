@@ -55,7 +55,7 @@ class CampaignControllerTest {
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().containsOnly(
-                "TESTCAMPAIGNID","TESTCAMPAIGN2");
+                "TEST-TABLEAUX","TESTCAMPAIGN2");
     }
 
     @Test
@@ -68,12 +68,12 @@ class CampaignControllerTest {
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
         Assertions.assertThat(response.getBody().stream().filter(campaignWithQuestionnaire ->
-                        campaignWithQuestionnaire.getCampaignId().equals("TESTCAMPAIGNID")
+                        campaignWithQuestionnaire.getCampaignId().equals("TEST-TABLEAUX")
                                 || campaignWithQuestionnaire.getCampaignId().equals("TESTCAMPAIGN2")
         )).isNotNull().isNotEmpty().hasSize(2);
 
         Assertions.assertThat(response.getBody().stream().filter(
-                campaignWithQuestionnaire -> campaignWithQuestionnaire.getCampaignId().equals("TESTCAMPAIGNID")
+                campaignWithQuestionnaire -> campaignWithQuestionnaire.getCampaignId().equals("TEST-TABLEAUX")
         ).findFirst().get().getQuestionnaires()).containsOnly(DEFAULT_QUESTIONNAIRE_ID, "TESTQUESTIONNAIRE2");
 
         Assertions.assertThat(response.getBody().stream().filter(
