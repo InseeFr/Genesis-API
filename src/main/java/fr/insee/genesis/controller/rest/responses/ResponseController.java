@@ -38,6 +38,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -225,9 +226,10 @@ public class ResponseController implements CommonApiResponse {
     }
 
     @Operation(summary = "Retrieve responses for an interrogation, using interrogationId and questionnaireId from Genesis Database with the latest value for each available state of every variable")
-    @GetMapping(path = "/by-ue-and-questionnaire/latest-states")
+    @GetMapping(path = "/by-ue-and-questionnaire/latest-states",
+                produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasRole('USER_PLATINE')")
-    public ResponseEntity<String> findResponsesByInterrogationAndQuestionnaireLatestStates(
+    public ResponseEntity<Object> findResponsesByInterrogationAndQuestionnaireLatestStates(
             @RequestParam("interrogationId") String interrogationId,
             @RequestParam("questionnaireId") String questionnaireId) throws GenesisException {
         //Check context
@@ -235,17 +237,12 @@ public class ResponseController implements CommonApiResponse {
                 contextService.getContext(interrogationId);
 
         if(dataProcessingContextModel == null || !dataProcessingContextModel.isWithReview()){
-            return ResponseEntity.status(403).body("Review is disabled for that partition");
+            return ResponseEntity.status(403).body(new ApiError("Review is disabled for that partition"));
         }
 
         SurveyUnitDto response = surveyUnitService.findLatestValuesByStateByIdAndByQuestionnaireId(interrogationId, questionnaireId);
         SurveyUnitQualityToolDto responseQualityToolDto = DataTransformer.transformSurveyUnitDto(response);
-        ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
-        try {
-            return ResponseEntity.ok(objectMapper.writeValueAsString(responseQualityToolDto));
-        }catch (JsonProcessingException e){
-            return ResponseEntity.badRequest().body(e.toString());
-        }
+        return ResponseEntity.ok(responseQualityToolDto);
     }
 
     @Hidden
