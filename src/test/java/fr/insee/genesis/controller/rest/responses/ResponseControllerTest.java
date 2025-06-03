@@ -1,6 +1,5 @@
 package fr.insee.genesis.controller.rest.responses;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cucumber.TestConstants;
 import fr.insee.genesis.Constants;
@@ -236,7 +235,7 @@ class ResponseControllerTest {
 
     // Perret tests
     @Test
-    void getLatestByStatesSurveyDataTest() throws GenesisException, JsonProcessingException {
+    void getLatestByStatesSurveyDataTest() throws GenesisException, IOException {
         //GIVEN
         //Recent Collected already in stub
         //Old Collected
@@ -273,7 +272,7 @@ class ResponseControllerTest {
 
 
         //WHEN
-        ResponseEntity<String> response = responseControllerStatic.findResponsesByInterrogationAndQuestionnaireLatestStates(
+        ResponseEntity<Object> response = responseControllerStatic.findResponsesByInterrogationAndQuestionnaireLatestStates(
                 DEFAULT_INTERROGATION_ID,
                 DEFAULT_QUESTIONNAIRE_ID
         );
@@ -282,7 +281,7 @@ class ResponseControllerTest {
         //THEN
         ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
         Assertions.assertThat(response.getStatusCode().value()).isEqualTo(200);
-        SurveyUnitQualityToolDto surveyUnitQualityToolDto = objectMapper.readValue(response.getBody(), SurveyUnitQualityToolDto.class);
+        SurveyUnitQualityToolDto surveyUnitQualityToolDto = (SurveyUnitQualityToolDto) response.getBody();
 
         Assertions.assertThat(surveyUnitQualityToolDto).isNotNull();
 
