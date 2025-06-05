@@ -139,7 +139,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
                     contextualId = rawData.data().get("contextualId") == null ? null : rawData.data().get("contextualId").toString();
                     isCapturedIndirectly = rawData.data().get("isCapturedIndirectly") == null ? null :
                             Boolean.parseBoolean(rawData.data().get("isCapturedIndirectly").toString());
-                    validationDate = rawData.data().get("isCapturedIndirectly") == null ? null :
+                    validationDate = rawData.data().get("validationDate") == null ? null :
                             LocalDateTime.parse(rawData.data().get("validationDate").toString());
                 }catch(Exception e){
                     log.warn("Exception during optional fields parsing : %s".formatted(e.toString()));
