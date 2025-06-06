@@ -1,6 +1,5 @@
 package fr.insee.genesis.controller.rest.responses;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import cucumber.TestConstants;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.configuration.Config;
@@ -270,7 +269,7 @@ class ResponseControllerTest {
         );
 
         dataProcessingContextPersistancePortStub.getMongoStub().add(new DataProcessingContextDocument(
-                "TESTCAMPAIGNID", new ArrayList<>(), true
+                "TEST-TABLEAUX", new ArrayList<>(), true
 
         ));
 
@@ -283,7 +282,6 @@ class ResponseControllerTest {
 
 
         //THEN
-        ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
         Assertions.assertThat(response.getStatusCode().value()).isEqualTo(200);
         SurveyUnitQualityToolDto surveyUnitQualityToolDto = (SurveyUnitQualityToolDto) response.getBody();
 
