@@ -1,8 +1,11 @@
 package fr.insee.genesis.controller.rest.responses;
 
 import fr.insee.genesis.controller.dto.CampaignWithQuestionnaire;
+import fr.insee.genesis.controller.services.MetadataService;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
+import fr.insee.genesis.infrastructure.utils.FileUtils;
+import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -26,7 +29,11 @@ class CampaignControllerTest {
     @BeforeAll
     static void init() {
         surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
-        SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(surveyUnitPersistencePortStub);
+        SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(
+                surveyUnitPersistencePortStub,
+                new MetadataService(),
+                new FileUtils(new ConfigStub())
+        );
 
         campaignControllerStatic = new CampaignController( surveyUnitApiPort );
 
@@ -48,7 +55,7 @@ class CampaignControllerTest {
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().containsOnly(
-                "TESTCAMPAIGNID","TESTCAMPAIGN2");
+                "TEST-TABLEAUX","TESTCAMPAIGN2");
     }
 
     @Test
@@ -61,12 +68,12 @@ class CampaignControllerTest {
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
         Assertions.assertThat(response.getBody().stream().filter(campaignWithQuestionnaire ->
-                        campaignWithQuestionnaire.getCampaignId().equals("TESTCAMPAIGNID")
+                        campaignWithQuestionnaire.getCampaignId().equals("TEST-TABLEAUX")
                                 || campaignWithQuestionnaire.getCampaignId().equals("TESTCAMPAIGN2")
         )).isNotNull().isNotEmpty().hasSize(2);
 
         Assertions.assertThat(response.getBody().stream().filter(
-                campaignWithQuestionnaire -> campaignWithQuestionnaire.getCampaignId().equals("TESTCAMPAIGNID")
+                campaignWithQuestionnaire -> campaignWithQuestionnaire.getCampaignId().equals("TEST-TABLEAUX")
         ).findFirst().get().getQuestionnaires()).containsOnly(DEFAULT_QUESTIONNAIRE_ID, "TESTQUESTIONNAIRE2");
 
         Assertions.assertThat(response.getBody().stream().filter(

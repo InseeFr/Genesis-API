@@ -10,6 +10,6 @@ public class VariableStateInputDto {
 
     private DataState state;
 
-    private String value;
+    private Object value;
 
 }

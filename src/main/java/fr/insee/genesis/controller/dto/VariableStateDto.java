@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 public class VariableStateDto {
     private DataState state;
     private boolean active;
-    private String value;
+    private Object value;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss.SSS")
     private LocalDateTime date;
