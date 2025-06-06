@@ -27,11 +27,23 @@ public interface SurveyUnitApiPort {
     Stream<SurveyUnitModel> findByQuestionnaireId(String questionnaireId);
 
     List<SurveyUnitModel> findLatestByIdAndByQuestionnaireId(String interrogationId, String questionnaireId);
+
+    //========= OPTIMISATIONS PERFS (START) ==========
+    List<List<SurveyUnitModel>> findLatestByIdAndByQuestionnaireIdAndModeOrdered(String questionnaireId, String mode, List<InterrogationId> interrogationIds);
+    //========= OPTIMISATIONS PERFS (END) ==========
+
     SurveyUnitDto findLatestValuesByStateByIdAndByQuestionnaireId(String interrogationId, String questionnaireId);
 
     List<SurveyUnitModel> findInterrogationIdsAndModesByQuestionnaireId(String questionnaireId);
 
     List<InterrogationId> findDistinctInterrogationIdsByQuestionnaireId(String questionnaireId);
+
+    //========= OPTIMISATIONS PERFS (START) ==========
+    long countInterrogationIdsByQuestionnaireId(String questionnaireId);
+
+    List<InterrogationId> findDistinctPageableInterrogationIdsByQuestionnaireId(String questionnaireId,
+                                                                                long totalSize, int workersNumbers, int workerId, long blockSize, long page);
+    //========= OPTIMISATIONS PERFS (END) ==========
 
     List<Mode> findModesByQuestionnaireId(String questionnaireId);
 

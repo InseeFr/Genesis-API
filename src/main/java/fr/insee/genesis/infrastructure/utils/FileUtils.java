@@ -224,7 +224,7 @@ public class FileUtils {
 	 */
 	public void writeSuUpdatesInFile(Path filePath, Stream<SurveyUnitModel> responsesStream) throws IOException {
 		Files.createDirectories(filePath.getParent());
-		ObjectMapper objectMapper = new ObjectMapper();
+		ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 		objectMapper.findAndRegisterModules();
 		try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath.toFile(), true))) {
 			writer.write("[");

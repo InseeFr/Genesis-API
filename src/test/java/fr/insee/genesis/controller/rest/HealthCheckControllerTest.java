@@ -6,10 +6,11 @@ import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
+import fr.insee.genesis.domain.service.context.DataProcessingContextService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
-import fr.insee.genesis.stubs.ScheduleApiPortStub;
+import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
@@ -26,7 +27,6 @@ class HealthCheckControllerTest {
     static HealthCheckController healthCheckController;
 
     static SurveyUnitPersistencePortStub surveyUnitPersistencePortStub;
-    static ScheduleApiPortStub scheduleApiPortStub;
 
     @BeforeAll
     static void init() {
@@ -79,12 +79,9 @@ class HealthCheckControllerTest {
                 .collectedVariables(collectedVariableList)
                 .build());
 
-
-        scheduleApiPortStub = new ScheduleApiPortStub();
-
         healthCheckController = new HealthCheckController(
                 surveyUnitApiPort,
-                scheduleApiPortStub
+                new DataProcessingContextService(new DataProcessingContextPersistancePortStub(), new SurveyUnitPersistencePortStub())
         );
     }
 
