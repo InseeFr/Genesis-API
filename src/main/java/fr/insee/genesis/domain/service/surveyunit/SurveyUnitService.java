@@ -505,6 +505,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             surveyUnitModel.setCollectedVariables(new ArrayList<>());
         }
         for (VariableModel collectedVariable : surveyUnitModel.getCollectedVariables()) {
+            log.info("Variable name : {}", collectedVariable.varId());
             VarIdScopeTuple loopIdTuple = new VarIdScopeTuple(collectedVariable.varId(), collectedVariable.scope(),
                     collectedVariable.iteration());
             VariableDto variableDto = collectedVariableMap.get(loopIdTuple);
@@ -574,6 +575,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             log.warn("Variable {} not found in variableMap", variableName);
             return value;
         }
+        if(value == null) return null;
         if(value.isEmpty()) return value;
         switch (variablesMap.getVariable(variableName).getType()){
             case INTEGER -> {
