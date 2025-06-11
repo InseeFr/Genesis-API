@@ -264,8 +264,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
      * (needed for distributed process / horizontal scaling)
      */
     @Override
-    public List<InterrogationId> findDistinctPageableInterrogationIdsByQuestionnaireId(String questionnaireId,
-                                                                                       long totalSize, int workersNumbers, int workerId,
+    public List<InterrogationId> findDistinctPageableInterrogationIdsByQuestionnaireId(String questionnaireId, long totalSize,
                                                                                        long blockSize, long page) {
         long calculatedTotalSize;
         if(totalSize == 0) {
@@ -273,14 +272,14 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         } else {
             calculatedTotalSize = totalSize;
         }
-        long workerSize = calculatedTotalSize / workersNumbers;
-        long workerOffset = (workerId - 1) * workerSize;
-        long skip = workerOffset + blockSize * page;
-        long calculatedBlockSize = (skip + blockSize) > (workerOffset + workerSize) ? (workerOffset + workerSize) - (blockSize * page) : blockSize;
-        // processing of the last element on the last worker if division result is a decimal number (modulo operator)
-        if(workerId == workersNumbers && calculatedTotalSize % workersNumbers != 0) {
-            calculatedBlockSize = calculatedBlockSize + 1;
+
+        //Check arguments
+        long skip = page * blockSize;
+        if(page < 0 || skip > calculatedTotalSize) {
+            //return empty list
+            return List.of();
         }
+        long calculatedBlockSize = (skip + blockSize) > calculatedTotalSize ? calculatedTotalSize - skip : blockSize;
 
         List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findPageableInterrogationIdsByQuestionnaireId(questionnaireId, skip, calculatedBlockSize);
         List<InterrogationId> suIds = new ArrayList<>();
