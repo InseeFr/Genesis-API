@@ -32,7 +32,7 @@ class RawResponseControllerTest {
     private final LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort = new LunaticJsonRawDataService(lunaticJsonRawDataPersistanceStub,
             new ControllerUtils(fileUtils),
             new MetadataService(),
-            new SurveyUnitService(surveyUnitPersistencePortStub),
+            new SurveyUnitService(surveyUnitPersistencePortStub, new MetadataService(), fileUtils),
             new SurveyUnitQualityService(),
             fileUtils);
     private final RawResponseController rawResponseController = new RawResponseController(lunaticJsonRawDataApiPort);

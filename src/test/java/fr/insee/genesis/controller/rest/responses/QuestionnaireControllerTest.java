@@ -1,8 +1,11 @@
 package fr.insee.genesis.controller.rest.responses;
 
 import fr.insee.genesis.controller.dto.QuestionnaireWithCampaign;
+import fr.insee.genesis.controller.services.MetadataService;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
+import fr.insee.genesis.infrastructure.utils.FileUtils;
+import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -24,7 +27,11 @@ class QuestionnaireControllerTest {
     @BeforeAll
     static void init() {
         surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
-        SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(surveyUnitPersistencePortStub);
+        SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(
+                surveyUnitPersistencePortStub,
+                new MetadataService(),
+                new FileUtils(new ConfigStub())
+        );
 
         questionnaireControllerStatic = new QuestionnaireController(surveyUnitApiPort);
 
@@ -53,7 +60,7 @@ class QuestionnaireControllerTest {
     void getQuestionnairesByCampaignTest() {
         Utils.addAdditionalSurveyUnitModelToMongoStub("TESTQUESTIONNAIRE2", surveyUnitPersistencePortStub);
 
-        ResponseEntity<Set<String>> response = questionnaireControllerStatic.getQuestionnairesByCampaign("TESTCAMPAIGNID");
+        ResponseEntity<Set<String>> response = questionnaireControllerStatic.getQuestionnairesByCampaign("TEST-TABLEAUX");
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().containsOnly(
@@ -79,11 +86,11 @@ class QuestionnaireControllerTest {
 
         Assertions.assertThat(response.getBody().stream().filter(
                 questionnaireWithCampaign -> questionnaireWithCampaign.getQuestionnaireId().equals(DEFAULT_QUESTIONNAIRE_ID)
-        ).findFirst().get().getCampaigns()).containsExactly("TESTCAMPAIGNID");
+        ).findFirst().get().getCampaigns()).containsExactly("TEST-TABLEAUX");
 
         Assertions.assertThat(response.getBody().stream().filter(
                 questionnaireWithCampaign -> questionnaireWithCampaign.getQuestionnaireId().equals("TESTQUESTIONNAIRE2")
-        ).findFirst().get().getCampaigns()).containsExactly("TESTCAMPAIGNID", "TESTCAMPAIGN2");
+        ).findFirst().get().getCampaigns()).containsExactly("TEST-TABLEAUX", "TESTCAMPAIGN2");
     }
 
 }
