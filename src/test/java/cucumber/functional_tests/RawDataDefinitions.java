@@ -114,11 +114,36 @@ public class RawDataDefinitions {
         HttpEntity<String> requestEntity = new HttpEntity<>(rawJsonData.trim(), headers);
         try {
             response = rest.exchange(url, HttpMethod.PUT, requestEntity, String.class);
-            if(response.getStatusCode().is2xxSuccessful()){nbRawSaved++;}
+            if(response.getStatusCode().is2xxSuccessful()){
+                nbRawSaved++;
+                return;
+            }
+            log.error(response.getBody());
         } catch (Exception e) {
+            log.error(e.toString());
             response = new ResponseEntity<>("Unexpected error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
 
+    @When("We call save raw data endpoint with validation")
+    public void save_raw_data_validation_spring() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer fake_token");
+        String url = "%sresponses/raw/lunatic-json".formatted(baseUrl);
+
+        HttpEntity<String> requestEntity = new HttpEntity<>(rawJsonData.trim(), headers);
+        try {
+            response = rest.exchange(url, HttpMethod.PUT, requestEntity, String.class);
+            if(response.getStatusCode().is2xxSuccessful()){
+                nbRawSaved++;
+                return;
+            }
+            log.error(response.getBody());
+        } catch (Exception e) {
+            log.error(e.toString());
+            response = new ResponseEntity<>("Unexpected error", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @When("We save that raw data for web campaign {string}, questionnaire {string}, interrogation {string}")
@@ -133,6 +158,17 @@ public class RawDataDefinitions {
                 interrogationId,
                 null,
                 Mode.WEB,
+                JsonUtils.jsonToMap(Files.readString(rawDataFilePath))
+        );
+    }
+
+    @When("We save that raw data with validation")
+    public void save_raw_data_with_validation() throws IOException {
+        if(rawDataFilePath == null){
+            throw new RuntimeException("Raw data file path is null !");
+        }
+
+        response = rawResponseController.saveRawResponsesFromJsonBodyWithValidation(
                 JsonUtils.jsonToMap(Files.readString(rawDataFilePath))
         );
     }
@@ -228,4 +264,20 @@ public class RawDataDefinitions {
     }
 
 
+    @Then("In surveyUnit {string} of the campaign {string} we must have {string} as contextualId, " +
+            "isCapturedIndirectly to {string} and validationDate null")
+    public void check_optional_values(String interrogationId, String campaignId, String expectedContextualId,
+                                       String expectedCapturedIndirectly) {
+        //Get SurveyUnitModel
+        List<SurveyUnitModel> concernedSurveyUnitModels = surveyUnitPersistencePortStub.getMongoStub().stream().filter(surveyUnitModel ->
+                surveyUnitModel.getState().equals(DataState.COLLECTED)
+                        && surveyUnitModel.getCampaignId().equals(campaignId)
+                        && surveyUnitModel.getInterrogationId().equals(interrogationId)
+        ).toList();
+        Assertions.assertThat(concernedSurveyUnitModels).hasSize(1);
+
+        Assertions.assertThat(concernedSurveyUnitModels.getFirst().getContextualId()).isEqualTo(expectedContextualId);
+        Assertions.assertThat(concernedSurveyUnitModels.getFirst().getIsCapturedIndirectly()).isEqualTo(Boolean.parseBoolean(expectedCapturedIndirectly));
+        Assertions.assertThat(concernedSurveyUnitModels.getFirst().getValidationDate()).isNull();
+    }
 }
