@@ -2,11 +2,14 @@ package fr.insee.genesis.domain.service;
 
 import fr.insee.genesis.controller.dto.SurveyUnitDto;
 import fr.insee.genesis.controller.dto.VariableDto;
+import fr.insee.genesis.controller.services.MetadataService;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
+import fr.insee.genesis.infrastructure.utils.FileUtils;
+import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -33,7 +36,8 @@ class SurveyUnitServiceTest {
     static void init(){
         surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
 
-        surveyUnitServiceStatic = new SurveyUnitService(surveyUnitPersistencePortStub);
+        surveyUnitServiceStatic = new SurveyUnitService(surveyUnitPersistencePortStub, new MetadataService(),
+                new FileUtils(new ConfigStub()));
     }
 
     @BeforeEach
@@ -71,7 +75,7 @@ class SurveyUnitServiceTest {
                 .build();
         collectedVariableList.add(collectedVariable);
         surveyUnitPersistencePortStub.getMongoStub().add(SurveyUnitModel.builder()
-                .campaignId("TESTCAMPAIGNID")
+                .campaignId("TEST-TABLEAUX")
                 .mode(Mode.WEB)
                 .interrogationId(DEFAULT_INTERROGATION_ID)
                 .questionnaireId(DEFAULT_QUESTIONNAIRE_ID)
@@ -124,7 +128,7 @@ class SurveyUnitServiceTest {
 
         newSurveyUnitModelList.add(
                 SurveyUnitModel.builder()
-                        .campaignId("TESTCAMPAIGNID")
+                        .campaignId("TEST-TABLEAUX")
                         .mode(Mode.WEB)
                         .interrogationId("TESTINTERROGATIONID2")
                         .questionnaireId(DEFAULT_QUESTIONNAIRE_ID)
@@ -139,7 +143,7 @@ class SurveyUnitServiceTest {
         surveyUnitServiceStatic.saveSurveyUnits(newSurveyUnitModelList);
 
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).filteredOn(surveyUnitModel ->
-                        surveyUnitModel.getCampaignId().equals("TESTCAMPAIGNID")
+                        surveyUnitModel.getCampaignId().equals("TEST-TABLEAUX")
                         && surveyUnitModel.getMode().equals(Mode.WEB)
                         && surveyUnitModel.getInterrogationId().equals("TESTINTERROGATIONID2")
                         && surveyUnitModel.getQuestionnaireId().equals(DEFAULT_QUESTIONNAIRE_ID)
@@ -247,13 +251,13 @@ class SurveyUnitServiceTest {
     void getQuestionnairesByCampaignTest() {
         addAdditionnalSurveyUnitModelToMongoStub("TESTQUESTIONNAIRE2");
 
-        Assertions.assertThat(surveyUnitServiceStatic.findQuestionnaireIdsByCampaignId("TESTCAMPAIGNID")).isNotEmpty().hasSize(2);
+        Assertions.assertThat(surveyUnitServiceStatic.findQuestionnaireIdsByCampaignId("TEST-TABLEAUX")).isNotEmpty().hasSize(2);
 
     }
 
     @Test
     void getAllCampaignsTest() {
-        Assertions.assertThat(surveyUnitServiceStatic.findDistinctCampaignIds()).contains("TESTCAMPAIGNID");
+        Assertions.assertThat(surveyUnitServiceStatic.findDistinctCampaignIds()).contains("TEST-TABLEAUX");
     }
 
     @Test
@@ -514,7 +518,34 @@ class SurveyUnitServiceTest {
         //THEN
         Assertions.assertThat(variableDtos).isNotEmpty();
         Assertions.assertThat(variableDtos.getFirst().getVariableStateDtoList()).hasSize(2);
-        Assertions.assertThat(variableDtos.getFirst().getVariableStateDtoList().getFirst().getValue()).isEmpty();
+        Assertions.assertThat(variableDtos.getFirst().getVariableStateDtoList().getFirst().getValue().toString()).isEmpty();
+
+    }
+
+    @Test
+    void findLatestValuesByStateByIdAndByQuestionnaireId_should_return_null_values(){
+        //Given
+        addAdditionnalSurveyUnitModelToMongoStub(DataState.EDITED,
+                "TABLEAUTIC11",
+                null,
+                null,
+                LocalDateTime.of(2025,2,2,0,0,0),
+                LocalDateTime.of(2025,2,2,0,0,0)
+        );
+
+        //When
+        SurveyUnitDto surveyUnitDto = surveyUnitServiceStatic.findLatestValuesByStateByIdAndByQuestionnaireId(
+                DEFAULT_INTERROGATION_ID,
+                DEFAULT_QUESTIONNAIRE_ID
+        );
+        List<VariableDto> variableDtos = surveyUnitDto.getCollectedVariables().stream().filter(
+                variableDto -> variableDto.getVariableName().equals("TABLEAUTIC11")
+                        && variableDto.getIteration() == 1
+        ).toList();
+        //THEN
+        Assertions.assertThat(variableDtos).isNotEmpty();
+        Assertions.assertThat(variableDtos.getFirst().getVariableStateDtoList()).hasSize(1);
+        Assertions.assertThat(variableDtos.getFirst().getVariableStateDtoList().getFirst().getValue()).isNull();
 
     }
 
@@ -544,7 +575,7 @@ class SurveyUnitServiceTest {
         collectedVariableList.add(collectedVariableModel);
 
         SurveyUnitModel recentDTO = SurveyUnitModel.builder()
-                .campaignId("TESTCAMPAIGNID")
+                .campaignId("TEST-TABLEAUX")
                 .mode(Mode.WEB)
                 .interrogationId(DEFAULT_INTERROGATION_ID)
                 .questionnaireId(DEFAULT_QUESTIONNAIRE_ID)
@@ -591,7 +622,7 @@ class SurveyUnitServiceTest {
         collectedVariableList.add(collectedVariableModel);
 
         SurveyUnitModel recentDTO = SurveyUnitModel.builder()
-                .campaignId("TESTCAMPAIGNID")
+                .campaignId("TEST-TABLEAUX")
                 .mode(Mode.WEB)
                 .interrogationId(DEFAULT_INTERROGATION_ID)
                 .questionnaireId(questionnaireId)
@@ -629,7 +660,46 @@ class SurveyUnitServiceTest {
         collectedVariableList.add(collectedVariable);
 
         SurveyUnitModel recentDTO = SurveyUnitModel.builder()
-                .campaignId("TESTCAMPAIGNID")
+                .campaignId("TEST-TABLEAUX")
+                .mode(Mode.WEB)
+                .interrogationId(DEFAULT_INTERROGATION_ID)
+                .questionnaireId(DEFAULT_QUESTIONNAIRE_ID)
+                .state(state)
+                .fileDate(fileDate)
+                .recordDate(recordDate)
+                .externalVariables(externalVariableList)
+                .collectedVariables(collectedVariableList)
+                .build();
+        surveyUnitPersistencePortStub.getMongoStub().add(recentDTO);
+    }
+
+    private void addAdditionnalSurveyUnitModelToMongoStub(DataState state,
+                                                          String varId,
+                                                          String collectedVariableValue,
+                                                          String externalVariableValue,
+                                                          LocalDateTime fileDate,
+                                                          LocalDateTime recordDate) {
+        List<VariableModel> externalVariableList = new ArrayList<>();
+        VariableModel externalVariableModel =
+                VariableModel.builder()
+                        .varId(varId)
+                        .value(externalVariableValue)
+                        .iteration(1)
+                        .build();
+        externalVariableList.add(externalVariableModel);
+
+        List<VariableModel> collectedVariableList = new ArrayList<>();
+        VariableModel collectedVariable = VariableModel.builder()
+                .varId(varId)
+                .value(collectedVariableValue)
+                .scope("RACINE")
+                .iteration(1)
+                .parentId(null)
+                .build();
+        collectedVariableList.add(collectedVariable);
+
+        SurveyUnitModel recentDTO = SurveyUnitModel.builder()
+                .campaignId("TEST-TABLEAUX")
                 .mode(Mode.WEB)
                 .interrogationId(DEFAULT_INTERROGATION_ID)
                 .questionnaireId(DEFAULT_QUESTIONNAIRE_ID)
