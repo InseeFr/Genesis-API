@@ -47,6 +47,20 @@ public interface SurveyUnitMongoDBRepository extends MongoRepository<SurveyUnitD
 			"{ '$limit' : ?2 }"
 	})
 	List<SurveyUnitDocument> findPageableInterrogationIdsByQuestionnaireId(String questionnaireId, Long skip, Long limit);
+
+	@Aggregation(pipeline = {
+			"{ '$match': { 'campaignId' : ?0 } }",
+			"{ '$group': { '_id': '$mode' } }",
+			"{ '$set': { 'mode': '$_id', '_id': '$$REMOVE' } }"
+	})
+	List<SurveyUnitDocument> findModesByCampaignIdV2(String campaignId);
+
+	@Aggregation(pipeline = {
+			"{ '$match': { 'questionnaireId' : ?0 } }",
+			"{ '$group': { '_id': '$mode' } }",
+			"{ '$set': { 'mode': '$_id', '_id': '$$REMOVE' } }"
+	})
+	List<SurveyUnitDocument> findModesByQuestionnaireIdV2(String campaignId);
 	//========= OPTIMISATIONS PERFS (END) ==========
 
 	@Query(value = "{ 'campaignId' : ?0 }", fields = "{ 'interrogationId' : 1, 'mode' :  1 }")

@@ -108,6 +108,33 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
         }
         return surveyUnitModelList;
     }
+
+
+    @Override
+    public List<SurveyUnitModel> findModesByCampaignIdV2(String campaignId) {
+        List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
+        for(SurveyUnitModel SurveyUnitModel : mongoStub){
+            if(SurveyUnitModel.getCampaignId().equals(campaignId))
+                surveyUnitModelList.add(
+                        new SurveyUnitModel(SurveyUnitModel.getInterrogationId(), SurveyUnitModel.getMode())
+                );
+        }
+
+        return surveyUnitModelList;
+    }
+
+    @Override
+    public List<SurveyUnitModel> findModesByQuestionnaireIdV2(String questionnaireId) {
+        List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
+        for(SurveyUnitModel SurveyUnitModel : mongoStub){
+            if(SurveyUnitModel.getQuestionnaireId().equals(questionnaireId))
+                surveyUnitModelList.add(
+                        new SurveyUnitModel(SurveyUnitModel.getInterrogationId(), SurveyUnitModel.getMode())
+                );
+        }
+
+        return surveyUnitModelList;
+    }
     //======= OPTIMISATIONS PERFS (END) =========
 
 

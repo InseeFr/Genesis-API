@@ -320,6 +320,24 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         return sources.stream().distinct().toList();
     }
 
+    //========= OPTIMISATIONS PERFS (START) ==========
+    @Override
+    public List<Mode> findModesByQuestionnaireIdV2(String questionnaireId) {
+        List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findModesByQuestionnaireIdV2(questionnaireId);
+        List<Mode> sources = new ArrayList<>();
+        surveyUnitModels.forEach(surveyUnitModel -> sources.add(surveyUnitModel.getMode()));
+        return sources.stream().distinct().toList();
+    }
+
+    @Override
+    public List<Mode> findModesByCampaignIdV2(String campaignId) {
+        List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findModesByCampaignIdV2(campaignId);
+        List<Mode> sources = new ArrayList<>();
+        surveyUnitModels.forEach(surveyUnitModel -> sources.add(surveyUnitModel.getMode()));
+        return sources.stream().distinct().toList();
+    }
+    //========= OPTIMISATIONS PERFS (END) ==========
+
     @Override
     public Long deleteByQuestionnaireId(String questionnaireId) {
         return surveyUnitPersistencePort.deleteByQuestionnaireId(questionnaireId);
