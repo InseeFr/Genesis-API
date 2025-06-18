@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.5.5 [2025-06-18]
+### Added
+- review indicator added in context
+- change format output for quality tools (latest-states endpoint)
+- new endpoint to take into account new format input ( /responses/raw/lunatic-json endpoint)
+
+### Updated
+- pitest-maven 1.19.6
+- json-schema-validator 1.5.7
+- springdoc 2.8.9
+- springboot 3.5.0
+
 ## 1.5.4 [2025-04-24]
 ### Fixed
 - kraftwerk users can create and delete schedules
