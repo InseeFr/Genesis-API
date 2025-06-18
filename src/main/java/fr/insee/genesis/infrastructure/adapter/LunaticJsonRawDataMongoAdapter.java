@@ -1,10 +1,13 @@
 package fr.insee.genesis.infrastructure.adapter;
 
 import fr.insee.genesis.Constants;
+import fr.insee.genesis.domain.model.surveyunit.GroupedInterrogation;
+import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
 import fr.insee.genesis.domain.ports.spi.LunaticJsonRawDataPersistencePort;
 import fr.insee.genesis.infrastructure.document.rawdata.LunaticJsonRawDataDocument;
+import fr.insee.genesis.infrastructure.mappers.GroupedInterrogationDocumentMapper;
 import fr.insee.genesis.infrastructure.mappers.LunaticJsonRawDataDocumentMapper;
 import fr.insee.genesis.infrastructure.repository.LunaticJsonMongoDBRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -72,4 +75,11 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
     public long countResponsesByQuestionnaireId(String questionnaireId) {
         return repository.countByQuestionnaireId(questionnaireId);
     }
+
+    @Override
+    public List<GroupedInterrogation> findProcessedIdsGroupedByQuestionnaireSince(LocalDateTime since){
+        return GroupedInterrogationDocumentMapper.INSTANCE.listDocumentToListModel(repository.aggregateRawGroupedByQuestionnaire(since));
+    }
+
+
 }

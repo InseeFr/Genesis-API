@@ -2,7 +2,7 @@ package fr.insee.genesis.controller.rest;
 
 import cucumber.TestConstants;
 import fr.insee.genesis.Constants;
-import fr.insee.genesis.controller.dto.InterrogationId;
+import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
 import fr.insee.genesis.controller.services.MetadataService;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.surveyunit.DataState;

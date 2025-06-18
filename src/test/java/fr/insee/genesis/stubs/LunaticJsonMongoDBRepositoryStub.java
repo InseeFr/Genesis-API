@@ -2,6 +2,7 @@ package fr.insee.genesis.stubs;
 
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.infrastructure.document.rawdata.LunaticJsonRawDataDocument;
+import fr.insee.genesis.infrastructure.document.surveyunit.GroupedInterrogationDocument;
 import fr.insee.genesis.infrastructure.repository.LunaticJsonMongoDBRepository;
 import lombok.Getter;
 import org.springframework.data.domain.Example;
@@ -10,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.FluentQuery;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -53,6 +55,11 @@ public class LunaticJsonMongoDBRepositoryStub implements LunaticJsonMongoDBRepos
     @Override
     public long countByQuestionnaireId(String questionnaireId) {
         return countByQuestionnaireIdMap.getOrDefault(questionnaireId, 0L);
+    }
+
+    @Override
+    public List<GroupedInterrogationDocument> aggregateRawGroupedByQuestionnaire(LocalDateTime since) {
+        return List.of();
     }
 
     // Implémentations vides requises par MongoRepository

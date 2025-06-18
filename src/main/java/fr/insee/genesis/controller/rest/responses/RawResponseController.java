@@ -7,6 +7,7 @@ import com.networknt.schema.JsonSchemaFactory;
 import com.networknt.schema.SpecVersion;
 import com.networknt.schema.ValidationMessage;
 import fr.insee.genesis.controller.dto.rawdata.LunaticJsonRawDataUnprocessedDto;
+import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
@@ -186,6 +187,18 @@ public class RawResponseController {
         }catch (GenesisException e){
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
         }
+    }
+
+    @Operation(summary = "Get processed data ids from last n hours (default 24h)")
+    @PostMapping(path = "/lunatic-json/processed/ids")
+    @PreAuthorize("hasRole('SCHEDULER')")
+    public ResponseEntity<Map<String, List<String>>> getProcessedDataIdsSinceHours(
+            @RequestParam("questionnaireId") String questionnaireId,
+            @RequestParam(name = "sinceHours", defaultValue = "24") int hours
+    ){
+        log.info("Retrieve ids of data processed in last {}h",hours);
+        Map<String, List<String>> result = lunaticJsonRawDataApiPort.findProcessedIdsgroupedByQuestionnaireSince(LocalDateTime.now().minusHours(hours).minusMinutes(10));
+        return ResponseEntity.ok(result);
     }
 
 }

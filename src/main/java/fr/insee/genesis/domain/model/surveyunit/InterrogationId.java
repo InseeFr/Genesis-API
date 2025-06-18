@@ -1,4 +1,4 @@
-package fr.insee.genesis.controller.dto;
+package fr.insee.genesis.domain.model.surveyunit;
 
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
