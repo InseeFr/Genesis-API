@@ -1,14 +1,12 @@
 package fr.insee.genesis.controller.rest.responses;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.insee.bpm.exceptions.MetadataParserException;
 import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.bpm.metadata.reader.ddi.DDIReader;
 import fr.insee.bpm.metadata.reader.lunatic.LunaticReader;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.adapter.LunaticXmlAdapter;
-import fr.insee.genesis.controller.dto.InterrogationId;
+import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
 import fr.insee.genesis.controller.dto.SurveyUnitDto;
 import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
 import fr.insee.genesis.controller.dto.SurveyUnitQualityToolDto;

@@ -6,6 +6,8 @@ import fr.insee.genesis.controller.dto.rawdata.LunaticJsonRawDataUnprocessedDto;
 import fr.insee.genesis.controller.services.MetadataService;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
+import fr.insee.genesis.domain.model.surveyunit.GroupedInterrogation;
+import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
@@ -32,6 +34,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -336,5 +339,14 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     @Override
     public long countResponsesByQuestionnaireId(String campaignId) {
         return lunaticJsonRawDataPersistencePort.countResponsesByQuestionnaireId(campaignId);
+    }
+
+    @Override
+    public Map<String, List<String>> findProcessedIdsgroupedByQuestionnaireSince(LocalDateTime since) {
+        List<GroupedInterrogation> idsByQuestionnaire = lunaticJsonRawDataPersistencePort.findProcessedIdsGroupedByQuestionnaireSince(since);
+        return idsByQuestionnaire.stream().collect(Collectors.toMap(
+                GroupedInterrogation::getQuestionnaireId,
+                GroupedInterrogation::getInterrogationIds
+        ));
     }
 }

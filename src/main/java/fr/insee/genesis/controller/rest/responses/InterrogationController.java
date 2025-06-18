@@ -1,6 +1,6 @@
 package fr.insee.genesis.controller.rest.responses;
 
-import fr.insee.genesis.controller.dto.InterrogationId;
+import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
 import fr.insee.genesis.controller.rest.CommonApiResponse;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import io.swagger.v3.oas.annotations.Operation;

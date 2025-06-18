@@ -1,5 +1,7 @@
 package fr.insee.genesis.stubs;
 
+import fr.insee.genesis.domain.model.surveyunit.GroupedInterrogation;
+import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
 import fr.insee.genesis.domain.ports.spi.LunaticJsonRawDataPersistencePort;
@@ -82,4 +84,10 @@ public class LunaticJsonRawDataPersistanceStub implements LunaticJsonRawDataPers
     public long countResponsesByQuestionnaireId(String questionnaireId) {
         return mongoStub.size();
     }
+
+    @Override
+    public List<GroupedInterrogation> findProcessedIdsGroupedByQuestionnaireSince(LocalDateTime since) {
+        return List.of();
+    }
+
 }
