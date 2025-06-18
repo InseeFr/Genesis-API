@@ -2,6 +2,7 @@ package fr.insee.genesis.domain.service.rawdata;
 
 import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.Constants;
+import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.controller.dto.rawdata.LunaticJsonRawDataUnprocessedDto;
 import fr.insee.genesis.controller.services.MetadataService;
 import fr.insee.genesis.controller.utils.ControllerUtils;
@@ -46,6 +47,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     private final SurveyUnitQualityService surveyUnitQualityService;
     private final SurveyUnitQualityToolPort surveyUnitQualityToolPort;
     private final FileUtils fileUtils;
+    private final Config config;
 
     @Qualifier("lunaticJsonMongoAdapterNew")
     private final LunaticJsonRawDataPersistencePort lunaticJsonRawDataPersistencePort;
@@ -57,7 +59,8 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
                                      SurveyUnitService surveyUnitService,
                                      SurveyUnitQualityService surveyUnitQualityService,
                                      FileUtils fileUtils,
-                                     SurveyUnitQualityToolPort surveyUnitQualityToolPort
+                                     SurveyUnitQualityToolPort surveyUnitQualityToolPort,
+                                     Config config
     ) {
         this.controllerUtils = controllerUtils;
         this.metadataService = metadataService;
@@ -66,6 +69,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
         this.fileUtils = fileUtils;
         this.lunaticJsonRawDataPersistencePort = lunaticJsonRawDataNewPersistencePort;
         this.surveyUnitQualityToolPort = surveyUnitQualityToolPort;
+        this.config = config;
     }
 
     @Override
@@ -93,12 +97,12 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
                                 .formatted(mode, errors.getLast().getMessage())
                 );
             }
-            int totalBatchs = Math.ceilDiv(interrogationIdList.size() , Constants.RAW_DATA_PROCESSING_BATCH_SIZE);
+            int totalBatchs = Math.ceilDiv(interrogationIdList.size() , config.getRawDataProcessingBatchSize());
             int batchNumber = 1;
             List<String> interrogationIdListForMode = new ArrayList<>(interrogationIdList);
             while(!interrogationIdListForMode.isEmpty()){
                 log.info("Processing raw data batch {}/{}", batchNumber, totalBatchs);
-                int maxIndex = Math.min(interrogationIdListForMode.size(), Constants.RAW_DATA_PROCESSING_BATCH_SIZE);
+                int maxIndex = Math.min(interrogationIdListForMode.size(), config.getRawDataProcessingBatchSize());
                 List<String> interrogationIdToProcess = interrogationIdListForMode.subList(0, maxIndex);
 
                 List<LunaticJsonRawDataModel> rawData = getRawData(campaignName,mode, interrogationIdToProcess);

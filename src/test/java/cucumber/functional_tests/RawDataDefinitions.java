@@ -68,7 +68,9 @@ public class RawDataDefinitions {
     SurveyUnitQualityService surveyUnitQualityService = new SurveyUnitQualityService();
 
     SurveyUnitQualityToolPerretAdapterStub surveyUnitQualityToolPerretAdapterStub = new SurveyUnitQualityToolPerretAdapterStub();
-    LunaticJsonRawDataService lunaticJsonRawDataService = new LunaticJsonRawDataService(lunaticJsonRawDataPersistanceStub,controllerUtils,metadataService,surveyUnitService,surveyUnitQualityService,fileUtils, surveyUnitQualityToolPerretAdapterStub);
+    LunaticJsonRawDataService lunaticJsonRawDataService =
+            new LunaticJsonRawDataService(lunaticJsonRawDataPersistanceStub,controllerUtils,metadataService,
+                    surveyUnitService,surveyUnitQualityService,fileUtils, surveyUnitQualityToolPerretAdapterStub,config);
     RawResponseController rawResponseController = new RawResponseController(
             lunaticJsonRawDataService
     );

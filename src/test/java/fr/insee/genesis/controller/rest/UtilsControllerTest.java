@@ -60,7 +60,10 @@ class UtilsControllerTest {
         surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
         lunaticJsonRawDataPersistencePort = new LunaticJsonRawDataPersistanceStub();
         SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(surveyUnitPersistencePortStub, metadataService, fileUtils);
-        LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort = new LunaticJsonRawDataService(lunaticJsonRawDataPersistencePort,controllerUtils,metadataService,surveyUnitService,surveyUnitQualityService,fileUtils, surveyUnitQualityToolPerretAdapterStub);
+        LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort =
+                new LunaticJsonRawDataService(lunaticJsonRawDataPersistencePort,controllerUtils,metadataService,
+                        surveyUnitService,surveyUnitQualityService,fileUtils, surveyUnitQualityToolPerretAdapterStub,
+                        new ConfigStub());
 
         utilsControllerStatic = new UtilsController(
                 surveyUnitApiPort

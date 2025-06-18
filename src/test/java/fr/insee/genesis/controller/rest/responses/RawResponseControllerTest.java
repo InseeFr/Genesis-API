@@ -2,6 +2,7 @@ package fr.insee.genesis.controller.rest.responses;
 
 
 import fr.insee.genesis.Constants;
+import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.controller.dto.rawdata.LunaticJsonRawDataUnprocessedDto;
 import fr.insee.genesis.controller.services.MetadataService;
 import fr.insee.genesis.controller.utils.ControllerUtils;
@@ -38,7 +39,8 @@ class RawResponseControllerTest {
             new SurveyUnitService(surveyUnitPersistencePortStub, new MetadataService(), fileUtils),
             new SurveyUnitQualityService(),
             fileUtils,
-            surveyUnitQualityToolPerretAdapterStub
+            surveyUnitQualityToolPerretAdapterStub,
+            new ConfigStub()
     );
     private final RawResponseController rawResponseController = new RawResponseController(lunaticJsonRawDataApiPort);
 
