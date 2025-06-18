@@ -24,8 +24,8 @@ public class SurveyQualityToolPerretAdapter implements SurveyUnitQualityToolPort
 
     @Override
     public ResponseEntity<Object> sendProcessedIds(Map<String, Set<String>> processedIdsMap) {
-        String url = String.format("%s/%s",config.getSurveyQualityToolUrl(), ""); //TODO Add the real path once service is set up
-
-        return HttpUtils.makeApiCall(config.getSurveyQualityToolUrl(), HttpMethod.POST, processedIdsMap, Object.class);
+        //TODO Add the real path once service is set up
+        return HttpUtils.makeApiCall(config.getSurveyQualityToolUrl(), "TODO",HttpMethod.POST, processedIdsMap,
+                Object.class);
     }
 }
