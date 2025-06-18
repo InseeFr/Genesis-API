@@ -1,6 +1,7 @@
 package fr.insee.genesis.controller.rest.responses;
 
 
+import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.dto.rawdata.LunaticJsonRawDataUnprocessedDto;
 import fr.insee.genesis.controller.services.MetadataService;
 import fr.insee.genesis.controller.utils.ControllerUtils;
@@ -15,6 +16,7 @@ import fr.insee.genesis.infrastructure.document.rawdata.LunaticJsonRawDataDocume
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.LunaticJsonRawDataPersistanceStub;
+import fr.insee.genesis.stubs.SurveyUnitQualityToolPerretAdapterStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -29,12 +31,15 @@ class RawResponseControllerTest {
     private final FileUtils fileUtils = new FileUtils(new ConfigStub());
     private final LunaticJsonRawDataPersistanceStub lunaticJsonRawDataPersistanceStub = new LunaticJsonRawDataPersistanceStub();
     private final SurveyUnitPersistencePortStub surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
+    private final SurveyUnitQualityToolPerretAdapterStub surveyUnitQualityToolPerretAdapterStub = new SurveyUnitQualityToolPerretAdapterStub();
     private final LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort = new LunaticJsonRawDataService(lunaticJsonRawDataPersistanceStub,
             new ControllerUtils(fileUtils),
             new MetadataService(),
             new SurveyUnitService(surveyUnitPersistencePortStub, new MetadataService(), fileUtils),
             new SurveyUnitQualityService(),
-            fileUtils);
+            fileUtils,
+            surveyUnitQualityToolPerretAdapterStub
+    );
     private final RawResponseController rawResponseController = new RawResponseController(lunaticJsonRawDataApiPort);
 
 
@@ -118,6 +123,7 @@ class RawResponseControllerTest {
         //GIVEN
         lunaticJsonRawDataPersistanceStub.getMongoStub().clear();
         surveyUnitPersistencePortStub.getMongoStub().clear();
+        surveyUnitQualityToolPerretAdapterStub.getReceivedMaps().clear();
         String campaignId = "SAMPLETEST-PARADATA-v2";
         String questionnaireId = campaignId + "_quest";
         String interrogationId = "testinterrogationId1";
@@ -150,6 +156,12 @@ class RawResponseControllerTest {
         //Process date check
         Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().processDate()).isNotNull();
 
+        //Perret call check
+        Assertions.assertThat(surveyUnitQualityToolPerretAdapterStub.getReceivedMaps())
+                .hasSize(1);
+        Assertions.assertThat(surveyUnitQualityToolPerretAdapterStub.getReceivedMaps().getFirst()).containsKey(questionnaireId);
+        Assertions.assertThat(surveyUnitQualityToolPerretAdapterStub.getReceivedMaps().getFirst().get(questionnaireId))
+                .contains(interrogationId);
     }
 
 

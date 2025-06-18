@@ -17,6 +17,7 @@ import fr.insee.genesis.domain.utils.JsonUtils;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.LunaticJsonRawDataPersistanceStub;
+import fr.insee.genesis.stubs.SurveyUnitQualityToolPerretAdapterStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import io.cucumber.java.Before;
 import io.cucumber.java.en.Given;
@@ -65,7 +66,9 @@ public class RawDataDefinitions {
     SurveyUnitService surveyUnitService = new SurveyUnitService(surveyUnitPersistencePortStub, metadataService, fileUtils);
     ControllerUtils controllerUtils = new ControllerUtils(fileUtils);
     SurveyUnitQualityService surveyUnitQualityService = new SurveyUnitQualityService();
-    LunaticJsonRawDataService lunaticJsonRawDataService = new LunaticJsonRawDataService(lunaticJsonRawDataPersistanceStub,controllerUtils,metadataService,surveyUnitService,surveyUnitQualityService,fileUtils);
+
+    SurveyUnitQualityToolPerretAdapterStub surveyUnitQualityToolPerretAdapterStub = new SurveyUnitQualityToolPerretAdapterStub();
+    LunaticJsonRawDataService lunaticJsonRawDataService = new LunaticJsonRawDataService(lunaticJsonRawDataPersistanceStub,controllerUtils,metadataService,surveyUnitService,surveyUnitQualityService,fileUtils, surveyUnitQualityToolPerretAdapterStub);
     RawResponseController rawResponseController = new RawResponseController(
             lunaticJsonRawDataService
     );

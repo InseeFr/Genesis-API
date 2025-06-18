@@ -1,5 +1,8 @@
 package fr.insee.genesis;
 
+import lombok.experimental.UtilityClass;
+
+@UtilityClass
 public class Constants {
 
     public static final String XSLT_STRUCTURED_VARIABLES = "xslt/structured-variables.xsl";
@@ -58,10 +61,7 @@ public class Constants {
     // Kraftwerk service path parameters
     public static final String KRAFTWERK_MAIN_ENDPOINT = "";
 
-    private Constants() {
-        throw new IllegalStateException("Constants class");
-    }
-
+    public static final int RAW_DATA_PROCESSING_BATCH_SIZE = 1000;
 
     public static String[] getEnoVariables() {
         return ENO_VARIABLES;

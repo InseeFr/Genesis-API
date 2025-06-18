@@ -40,6 +40,9 @@ public class Config {
 	@Value("#{'${fr.insee.genesis.security.whitelist-matchers}'.split(',')}")
 	private String[] whiteList;
 
+	@Value("${fr.insee.genesis.survey-quality-tool.url}")
+	private String surveyQualityToolUrl;
+
 	private final String logFolder;
 
 	//Extract log folder from log filename property

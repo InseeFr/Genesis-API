@@ -1,6 +1,7 @@
 package fr.insee.genesis.domain.service.rawdata;
 
 import fr.insee.bpm.metadata.model.VariablesMap;
+import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.services.MetadataService;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
@@ -16,7 +17,9 @@ import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.LunaticJsonRawDataPersistanceStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
+import fr.insee.genesis.stubs.SurveyUnitQualityToolPerretAdapterStub;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -34,10 +37,10 @@ class LunaticJsonRawDataServiceTest {
     MetadataService metadataService = new MetadataService();
 
     SurveyUnitPersistencePortStub surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
+    SurveyUnitQualityToolPerretAdapterStub surveyUnitQualityToolPerretAdapterStub = new SurveyUnitQualityToolPerretAdapterStub();
     SurveyUnitService surveyUnitService = new SurveyUnitService(surveyUnitPersistencePortStub, metadataService, fileUtils);
     SurveyUnitQualityService surveyUnitQualityService = new SurveyUnitQualityService();
-
-    LunaticJsonRawDataService lunaticJsonRawDataService = new LunaticJsonRawDataService(lunaticJsonRawDataPersistanceStub,controllerUtils,metadataService,surveyUnitService,surveyUnitQualityService,fileUtils);
+    LunaticJsonRawDataService lunaticJsonRawDataService = new LunaticJsonRawDataService(lunaticJsonRawDataPersistanceStub,controllerUtils,metadataService,surveyUnitService,surveyUnitQualityService,fileUtils,surveyUnitQualityToolPerretAdapterStub);
 
     @Test
     void saveDataTest_valid_only_collected_array() throws Exception {
@@ -403,12 +406,13 @@ class LunaticJsonRawDataServiceTest {
     void convertRawData_multipleBatchs(int rawDataSize) throws Exception {
         //CLEAN
         surveyUnitPersistencePortStub.getMongoStub().clear();
+        surveyUnitQualityToolPerretAdapterStub.getReceivedMaps().clear();
 
         //GIVEN
         List<String> interrogationIdList = new ArrayList<>();
         String campaignId = "SAMPLETEST-PARADATA-v1";
+        String questionnaireId = "TESTIDQUEST";
         for (int i = 0; i < rawDataSize; i++) {
-            String questionnaireId = "TESTIDQUEST";
             String interrogationId = "TESTinterrogationId" + (i + 1);
             String json = "{\"EXTERNAL\": {\"RPPRENOM\": \"TEST_EXT%d\"}, ".formatted(i) +
                     "\"COLLECTED\": {\"PRENOMREP\": {\"COLLECTED\": [\"test%d\"], \"EDITED\": [\"test_ed%d\"]}}}"
@@ -434,5 +438,10 @@ class LunaticJsonRawDataServiceTest {
         //THEN
         Assertions.assertThat(dataProcessResult.dataCount()).isEqualTo(rawDataSize * 2/*EDITED*/);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).hasSize(rawDataSize * 2);
+        Assertions.assertThat(surveyUnitQualityToolPerretAdapterStub.getReceivedMaps())
+                .hasSize(Math.ceilDiv(rawDataSize,Constants.RAW_DATA_PROCESSING_BATCH_SIZE));
+        Assertions.assertThat(surveyUnitQualityToolPerretAdapterStub.getReceivedMaps().getFirst()).containsKey(questionnaireId);
+        Assertions.assertThat(surveyUnitQualityToolPerretAdapterStub.getReceivedMaps().getFirst().get(questionnaireId))
+                .contains("TESTinterrogationId1");
     }
 }

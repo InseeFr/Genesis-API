@@ -18,6 +18,7 @@ import fr.insee.genesis.domain.service.volumetry.VolumetryLogService;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.LunaticJsonRawDataPersistanceStub;
+import fr.insee.genesis.stubs.SurveyUnitQualityToolPerretAdapterStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
@@ -43,6 +44,7 @@ class UtilsControllerTest {
     static UtilsController utilsControllerStatic;
     static SurveyUnitPersistencePortStub surveyUnitPersistencePortStub;
     static LunaticJsonRawDataPersistanceStub lunaticJsonRawDataPersistencePort;
+    static SurveyUnitQualityToolPerretAdapterStub surveyUnitQualityToolPerretAdapterStub;
     static List<InterrogationId> interrogationIdList;
     static FileUtils fileUtils = new FileUtils(new ConfigStub());
     static ControllerUtils controllerUtils = new ControllerUtils(fileUtils);
@@ -58,7 +60,7 @@ class UtilsControllerTest {
         surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
         lunaticJsonRawDataPersistencePort = new LunaticJsonRawDataPersistanceStub();
         SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(surveyUnitPersistencePortStub, metadataService, fileUtils);
-        LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort = new LunaticJsonRawDataService(lunaticJsonRawDataPersistencePort,controllerUtils,metadataService,surveyUnitService,surveyUnitQualityService,fileUtils);
+        LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort = new LunaticJsonRawDataService(lunaticJsonRawDataPersistencePort,controllerUtils,metadataService,surveyUnitService,surveyUnitQualityService,fileUtils, surveyUnitQualityToolPerretAdapterStub);
 
         utilsControllerStatic = new UtilsController(
                 surveyUnitApiPort

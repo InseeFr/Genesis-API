@@ -14,6 +14,7 @@ import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.RawDataModelType;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.spi.LunaticJsonRawDataPersistencePort;
+import fr.insee.genesis.domain.ports.spi.SurveyUnitQualityToolPort;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.domain.utils.GroupUtils;
@@ -24,10 +25,12 @@ import fr.insee.genesis.infrastructure.utils.FileUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -41,20 +44,28 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     private final MetadataService metadataService;
     private final SurveyUnitService surveyUnitService;
     private final SurveyUnitQualityService surveyUnitQualityService;
+    private final SurveyUnitQualityToolPort surveyUnitQualityToolPort;
     private final FileUtils fileUtils;
-    private static final int BATCH_SIZE = 1000;
 
     @Qualifier("lunaticJsonMongoAdapterNew")
     private final LunaticJsonRawDataPersistencePort lunaticJsonRawDataPersistencePort;
 
     @Autowired
-    public LunaticJsonRawDataService(LunaticJsonRawDataPersistencePort lunaticJsonRawDataNewPersistencePort, ControllerUtils controllerUtils, MetadataService metadataService, SurveyUnitService surveyUnitService, SurveyUnitQualityService surveyUnitQualityService, FileUtils fileUtils) {
+    public LunaticJsonRawDataService(LunaticJsonRawDataPersistencePort lunaticJsonRawDataNewPersistencePort,
+                                     ControllerUtils controllerUtils,
+                                     MetadataService metadataService,
+                                     SurveyUnitService surveyUnitService,
+                                     SurveyUnitQualityService surveyUnitQualityService,
+                                     FileUtils fileUtils,
+                                     SurveyUnitQualityToolPort surveyUnitQualityToolPort
+    ) {
         this.controllerUtils = controllerUtils;
         this.metadataService = metadataService;
         this.surveyUnitService = surveyUnitService;
         this.surveyUnitQualityService = surveyUnitQualityService;
         this.fileUtils = fileUtils;
         this.lunaticJsonRawDataPersistencePort = lunaticJsonRawDataNewPersistencePort;
+        this.surveyUnitQualityToolPort = surveyUnitQualityToolPort;
     }
 
     @Override
@@ -82,12 +93,12 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
                                 .formatted(mode, errors.getLast().getMessage())
                 );
             }
-            int totalBatchs = Math.ceilDiv(interrogationIdList.size() , BATCH_SIZE);
+            int totalBatchs = Math.ceilDiv(interrogationIdList.size() , Constants.RAW_DATA_PROCESSING_BATCH_SIZE);
             int batchNumber = 1;
             List<String> interrogationIdListForMode = new ArrayList<>(interrogationIdList);
             while(!interrogationIdListForMode.isEmpty()){
                 log.info("Processing raw data batch {}/{}", batchNumber, totalBatchs);
-                int maxIndex = Math.min(interrogationIdListForMode.size(), BATCH_SIZE);
+                int maxIndex = Math.min(interrogationIdListForMode.size(), Constants.RAW_DATA_PROCESSING_BATCH_SIZE);
                 List<String> interrogationIdToProcess = interrogationIdListForMode.subList(0, maxIndex);
 
                 List<LunaticJsonRawDataModel> rawData = getRawData(campaignName,mode, interrogationIdToProcess);
@@ -110,6 +121,14 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
                         surveyUnitModel -> surveyUnitModel.getState().equals(DataState.FORMATTED)
                 ).toList().size();
 
+                //Send processed ids grouped by questionnaire
+                ResponseEntity<Object> response =
+                        surveyUnitQualityToolPort.sendProcessedIds(getProcessedIdsMap(surveyUnitModels));
+                if(!response.getStatusCode().is2xxSuccessful()){
+                    log.warn("Survey unit quality tool responded non-2xx code {} and body {}",
+                            response.getStatusCode(), response.getBody());
+                }
+
                 //Remove processed ids from list
                 interrogationIdListForMode = interrogationIdListForMode.subList(maxIndex, interrogationIdListForMode.size());
 
@@ -117,6 +136,21 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
             }
         }
         return new DataProcessResult(dataCount, formattedDataCount);
+    }
+
+    private Map<String, Set<String>> getProcessedIdsMap(List<SurveyUnitModel> surveyUnitModels) {
+        Map<String, Set<String>> processedInterrogationIdsPerQuestionnaire = new HashMap<>();
+        for(SurveyUnitModel surveyUnitModel : surveyUnitModels){
+            String questionnaireId = surveyUnitModel.getQuestionnaireId();
+            String interrogationId = surveyUnitModel.getInterrogationId();
+
+            if(!processedInterrogationIdsPerQuestionnaire.containsKey(questionnaireId)){
+                processedInterrogationIdsPerQuestionnaire.put(questionnaireId, new HashSet<>());
+            }
+
+            processedInterrogationIdsPerQuestionnaire.get(questionnaireId).add(interrogationId);
+        }
+        return processedInterrogationIdsPerQuestionnaire;
     }
 
     @Override
