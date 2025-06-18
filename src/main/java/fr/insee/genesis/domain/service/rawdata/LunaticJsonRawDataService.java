@@ -144,16 +144,11 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
 
     private Map<String, Set<String>> getProcessedIdsMap(List<SurveyUnitModel> surveyUnitModels) {
         Map<String, Set<String>> processedInterrogationIdsPerQuestionnaire = new HashMap<>();
-        for(SurveyUnitModel surveyUnitModel : surveyUnitModels){
-            String questionnaireId = surveyUnitModel.getQuestionnaireId();
-            String interrogationId = surveyUnitModel.getInterrogationId();
-
-            if(!processedInterrogationIdsPerQuestionnaire.containsKey(questionnaireId)){
-                processedInterrogationIdsPerQuestionnaire.put(questionnaireId, new HashSet<>());
-            }
-
-            processedInterrogationIdsPerQuestionnaire.get(questionnaireId).add(interrogationId);
-        }
+        surveyUnitModels.forEach(model ->
+                processedInterrogationIdsPerQuestionnaire
+                        .computeIfAbsent(model.getQuestionnaireId(), k -> new HashSet<>())
+                        .add(model.getInterrogationId())
+        );
         return processedInterrogationIdsPerQuestionnaire;
     }
 
