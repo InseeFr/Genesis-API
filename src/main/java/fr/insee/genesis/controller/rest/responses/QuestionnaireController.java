@@ -53,6 +53,18 @@ public class QuestionnaireController implements CommonApiResponse {
         return ResponseEntity.ok(questionnaires);
     }
 
+    //========= OPTIMISATIONS PERFS (START) ==========
+    /**
+     * @author Adrien Marchal
+     */
+    @Operation(summary = "List questionnaires used for a given campaign (using a DISTINCT query)")
+    @GetMapping(path = "/by-campaignV2")
+    public ResponseEntity<Set<String>> getQuestionnairesByCampaignV2(@RequestParam("campaignId") String campaignId) {
+        Set<String> questionnaires = surveyUnitService.findQuestionnaireIdsByCampaignIdV2(campaignId);
+        return ResponseEntity.ok(questionnaires);
+    }
+    //========= OPTIMISATIONS PERFS (END) ==========
+
     @Operation(summary = "Get the questionnaireId corresponding to an interrogationId")
     @GetMapping(path = "/by-interrogation")
     @ApiResponse(responseCode = "200", description = "Successfully retrieved the questionnaireId")
