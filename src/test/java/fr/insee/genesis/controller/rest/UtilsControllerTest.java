@@ -11,12 +11,14 @@ import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
+import fr.insee.genesis.domain.service.context.DataProcessingContextService;
 import fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.domain.service.volumetry.VolumetryLogService;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
+import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
 import fr.insee.genesis.stubs.LunaticJsonRawDataPersistanceStub;
 import fr.insee.genesis.stubs.SurveyUnitQualityToolPerretAdapterStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
@@ -60,9 +62,17 @@ class UtilsControllerTest {
         surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
         lunaticJsonRawDataPersistencePort = new LunaticJsonRawDataPersistanceStub();
         SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(surveyUnitPersistencePortStub, metadataService, fileUtils);
-        LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort =
-                new LunaticJsonRawDataService(lunaticJsonRawDataPersistencePort,controllerUtils,metadataService,
-                        surveyUnitService,surveyUnitQualityService,fileUtils, surveyUnitQualityToolPerretAdapterStub,
+        LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort = new LunaticJsonRawDataService(
+                        lunaticJsonRawDataPersistencePort,
+                        controllerUtils,
+                        metadataService,
+                        surveyUnitService,
+                        surveyUnitQualityService,
+                        fileUtils,
+                        new DataProcessingContextService(
+                                new DataProcessingContextPersistancePortStub(),
+                                surveyUnitPersistencePortStub),
+                        surveyUnitQualityToolPerretAdapterStub,
                         new ConfigStub());
 
         utilsControllerStatic = new UtilsController(

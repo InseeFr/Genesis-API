@@ -6,6 +6,7 @@ import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.controller.dto.rawdata.LunaticJsonRawDataUnprocessedDto;
 import fr.insee.genesis.controller.services.MetadataService;
 import fr.insee.genesis.controller.utils.ControllerUtils;
+import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
@@ -16,6 +17,7 @@ import fr.insee.genesis.domain.model.surveyunit.rawdata.RawDataModelType;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.spi.LunaticJsonRawDataPersistencePort;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitQualityToolPort;
+import fr.insee.genesis.domain.service.context.DataProcessingContextService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.domain.utils.GroupUtils;
@@ -46,6 +48,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     private final SurveyUnitService surveyUnitService;
     private final SurveyUnitQualityService surveyUnitQualityService;
     private final SurveyUnitQualityToolPort surveyUnitQualityToolPort;
+    private final DataProcessingContextService dataProcessingContextService;
     private final FileUtils fileUtils;
     private final Config config;
 
@@ -59,6 +62,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
                                      SurveyUnitService surveyUnitService,
                                      SurveyUnitQualityService surveyUnitQualityService,
                                      FileUtils fileUtils,
+                                     DataProcessingContextService dataProcessingContextService,
                                      SurveyUnitQualityToolPort surveyUnitQualityToolPort,
                                      Config config
     ) {
@@ -69,6 +73,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
         this.fileUtils = fileUtils;
         this.lunaticJsonRawDataPersistencePort = lunaticJsonRawDataNewPersistencePort;
         this.surveyUnitQualityToolPort = surveyUnitQualityToolPort;
+        this.dataProcessingContextService = dataProcessingContextService;
         this.config = config;
     }
 
@@ -86,6 +91,8 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     public DataProcessResult processRawData(String campaignName, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException {
         int dataCount=0;
         int formattedDataCount=0;
+        DataProcessingContextModel dataProcessingContext =
+                dataProcessingContextService.getContextByPartitionId(campaignName);
         List<Mode> modesList = controllerUtils.getModesList(campaignName, null);
         for (Mode mode : modesList) {
             //Load and save metadata into database, throw exception if none
@@ -125,12 +132,14 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
                         surveyUnitModel -> surveyUnitModel.getState().equals(DataState.FORMATTED)
                 ).toList().size();
 
-                //Send processed ids grouped by questionnaire
-                ResponseEntity<Object> response =
-                        surveyUnitQualityToolPort.sendProcessedIds(getProcessedIdsMap(surveyUnitModels));
-                if(!response.getStatusCode().is2xxSuccessful()){
-                    log.warn("Survey unit quality tool responded non-2xx code {} and body {}",
-                            response.getStatusCode(), response.getBody());
+                //Send processed ids grouped by questionnaire (if review activated)
+                if(dataProcessingContext != null && dataProcessingContext.isWithReview()) {
+                    ResponseEntity<Object> response =
+                            surveyUnitQualityToolPort.sendProcessedIds(getProcessedIdsMap(surveyUnitModels));
+                    if (!response.getStatusCode().is2xxSuccessful()) {
+                        log.warn("Survey unit quality tool responded non-2xx code {} and body {}",
+                                response.getStatusCode(), response.getBody());
+                    }
                 }
 
                 //Remove processed ids from list
