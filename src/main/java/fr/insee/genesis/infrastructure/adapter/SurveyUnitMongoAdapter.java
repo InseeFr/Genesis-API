@@ -113,6 +113,31 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 		return questionnaireIds;
 	}
 
+	//========= OPTIMISATIONS PERFS (START) ==========
+	/**
+	 * @author Adrien Marchal
+	 */
+	@Override
+	public Set<String> findQuestionnaireIdsByCampaignIdV2(String campaignId){
+		Set<String> mongoResponse =
+				mongoRepository.findQuestionnaireIdsByCampaignIdV2(campaignId);
+
+		//Extract questionnaireIds from JSON response
+		Set<String> questionnaireIds = new HashSet<>();
+		for(String line : mongoResponse){
+			ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
+			try{
+				JsonNode jsonNode = objectMapper.readTree(line);
+				questionnaireIds.add(jsonNode.get("questionnaireId").asText());
+			}catch (JsonProcessingException e){
+				log.error(e.getMessage());
+			}
+		}
+
+		return questionnaireIds;
+	}
+	//========= OPTIMISATIONS PERFS (END) ==========
+
 	@Override
 	public Set<String> findDistinctCampaignIds() {
 		Set<String> campaignIds = new HashSet<>();

@@ -172,6 +172,14 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
         return questionnaireIdSet;
     }
 
+    //========= OPTIMISATIONS PERFS (START) ==========
+    @Override
+    public Set<String> findQuestionnaireIdsByCampaignIdV2(String campaignId) {
+        //This stub is explicitally the same as method "findQuestionnaireIdsByCampaignId()"
+        return findQuestionnaireIdsByCampaignId(campaignId);
+    }
+    //========= OPTIMISATIONS PERFS (END) ==========
+
     @Override
     public Set<String> findDistinctCampaignIds() {
         Set<String> campaignIds = new HashSet<>();

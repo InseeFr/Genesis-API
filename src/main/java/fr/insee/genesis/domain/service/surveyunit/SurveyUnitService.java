@@ -353,6 +353,16 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             return surveyUnitPersistencePort.findQuestionnaireIdsByCampaignId(campaignId);
     }
 
+    //========= OPTIMISATIONS PERFS (START) ==========
+    /**
+     * @author Adrien Marchal
+     */
+    @Override
+    public Set<String> findQuestionnaireIdsByCampaignIdV2(String campaignId) {
+        return surveyUnitPersistencePort.findQuestionnaireIdsByCampaignIdV2(campaignId);
+    }
+    //========= OPTIMISATIONS PERFS (END) ==========
+
     @Override
     public Set<String> findDistinctCampaignIds() {
         return surveyUnitPersistencePort.findDistinctCampaignIds();

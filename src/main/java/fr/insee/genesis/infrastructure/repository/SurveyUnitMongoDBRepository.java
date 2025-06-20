@@ -76,6 +76,19 @@ public interface SurveyUnitMongoDBRepository extends MongoRepository<SurveyUnitD
 	@Query(value = "{ 'campaignId' : ?0 }", fields = "{ _id : 0, 'questionnaireId' : 1 }")
 	Set<String> findQuestionnaireIdsByCampaignId(String campaignId);
 
+	//========= OPTIMISATIONS PERFS (START) ==========
+	/**
+	 * @author Adrien Marchal
+	 * Here we make a "DISTINCT" query
+	 */
+	@Aggregation(pipeline = {
+			"{ '$match': { 'campaignId' : ?0 } }",
+			"{ '$group': { '_id': { 'questionnaireId' : '$questionnaireId'} } }",
+			"{ '$set': { 'questionnaireId': '$_id', '_id': '$$REMOVE' } }"
+	})
+	Set<String> findQuestionnaireIdsByCampaignIdV2(String campaignId);
+	//========= OPTIMISATIONS PERFS (END) ==========
+
 	long countByCampaignId(String campaignId);
 
 	@Query(value = "{ 'questionnaireId' : ?0 }", fields = "{ _id : 0, 'campaignId' : 1 }")

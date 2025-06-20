@@ -60,6 +60,13 @@ public interface SurveyUnitApiPort {
 
     Set<String> findQuestionnaireIdsByCampaignId(String campaignId);
 
+    //========= OPTIMISATIONS PERFS (START) ==========
+    /**
+     * @author Adrien Marchal
+     */
+    Set<String> findQuestionnaireIdsByCampaignIdV2(String campaignId);
+    //========= OPTIMISATIONS PERFS (END) ==========
+
     Set<String> findDistinctCampaignIds();
 
     long countResponsesByCampaignId(String campaignId);
