@@ -32,4 +32,9 @@ public class ConfigStub extends Config {
 	public String getAuthType() {
 		return "NONE";
 	}
+
+	@Override
+	public int getRawDataProcessingBatchSize(){
+		return 1000;
+	}
 }

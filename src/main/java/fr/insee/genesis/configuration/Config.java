@@ -40,6 +40,12 @@ public class Config {
 	@Value("#{'${fr.insee.genesis.security.whitelist-matchers}'.split(',')}")
 	private String[] whiteList;
 
+	@Value("${fr.insee.genesis.rawdata.process.batch-size}")
+	private int rawDataProcessingBatchSize;
+
+	@Value("${fr.insee.genesis.survey-quality-tool.url}")
+	private String surveyQualityToolUrl;
+
 	private final String logFolder;
 
 	//Extract log folder from log filename property
