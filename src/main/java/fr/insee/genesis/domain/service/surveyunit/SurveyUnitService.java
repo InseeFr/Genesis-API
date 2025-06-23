@@ -155,14 +155,8 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         List<List<SurveyUnitModel>> listLatestUpdatesbyVariables = new ArrayList<>();
 
         //1) QUERY
-        // => convertion of "List<InterrogationId>" -> "List<String>" for query using lamda
-        /*
-        List<String> queryInParam = new ArrayList<String>();
-        for(InterrogationId interrId : interrogationIds) {
-            queryInParam.add(interrId.getInterrogationId());
-        }
-        */
-        List<String> queryInParam = interrogationIds.stream().map(InterrogationId::getInterrogationId).collect(Collectors.toList());
+        // => conversion of "List<InterrogationId>" -> "List<String>" for query using lamda
+        List<String> queryInParam = interrogationIds.stream().map(InterrogationId::getInterrogationId).toList();
 
         //Get !!!all versions!!! of a set of "interrogationIds"
         List<SurveyUnitModel> allResponsesVersionsSet = surveyUnitPersistencePort.findBySetOfIdsAndQuestionnaireIdAndMode(questionnaireId, mode, queryInParam);
