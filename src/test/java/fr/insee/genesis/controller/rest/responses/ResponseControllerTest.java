@@ -238,7 +238,7 @@ class ResponseControllerTest {
 
     // Perret tests
     @Test
-    void getLatestByStatesSurveyDataTest() throws GenesisException, IOException {
+    void getLatestByStatesSurveyDataTest() throws GenesisException {
         //GIVEN
         //Recent Collected already in stub
         //Old Collected

@@ -35,7 +35,6 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
      * @author Adrien Marchal
      */
     public List<SurveyUnitModel> findBySetOfIdsAndQuestionnaireIdAndMode(String questionnaireId, String mode, List<String> interrogationIdSet) {
-        //TODO : TO BE IMPLEMENTED
         return new ArrayList<SurveyUnitModel>();
     }
     //========= OPTIMISATIONS PERFS (START) ==========
@@ -102,11 +101,7 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
      * @author Adrien Marchal
      */
     public List<SurveyUnitModel> findPageableInterrogationIdsByQuestionnaireId(String questionnaireId, Long skip, Long limit) {
-        List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
-        if(skip < mongoStub.size()) {
-
-        }
-        return surveyUnitModelList;
+        return List.of();
     }
     //======= OPTIMISATIONS PERFS (END) =========
 
