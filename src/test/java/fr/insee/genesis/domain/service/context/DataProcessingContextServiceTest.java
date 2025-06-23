@@ -1,7 +1,9 @@
 package fr.insee.genesis.domain.service.context;
 
+import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
 import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionSchedule;
 import fr.insee.genesis.domain.model.context.schedule.ServiceToCall;
+import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.document.context.DataProcessingContextDocument;
 import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
@@ -14,6 +16,8 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class DataProcessingContextServiceTest {
     //Given
@@ -32,6 +36,7 @@ class DataProcessingContextServiceTest {
     @BeforeEach
     void reset(){
         dataProcessingContextPersistencePortStub.getMongoStub().clear();
+        surveyUnitPersistencePortStub.getMongoStub().clear();
 
         List<KraftwerkExecutionSchedule> kraftwerkExecutionScheduleList = new ArrayList<>();
         kraftwerkExecutionScheduleList.add(new KraftwerkExecutionSchedule(
@@ -182,4 +187,55 @@ class DataProcessingContextServiceTest {
         ).toList().getFirst().getKraftwerkExecutionScheduleList()).isEmpty();
 
     }
+
+    @Test
+    void getContext_shouldThrow500IfMultiplePartitions() {
+        // Given
+        SurveyUnitModel su1 = SurveyUnitModel.builder()
+                .campaignId("CAMPAIGN1")
+                .interrogationId("00001")
+                .build();
+        SurveyUnitModel su2 = SurveyUnitModel.builder()
+                .campaignId("CAMPAIGN2")
+                .interrogationId("00001")
+                .build();
+        List<SurveyUnitModel> sus = new ArrayList<>();
+        sus.add(su1);
+        sus.add(su2);
+        surveyUnitPersistencePortStub.saveAll(sus);
+
+        // When & Then
+        GenesisException ex = assertThrows(GenesisException.class, () -> dataProcessingContextService.getContext("00001"));
+        Assertions.assertThat(ex.getStatus()).isEqualTo(500);
+        Assertions.assertThat(ex.getMessage()).isEqualTo("Multiple partitions for interrogation 00001 \r\n[CAMPAIGN2, CAMPAIGN1]");
+    }
+
+    @Test
+    void getContext_shouldThrow404IfNoInterrogations() {
+        // When & Then
+        GenesisException ex = assertThrows(GenesisException.class, () -> dataProcessingContextService.getContext("00001"));
+        Assertions.assertThat(ex.getStatus()).isEqualTo(404);
+        Assertions.assertThat(ex.getMessage()).isEqualTo("No interrogation in database with id 00001");
+    }
+
+    @Test
+    void getContext_shouldReturnContextIfOnePartition() throws GenesisException {
+        // Given
+        SurveyUnitModel su1 = SurveyUnitModel.builder()
+                .campaignId("TEST")
+                .interrogationId("00001")
+                .build();
+        List<SurveyUnitModel> sus = new ArrayList<>();
+        sus.add(su1);
+        surveyUnitPersistencePortStub.saveAll(sus);
+        DataProcessingContextModel result = dataProcessingContextService.getContext("00001");
+
+        // When & Then
+        Assertions.assertThat(result).isNotNull();
+        Assertions.assertThat(result.getPartitionId()).isEqualTo("TEST");
+        Assertions.assertThat(result.isWithReview()).isFalse();
+    }
+
+
+
 }
