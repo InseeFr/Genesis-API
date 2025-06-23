@@ -44,7 +44,7 @@ class InterrogationControllerTest {
 
 
     //When + Then
-      @Test
+    @Test
     void getAllInterrogationIdsByQuestionnaireTest() {
         ResponseEntity<List<InterrogationId>> response = interrogationControllerStatic.getAllInterrogationIdsByQuestionnaire(DEFAULT_QUESTIONNAIRE_ID);
 
@@ -53,6 +53,13 @@ class InterrogationControllerTest {
         Assertions.assertThat(response.getBody().getFirst().getInterrogationId()).isEqualTo(DEFAULT_INTERROGATION_ID);
     }
 
+    @Test
+    void countAllInterrogationIdsByQuestionnaireTest() {
+        ResponseEntity<Long> response = interrogationControllerStatic.countAllInterrogationIdsByQuestionnaire(DEFAULT_QUESTIONNAIRE_ID);
 
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        Assertions.assertThat(response.getBody()).isNotNull();
+        Assertions.assertThat(response.getBody()).isEqualTo(1L);
+    }
 
 }
