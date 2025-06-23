@@ -168,10 +168,10 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                             .sorted((o1, o2) -> o2.getRecordDate().compareTo(o1.getRecordDate())) //Sorting update by date (latest updates first by date of upload in database)
                             .toList();
 
-            List<SurveyUnitModel> LatestUpdates = extractLatestUpdates(allResponsesVersionsForSingleInterrId);
+            List<SurveyUnitModel> latestUpdates = extractLatestUpdates(allResponsesVersionsForSingleInterrId);
 
             //3) add to result (: keep same existing process)
-            listLatestUpdatesbyVariables.add(LatestUpdates);
+            listLatestUpdatesbyVariables.add(latestUpdates);
         });
 
         return listLatestUpdatesbyVariables;
