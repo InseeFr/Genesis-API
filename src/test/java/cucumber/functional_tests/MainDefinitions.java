@@ -1,6 +1,5 @@
 package cucumber.functional_tests;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import cucumber.TestConstants;
 import fr.insee.bpm.exceptions.MetadataParserException;
 import fr.insee.bpm.metadata.model.VariablesMap;
@@ -328,12 +327,11 @@ public class MainDefinitions {
     }
 
     @Then("If we get latest states for {string} in collected variable {string}, survey unit {string} we should have {string} for iteration {int}")
-    public void check_latest_state_collected(String questionnaireId, String variableName, String interrogationId, String expectedValue, int iteration) throws GenesisException, IOException {
+    public void check_latest_state_collected(String questionnaireId, String variableName, String interrogationId, String expectedValue, int iteration) throws GenesisException {
         ResponseEntity<Object> response =
                 responseController.findResponsesByInterrogationAndQuestionnaireLatestStates(interrogationId, questionnaireId);
         Assertions.assertThat(response.getStatusCode().value()).isEqualTo(200);
 
-        ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
         SurveyUnitQualityToolDto surveyUnitQualityToolDto = (SurveyUnitQualityToolDto) response.getBody();
 
         List<VariableQualityToolDto> variableQualityToolDtos = surveyUnitQualityToolDto.getCollectedVariables().stream().filter(
@@ -353,7 +351,7 @@ public class MainDefinitions {
     }
 
     @Then("If we get latest states for {string} in external variable {string}, survey unit {string} we should have {string} for iteration {int}")
-    public void check_latest_state_external(String questionnaireId, String variableName, String interrogationId, String expectedValue, int iteration) throws IOException, GenesisException {
+    public void check_latest_state_external(String questionnaireId, String variableName, String interrogationId, String expectedValue, int iteration) throws GenesisException {
         ResponseEntity<Object> response =
                 responseController.findResponsesByInterrogationAndQuestionnaireLatestStates(interrogationId, questionnaireId);
         Assertions.assertThat(response.getStatusCode().value()).isEqualTo(200);
@@ -435,7 +433,7 @@ public class MainDefinitions {
     @Then("The extracted survey unit latest states response should have a survey unit DTO has interrogationId " +
             "{string}" +
             " with {int} external variables")
-    public void check_su_latest_states_external_variables_volumetry(String interrogationId, int expectedVolumetry) throws IOException {
+    public void check_su_latest_states_external_variables_volumetry(String interrogationId, int expectedVolumetry) {
         Assertions.assertThat(surveyUnitLatestStatesResponse).isNotNull();
         Assertions.assertThat(surveyUnitLatestStatesResponse.getBody()).isNotNull();
         SurveyUnitQualityToolDto surveyUnitQualityToolDto = (SurveyUnitQualityToolDto) surveyUnitLatestStatesResponse.getBody();

@@ -32,6 +32,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Controller
@@ -39,6 +40,8 @@ import java.util.Set;
 public class RawResponseController {
 
     private static final String SUCCESS_MESSAGE = "Interrogation %s saved";
+    private static final String PARTITION_ID = "partitionId";
+    private static final String INTERROGATION_ID = "interrogationId";
     private final LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort;
     
     public RawResponseController(LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort) {
@@ -52,7 +55,7 @@ public class RawResponseController {
 
             @RequestParam("campaignName") String campaignName,
             @RequestParam("questionnaireId") String questionnaireId,
-            @RequestParam("interrogationId") String interrogationId,
+            @RequestParam(INTERROGATION_ID) String interrogationId,
             @RequestParam(value = "surveyUnitId", required = false) String idUE,
             @RequestParam(value = "mode") Mode modeSpecified,
             @RequestBody Map<String, Object> dataJson
@@ -96,12 +99,8 @@ public class RawResponseController {
                             new ObjectMapper().writeValueAsString(body)
                     )
             );
-            if(!errors.isEmpty()){
-                throw new GenesisException(400, "Input data json is not valid \n%s".formatted(
-                        Arrays.toString(errors.toArray()))
-                );
-            }
-
+            // Throw Genesis exception if errors are present
+            validate(errors);
             //Check required ids
             checkRequiredIds(body);
         }catch (JsonProcessingException jpe){
@@ -111,9 +110,9 @@ public class RawResponseController {
         }
 
         LunaticJsonRawDataModel rawData = LunaticJsonRawDataModel.builder()
-                .campaignId(body.get("partitionId").toString())
+                .campaignId(body.get(PARTITION_ID).toString())
                 .questionnaireId(body.get("questionnaireModelId").toString())
-                .interrogationId(body.get("interrogationId").toString())
+                .interrogationId(body.get(INTERROGATION_ID).toString())
                 .idUE(body.get("surveyUnitId").toString())
                 .mode(Mode.getEnumFromJsonName(body.get("mode").toString()))
                 .data(body)
@@ -125,23 +124,9 @@ public class RawResponseController {
             return ResponseEntity.status(500).body("Unexpected error");
         }
 
-        log.info("Data saved for interrogationId {} and partition {}",body.get("interrogationId").toString(),
-                body.get("partitionId").toString());
-        return ResponseEntity.status(201).body(String.format(SUCCESS_MESSAGE,body.get("interrogationId").toString()));
-    }
-
-    private void checkRequiredIds(Map<String, Object> body) throws GenesisException {
-        for(String requiredKey : List.of(
-                "partitionId",
-                "questionnaireModelId",
-                "interrogationId",
-                "surveyUnitId",
-                "mode"
-        )){
-            if(body.get(requiredKey) == null){
-                throw new GenesisException(400, "No %s found in body".formatted(requiredKey));
-            }
-        }
+        log.info("Data saved for interrogationId {} and partition {}",body.get(INTERROGATION_ID).toString(),
+                body.get(PARTITION_ID).toString());
+        return ResponseEntity.status(201).body(String.format(SUCCESS_MESSAGE,body.get(INTERROGATION_ID).toString()));
     }
 
     //GET unprocessed
@@ -157,7 +142,7 @@ public class RawResponseController {
     @GetMapping(path= "/lunatic-json/get/by-interrogation-mode-and-campaign")
     @PreAuthorize("hasRole('ADMIN')")
             public ResponseEntity<LunaticJsonRawDataModel> getJsonRawData(
-                @RequestParam("interrogationId") String interrogationId,
+                @RequestParam(INTERROGATION_ID) String interrogationId,
                 @RequestParam("campaignName") String campaignName,
                 @RequestParam(value = "mode") Mode modeSpecified
             ){
@@ -185,6 +170,33 @@ public class RawResponseController {
                     .formatted(result.dataCount(), result.formattedDataCount()));
         }catch (GenesisException e){
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
+        }
+    }
+
+    private void validate(Set<ValidationMessage> errors) throws GenesisException {
+        if(!errors.isEmpty()){
+            String errorMessage = errors.stream()
+                    .map(ValidationMessage::getMessage)
+                    .collect(Collectors.joining(System.lineSeparator() + " - "));
+
+            throw new GenesisException(
+                    400,
+                    "Input data JSON is not valid: %n - %s".formatted(errorMessage)
+            );
+        }
+    }
+
+    private void checkRequiredIds(Map<String, Object> body) throws GenesisException {
+        for(String requiredKey : List.of(
+                PARTITION_ID,
+                "questionnaireModelId",
+                INTERROGATION_ID,
+                "surveyUnitId",
+                "mode"
+        )){
+            if(body.get(requiredKey) == null){
+                throw new GenesisException(400, "No %s found in body".formatted(requiredKey));
+            }
         }
     }
 
