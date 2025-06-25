@@ -14,5 +14,7 @@ import java.util.List;
 public class GroupedInterrogation {
 
     private String questionnaireId;
+    private String partitionOrCampaignId;
     private List<String> interrogationIds;
+
 }

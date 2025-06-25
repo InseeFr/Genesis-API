@@ -58,7 +58,7 @@ public class LunaticJsonMongoDBRepositoryStub implements LunaticJsonMongoDBRepos
     }
 
     @Override
-    public List<GroupedInterrogationDocument> aggregateRawGroupedByQuestionnaire(LocalDateTime since) {
+    public List<GroupedInterrogationDocument> aggregateRawGrouped(LocalDateTime since) {
         return List.of();
     }
 

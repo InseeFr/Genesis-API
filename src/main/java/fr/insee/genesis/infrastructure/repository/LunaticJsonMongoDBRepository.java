@@ -23,9 +23,20 @@ public interface LunaticJsonMongoDBRepository extends MongoRepository<LunaticJso
     long countByQuestionnaireId(String questionnaireId);
     @Aggregation(pipeline = {
             "{ '$match': { 'processDate': { '$gte': ?0 } } }",
-            "{ '$group': { '_id': '$questionnaireId', 'interrogationIds': { '$addToSet': '$interrogationId' } } }",
-            "{ '$project': { 'questionnaireId': '$_id', 'interrogationIds': 1, '_id': 0 } }"
+            "{ '$group': { " +
+                    "'_id': { " +
+                    "'questionnaireId': '$questionnaireId', " +
+                    "'partitionOrCampaignId': { '$ifNull': ['$partitionId', '$campaignId'] } " +
+                    "}, " +
+                    "'interrogationIds': { '$addToSet': '$interrogationId' } " +
+                    "} }",
+            "{ '$project': { " +
+                    "'questionnaireId': '$_id.questionnaireId', " +
+                    "'partitionOrCampaignId': '$_id.partitionOrCampaignId', " +
+                    "'interrogationIds': 1, " +
+                    "'_id': 0 " +
+                    "} }"
     })
-    List<GroupedInterrogationDocument> aggregateRawGroupedByQuestionnaire(LocalDateTime since);
+    List<GroupedInterrogationDocument> aggregateRawGrouped(LocalDateTime since);
 
 }

@@ -190,7 +190,7 @@ public class RawResponseController {
     }
 
     @Operation(summary = "Get processed data ids from last n hours (default 24h)")
-    @PostMapping(path = "/lunatic-json/processed/ids")
+    @GetMapping(path = "/lunatic-json/processed/ids")
     @PreAuthorize("hasRole('SCHEDULER')")
     public ResponseEntity<Map<String, List<String>>> getProcessedDataIdsSinceHours(
             @RequestParam("questionnaireId") String questionnaireId,

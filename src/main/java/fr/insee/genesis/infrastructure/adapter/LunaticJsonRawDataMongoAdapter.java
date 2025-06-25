@@ -78,7 +78,7 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
 
     @Override
     public List<GroupedInterrogation> findProcessedIdsGroupedByQuestionnaireSince(LocalDateTime since){
-        return GroupedInterrogationDocumentMapper.INSTANCE.listDocumentToListModel(repository.aggregateRawGroupedByQuestionnaire(since));
+        return GroupedInterrogationDocumentMapper.INSTANCE.listDocumentToListModel(repository.aggregateRawGrouped(since));
     }
 
 

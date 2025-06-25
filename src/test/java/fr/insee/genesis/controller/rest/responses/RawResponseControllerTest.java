@@ -14,6 +14,7 @@ import fr.insee.genesis.domain.utils.JsonUtils;
 import fr.insee.genesis.infrastructure.document.rawdata.LunaticJsonRawDataDocument;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
+import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
 import fr.insee.genesis.stubs.LunaticJsonRawDataPersistanceStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import org.assertj.core.api.Assertions;
@@ -34,7 +35,8 @@ class RawResponseControllerTest {
             new MetadataService(),
             new SurveyUnitService(surveyUnitPersistencePortStub, new MetadataService(), fileUtils),
             new SurveyUnitQualityService(),
-            fileUtils);
+            fileUtils,
+            new DataProcessingContextPersistancePortStub());
     private final RawResponseController rawResponseController = new RawResponseController(lunaticJsonRawDataApiPort);
 
 
