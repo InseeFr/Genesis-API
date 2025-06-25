@@ -103,6 +103,33 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     public List<SurveyUnitModel> findPageableInterrogationIdsByQuestionnaireId(String questionnaireId, Long skip, Long limit) {
         return List.of();
     }
+
+
+    @Override
+    public List<SurveyUnitModel> findModesByCampaignIdV2(String campaignId) {
+        List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
+        for(SurveyUnitModel SurveyUnitModel : mongoStub){
+            if(SurveyUnitModel.getCampaignId().equals(campaignId))
+                surveyUnitModelList.add(
+                        new SurveyUnitModel(SurveyUnitModel.getInterrogationId(), SurveyUnitModel.getMode())
+                );
+        }
+
+        return surveyUnitModelList;
+    }
+
+    @Override
+    public List<SurveyUnitModel> findModesByQuestionnaireIdV2(String questionnaireId) {
+        List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
+        for(SurveyUnitModel SurveyUnitModel : mongoStub){
+            if(SurveyUnitModel.getQuestionnaireId().equals(questionnaireId))
+                surveyUnitModelList.add(
+                        new SurveyUnitModel(SurveyUnitModel.getInterrogationId(), SurveyUnitModel.getMode())
+                );
+        }
+
+        return surveyUnitModelList;
+    }
     //======= OPTIMISATIONS PERFS (END) =========
 
 
@@ -139,6 +166,14 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
 
         return questionnaireIdSet;
     }
+
+    //========= OPTIMISATIONS PERFS (START) ==========
+    @Override
+    public Set<String> findQuestionnaireIdsByCampaignIdV2(String campaignId) {
+        //This stub is explicitally the same as method "findQuestionnaireIdsByCampaignId()"
+        return findQuestionnaireIdsByCampaignId(campaignId);
+    }
+    //========= OPTIMISATIONS PERFS (END) ==========
 
     @Override
     public Set<String> findDistinctCampaignIds() {

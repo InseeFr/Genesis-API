@@ -58,11 +58,9 @@ public class InterrogationController implements CommonApiResponse {
     public ResponseEntity<List<InterrogationId>> getPaginatedInterrogationIdsByQuestionnaire(
             @Parameter(description = "questionnaireId", required = true) @PathVariable("questionnaireId") String questionnaireId,
             @Parameter(description = "if totalSize is 0, a count query is made to get the real totalSize to process", required = false) @RequestParam(defaultValue = "0") long totalSize,
-            @Parameter(description = "workersNumbers", required = false) @RequestParam(defaultValue = "1") int workersNumbers,
-            @Parameter(description = "workerId", required = false) @RequestParam(defaultValue = "1") int workerId,
             @Parameter(description = "blockSize", required = false) @RequestParam(defaultValue = "1000") long blockSize,
-            @Parameter(description = "page number", required = false) @RequestParam(defaultValue = "0") long page) {
-        List<InterrogationId> responses = surveyUnitService.findDistinctPageableInterrogationIdsByQuestionnaireId(questionnaireId, totalSize, workersNumbers, workerId, blockSize, page);
+            @Parameter(description = "page number / block index", required = false) @RequestParam(defaultValue = "0") long page) {
+        List<InterrogationId> responses = surveyUnitService.findDistinctPageableInterrogationIdsByQuestionnaireId(questionnaireId, totalSize, blockSize, page);
         return ResponseEntity.ok(responses);
     }
     //======== OPTIMISATIONS PERFS (END) ===========
