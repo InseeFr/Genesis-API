@@ -155,7 +155,7 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
             return null;
         }
         if(partitionIds.size() > 1){
-            throw new GenesisException(500,"Multiple partitions for interrogation %s\n%s".formatted(
+            throw new GenesisException(500,"Multiple partitions for interrogation %s %n%s".formatted(
                     interrogationId,
                     Arrays.toString(partitionIds.toArray())
             ));

@@ -4,14 +4,14 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>fr.insee.genesis</groupId>
     <artifactId>genesis-api</artifactId>
-    <version>1.5.4</version>
+    <version>1.5.6</version>
     <packaging>jar</packaging>
     <name>genesis-api</name>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.0</version>
+        <version>3.5.3</version>
     </parent>
 
     <properties>
@@ -29,7 +29,7 @@
         </sonar.exclusions>
         <skipSurefireReport>true</skipSurefireReport>
         <!-- Pi Test-->
-        <pitest.version>1.19.5</pitest.version>
+        <pitest.version>1.19.6</pitest.version>
         <pitest.junit.version>1.2.3</pitest.junit.version>
         <jackson.version>2.19.0</jackson.version>
         <bpm.version>1.0.7</bpm.version>

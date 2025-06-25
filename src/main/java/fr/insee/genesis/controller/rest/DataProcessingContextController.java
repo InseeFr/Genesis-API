@@ -45,7 +45,7 @@ public class DataProcessingContextController {
     private final FileUtils fileUtils;
 
     @Operation(summary = "Create or update a data processing context")
-    @PutMapping
+    @PutMapping(path = "/review")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Object> saveContext(
             @Parameter(description = "Identifier of the partition", required = true) @RequestParam("partitionId") String partitionId,

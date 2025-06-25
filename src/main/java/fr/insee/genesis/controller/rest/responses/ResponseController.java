@@ -419,6 +419,7 @@ public class ResponseController implements CommonApiResponse {
     public ResponseEntity<Object> saveEditedVariables(
             @RequestBody SurveyUnitInputDto surveyUnitInputDto
     ){
+        log.debug("Received in save edited : {}",surveyUnitInputDto.toString());
         //Code quality : we need to put all that logic out of this controller
         //Parse metadata
         //Try to look for DDI first, if no DDI found looks for lunatic components
