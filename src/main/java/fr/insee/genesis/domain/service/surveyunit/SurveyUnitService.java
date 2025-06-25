@@ -505,7 +505,6 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             surveyUnitModel.setCollectedVariables(new ArrayList<>());
         }
         for (VariableModel collectedVariable : surveyUnitModel.getCollectedVariables()) {
-            log.info("Variable name : {}", collectedVariable.varId());
             VarIdScopeTuple loopIdTuple = new VarIdScopeTuple(collectedVariable.varId(), collectedVariable.scope(),
                     collectedVariable.iteration());
             VariableDto variableDto = collectedVariableMap.get(loopIdTuple);
