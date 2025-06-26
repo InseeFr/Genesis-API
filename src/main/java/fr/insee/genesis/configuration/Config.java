@@ -31,6 +31,11 @@ public class Config {
 	@Value("${fr.insee.genesis.oidc.realm}")
 	private String realm;
 
+	@Value("${fr.insee.genesis.oidc.service.client-id}")
+	private String serviceClientId;
+	@Value("${fr.insee.genesus.oidc.service.client-secret}")
+	private String serviceClientSecret;
+
 	@Value("${fr.insee.genesis.security.token.oidc-claim-role}")
 	private String oidcClaimRole;
 

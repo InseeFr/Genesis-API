@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -134,11 +135,18 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
 
                 //Send processed ids grouped by questionnaire (if review activated)
                 if(dataProcessingContext != null && dataProcessingContext.isWithReview()) {
-                    ResponseEntity<Object> response =
-                            surveyUnitQualityToolPort.sendProcessedIds(getProcessedIdsMap(surveyUnitModels));
-                    if (!response.getStatusCode().is2xxSuccessful()) {
+                    try {
+                        ResponseEntity<Object> response =
+                                surveyUnitQualityToolPort.sendProcessedIds(getProcessedIdsMap(surveyUnitModels));
+
+                    if (response.getStatusCode().is2xxSuccessful()) {
+                        log.info("Successfully sent {} ids to quality tool", getProcessedIdsMap(surveyUnitModels).keySet().size());
+                    }else{
                         log.warn("Survey unit quality tool responded non-2xx code {} and body {}",
                                 response.getStatusCode(), response.getBody());
+                    }
+                    }catch (IOException e){
+                        log.error("Error during Perret call request building : {}", e.toString());
                     }
                 }
 
