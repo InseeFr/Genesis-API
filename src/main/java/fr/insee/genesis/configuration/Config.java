@@ -31,6 +31,11 @@ public class Config {
 	@Value("${fr.insee.genesis.oidc.realm}")
 	private String realm;
 
+	@Value("${fr.insee.genesis.oidc.service.client-id}")
+	private String serviceClientId;
+	@Value("${fr.insee.genesis.oidc.service.client-secret}")
+	private String serviceClientSecret;
+
 	@Value("${fr.insee.genesis.security.token.oidc-claim-role}")
 	private String oidcClaimRole;
 
@@ -39,6 +44,12 @@ public class Config {
 
 	@Value("#{'${fr.insee.genesis.security.whitelist-matchers}'.split(',')}")
 	private String[] whiteList;
+
+	@Value("${fr.insee.genesis.rawdata.process.batch-size}")
+	private int rawDataProcessingBatchSize;
+
+	@Value("${fr.insee.genesis.survey-quality-tool.url}")
+	private String surveyQualityToolUrl;
 
 	private final String logFolder;
 

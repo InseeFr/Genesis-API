@@ -1,21 +1,27 @@
 package fr.insee.genesis.domain.service.rawdata;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.controller.services.MetadataService;
 import fr.insee.genesis.controller.utils.ControllerUtils;
+import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
+import fr.insee.genesis.domain.service.context.DataProcessingContextService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.domain.utils.JsonUtils;
+import fr.insee.genesis.infrastructure.mappers.DataProcessingContextMapper;
 import fr.insee.genesis.infrastructure.mappers.LunaticJsonRawDataDocumentMapper;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
+import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
 import fr.insee.genesis.stubs.LunaticJsonRawDataPersistanceStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
+import fr.insee.genesis.stubs.SurveyUnitQualityToolPerretAdapterStub;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -34,10 +40,22 @@ class LunaticJsonRawDataServiceTest {
     MetadataService metadataService = new MetadataService();
 
     SurveyUnitPersistencePortStub surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
-    SurveyUnitService surveyUnitService = new SurveyUnitService(surveyUnitPersistencePortStub, metadataService, fileUtils);
-    SurveyUnitQualityService surveyUnitQualityService = new SurveyUnitQualityService();
-
-    LunaticJsonRawDataService lunaticJsonRawDataService = new LunaticJsonRawDataService(lunaticJsonRawDataPersistanceStub,controllerUtils,metadataService,surveyUnitService,surveyUnitQualityService,fileUtils);
+    SurveyUnitQualityToolPerretAdapterStub surveyUnitQualityToolPerretAdapterStub = new SurveyUnitQualityToolPerretAdapterStub();
+    DataProcessingContextPersistancePortStub dataProcessingContextPersistancePortStub =
+            new DataProcessingContextPersistancePortStub();
+    ConfigStub configStub = new ConfigStub();
+    LunaticJsonRawDataService lunaticJsonRawDataService =
+            new LunaticJsonRawDataService(
+                    lunaticJsonRawDataPersistanceStub,
+                    controllerUtils,
+                    metadataService,
+                    new SurveyUnitService(surveyUnitPersistencePortStub, metadataService, fileUtils),
+                    new SurveyUnitQualityService(),
+                    fileUtils,
+                    new DataProcessingContextService(dataProcessingContextPersistancePortStub, surveyUnitPersistencePortStub),
+                    surveyUnitQualityToolPerretAdapterStub,
+                    configStub
+            );
 
     @Test
     void saveDataTest_valid_only_collected_array() throws Exception {
@@ -401,14 +419,72 @@ class LunaticJsonRawDataServiceTest {
     @ParameterizedTest
     @ValueSource(ints = {5,500,5000,10000})
     void convertRawData_multipleBatchs(int rawDataSize) throws Exception {
+        //GIVEN
+        String campaignId = "SAMPLETEST-PARADATA-v1";
+        String questionnaireId = "TESTIDQUEST";
+        List<String> interrogationIdList = prepareConvertTest(rawDataSize, campaignId, questionnaireId);
+        //Activate review
+        dataProcessingContextPersistancePortStub.getMongoStub().add(
+                DataProcessingContextMapper.INSTANCE.modelToDocument(
+                        DataProcessingContextModel.builder()
+                                .partitionId(campaignId)
+                                .withReview(true)
+                                .kraftwerkExecutionScheduleList(new ArrayList<>())
+                                .build()
+                )
+        );
+
+        //WHEN
+        DataProcessResult dataProcessResult = lunaticJsonRawDataService.processRawData(campaignId, interrogationIdList,
+                new ArrayList<>());
+
+        //THEN
+        Assertions.assertThat(dataProcessResult.dataCount()).isEqualTo(rawDataSize * 2/*EDITED*/);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).hasSize(rawDataSize * 2);
+        Assertions.assertThat(surveyUnitQualityToolPerretAdapterStub.getReceivedMaps())
+                .hasSize(Math.ceilDiv(rawDataSize, configStub.getRawDataProcessingBatchSize()));
+        Assertions.assertThat(surveyUnitQualityToolPerretAdapterStub.getReceivedMaps().getFirst()).containsKey(questionnaireId);
+        Assertions.assertThat(surveyUnitQualityToolPerretAdapterStub.getReceivedMaps().getFirst().get(questionnaireId))
+                .contains("TESTinterrogationId1");
+    }
+
+    @Test
+    void convertRawData_review_desactivated() throws Exception {
+        //GIVEN
+        String campaignId = "SAMPLETEST-PARADATA-v1";
+        String questionnaireId = "TESTIDQUEST";
+        List<String> interrogationIdList = prepareConvertTest(1, campaignId, questionnaireId);
+
+        //Desactivate review
+        dataProcessingContextPersistancePortStub.getMongoStub().add(
+                DataProcessingContextMapper.INSTANCE.modelToDocument(
+                        DataProcessingContextModel.builder()
+                                .partitionId(campaignId)
+                                .withReview(false)
+                                .kraftwerkExecutionScheduleList(new ArrayList<>())
+                                .build()
+                )
+        );
+
+        //WHEN
+        DataProcessResult dataProcessResult = lunaticJsonRawDataService.processRawData(campaignId, interrogationIdList,
+                new ArrayList<>());
+
+        //THEN
+        Assertions.assertThat(dataProcessResult.dataCount()).isEqualTo(2);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).hasSize(2);
+        Assertions.assertThat(surveyUnitQualityToolPerretAdapterStub.getReceivedMaps()).isEmpty();
+    }
+
+    private List<String> prepareConvertTest(int rawDataSize, String campaignId, String questionnaireId) throws JsonProcessingException {
         //CLEAN
         surveyUnitPersistencePortStub.getMongoStub().clear();
+        surveyUnitQualityToolPerretAdapterStub.getReceivedMaps().clear();
+        dataProcessingContextPersistancePortStub.getMongoStub().clear();
 
         //GIVEN
         List<String> interrogationIdList = new ArrayList<>();
-        String campaignId = "SAMPLETEST-PARADATA-v1";
         for (int i = 0; i < rawDataSize; i++) {
-            String questionnaireId = "TESTIDQUEST";
             String interrogationId = "TESTinterrogationId" + (i + 1);
             String json = "{\"EXTERNAL\": {\"RPPRENOM\": \"TEST_EXT%d\"}, ".formatted(i) +
                     "\"COLLECTED\": {\"PRENOMREP\": {\"COLLECTED\": [\"test%d\"], \"EDITED\": [\"test_ed%d\"]}}}"
@@ -426,13 +502,6 @@ class LunaticJsonRawDataServiceTest {
             lunaticJsonRawDataPersistanceStub.getMongoStub()
                     .add(LunaticJsonRawDataDocumentMapper.INSTANCE.modelToDocument(rawDataModel));
         }
-
-        //WHEN
-        DataProcessResult dataProcessResult = lunaticJsonRawDataService.processRawData(campaignId, interrogationIdList,
-                new ArrayList<>());
-
-        //THEN
-        Assertions.assertThat(dataProcessResult.dataCount()).isEqualTo(rawDataSize * 2/*EDITED*/);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).hasSize(rawDataSize * 2);
+        return interrogationIdList;
     }
 }
