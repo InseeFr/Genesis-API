@@ -33,7 +33,7 @@ public class Config {
 
 	@Value("${fr.insee.genesis.oidc.service.client-id}")
 	private String serviceClientId;
-	@Value("${fr.insee.genesus.oidc.service.client-secret}")
+	@Value("${fr.insee.genesis.oidc.service.client-secret}")
 	private String serviceClientSecret;
 
 	@Value("${fr.insee.genesis.security.token.oidc-claim-role}")
