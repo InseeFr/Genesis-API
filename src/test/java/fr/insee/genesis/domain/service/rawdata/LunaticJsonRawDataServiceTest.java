@@ -14,6 +14,7 @@ import fr.insee.genesis.domain.utils.JsonUtils;
 import fr.insee.genesis.infrastructure.mappers.LunaticJsonRawDataDocumentMapper;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
+import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
 import fr.insee.genesis.stubs.LunaticJsonRawDataPersistanceStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import org.assertj.core.api.Assertions;
@@ -37,7 +38,8 @@ class LunaticJsonRawDataServiceTest {
     SurveyUnitService surveyUnitService = new SurveyUnitService(surveyUnitPersistencePortStub, metadataService, fileUtils);
     SurveyUnitQualityService surveyUnitQualityService = new SurveyUnitQualityService();
 
-    LunaticJsonRawDataService lunaticJsonRawDataService = new LunaticJsonRawDataService(lunaticJsonRawDataPersistanceStub,controllerUtils,metadataService,surveyUnitService,surveyUnitQualityService,fileUtils);
+    DataProcessingContextPersistancePortStub dataProcessingContextPersistancePortStub = new DataProcessingContextPersistancePortStub();
+    LunaticJsonRawDataService lunaticJsonRawDataService = new LunaticJsonRawDataService(lunaticJsonRawDataPersistanceStub,controllerUtils,metadataService,surveyUnitService,surveyUnitQualityService,fileUtils,dataProcessingContextPersistancePortStub);
 
     @Test
     void saveDataTest_valid_only_collected_array() throws Exception {

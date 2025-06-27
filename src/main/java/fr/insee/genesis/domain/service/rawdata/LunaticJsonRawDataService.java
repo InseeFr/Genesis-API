@@ -5,7 +5,10 @@ import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.dto.rawdata.LunaticJsonRawDataUnprocessedDto;
 import fr.insee.genesis.controller.services.MetadataService;
 import fr.insee.genesis.controller.utils.ControllerUtils;
+import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
+import fr.insee.genesis.domain.model.surveyunit.GroupedInterrogation;
+import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
@@ -13,6 +16,7 @@ import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.RawDataModelType;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
+import fr.insee.genesis.domain.ports.spi.DataProcessingContextPersistancePort;
 import fr.insee.genesis.domain.ports.spi.LunaticJsonRawDataPersistencePort;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
@@ -32,6 +36,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -46,15 +51,18 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
 
     @Qualifier("lunaticJsonMongoAdapterNew")
     private final LunaticJsonRawDataPersistencePort lunaticJsonRawDataPersistencePort;
+    @Qualifier("dataProcessingContextMongoAdapter")
+    private final DataProcessingContextPersistancePort dataProcessingContextPersistancePort;
 
     @Autowired
-    public LunaticJsonRawDataService(LunaticJsonRawDataPersistencePort lunaticJsonRawDataNewPersistencePort, ControllerUtils controllerUtils, MetadataService metadataService, SurveyUnitService surveyUnitService, SurveyUnitQualityService surveyUnitQualityService, FileUtils fileUtils) {
+    public LunaticJsonRawDataService(LunaticJsonRawDataPersistencePort lunaticJsonRawDataNewPersistencePort, ControllerUtils controllerUtils, MetadataService metadataService, SurveyUnitService surveyUnitService, SurveyUnitQualityService surveyUnitQualityService, FileUtils fileUtils, DataProcessingContextPersistancePort dataProcessingContextPersistancePort) {
         this.controllerUtils = controllerUtils;
         this.metadataService = metadataService;
         this.surveyUnitService = surveyUnitService;
         this.surveyUnitQualityService = surveyUnitQualityService;
         this.fileUtils = fileUtils;
         this.lunaticJsonRawDataPersistencePort = lunaticJsonRawDataNewPersistencePort;
+        this.dataProcessingContextPersistancePort = dataProcessingContextPersistancePort;
     }
 
     @Override
@@ -336,5 +344,18 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     @Override
     public long countResponsesByQuestionnaireId(String campaignId) {
         return lunaticJsonRawDataPersistencePort.countResponsesByQuestionnaireId(campaignId);
+    }
+
+    @Override
+    public Map<String, List<String>> findProcessedIdsgroupedByQuestionnaireSince(LocalDateTime since) {
+        List<GroupedInterrogation> idsByQuestionnaire = lunaticJsonRawDataPersistencePort.findProcessedIdsGroupedByQuestionnaireSince(since);
+        List<String> partitionIds = idsByQuestionnaire.stream().map(GroupedInterrogation::getPartitionOrCampaignId).toList();
+        List<DataProcessingContextModel> contexts = dataProcessingContextPersistancePort.findByPartitionIds(partitionIds);
+        List<String> partitionIdsWithReview = contexts.stream().filter(DataProcessingContextModel::isWithReview).map(DataProcessingContextModel::getPartitionId).toList();
+        return idsByQuestionnaire.stream().filter(groupedInterrogation -> partitionIdsWithReview.contains(groupedInterrogation.getPartitionOrCampaignId()))
+                .collect(Collectors.toMap(
+                GroupedInterrogation::getQuestionnaireId,
+                GroupedInterrogation::getInterrogationIds
+        ));
     }
 }

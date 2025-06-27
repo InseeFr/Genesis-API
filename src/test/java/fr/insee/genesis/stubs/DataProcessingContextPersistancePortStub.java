@@ -28,6 +28,11 @@ public class DataProcessingContextPersistancePortStub implements DataProcessingC
     }
 
     @Override
+    public List<DataProcessingContextModel> findByPartitionIds(List<String> partitionIds) {
+        return List.of();
+    }
+
+    @Override
     public void save(DataProcessingContextDocument dataProcessingContextDocument) {
         mongoStub.removeIf(existingDoc -> existingDoc.getPartitionId().equals(
                 dataProcessingContextDocument.getPartitionId())
