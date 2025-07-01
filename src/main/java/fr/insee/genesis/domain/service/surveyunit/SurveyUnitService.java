@@ -430,7 +430,10 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             for(VariableInputDto editedVariableDto : editedCollectedVariables){
                 VariableModel collectedVariable = VariableModel.builder()
                         .varId(editedVariableDto.getVariableName())
-                        .value(editedVariableDto.getVariableStateInputDto().getValue().toString())
+                        .value(editedVariableDto.getVariableStateInputDto().getValue() == null ?
+                                null
+                                : editedVariableDto.getVariableStateInputDto().getValue().toString()
+                            )
                         .parentId(GroupUtils.getParentGroupName(editedVariableDto.getVariableName(), variablesMap))
                         .scope(variablesMap.getVariable(editedVariableDto.getVariableName()).getGroupName())
                         .iteration(editedVariableDto.getIteration())
