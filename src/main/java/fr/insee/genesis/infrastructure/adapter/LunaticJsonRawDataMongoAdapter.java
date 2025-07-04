@@ -9,12 +9,16 @@ import fr.insee.genesis.infrastructure.mappers.LunaticJsonRawDataDocumentMapper;
 import fr.insee.genesis.infrastructure.repository.LunaticJsonMongoDBRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
@@ -66,6 +70,13 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
             questionnaireIds.add(questionnaireId);
         }
         return questionnaireIds;
+    }
+
+    @Override
+    public Page<LunaticJsonRawDataModel> findByCampaignIdAndDate(String campaignId, Instant startDt, Instant  endDt, Pageable pageable) {
+        Page<LunaticJsonRawDataDocument> rawDataDocsPage =  repository.findByCampaignIdAndRecordDateBetween(campaignId,startDt,endDt,pageable);
+        List<LunaticJsonRawDataModel> modelList = LunaticJsonRawDataDocumentMapper.INSTANCE.listDocumentToListModel(rawDataDocsPage.getContent());
+        return new PageImpl<>(modelList, rawDataDocsPage.getPageable(), rawDataDocsPage.getTotalElements());
     }
 
     @Override

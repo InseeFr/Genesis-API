@@ -10,12 +10,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.FluentQuery;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.time.Instant;
+import java.util.*;
 import java.util.function.Function;
 
 @Getter
@@ -48,6 +44,11 @@ public class LunaticJsonMongoDBRepositoryStub implements LunaticJsonMongoDBRepos
                         && Objects.equals(doc.mode(), mode)
                         && interrogationIdList.contains(doc.interrogationId()))
                 .toList();
+    }
+
+    @Override
+    public Page<LunaticJsonRawDataDocument> findByCampaignIdAndRecordDateBetween(String campagneId, Instant  start, Instant end, Pageable pageable){
+        return Page.empty(pageable);
     }
 
     @Override
