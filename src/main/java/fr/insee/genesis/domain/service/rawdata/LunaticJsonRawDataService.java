@@ -39,6 +39,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -387,4 +394,12 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     public long countResponsesByQuestionnaireId(String campaignId) {
         return lunaticJsonRawDataPersistencePort.countResponsesByQuestionnaireId(campaignId);
     }
+
+
+    @Override
+    public Page<LunaticJsonRawDataModel> findRawDataByCampaignIdAndDate(String campaignId, Instant startDt, Instant endDt, Pageable pageable){
+        return lunaticJsonRawDataPersistencePort.findByCampaignIdAndDate(campaignId,startDt, endDt,pageable);
+
+    }
+
 }
