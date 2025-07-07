@@ -173,12 +173,4 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
         );
     }
 
-    @Override
-    public List<DataProcessingContextModel> getPartitionIdWithReview (List<String> partitionIds){
-        List<DataProcessingContextModel> contexts =  dataProcessingContextPersistancePort.findByPartitionIds(partitionIds);
-        if (contexts.isEmpty()){
-            return List.of();
-        }
-        return contexts.stream().filter(DataProcessingContextModel::isWithReview).toList();
-    }
 }
