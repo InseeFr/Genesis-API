@@ -14,10 +14,12 @@ import org.springframework.data.repository.query.FluentQuery;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 
 @Getter
@@ -59,7 +61,38 @@ public class LunaticJsonMongoDBRepositoryStub implements LunaticJsonMongoDBRepos
 
     @Override
     public List<GroupedInterrogationDocument> aggregateRawGrouped(LocalDateTime since) {
-        return List.of();
+        List<LunaticJsonRawDataDocument> recentDocs = documents.stream().filter(
+                rawData -> rawData.processDate() != null && rawData.processDate().isAfter(since)
+        ).toList();
+
+        // Aggregation map: key = (questionnaireId, partitionOrCampaignId), value = Set of interrogationId
+        Map<String, Map<String, Set<String>>> groupedMap = new HashMap<>();
+
+        for (LunaticJsonRawDataDocument doc : recentDocs) {
+            String questionnaireId = doc.questionnaireId();
+            String partitionOrCampaignId = doc.campaignId();
+            String interrogationId = doc.interrogationId();
+            groupedMap
+                    .computeIfAbsent(questionnaireId, q -> new HashMap<>())
+                    .computeIfAbsent(partitionOrCampaignId, p -> new HashSet<>())
+                    .add(interrogationId);
+        }
+
+        // Conversion to a list of GroupedInterrogationDocument
+        List<GroupedInterrogationDocument> result = new ArrayList<>();
+        for (Map.Entry<String, Map<String, Set<String>>> entry1 : groupedMap.entrySet()) {
+            String questionnaireId = entry1.getKey();
+            Map<String, Set<String>> innerMap = entry1.getValue();
+
+            for (Map.Entry<String, Set<String>> entry2 : innerMap.entrySet()) {
+                GroupedInterrogationDocument grouped = new GroupedInterrogationDocument();
+                grouped.setQuestionnaireId(questionnaireId);
+                grouped.setPartitionOrCampaignId(entry2.getKey());
+                grouped.setInterrogationIds(new ArrayList<>(entry2.getValue()));
+                result.add(grouped);
+            }
+        }
+        return result;
     }
 
     // Implémentations vides requises par MongoRepository
