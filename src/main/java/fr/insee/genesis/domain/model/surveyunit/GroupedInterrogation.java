@@ -6,4 +6,8 @@ import java.util.List;
 
 
 @Builder
-public record GroupedInterrogation(String questionnaireId, String partitionOrCampaignId, List<String> interrogationIds) {}
+public record GroupedInterrogation(
+        String questionnaireId,
+        String partitionOrCampaignId,
+        List<String> interrogationIds
+){}
