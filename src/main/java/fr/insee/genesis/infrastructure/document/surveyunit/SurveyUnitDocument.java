@@ -21,6 +21,7 @@ public class SurveyUnitDocument {
 	private String interrogationId;
 	private String questionnaireId;
 	private String state;
+	@Indexed
 	private String mode;
 	private LocalDateTime recordDate;
 	private LocalDateTime fileDate;

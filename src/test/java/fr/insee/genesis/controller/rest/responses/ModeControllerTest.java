@@ -61,4 +61,24 @@ class ModeControllerTest {
         Assertions.assertThat(response.getBody().getFirst()).isEqualTo(Mode.WEB);
     }
 
+    //========= OPTIMISATIONS PERFS (START) ==========
+    @Test
+    void getModesByQuestionnaireV2Test() {
+        ResponseEntity<List<Mode>> response = modeControllerStatic.getModesByQuestionnaireV2(DEFAULT_QUESTIONNAIRE_ID);
+
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().hasSize(1);
+        Assertions.assertThat(response.getBody().getFirst()).isEqualTo(Mode.WEB);
+    }
+
+    @Test
+    void getModesByCampaignV2Test() {
+        ResponseEntity<List<Mode>> response = modeControllerStatic.getModesByCampaignV2("TESTCAMPAIGNID");
+
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().hasSize(1);
+        Assertions.assertThat(response.getBody().getFirst()).isEqualTo(Mode.WEB);
+    }
+    //========= OPTIMISATIONS PERFS (END) ==========
+
 }
