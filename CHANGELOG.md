@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.6.0 [2025-07-08]
+### Added
+- Performance optimizations
+- Allow null variables for non-COLLECTED variables
+- Send ids to data quality tool (Perret) during processing
+
 ## 1.5.6 [2025-06-18]
 ### Fixed
 - fix rights on context controller
