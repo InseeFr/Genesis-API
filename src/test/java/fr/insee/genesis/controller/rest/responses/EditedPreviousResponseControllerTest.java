@@ -276,8 +276,26 @@ class EditedPreviousResponseControllerTest {
     }
     @Test
     @SneakyThrows
-    void readJson_override_one_interrogation_id(){
+    void readJson_only_one_interrogation_id(){
         String fileName = "only_one_interrogationId.json";
+        //GIVEN
+        Files.createDirectories(SOURCE_PATH);
+        Files.copy(
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("edited_previous").resolve(fileName),
+                SOURCE_PATH.resolve(fileName),
+                StandardCopyOption.REPLACE_EXISTING
+        );
+
+        //WHEN + THEN
+        GenesisException genesisException = Assertions.catchThrowableOfType(GenesisException.class, ()->
+                editedPreviousResponseController.readJson(QUESTIONNAIRE_ID, Mode.WEB, null, fileName));
+        Assertions.assertThat(genesisException.getStatus()).isEqualTo(400);
+    }
+
+    @Test
+    @SneakyThrows
+    void readJson_double_interrogation_id(){
+        String fileName = "double_interrogationId.json";
         //GIVEN
         Files.createDirectories(SOURCE_PATH);
         Files.copy(

@@ -16,7 +16,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @Slf4j
@@ -53,20 +55,30 @@ public class EditedPreviousResponseJsonService implements EditedPreviousResponse
                 }
             }
             long savedCount = 0;
+            Set<String> savedInterrogationIds = new HashSet<>();
             jsonParser.nextToken(); //skip field name
             jsonParser.nextToken(); //skip [
             while (jsonParser.currentToken() != JsonToken.END_ARRAY) {
                 EditedPreviousResponseModel editedPreviousResponseModel = readNextEditedPrevious(
                         jsonParser,
                         questionnaireId,
-                        sourceState);
+                        sourceState
+                );
+
                 if(editedPreviousResponseModel.getInterrogationId() == null){
                     throw new GenesisException(400,
                             "Missing interrogationId on the object that ends on line %d"
                             .formatted(jsonParser.currentLocation().getLineNr())
                     );
                 }
+                if(savedInterrogationIds.contains(editedPreviousResponseModel.getInterrogationId())){
+                    throw new GenesisException(400,
+                            "Double interrogationId : %s".formatted(editedPreviousResponseModel.getInterrogationId()));
+                }
+
                 toSave.add(editedPreviousResponseModel);
+                savedInterrogationIds.add(editedPreviousResponseModel.getInterrogationId());
+
                 if(toSave.size() >= BLOCK_SIZE){
                     editedPreviousResponsePersistancePort.saveAll(toSave);
                     savedCount += toSave.size();
