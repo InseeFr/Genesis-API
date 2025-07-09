@@ -32,11 +32,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.FileSystemUtils;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.Month;
@@ -158,50 +155,6 @@ class ResponseControllerTest {
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
         Assertions.assertThat(response.getBody().getFirst().getInterrogationId()).isEqualTo(DEFAULT_INTERROGATION_ID);
         Assertions.assertThat(response.getBody().getFirst().getQuestionnaireId()).isEqualTo(DEFAULT_QUESTIONNAIRE_ID);
-    }
-
-    @Test
-    void findAllResponsesByQuestionnaireTest() {
-        Path path = Path.of(TestConstants.TEST_RESOURCES_DIRECTORY, "OUT", DEFAULT_QUESTIONNAIRE_ID);
-        File dir = new File(String.valueOf(path));
-        FileSystemUtils.deleteRecursively(dir);
-
-        ResponseEntity<Path> response = responseControllerStatic.findAllResponsesByQuestionnaire(DEFAULT_QUESTIONNAIRE_ID);
-
-        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(response.getBody()).isNotNull();
-        Assertions.assertThat(Files.exists(path)).isTrue();
-        File[] dircontents = dir.listFiles();
-        Assertions.assertThat(dircontents).hasSize(1);
-        Assertions.assertThat(dircontents[0].length()).isPositive().isNotNull();
-        FileSystemUtils.deleteRecursively(dir);
-        dir.deleteOnExit();
-    }
-
-    @Test
-    void getAllResponsesByQuestionnaireTestSequential() throws IOException {
-        //Given
-        surveyUnitPersistencePortStub.getMongoStub().clear();
-
-        for (int i = 0; i < Constants.BATCH_SIZE + 2; i++) {
-            Utils.addAdditionalSurveyUnitModelToMongoStub("TEST-TABLEAUX", DEFAULT_INTERROGATION_ID + i,
-                    LocalDateTime.of(2023, 1, 1, 0, 0, 0),
-                    LocalDateTime.of(2024, 1, 1, 0, 0, 0),
-                    surveyUnitPersistencePortStub);
-        }
-
-        //When
-        ResponseEntity<Path> response = responseControllerStatic.findAllResponsesByQuestionnaire(DEFAULT_QUESTIONNAIRE_ID);
-
-        //Then
-        Assertions.assertThat(response).isNotNull();
-        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(response.getBody()).isNotNull();
-
-        Assertions.assertThat(response.getBody()).isNotNull();
-        Assertions.assertThat(response.getBody().toFile()).isNotNull().exists();
-
-        Files.deleteIfExists(response.getBody());
     }
 
     @Test

@@ -19,6 +19,7 @@ import java.util.List;
 import static fr.insee.genesis.TestConstants.DEFAULT_QUESTIONNAIRE_ID;
 
 class ModeControllerTest {
+    public static final String CAMPAIGN_ID = "TEST-TABLEAUX";
     //Given
     static ModeController modeControllerStatic;
     static SurveyUnitPersistencePortStub surveyUnitPersistencePortStub;
@@ -54,11 +55,31 @@ class ModeControllerTest {
 
     @Test
     void getModesByCampaignTest() {
-        ResponseEntity<List<Mode>> response = modeControllerStatic.getModesByCampaign("TEST-TABLEAUX");
+        ResponseEntity<List<Mode>> response = modeControllerStatic.getModesByCampaign(CAMPAIGN_ID);
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().hasSize(1);
         Assertions.assertThat(response.getBody().getFirst()).isEqualTo(Mode.WEB);
     }
+
+    //========= OPTIMISATIONS PERFS (START) ==========
+    @Test
+    void getModesByQuestionnaireV2Test() {
+        ResponseEntity<List<Mode>> response = modeControllerStatic.getModesByQuestionnaireV2(DEFAULT_QUESTIONNAIRE_ID);
+
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().hasSize(1);
+        Assertions.assertThat(response.getBody().getFirst()).isEqualTo(Mode.WEB);
+    }
+
+    @Test
+    void getModesByCampaignV2Test() {
+        ResponseEntity<List<Mode>> response = modeControllerStatic.getModesByCampaignV2(CAMPAIGN_ID);
+
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().hasSize(1);
+        Assertions.assertThat(response.getBody().getFirst()).isEqualTo(Mode.WEB);
+    }
+    //========= OPTIMISATIONS PERFS (END) ==========
 
 }
