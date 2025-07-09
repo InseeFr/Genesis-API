@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://modele-filiere.developpement.insee.fr/specs/0.0.22/RawResponse.json",
+  "$id": "https://modele-filiere.developpement.insee.fr/specs/1.0.0/RawResponse.json",
   "type": "object",
   "title": "RawResponse",
   "description": "Represents a raw response associated with the questionnaire",
