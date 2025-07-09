@@ -68,8 +68,7 @@ public class EditedPreviousResponseMongoAdapter implements EditedPreviousRespons
     }
 
     @Override
-    public void saveAll(String questionnaireId,
-                        List<EditedPreviousResponseModel> editedPreviousResponseModelList) {
+    public void saveAll(List<EditedPreviousResponseModel> editedPreviousResponseModelList) {
         repository.saveAll(EditedPreviousResponseDocumentMapper.INSTANCE.listModelToListDocument(
                 editedPreviousResponseModelList)
         );

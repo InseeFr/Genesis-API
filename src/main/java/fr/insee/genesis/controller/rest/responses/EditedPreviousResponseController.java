@@ -48,6 +48,9 @@ public class EditedPreviousResponseController {
                 fileUtils.getDataFolder(questionnaireId, mode.getFolder(), null),
                 jsonFileName
         );
+        if(!jsonFileName.toLowerCase().endsWith(".json")){
+            throw new GenesisException(400, "File must be a JSON file !");
+        }
         try(InputStream inputStream = new FileInputStream(filePath)){
             editedPreviousResponseApiPort.readEditedPreviousFile(inputStream, questionnaireId, sourceState);
         } catch (FileNotFoundException e) {

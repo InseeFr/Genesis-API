@@ -8,6 +8,6 @@ public interface EditedPreviousResponsePersistancePort {
     void backup(String questionnaireId);
     void deleteBackup(String questionnaireId);
     void restoreBackup(String questionnaireId);
-    void saveAll(String questionnaireId, List<EditedPreviousResponseModel> editedPreviousResponseModelList);
+    void saveAll(List<EditedPreviousResponseModel> editedPreviousResponseModelList);
     void delete(String questionnaireId);
 }

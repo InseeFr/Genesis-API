@@ -34,7 +34,7 @@ public class EditedPreviousResponseJsonService implements EditedPreviousResponse
     public void readEditedPreviousFile(InputStream inputStream,
                                        String questionnaireId,
                                        String sourceState) throws GenesisException {
-        if(sourceState.length() > 15){
+        if(sourceState != null && sourceState.length() > 15){
             throw new GenesisException(400, "Source state is too long (>15 characters)");
         }
 
@@ -43,21 +43,40 @@ public class EditedPreviousResponseJsonService implements EditedPreviousResponse
         editedPreviousResponsePersistancePort.delete(questionnaireId);
         try(JsonParser jsonParser = jsonFactory.createParser(inputStream)){
             List<EditedPreviousResponseModel> toSave = new ArrayList<>();
-            while (!jsonParser.currentName().equals("editedPrevious")
-                    && jsonParser.currentToken() != JsonToken.START_ARRAY){
+            boolean isTokenFound = false;
+            while (!isTokenFound){
                 jsonParser.nextToken();
+                if(jsonParser.currentToken().equals(JsonToken.FIELD_NAME) && jsonParser.currentName() != null){
+                    if (jsonParser.currentName().equals("editedPrevious")) {
+                        isTokenFound = true;
+                    }
+                }
             }
             long savedCount = 0;
-            while (jsonParser.nextToken() != JsonToken.END_ARRAY) {
-                toSave.add(readNextEditedPrevious(jsonParser,questionnaireId,sourceState));
+            jsonParser.nextToken(); //skip field name
+            jsonParser.nextToken(); //skip [
+            while (jsonParser.currentToken() != JsonToken.END_ARRAY) {
+                EditedPreviousResponseModel editedPreviousResponseModel = readNextEditedPrevious(
+                        jsonParser,
+                        questionnaireId,
+                        sourceState);
+                if(editedPreviousResponseModel.getInterrogationId() == null){
+                    throw new GenesisException(400,
+                            "Missing interrogationId on the object that ends on line %d"
+                            .formatted(jsonParser.currentLocation().getLineNr())
+                    );
+                }
+                toSave.add(editedPreviousResponseModel);
                 if(toSave.size() >= BLOCK_SIZE){
-                    editedPreviousResponsePersistancePort.saveAll(questionnaireId, toSave);
+                    editedPreviousResponsePersistancePort.saveAll(toSave);
                     savedCount += toSave.size();
                     toSave.clear();
                 }
+                jsonParser.nextToken(); //skip }
             }
+            editedPreviousResponsePersistancePort.saveAll(toSave);
+            savedCount += toSave.size();
             log.info("Reached end of edited previous file, saved %d interrogations".formatted(savedCount));
-            editedPreviousResponsePersistancePort.saveAll(questionnaireId, toSave);
             editedPreviousResponsePersistancePort.deleteBackup(questionnaireId);
         }catch (JsonParseException jpe){
             editedPreviousResponsePersistancePort.restoreBackup(questionnaireId);
@@ -71,9 +90,9 @@ public class EditedPreviousResponseJsonService implements EditedPreviousResponse
     private EditedPreviousResponseModel readNextEditedPrevious(JsonParser jsonParser,
                                                                String questionnaireId,
                                                                String sourceState
-                                                               ) throws IOException, JsonParseException {
-        if(jsonParser.nextToken() != JsonToken.START_OBJECT){
-            throw new JsonParseException("Expected { on line %d".formatted(jsonParser.currentLocation().getLineNr()));
+                                                               ) throws IOException {
+        if(jsonParser.currentToken() != JsonToken.START_OBJECT){
+            throw new JsonParseException("Expected { on line %d, got token %s".formatted(jsonParser.currentLocation().getLineNr(), jsonParser.currentToken()));
         }
         EditedPreviousResponseModel editedPreviousResponseModel = EditedPreviousResponseModel.builder()
                 .questionnaireId(questionnaireId)
@@ -81,20 +100,24 @@ public class EditedPreviousResponseJsonService implements EditedPreviousResponse
                 .variables(new HashMap<>())
                 .build();
         jsonParser.nextToken(); // read {
-        while (!jsonParser.nextToken().equals(JsonToken.END_OBJECT)){
-            if(jsonParser.currentName().equals("interrogationId")){
+        while (!jsonParser.currentToken().equals(JsonToken.END_OBJECT)){
+            if(jsonParser.currentToken().equals(JsonToken.FIELD_NAME) && jsonParser.currentName().equals("interrogationId")){
+                jsonParser.nextToken();
                 editedPreviousResponseModel.setInterrogationId(jsonParser.getText());
+                jsonParser.nextToken();
                 continue;
             }
+            jsonParser.nextToken();
             editedPreviousResponseModel.getVariables().put(
                     jsonParser.currentName(),
                     readValue(jsonParser)
             );
+            jsonParser.nextToken();
         }
         return editedPreviousResponseModel;
     }
 
-    private Object readValue(JsonParser jsonParser) throws IOException, JsonParseException{
+    private Object readValue(JsonParser jsonParser) throws IOException{
         switch (jsonParser.currentToken()){
             case VALUE_STRING -> {
                 return jsonParser.getText();
@@ -122,8 +145,10 @@ public class EditedPreviousResponseJsonService implements EditedPreviousResponse
 
     private List<Object> readArray(JsonParser jsonParser) throws IOException {
         List<Object> list = new ArrayList<>();
-        while(jsonParser.nextToken() != JsonToken.END_ARRAY){
+        jsonParser.nextToken(); //Read [
+        while(!jsonParser.currentToken().equals(JsonToken.END_ARRAY)){
             list.add(readValue(jsonParser));
+            jsonParser.nextToken();
         }
         return list;
     }
