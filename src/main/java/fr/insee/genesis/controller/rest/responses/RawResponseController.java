@@ -28,7 +28,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -171,6 +170,18 @@ public class RawResponseController {
         }catch (GenesisException e){
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
         }
+    }
+
+    @Operation(summary = "Get processed data ids from last n hours (default 24h)")
+    @GetMapping(path = "/lunatic-json/processed/ids")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, List<String>>> getProcessedDataIdsSinceHours(
+            @RequestParam("questionnaireId") String questionnaireId,
+            @RequestParam(name = "sinceHours", defaultValue = "24") int hours
+    ) {
+        log.info("Retrieve ids of data processed in last {}h", hours);
+        Map<String, List<String>> result = lunaticJsonRawDataApiPort.findProcessedIdsgroupedByQuestionnaireSince(LocalDateTime.now().minusHours(hours).minusMinutes(10));
+        return ResponseEntity.ok(result);
     }
 
     private void validate(Set<ValidationMessage> errors) throws GenesisException {

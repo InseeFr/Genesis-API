@@ -40,9 +40,10 @@ class LunaticJsonRawDataServiceTest {
     MetadataService metadataService = new MetadataService();
 
     SurveyUnitPersistencePortStub surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
+    SurveyUnitService surveyUnitService = new SurveyUnitService(surveyUnitPersistencePortStub, metadataService, fileUtils);
+    SurveyUnitQualityService surveyUnitQualityService = new SurveyUnitQualityService();
+    DataProcessingContextPersistancePortStub dataProcessingContextPersistancePortStub = new DataProcessingContextPersistancePortStub();
     SurveyUnitQualityToolPerretAdapterStub surveyUnitQualityToolPerretAdapterStub = new SurveyUnitQualityToolPerretAdapterStub();
-    DataProcessingContextPersistancePortStub dataProcessingContextPersistancePortStub =
-            new DataProcessingContextPersistancePortStub();
     ConfigStub configStub = new ConfigStub();
     LunaticJsonRawDataService lunaticJsonRawDataService =
             new LunaticJsonRawDataService(
@@ -54,7 +55,8 @@ class LunaticJsonRawDataServiceTest {
                     fileUtils,
                     new DataProcessingContextService(dataProcessingContextPersistancePortStub, surveyUnitPersistencePortStub),
                     surveyUnitQualityToolPerretAdapterStub,
-                    configStub
+                    configStub,
+                    dataProcessingContextPersistancePortStub
             );
 
     @Test

@@ -2,7 +2,7 @@ package fr.insee.genesis.controller.rest;
 
 import cucumber.TestConstants;
 import fr.insee.genesis.Constants;
-import fr.insee.genesis.controller.dto.InterrogationId;
+import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
 import fr.insee.genesis.controller.services.MetadataService;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
@@ -11,6 +11,7 @@ import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
+import fr.insee.genesis.domain.ports.spi.DataProcessingContextPersistancePort;
 import fr.insee.genesis.domain.service.context.DataProcessingContextService;
 import fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
@@ -46,6 +47,7 @@ class UtilsControllerTest {
     static UtilsController utilsControllerStatic;
     static SurveyUnitPersistencePortStub surveyUnitPersistencePortStub;
     static LunaticJsonRawDataPersistanceStub lunaticJsonRawDataPersistencePort;
+    static DataProcessingContextPersistancePort contextStub = new DataProcessingContextPersistancePortStub();
     static SurveyUnitQualityToolPerretAdapterStub surveyUnitQualityToolPerretAdapterStub;
     static List<InterrogationId> interrogationIdList;
     static FileUtils fileUtils = new FileUtils(new ConfigStub());
@@ -73,7 +75,9 @@ class UtilsControllerTest {
                                 new DataProcessingContextPersistancePortStub(),
                                 surveyUnitPersistencePortStub),
                         surveyUnitQualityToolPerretAdapterStub,
-                        new ConfigStub());
+                        new ConfigStub(),
+                        contextStub);
+
 
         utilsControllerStatic = new UtilsController(
                 surveyUnitApiPort

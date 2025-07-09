@@ -63,6 +63,7 @@ public class RawDataDefinitions {
     LunaticJsonRawDataPersistanceStub lunaticJsonRawDataPersistanceStub = new LunaticJsonRawDataPersistanceStub();
     MetadataService metadataService = new MetadataService();
     SurveyUnitPersistencePortStub surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
+    DataProcessingContextPersistancePortStub contextStub = new DataProcessingContextPersistancePortStub();
     Config config = new ConfigStub();
     FileUtils fileUtils = new FileUtils(config);
     SurveyUnitService surveyUnitService = new SurveyUnitService(surveyUnitPersistencePortStub, metadataService, fileUtils);
@@ -83,7 +84,9 @@ public class RawDataDefinitions {
                             dataProcessingContextPersistancePortStub,
                             surveyUnitPersistencePortStub),
                     surveyUnitQualityToolPerretAdapterStub,
-                    config);
+                    config,
+                    dataProcessingContextPersistancePortStub);
+
     RawResponseController rawResponseController = new RawResponseController(
             lunaticJsonRawDataService
     );

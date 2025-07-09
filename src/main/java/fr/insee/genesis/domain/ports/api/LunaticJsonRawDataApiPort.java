@@ -9,7 +9,9 @@ import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public interface LunaticJsonRawDataApiPort {
@@ -21,6 +23,6 @@ public interface LunaticJsonRawDataApiPort {
     void updateProcessDates(List<SurveyUnitModel> surveyUnitModels);
     Set<String> findDistinctQuestionnaireIds();
     long countResponsesByQuestionnaireId(String campaignId);
-
     DataProcessResult processRawData(String campaignName, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException;
+    Map<String, List<String>> findProcessedIdsgroupedByQuestionnaireSince(LocalDateTime since);
 }
