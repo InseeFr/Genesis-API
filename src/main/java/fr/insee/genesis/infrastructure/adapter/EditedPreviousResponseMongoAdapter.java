@@ -5,7 +5,6 @@ import fr.insee.genesis.domain.ports.spi.EditedPreviousResponsePersistancePort;
 import fr.insee.genesis.infrastructure.document.editedprevious.EditedPreviousResponseDocument;
 import fr.insee.genesis.infrastructure.mappers.EditedPreviousResponseDocumentMapper;
 import fr.insee.genesis.infrastructure.repository.EditedPreviousResponseMongoDBRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
@@ -19,11 +18,9 @@ import java.util.List;
 @Service
 @Qualifier("editedPreviousResponseMongoAdapter")
 public class EditedPreviousResponseMongoAdapter implements EditedPreviousResponsePersistancePort {
-
     private final MongoTemplate mongoTemplate;
     private final EditedPreviousResponseMongoDBRepository repository;
 
-    @Autowired
     public EditedPreviousResponseMongoAdapter(EditedPreviousResponseMongoDBRepository repository, MongoTemplate mongoTemplate) {
         this.repository = repository;
         this.mongoTemplate = mongoTemplate;

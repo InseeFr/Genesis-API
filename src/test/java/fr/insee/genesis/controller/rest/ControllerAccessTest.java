@@ -1,9 +1,11 @@
 package fr.insee.genesis.controller.rest;
 
 import fr.insee.genesis.domain.ports.api.DataProcessingContextApiPort;
+import fr.insee.genesis.domain.ports.api.EditedPreviousResponseApiPort;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.infrastructure.repository.DataProcessingContextMongoDBRepository;
+import fr.insee.genesis.infrastructure.repository.EditedPreviousResponseMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.LunaticJsonMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.LunaticModelMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.RundeckExecutionDBRepository;
@@ -77,6 +79,8 @@ class ControllerAccessTest {
     private VariableTypeMongoDBRepository variableTypeMongoDBRepository;
     @MockitoBean
     private LunaticModelMongoDBRepository lunaticModelMongoDBRepository;
+    @MockitoBean
+    private EditedPreviousResponseMongoDBRepository editedPreviousResponseMongoDBRepository;
 
     // Constants for user roles
     private static final String USER_KRAFTWERK = "USER_KRAFTWERK";
