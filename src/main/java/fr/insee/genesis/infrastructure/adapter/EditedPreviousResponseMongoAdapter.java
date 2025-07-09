@@ -51,6 +51,7 @@ public class EditedPreviousResponseMongoAdapter implements EditedPreviousRespons
 
     @Override
     public void restoreBackup(String questionnaireId) {
+        delete(questionnaireId);
         MergeOperation merge = Aggregation
                 .merge()
                 .intoCollection("editedPreviousResponses")

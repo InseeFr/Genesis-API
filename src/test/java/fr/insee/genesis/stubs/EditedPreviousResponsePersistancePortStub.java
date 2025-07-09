@@ -37,6 +37,7 @@ public class EditedPreviousResponsePersistancePortStub implements EditedPrevious
     @Override
     public void restoreBackup(String questionnaireId) {
         if(mongoStub.containsKey(questionnaireId + "_backup")) {
+            delete(questionnaireId);
             mongoStub.put(questionnaireId, new ArrayList<>(mongoStub.get(questionnaireId + "_backup")));
         }
     }
