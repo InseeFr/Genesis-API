@@ -138,7 +138,7 @@ public class EditedPreviousResponseJsonService implements EditedPreviousResponse
                 return jsonParser.getIntValue();
             }
             case VALUE_NUMBER_FLOAT -> {
-                return jsonParser.getFloatValue();
+                return jsonParser.getDoubleValue();
             }
             case VALUE_TRUE, VALUE_FALSE -> {
                 return jsonParser.getBooleanValue();

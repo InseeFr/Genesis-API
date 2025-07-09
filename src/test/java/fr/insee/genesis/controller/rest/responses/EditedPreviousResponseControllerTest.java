@@ -116,7 +116,7 @@ class EditedPreviousResponseControllerTest {
         Assertions.assertThat(filter.getFirst().getVariables()).hasSize(14);
         assertVariable(filter.getFirst(), "TEXTECOURT", "test previous");
         assertVariable(filter.getFirst(), "TEXTELONG", "");
-        assertVariable(filter.getFirst(), "FLOAT", 12.2f);
+        assertVariable(filter.getFirst(), "FLOAT", 12.2d);
         assertVariable(filter.getFirst(), "BOOLEEN", false);
         assertVariable(filter.getFirst(), "DROPDOWN", "");
         assertVariable(filter.getFirst(), "QCM_B1", false);
@@ -165,7 +165,7 @@ class EditedPreviousResponseControllerTest {
         Assertions.assertThat(filter.getFirst().getVariables()).hasSize(15);
         assertVariable(filter.getFirst(), "TEXTECOURT", "");
         assertVariable(filter.getFirst(), "TEXTELONG", "test d'une donnée antérieure sur un texte long pour voir comment ça marche");
-        assertVariable(filter.getFirst(), "FLOAT", 50.25f);
+        assertVariable(filter.getFirst(), "FLOAT", 50.25d);
         assertVariableNull(filter.getFirst(), "INTEGER");
         assertVariable(filter.getFirst(), "BOOLEEN", true);
         assertVariable(filter.getFirst(), "DROPDOWN", "03");
@@ -192,7 +192,7 @@ class EditedPreviousResponseControllerTest {
         Assertions.assertThat(filter.getFirst().getVariables()).hasSize(14);
         assertVariable(filter.getFirst(), "TEXTECOURT", "test previous");
         assertVariable(filter.getFirst(), "TEXTELONG", "");
-        assertVariable(filter.getFirst(), "FLOAT", 12.2f);
+        assertVariable(filter.getFirst(), "FLOAT", 12.2d);
         assertVariable(filter.getFirst(), "BOOLEEN", false);
         assertVariable(filter.getFirst(), "DROPDOWN", "");
         assertVariable(filter.getFirst(), "QCM_B1", false);
@@ -321,9 +321,9 @@ class EditedPreviousResponseControllerTest {
 
     private static void assertVariable(EditedPreviousResponseDocument document,
                                        String variableName,
-                                       float expectedValue
+                                       double expectedValue
     ) {
-        Assertions.assertThat(document.getVariables().get(variableName)).isNotNull().isInstanceOf(Float.class).isEqualTo(expectedValue);
+        Assertions.assertThat(document.getVariables().get(variableName)).isNotNull().isInstanceOf(Double.class).isEqualTo(expectedValue);
     }
 
     private static void assertVariable(EditedPreviousResponseDocument document,
