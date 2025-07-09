@@ -31,7 +31,6 @@ import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.exceptions.NoDataException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
-import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -241,30 +240,6 @@ public class ResponseController implements CommonApiResponse {
         SurveyUnitDto response = surveyUnitService.findLatestValuesByStateByIdAndByQuestionnaireId(interrogationId, questionnaireId);
         SurveyUnitQualityToolDto responseQualityToolDto = DataTransformer.transformSurveyUnitDto(response);
         return ResponseEntity.ok(responseQualityToolDto);
-    }
-
-    @Hidden
-    @Operation(summary = "Retrieve all responses (for all interrogations) of one questionnaire")
-    @GetMapping(path = "/by-questionnaire")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Path> findAllResponsesByQuestionnaire(@RequestParam("questionnaireId") String questionnaireId) {
-        log.info("Try to find all responses of questionnaire : {}", questionnaireId);
-
-        //Get all interrogationIds/modes of the survey
-        List<SurveyUnitModel> interrogationIdsResponses = surveyUnitService.findInterrogationIdsAndModesByQuestionnaireId(questionnaireId);
-        log.info("Responses found : {}", interrogationIdsResponses.size());
-
-        String filepathString = String.format("OUT/%s/OUT_ALL_%s.json", questionnaireId, LocalDateTime.now().toString().replace(":", ""));
-        Path filepath = Path.of(fileUtils.getDataFolderSource(), filepathString);
-
-        try (Stream<SurveyUnitModel> responsesStream = surveyUnitService.findByQuestionnaireId(questionnaireId)) {
-            fileUtils.writeSuUpdatesInFile(filepath, responsesStream);
-        } catch (IOException e) {
-            log.error("Error while writing file", e);
-            return ResponseEntity.internalServerError().body(filepath);
-        }
-        log.info("End of extraction, responses extracted: {}", interrogationIdsResponses.size());
-        return ResponseEntity.ok(filepath);
     }
 
     @Operation(summary = "Retrieve responses for an interrogation, using interrogationId and questionnaireId from Genesis Database. It returns only the latest value of each variable regardless of the state.")
