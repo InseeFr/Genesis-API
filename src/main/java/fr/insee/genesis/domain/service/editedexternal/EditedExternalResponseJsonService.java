@@ -44,6 +44,9 @@ public class EditedExternalResponseJsonService implements EditedExternalResponse
             boolean isTokenFound = false;
             while (!isTokenFound){
                 jsonParser.nextToken();
+                if(jsonParser.currentToken() == null){
+                    throw new GenesisException(400, "editedExternal object not found in JSON");
+                }
                 if(jsonParser.currentToken().equals(JsonToken.FIELD_NAME) && jsonParser.currentName() != null){
                     if (jsonParser.currentName().equals("editedExternal")) {
                         isTokenFound = true;

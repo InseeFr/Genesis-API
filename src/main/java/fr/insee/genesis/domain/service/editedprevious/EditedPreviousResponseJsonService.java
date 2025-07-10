@@ -49,6 +49,9 @@ public class EditedPreviousResponseJsonService implements EditedPreviousResponse
             boolean isTokenFound = false;
             while (!isTokenFound){
                 jsonParser.nextToken();
+                if(jsonParser.currentToken() == null){
+                    throw new GenesisException(400, "editedPrevious object not found in JSON");
+                }
                 if(jsonParser.currentToken().equals(JsonToken.FIELD_NAME) && jsonParser.currentName() != null){
                     if (jsonParser.currentName().equals("editedPrevious")) {
                         isTokenFound = true;
