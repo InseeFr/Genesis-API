@@ -1,12 +1,12 @@
-package fr.insee.genesis.domain.service.editedprevious;
+package fr.insee.genesis.domain.service.editedexternal;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
-import fr.insee.genesis.domain.model.editedprevious.EditedPreviousResponseModel;
-import fr.insee.genesis.domain.ports.api.EditedPreviousResponseApiPort;
-import fr.insee.genesis.domain.ports.spi.EditedPreviousResponsePersistancePort;
+import fr.insee.genesis.domain.model.editedexternal.EditedExternalResponseModel;
+import fr.insee.genesis.domain.ports.api.EditedExternalResponseApiPort;
+import fr.insee.genesis.domain.ports.spi.EditedExternalResponsePersistancePort;
 import fr.insee.genesis.domain.utils.JsonUtils;
 import fr.insee.genesis.exceptions.GenesisException;
 import lombok.extern.slf4j.Slf4j;
@@ -23,34 +23,29 @@ import java.util.Set;
 
 @Service
 @Slf4j
-public class EditedPreviousResponseJsonService implements EditedPreviousResponseApiPort {
-    private final EditedPreviousResponsePersistancePort editedPreviousResponsePersistancePort;
+public class EditedExternalResponseJsonService implements EditedExternalResponseApiPort {
+    private final EditedExternalResponsePersistancePort editedExternalResponsePersistancePort;
 
     private static final int BLOCK_SIZE = 1000;
 
     @Autowired
-    public EditedPreviousResponseJsonService(EditedPreviousResponsePersistancePort editedPreviousResponsePersistancePort) {
-        this.editedPreviousResponsePersistancePort = editedPreviousResponsePersistancePort;
+    public EditedExternalResponseJsonService(EditedExternalResponsePersistancePort editedExternalResponsePersistancePort) {
+        this.editedExternalResponsePersistancePort = editedExternalResponsePersistancePort;
     }
 
     @Override
-    public void readEditedPreviousFile(InputStream inputStream,
-                                       String questionnaireId,
-                                       String sourceState) throws GenesisException {
-        if(sourceState != null && sourceState.length() > 15){
-            throw new GenesisException(400, "Source state is too long (>15 characters)");
-        }
-
+    public void readEditedExternalFile(InputStream inputStream,
+                                       String questionnaireId) throws GenesisException {
         JsonFactory jsonFactory = new JsonFactory();
-        editedPreviousResponsePersistancePort.backup(questionnaireId);
-        editedPreviousResponsePersistancePort.delete(questionnaireId);
+        editedExternalResponsePersistancePort.backup(questionnaireId);
+        editedExternalResponsePersistancePort.delete(questionnaireId);
         try(JsonParser jsonParser = jsonFactory.createParser(inputStream)){
-            List<EditedPreviousResponseModel> toSave = new ArrayList<>();
+            List<EditedExternalResponseModel> toSave = new ArrayList<>();
             boolean isTokenFound = false;
             while (!isTokenFound){
                 jsonParser.nextToken();
                 if(jsonParser.currentToken().equals(JsonToken.FIELD_NAME) && jsonParser.currentName() != null){
-                    if (jsonParser.currentName().equals("editedPrevious")) {
+                    if (jsonParser.currentName().equals("editedExternal")) {
                         isTokenFound = true;
                     }
                 }
@@ -60,73 +55,70 @@ public class EditedPreviousResponseJsonService implements EditedPreviousResponse
             jsonParser.nextToken(); //skip field name
             jsonParser.nextToken(); //skip [
             while (jsonParser.currentToken() != JsonToken.END_ARRAY) {
-                EditedPreviousResponseModel editedPreviousResponseModel = readNextEditedPrevious(
+                EditedExternalResponseModel editedExternalResponseModel = readNextEditedExternal(
                         jsonParser,
-                        questionnaireId,
-                        sourceState
+                        questionnaireId
                 );
 
-                if(editedPreviousResponseModel.getInterrogationId() == null){
+                if(editedExternalResponseModel.getInterrogationId() == null){
                     throw new GenesisException(400,
                             "Missing interrogationId on the object that ends on line %d"
                             .formatted(jsonParser.currentLocation().getLineNr())
                     );
                 }
-                if(savedInterrogationIds.contains(editedPreviousResponseModel.getInterrogationId())){
+                if(savedInterrogationIds.contains(editedExternalResponseModel.getInterrogationId())){
                     throw new GenesisException(400,
-                            "Double interrogationId : %s".formatted(editedPreviousResponseModel.getInterrogationId()));
+                            "Double interrogationId : %s".formatted(editedExternalResponseModel.getInterrogationId()));
                 }
 
-                toSave.add(editedPreviousResponseModel);
-                savedInterrogationIds.add(editedPreviousResponseModel.getInterrogationId());
+                toSave.add(editedExternalResponseModel);
+                savedInterrogationIds.add(editedExternalResponseModel.getInterrogationId());
 
                 if(toSave.size() >= BLOCK_SIZE){
-                    editedPreviousResponsePersistancePort.saveAll(toSave);
+                    editedExternalResponsePersistancePort.saveAll(toSave);
                     savedCount += toSave.size();
                     toSave.clear();
                 }
                 jsonParser.nextToken(); //skip }
             }
-            editedPreviousResponsePersistancePort.saveAll(toSave);
+            editedExternalResponsePersistancePort.saveAll(toSave);
             savedCount += toSave.size();
-            log.info("Reached end of edited previous file, saved %d interrogations".formatted(savedCount));
-            editedPreviousResponsePersistancePort.deleteBackup(questionnaireId);
+            log.info("Reached end of edited external file, saved %d interrogations".formatted(savedCount));
+            editedExternalResponsePersistancePort.deleteBackup(questionnaireId);
         }catch (JsonParseException jpe){
-            editedPreviousResponsePersistancePort.restoreBackup(questionnaireId);
+            editedExternalResponsePersistancePort.restoreBackup(questionnaireId);
             throw new GenesisException(400, "JSON Parsing exception : %s".formatted(jpe.toString()));
         }catch (IOException ioe){
-            editedPreviousResponsePersistancePort.restoreBackup(questionnaireId);
+            editedExternalResponsePersistancePort.restoreBackup(questionnaireId);
             throw new GenesisException(500, ioe.toString());
         }
     }
 
-    private EditedPreviousResponseModel readNextEditedPrevious(JsonParser jsonParser,
-                                                               String questionnaireId,
-                                                               String sourceState
+    private EditedExternalResponseModel readNextEditedExternal(JsonParser jsonParser,
+                                                               String questionnaireId
                                                                ) throws IOException {
         if(jsonParser.currentToken() != JsonToken.START_OBJECT){
             throw new JsonParseException("Expected { on line %d, got token %s".formatted(jsonParser.currentLocation().getLineNr(), jsonParser.currentToken()));
         }
-        EditedPreviousResponseModel editedPreviousResponseModel = EditedPreviousResponseModel.builder()
+        EditedExternalResponseModel editedExternalResponseModel = EditedExternalResponseModel.builder()
                 .questionnaireId(questionnaireId)
-                .sourceState(sourceState)
                 .variables(new HashMap<>())
                 .build();
         jsonParser.nextToken(); // read {
         while (!jsonParser.currentToken().equals(JsonToken.END_OBJECT)){
             if(jsonParser.currentToken().equals(JsonToken.FIELD_NAME) && jsonParser.currentName().equals("interrogationId")){
                 jsonParser.nextToken();
-                editedPreviousResponseModel.setInterrogationId(jsonParser.getText());
+                editedExternalResponseModel.setInterrogationId(jsonParser.getText());
                 jsonParser.nextToken();
                 continue;
             }
             jsonParser.nextToken();
-            editedPreviousResponseModel.getVariables().put(
+            editedExternalResponseModel.getVariables().put(
                     jsonParser.currentName(),
                     JsonUtils.readValue(jsonParser)
             );
             jsonParser.nextToken();
         }
-        return editedPreviousResponseModel;
+        return editedExternalResponseModel;
     }
 }
