@@ -7,6 +7,7 @@ import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
+import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.service.context.DataProcessingContextService;
 import fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService;
@@ -23,9 +24,12 @@ import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import fr.insee.genesis.stubs.SurveyUnitQualityToolPerretAdapterStub;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -136,7 +140,7 @@ class RawResponseControllerTest {
         String interrogationId = "testinterrogationId1";
         String varName = "AVIS_MAIL";
         String varValue = "TEST";
-        addJsonRawDataDocumentToStub(campaignId, questionnaireId, interrogationId, null, varName, varValue);
+        addJsonRawDataDocumentToStub(campaignId, questionnaireId, interrogationId, null, LocalDateTime.now(),varName, varValue);
 
         dataProcessingContextPersistancePortStub.getMongoStub().add(
                 DataProcessingContextMapper.INSTANCE.modelToDocument(
@@ -183,6 +187,33 @@ class RawResponseControllerTest {
     }
 
 
+    @Test
+    void getRawResponsesFromJsonBody() {
+        //GIVEN
+        String campaignId = "getRawResponsesFromJsonBody";
+        String questionnaireId = campaignId + "_quest";
+        String interrogationId = "getRawResponsesFromJsonBody_id1";
+        String varName = "VARName1";
+        String varValue = "TEST";
+        Instant recordDate = Instant.parse("2025-01-01T01:00:00.000Z");
+        Instant processDate = Instant.parse("2025-01-02T01:00:00.000Z");
+
+        addJsonRawDataDocumentToStub(campaignId, questionnaireId, interrogationId,
+                LocalDateTime.ofInstant(processDate, ZoneOffset.UTC),
+                LocalDateTime.ofInstant(recordDate, ZoneOffset.UTC),
+                varName, varValue);
+
+        Instant starDate= recordDate.minusSeconds(86400),endDate = recordDate.plusSeconds(86400);
+        int page=0, size= 10;
+
+        //WHEN
+        ResponseEntity<PagedModel<LunaticJsonRawDataModel>> response = rawResponseController.getRawResponsesFromJsonBody(campaignId, starDate, endDate, page, size);
+
+        //THEN
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        Assertions.assertThat(response.getBody().getContent().size()).isEqualTo(1);
+    }
+
     //Utils
     private void addJsonRawDataDocumentToStub(String campaignId, String questionnaireId, String interrogationId,
                                                      LocalDateTime processDate) {
@@ -199,8 +230,9 @@ class RawResponseControllerTest {
     }
 
     private void addJsonRawDataDocumentToStub(String campaignId, String questionnaireId, String interrogationId,
-                                                     LocalDateTime processDate,
-                                                     String variableName, String variableValue)  {
+                                                                    LocalDateTime processDate,
+                                                                    LocalDateTime recordDate,
+                                                                    String variableName, String variableValue)  {
 
         Map<String, Object> jsonMap = Map.of(
                 "COLLECTED", Map.of(variableName, Map.of("COLLECTED", variableValue)),
@@ -212,7 +244,7 @@ class RawResponseControllerTest {
                 .questionnaireId(questionnaireId)
                 .mode(Mode.WEB)
                 .interrogationId(interrogationId)
-                .recordDate(LocalDateTime.now())
+                .recordDate(recordDate)
                 .processDate(processDate)
                 .data(jsonMap)
                 .build();

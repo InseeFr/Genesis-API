@@ -6,8 +6,13 @@ import fr.insee.genesis.domain.ports.spi.LunaticJsonRawDataPersistencePort;
 import fr.insee.genesis.infrastructure.document.rawdata.LunaticJsonRawDataDocument;
 import fr.insee.genesis.infrastructure.mappers.LunaticJsonRawDataDocumentMapper;
 import lombok.Getter;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -76,6 +81,18 @@ public class LunaticJsonRawDataPersistanceStub implements LunaticJsonRawDataPers
             questionnaireIds.add(rawDataDoc.questionnaireId());
         }
         return questionnaireIds;
+    }
+
+    @Override
+    public Page<LunaticJsonRawDataModel> findByCampaignIdAndDate(String campaignId, Instant startDt, Instant endDt, Pageable pageable) {
+        List<LunaticJsonRawDataDocument> foundRaws = mongoStub.stream()
+                .filter(rawData -> rawData.campaignId().equals(campaignId))
+                .filter(rawData -> rawData.recordDate().isAfter(LocalDateTime.ofInstant(startDt,ZoneOffset.UTC)))
+                .filter(rawData -> rawData.recordDate().isBefore(LocalDateTime.ofInstant(endDt,ZoneOffset.UTC)))
+                .toList();
+        return new PageImpl<>(LunaticJsonRawDataDocumentMapper.INSTANCE.listDocumentToListModel(foundRaws),
+                pageable,
+                foundRaws.size());
     }
 
     @Override
