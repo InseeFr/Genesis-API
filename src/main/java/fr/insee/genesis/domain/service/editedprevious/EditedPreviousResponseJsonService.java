@@ -37,27 +37,14 @@ public class EditedPreviousResponseJsonService implements EditedPreviousResponse
     public void readEditedPreviousFile(InputStream inputStream,
                                        String questionnaireId,
                                        String sourceState) throws GenesisException {
-        if(sourceState != null && sourceState.length() > 15){
-            throw new GenesisException(400, "Source state is too long (>15 characters)");
-        }
+        checkSourceStateLength(sourceState);
+        moveCollectionToBackup(questionnaireId);
 
         JsonFactory jsonFactory = new JsonFactory();
-        editedPreviousResponsePersistancePort.backup(questionnaireId);
-        editedPreviousResponsePersistancePort.delete(questionnaireId);
         try(JsonParser jsonParser = jsonFactory.createParser(inputStream)){
             List<EditedPreviousResponseModel> toSave = new ArrayList<>();
             boolean isTokenFound = false;
-            while (!isTokenFound){
-                jsonParser.nextToken();
-                if(jsonParser.currentToken() == null){
-                    throw new GenesisException(400, "editedPrevious object not found in JSON");
-                }
-                if(jsonParser.currentToken().equals(JsonToken.FIELD_NAME) && jsonParser.currentName() != null){
-                    if (jsonParser.currentName().equals("editedPrevious")) {
-                        isTokenFound = true;
-                    }
-                }
-            }
+            goToEditedPreviousToken(isTokenFound, jsonParser);
             long savedCount = 0;
             Set<String> savedInterrogationIds = new HashSet<>();
             jsonParser.nextToken(); //skip field name
@@ -69,29 +56,17 @@ public class EditedPreviousResponseJsonService implements EditedPreviousResponse
                         sourceState
                 );
 
-                if(editedPreviousResponseModel.getInterrogationId() == null){
-                    throw new GenesisException(400,
-                            "Missing interrogationId on the object that ends on line %d"
-                            .formatted(jsonParser.currentLocation().getLineNr())
-                    );
-                }
-                if(savedInterrogationIds.contains(editedPreviousResponseModel.getInterrogationId())){
-                    throw new GenesisException(400,
-                            "Double interrogationId : %s".formatted(editedPreviousResponseModel.getInterrogationId()));
-                }
+                checkModel(editedPreviousResponseModel, jsonParser, savedInterrogationIds);
 
                 toSave.add(editedPreviousResponseModel);
                 savedInterrogationIds.add(editedPreviousResponseModel.getInterrogationId());
 
                 if(toSave.size() >= BLOCK_SIZE){
-                    editedPreviousResponsePersistancePort.saveAll(toSave);
-                    savedCount += toSave.size();
-                    toSave.clear();
+                    savedCount = saveBlock(toSave, savedCount);
                 }
                 jsonParser.nextToken(); //skip }
             }
-            editedPreviousResponsePersistancePort.saveAll(toSave);
-            savedCount += toSave.size();
+            savedCount = saveBlock(toSave, savedCount);
             log.info("Reached end of edited previous file, saved %d interrogations".formatted(savedCount));
             editedPreviousResponsePersistancePort.deleteBackup(questionnaireId);
         }catch (JsonParseException jpe){
@@ -100,6 +75,38 @@ public class EditedPreviousResponseJsonService implements EditedPreviousResponse
         }catch (IOException ioe){
             editedPreviousResponsePersistancePort.restoreBackup(questionnaireId);
             throw new GenesisException(500, ioe.toString());
+        }
+    }
+
+    private long saveBlock(List<EditedPreviousResponseModel> toSave, long savedCount) {
+        editedPreviousResponsePersistancePort.saveAll(toSave);
+        savedCount += toSave.size();
+        toSave.clear();
+        return savedCount;
+    }
+
+    private void moveCollectionToBackup(String questionnaireId) {
+        editedPreviousResponsePersistancePort.backup(questionnaireId);
+        editedPreviousResponsePersistancePort.delete(questionnaireId);
+    }
+
+    private static void checkSourceStateLength(String sourceState) throws GenesisException {
+        if(sourceState != null && sourceState.length() > 15){
+            throw new GenesisException(400, "Source state is too long (>15 characters)");
+        }
+    }
+
+    private static void goToEditedPreviousToken(boolean isTokenFound, JsonParser jsonParser) throws IOException {
+        while (!isTokenFound){
+            jsonParser.nextToken();
+            if(jsonParser.currentToken() == null){
+                throw new GenesisException(400, "editedPrevious object not found in JSON");
+            }
+            if(jsonParser.currentToken().equals(JsonToken.FIELD_NAME) && jsonParser.currentName() != null){
+                if (jsonParser.currentName().equals("editedPrevious")) {
+                    isTokenFound = true;
+                }
+            }
         }
     }
 
@@ -131,5 +138,54 @@ public class EditedPreviousResponseJsonService implements EditedPreviousResponse
             jsonParser.nextToken();
         }
         return editedPreviousResponseModel;
+    }
+
+    private Object readValue(JsonParser jsonParser) throws IOException{
+        switch (jsonParser.currentToken()){
+            case VALUE_STRING -> {
+                return jsonParser.getText();
+            }
+            case VALUE_NUMBER_INT -> {
+                return jsonParser.getIntValue();
+            }
+            case VALUE_NUMBER_FLOAT -> {
+                return jsonParser.getDoubleValue();
+            }
+            case VALUE_TRUE, VALUE_FALSE -> {
+                return jsonParser.getBooleanValue();
+            }
+            case VALUE_NULL -> {
+                return null;
+            }
+            case START_ARRAY -> {
+                return readArray(jsonParser);
+            }
+            case null, default -> throw new JsonParseException("Unexpected token %s on line %d".formatted(
+                    jsonParser.currentToken(), jsonParser.currentLocation().getLineNr())
+            );
+        }
+    }
+
+    private List<Object> readArray(JsonParser jsonParser) throws IOException {
+        List<Object> list = new ArrayList<>();
+        jsonParser.nextToken(); //Read [
+        while(!jsonParser.currentToken().equals(JsonToken.END_ARRAY)){
+            list.add(readValue(jsonParser));
+            jsonParser.nextToken();
+        }
+        return list;
+    }
+
+    private static void checkModel(EditedPreviousResponseModel editedPreviousResponseModel, JsonParser jsonParser, Set<String> savedInterrogationIds) throws GenesisException {
+        if(editedPreviousResponseModel.getInterrogationId() == null){
+            throw new GenesisException(400,
+                    "Missing interrogationId on the object that ends on line %d"
+                            .formatted(jsonParser.currentLocation().getLineNr())
+            );
+        }
+        if(savedInterrogationIds.contains(editedPreviousResponseModel.getInterrogationId())){
+            throw new GenesisException(400,
+                    "Double interrogationId : %s".formatted(editedPreviousResponseModel.getInterrogationId()));
+        }
     }
 }
