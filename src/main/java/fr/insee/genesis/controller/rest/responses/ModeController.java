@@ -23,7 +23,6 @@ public class ModeController implements CommonApiResponse {
 
     public ModeController(SurveyUnitApiPort surveyUnitService) {
         this.surveyUnitService = surveyUnitService;
-
     }
 
 

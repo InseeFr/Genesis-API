@@ -1,0 +1,38 @@
+{
+  "editedPrevious": [
+    {
+      "interrogationId": "AUTO104",
+	  "TEXTECOURT" : "",
+      "TEXTELONG": "test d'une donnée antérieure sur un texte long pour voir comment ça marche",
+      "FLOAT": 50.25,
+	  "INTEGER" : null,
+      "BOOLEEN": true,
+	  "DROPDOWN" : "03", 
+	  "QCM_B1": true, 
+	  "QCM_B2" : false,
+	  "QCM_B4" : true,
+	  "TABLEAU2A11" : 200, 
+	  "TABLEAU2A12" : 150,
+	  "TABLEAU2A23" : 1000, 
+	  "TABLEAU2A24" : null,
+	  "TABOFATS1" : ["AA", "", "BB", "CC"], 
+	  "TABOFATS3" : [5,null,3]	  
+    },
+   {
+	  "TEXTECOURT" : "test previous",
+      "TEXTELONG": "",
+      "FLOAT": 12.2,
+      "BOOLEEN": false,
+	  "DROPDOWN" : "", 
+	  "QCM_B1": false, 
+	  "QCM_B2" : false,
+	  "QCM_B5" : true,
+	  "TABLEAU2A11" : 1, 
+	  "TABLEAU2A12" : 2,
+	  "TABLEAU2A23" : 3, 
+	  "TABLEAU2A24" : 4,
+	  "TABOFATS1" : ["BB", "BB"], 
+	  "TABOFATS3" : [10,4,0]	  
+    }
+  ]
+}
