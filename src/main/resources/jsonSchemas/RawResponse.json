@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://modele-filiere.developpement.insee.fr/specs/1.0.0/RawResponse.json",
+  "type": "object",
+  "title": "RawResponse",
+  "description": "Represents a raw response associated with the questionnaire",
+  "additionalProperties": false,
+  "properties": {
+    "interrogationId": {
+      "description": "Unique identifier for the interrogation",
+      "type": "string",
+      "format": "uuid"
+    },
+    "questionnaireModelId": {
+      "description": "Unique id for the questionnaire model (model instrument)",
+      "type": "string"
+    },
+    "partitionId": {
+      "description": "Unique identifier for the interrogation",
+      "type": "string",
+      "format": "uuid"
+    },
+    "surveyUnitId": {
+      "description": "Unique id for the survey unit",
+      "type": "string",
+      "format": "uuid"
+    },
+    "contextualId": {
+      "description": "Contextual id used by external system",
+      "type": "string"
+    },
+    "mode": {
+      "description": "Collection mode associated with the questionnaire",
+      "enum": [
+        "CATI",
+        "CAPI",
+        "CAWI",
+        "PAPI"
+      ],
+      "type": "string"
+    },
+    "isCapturedIndirectly": {
+      "description": "Indicates if questionnaire is captured indirectly",
+      "type": "boolean"
+    },
+    "validationDate": {
+      "description": "Indicates the validation date of the questionnaire (null if partial)",
+      "type": "string",
+      "format": "date-time"
+    },
+    "data": {
+      "description": "Data associated with the questionnaire (lunatic format)",
+      "type": "object"
+    }
+  }
+}

@@ -9,6 +9,7 @@ import fr.insee.genesis.controller.adapter.LunaticXmlAdapter;
 import fr.insee.genesis.controller.dto.SurveyUnitQualityToolDto;
 import fr.insee.genesis.controller.dto.VariableQualityToolDto;
 import fr.insee.genesis.controller.dto.VariableStateDto;
+import fr.insee.genesis.controller.rest.responses.ApiError;
 import fr.insee.genesis.controller.rest.responses.ResponseController;
 import fr.insee.genesis.controller.services.MetadataService;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlCampaign;
@@ -20,11 +21,15 @@ import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
+import fr.insee.genesis.domain.ports.api.DataProcessingContextApiPort;
+import fr.insee.genesis.domain.service.context.DataProcessingContextService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.infrastructure.document.context.DataProcessingContextDocument;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
+import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
@@ -58,17 +63,25 @@ public class MainDefinitions {
 
     SurveyUnitQualityService surveyUnitQualityService = new SurveyUnitQualityService();
     SurveyUnitPersistencePortStub surveyUnitPersistence = new SurveyUnitPersistencePortStub();
+    DataProcessingContextPersistancePortStub dataProcessingContextPersistancePortStub =
+            new DataProcessingContextPersistancePortStub();
+    DataProcessingContextApiPort dataProcessingContextApiPort = new DataProcessingContextService(
+            dataProcessingContextPersistancePortStub,
+            surveyUnitPersistence
+    );
+
     Config config = new ConfigStub();
     ResponseEntity<List<SurveyUnitModel>> surveyUnitModelResponse;
-    ResponseEntity<SurveyUnitQualityToolDto> surveyUnitLatestStatesResponse;
+    ResponseEntity<Object> surveyUnitLatestStatesResponse;
 
     ResponseController responseController = new ResponseController(
-            new SurveyUnitService(surveyUnitPersistence),
+            new SurveyUnitService(surveyUnitPersistence, new MetadataService(), new FileUtils(config)),
             surveyUnitQualityService,
             new FileUtils(config),
             new ControllerUtils(new FileUtils(config)),
             new AuthUtils(config),
-            new MetadataService()
+            new MetadataService(),
+            dataProcessingContextApiPort
         );
 
     List<SurveyUnitModel> surveyUnitModels;
@@ -101,6 +114,36 @@ public class MainDefinitions {
                 StandardCopyOption.REPLACE_EXISTING);
     }
 
+    @Given("We have a context in database for that data with review {string}")
+    public void create_context(String withReviewString) {
+        dataProcessingContextPersistancePortStub.getMongoStub().add(
+                new DataProcessingContextDocument(
+                        directory,
+                        new ArrayList<>(),
+                        Boolean.parseBoolean(withReviewString)
+                )
+        );
+    }
+
+    @Given("We have a context in database for partitionId {string} with review {string}")
+    public void create_context(String partitionId, String withReviewString) {
+        dataProcessingContextPersistancePortStub.getMongoStub().add(
+                new DataProcessingContextDocument(
+                        partitionId,
+                        new ArrayList<>(),
+                        Boolean.parseBoolean(withReviewString)
+                )
+        );
+    }
+
+    @Given("We have a survey unit with campaignId {string} and interrogationId {string}")
+    public void create_light_surveyUnit(String campaignId, String interrogationId) {
+        surveyUnitPersistence.getMongoStub().add(SurveyUnitModel.builder()
+                        .campaignId(campaignId)
+                        .interrogationId(interrogationId)
+                .build());
+    }
+
     //WHENs
 
     @When("We create survey unit models from file {string} with DDI {string}")
@@ -131,6 +174,16 @@ public class MainDefinitions {
         responseController.saveResponsesFromXmlCampaignFolder(this.inDirectory.getFileName().toString(), null);
     }
 
+    @When("We allow review for that partition")
+    public void set_review_to_true() {
+        String partitionId = this.inDirectory.getFileName().toString();
+        dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(
+                dataProcessingContextDocument -> dataProcessingContextDocument.getPartitionId().equals(partitionId)
+        ).toList().forEach(
+                dataProcessingContextDocument -> dataProcessingContextDocument.setWithReview(true)
+        );
+    }
+
     @When("We delete that directory")
     public void delete_directory() throws IOException {
         org.springframework.util.FileSystemUtils.deleteRecursively(inDirectory);
@@ -142,10 +195,14 @@ public class MainDefinitions {
     }
 
     @When("We extract survey unit latest states with questionnaireId {string} and interrogationId {string}")
-    public void extract_survey_unit_latest_states(String questionnaireId, String interrogationId) {
-        this.surveyUnitLatestStatesResponse =
-                responseController.findResponsesByInterrogationAndQuestionnaireLatestStates(interrogationId,
-                questionnaireId);
+    public void extract_survey_unit_latest_states(String questionnaireId, String interrogationId){
+        try {
+            this.surveyUnitLatestStatesResponse =
+                    responseController.findResponsesByInterrogationAndQuestionnaireLatestStates(interrogationId,
+                    questionnaireId);
+        } catch (GenesisException e) {
+            this.surveyUnitLatestStatesResponse = ResponseEntity.status(e.getStatus()).body(new ApiError(e.getMessage()));
+        }
     }
 
     //THENs
@@ -270,8 +327,12 @@ public class MainDefinitions {
     }
 
     @Then("If we get latest states for {string} in collected variable {string}, survey unit {string} we should have {string} for iteration {int}")
-    public void check_latest_state_collected(String questionnaireId, String variableName, String interrogationId, String expectedValue, int iteration) {
-        SurveyUnitQualityToolDto surveyUnitQualityToolDto = responseController.findResponsesByInterrogationAndQuestionnaireLatestStates(interrogationId, questionnaireId).getBody();
+    public void check_latest_state_collected(String questionnaireId, String variableName, String interrogationId, String expectedValue, int iteration) throws GenesisException {
+        ResponseEntity<Object> response =
+                responseController.findResponsesByInterrogationAndQuestionnaireLatestStates(interrogationId, questionnaireId);
+        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(200);
+
+        SurveyUnitQualityToolDto surveyUnitQualityToolDto = (SurveyUnitQualityToolDto) response.getBody();
 
         List<VariableQualityToolDto> variableQualityToolDtos = surveyUnitQualityToolDto.getCollectedVariables().stream().filter(
                 variableQualityToolDto -> variableQualityToolDto.getVariableName().equals(variableName)
@@ -290,8 +351,11 @@ public class MainDefinitions {
     }
 
     @Then("If we get latest states for {string} in external variable {string}, survey unit {string} we should have {string} for iteration {int}")
-    public void check_latest_state_external(String questionnaireId, String variableName, String interrogationId, String expectedValue, int iteration) {
-        SurveyUnitQualityToolDto surveyUnitQualityToolDto = responseController.findResponsesByInterrogationAndQuestionnaireLatestStates(interrogationId, questionnaireId).getBody();
+    public void check_latest_state_external(String questionnaireId, String variableName, String interrogationId, String expectedValue, int iteration) throws GenesisException {
+        ResponseEntity<Object> response =
+                responseController.findResponsesByInterrogationAndQuestionnaireLatestStates(interrogationId, questionnaireId);
+        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(200);
+        SurveyUnitQualityToolDto surveyUnitQualityToolDto = (SurveyUnitQualityToolDto) response.getBody();
 
         List<VariableQualityToolDto> variableQualityToolDtos = surveyUnitQualityToolDto.getExternalVariables().stream().filter(
                 variableQualityToolDto -> variableQualityToolDto.getVariableName().equals(variableName)
@@ -358,10 +422,12 @@ public class MainDefinitions {
             "{string}" +
             " with {int} collected variables")
     public void check_su_latest_states_collected_variables_volumetry(String interrogationId, int expectedVolumetry) {
-        Assertions.assertThat(surveyUnitLatestStatesResponse).isNotNull();
-        Assertions.assertThat(surveyUnitLatestStatesResponse.getBody()).isNotNull();
-        Assertions.assertThat(surveyUnitLatestStatesResponse.getBody().getInterrogationId()).isEqualTo(interrogationId);
-        Assertions.assertThat(surveyUnitLatestStatesResponse.getBody().getCollectedVariables()).hasSize(expectedVolumetry);
+        SurveyUnitQualityToolDto response = (SurveyUnitQualityToolDto) surveyUnitLatestStatesResponse.getBody();
+        Assertions.assertThat(response).isNotNull();
+        Assertions.assertThat(surveyUnitLatestStatesResponse.getStatusCode().value()).isEqualTo(200);
+
+        Assertions.assertThat(response.getInterrogationId()).isEqualTo(interrogationId);
+        Assertions.assertThat(response.getCollectedVariables()).hasSize(expectedVolumetry);
     }
 
     @Then("The extracted survey unit latest states response should have a survey unit DTO has interrogationId " +
@@ -370,8 +436,10 @@ public class MainDefinitions {
     public void check_su_latest_states_external_variables_volumetry(String interrogationId, int expectedVolumetry) {
         Assertions.assertThat(surveyUnitLatestStatesResponse).isNotNull();
         Assertions.assertThat(surveyUnitLatestStatesResponse.getBody()).isNotNull();
-        Assertions.assertThat(surveyUnitLatestStatesResponse.getBody().getInterrogationId()).isEqualTo(interrogationId);
-        Assertions.assertThat(surveyUnitLatestStatesResponse.getBody().getExternalVariables()).hasSize(expectedVolumetry);
+        SurveyUnitQualityToolDto surveyUnitQualityToolDto = (SurveyUnitQualityToolDto) surveyUnitLatestStatesResponse.getBody();
+
+        Assertions.assertThat(surveyUnitQualityToolDto.getInterrogationId()).isEqualTo(interrogationId);
+        Assertions.assertThat(surveyUnitQualityToolDto.getExternalVariables()).hasSize(expectedVolumetry);
     }
 
     @Then("We shouldn't have any response for campaign {string}")
@@ -387,7 +455,31 @@ public class MainDefinitions {
     public void check_log(String expectedLogContent) {
         Assertions.assertThat(outputStreamCaptor.toString()).contains(expectedLogContent);
     }
+    @Then("The response of get latest states should have {int} status code")
+    public void check_latest_status_status_code(int expectedStatusCode) {
+        Assertions.assertThat(surveyUnitLatestStatesResponse.getStatusCode().value()).isEqualTo(expectedStatusCode);
+    }
 
+    @Then("The extracted survey unit data latest states response dto should have a {string} collected variable named {string} with {string} as value for iteration {int}")
+    public void check_latest_states_variable_type(String variableType, String expectedVariableName, String expectedValue, int iteration){
+        Assertions.assertThat(surveyUnitLatestStatesResponse).isNotNull();
+        Assertions.assertThat(surveyUnitLatestStatesResponse.getBody()).isNotNull();
+        Assertions.assertThat(surveyUnitLatestStatesResponse.getStatusCode().value()).isEqualTo(200);
+
+        SurveyUnitQualityToolDto surveyUnitQualityToolDto = (SurveyUnitQualityToolDto) surveyUnitLatestStatesResponse.getBody();
+        List<VariableQualityToolDto> variableQualityToolDtos = surveyUnitQualityToolDto.getCollectedVariables().stream().filter(variable ->
+                variable.getVariableName().equals(expectedVariableName)
+                && variable.getIteration().equals(iteration)).toList();
+        Assertions.assertThat(variableQualityToolDtos).hasSize(1);
+
+        switch (variableType.toLowerCase()){
+            case "integer" -> Assertions.assertThat(variableQualityToolDtos.getFirst().getVariableStateDtoList().getFirst().getValue()).isInstanceOf(Integer.class).isEqualTo(Integer.parseInt(expectedValue));
+            case "float" -> Assertions.assertThat(variableQualityToolDtos.getFirst().getVariableStateDtoList().getFirst().getValue()).isInstanceOf(Float.class).isEqualTo(Float.parseFloat(expectedValue));
+            case "boolean" -> Assertions.assertThat(variableQualityToolDtos.getFirst().getVariableStateDtoList().getFirst().getValue()).isInstanceOf(Boolean.class).isEqualTo(Boolean.parseBoolean(expectedValue));
+            case "string" -> Assertions.assertThat(variableQualityToolDtos.getFirst().getVariableStateDtoList().getFirst().getValue()).isInstanceOf(String.class).isEqualTo(expectedValue);
+            default -> Assertions.fail("incorrect variable type %s".formatted(variableType));
+        }
+    }
     //AFTERs
     @After
     public void clean() throws IOException {

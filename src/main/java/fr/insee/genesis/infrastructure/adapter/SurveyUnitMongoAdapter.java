@@ -48,6 +48,18 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnits);
 	}
 
+
+	//========= OPTIMISATIONS PERFS (START) ==========
+	/**
+	 * @author Adrien Marchal
+	 */
+	@Override
+	public List<SurveyUnitModel> findBySetOfIdsAndQuestionnaireIdAndMode(String questionnaireId, String mode, List<String> interrogationIdSet) {
+		List<SurveyUnitDocument> surveyUnits = mongoRepository.findBySetOfIdsAndQuestionnaireIdAndMode(questionnaireId, mode, interrogationIdSet);
+		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnits);
+	}
+	//========= OPTIMISATIONS PERFS (END) ==========
+
 	@Override
 	public List<SurveyUnitModel> findByInterrogationId(String questionnaireId) {
 		List<SurveyUnitDocument> surveyUnits = mongoRepository.findByInterrogationId(questionnaireId);
@@ -89,7 +101,7 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 		//Extract questionnaireIds from JSON response
 		Set<String> questionnaireIds = new HashSet<>();
 		for(String line : mongoResponse){
-			ObjectMapper objectMapper = new ObjectMapper();
+			ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 			try{
 				JsonNode jsonNode = objectMapper.readTree(line);
 				questionnaireIds.add(jsonNode.get("questionnaireId").asText());
@@ -100,6 +112,31 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 
 		return questionnaireIds;
 	}
+
+	//========= OPTIMISATIONS PERFS (START) ==========
+	/**
+	 * @author Adrien Marchal
+	 */
+	@Override
+	public Set<String> findQuestionnaireIdsByCampaignIdV2(String campaignId){
+		Set<String> mongoResponse =
+				mongoRepository.findQuestionnaireIdsByCampaignIdV2(campaignId);
+
+		//Extract questionnaireIds from JSON response
+		Set<String> questionnaireIds = new HashSet<>();
+		for(String line : mongoResponse){
+			ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
+			try{
+				JsonNode jsonNode = objectMapper.readTree(line);
+				questionnaireIds.add(jsonNode.get("questionnaireId").asText());
+			}catch (JsonProcessingException e){
+				log.error(e.getMessage());
+			}
+		}
+
+		return questionnaireIds;
+	}
+	//========= OPTIMISATIONS PERFS (END) ==========
 
 	@Override
 	public Set<String> findDistinctCampaignIds() {
@@ -116,6 +153,32 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 		List<SurveyUnitDocument> surveyUnits = mongoRepository.findInterrogationIdsByQuestionnaireId(questionnaireId);
 		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnits);
 	}
+
+	//========== OPTIMISATIONS PERFS (START) ===========
+	@Override
+	public long countInterrogationIdsByQuestionnaireId(String questionnaireId) {
+		return mongoRepository.countInterrogationIdsByQuestionnaireId(questionnaireId);
+	}
+
+	@Override
+	public List<SurveyUnitModel> findPageableInterrogationIdsByQuestionnaireId(String questionnaireId, Long skip, Long limit) {
+		List<SurveyUnitDocument> surveyUnits = mongoRepository.findPageableInterrogationIdsByQuestionnaireId(questionnaireId, skip, limit);
+		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnits);
+	}
+
+	@Override
+	public List<SurveyUnitModel> findModesByCampaignIdV2(String campaignId) {
+		List<SurveyUnitDocument> surveyUnits = mongoRepository.findModesByCampaignIdV2(campaignId);
+		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnits);
+
+	}
+
+	@Override
+	public List<SurveyUnitModel> findModesByQuestionnaireIdV2(String questionnaireId) {
+		List<SurveyUnitDocument> surveyUnits = mongoRepository.findModesByQuestionnaireIdV2(questionnaireId);
+		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnits);
+	}
+	//========== OPTIMISATIONS PERFS (END) ============
 
 	@Override
 	public List<SurveyUnitModel> findInterrogationIdsByCampaignId(String campaignId) {
@@ -147,7 +210,7 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 		//Extract idCampagigns from JSON response
 		Set<String> campaignIds = new HashSet<>();
 		for(String line : mongoResponse){
-			ObjectMapper objectMapper = new ObjectMapper();
+			ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 			try{
 				JsonNode jsonNode = objectMapper.readTree(line);
 				campaignIds.add(jsonNode.get("campaignId").asText());

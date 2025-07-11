@@ -26,21 +26,46 @@ public interface SurveyUnitApiPort {
     Stream<SurveyUnitModel> findByQuestionnaireId(String questionnaireId);
 
     List<SurveyUnitModel> findLatestByIdAndByQuestionnaireId(String interrogationId, String questionnaireId);
+
+    //========= OPTIMISATIONS PERFS (START) ==========
+    List<List<SurveyUnitModel>> findLatestByIdAndByQuestionnaireIdAndModeOrdered(String questionnaireId, String mode, List<InterrogationId> interrogationIds);
+    //========= OPTIMISATIONS PERFS (END) ==========
+
     SurveyUnitDto findLatestValuesByStateByIdAndByQuestionnaireId(String interrogationId, String questionnaireId);
 
     List<SurveyUnitModel> findInterrogationIdsAndModesByQuestionnaireId(String questionnaireId);
 
     List<InterrogationId> findDistinctInterrogationIdsByQuestionnaireId(String questionnaireId);
 
+    //========= OPTIMISATIONS PERFS (START) ==========
+    long countInterrogationIdsByQuestionnaireId(String questionnaireId);
+
+    List<InterrogationId> findDistinctPageableInterrogationIdsByQuestionnaireId(String questionnaireId,
+                                                                                long totalSize, long blockSize, long page);
+
+    List<Mode> findModesByQuestionnaireIdV2(String questionnaireId);
+    //========= OPTIMISATIONS PERFS (END) ==========
+
     List<Mode> findModesByQuestionnaireId(String questionnaireId);
 
     List<Mode> findModesByCampaignId(String campaignId);
+
+    //========= OPTIMISATIONS PERFS (START) ==========
+    List<Mode> findModesByCampaignIdV2(String campaignId);
+    //========= OPTIMISATIONS PERFS (END) ==========
 
     Long deleteByQuestionnaireId(String questionnaireId);
 
     long countResponses();
 
     Set<String> findQuestionnaireIdsByCampaignId(String campaignId);
+
+    //========= OPTIMISATIONS PERFS (START) ==========
+    /**
+     * @author Adrien Marchal
+     */
+    Set<String> findQuestionnaireIdsByCampaignIdV2(String campaignId);
+    //========= OPTIMISATIONS PERFS (END) ==========
 
     Set<String> findDistinctCampaignIds();
 

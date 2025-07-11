@@ -12,6 +12,13 @@ public interface SurveyUnitPersistencePort {
 
     List<SurveyUnitModel> findByIds(String interrogationId, String questionnaireId);
 
+    //========= OPTIMISATIONS PERFS (START) ==========
+    /**
+     * @author Adrien Marchal
+     */
+    List<SurveyUnitModel> findBySetOfIdsAndQuestionnaireIdAndMode(String questionnaireId, String mode, List<String> interrogationIdSet);
+    //========= OPTIMISATIONS PERFS (START) ==========
+
     List<SurveyUnitModel> findByInterrogationId(String interrogationId);
 
     List<SurveyUnitModel> findByInterrogationIdsAndQuestionnaireId(List<SurveyUnitModel> interrogationIds, String questionnaireId);
@@ -20,6 +27,16 @@ public interface SurveyUnitPersistencePort {
 
     List<SurveyUnitModel> findInterrogationIdsByQuestionnaireId(String questionnaireId);
 
+    //======== OPTIMISATIONS PERFS (START) ========
+    long countInterrogationIdsByQuestionnaireId(String questionnaireId);
+
+    List<SurveyUnitModel> findPageableInterrogationIdsByQuestionnaireId(String questionnaireId, Long skip, Long limit);
+
+    List<SurveyUnitModel> findModesByCampaignIdV2(String campaignId);
+
+    List<SurveyUnitModel> findModesByQuestionnaireIdV2(String questionnaireId);
+    //======= OPTIMISATIONS PERFS (END) =========
+
     List<SurveyUnitModel> findInterrogationIdsByCampaignId(String campaignId);
 
     Long deleteByQuestionnaireId(String questionnaireId);
@@ -27,6 +44,13 @@ public interface SurveyUnitPersistencePort {
     long count();
 
     Set<String> findQuestionnaireIdsByCampaignId(String campaignId);
+
+    //========= OPTIMISATIONS PERFS (START) ==========
+    /**
+     * @author Adrien Marchal
+     */
+    Set<String> findQuestionnaireIdsByCampaignIdV2(String campaignId);
+    //========= OPTIMISATIONS PERFS (END) ==========
 
     Set<String> findDistinctCampaignIds();
 
