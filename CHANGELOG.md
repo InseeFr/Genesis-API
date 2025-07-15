@@ -1,4 +1,10 @@
 # Changelog
+## 1.6.1 [2025-07-15]
+### Added
+- Extract Raw responses for Generic endpoint
+- Get processed ids of last 24 hours
+### Updated
+- BPM 1.0.8
 
 ## 1.6.0 [2025-07-08]
 ### Added
