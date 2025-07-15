@@ -14,6 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.FileSystemUtils;
 
 import java.io.IOException;
@@ -189,9 +190,8 @@ class EditedExternalResponseControllerTest {
         );
 
         //WHEN + THEN
-        GenesisException genesisException = Assertions.catchThrowableOfType(GenesisException.class, ()->
-                editedExternalResponseController.readJson(QUESTIONNAIRE_ID, Mode.WEB, fileName));
-        Assertions.assertThat(genesisException.getStatus()).isEqualTo(400);
+        ResponseEntity<Object> response = editedExternalResponseController.readJson(QUESTIONNAIRE_ID, Mode.WEB, fileName);
+        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(400);
     }
 
     //UTILS

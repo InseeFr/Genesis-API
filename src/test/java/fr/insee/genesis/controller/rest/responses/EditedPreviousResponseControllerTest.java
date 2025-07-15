@@ -14,6 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.FileSystemUtils;
 
 import java.io.IOException;
@@ -56,7 +57,7 @@ class EditedPreviousResponseControllerTest {
         testOKCase(sourceState);
     }
 
-    private void testOKCase(String sourceState) throws GenesisException, IOException {
+    private void testOKCase(String sourceState) throws IOException {
         //GIVEN
         Files.createDirectories(SOURCE_PATH);
         Files.copy(
@@ -217,9 +218,19 @@ class EditedPreviousResponseControllerTest {
     @ValueSource(strings = {"ceci est une origine beaucoup trop longue"})
     @SneakyThrows
     void readJson_sourceState_too_long(String sourceState){
-        GenesisException genesisException = Assertions.catchThrowableOfType(GenesisException.class, ()->
-            testOKCase(sourceState));
-        Assertions.assertThat(genesisException.getStatus()).isEqualTo(400);
+        //GIVEN
+        String fileName = "ok.json";
+        Files.createDirectories(SOURCE_PATH);
+        Files.copy(
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("edited_previous").resolve(fileName),
+                SOURCE_PATH.resolve(fileName),
+                StandardCopyOption.REPLACE_EXISTING
+        );
+
+        //WHEN + THEN
+        ResponseEntity<Object> response = editedPreviousResponseController.readJson(QUESTIONNAIRE_ID, Mode.WEB, sourceState,
+                fileName);
+        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(400);
     }
 
     @Test
@@ -235,9 +246,8 @@ class EditedPreviousResponseControllerTest {
         );
 
         //WHEN + THEN
-        GenesisException genesisException = Assertions.catchThrowableOfType(GenesisException.class, ()->
-                editedPreviousResponseController.readJson(QUESTIONNAIRE_ID, Mode.WEB, null, syntaxErrorFileName));
-        Assertions.assertThat(genesisException.getStatus()).isEqualTo(400);
+        ResponseEntity<Object> response = editedPreviousResponseController.readJson(QUESTIONNAIRE_ID, Mode.WEB, null, syntaxErrorFileName);
+        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(400);
     }
     @Test
     @SneakyThrows
@@ -252,9 +262,8 @@ class EditedPreviousResponseControllerTest {
         );
 
         //WHEN + THEN
-        GenesisException genesisException = Assertions.catchThrowableOfType(GenesisException.class, ()->
-                editedPreviousResponseController.readJson(QUESTIONNAIRE_ID, Mode.WEB, null, syntaxErrorFileName));
-        Assertions.assertThat(genesisException.getStatus()).isEqualTo(400);
+        ResponseEntity<Object> response = editedPreviousResponseController.readJson(QUESTIONNAIRE_ID, Mode.WEB, null, syntaxErrorFileName);
+        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(400);
     }
 
     @Test
@@ -270,9 +279,8 @@ class EditedPreviousResponseControllerTest {
         );
 
         //WHEN + THEN
-        GenesisException genesisException = Assertions.catchThrowableOfType(GenesisException.class, ()->
-                editedPreviousResponseController.readJson(QUESTIONNAIRE_ID, Mode.WEB, null, fileName));
-        Assertions.assertThat(genesisException.getStatus()).isEqualTo(400);
+        ResponseEntity<Object> response = editedPreviousResponseController.readJson(QUESTIONNAIRE_ID, Mode.WEB, null, fileName);
+        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(400);
     }
     @Test
     @SneakyThrows
@@ -287,9 +295,8 @@ class EditedPreviousResponseControllerTest {
         );
 
         //WHEN + THEN
-        GenesisException genesisException = Assertions.catchThrowableOfType(GenesisException.class, ()->
-                editedPreviousResponseController.readJson(QUESTIONNAIRE_ID, Mode.WEB, null, fileName));
-        Assertions.assertThat(genesisException.getStatus()).isEqualTo(400);
+        ResponseEntity<Object> response = editedPreviousResponseController.readJson(QUESTIONNAIRE_ID, Mode.WEB, null, fileName);
+        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(400);
     }
 
     @Test
@@ -305,9 +312,8 @@ class EditedPreviousResponseControllerTest {
         );
 
         //WHEN + THEN
-        GenesisException genesisException = Assertions.catchThrowableOfType(GenesisException.class, ()->
-                editedPreviousResponseController.readJson(QUESTIONNAIRE_ID, Mode.WEB, null, fileName));
-        Assertions.assertThat(genesisException.getStatus()).isEqualTo(400);
+        ResponseEntity<Object> response = editedPreviousResponseController.readJson(QUESTIONNAIRE_ID, Mode.WEB, null, fileName);
+        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(400);
     }
 
     //UTILS

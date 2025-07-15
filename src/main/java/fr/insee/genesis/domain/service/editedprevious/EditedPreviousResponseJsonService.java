@@ -96,7 +96,7 @@ public class EditedPreviousResponseJsonService implements EditedPreviousResponse
         }
     }
 
-    private static void goToEditedPreviousToken(boolean isTokenFound, JsonParser jsonParser) throws IOException {
+    private static void goToEditedPreviousToken(boolean isTokenFound, JsonParser jsonParser) throws IOException, GenesisException {
         while (!isTokenFound){
             jsonParser.nextToken();
             if(jsonParser.currentToken() == null){
