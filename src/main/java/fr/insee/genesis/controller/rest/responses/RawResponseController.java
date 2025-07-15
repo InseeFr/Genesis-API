@@ -180,6 +180,17 @@ public class RawResponseController {
         }
     }
 
+    @Operation(summary = "Get processed data ids from last n hours (default 24h)")
+    @GetMapping(path = "/lunatic-json/processed/ids")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, List<String>>> getProcessedDataIdsSinceHours(
+            @RequestParam("questionnaireId") String questionnaireId,
+            @RequestParam(name = "sinceHours", defaultValue = "24") int hours
+    ) {
+        log.info("Retrieve ids of data processed in last {}h", hours);
+        Map<String, List<String>> result = lunaticJsonRawDataApiPort.findProcessedIdsgroupedByQuestionnaireSince(LocalDateTime.now().minusHours(hours).minusMinutes(10));
+        return ResponseEntity.ok(result);
+    }
     @Operation(summary = "Get lunatic JSON data from one campaign in Genesis Database, filtered by optional start and end dates")
     @GetMapping(path = "/lunatic-json/{campaignId}")
     @PreAuthorize("hasRole('USER_KRAFTWERK')")

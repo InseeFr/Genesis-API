@@ -49,8 +49,10 @@ class RawResponseControllerTest {
             fileUtils,
             new DataProcessingContextService(dataProcessingContextPersistancePortStub, surveyUnitPersistencePortStub),
             surveyUnitQualityToolPerretAdapterStub,
-            new ConfigStub()
+            new ConfigStub(),
+            new DataProcessingContextPersistancePortStub()
     );
+
     private final RawResponseController rawResponseController = new RawResponseController(lunaticJsonRawDataApiPort);
 
 
