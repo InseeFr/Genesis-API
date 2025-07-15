@@ -11,8 +11,10 @@ import fr.insee.genesis.exceptions.GenesisException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDateTime;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public interface LunaticJsonRawDataApiPort {
@@ -27,4 +29,5 @@ public interface LunaticJsonRawDataApiPort {
     Page<LunaticJsonRawDataModel> findRawDataByCampaignIdAndDate(String campaignId, Instant  startDt, Instant endDt, Pageable pageable);
 
     DataProcessResult processRawData(String campaignName, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException;
+    Map<String, List<String>> findProcessedIdsgroupedByQuestionnaireSince(LocalDateTime since);
 }

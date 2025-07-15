@@ -2,7 +2,7 @@ package fr.insee.genesis.domain.ports.api;
 
 import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.controller.dto.CampaignWithQuestionnaire;
-import fr.insee.genesis.controller.dto.InterrogationId;
+import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
 import fr.insee.genesis.controller.dto.QuestionnaireWithCampaign;
 import fr.insee.genesis.controller.dto.SurveyUnitDto;
 import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
