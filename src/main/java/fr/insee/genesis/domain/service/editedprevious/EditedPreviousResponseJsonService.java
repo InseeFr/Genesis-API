@@ -43,8 +43,7 @@ public class EditedPreviousResponseJsonService implements EditedPreviousResponse
         JsonFactory jsonFactory = new JsonFactory();
         try(JsonParser jsonParser = jsonFactory.createParser(inputStream)){
             List<EditedPreviousResponseModel> toSave = new ArrayList<>();
-            boolean isTokenFound = false;
-            goToEditedPreviousToken(isTokenFound, jsonParser);
+            goToEditedPreviousToken(jsonParser);
             long savedCount = 0;
             Set<String> savedInterrogationIds = new HashSet<>();
             jsonParser.nextToken(); //skip field name
@@ -96,7 +95,8 @@ public class EditedPreviousResponseJsonService implements EditedPreviousResponse
         }
     }
 
-    private static void goToEditedPreviousToken(boolean isTokenFound, JsonParser jsonParser) throws IOException, GenesisException {
+    private static void goToEditedPreviousToken(JsonParser jsonParser) throws IOException, GenesisException {
+        boolean isTokenFound = false;
         while (!isTokenFound){
             jsonParser.nextToken();
             if(jsonParser.currentToken() == null){

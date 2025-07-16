@@ -37,22 +37,10 @@ public class EditedExternalResponseJsonService implements EditedExternalResponse
     public void readEditedExternalFile(InputStream inputStream,
                                        String questionnaireId) throws GenesisException {
         JsonFactory jsonFactory = new JsonFactory();
-        editedExternalResponsePersistancePort.backup(questionnaireId);
-        editedExternalResponsePersistancePort.delete(questionnaireId);
+        moveCollectionToBackup(questionnaireId);
         try(JsonParser jsonParser = jsonFactory.createParser(inputStream)){
             List<EditedExternalResponseModel> toSave = new ArrayList<>();
-            boolean isTokenFound = false;
-            while (!isTokenFound){
-                jsonParser.nextToken();
-                if(jsonParser.currentToken() == null){
-                    throw new GenesisException(400, "editedExternal object not found in JSON");
-                }
-                if(jsonParser.currentToken().equals(JsonToken.FIELD_NAME) && jsonParser.currentName() != null){
-                    if (jsonParser.currentName().equals("editedExternal")) {
-                        isTokenFound = true;
-                    }
-                }
-            }
+            goToEditedExternalToken(jsonParser);
             long savedCount = 0;
             Set<String> savedInterrogationIds = new HashSet<>();
             jsonParser.nextToken(); //skip field name
@@ -63,24 +51,13 @@ public class EditedExternalResponseJsonService implements EditedExternalResponse
                         questionnaireId
                 );
 
-                if(editedExternalResponseModel.getInterrogationId() == null){
-                    throw new GenesisException(400,
-                            "Missing interrogationId on the object that ends on line %d"
-                            .formatted(jsonParser.currentLocation().getLineNr())
-                    );
-                }
-                if(savedInterrogationIds.contains(editedExternalResponseModel.getInterrogationId())){
-                    throw new GenesisException(400,
-                            "Double interrogationId : %s".formatted(editedExternalResponseModel.getInterrogationId()));
-                }
+                checkModel(editedExternalResponseModel, jsonParser, savedInterrogationIds);
 
                 toSave.add(editedExternalResponseModel);
                 savedInterrogationIds.add(editedExternalResponseModel.getInterrogationId());
 
                 if(toSave.size() >= BLOCK_SIZE){
-                    editedExternalResponsePersistancePort.saveAll(toSave);
-                    savedCount += toSave.size();
-                    toSave.clear();
+                    savedCount = saveBlock(toSave, savedCount);
                 }
                 jsonParser.nextToken(); //skip }
             }
@@ -94,6 +71,46 @@ public class EditedExternalResponseJsonService implements EditedExternalResponse
         }catch (IOException ioe){
             editedExternalResponsePersistancePort.restoreBackup(questionnaireId);
             throw new GenesisException(500, ioe.toString());
+        }
+    }
+
+    private static void goToEditedExternalToken(JsonParser jsonParser) throws IOException, GenesisException {
+        boolean isTokenFound = false;
+        while (!isTokenFound){
+            jsonParser.nextToken();
+            if(jsonParser.currentToken() == null){
+                throw new GenesisException(400, "editedExternal object not found in JSON");
+            }
+            if(jsonParser.currentToken().equals(JsonToken.FIELD_NAME) && jsonParser.currentName() != null){
+                if (jsonParser.currentName().equals("editedExternal")) {
+                    isTokenFound = true;
+                }
+            }
+        }
+    }
+
+    private void moveCollectionToBackup(String questionnaireId) {
+        editedExternalResponsePersistancePort.backup(questionnaireId);
+        editedExternalResponsePersistancePort.delete(questionnaireId);
+    }
+
+    private long saveBlock(List<EditedExternalResponseModel> toSave, long savedCount) {
+        editedExternalResponsePersistancePort.saveAll(toSave);
+        savedCount += toSave.size();
+        toSave.clear();
+        return savedCount;
+    }
+
+    private static void checkModel(EditedExternalResponseModel editedExternalResponseModel, JsonParser jsonParser, Set<String> savedInterrogationIds) throws GenesisException {
+        if(editedExternalResponseModel.getInterrogationId() == null){
+            throw new GenesisException(400,
+                    "Missing interrogationId on the object that ends on line %d"
+                            .formatted(jsonParser.currentLocation().getLineNr())
+            );
+        }
+        if(savedInterrogationIds.contains(editedExternalResponseModel.getInterrogationId())){
+            throw new GenesisException(400,
+                    "Double interrogationId : %s".formatted(editedExternalResponseModel.getInterrogationId()));
         }
     }
 
