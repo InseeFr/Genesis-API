@@ -7,6 +7,7 @@ import com.fasterxml.jackson.core.JsonToken;
 import fr.insee.genesis.domain.model.editedprevious.EditedPreviousResponseModel;
 import fr.insee.genesis.domain.ports.api.EditedPreviousResponseApiPort;
 import fr.insee.genesis.domain.ports.spi.EditedPreviousResponsePersistancePort;
+import fr.insee.genesis.domain.utils.JsonUtils;
 import fr.insee.genesis.exceptions.GenesisException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,8 +43,7 @@ public class EditedPreviousResponseJsonService implements EditedPreviousResponse
         JsonFactory jsonFactory = new JsonFactory();
         try(JsonParser jsonParser = jsonFactory.createParser(inputStream)){
             List<EditedPreviousResponseModel> toSave = new ArrayList<>();
-            boolean isTokenFound = false;
-            goToEditedPreviousToken(isTokenFound, jsonParser);
+            goToEditedPreviousToken(jsonParser);
             long savedCount = 0;
             Set<String> savedInterrogationIds = new HashSet<>();
             jsonParser.nextToken(); //skip field name
@@ -95,9 +95,13 @@ public class EditedPreviousResponseJsonService implements EditedPreviousResponse
         }
     }
 
-    private static void goToEditedPreviousToken(boolean isTokenFound, JsonParser jsonParser) throws IOException {
+    private static void goToEditedPreviousToken(JsonParser jsonParser) throws IOException, GenesisException {
+        boolean isTokenFound = false;
         while (!isTokenFound){
             jsonParser.nextToken();
+            if(jsonParser.currentToken() == null){
+                throw new GenesisException(400, "editedPrevious object not found in JSON");
+            }
             if(jsonParser.currentToken().equals(JsonToken.FIELD_NAME) && jsonParser.currentName() != null){
                 if (jsonParser.currentName().equals("editedPrevious")) {
                     isTokenFound = true;
@@ -129,7 +133,7 @@ public class EditedPreviousResponseJsonService implements EditedPreviousResponse
             jsonParser.nextToken();
             editedPreviousResponseModel.getVariables().put(
                     jsonParser.currentName(),
-                    readValue(jsonParser)
+                    JsonUtils.readValue(jsonParser)
             );
             jsonParser.nextToken();
         }

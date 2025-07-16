@@ -19,6 +19,7 @@ public class Constants {
     public static final String MONGODB_SCHEDULE_COLLECTION_NAME = "schedules";
     public static final String MONGODB_CONTEXT_COLLECTION_NAME = "dataProcessingContexts";
     public static final String MONGODB_EDITED_PREVIOUS_COLLECTION_NAME = "editedPrevious";
+    public static final String MONGODB_EDITED_EXTERNAL_COLLECTION_NAME = "editedExternal";
     public static final String LOOP_NAME_PREFIX = "BOUCLE";
     public static final String MONGODB_RESPONSE_COLLECTION_NAME = "responses";
     public static final String MONGODB_RESPONSE_RAW_COLLECTION_NAME = "lunaticjsondata";

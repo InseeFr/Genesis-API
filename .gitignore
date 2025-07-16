@@ -49,4 +49,5 @@ src/test/resources/OUT/*
 /src/test/resources/genesis_deleted_schedules/*
 /src/test/resources/IN/WEB/SAMPLETEST/
 /src/test/resources/IN/WEB/TEST-EDITED-PREVIOUS/
+/src/test/resources/IN/WEB/TEST-EDITED-EXTERNAL/
 /src/main/resources/application-mbg.properties

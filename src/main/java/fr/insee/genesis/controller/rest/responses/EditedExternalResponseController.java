@@ -2,7 +2,7 @@ package fr.insee.genesis.controller.rest.responses;
 
 import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
-import fr.insee.genesis.domain.ports.api.EditedPreviousResponseApiPort;
+import fr.insee.genesis.domain.ports.api.EditedExternalResponseApiPort;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,27 +22,26 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 
-@RequestMapping(path = "/edited-previous" )
+@RequestMapping(path = "/edited-external" )
 @Controller
 @Slf4j
-public class EditedPreviousResponseController {
-    private final EditedPreviousResponseApiPort editedPreviousResponseApiPort;
+public class EditedExternalResponseController {
+    private final EditedExternalResponseApiPort editedExternalResponseApiPort;
 
     private final Config config;
 
     @Autowired
-    public EditedPreviousResponseController(EditedPreviousResponseApiPort editedPreviousResponseApiPort, Config config) {
-        this.editedPreviousResponseApiPort = editedPreviousResponseApiPort;
+    public EditedExternalResponseController(EditedExternalResponseApiPort editedExternalResponseApiPort, Config config) {
+        this.editedExternalResponseApiPort = editedExternalResponseApiPort;
         this.config = config;
     }
 
-    @Operation(summary = "Add edited previous json file")
+    @Operation(summary = "Add edited external json file")
     @PostMapping(path = "/json")
     @PreAuthorize("hasRole('USER_KRAFTWERK')")
     public ResponseEntity<Object> readJson(
             @RequestParam("questionnaireId") String questionnaireId,
             @RequestParam("mode") Mode mode,
-            @RequestParam(value = "sourceState", required = false) String sourceState,
             @RequestParam(value = "jsonFileName") String jsonFileName
     ){
         try {
@@ -56,7 +55,7 @@ public class EditedPreviousResponseController {
                 throw new GenesisException(400, "File must be a JSON file !");
             }
             try (InputStream inputStream = new FileInputStream(filePath)) {
-                editedPreviousResponseApiPort.readEditedPreviousFile(inputStream, questionnaireId, sourceState);
+                editedExternalResponseApiPort.readEditedExternalFile(inputStream, questionnaireId);
             } catch (FileNotFoundException e) {
                 throw new GenesisException(404, "File %s not found".formatted(filePath));
             } catch (IOException e) {
@@ -67,7 +66,7 @@ public class EditedPreviousResponseController {
             } catch (IOException e) {
                 throw new GenesisException(500, "Error while moving file to done : %s".formatted(e.toString()));
             }
-            return ResponseEntity.ok("Edited previous variable file %s saved !".formatted(filePath));
+            return ResponseEntity.ok("Edited external variable file %s saved !".formatted(filePath));
         }catch (GenesisException ge){
             return ResponseEntity.status(HttpStatusCode.valueOf(ge.getStatus())).body(ge.getMessage());
         }
