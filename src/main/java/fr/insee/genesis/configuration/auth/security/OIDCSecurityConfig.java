@@ -25,7 +25,6 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
 import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerAuthenticationManagerResolver;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -59,22 +58,20 @@ public class OIDCSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http, JwtIssuerAuthenticationManagerResolver authenticationManagerResolver) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-        for (var pattern : whitelistMatchers) {
-            http.authorizeHttpRequests(authorize ->
-                    authorize
-                            .requestMatchers(AntPathRequestMatcher.antMatcher(pattern)).permitAll()
-            );
-        }
-        http
-                .authorizeHttpRequests(configure -> configure
+                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(authorize -> authorize
+                        // Whitelisted paths sans auth
+                        .requestMatchers(whitelistMatchers).permitAll()
+
+                        // Secured reader-access paths
                         .requestMatchers(HttpMethod.GET,"/questionnaires/**").hasRole(String.valueOf(ApplicationRole.READER))
                         .requestMatchers(HttpMethod.GET,"/modes/**").hasRole(String.valueOf(ApplicationRole.READER))
                         .requestMatchers(HttpMethod.GET,"/interrogations/**").hasRole(String.valueOf(ApplicationRole.READER))
                         .requestMatchers(HttpMethod.GET,"/campaigns/**").hasRole(String.valueOf(ApplicationRole.READER))
+
+                        //All others require authentication
                         .anyRequest().authenticated()
                 )
-             //   .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
                 .oauth2ResourceServer(
                     oauth2 -> oauth2.authenticationManagerResolver(authenticationManagerResolver));
         return http.build();
