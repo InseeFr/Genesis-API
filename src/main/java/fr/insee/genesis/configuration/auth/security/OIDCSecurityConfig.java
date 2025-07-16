@@ -4,13 +4,15 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.Customizer;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -18,12 +20,15 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
+import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerAuthenticationManagerResolver;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -43,28 +48,35 @@ public class OIDCSecurityConfig {
     private final RoleConfiguration roleConfiguration;
     private final SecurityTokenProperties inseeSecurityTokenProperties;
 
+    @Value("${fr.insee.genesis.security.resourceserver.jwt.issuer-uri}")
+    String issuerUri;
+
+    @Value("${fr.insee.genesis.security.resourceserver.dmz.jwt.issuer-uri}")
+    String issuerUriDmz;
+
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, JwtIssuerAuthenticationManagerResolver authenticationManagerResolver) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-        for (var pattern : whitelistMatchers) {
-            http.authorizeHttpRequests(authorize ->
-                    authorize
-                            .requestMatchers(AntPathRequestMatcher.antMatcher(pattern)).permitAll()
-            );
-        }
-        http
-                .authorizeHttpRequests(configure -> configure
+                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(authorize -> authorize
+                        // Whitelisted paths sans auth
+                        .requestMatchers(whitelistMatchers).permitAll()
+
+                        // Secured reader-access paths
                         .requestMatchers(HttpMethod.GET,"/questionnaires/**").hasRole(String.valueOf(ApplicationRole.READER))
                         .requestMatchers(HttpMethod.GET,"/modes/**").hasRole(String.valueOf(ApplicationRole.READER))
                         .requestMatchers(HttpMethod.GET,"/interrogations/**").hasRole(String.valueOf(ApplicationRole.READER))
                         .requestMatchers(HttpMethod.GET,"/campaigns/**").hasRole(String.valueOf(ApplicationRole.READER))
+
+                        //All others require authentication
                         .anyRequest().authenticated()
                 )
-                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
+                .oauth2ResourceServer(
+                    oauth2 -> oauth2.authenticationManagerResolver(authenticationManagerResolver));
         return http.build();
     }
+
 
     @Bean
     JwtAuthenticationConverter jwtAuthenticationConverter() {
@@ -74,6 +86,26 @@ public class OIDCSecurityConfig {
         return jwtAuthenticationConverter;
     }
 
+
+
+    @Bean
+    public JwtIssuerAuthenticationManagerResolver authenticationManagerResolver() {
+        final List<String> issuers = List.of(issuerUri,issuerUriDmz);
+        Map<String, AuthenticationManager> authenticationManagers = new HashMap<>();
+
+        for (String issuer : issuers) {
+            NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder
+                    .withJwkSetUri(issuer + "/protocol/openid-connect/certs")
+                    .build();
+
+            JwtAuthenticationProvider provider = new JwtAuthenticationProvider(jwtDecoder);
+            provider.setJwtAuthenticationConverter(jwtAuthenticationConverter());
+
+            AuthenticationManager manager = new ProviderManager(provider);
+            authenticationManagers.put(issuer, manager);
+        }
+        return new JwtIssuerAuthenticationManagerResolver(authenticationManagers::get);
+    }
 
     Converter<Jwt, Collection<GrantedAuthority>> jwtGrantedAuthoritiesConverter() {
         return new Converter<Jwt, Collection<GrantedAuthority>>() {
