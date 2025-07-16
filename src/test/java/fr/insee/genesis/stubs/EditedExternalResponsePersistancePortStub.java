@@ -1,7 +1,7 @@
 package fr.insee.genesis.stubs;
 
 import fr.insee.genesis.Constants;
-import fr.insee.genesis.domain.model.editedexternal.EditedExternalResponseModel;
+import fr.insee.genesis.domain.model.editedresponse.editedexternal.EditedExternalResponseModel;
 import fr.insee.genesis.domain.ports.spi.EditedExternalResponsePersistancePort;
 import fr.insee.genesis.infrastructure.document.editedexternal.EditedExternalResponseDocument;
 import fr.insee.genesis.infrastructure.mappers.EditedExternalResponseDocumentMapper;
@@ -54,5 +54,15 @@ public class EditedExternalResponsePersistancePortStub implements EditedExternal
         mongoStub.get(Constants.MONGODB_EDITED_EXTERNAL_COLLECTION_NAME).removeIf(
                 editedExternalResponseDocument -> editedExternalResponseDocument.getQuestionnaireId().equals(questionnaireId)
         );
+    }
+
+    @Override
+    public EditedExternalResponseDocument findByQuestionnaireIdAndInterrogationId(String questionnaireId, String interrogationId) {
+        List<EditedExternalResponseDocument> editedExternalResponseDocumentList = mongoStub.get(Constants.MONGODB_EDITED_EXTERNAL_COLLECTION_NAME).stream().filter(
+                editedExternalResponseDocument ->
+                        editedExternalResponseDocument.getQuestionnaireId().equals(questionnaireId)
+                                && editedExternalResponseDocument.getInterrogationId().equals(interrogationId)
+        ).toList();
+        return editedExternalResponseDocumentList.isEmpty() ? null : editedExternalResponseDocumentList.getFirst();
     }
 }

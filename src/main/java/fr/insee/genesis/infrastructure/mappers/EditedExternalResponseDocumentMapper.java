@@ -1,6 +1,6 @@
 package fr.insee.genesis.infrastructure.mappers;
 
-import fr.insee.genesis.domain.model.editedexternal.EditedExternalResponseModel;
+import fr.insee.genesis.domain.model.editedresponse.editedexternal.EditedExternalResponseModel;
 import fr.insee.genesis.infrastructure.document.editedexternal.EditedExternalResponseDocument;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;

@@ -1,10 +1,10 @@
-package fr.insee.genesis.domain.service.editedexternal;
+package fr.insee.genesis.domain.service.editedresponse.editedexternal;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
-import fr.insee.genesis.domain.model.editedexternal.EditedExternalResponseModel;
+import fr.insee.genesis.domain.model.editedresponse.editedexternal.EditedExternalResponseModel;
 import fr.insee.genesis.domain.ports.api.EditedExternalResponseApiPort;
 import fr.insee.genesis.domain.ports.spi.EditedExternalResponsePersistancePort;
 import fr.insee.genesis.domain.utils.JsonUtils;

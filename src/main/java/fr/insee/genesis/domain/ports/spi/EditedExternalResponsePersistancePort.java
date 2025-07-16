@@ -1,6 +1,7 @@
 package fr.insee.genesis.domain.ports.spi;
 
-import fr.insee.genesis.domain.model.editedexternal.EditedExternalResponseModel;
+import fr.insee.genesis.domain.model.editedresponse.editedexternal.EditedExternalResponseModel;
+import fr.insee.genesis.infrastructure.document.editedexternal.EditedExternalResponseDocument;
 
 import java.util.List;
 
@@ -10,4 +11,5 @@ public interface EditedExternalResponsePersistancePort {
     void restoreBackup(String questionnaireId);
     void saveAll(List<EditedExternalResponseModel> editedPreviousResponseModelList);
     void delete(String questionnaireId);
+    EditedExternalResponseDocument findByQuestionnaireIdAndInterrogationId(String questionnaireId, String interrogationId);
 }

@@ -1,10 +1,11 @@
 package fr.insee.genesis.infrastructure.adapter;
 
-import fr.insee.genesis.domain.model.editedprevious.EditedPreviousResponseModel;
+import fr.insee.genesis.domain.model.editedresponse.editedprevious.EditedPreviousResponseModel;
 import fr.insee.genesis.domain.ports.spi.EditedPreviousResponsePersistancePort;
 import fr.insee.genesis.infrastructure.document.editedprevious.EditedPreviousResponseDocument;
 import fr.insee.genesis.infrastructure.mappers.EditedPreviousResponseDocumentMapper;
 import fr.insee.genesis.infrastructure.repository.EditedPreviousResponseMongoDBRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @Qualifier("editedPreviousResponseMongoAdapter")
 public class EditedPreviousResponseMongoAdapter implements EditedPreviousResponsePersistancePort {
@@ -75,5 +77,18 @@ public class EditedPreviousResponseMongoAdapter implements EditedPreviousRespons
     @Override
     public void delete(String questionnaireId) {
         repository.deleteByQuestionnaireId(questionnaireId);
+    }
+
+    @Override
+    public EditedPreviousResponseDocument findByQuestionnaireIdAndInterrogationId(String questionnaireId, String interrogationId) {
+        List<EditedPreviousResponseDocument> editedPreviousResponseDocumentList =
+                repository.findByQuestionnaireIdAndInterrogationId(questionnaireId, interrogationId);
+        if(editedPreviousResponseDocumentList.isEmpty()){
+            return null;
+        }
+        if(editedPreviousResponseDocumentList.size() > 1){
+            log.warn("More than 1 edited previous response document for questionnaire {}, interrogation {}", questionnaireId, interrogationId);
+        }
+        return editedPreviousResponseDocumentList.getFirst();
     }
 }

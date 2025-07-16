@@ -1,10 +1,10 @@
-package fr.insee.genesis.domain.service.editedprevious;
+package fr.insee.genesis.domain.service.editedresponse.editedprevious;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
-import fr.insee.genesis.domain.model.editedprevious.EditedPreviousResponseModel;
+import fr.insee.genesis.domain.model.editedresponse.editedprevious.EditedPreviousResponseModel;
 import fr.insee.genesis.domain.ports.api.EditedPreviousResponseApiPort;
 import fr.insee.genesis.domain.ports.spi.EditedPreviousResponsePersistancePort;
 import fr.insee.genesis.domain.utils.JsonUtils;

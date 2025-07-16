@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 
-@RequestMapping(path = "/edited-previous" )
+@RequestMapping(path = "/edited-previous")
 @Controller
 @Slf4j
 public class EditedPreviousResponseController {

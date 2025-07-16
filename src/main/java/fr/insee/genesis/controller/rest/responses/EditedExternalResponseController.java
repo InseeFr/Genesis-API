@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 
-@RequestMapping(path = "/edited-external" )
+@RequestMapping(path = "/edited-external")
 @Controller
 @Slf4j
 public class EditedExternalResponseController {
