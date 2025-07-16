@@ -12,7 +12,7 @@ import fr.insee.genesis.stubs.EditedExternalResponsePersistancePortStub;
 import fr.insee.genesis.stubs.EditedPreviousResponsePersistancePortStub;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
 
@@ -41,8 +41,8 @@ class EditedResponseControllerTest {
             )
     );
 
-    @BeforeAll
-    static void clean(){
+    @BeforeEach
+    void clean(){
         previousStub.getMongoStub().clear();
         externalStub.getMongoStub().clear();
 
@@ -50,8 +50,9 @@ class EditedResponseControllerTest {
         externalStub.getMongoStub().put(Constants.MONGODB_EDITED_EXTERNAL_COLLECTION_NAME, new ArrayList<>());
     }
 
+    //OK CASES
     @Test
-    void getEditedResponses_test_1() {
+    void getEditedResponses_test() {
         //GIVEN
         previousStub.getMongoStub().get(Constants.MONGODB_EDITED_PREVIOUS_COLLECTION_NAME).addAll(
                 getEditedPreviousTestDocuments()
@@ -82,12 +83,13 @@ class EditedResponseControllerTest {
                                         && editedExternalResponseDocument1.getInterrogationId().equals(INTERROGATION_ID_1)
                 ).toList().getFirst();
         EditedResponseDto editedResponseDto = (EditedResponseDto) response.getBody();
+        Assertions.assertThat(editedResponseDto.interrogationId()).isEqualTo(INTERROGATION_ID_1);
         assertDocumentEqualToDto(editedPreviousResponseDocument, editedResponseDto);
         assertDocumentEqualToDto(editedExternalResponseDocument, editedResponseDto);
     }
 
     @Test
-    void getEditedResponses_test_2() {
+    void getEditedResponses_test_no_external() {
         //GIVEN
         previousStub.getMongoStub().get(Constants.MONGODB_EDITED_PREVIOUS_COLLECTION_NAME).addAll(
                 getEditedPreviousTestDocuments()
@@ -113,6 +115,7 @@ class EditedResponseControllerTest {
         ).toList().getFirst();
 
         EditedResponseDto editedResponseDto = (EditedResponseDto) response.getBody();
+        Assertions.assertThat(editedResponseDto.interrogationId()).isEqualTo(INTERROGATION_ID_2);
         assertDocumentEqualToDto(editedPreviousResponseDocument, editedResponseDto);
         Assertions.assertThat(editedResponseDto.editedExternal()).isNotNull().isEmpty();
     }
@@ -249,5 +252,21 @@ class EditedResponseControllerTest {
         }
     }
 
-    //TODO KO TESTS
+    @Test
+    void getEditedResponses_test_not_found(){
+        //GIVEN
+        //Empty stubs from clean()
+
+        //WHEN
+        ResponseEntity<Object> response = editedResponseController.getEditedResponses(QUESTIONNAIRE_ID,
+                INTERROGATION_ID_1);
+
+        //THEN
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        Assertions.assertThat(response.getBody()).isInstanceOf(EditedResponseDto.class);
+        EditedResponseDto editedResponseDto = (EditedResponseDto) response.getBody();
+        Assertions.assertThat(editedResponseDto.interrogationId()).isEqualTo(INTERROGATION_ID_1);
+        Assertions.assertThat(editedResponseDto.editedPrevious()).isNotNull().isEmpty();
+        Assertions.assertThat(editedResponseDto.editedExternal()).isNotNull().isEmpty();
+    }
 }
