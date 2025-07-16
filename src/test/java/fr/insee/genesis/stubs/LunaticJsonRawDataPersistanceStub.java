@@ -1,9 +1,13 @@
 package fr.insee.genesis.stubs;
 
+import fr.insee.genesis.domain.model.surveyunit.GroupedInterrogation;
+import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
 import fr.insee.genesis.domain.ports.spi.LunaticJsonRawDataPersistencePort;
 import fr.insee.genesis.infrastructure.document.rawdata.LunaticJsonRawDataDocument;
+import fr.insee.genesis.infrastructure.document.surveyunit.GroupedInterrogationDocument;
+import fr.insee.genesis.infrastructure.mappers.GroupedInterrogationDocumentMapper;
 import fr.insee.genesis.infrastructure.mappers.LunaticJsonRawDataDocumentMapper;
 import lombok.Getter;
 import org.springframework.data.domain.Page;
@@ -14,8 +18,10 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Getter
@@ -99,4 +105,41 @@ public class LunaticJsonRawDataPersistanceStub implements LunaticJsonRawDataPers
     public long countResponsesByQuestionnaireId(String questionnaireId) {
         return mongoStub.size();
     }
+
+    @Override
+    public List<GroupedInterrogation> findProcessedIdsGroupedByQuestionnaireSince(LocalDateTime since) {
+        List<LunaticJsonRawDataDocument> recentDocs = mongoStub.stream().filter(
+                rawData -> rawData.processDate() != null && rawData.processDate().isAfter(since)
+        ).toList();
+
+        // Aggregation map: key = (questionnaireId, partitionOrCampaignId), value = Set of interrogationId
+        Map<String, Map<String, Set<String>>> groupedMap = new HashMap<>();
+
+        for (LunaticJsonRawDataDocument doc : recentDocs) {
+            String questionnaireId = doc.questionnaireId();
+            String partitionOrCampaignId = doc.campaignId();
+            String interrogationId = doc.interrogationId();
+            groupedMap
+                    .computeIfAbsent(questionnaireId, q -> new HashMap<>())
+                    .computeIfAbsent(partitionOrCampaignId, p -> new HashSet<>())
+                    .add(interrogationId);
+        }
+
+        // Conversion to a list of GroupedInterrogationDocument
+        List<GroupedInterrogationDocument> result = new ArrayList<>();
+        for (Map.Entry<String, Map<String, Set<String>>> entry1 : groupedMap.entrySet()) {
+            String questionnaireId = entry1.getKey();
+            Map<String, Set<String>> innerMap = entry1.getValue();
+
+            for (Map.Entry<String, Set<String>> entry2 : innerMap.entrySet()) {
+                GroupedInterrogationDocument grouped = new GroupedInterrogationDocument();
+                grouped.setQuestionnaireId(questionnaireId);
+                grouped.setPartitionOrCampaignId(entry2.getKey());
+                grouped.setInterrogationIds(new ArrayList<>(entry2.getValue()));
+                result.add(grouped);
+            }
+        }
+        return GroupedInterrogationDocumentMapper.INSTANCE.listDocumentToListModel(result);
+    }
+
 }

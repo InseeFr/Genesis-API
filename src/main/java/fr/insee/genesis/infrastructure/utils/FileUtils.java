@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -48,7 +49,7 @@ public class FileUtils {
 		if (!isFolderPresent(destination)) {
 			Files.createDirectories(Path.of(destination));
 		}
-		Files.move(from,Path.of(destination+"/"+ from.getFileName().toString()));
+		Files.move(from,Path.of(destination+"/"+ from.getFileName().toString()), StandardCopyOption.REPLACE_EXISTING);
 		log.info("File {} moved from {} to {}", from.getFileName().toString(), from, destination);
 	}
 

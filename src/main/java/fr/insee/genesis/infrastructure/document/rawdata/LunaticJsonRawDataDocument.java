@@ -4,6 +4,8 @@ import fr.insee.genesis.domain.model.surveyunit.Mode;
 import lombok.Builder;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.IndexDirection;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
@@ -21,5 +23,6 @@ public record LunaticJsonRawDataDocument(
         Mode mode,
         Map<String,Object> data,
         LocalDateTime recordDate,
+        @Indexed(direction = IndexDirection.DESCENDING)
         LocalDateTime processDate
 ){}
