@@ -57,12 +57,12 @@ public class EditedExternalResponsePersistancePortStub implements EditedExternal
     }
 
     @Override
-    public EditedExternalResponseDocument findByQuestionnaireIdAndInterrogationId(String questionnaireId, String interrogationId) {
+    public EditedExternalResponseModel findByQuestionnaireIdAndInterrogationId(String questionnaireId, String interrogationId) {
         List<EditedExternalResponseDocument> editedExternalResponseDocumentList = mongoStub.get(Constants.MONGODB_EDITED_EXTERNAL_COLLECTION_NAME).stream().filter(
                 editedExternalResponseDocument ->
                         editedExternalResponseDocument.getQuestionnaireId().equals(questionnaireId)
                                 && editedExternalResponseDocument.getInterrogationId().equals(interrogationId)
         ).toList();
-        return editedExternalResponseDocumentList.isEmpty() ? null : editedExternalResponseDocumentList.getFirst();
+        return editedExternalResponseDocumentList.isEmpty() ? null : EditedExternalResponseDocumentMapper.INSTANCE.documentToModel(editedExternalResponseDocumentList.getFirst());
     }
 }

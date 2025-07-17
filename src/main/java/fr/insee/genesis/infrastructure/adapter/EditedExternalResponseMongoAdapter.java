@@ -80,7 +80,7 @@ public class EditedExternalResponseMongoAdapter implements EditedExternalRespons
     }
 
     @Override
-    public EditedExternalResponseDocument findByQuestionnaireIdAndInterrogationId(String questionnaireId, String interrogationId) {
+    public EditedExternalResponseModel findByQuestionnaireIdAndInterrogationId(String questionnaireId, String interrogationId) {
         List<EditedExternalResponseDocument> editedExternalResponseDocumentList =
                 repository.findByQuestionnaireIdAndInterrogationId(questionnaireId, interrogationId);
         if(editedExternalResponseDocumentList.isEmpty()){
@@ -89,6 +89,6 @@ public class EditedExternalResponseMongoAdapter implements EditedExternalRespons
         if(editedExternalResponseDocumentList.size() > 1){
             log.warn("More than 1 edited external response document for questionnaire {}, interrogation {}", questionnaireId, interrogationId);
         }
-        return editedExternalResponseDocumentList.getFirst();
+        return EditedExternalResponseDocumentMapper.INSTANCE.documentToModel(editedExternalResponseDocumentList.getFirst());
     }
 }

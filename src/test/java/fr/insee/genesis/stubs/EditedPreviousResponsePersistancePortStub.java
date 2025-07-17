@@ -57,7 +57,7 @@ public class EditedPreviousResponsePersistancePortStub implements EditedPrevious
     }
 
     @Override
-    public EditedPreviousResponseDocument findByQuestionnaireIdAndInterrogationId(String questionnaireId, String interrogationId) {
+    public EditedPreviousResponseModel findByQuestionnaireIdAndInterrogationId(String questionnaireId, String interrogationId) {
         List<EditedPreviousResponseDocument> editedPreviousResponseDocumentList =
                 mongoStub.get(Constants.MONGODB_EDITED_PREVIOUS_COLLECTION_NAME).stream().filter(
                 editedPreviousResponseDocument ->
@@ -65,6 +65,6 @@ public class EditedPreviousResponsePersistancePortStub implements EditedPrevious
                     && editedPreviousResponseDocument.getInterrogationId().equals(interrogationId)
         ).toList();
 
-        return editedPreviousResponseDocumentList.isEmpty() ? null : editedPreviousResponseDocumentList.getFirst();
+        return editedPreviousResponseDocumentList.isEmpty() ? null : EditedPreviousResponseDocumentMapper.INSTANCE.documentToModel(editedPreviousResponseDocumentList.getFirst());
     }
 }

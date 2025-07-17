@@ -80,7 +80,7 @@ public class EditedPreviousResponseMongoAdapter implements EditedPreviousRespons
     }
 
     @Override
-    public EditedPreviousResponseDocument findByQuestionnaireIdAndInterrogationId(String questionnaireId, String interrogationId) {
+    public EditedPreviousResponseModel findByQuestionnaireIdAndInterrogationId(String questionnaireId, String interrogationId) {
         List<EditedPreviousResponseDocument> editedPreviousResponseDocumentList =
                 repository.findByQuestionnaireIdAndInterrogationId(questionnaireId, interrogationId);
         if(editedPreviousResponseDocumentList.isEmpty()){
@@ -89,6 +89,6 @@ public class EditedPreviousResponseMongoAdapter implements EditedPreviousRespons
         if(editedPreviousResponseDocumentList.size() > 1){
             log.warn("More than 1 edited previous response document for questionnaire {}, interrogation {}", questionnaireId, interrogationId);
         }
-        return editedPreviousResponseDocumentList.getFirst();
+        return EditedPreviousResponseDocumentMapper.INSTANCE.documentToModel(editedPreviousResponseDocumentList.getFirst());
     }
 }

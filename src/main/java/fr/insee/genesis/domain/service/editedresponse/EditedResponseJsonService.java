@@ -9,8 +9,6 @@ import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.ports.api.EditedResponseApiPort;
 import fr.insee.genesis.domain.ports.spi.EditedExternalResponsePersistancePort;
 import fr.insee.genesis.domain.ports.spi.EditedPreviousResponsePersistancePort;
-import fr.insee.genesis.infrastructure.mappers.EditedExternalResponseDocumentMapper;
-import fr.insee.genesis.infrastructure.mappers.EditedPreviousResponseDocumentMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -39,11 +37,10 @@ public class EditedResponseJsonService implements EditedResponseApiPort {
                 .build();
 
         EditedPreviousResponseModel editedPreviousResponseModel =
-                EditedPreviousResponseDocumentMapper.INSTANCE.documentToModel(
                         editedPreviousResponsePersistancePort.findByQuestionnaireIdAndInterrogationId(
                                 questionnaireId,
                                 interrogationId
-                        ));
+                        );
 
         if(editedPreviousResponseModel != null) {
             for (Map.Entry<String, Object> variable : editedPreviousResponseModel.getVariables().entrySet()) {
@@ -52,11 +49,10 @@ public class EditedResponseJsonService implements EditedResponseApiPort {
         }
 
         EditedExternalResponseModel editedExternalResponseModel =
-                EditedExternalResponseDocumentMapper.INSTANCE.documentToModel(
                         editedExternalResponsePersistancePort.findByQuestionnaireIdAndInterrogationId(
                                 questionnaireId,
                                 interrogationId
-                        ));
+                        );
 
         if(editedExternalResponseModel != null) {
             for (Map.Entry<String, Object> variable : editedExternalResponseModel.getVariables().entrySet()) {
