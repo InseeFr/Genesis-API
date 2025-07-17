@@ -1,21 +1,34 @@
 package fr.insee.genesis.controller.rest.responses;
 
 import fr.insee.genesis.Constants;
+import fr.insee.genesis.TestConstants;
 import fr.insee.genesis.controller.dto.EditedResponseDto;
 import fr.insee.genesis.controller.dto.VariableQualityToolDto;
 import fr.insee.genesis.controller.dto.VariableStateDto;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
+import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.service.editedresponse.EditedResponseJsonService;
+import fr.insee.genesis.domain.service.editedresponse.editedexternal.EditedExternalResponseJsonService;
+import fr.insee.genesis.domain.service.editedresponse.editedprevious.EditedPreviousResponseJsonService;
 import fr.insee.genesis.infrastructure.document.editedexternal.EditedExternalResponseDocument;
 import fr.insee.genesis.infrastructure.document.editedprevious.EditedPreviousResponseDocument;
+import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.EditedExternalResponsePersistancePortStub;
 import fr.insee.genesis.stubs.EditedPreviousResponsePersistancePortStub;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.FileSystemUtils;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -29,20 +42,34 @@ class EditedResponseControllerTest {
     private static final String INTERROGATION_ID_1 = "TEST1";
     private static final String INTERROGATION_ID_2 = "TEST2";
 
+    private static final String QUESTIONNAIRE_ID_PREVIOUS = "TEST-EDITED-PREVIOUS";
+    private static final String QUESTIONNAIRE_ID_EXTERNAL = "TEST-EDITED-EXTERNAL";
+    private static final Path SOURCE_PATH_PREVIOUS =
+            Path.of(TestConstants.TEST_RESOURCES_DIRECTORY,"IN", Mode.WEB.getFolder()).resolve(QUESTIONNAIRE_ID_PREVIOUS);
+    private static final Path SOURCE_PATH_EXTERNAL =
+            Path.of(TestConstants.TEST_RESOURCES_DIRECTORY,"IN", Mode.WEB.getFolder()).resolve(QUESTIONNAIRE_ID_EXTERNAL);
+
     private static final EditedPreviousResponsePersistancePortStub previousStub =
             new EditedPreviousResponsePersistancePortStub();
     private static final EditedExternalResponsePersistancePortStub externalStub =
             new EditedExternalResponsePersistancePortStub();
 
     private final EditedResponseController editedResponseController = new EditedResponseController(
+            new EditedPreviousResponseJsonService(previousStub),
+            new EditedExternalResponseJsonService(externalStub),
             new EditedResponseJsonService(
                     previousStub,
                     externalStub
-            )
+            ),
+            new ConfigStub()
     );
 
     @BeforeEach
-    void clean(){
+    void clean() throws IOException {
+        FileSystemUtils.deleteRecursively(SOURCE_PATH_PREVIOUS);
+        FileSystemUtils.deleteRecursively(SOURCE_PATH_EXTERNAL);
+        FileSystemUtils.deleteRecursively(Path.of(TestConstants.TEST_RESOURCES_DIRECTORY, "DONE"));
+
         previousStub.getMongoStub().clear();
         externalStub.getMongoStub().clear();
 
@@ -51,6 +78,7 @@ class EditedResponseControllerTest {
     }
 
     //OK CASES
+    //GET
     @Test
     void getEditedResponses_test() {
         //GIVEN
@@ -118,6 +146,527 @@ class EditedResponseControllerTest {
         Assertions.assertThat(editedResponseDto.interrogationId()).isEqualTo(INTERROGATION_ID_2);
         assertDocumentEqualToDto(editedPreviousResponseDocument, editedResponseDto);
         Assertions.assertThat(editedResponseDto.editedExternal()).isNotNull().isEmpty();
+    }
+
+    @Test
+    void getEditedResponses_test_not_found(){
+        //GIVEN
+        //Empty stubs from clean()
+
+        //WHEN
+        ResponseEntity<Object> response = editedResponseController.getEditedResponses(QUESTIONNAIRE_ID,
+                INTERROGATION_ID_1);
+
+        //THEN
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        Assertions.assertThat(response.getBody()).isInstanceOf(EditedResponseDto.class);
+        EditedResponseDto editedResponseDto = (EditedResponseDto) response.getBody();
+        Assertions.assertThat(editedResponseDto.interrogationId()).isEqualTo(INTERROGATION_ID_1);
+        Assertions.assertThat(editedResponseDto.editedPrevious()).isNotNull().isEmpty();
+        Assertions.assertThat(editedResponseDto.editedExternal()).isNotNull().isEmpty();
+    }
+
+    //PREVIOUS
+    @Test
+    @SneakyThrows
+    void readPreviousJson_no_source(){
+        testOKCase(null);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"collecté", "edité"})
+    @SneakyThrows
+    void readPreviousJson_sourceState(String sourceState){
+        testOKCase(sourceState);
+    }
+
+    private void testOKCase(String sourceState) throws IOException {
+        //GIVEN
+        Files.createDirectories(SOURCE_PATH_PREVIOUS);
+        Files.copy(
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("edited_previous").resolve("ok.json"),
+                SOURCE_PATH_PREVIOUS.resolve("ok.json"),
+                StandardCopyOption.REPLACE_EXISTING
+        );
+
+        //WHEN
+        editedResponseController.readEditedPreviousJson(QUESTIONNAIRE_ID_PREVIOUS, Mode.WEB, sourceState, "ok.json");
+
+        //THEN
+        Assertions.assertThat(previousStub.getMongoStub().get(Constants.MONGODB_EDITED_PREVIOUS_COLLECTION_NAME)).hasSize(2);
+
+        List<EditedPreviousResponseDocument> filter = previousStub.getMongoStub().get(Constants.MONGODB_EDITED_PREVIOUS_COLLECTION_NAME)
+                .stream().filter(doc -> doc.getInterrogationId().equals("AUTO104")).toList();
+        Assertions.assertThat(filter).hasSize(1);
+        if(sourceState == null){
+            Assertions.assertThat(filter.getFirst().getSourceState()).isNull();
+        }else{
+            Assertions.assertThat(filter.getFirst().getSourceState()).isNotNull().isEqualTo(sourceState);
+        }
+        Assertions.assertThat(filter.getFirst().getQuestionnaireId()).isEqualTo(QUESTIONNAIRE_ID_PREVIOUS);
+
+        Assertions.assertThat(filter.getFirst().getVariables()).hasSize(15);
+        assertVariable(filter.getFirst(), "TEXTECOURT", "");
+        assertVariable(filter.getFirst(), "TEXTELONG", "test d'une donnée antérieure sur un texte long pour voir comment ça marche");
+        assertVariable(filter.getFirst(), "FLOAT", 50.25d);
+        assertVariableNull(filter.getFirst(), "INTEGER");
+        assertVariable(filter.getFirst(), "BOOLEEN", true);
+        assertVariable(filter.getFirst(), "DROPDOWN", "03");
+        assertVariable(filter.getFirst(), "QCM_B1", true);
+        assertVariable(filter.getFirst(), "QCM_B2", false);
+        assertVariable(filter.getFirst(), "QCM_B4", true);
+        assertVariable(filter.getFirst(), "TABLEAU2A11", 200);
+        assertVariable(filter.getFirst(), "TABLEAU2A12", 150);
+        assertVariable(filter.getFirst(), "TABLEAU2A23", 1000);
+        assertVariableNull(filter.getFirst(), "TABLEAU2A24");
+        assertVariable(filter.getFirst(), "TABOFATS1",0, "AA");
+        assertVariable(filter.getFirst(), "TABOFATS1",1, "");
+        assertVariable(filter.getFirst(), "TABOFATS1",2, "BB");
+        assertVariable(filter.getFirst(), "TABOFATS1",3, "CC");
+        assertVariable(filter.getFirst(), "TABOFATS3",0, 5);
+        assertVariableNull(filter.getFirst(), "TABOFATS3",1);
+        assertVariable(filter.getFirst(), "TABOFATS3",2, 3);
+
+        filter = previousStub.getMongoStub().get(Constants.MONGODB_EDITED_PREVIOUS_COLLECTION_NAME)
+                .stream().filter(doc -> doc.getInterrogationId().equals("AUTO108")).toList();
+        Assertions.assertThat(filter).hasSize(1);
+        if(sourceState == null){
+            Assertions.assertThat(filter.getFirst().getSourceState()).isNull();
+        }else{
+            Assertions.assertThat(filter.getFirst().getSourceState()).isNotNull().isEqualTo(sourceState);
+        }
+        Assertions.assertThat(filter.getFirst().getQuestionnaireId()).isEqualTo(QUESTIONNAIRE_ID_PREVIOUS);
+
+        Assertions.assertThat(filter.getFirst().getVariables()).hasSize(14);
+        assertVariable(filter.getFirst(), "TEXTECOURT", "test previous");
+        assertVariable(filter.getFirst(), "TEXTELONG", "");
+        assertVariable(filter.getFirst(), "FLOAT", 12.2d);
+        assertVariable(filter.getFirst(), "BOOLEEN", false);
+        assertVariable(filter.getFirst(), "DROPDOWN", "");
+        assertVariable(filter.getFirst(), "QCM_B1", false);
+        assertVariable(filter.getFirst(), "QCM_B2", false);
+        assertVariable(filter.getFirst(), "QCM_B5", true);
+        assertVariable(filter.getFirst(), "TABLEAU2A11", 1);
+        assertVariable(filter.getFirst(), "TABLEAU2A12", 2);
+        assertVariable(filter.getFirst(), "TABLEAU2A23", 3);
+        assertVariable(filter.getFirst(), "TABLEAU2A24",4);
+        assertVariable(filter.getFirst(), "TABOFATS1",0, "BB");
+        assertVariable(filter.getFirst(), "TABOFATS1",1, "BB");
+        assertVariable(filter.getFirst(), "TABOFATS3",0, 10);
+        assertVariable(filter.getFirst(), "TABOFATS3",1, 4);
+        assertVariable(filter.getFirst(), "TABOFATS3",2, 0);
+    }
+
+    @Test
+    @SneakyThrows
+    void readPreviousJson_override_interrogation_id(){
+        //GIVEN
+        Files.createDirectories(SOURCE_PATH_PREVIOUS);
+        Files.copy(
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("edited_previous").resolve("ok.json"),
+                SOURCE_PATH_PREVIOUS.resolve("ok.json"),
+                StandardCopyOption.REPLACE_EXISTING
+        );
+        editedResponseController.readEditedPreviousJson(QUESTIONNAIRE_ID_PREVIOUS, Mode.WEB, null, "ok.json");
+        Files.createDirectories(SOURCE_PATH_PREVIOUS);
+        Files.copy(
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("edited_previous").resolve("ok2.json"),
+                SOURCE_PATH_PREVIOUS.resolve("ok2.json"),
+                StandardCopyOption.REPLACE_EXISTING
+        );
+
+        //WHEN
+        editedResponseController.readEditedPreviousJson(QUESTIONNAIRE_ID_PREVIOUS, Mode.WEB, null, "ok2.json");
+
+        //THEN
+        Assertions.assertThat(previousStub.getMongoStub().get(Constants.MONGODB_EDITED_PREVIOUS_COLLECTION_NAME)).hasSize(2);
+
+        List<EditedPreviousResponseDocument> filter =
+                previousStub.getMongoStub().get(Constants.MONGODB_EDITED_PREVIOUS_COLLECTION_NAME)
+                .stream().filter(doc -> doc.getInterrogationId().equals("AUTO104")).toList();
+        Assertions.assertThat(filter).hasSize(1);
+        Assertions.assertThat(filter.getFirst().getQuestionnaireId()).isEqualTo(QUESTIONNAIRE_ID_PREVIOUS);
+
+        Assertions.assertThat(filter.getFirst().getVariables()).hasSize(15);
+        assertVariable(filter.getFirst(), "TEXTECOURT", "");
+        assertVariable(filter.getFirst(), "TEXTELONG", "test d'une donnée antérieure sur un texte long pour voir comment ça marche");
+        assertVariable(filter.getFirst(), "FLOAT", 50.25d);
+        assertVariableNull(filter.getFirst(), "INTEGER");
+        assertVariable(filter.getFirst(), "BOOLEEN", true);
+        assertVariable(filter.getFirst(), "DROPDOWN", "03");
+        assertVariable(filter.getFirst(), "QCM_B1", true);
+        assertVariable(filter.getFirst(), "QCM_B2", false);
+        assertVariable(filter.getFirst(), "QCM_B4", true);
+        assertVariable(filter.getFirst(), "TABLEAU2A11", 200);
+        assertVariable(filter.getFirst(), "TABLEAU2A12", 150);
+        assertVariable(filter.getFirst(), "TABLEAU2A23", 1000);
+        assertVariableNull(filter.getFirst(), "TABLEAU2A24");
+        assertVariable(filter.getFirst(), "TABOFATS1",0, "AA");
+        assertVariable(filter.getFirst(), "TABOFATS1",1, "");
+        assertVariable(filter.getFirst(), "TABOFATS1",2, "BB");
+        assertVariable(filter.getFirst(), "TABOFATS1",3, "CC");
+        assertVariable(filter.getFirst(), "TABOFATS3",0, 5);
+        assertVariableNull(filter.getFirst(), "TABOFATS3",1);
+        assertVariable(filter.getFirst(), "TABOFATS3",2, 3);
+
+        filter = previousStub.getMongoStub().get(Constants.MONGODB_EDITED_PREVIOUS_COLLECTION_NAME)
+                .stream().filter(doc -> doc.getInterrogationId().equals("AUTO200")).toList();
+        Assertions.assertThat(filter).hasSize(1);
+        Assertions.assertThat(filter.getFirst().getQuestionnaireId()).isEqualTo(QUESTIONNAIRE_ID_PREVIOUS);
+
+        Assertions.assertThat(filter.getFirst().getVariables()).hasSize(14);
+        assertVariable(filter.getFirst(), "TEXTECOURT", "test previous");
+        assertVariable(filter.getFirst(), "TEXTELONG", "");
+        assertVariable(filter.getFirst(), "FLOAT", 12.2d);
+        assertVariable(filter.getFirst(), "BOOLEEN", false);
+        assertVariable(filter.getFirst(), "DROPDOWN", "");
+        assertVariable(filter.getFirst(), "QCM_B1", false);
+        assertVariable(filter.getFirst(), "QCM_B2", false);
+        assertVariable(filter.getFirst(), "QCM_B5", true);
+        assertVariable(filter.getFirst(), "TABLEAU2A11", 1);
+        assertVariable(filter.getFirst(), "TABLEAU2A12", 2);
+        assertVariable(filter.getFirst(), "TABLEAU2A23", 3);
+        assertVariable(filter.getFirst(), "TABLEAU2A24",4);
+        assertVariable(filter.getFirst(), "TABOFATS1",0, "BB");
+        assertVariable(filter.getFirst(), "TABOFATS1",1, "BB");
+        assertVariable(filter.getFirst(), "TABOFATS3",0, 10);
+        assertVariable(filter.getFirst(), "TABOFATS3",1, 4);
+        assertVariable(filter.getFirst(), "TABOFATS3",2, 0);
+
+        filter = previousStub.getMongoStub().get(Constants.MONGODB_EDITED_PREVIOUS_COLLECTION_NAME)
+                .stream().filter(doc -> doc.getInterrogationId().equals("AUTO108")).toList();
+        Assertions.assertThat(filter).isEmpty();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"ceci est une origine beaucoup trop longue"})
+    @SneakyThrows
+    void readPreviousJson_sourceState_too_long(String sourceState){
+        //GIVEN
+        String fileName = "ok.json";
+        Files.createDirectories(SOURCE_PATH_PREVIOUS);
+        Files.copy(
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("edited_previous").resolve(fileName),
+                SOURCE_PATH_PREVIOUS.resolve(fileName),
+                StandardCopyOption.REPLACE_EXISTING
+        );
+
+        //WHEN + THEN
+        ResponseEntity<Object> response = editedResponseController.readEditedPreviousJson(QUESTIONNAIRE_ID_PREVIOUS, Mode.WEB, sourceState,
+                fileName);
+        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(400);
+    }
+
+    @Test
+    @SneakyThrows
+    void readPreviousJson_invalid_syntax(){
+        String syntaxErrorFileName = "invalid_syntax.json";
+        //GIVEN
+        Files.createDirectories(SOURCE_PATH_PREVIOUS);
+        Files.copy(
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("edited_previous").resolve(syntaxErrorFileName),
+                SOURCE_PATH_PREVIOUS.resolve(syntaxErrorFileName),
+                StandardCopyOption.REPLACE_EXISTING
+        );
+
+        //WHEN + THEN
+        ResponseEntity<Object> response = editedResponseController.readEditedPreviousJson(QUESTIONNAIRE_ID_PREVIOUS, Mode.WEB, null,
+                syntaxErrorFileName);
+        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(400);
+    }
+    @Test
+    @SneakyThrows
+    void readPreviousJson_not_a_json(){
+        String syntaxErrorFileName = "not_a_json.xml";
+        //GIVEN
+        Files.createDirectories(SOURCE_PATH_PREVIOUS);
+        Files.copy(
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("edited_previous").resolve(syntaxErrorFileName),
+                SOURCE_PATH_PREVIOUS.resolve(syntaxErrorFileName),
+                StandardCopyOption.REPLACE_EXISTING
+        );
+
+        //WHEN + THEN
+        ResponseEntity<Object> response = editedResponseController.readEditedPreviousJson(QUESTIONNAIRE_ID_PREVIOUS, Mode.WEB, null,
+                syntaxErrorFileName);
+        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(400);
+    }
+
+    @Test
+    @SneakyThrows
+    void readPreviousJson_no_interrogation_id(){
+        String fileName = "no_interrogationId.json";
+        //GIVEN
+        Files.createDirectories(SOURCE_PATH_PREVIOUS);
+        Files.copy(
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("edited_previous").resolve(fileName),
+                SOURCE_PATH_PREVIOUS.resolve(fileName),
+                StandardCopyOption.REPLACE_EXISTING
+        );
+
+        //WHEN + THEN
+        ResponseEntity<Object> response = editedResponseController.readEditedPreviousJson(QUESTIONNAIRE_ID_PREVIOUS, Mode.WEB, null, fileName);
+        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(400);
+    }
+    @Test
+    @SneakyThrows
+    void readPreviousJson_only_one_interrogation_id(){
+        String fileName = "only_one_interrogationId.json";
+        //GIVEN
+        Files.createDirectories(SOURCE_PATH_PREVIOUS);
+        Files.copy(
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("edited_previous").resolve(fileName),
+                SOURCE_PATH_PREVIOUS.resolve(fileName),
+                StandardCopyOption.REPLACE_EXISTING
+        );
+
+        //WHEN + THEN
+        ResponseEntity<Object> response = editedResponseController.readEditedPreviousJson(QUESTIONNAIRE_ID_PREVIOUS, Mode.WEB, null, fileName);
+        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(400);
+    }
+
+    @Test
+    @SneakyThrows
+    void readPreviousJson_double_interrogation_id(){
+        String fileName = "double_interrogationId.json";
+        //GIVEN
+        Files.createDirectories(SOURCE_PATH_PREVIOUS);
+        Files.copy(
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("edited_previous").resolve(fileName),
+                SOURCE_PATH_PREVIOUS.resolve(fileName),
+                StandardCopyOption.REPLACE_EXISTING
+        );
+
+        //WHEN + THEN
+        ResponseEntity<Object> response = editedResponseController.readEditedPreviousJson(QUESTIONNAIRE_ID_PREVIOUS, Mode.WEB, null, fileName);
+        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(400);
+    }
+
+    //EXTERNAL
+    @Test
+    @SneakyThrows
+    void readExternalJson_test(){
+        //GIVEN
+        Files.createDirectories(SOURCE_PATH_EXTERNAL);
+        Files.copy(
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("edited_external").resolve("ok.json"),
+                SOURCE_PATH_EXTERNAL.resolve("ok.json"),
+                StandardCopyOption.REPLACE_EXISTING
+        );
+
+        //WHEN
+        editedResponseController.readEditedExternalJson(QUESTIONNAIRE_ID_EXTERNAL, Mode.WEB, "ok.json");
+
+        //THEN
+        Assertions.assertThat(externalStub.getMongoStub().get(Constants.MONGODB_EDITED_EXTERNAL_COLLECTION_NAME)).hasSize(2);
+
+        List<EditedExternalResponseDocument> filter = externalStub.getMongoStub().get(Constants.MONGODB_EDITED_EXTERNAL_COLLECTION_NAME)
+                .stream().filter(doc -> doc.getInterrogationId().equals("AUTO204")).toList();
+        Assertions.assertThat(filter).hasSize(1);
+
+        Assertions.assertThat(filter.getFirst().getQuestionnaireId()).isEqualTo(QUESTIONNAIRE_ID_EXTERNAL);
+
+        Assertions.assertThat(filter.getFirst().getVariables()).hasSize(12);
+        assertVariable(filter.getFirst(), "TVA", 302.34d);
+        assertVariable(filter.getFirst(), "CA", 22.45d);
+        assertVariable(filter.getFirst(), "COM_AUTRE", "blablablabla");
+        assertVariable(filter.getFirst(), "INTERRO_N_1", true);
+        assertVariable(filter.getFirst(), "INTERRO_N_2", false);
+        assertVariable(filter.getFirst(), "NAF25", "9560Y");
+        assertVariable(filter.getFirst(), "POIDS", 1.25);
+        assertVariable(filter.getFirst(), "MILLESIME", "2024");
+        assertVariable(filter.getFirst(), "NSUBST", true);
+        assertVariable(filter.getFirst(), "TAB_EXTNUM",0, 50);
+        assertVariable(filter.getFirst(), "TAB_EXTNUM",1, 23);
+        assertVariable(filter.getFirst(), "TAB_EXTNUM",2, 10);
+        assertVariableNull(filter.getFirst(), "TAB_EXTNUM",3);
+        assertVariable(filter.getFirst(), "TAB_EXTCAR",0, "A");
+        assertVariable(filter.getFirst(), "TAB_EXTCAR",1, "");
+        assertVariable(filter.getFirst(), "TAB_EXTCAR",2, "B");
+
+        filter = externalStub.getMongoStub().get(Constants.MONGODB_EDITED_EXTERNAL_COLLECTION_NAME)
+                .stream().filter(doc -> doc.getInterrogationId().equals("AUTO208")).toList();
+        Assertions.assertThat(filter).hasSize(1);
+        Assertions.assertThat(filter.getFirst().getQuestionnaireId()).isEqualTo(QUESTIONNAIRE_ID_EXTERNAL);
+
+        Assertions.assertThat(filter.getFirst().getVariables()).hasSize(11);
+        assertVariable(filter.getFirst(), "TVA", "");
+        assertVariable(filter.getFirst(), "COM_AUTRE", "");
+        assertVariable(filter.getFirst(), "SECTEUR", "123456789");
+        assertVariable(filter.getFirst(), "INTERRO_N_1", false);
+        assertVariable(filter.getFirst(), "INTERRO_N_2", false);
+        assertVariable(filter.getFirst(), "NAF25", "1014Z");
+        assertVariable(filter.getFirst(), "POIDS", 12);
+        assertVariable(filter.getFirst(), "MILLESIME", "2024");
+        assertVariable(filter.getFirst(), "NSUBST", false);
+        assertVariable(filter.getFirst(), "TAB_EXTNUM",0, 10);
+        assertVariable(filter.getFirst(), "TAB_EXTCAR",0, "C");
+        assertVariable(filter.getFirst(), "TAB_EXTCAR",1, "C");
+    }
+
+    @Test
+    @SneakyThrows
+    void readExternalJson_override_interrogation_id(){
+        //GIVEN
+        Files.createDirectories(SOURCE_PATH_EXTERNAL);
+        Files.copy(
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("edited_external").resolve("ok.json"),
+                SOURCE_PATH_EXTERNAL.resolve("ok.json"),
+                StandardCopyOption.REPLACE_EXISTING
+        );
+        editedResponseController.readEditedExternalJson(QUESTIONNAIRE_ID_EXTERNAL, Mode.WEB, "ok.json");
+        Files.createDirectories(SOURCE_PATH_EXTERNAL);
+        Files.copy(
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("edited_external").resolve("ok2.json"),
+                SOURCE_PATH_EXTERNAL.resolve("ok2.json"),
+                StandardCopyOption.REPLACE_EXISTING
+        );
+
+        //WHEN
+        editedResponseController.readEditedExternalJson(QUESTIONNAIRE_ID_EXTERNAL, Mode.WEB, "ok2.json");
+
+        //THEN
+        Assertions.assertThat(externalStub.getMongoStub().get(Constants.MONGODB_EDITED_EXTERNAL_COLLECTION_NAME)).hasSize(2);
+
+        List<EditedExternalResponseDocument> filter =
+                externalStub.getMongoStub().get(Constants.MONGODB_EDITED_EXTERNAL_COLLECTION_NAME)
+                .stream().filter(doc -> doc.getInterrogationId().equals("AUTO204")).toList();
+        Assertions.assertThat(filter).hasSize(1);
+        Assertions.assertThat(filter.getFirst().getQuestionnaireId()).isEqualTo(QUESTIONNAIRE_ID_EXTERNAL);
+
+        Assertions.assertThat(filter.getFirst().getVariables()).hasSize(12);
+        assertVariable(filter.getFirst(), "TVA", 302.34d);
+        assertVariable(filter.getFirst(), "CA", 22.45d);
+        assertVariable(filter.getFirst(), "COM_AUTRE", "blablablabla");
+        assertVariable(filter.getFirst(), "INTERRO_N_1", true);
+        assertVariable(filter.getFirst(), "INTERRO_N_2", false);
+        assertVariable(filter.getFirst(), "NAF25", "9560Y");
+        assertVariable(filter.getFirst(), "POIDS", 1.25);
+        assertVariable(filter.getFirst(), "MILLESIME", "2024");
+        assertVariable(filter.getFirst(), "NSUBST", true);
+        assertVariable(filter.getFirst(), "TAB_EXTNUM",0, 50);
+        assertVariable(filter.getFirst(), "TAB_EXTNUM",1, 23);
+        assertVariable(filter.getFirst(), "TAB_EXTNUM",2, 10);
+        assertVariableNull(filter.getFirst(), "TAB_EXTNUM",3);
+        assertVariable(filter.getFirst(), "TAB_EXTCAR",0, "A");
+        assertVariable(filter.getFirst(), "TAB_EXTCAR",1, "");
+        assertVariable(filter.getFirst(), "TAB_EXTCAR",2, "B");
+
+        filter = externalStub.getMongoStub().get(Constants.MONGODB_EDITED_EXTERNAL_COLLECTION_NAME)
+                .stream().filter(doc -> doc.getInterrogationId().equals("AUTO200")).toList();
+        Assertions.assertThat(filter).hasSize(1);
+        Assertions.assertThat(filter.getFirst().getQuestionnaireId()).isEqualTo(QUESTIONNAIRE_ID_EXTERNAL);
+
+        Assertions.assertThat(filter.getFirst().getVariables()).hasSize(11);
+        assertVariable(filter.getFirst(), "TVA", "");
+        assertVariable(filter.getFirst(), "COM_AUTRE", "");
+        assertVariable(filter.getFirst(), "SECTEUR", "123456789");
+        assertVariable(filter.getFirst(), "INTERRO_N_1", false);
+        assertVariable(filter.getFirst(), "INTERRO_N_2", false);
+        assertVariable(filter.getFirst(), "NAF25", "1014Z");
+        assertVariable(filter.getFirst(), "POIDS", 12);
+        assertVariable(filter.getFirst(), "MILLESIME", "2024");
+        assertVariable(filter.getFirst(), "NSUBST", false);
+        assertVariable(filter.getFirst(), "TAB_EXTNUM",0, 10);
+        assertVariable(filter.getFirst(), "TAB_EXTCAR",0, "C");
+        assertVariable(filter.getFirst(), "TAB_EXTCAR",1, "C");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"invalid_syntax.json",
+            "not_a_json.xml",
+            "no_interrogationId.json",
+            "only_one_interrogationId.json",
+            "double_interrogationId.json"}
+    )
+    @SneakyThrows
+    void readExternalJson_error_400(String fileName){
+        //GIVEN
+        Files.createDirectories(SOURCE_PATH_EXTERNAL);
+        Files.copy(
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("edited_external").resolve(fileName),
+                SOURCE_PATH_EXTERNAL.resolve(fileName),
+                StandardCopyOption.REPLACE_EXISTING
+        );
+
+        //WHEN + THEN
+        ResponseEntity<Object> response = editedResponseController.readEditedExternalJson(QUESTIONNAIRE_ID_EXTERNAL, Mode.WEB, fileName);
+        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(400);
+    }
+
+    //UTILS
+    //THEN
+    private static void assertVariable(EditedPreviousResponseDocument document,
+                                       String variableName,
+                                       String expectedValue
+    ) {
+        Assertions.assertThat(document.getVariables().get(variableName)).isNotNull().isEqualTo(expectedValue);
+    }
+
+    private static void assertVariable(EditedPreviousResponseDocument document,
+                                       String variableName,
+                                       double expectedValue
+    ) {
+        Assertions.assertThat(document.getVariables().get(variableName)).isNotNull().isInstanceOf(Double.class).isEqualTo(expectedValue);
+    }
+
+    private static void assertVariable(EditedPreviousResponseDocument document,
+                                       String variableName,
+                                       boolean expectedValue
+    ) {
+        Assertions.assertThat(document.getVariables().get(variableName)).isNotNull().isInstanceOf(Boolean.class).isEqualTo(expectedValue);
+    }
+
+    private static void assertVariable(EditedPreviousResponseDocument document,
+                                       String variableName,
+                                       int expectedValue
+    ) {
+        Assertions.assertThat(document.getVariables().get(variableName)).isNotNull().isInstanceOf(Integer.class).isEqualTo(expectedValue);
+    }
+
+    private static void assertVariableNull(EditedPreviousResponseDocument document,
+                                           String variableName
+    ) {
+        Assertions.assertThat(document.getVariables().get(variableName)).isNull();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void assertVariableNull(EditedPreviousResponseDocument document,
+                                           String arrayVariableName,
+                                           int index
+    ) {
+        Assertions.assertThat((List<Object>)document.getVariables().get(arrayVariableName)).hasSizeGreaterThan(index);
+        List<Object> list = (List<Object>)document.getVariables().get(arrayVariableName);
+        Assertions.assertThat(list).hasSizeGreaterThan(index);
+        Assertions.assertThat(list.get(index)).isNull();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void assertVariable(EditedPreviousResponseDocument document,
+                                       String arrayVariableName,
+                                       int index,
+                                       String expectedValue
+    ) throws ClassCastException{
+        Assertions.assertThat((List<Object>)document.getVariables().get(arrayVariableName)).hasSizeGreaterThan(index);
+
+        List<Object> list = (List<Object>)document.getVariables().get(arrayVariableName);
+        Assertions.assertThat(list).hasSizeGreaterThan(index);
+        Assertions.assertThat(list.get(index)).isInstanceOf(String.class);
+        Assertions.assertThat((String)list.get(index)).isEqualTo(expectedValue);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void assertVariable(EditedPreviousResponseDocument document,
+                                       String arrayVariableName,
+                                       int index,
+                                       int expectedValue
+    ) throws ClassCastException{
+        Assertions.assertThat((List<Object>)document.getVariables().get(arrayVariableName)).hasSizeGreaterThan(index);
+
+        List<Object> list = (List<Object>)document.getVariables().get(arrayVariableName);
+        Assertions.assertThat(list).hasSizeGreaterThan(index);
+        Assertions.assertThat(list.get(index)).isInstanceOf(Integer.class);
+        Assertions.assertThat((Integer)list.get(index)).isInstanceOf(Integer.class).isEqualTo(expectedValue);
     }
 
     private List<EditedPreviousResponseDocument> getEditedPreviousTestDocuments() {
@@ -252,21 +801,70 @@ class EditedResponseControllerTest {
         }
     }
 
-    @Test
-    void getEditedResponses_test_not_found(){
-        //GIVEN
-        //Empty stubs from clean()
+    private static void assertVariable(EditedExternalResponseDocument document,
+                                       String variableName,
+                                       String expectedValue
+    ) {
+        Assertions.assertThat(document.getVariables().get(variableName)).isNotNull().isEqualTo(expectedValue);
+    }
 
-        //WHEN
-        ResponseEntity<Object> response = editedResponseController.getEditedResponses(QUESTIONNAIRE_ID,
-                INTERROGATION_ID_1);
+    private static void assertVariable(EditedExternalResponseDocument document,
+                                       String variableName,
+                                       double expectedValue
+    ) {
+        Assertions.assertThat(document.getVariables().get(variableName)).isNotNull().isInstanceOf(Double.class).isEqualTo(expectedValue);
+    }
 
-        //THEN
-        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(response.getBody()).isInstanceOf(EditedResponseDto.class);
-        EditedResponseDto editedResponseDto = (EditedResponseDto) response.getBody();
-        Assertions.assertThat(editedResponseDto.interrogationId()).isEqualTo(INTERROGATION_ID_1);
-        Assertions.assertThat(editedResponseDto.editedPrevious()).isNotNull().isEmpty();
-        Assertions.assertThat(editedResponseDto.editedExternal()).isNotNull().isEmpty();
+    private static void assertVariable(EditedExternalResponseDocument document,
+                                       String variableName,
+                                       boolean expectedValue
+    ) {
+        Assertions.assertThat(document.getVariables().get(variableName)).isNotNull().isInstanceOf(Boolean.class).isEqualTo(expectedValue);
+    }
+
+    private static void assertVariable(EditedExternalResponseDocument document,
+                                       String variableName,
+                                       int expectedValue
+    ) {
+        Assertions.assertThat(document.getVariables().get(variableName)).isNotNull().isInstanceOf(Integer.class).isEqualTo(expectedValue);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void assertVariableNull(EditedExternalResponseDocument document,
+                                           String arrayVariableName,
+                                           int index
+    ) {
+        Assertions.assertThat((List<Object>)document.getVariables().get(arrayVariableName)).hasSizeGreaterThan(index);
+        List<Object> list = (List<Object>)document.getVariables().get(arrayVariableName);
+        Assertions.assertThat(list).hasSizeGreaterThan(index);
+        Assertions.assertThat(list.get(index)).isNull();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void assertVariable(EditedExternalResponseDocument document,
+                                       String arrayVariableName,
+                                       int index,
+                                       String expectedValue
+    ) throws ClassCastException{
+        Assertions.assertThat((List<Object>)document.getVariables().get(arrayVariableName)).hasSizeGreaterThan(index);
+
+        List<Object> list = (List<Object>)document.getVariables().get(arrayVariableName);
+        Assertions.assertThat(list).hasSizeGreaterThan(index);
+        Assertions.assertThat(list.get(index)).isInstanceOf(String.class);
+        Assertions.assertThat((String)list.get(index)).isEqualTo(expectedValue);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void assertVariable(EditedExternalResponseDocument document,
+                                       String arrayVariableName,
+                                       int index,
+                                       int expectedValue
+    ) throws ClassCastException{
+        Assertions.assertThat((List<Object>)document.getVariables().get(arrayVariableName)).hasSizeGreaterThan(index);
+
+        List<Object> list = (List<Object>)document.getVariables().get(arrayVariableName);
+        Assertions.assertThat(list).hasSizeGreaterThan(index);
+        Assertions.assertThat(list.get(index)).isInstanceOf(Integer.class);
+        Assertions.assertThat((Integer)list.get(index)).isInstanceOf(Integer.class).isEqualTo(expectedValue);
     }
 }
