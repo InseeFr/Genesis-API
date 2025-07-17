@@ -75,18 +75,8 @@ public class EditedResponseController {
             if (!jsonFileName.toLowerCase().endsWith(".json")) {
                 throw new GenesisException(400, "File must be a JSON file !");
             }
-            try (InputStream inputStream = new FileInputStream(filePath)) {
-                editedPreviousResponseApiPort.readEditedPreviousFile(inputStream, questionnaireId, sourceState);
-            } catch (FileNotFoundException e) {
-                throw new GenesisException(404, "File %s not found".formatted(filePath));
-            } catch (IOException e) {
-                throw new GenesisException(500, e.toString());
-            }
-            try {
-                fileUtils.moveFiles(Path.of(filePath), fileUtils.getDoneFolder(questionnaireId, mode.getFolder()));
-            } catch (IOException e) {
-                throw new GenesisException(500, "Error while moving file to done : %s".formatted(e.toString()));
-            }
+            readEditedPreviousFile(questionnaireId, sourceState, filePath);
+            moveFiles(questionnaireId, mode, fileUtils, filePath);
             return ResponseEntity.ok("Edited previous variable file %s saved !".formatted(filePath));
         }catch (GenesisException ge){
             return ResponseEntity.status(HttpStatusCode.valueOf(ge.getStatus())).body(ge.getMessage());
@@ -111,21 +101,39 @@ public class EditedResponseController {
             if (!jsonFileName.toLowerCase().endsWith(".json")) {
                 throw new GenesisException(400, "File must be a JSON file !");
             }
-            try (InputStream inputStream = new FileInputStream(filePath)) {
-                editedExternalResponseApiPort.readEditedExternalFile(inputStream, questionnaireId);
-            } catch (FileNotFoundException e) {
-                throw new GenesisException(404, "File %s not found".formatted(filePath));
-            } catch (IOException e) {
-                throw new GenesisException(500, e.toString());
-            }
-            try {
-                fileUtils.moveFiles(Path.of(filePath), fileUtils.getDoneFolder(questionnaireId, mode.getFolder()));
-            } catch (IOException e) {
-                throw new GenesisException(500, "Error while moving file to done : %s".formatted(e.toString()));
-            }
+            readEditedExternalFile(questionnaireId, filePath);
+            moveFiles(questionnaireId, mode, fileUtils, filePath);
             return ResponseEntity.ok("Edited external variable file %s saved !".formatted(filePath));
         }catch (GenesisException ge){
             return ResponseEntity.status(HttpStatusCode.valueOf(ge.getStatus())).body(ge.getMessage());
+        }
+    }
+
+    private void readEditedPreviousFile(String questionnaireId, String sourceState, String filePath) throws GenesisException {
+        try (InputStream inputStream = new FileInputStream(filePath)) {
+            editedPreviousResponseApiPort.readEditedPreviousFile(inputStream, questionnaireId, sourceState);
+        } catch (FileNotFoundException e) {
+            throw new GenesisException(404, "File %s not found".formatted(filePath));
+        } catch (IOException e) {
+            throw new GenesisException(500, e.toString());
+        }
+    }
+
+    private void readEditedExternalFile(String questionnaireId, String filePath) throws GenesisException {
+        try (InputStream inputStream = new FileInputStream(filePath)) {
+            editedExternalResponseApiPort.readEditedExternalFile(inputStream, questionnaireId);
+        } catch (FileNotFoundException e) {
+            throw new GenesisException(404, "File %s not found".formatted(filePath));
+        } catch (IOException e) {
+            throw new GenesisException(500, e.toString());
+        }
+    }
+
+    private static void moveFiles(String questionnaireId, Mode mode, FileUtils fileUtils, String filePath) throws GenesisException {
+        try {
+            fileUtils.moveFiles(Path.of(filePath), fileUtils.getDoneFolder(questionnaireId, mode.getFolder()));
+        } catch (IOException e) {
+            throw new GenesisException(500, "Error while moving file to done : %s".formatted(e.toString()));
         }
     }
 }
