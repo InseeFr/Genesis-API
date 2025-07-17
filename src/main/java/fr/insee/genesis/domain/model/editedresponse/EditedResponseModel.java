@@ -6,7 +6,7 @@ import lombok.Builder;
 import java.util.List;
 
 @Builder
-public record EditedResponse (
+public record EditedResponseModel(
         String interrogationId,
         List<VariableQualityToolDto> editedPrevious,
         List<VariableQualityToolDto> editedExternal
