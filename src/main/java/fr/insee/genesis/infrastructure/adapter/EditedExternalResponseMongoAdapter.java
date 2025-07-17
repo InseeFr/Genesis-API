@@ -1,6 +1,6 @@
 package fr.insee.genesis.infrastructure.adapter;
 
-import fr.insee.genesis.domain.model.editedresponse.editedexternal.EditedExternalResponseModel;
+import fr.insee.genesis.domain.model.editedresponse.EditedExternalResponseModel;
 import fr.insee.genesis.domain.ports.spi.EditedExternalResponsePersistancePort;
 import fr.insee.genesis.infrastructure.document.editedexternal.EditedExternalResponseDocument;
 import fr.insee.genesis.infrastructure.mappers.EditedExternalResponseDocumentMapper;

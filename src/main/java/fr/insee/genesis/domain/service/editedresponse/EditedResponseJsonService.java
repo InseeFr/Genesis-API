@@ -1,10 +1,10 @@
 package fr.insee.genesis.domain.service.editedresponse;
 
-import fr.insee.genesis.controller.dto.EditedResponseDto;
 import fr.insee.genesis.controller.dto.VariableQualityToolDto;
 import fr.insee.genesis.controller.dto.VariableStateDto;
-import fr.insee.genesis.domain.model.editedresponse.editedexternal.EditedExternalResponseModel;
-import fr.insee.genesis.domain.model.editedresponse.editedprevious.EditedPreviousResponseModel;
+import fr.insee.genesis.domain.model.editedresponse.EditedExternalResponseModel;
+import fr.insee.genesis.domain.model.editedresponse.EditedPreviousResponseModel;
+import fr.insee.genesis.domain.model.editedresponse.EditedResponse;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.ports.api.EditedResponseApiPort;
 import fr.insee.genesis.domain.ports.spi.EditedExternalResponsePersistancePort;
@@ -31,8 +31,8 @@ public class EditedResponseJsonService implements EditedResponseApiPort {
     }
 
     @Override
-    public EditedResponseDto getEditedResponse(String questionnaireId, String interrogationId) {
-        EditedResponseDto editedResponseDto = EditedResponseDto.builder()
+    public EditedResponse getEditedResponse(String questionnaireId, String interrogationId) {
+        EditedResponse editedResponseDto = EditedResponse.builder()
                 .interrogationId(interrogationId)
                 .editedPrevious(new ArrayList<>())
                 .editedExternal(new ArrayList<>())
@@ -63,7 +63,6 @@ public class EditedResponseJsonService implements EditedResponseApiPort {
                 editedResponseDto.editedExternal().addAll(extractVariables(variable.getValue(), variable.getKey()));
             }
         }
-
 
         return editedResponseDto;
     }

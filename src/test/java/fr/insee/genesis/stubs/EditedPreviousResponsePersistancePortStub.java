@@ -1,7 +1,7 @@
 package fr.insee.genesis.stubs;
 
 import fr.insee.genesis.Constants;
-import fr.insee.genesis.domain.model.editedresponse.editedprevious.EditedPreviousResponseModel;
+import fr.insee.genesis.domain.model.editedresponse.EditedPreviousResponseModel;
 import fr.insee.genesis.domain.ports.spi.EditedPreviousResponsePersistancePort;
 import fr.insee.genesis.infrastructure.document.editedprevious.EditedPreviousResponseDocument;
 import fr.insee.genesis.infrastructure.mappers.EditedPreviousResponseDocumentMapper;

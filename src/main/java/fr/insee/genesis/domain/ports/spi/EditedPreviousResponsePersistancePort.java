@@ -1,6 +1,6 @@
 package fr.insee.genesis.domain.ports.spi;
 
-import fr.insee.genesis.domain.model.editedresponse.editedprevious.EditedPreviousResponseModel;
+import fr.insee.genesis.domain.model.editedresponse.EditedPreviousResponseModel;
 import fr.insee.genesis.infrastructure.document.editedprevious.EditedPreviousResponseDocument;
 
 import java.util.List;

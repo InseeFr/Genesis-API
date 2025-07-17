@@ -2,9 +2,9 @@ package fr.insee.genesis.controller.rest.responses;
 
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.TestConstants;
-import fr.insee.genesis.controller.dto.EditedResponseDto;
 import fr.insee.genesis.controller.dto.VariableQualityToolDto;
 import fr.insee.genesis.controller.dto.VariableStateDto;
+import fr.insee.genesis.domain.model.editedresponse.EditedResponse;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.service.editedresponse.EditedResponseJsonService;
@@ -97,7 +97,7 @@ class EditedResponseControllerTest {
             log.error((String)response.getBody());
         }
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(response.getBody()).isInstanceOf(EditedResponseDto.class);
+        Assertions.assertThat(response.getBody()).isInstanceOf(EditedResponse.class);
 
         EditedPreviousResponseDocument editedPreviousResponseDocument = previousStub.getMongoStub().get(Constants.MONGODB_EDITED_PREVIOUS_COLLECTION_NAME).stream().filter(
                 editedPreviousResponseDocument1 ->
@@ -110,10 +110,10 @@ class EditedResponseControllerTest {
                                 editedExternalResponseDocument1.getQuestionnaireId().equals(QUESTIONNAIRE_ID)
                                         && editedExternalResponseDocument1.getInterrogationId().equals(INTERROGATION_ID_1)
                 ).toList().getFirst();
-        EditedResponseDto editedResponseDto = (EditedResponseDto) response.getBody();
-        Assertions.assertThat(editedResponseDto.interrogationId()).isEqualTo(INTERROGATION_ID_1);
-        assertDocumentEqualToDto(editedPreviousResponseDocument, editedResponseDto);
-        assertDocumentEqualToDto(editedExternalResponseDocument, editedResponseDto);
+        EditedResponse editedResponse = (EditedResponse) response.getBody();
+        Assertions.assertThat(editedResponse.interrogationId()).isEqualTo(INTERROGATION_ID_1);
+        assertDocumentEqualToDto(editedPreviousResponseDocument, editedResponse);
+        assertDocumentEqualToDto(editedExternalResponseDocument, editedResponse);
     }
 
     @Test
@@ -134,7 +134,7 @@ class EditedResponseControllerTest {
             log.error((String)response.getBody());
         }
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(response.getBody()).isInstanceOf(EditedResponseDto.class);
+        Assertions.assertThat(response.getBody()).isInstanceOf(EditedResponse.class);
 
         EditedPreviousResponseDocument editedPreviousResponseDocument = previousStub.getMongoStub().get(Constants.MONGODB_EDITED_PREVIOUS_COLLECTION_NAME).stream().filter(
                 editedPreviousResponseDocument1 ->
@@ -142,10 +142,10 @@ class EditedResponseControllerTest {
                                 && editedPreviousResponseDocument1.getInterrogationId().equals(INTERROGATION_ID_2)
         ).toList().getFirst();
 
-        EditedResponseDto editedResponseDto = (EditedResponseDto) response.getBody();
-        Assertions.assertThat(editedResponseDto.interrogationId()).isEqualTo(INTERROGATION_ID_2);
-        assertDocumentEqualToDto(editedPreviousResponseDocument, editedResponseDto);
-        Assertions.assertThat(editedResponseDto.editedExternal()).isNotNull().isEmpty();
+        EditedResponse editedResponse = (EditedResponse) response.getBody();
+        Assertions.assertThat(editedResponse.interrogationId()).isEqualTo(INTERROGATION_ID_2);
+        assertDocumentEqualToDto(editedPreviousResponseDocument, editedResponse);
+        Assertions.assertThat(editedResponse.editedExternal()).isNotNull().isEmpty();
     }
 
     @Test
@@ -159,11 +159,11 @@ class EditedResponseControllerTest {
 
         //THEN
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(response.getBody()).isInstanceOf(EditedResponseDto.class);
-        EditedResponseDto editedResponseDto = (EditedResponseDto) response.getBody();
-        Assertions.assertThat(editedResponseDto.interrogationId()).isEqualTo(INTERROGATION_ID_1);
-        Assertions.assertThat(editedResponseDto.editedPrevious()).isNotNull().isEmpty();
-        Assertions.assertThat(editedResponseDto.editedExternal()).isNotNull().isEmpty();
+        Assertions.assertThat(response.getBody()).isInstanceOf(EditedResponse.class);
+        EditedResponse editedResponse = (EditedResponse) response.getBody();
+        Assertions.assertThat(editedResponse.interrogationId()).isEqualTo(INTERROGATION_ID_1);
+        Assertions.assertThat(editedResponse.editedPrevious()).isNotNull().isEmpty();
+        Assertions.assertThat(editedResponse.editedExternal()).isNotNull().isEmpty();
     }
 
     //PREVIOUS
@@ -742,12 +742,12 @@ class EditedResponseControllerTest {
 
 
     private void assertDocumentEqualToDto(EditedPreviousResponseDocument editedPreviousResponseDocument,
-                                          EditedResponseDto editedResponseDto) {
+                                          EditedResponse editedResponse) {
         //For each variable of document
         for (Map.Entry<String, Object> documentVariable : editedPreviousResponseDocument.getVariables().entrySet()) {
             //Get edited previous dtos of that variable (1 per iteration)
             List<VariableQualityToolDto> variableQualityToolDtosOfEntry =
-                    editedResponseDto.editedPrevious().stream().filter(
+                    editedResponse.editedPrevious().stream().filter(
                             variableQualityToolDto -> variableQualityToolDto.getVariableName().equals(documentVariable.getKey())
                     ).toList();
             assertEntryEqualToDto(documentVariable, variableQualityToolDtosOfEntry);
@@ -755,12 +755,12 @@ class EditedResponseControllerTest {
     }
 
     private void assertDocumentEqualToDto(EditedExternalResponseDocument editedExternalResponseDocument,
-                                          EditedResponseDto editedResponseDto) {
+                                          EditedResponse editedResponse) {
         //For each variable of document
         for (Map.Entry<String, Object> documentVariable : editedExternalResponseDocument.getVariables().entrySet()) {
             //Get edited previous dtos of that variable (1 per iteration)
             List<VariableQualityToolDto> variableQualityToolDtosOfEntry =
-                    editedResponseDto.editedExternal().stream().filter(
+                    editedResponse.editedExternal().stream().filter(
                             variableQualityToolDto -> variableQualityToolDto.getVariableName().equals(documentVariable.getKey())
                     ).toList();
             assertEntryEqualToDto(documentVariable, variableQualityToolDtosOfEntry);
@@ -866,5 +866,6 @@ class EditedResponseControllerTest {
         Assertions.assertThat(list).hasSizeGreaterThan(index);
         Assertions.assertThat(list.get(index)).isInstanceOf(Integer.class);
         Assertions.assertThat((Integer)list.get(index)).isInstanceOf(Integer.class).isEqualTo(expectedValue);
+
     }
 }

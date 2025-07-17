@@ -1,4 +1,4 @@
-package fr.insee.genesis.domain.model.editedresponse.editedexternal;
+package fr.insee.genesis.domain.model.editedresponse;
 
 import lombok.Builder;
 import lombok.Data;

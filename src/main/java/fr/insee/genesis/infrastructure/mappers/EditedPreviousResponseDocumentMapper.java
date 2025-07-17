@@ -1,6 +1,6 @@
 package fr.insee.genesis.infrastructure.mappers;
 
-import fr.insee.genesis.domain.model.editedresponse.editedprevious.EditedPreviousResponseModel;
+import fr.insee.genesis.domain.model.editedresponse.EditedPreviousResponseModel;
 import fr.insee.genesis.infrastructure.document.editedprevious.EditedPreviousResponseDocument;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
