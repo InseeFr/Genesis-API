@@ -46,7 +46,7 @@ public class EditedResponseController {
 
     @Operation(summary = "Get edited variables (edited and previous)")
     @GetMapping(path = "/")
-    @PreAuthorize("hasRole('USER_KRAFTWERK')")
+    @PreAuthorize("hasRole('USER_PLATINE')")
     public ResponseEntity<Object> getEditedResponses(
             @RequestParam("questionnaireId") String questionnaireId,
             @RequestParam("interrogationId") String interrogationId
@@ -58,7 +58,7 @@ public class EditedResponseController {
 
     @Operation(summary = "Add edited previous json file")
     @PostMapping(path = "previous/json")
-    @PreAuthorize("hasRole('USER_KRAFTWERK')")
+    @PreAuthorize("hasAnyRole('USER_PLATINE','SCHEDULER')")
     public ResponseEntity<Object> readEditedPreviousJson(
             @RequestParam("questionnaireId") String questionnaireId,
             @RequestParam("mode") Mode mode,
@@ -85,7 +85,7 @@ public class EditedResponseController {
 
     @Operation(summary = "Add edited external json file")
     @PostMapping(path = "/external/json")
-    @PreAuthorize("hasRole('USER_KRAFTWERK')")
+    @PreAuthorize("hasRole('USER_PLATINE','SCHEDULER')")
     public ResponseEntity<Object> readEditedExternalJson(
             @RequestParam("questionnaireId") String questionnaireId,
             @RequestParam("mode") Mode mode,
