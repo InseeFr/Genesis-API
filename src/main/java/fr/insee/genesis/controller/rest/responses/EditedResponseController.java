@@ -31,8 +31,8 @@ import java.nio.file.Path;
 @AllArgsConstructor
 public class EditedResponseController {
 
-    private final EditedExternalResponseApiPort editedExternalResponseApiPort;
     private final EditedPreviousResponseApiPort editedPreviousResponseApiPort;
+    private final EditedExternalResponseApiPort editedExternalResponseApiPort;
     private final EditedResponseApiPort editedResponseApiPort;
     private final Config config;
 
