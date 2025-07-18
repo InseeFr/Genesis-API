@@ -85,7 +85,7 @@ public class EditedResponseController {
 
     @Operation(summary = "Add edited external json file")
     @PostMapping(path = "/external/json")
-    @PreAuthorize("hasRole('USER_PLATINE','SCHEDULER')")
+    @PreAuthorize("hasAnyRole('USER_PLATINE','SCHEDULER')")
     public ResponseEntity<Object> readEditedExternalJson(
             @RequestParam("questionnaireId") String questionnaireId,
             @RequestParam("mode") Mode mode,
