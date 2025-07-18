@@ -8,8 +8,8 @@ import fr.insee.genesis.domain.ports.api.EditedResponseApiPort;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import io.swagger.v3.oas.annotations.Operation;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -28,21 +28,13 @@ import java.nio.file.Path;
 @RequestMapping(path = "/edited")
 @Controller
 @Slf4j
+@AllArgsConstructor
 public class EditedResponseController {
 
     private final EditedExternalResponseApiPort editedExternalResponseApiPort;
     private final EditedPreviousResponseApiPort editedPreviousResponseApiPort;
     private final EditedResponseApiPort editedResponseApiPort;
     private final Config config;
-
-    @Autowired
-    public EditedResponseController(EditedPreviousResponseApiPort editedPreviousResponseApiPort,
-                                    EditedExternalResponseApiPort editedExternalResponseApiPort, EditedResponseApiPort editedResponseApiPort, Config config) {
-        this.editedPreviousResponseApiPort = editedPreviousResponseApiPort;
-        this.editedExternalResponseApiPort = editedExternalResponseApiPort;
-        this.editedResponseApiPort = editedResponseApiPort;
-        this.config = config;
-    }
 
     @Operation(summary = "Get edited variables (edited and previous)")
     @GetMapping(path = "/")
