@@ -1,4 +1,8 @@
 # Changelog
+## 1.6.2 [2025-07-21]
+### Added
+- Edited contextual variables storage
+
 ## 1.6.1 [2025-07-15]
 ### Added
 - Extract Raw responses for Generic endpoint

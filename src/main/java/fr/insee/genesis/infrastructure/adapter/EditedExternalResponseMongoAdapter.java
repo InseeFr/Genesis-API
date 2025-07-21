@@ -1,10 +1,11 @@
 package fr.insee.genesis.infrastructure.adapter;
 
-import fr.insee.genesis.domain.model.editedexternal.EditedExternalResponseModel;
+import fr.insee.genesis.domain.model.editedresponse.EditedExternalResponseModel;
 import fr.insee.genesis.domain.ports.spi.EditedExternalResponsePersistancePort;
 import fr.insee.genesis.infrastructure.document.editedexternal.EditedExternalResponseDocument;
 import fr.insee.genesis.infrastructure.mappers.EditedExternalResponseDocumentMapper;
 import fr.insee.genesis.infrastructure.repository.EditedExternalResponseMongoDBRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @Qualifier("editedExternalResponseMongoAdapter")
 public class EditedExternalResponseMongoAdapter implements EditedExternalResponsePersistancePort {
@@ -32,7 +34,7 @@ public class EditedExternalResponseMongoAdapter implements EditedExternalRespons
         MatchOperation match = Aggregation.match(Criteria.where("questionnaireId").is(questionnaireId));
         MergeOperation merge = Aggregation
                 .merge()
-                .intoCollection("editedExternalResponses_%s_backup".formatted(questionnaireId))
+                .intoCollection(getFormattedCollection(questionnaireId))
                 .whenMatched(MergeOperation.WhenDocumentsMatch.replaceDocument())
                 .whenDocumentsDontMatch(MergeOperation.WhenDocumentsDontMatch.insertNewDocument())
                 .build();
@@ -42,10 +44,14 @@ public class EditedExternalResponseMongoAdapter implements EditedExternalRespons
         mongoTemplate.aggregate(aggregation, "editedExternalResponses", EditedExternalResponseDocument.class);
     }
 
+    private static String getFormattedCollection(String questionnaireId) {
+        return "editedExternalResponses_%s_backup".formatted(questionnaireId);
+    }
+
     @Override
     public void deleteBackup(String questionnaireId) {
-        if (mongoTemplate.collectionExists("editedExternalResponses_%s_backup".formatted(questionnaireId))){
-            mongoTemplate.dropCollection("editedExternalResponses_%s_backup".formatted(questionnaireId));
+        if (mongoTemplate.collectionExists(getFormattedCollection(questionnaireId))){
+            mongoTemplate.dropCollection(getFormattedCollection(questionnaireId));
         }
     }
 
@@ -61,7 +67,7 @@ public class EditedExternalResponseMongoAdapter implements EditedExternalRespons
 
         Aggregation aggregation = Aggregation.newAggregation(merge);
 
-        mongoTemplate.aggregate(aggregation, "editedExternalResponses_%s_backup".formatted(questionnaireId),
+        mongoTemplate.aggregate(aggregation, getFormattedCollection(questionnaireId),
                 EditedExternalResponseDocument.class);
     }
 
@@ -75,5 +81,18 @@ public class EditedExternalResponseMongoAdapter implements EditedExternalRespons
     @Override
     public void delete(String questionnaireId) {
         repository.deleteByQuestionnaireId(questionnaireId);
+    }
+
+    @Override
+    public EditedExternalResponseModel findByQuestionnaireIdAndInterrogationId(String questionnaireId, String interrogationId) {
+        List<EditedExternalResponseDocument> editedExternalResponseDocumentList =
+                repository.findByQuestionnaireIdAndInterrogationId(questionnaireId, interrogationId);
+        if(editedExternalResponseDocumentList.isEmpty()){
+            return null;
+        }
+        if(editedExternalResponseDocumentList.size() > 1){
+            log.warn("More than 1 edited external response document for questionnaire {}, interrogation {}", questionnaireId, interrogationId);
+        }
+        return EditedExternalResponseDocumentMapper.INSTANCE.documentToModel(editedExternalResponseDocumentList.getFirst());
     }
 }
