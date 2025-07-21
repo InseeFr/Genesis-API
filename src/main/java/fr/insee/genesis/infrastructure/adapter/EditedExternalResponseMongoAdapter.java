@@ -34,7 +34,7 @@ public class EditedExternalResponseMongoAdapter implements EditedExternalRespons
         MatchOperation match = Aggregation.match(Criteria.where("questionnaireId").is(questionnaireId));
         MergeOperation merge = Aggregation
                 .merge()
-                .intoCollection("editedExternalResponses_%s_backup".formatted(questionnaireId))
+                .intoCollection(getFormattedCollection(questionnaireId))
                 .whenMatched(MergeOperation.WhenDocumentsMatch.replaceDocument())
                 .whenDocumentsDontMatch(MergeOperation.WhenDocumentsDontMatch.insertNewDocument())
                 .build();
@@ -44,10 +44,14 @@ public class EditedExternalResponseMongoAdapter implements EditedExternalRespons
         mongoTemplate.aggregate(aggregation, "editedExternalResponses", EditedExternalResponseDocument.class);
     }
 
+    private static String getFormattedCollection(String questionnaireId) {
+        return "editedExternalResponses_%s_backup".formatted(questionnaireId);
+    }
+
     @Override
     public void deleteBackup(String questionnaireId) {
-        if (mongoTemplate.collectionExists("editedExternalResponses_%s_backup".formatted(questionnaireId))){
-            mongoTemplate.dropCollection("editedExternalResponses_%s_backup".formatted(questionnaireId));
+        if (mongoTemplate.collectionExists(getFormattedCollection(questionnaireId))){
+            mongoTemplate.dropCollection(getFormattedCollection(questionnaireId));
         }
     }
 
@@ -63,7 +67,7 @@ public class EditedExternalResponseMongoAdapter implements EditedExternalRespons
 
         Aggregation aggregation = Aggregation.newAggregation(merge);
 
-        mongoTemplate.aggregate(aggregation, "editedExternalResponses_%s_backup".formatted(questionnaireId),
+        mongoTemplate.aggregate(aggregation, getFormattedCollection(questionnaireId),
                 EditedExternalResponseDocument.class);
     }
 

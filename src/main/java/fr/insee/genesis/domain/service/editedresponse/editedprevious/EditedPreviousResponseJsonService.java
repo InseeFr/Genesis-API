@@ -63,7 +63,7 @@ public class EditedPreviousResponseJsonService implements EditedPreviousResponse
                 if(toSave.size() >= BLOCK_SIZE){
                     savedCount = saveBlock(toSave, savedCount);
                 }
-                jsonParser.nextToken(); //skip }
+                jsonParser.nextToken();
             }
             savedCount = saveBlock(toSave, savedCount);
             log.info("Reached end of edited previous file, saved %d interrogations".formatted(savedCount));
@@ -102,10 +102,10 @@ public class EditedPreviousResponseJsonService implements EditedPreviousResponse
             if(jsonParser.currentToken() == null){
                 throw new GenesisException(400, "editedPrevious object not found in JSON");
             }
-            if(jsonParser.currentToken().equals(JsonToken.FIELD_NAME) && jsonParser.currentName() != null){
-                if (jsonParser.currentName().equals("editedPrevious")) {
+            if(jsonParser.currentToken().equals(JsonToken.FIELD_NAME)
+                    && jsonParser.currentName() != null
+                    && jsonParser.currentName().equals("editedPrevious")) {
                     isTokenFound = true;
-                }
             }
         }
     }
@@ -122,7 +122,7 @@ public class EditedPreviousResponseJsonService implements EditedPreviousResponse
                 .sourceState(sourceState)
                 .variables(new HashMap<>())
                 .build();
-        jsonParser.nextToken(); // read {
+        jsonParser.nextToken();
         while (!jsonParser.currentToken().equals(JsonToken.END_OBJECT)){
             if(jsonParser.currentToken().equals(JsonToken.FIELD_NAME) && jsonParser.currentName().equals("interrogationId")){
                 jsonParser.nextToken();

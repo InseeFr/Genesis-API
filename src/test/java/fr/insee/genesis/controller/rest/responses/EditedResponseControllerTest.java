@@ -19,6 +19,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -392,26 +393,12 @@ class EditedResponseControllerTest {
         Assertions.assertThat(response.getStatusCode().value()).isEqualTo(400);
     }
 
-    @Test
-    @SneakyThrows
-    void readPreviousJson_no_interrogation_id(){
-        String fileName = "no_interrogationId.json";
-        //GIVEN
-        Files.createDirectories(SOURCE_PATH_PREVIOUS);
-        Files.copy(
-                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("edited_previous").resolve(fileName),
-                SOURCE_PATH_PREVIOUS.resolve(fileName),
-                StandardCopyOption.REPLACE_EXISTING
-        );
 
-        //WHEN + THEN
-        ResponseEntity<Object> response = editedResponseController.readEditedPreviousJson(QUESTIONNAIRE_ID_PREVIOUS, Mode.WEB, null, fileName);
-        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(400);
-    }
-    @Test
     @SneakyThrows
-    void readPreviousJson_only_one_interrogation_id(){
-        String fileName = "only_one_interrogationId.json";
+    @ParameterizedTest
+    @ValueSource(strings = {"no_interrogationId.json", "only_one_interrogationId.json", "double_interrogationId.json"})
+    @DisplayName("Previous json return 400 if no interrogationId, only one interrogationId, or double interrogationId")
+    void readPreviousJson_no_interrogation_id(String fileName){
         //GIVEN
         Files.createDirectories(SOURCE_PATH_PREVIOUS);
         Files.copy(
@@ -425,22 +412,6 @@ class EditedResponseControllerTest {
         Assertions.assertThat(response.getStatusCode().value()).isEqualTo(400);
     }
 
-    @Test
-    @SneakyThrows
-    void readPreviousJson_double_interrogation_id(){
-        String fileName = "double_interrogationId.json";
-        //GIVEN
-        Files.createDirectories(SOURCE_PATH_PREVIOUS);
-        Files.copy(
-                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("edited_previous").resolve(fileName),
-                SOURCE_PATH_PREVIOUS.resolve(fileName),
-                StandardCopyOption.REPLACE_EXISTING
-        );
-
-        //WHEN + THEN
-        ResponseEntity<Object> response = editedResponseController.readEditedPreviousJson(QUESTIONNAIRE_ID_PREVIOUS, Mode.WEB, null, fileName);
-        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(400);
-    }
 
     //EXTERNAL
     @Test

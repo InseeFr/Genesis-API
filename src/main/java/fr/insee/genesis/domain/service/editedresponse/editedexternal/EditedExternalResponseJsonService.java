@@ -59,7 +59,7 @@ public class EditedExternalResponseJsonService implements EditedExternalResponse
                 if(toSave.size() >= BLOCK_SIZE){
                     savedCount = saveBlock(toSave, savedCount);
                 }
-                jsonParser.nextToken(); //skip }
+                jsonParser.nextToken();
             }
             editedExternalResponsePersistancePort.saveAll(toSave);
             savedCount += toSave.size();
@@ -81,10 +81,10 @@ public class EditedExternalResponseJsonService implements EditedExternalResponse
             if(jsonParser.currentToken() == null){
                 throw new GenesisException(400, "editedExternal object not found in JSON");
             }
-            if(jsonParser.currentToken().equals(JsonToken.FIELD_NAME) && jsonParser.currentName() != null){
-                if (jsonParser.currentName().equals("editedExternal")) {
+            if(jsonParser.currentToken().equals(JsonToken.FIELD_NAME)
+                    && jsonParser.currentName() != null
+                    && jsonParser.currentName().equals("editedExternal")) {
                     isTokenFound = true;
-                }
             }
         }
     }
@@ -124,7 +124,7 @@ public class EditedExternalResponseJsonService implements EditedExternalResponse
                 .questionnaireId(questionnaireId)
                 .variables(new HashMap<>())
                 .build();
-        jsonParser.nextToken(); // read {
+        jsonParser.nextToken();
         while (!jsonParser.currentToken().equals(JsonToken.END_OBJECT)){
             if(jsonParser.currentToken().equals(JsonToken.FIELD_NAME) && jsonParser.currentName().equals("interrogationId")){
                 jsonParser.nextToken();

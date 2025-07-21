@@ -34,7 +34,7 @@ public class EditedPreviousResponseMongoAdapter implements EditedPreviousRespons
         MatchOperation match = Aggregation.match(Criteria.where("questionnaireId").is(questionnaireId));
         MergeOperation merge = Aggregation
                 .merge()
-                .intoCollection("editedPreviousResponses_%s_backup".formatted(questionnaireId))
+                .intoCollection(getFormattedCollection(questionnaireId))
                 .whenMatched(MergeOperation.WhenDocumentsMatch.replaceDocument())
                 .whenDocumentsDontMatch(MergeOperation.WhenDocumentsDontMatch.insertNewDocument())
                 .build();
@@ -44,10 +44,14 @@ public class EditedPreviousResponseMongoAdapter implements EditedPreviousRespons
         mongoTemplate.aggregate(aggregation, "editedPreviousResponses", EditedPreviousResponseDocument.class);
     }
 
+    private static String getFormattedCollection(String questionnaireId) {
+        return "editedPreviousResponses_%s_backup".formatted(questionnaireId);
+    }
+
     @Override
     public void deleteBackup(String questionnaireId) {
-        if (mongoTemplate.collectionExists("editedPreviousResponses_%s_backup".formatted(questionnaireId))){
-            mongoTemplate.dropCollection("editedPreviousResponses_%s_backup".formatted(questionnaireId));
+        if (mongoTemplate.collectionExists(getFormattedCollection(questionnaireId))){
+            mongoTemplate.dropCollection(getFormattedCollection(questionnaireId));
         }
     }
 
@@ -63,7 +67,7 @@ public class EditedPreviousResponseMongoAdapter implements EditedPreviousRespons
 
         Aggregation aggregation = Aggregation.newAggregation(merge);
 
-        mongoTemplate.aggregate(aggregation, "editedPreviousResponses_%s_backup".formatted(questionnaireId),
+        mongoTemplate.aggregate(aggregation, getFormattedCollection(questionnaireId),
                 EditedPreviousResponseDocument.class);
     }
 
