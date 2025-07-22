@@ -1,8 +1,8 @@
 package fr.insee.genesis.domain.service.surveyunit;
 
+import fr.insee.bpm.metadata.model.VariableType;
 import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.controller.dto.CampaignWithQuestionnaire;
-import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
 import fr.insee.genesis.controller.dto.QuestionnaireWithCampaign;
 import fr.insee.genesis.controller.dto.SurveyUnitDto;
 import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
@@ -11,6 +11,7 @@ import fr.insee.genesis.controller.dto.VariableInputDto;
 import fr.insee.genesis.controller.dto.VariableStateDto;
 import fr.insee.genesis.controller.services.MetadataService;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
+import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VarIdScopeTuple;
@@ -600,19 +601,25 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         }
         if(value == null) return null;
         if(value.isEmpty()) return value;
-        switch (variablesMap.getVariable(variableName).getType()){
-            case INTEGER -> {
-                return Integer.parseInt(value);
+        VariableType variableType = variablesMap.getVariable(variableName).getType();
+        try {
+            switch (variableType) {
+                case INTEGER -> {
+                    return Integer.parseInt(value);
+                }
+                case BOOLEAN -> {
+                    return Boolean.parseBoolean(value);
+                }
+                case NUMBER -> {
+                    return Double.parseDouble(value);
+                }
+                default -> {
+                    return value;
+                }
             }
-            case BOOLEAN -> {
-                return Boolean.parseBoolean(value);
-            }
-            case NUMBER -> {
-                return Double.parseDouble(value);
-            }
-            default -> {
-                return value;
-            }
+        }catch (NumberFormatException e){
+            log.warn("Invalid value {} for variable {}, expected type {}", value, variableName, variableType);
+            return value;
         }
     }
 

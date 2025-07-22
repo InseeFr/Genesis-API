@@ -303,6 +303,54 @@ class ResponseControllerTest {
     }
 
     @Test
+    void getLatestByStatesSurveyDataTest_invalid_collected() throws GenesisException {
+        //GIVEN
+        String variableName = "TABLEAUTIC21"; //Number variable
+        Utils.addAdditionalSurveyUnitModelToMongoStub(DataState.COLLECTED,
+                variableName,
+                "?",
+                "?",
+                LocalDateTime.of(1999,2,2,0,0,0),
+                LocalDateTime.of(1999,2,2,0,0,0),
+                surveyUnitPersistencePortStub
+        );
+
+        dataProcessingContextPersistancePortStub.getMongoStub().add(new DataProcessingContextDocument(
+                "TEST-TABLEAUX", new ArrayList<>(), true
+
+        ));
+
+
+        //WHEN
+        ResponseEntity<Object> response = responseControllerStatic.findResponsesByInterrogationAndQuestionnaireLatestStates(
+                DEFAULT_INTERROGATION_ID,
+                DEFAULT_QUESTIONNAIRE_ID
+        );
+
+
+        //THEN
+        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(200);
+        SurveyUnitQualityToolDto surveyUnitQualityToolDto = (SurveyUnitQualityToolDto) response.getBody();
+
+        Assertions.assertThat(surveyUnitQualityToolDto).isNotNull();
+
+        Assertions.assertThat(surveyUnitQualityToolDto.getInterrogationId()).isEqualTo(DEFAULT_INTERROGATION_ID);
+
+        List<VariableQualityToolDto> variableQualityToolDtos = surveyUnitQualityToolDto.getCollectedVariables().stream().filter(
+                variableQualityToolDto -> variableQualityToolDto.getVariableName().equals(variableName)
+                        && variableQualityToolDto.getIteration().equals(1)
+        ).toList();
+        Assertions.assertThat(variableQualityToolDtos).hasSize(1);
+        VariableQualityToolDto variableQualityToolDto = variableQualityToolDtos.getFirst();
+
+        Assertions.assertThat(variableQualityToolDto.getVariableStateDtoList()
+                        .stream().filter(
+                                variableStatePerret -> variableStatePerret.getState().equals(DataState.COLLECTED)
+                        ).toList().getFirst().getValue())
+                .isEqualTo("?");
+    }
+
+    @Test
     void saveEditedTest() {
         //GIVEN
         surveyUnitPersistencePortStub.getMongoStub().clear();
