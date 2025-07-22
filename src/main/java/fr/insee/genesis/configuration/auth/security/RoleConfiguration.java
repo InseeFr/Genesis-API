@@ -31,6 +31,9 @@ public class RoleConfiguration {
     @Value("#{'${app.role.collect-platform.claims}'.split(',')}")
     private List<String> collectPlatformClaims;
 
+    @Value("#{'${app.role.user-back-office.claims}'.split(',')}")
+    private List<String> userBackOfficeClaims;
+
     @Value("#{'${app.role.scheduler.claims}'.split(',')}")
     private List<String> schedulerClaims;
 
@@ -50,10 +53,12 @@ public class RoleConfiguration {
         return RoleHierarchyImpl.withDefaultRolePrefix()
                 .role(ApplicationRole.ADMIN.toString()).implies(ApplicationRole.USER_KRAFTWERK.toString())
                 .role(ApplicationRole.ADMIN.toString()).implies(ApplicationRole.USER_PLATINE.toString())
+                .role(ApplicationRole.ADMIN.toString()).implies(ApplicationRole.USER_BACK_OFFICE.toString())
                 .role(ApplicationRole.ADMIN.toString()).implies(ApplicationRole.COLLECT_PLATFORM.toString())
                 .role(ApplicationRole.ADMIN.toString()).implies(ApplicationRole.SCHEDULER.toString())
                 .role(ApplicationRole.USER_KRAFTWERK.toString()).implies(ApplicationRole.READER.toString())
                 .role(ApplicationRole.USER_PLATINE.toString()).implies(ApplicationRole.READER.toString())
+                .role(ApplicationRole.USER_BACK_OFFICE.toString()).implies(ApplicationRole.READER.toString())
                 .build();
     }
 
@@ -85,6 +90,11 @@ public class RoleConfiguration {
                 .computeIfAbsent(claim, k -> new ArrayList<>())
                 .add(String.valueOf(ApplicationRole.USER_PLATINE)));
 
+        // Ajout des claims pour le rôle USER_BACK_OFFICE
+        userBackOfficeClaims.forEach(claim -> rolesByClaim
+                .computeIfAbsent(claim, k -> new ArrayList<>())
+                .add(String.valueOf(ApplicationRole.USER_BACK_OFFICE)));
+
         // Add claims for the COLLECT_PLATFORM role
         collectPlatformClaims.forEach(claim -> rolesByClaim
                 .computeIfAbsent(claim, k -> new ArrayList<>())
@@ -102,5 +112,4 @@ public class RoleConfiguration {
 
         log.info("Roles configuration : {}", rolesByClaim);
     }
-
 }

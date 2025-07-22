@@ -33,6 +33,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -43,6 +44,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.POST;
+import static org.springframework.http.HttpMethod.PUT;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -58,6 +60,7 @@ class ControllerAccessTest {
     // Constants for user roles
     private static final String USER_KRAFTWERK = "USER_KRAFTWERK";
     private static final String USER_PLATINE = "USER_PLATINE";
+    private static final String USER_BACK_OFFICE = "USER_BACK_OFFICE";
     private static final String ADMIN = "ADMIN";
     private static final String READER = "READER";
     // JWT claim properties loaded from application properties
@@ -115,9 +118,18 @@ class ControllerAccessTest {
     private static Stream<Arguments> responseEndpoint() {
         return Stream.of(
                 Arguments.of(GET,"/response/lunatic-json/get/unprocessed"),
-                Arguments.of(GET,"/response//lunatic-json/get/by-interrogation-mode-and-campaign"),
-                Arguments.of(POST,"/response//lunatic-json/process"),
-                Arguments.of(GET,"/response//lunatic-json/campaignId=TOTO")
+                Arguments.of(GET,"/response/lunatic-json/get/by-interrogation-mode-and-campaign"),
+                Arguments.of(POST,"/response/lunatic-json/process"),
+                Arguments.of(GET,"/response/lunatic-json/campaignId=TOTO")
+        );
+    }
+
+    private static Stream<Arguments> backOfficeEndpointProd() {
+        return Stream.of(
+                Arguments.of(PUT,"/lunatic-model/save?questionnaireId=TEST", new HashMap<>()),
+                Arguments.of(POST,"/edited/previous/json?questionnaireId=TEST&mode=WEB&jsonFileName=truc.json"),
+                Arguments.of(POST,"/edited/external/json?questionnaireId=TEST&mode=WEB&jsonFileName=truc.json"),
+                Arguments.of(PUT,"/context/review?partitionId=TEST")
         );
     }
 
@@ -155,6 +167,45 @@ class ControllerAccessTest {
     @DisplayName("Platine users should access reader-allowed services")
     void platine_users_should_access_reader_allowed_services(String endpointURI) throws Exception {
         Jwt jwt = generateJwt(List.of("utilisateur_Platine"), USER_PLATINE);
+        when(jwtDecoder.decode(anyString())).thenReturn(jwt);
+        mockMvc.perform(get(endpointURI).header("Authorization", "bearer token_blabla"))
+                .andExpect(status().is(oneOf(200, 404)));
+    }
+
+    /**
+     * Tests that users with the "USER_BACK_OFFICE" role can access read-only endpoints.
+     */
+    @ParameterizedTest
+    @MethodSource("backOfficeEndpointProd")
+    @DisplayName("Back office users should access prod services")
+    void back_office_users_should_access_prod_services(HttpMethod method, String endpointURI) throws Exception {
+        Jwt jwt = generateJwt(List.of("utilisateur_Back_Office"), USER_BACK_OFFICE);
+        when(jwtDecoder.decode(anyString())).thenReturn(jwt);
+        MockHttpServletRequestBuilder requestBuilder;
+        if (method == HttpMethod.GET) {
+            requestBuilder = get(endpointURI);
+        } else if (method == HttpMethod.POST) {
+            requestBuilder = post(endpointURI);
+        } else if (method == PUT) {
+            requestBuilder = put(endpointURI);
+        } else if (method == HttpMethod.DELETE) {
+            requestBuilder = delete(endpointURI);
+        } else {
+            throw new IllegalArgumentException("Unsupported HTTP method: " + method);
+        }
+
+        mockMvc.perform(requestBuilder.header("Authorization", "bearer token_blabla"))
+                .andExpect(status().is(oneOf(200, 400, 404)));
+    }
+
+    /**
+     * Tests that users with the "USER_BACK_OFFICE" role can access read-only endpoints.
+     */
+    @ParameterizedTest
+    @MethodSource("endpointsReader")
+    @DisplayName("Back office users should access reader-allowed services")
+    void back_office_users_should_access_reader_allowed_services(String endpointURI) throws Exception {
+        Jwt jwt = generateJwt(List.of("utilisateur_Back_Office"), USER_BACK_OFFICE);
         when(jwtDecoder.decode(anyString())).thenReturn(jwt);
         mockMvc.perform(get(endpointURI).header("Authorization", "bearer token_blabla"))
                 .andExpect(status().is(oneOf(200, 404)));
@@ -226,7 +277,7 @@ class ControllerAccessTest {
             requestBuilder = get(endpointURI);
         } else if (method == HttpMethod.POST) {
             requestBuilder = post(endpointURI);
-        } else if (method == HttpMethod.PUT) {
+        } else if (method == PUT) {
             requestBuilder = put(endpointURI);
         } else if (method == HttpMethod.DELETE) {
             requestBuilder = delete(endpointURI);

@@ -6,6 +6,7 @@ public enum ApplicationRole {
     USER_PLATINE,
     COLLECT_PLATFORM,
     SCHEDULER,
-    READER
+    READER,
+    USER_BACK_OFFICE
 }
 
