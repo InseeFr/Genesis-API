@@ -2,7 +2,6 @@ package fr.insee.genesis.infrastructure.adapter;
 
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.domain.model.surveyunit.GroupedInterrogation;
-import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
 import fr.insee.genesis.domain.ports.spi.LunaticJsonRawDataPersistencePort;
