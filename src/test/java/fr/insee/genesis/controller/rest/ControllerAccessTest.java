@@ -99,10 +99,10 @@ class ControllerAccessTest {
 
     private static Stream<Arguments> responseEndpoint() {
         return Stream.of(
-                Arguments.of(GET,"/response/lunatic-json/get/unprocessed"),
-                Arguments.of(GET,"/response//lunatic-json/get/by-interrogation-mode-and-campaign"),
-                Arguments.of(POST,"/response//lunatic-json/process"),
-                Arguments.of(GET,"/response//lunatic-json/campaignId=TOTO")
+                Arguments.of(GET,"/responses/raw/lunatic-json/get/unprocessed"),
+                Arguments.of(GET,"/responses/raw/lunatic-json/get/by-interrogation-mode-and-campaign?interrogationId=test&campaignName=test&mode=WEB"),
+                Arguments.of(GET,"/responses/raw/lunatic-json/campaignId=TOTO"),
+                Arguments.of(POST,"/responses/raw/lunatic-json/process?campaignName=test&questionnaireId=idTest")
         );
     }
 
@@ -211,11 +211,12 @@ class ControllerAccessTest {
     @MethodSource("responseEndpoint")
     @DisplayName("Reader should not access /responses endpoints")
     void reader_should_not_access_response_services(HttpMethod method,String endpointURI) throws Exception {
+        String requestBody = "[\"id1\"]";
         MockHttpServletRequestBuilder requestBuilder;
         if (method == HttpMethod.GET) {
             requestBuilder = get(endpointURI);
         } else if (method == HttpMethod.POST) {
-            requestBuilder = post(endpointURI);
+            requestBuilder = post(endpointURI).contentType("application/json").content(requestBody);
         } else if (method == HttpMethod.PUT) {
             requestBuilder = put(endpointURI);
         } else if (method == HttpMethod.DELETE) {
@@ -228,7 +229,7 @@ class ControllerAccessTest {
                         requestBuilder.with(
                                 jwt().authorities(new SimpleGrantedAuthority("ROLE_READER")))
                 )
-               .andExpect(status().is(oneOf(200, 404)));
+                .andExpect(status().isForbidden());
     }
 
 
