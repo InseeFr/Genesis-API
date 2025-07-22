@@ -20,7 +20,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -51,7 +51,7 @@ public class OIDCSecurityConfig {
         for (var pattern : whitelistMatchers) {
             http.authorizeHttpRequests(authorize ->
                     authorize
-                            .requestMatchers(PathPatternRequestMatcher.withDefaults().matcher(pattern)).permitAll()
+                            .requestMatchers(AntPathRequestMatcher.antMatcher(pattern)).permitAll()
             );
         }
         http
