@@ -2,6 +2,7 @@ package cucumber.functional_tests.config;
 
 import fr.insee.genesis.GenesisApi;
 import fr.insee.genesis.infrastructure.repository.DataProcessingContextMongoDBRepository;
+import fr.insee.genesis.infrastructure.repository.EditedExternalResponseMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.EditedPreviousResponseMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.LunaticJsonMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.LunaticModelMongoDBRepository;
@@ -38,5 +39,7 @@ public class CucumberSpringConfiguration {
     private DataProcessingContextMongoDBRepository dataProcessingContextMongoDBRepository;
     @MockitoBean
     private EditedPreviousResponseMongoDBRepository editedPreviousResponseMongoDBRepository;
+    @MockitoBean
+    private EditedExternalResponseMongoDBRepository editedExternalResponseMongoDBRepository;
 }
 

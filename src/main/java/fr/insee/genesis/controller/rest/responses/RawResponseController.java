@@ -191,9 +191,10 @@ public class RawResponseController {
         Map<String, List<String>> result = lunaticJsonRawDataApiPort.findProcessedIdsgroupedByQuestionnaireSince(LocalDateTime.now().minusHours(hours).minusMinutes(10));
         return ResponseEntity.ok(result);
     }
-    @Operation(summary = "Get lunatic JSON data from one campaign in Genesis Database, filtered by optional start and end dates")
+
+    @Operation(summary = "Get lunatic JSON data from one campaign in Genesis Database, filtered by start and end dates")
     @GetMapping(path = "/lunatic-json/{campaignId}")
-    @PreAuthorize("hasRole('USER_KRAFTWERK')")
+    @PreAuthorize("hasRole('USER_BATCH_GENERIC')")
     public ResponseEntity<PagedModel<LunaticJsonRawDataModel>> getRawResponsesFromJsonBody(
             @PathVariable String campaignId,
             @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant startDate,
@@ -201,7 +202,7 @@ public class RawResponseController {
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "1000") int size
     ) {
-        log.info("Try to read raw JSONs for campaign {}, with startDate={} and endDate={}", campaignId, startDate, endDate);
+        log.info("Try to read raw JSONs for campaign {}, with startDate={} and endDate={} - page={} - size={}", campaignId, startDate, endDate,page,size);
         Pageable pageable = PageRequest.of(page, size);
         Page<LunaticJsonRawDataModel> rawResponses = lunaticJsonRawDataApiPort.findRawDataByCampaignIdAndDate(campaignId, startDate, endDate, pageable);
         log.info("rawResponses=" + rawResponses.getContent().size());
