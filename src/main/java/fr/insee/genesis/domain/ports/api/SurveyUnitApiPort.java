@@ -25,7 +25,6 @@ public interface SurveyUnitApiPort {
 
     Stream<SurveyUnitModel> findByQuestionnaireId(String questionnaireId);
 
-    //NEW VERSION OF THE METHOD
     List<SurveyUnitModel> findLatestByIdAndByQuestionnaireId(String interrogationId, String questionnaireId);
 
     List<List<SurveyUnitModel>> findLatestByIdAndByQuestionnaireIdAndModeOrdered(String questionnaireId, String mode, List<InterrogationId> interrogationIds);
