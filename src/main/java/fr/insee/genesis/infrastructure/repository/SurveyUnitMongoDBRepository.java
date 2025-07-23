@@ -18,13 +18,13 @@ public interface SurveyUnitMongoDBRepository extends MongoRepository<SurveyUnitD
 
 	List<SurveyUnitDocument> findByInterrogationIdAndQuestionnaireId(String interrogationId, String questionnaireId);
 
-	//========= OPTIMISATIONS PERFS (START) ==========
+
 	/**
 	 * @author Adrien Marchal
 	 */
 	@Query("{ 'questionnaireId' : ?0, 'mode' : ?1, 'interrogationId' : { $in: ?2 } }")
 	List<SurveyUnitDocument> findBySetOfIdsAndQuestionnaireIdAndMode(String questionnaireId, String mode, List<String> interrogationIdSet);
-	//========= OPTIMISATIONS PERFS (END) ==========
+
 
 	/**
 	 * !!!WARNING!!! : A CALL WITH THIS ENDPOINT ON A BIG COLLECTION (> 300k) MAY KILL THE GENESIS-API APP.!!!
@@ -32,7 +32,7 @@ public interface SurveyUnitMongoDBRepository extends MongoRepository<SurveyUnitD
 	@Query(value = "{ 'questionnaireId' : ?0 }", fields = "{ 'interrogationId' : 1, 'mode' :  1 }")
 	List<SurveyUnitDocument> findInterrogationIdsByQuestionnaireId(String questionnaireId);
 
-	//========= OPTIMISATIONS PERFS (START) ==========
+
 	/**
 	 * @author Adrien Marchal
 	 */
@@ -56,15 +56,14 @@ public interface SurveyUnitMongoDBRepository extends MongoRepository<SurveyUnitD
 			"{ '$group': { '_id': '$mode' } }",
 			"{ '$set': { 'mode': '$_id', '_id': '$$REMOVE' } }"
 	})
-	List<SurveyUnitDocument> findModesByCampaignIdV2(String campaignId);
+	List<SurveyUnitDocument> findModesByCampaignId(String campaignId);
 
 	@Aggregation(pipeline = {
 			"{ '$match': { 'questionnaireId' : ?0 } }",
 			"{ '$group': { '_id': '$mode' } }",
 			"{ '$set': { 'mode': '$_id', '_id': '$$REMOVE' } }"
 	})
-	List<SurveyUnitDocument> findModesByQuestionnaireIdV2(String questionnaireId);
-	//========= OPTIMISATIONS PERFS (END) ==========
+	List<SurveyUnitDocument> findModesByQuestionnaireId(String questionnaireId);
 
 
 	Long deleteByQuestionnaireId(String questionnaireId);
@@ -75,7 +74,6 @@ public interface SurveyUnitMongoDBRepository extends MongoRepository<SurveyUnitD
 	long count();
 
 
-	//========= OPTIMISATIONS PERFS (START) ==========
 	/**
 	 * @author Adrien Marchal
 	 * Here we make a "DISTINCT" query
@@ -85,8 +83,8 @@ public interface SurveyUnitMongoDBRepository extends MongoRepository<SurveyUnitD
 			"{ '$group': { '_id': { 'questionnaireId' : '$questionnaireId'} } }",
 			"{ '$set': { 'questionnaireId': '$_id', '_id': '$$REMOVE' } }"
 	})
-	Set<String> findQuestionnaireIdsByCampaignIdV2(String campaignId);
-	//========= OPTIMISATIONS PERFS (END) ==========
+	Set<String> findQuestionnaireIdsByCampaignId(String campaignId);
+
 
 	long countByCampaignId(String campaignId);
 

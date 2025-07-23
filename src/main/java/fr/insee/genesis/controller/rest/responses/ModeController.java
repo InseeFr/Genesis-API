@@ -27,21 +27,18 @@ public class ModeController implements CommonApiResponse {
     }
 
 
-
-    //========= OPTIMISATIONS PERFS (START) ==========
     @Operation(summary = "List sources/modes used for a given questionnaire")
-    @GetMapping(path = "/by-questionnaireV2")
-    public ResponseEntity<List<Mode>> getModesByQuestionnaireV2(@RequestParam("questionnaireId") String questionnaireId) {
-        List<Mode> modes = surveyUnitService.findModesByQuestionnaireIdV2(questionnaireId);
+    @GetMapping(path = "/by-questionnaire")
+    public ResponseEntity<List<Mode>> getModesByQuestionnaire(@RequestParam("questionnaireId") String questionnaireId) {
+        List<Mode> modes = surveyUnitService.findModesByQuestionnaireId(questionnaireId);
         return ResponseEntity.ok(modes);
     }
 
     @Operation(summary = "List sources/modes used for a given campaign")
-    @GetMapping(path = "/by-campaignV2")
-    public ResponseEntity<List<Mode>> getModesByCampaignV2(@RequestParam("campaignId") String campaignId) {
-        List<Mode> modes = surveyUnitService.findModesByCampaignIdV2(campaignId);
+    @GetMapping(path = "/by-campaign")
+    public ResponseEntity<List<Mode>> getModesByCampaign(@RequestParam("campaignId") String campaignId) {
+        List<Mode> modes = surveyUnitService.findModesByCampaignId(campaignId);
         return ResponseEntity.ok(modes);
     }
-    //========= OPTIMISATIONS PERFS (END) ==========
 
 }

@@ -49,7 +49,6 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 	}
 
 
-	//========= OPTIMISATIONS PERFS (START) ==========
 	/**
 	 * @author Adrien Marchal
 	 */
@@ -58,7 +57,7 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 		List<SurveyUnitDocument> surveyUnits = mongoRepository.findBySetOfIdsAndQuestionnaireIdAndMode(questionnaireId, mode, interrogationIdSet);
 		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnits);
 	}
-	//========= OPTIMISATIONS PERFS (END) ==========
+
 
 	@Override
 	public List<SurveyUnitModel> findByInterrogationId(String questionnaireId) {
@@ -94,14 +93,13 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 	}
 
 
-	//========= OPTIMISATIONS PERFS (START) ==========
 	/**
 	 * @author Adrien Marchal
 	 */
 	@Override
-	public Set<String> findQuestionnaireIdsByCampaignIdV2(String campaignId){
+	public Set<String> findQuestionnaireIdsByCampaignId(String campaignId){
 		Set<String> mongoResponse =
-				mongoRepository.findQuestionnaireIdsByCampaignIdV2(campaignId);
+				mongoRepository.findQuestionnaireIdsByCampaignId(campaignId);
 
 		//Extract questionnaireIds from JSON response
 		Set<String> questionnaireIds = new HashSet<>();
@@ -117,7 +115,7 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 
 		return questionnaireIds;
 	}
-	//========= OPTIMISATIONS PERFS (END) ==========
+
 
 	@Override
 	public Set<String> findDistinctCampaignIds() {
@@ -138,7 +136,7 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnits);
 	}
 
-	//========== OPTIMISATIONS PERFS (START) ===========
+
 	@Override
 	public long countInterrogationIdsByQuestionnaireId(String questionnaireId) {
 		return mongoRepository.countInterrogationIdsByQuestionnaireId(questionnaireId);
@@ -151,18 +149,17 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 	}
 
 	@Override
-	public List<SurveyUnitModel> findModesByCampaignIdV2(String campaignId) {
-		List<SurveyUnitDocument> surveyUnits = mongoRepository.findModesByCampaignIdV2(campaignId);
+	public List<SurveyUnitModel> findModesByCampaignId(String campaignId) {
+		List<SurveyUnitDocument> surveyUnits = mongoRepository.findModesByCampaignId(campaignId);
 		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnits);
 
 	}
 
 	@Override
-	public List<SurveyUnitModel> findModesByQuestionnaireIdV2(String questionnaireId) {
-		List<SurveyUnitDocument> surveyUnits = mongoRepository.findModesByQuestionnaireIdV2(questionnaireId);
+	public List<SurveyUnitModel> findModesByQuestionnaireId(String questionnaireId) {
+		List<SurveyUnitDocument> surveyUnits = mongoRepository.findModesByQuestionnaireId(questionnaireId);
 		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnits);
 	}
-	//========== OPTIMISATIONS PERFS (END) ============
 
 
 	public long countByCampaignId(String campaignId){

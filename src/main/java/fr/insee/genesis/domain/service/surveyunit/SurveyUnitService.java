@@ -64,8 +64,6 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     }
 
 
-
-    //========= OPTIMISATIONS PERFS (START) ==========
     /**
      * In this method we want to get the latest update for each variable of a survey unit
      * But we need to separate the updates by mode
@@ -76,7 +74,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
      */
     @Override
     public List<SurveyUnitModel> findLatestByIdAndByQuestionnaireId(String interrogationId, String questionnaireId) {
-        List<Mode> enumModes = findModesByQuestionnaireIdV2(questionnaireId);
+        List<Mode> enumModes = findModesByQuestionnaireId(questionnaireId);
         // => convertion of "List<Mode>" -> "List<String>" for query using lamda
         List<String> modes = enumModes.stream().map(Mode::getModeName).toList();
         List<InterrogationId> interrogationIds = List.of(new InterrogationId(interrogationId));
@@ -179,7 +177,6 @@ public class SurveyUnitService implements SurveyUnitApiPort {
 
         return latestUpdatesbyVariables;
     }
-    //========= OPTIMISATIONS PERFS (END) ==========
 
 
     @Override
@@ -219,8 +216,6 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     }
 
 
-    //============ OPTIMISATIONS PERFS (START) ============
-
     /**
      * @author Adrien Marchal
      * Calculations made to establish the data a worker will be responsible of, among the whole data to be processed.
@@ -258,7 +253,6 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     public long countInterrogationIdsByQuestionnaireId(String questionnaireId) {
         return surveyUnitPersistencePort.countInterrogationIdsByQuestionnaireId(questionnaireId);
     }
-    //=========== OPTIMISATIONS PERFS (END) =============
 
 
     /**
@@ -271,23 +265,22 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     }
 
 
-    //========= OPTIMISATIONS PERFS (START) ==========
     @Override
-    public List<Mode> findModesByQuestionnaireIdV2(String questionnaireId) {
-        List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findModesByQuestionnaireIdV2(questionnaireId);
+    public List<Mode> findModesByQuestionnaireId(String questionnaireId) {
+        List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findModesByQuestionnaireId(questionnaireId);
         List<Mode> sources = new ArrayList<>();
         surveyUnitModels.forEach(surveyUnitModel -> sources.add(surveyUnitModel.getMode()));
         return sources.stream().distinct().toList();
     }
 
     @Override
-    public List<Mode> findModesByCampaignIdV2(String campaignId) {
-        List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findModesByCampaignIdV2(campaignId);
+    public List<Mode> findModesByCampaignId(String campaignId) {
+        List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findModesByCampaignId(campaignId);
         List<Mode> sources = new ArrayList<>();
         surveyUnitModels.forEach(surveyUnitModel -> sources.add(surveyUnitModel.getMode()));
         return sources.stream().distinct().toList();
     }
-    //========= OPTIMISATIONS PERFS (END) ==========
+
 
     @Override
     public Long deleteByQuestionnaireId(String questionnaireId) {
@@ -300,15 +293,14 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     }
 
 
-    //========= OPTIMISATIONS PERFS (START) ==========
     /**
      * @author Adrien Marchal
      */
     @Override
-    public Set<String> findQuestionnaireIdsByCampaignIdV2(String campaignId) {
-        return surveyUnitPersistencePort.findQuestionnaireIdsByCampaignIdV2(campaignId);
+    public Set<String> findQuestionnaireIdsByCampaignId(String campaignId) {
+        return surveyUnitPersistencePort.findQuestionnaireIdsByCampaignId(campaignId);
     }
-    //========= OPTIMISATIONS PERFS (END) ==========
+
 
     @Override
     public Set<String> findDistinctCampaignIds() {
@@ -316,17 +308,16 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     }
 
 
-    //========= OPTIMISATIONS PERFS (START) ==========
     @Override
-    public List<CampaignWithQuestionnaire> findCampaignsWithQuestionnairesV2() {
+    public List<CampaignWithQuestionnaire> findCampaignsWithQuestionnaires() {
         List<CampaignWithQuestionnaire> campaignsWithQuestionnaireList = new ArrayList<>();
         for(String campaignId : findDistinctCampaignIds()){
-            Set<String> questionnaires = findQuestionnaireIdsByCampaignIdV2(campaignId);
+            Set<String> questionnaires = findQuestionnaireIdsByCampaignId(campaignId);
             campaignsWithQuestionnaireList.add(new CampaignWithQuestionnaire(campaignId,questionnaires));
         }
         return campaignsWithQuestionnaireList;
     }
-    //========= OPTIMISATIONS PERFS (END) ==========
+
 
     @Override
     public long countResponsesByCampaignId(String campaignId){

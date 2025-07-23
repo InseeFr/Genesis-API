@@ -302,9 +302,6 @@ public class ResponseController implements CommonApiResponse {
     }
 
 
-
-
-    //========= OPTIMISATIONS PERFS (START) ==========
     /**
      * @author Adrien Marchal
      */
@@ -315,10 +312,10 @@ public class ResponseController implements CommonApiResponse {
     @PreAuthorize("hasRole('USER_KRAFTWERK')")
     public ResponseEntity<List<SurveyUnitSimplified>> getLatestForInterrogationList(@RequestParam("questionnaireId") String questionnaireId,
                                                                                     @RequestBody List<InterrogationId> interrogationIds) {
-        List<Mode> enumModes = surveyUnitService.findModesByQuestionnaireIdV2(questionnaireId);
+        List<Mode> enumModes = surveyUnitService.findModesByQuestionnaireId(questionnaireId);
         // => convertion of "List<Mode>" -> "List<String>" for query using lamda
         List<String> modes = enumModes.stream().map(Mode::getModeName).toList();
-        return getLatestForInterrogationListV2(questionnaireId, modes, interrogationIds);
+        return getLatestForInterrogationListWithModes(questionnaireId, modes, interrogationIds);
     }
 
 
@@ -330,7 +327,7 @@ public class ResponseController implements CommonApiResponse {
                     "For a given id, the endpoint returns a document by collection mode (if there is more than one).")
     @PostMapping(path = "/simplified/by-list-interrogation-and-questionnaire-and-modes/latest")
     @PreAuthorize("hasRole('USER_KRAFTWERK')")
-    public ResponseEntity<List<SurveyUnitSimplified>> getLatestForInterrogationListV2(@RequestParam("questionnaireId") String questionnaireId,
+    public ResponseEntity<List<SurveyUnitSimplified>> getLatestForInterrogationListWithModes(@RequestParam("questionnaireId") String questionnaireId,
                                                                                       @RequestParam List<String> modes,
                                                                                         @RequestBody List<InterrogationId> interrogationIds) {
         List<SurveyUnitSimplified> results = new ArrayList<>();
@@ -397,7 +394,6 @@ public class ResponseController implements CommonApiResponse {
 
         return simplifiedResponse;
     }
-    //========= OPTIMISATIONS PERFS (END) ==========
 
 
     @Operation(summary = "Save edited variables",

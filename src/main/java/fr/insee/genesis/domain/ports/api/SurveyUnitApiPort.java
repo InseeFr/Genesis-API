@@ -28,9 +28,7 @@ public interface SurveyUnitApiPort {
     //NEW VERSION OF THE METHOD
     List<SurveyUnitModel> findLatestByIdAndByQuestionnaireId(String interrogationId, String questionnaireId);
 
-    //========= OPTIMISATIONS PERFS (START) ==========
     List<List<SurveyUnitModel>> findLatestByIdAndByQuestionnaireIdAndModeOrdered(String questionnaireId, String mode, List<InterrogationId> interrogationIds);
-    //========= OPTIMISATIONS PERFS (END) ==========
 
     SurveyUnitDto findLatestValuesByStateByIdAndByQuestionnaireId(String interrogationId, String questionnaireId);
 
@@ -41,31 +39,25 @@ public interface SurveyUnitApiPort {
      */
     List<InterrogationId> findDistinctInterrogationIdsByQuestionnaireId(String questionnaireId);
 
-    //========= OPTIMISATIONS PERFS (START) ==========
     long countInterrogationIdsByQuestionnaireId(String questionnaireId);
 
     List<InterrogationId> findDistinctPageableInterrogationIdsByQuestionnaireId(String questionnaireId,
                                                                                 long totalSize, long blockSize, long page);
 
-    List<Mode> findModesByQuestionnaireIdV2(String questionnaireId);
-    //========= OPTIMISATIONS PERFS (END) ==========
+    List<Mode> findModesByQuestionnaireId(String questionnaireId);
 
 
-    //========= OPTIMISATIONS PERFS (START) ==========
-    List<Mode> findModesByCampaignIdV2(String campaignId);
-    //========= OPTIMISATIONS PERFS (END) ==========
+    List<Mode> findModesByCampaignId(String campaignId);
 
     Long deleteByQuestionnaireId(String questionnaireId);
 
     long countResponses();
 
 
-    //========= OPTIMISATIONS PERFS (START) ==========
     /**
      * @author Adrien Marchal
      */
-    Set<String> findQuestionnaireIdsByCampaignIdV2(String campaignId);
-    //========= OPTIMISATIONS PERFS (END) ==========
+    Set<String> findQuestionnaireIdsByCampaignId(String campaignId);
 
     Set<String> findDistinctCampaignIds();
 
@@ -73,9 +65,7 @@ public interface SurveyUnitApiPort {
 
     Set<String> findDistinctQuestionnaireIds();
 
-    //========= OPTIMISATIONS PERFS (START) ==========
-    List<CampaignWithQuestionnaire> findCampaignsWithQuestionnairesV2();
-    //========= OPTIMISATIONS PERFS (END) ==========
+    List<CampaignWithQuestionnaire> findCampaignsWithQuestionnaires();
 
     List<QuestionnaireWithCampaign> findQuestionnairesWithCampaigns();
 

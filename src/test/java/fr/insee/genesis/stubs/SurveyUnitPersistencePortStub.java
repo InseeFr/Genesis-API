@@ -30,7 +30,7 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
         return surveyUnitModelList;
     }
 
-    //========= OPTIMISATIONS PERFS (START) ==========
+
     /**
      * @author Adrien Marchal
      */
@@ -43,7 +43,6 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
 
         return surveyUnitModelList;
     }
-    //========= OPTIMISATIONS PERFS (START) ==========
 
 
     @Override
@@ -98,7 +97,6 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     }
 
 
-    //======== OPTIMISATIONS PERFS (START) ========
     /**
      * @author Adrien Marchal
      */
@@ -122,7 +120,7 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
 
 
     @Override
-    public List<SurveyUnitModel> findModesByCampaignIdV2(String campaignId) {
+    public List<SurveyUnitModel> findModesByCampaignId(String campaignId) {
         List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
         for(SurveyUnitModel SurveyUnitModel : mongoStub){
             if(SurveyUnitModel.getCampaignId().equals(campaignId))
@@ -135,7 +133,7 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     }
 
     @Override
-    public List<SurveyUnitModel> findModesByQuestionnaireIdV2(String questionnaireId) {
+    public List<SurveyUnitModel> findModesByQuestionnaireId(String questionnaireId) {
         List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
         for(SurveyUnitModel SurveyUnitModel : mongoStub){
             if(SurveyUnitModel.getQuestionnaireId().equals(questionnaireId))
@@ -146,8 +144,6 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
 
         return surveyUnitModelList;
     }
-    //======= OPTIMISATIONS PERFS (END) =========
-
 
 
     @Override
@@ -161,9 +157,8 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     }
 
 
-    //========= OPTIMISATIONS PERFS (START) ==========
     @Override
-    public Set<String> findQuestionnaireIdsByCampaignIdV2(String campaignId) {
+    public Set<String> findQuestionnaireIdsByCampaignId(String campaignId) {
         Set<String> questionnaireIdSet = new HashSet<>();
         for(SurveyUnitModel SurveyUnitModel : mongoStub){
             if(SurveyUnitModel.getCampaignId().equals(campaignId))
@@ -172,7 +167,7 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
 
         return questionnaireIdSet;
     }
-    //========= OPTIMISATIONS PERFS (END) ==========
+
 
     @Override
     public Set<String> findDistinctCampaignIds() {

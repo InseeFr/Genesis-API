@@ -38,7 +38,7 @@ class ModeControllerTest {
     //When + Then
     @Test
     void getModesByQuestionnaireTest() {
-        ResponseEntity<List<Mode>> response = modeControllerStatic.getModesByQuestionnaireV2(DEFAULT_QUESTIONNAIRE_ID);
+        ResponseEntity<List<Mode>> response = modeControllerStatic.getModesByQuestionnaire(DEFAULT_QUESTIONNAIRE_ID);
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().hasSize(1);
@@ -47,31 +47,11 @@ class ModeControllerTest {
 
     @Test
     void getModesByCampaignTest() {
-        ResponseEntity<List<Mode>> response = modeControllerStatic.getModesByCampaignV2("TESTCAMPAIGNID");
+        ResponseEntity<List<Mode>> response = modeControllerStatic.getModesByCampaign("TESTCAMPAIGNID");
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().hasSize(1);
         Assertions.assertThat(response.getBody().getFirst()).isEqualTo(Mode.WEB);
     }
-
-    //========= OPTIMISATIONS PERFS (START) ==========
-    @Test
-    void getModesByQuestionnaireV2Test() {
-        ResponseEntity<List<Mode>> response = modeControllerStatic.getModesByQuestionnaireV2(DEFAULT_QUESTIONNAIRE_ID);
-
-        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().hasSize(1);
-        Assertions.assertThat(response.getBody().getFirst()).isEqualTo(Mode.WEB);
-    }
-
-    @Test
-    void getModesByCampaignV2Test() {
-        ResponseEntity<List<Mode>> response = modeControllerStatic.getModesByCampaignV2("TESTCAMPAIGNID");
-
-        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().hasSize(1);
-        Assertions.assertThat(response.getBody().getFirst()).isEqualTo(Mode.WEB);
-    }
-    //========= OPTIMISATIONS PERFS (END) ==========
 
 }
