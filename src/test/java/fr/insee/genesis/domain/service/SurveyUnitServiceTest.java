@@ -236,12 +236,6 @@ class SurveyUnitServiceTest {
         ).isNotEmpty().hasSize(1);
     }
 
-    @Test
-    void findInterrogationIdsByQuestionnaireIdTest(){
-        Assertions.assertThat(surveyUnitServiceStatic.findModesByQuestionnaireId(DEFAULT_QUESTIONNAIRE_ID)).filteredOn(
-                mode -> mode.equals(Mode.WEB)
-        ).isNotEmpty();
-    }
 
     //========= OPTIMISATIONS PERFS (START) ==========
     @Test
@@ -256,7 +250,7 @@ class SurveyUnitServiceTest {
     void getQuestionnairesByCampaignTest() {
         addAdditionnalSurveyUnitModelToMongoStub("TESTQUESTIONNAIRE2");
 
-        Assertions.assertThat(surveyUnitServiceStatic.findQuestionnaireIdsByCampaignId("TESTCAMPAIGNID")).isNotEmpty().hasSize(2);
+        Assertions.assertThat(surveyUnitServiceStatic.findQuestionnaireIdsByCampaignIdV2("TESTCAMPAIGNID")).isNotEmpty().hasSize(2);
 
     }
 

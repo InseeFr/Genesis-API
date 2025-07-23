@@ -93,25 +93,6 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 		return mongoRepository.count();
 	}
 
-	@Override
-	public Set<String> findQuestionnaireIdsByCampaignId(String campaignId){
-		Set<String> mongoResponse =
-				mongoRepository.findQuestionnaireIdsByCampaignId(campaignId);
-
-		//Extract questionnaireIds from JSON response
-		Set<String> questionnaireIds = new HashSet<>();
-		for(String line : mongoResponse){
-			ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
-			try{
-				JsonNode jsonNode = objectMapper.readTree(line);
-				questionnaireIds.add(jsonNode.get("questionnaireId").asText());
-			}catch (JsonProcessingException e){
-				log.error(e.getMessage());
-			}
-		}
-
-		return questionnaireIds;
-	}
 
 	//========= OPTIMISATIONS PERFS (START) ==========
 	/**
@@ -148,6 +129,9 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 		return campaignIds;
 	}
 
+	/**
+	 * !!!WARNING!!! : A CALL WITH THIS ENDPOINT ON A BIG COLLECTION (> 300k) MAY KILL THE GENESIS-API APP.!!!
+	 */
 	@Override
 	public List<SurveyUnitModel> findInterrogationIdsByQuestionnaireId(String questionnaireId) {
 		List<SurveyUnitDocument> surveyUnits = mongoRepository.findInterrogationIdsByQuestionnaireId(questionnaireId);
@@ -180,12 +164,6 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 	}
 	//========== OPTIMISATIONS PERFS (END) ============
 
-	@Override
-	public List<SurveyUnitModel> findInterrogationIdsByCampaignId(String campaignId) {
-		List<SurveyUnitDocument> surveyUnits = mongoRepository.findInterrogationIdsByCampaignId(campaignId);
-		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnits);
-
-	}
 
 	public long countByCampaignId(String campaignId){
 		return mongoRepository.countByCampaignId(campaignId);

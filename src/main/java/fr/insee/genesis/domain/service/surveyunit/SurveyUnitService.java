@@ -63,6 +63,9 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         return surveyUnitPersistencePort.findByQuestionnaireId(questionnaireId);
     }
 
+
+
+    //========= OPTIMISATIONS PERFS (START) ==========
     /**
      * In this method we want to get the latest update for each variable of a survey unit
      * But we need to separate the updates by mode
@@ -73,69 +76,31 @@ public class SurveyUnitService implements SurveyUnitApiPort {
      */
     @Override
     public List<SurveyUnitModel> findLatestByIdAndByQuestionnaireId(String interrogationId, String questionnaireId) {
-        List<SurveyUnitModel> latestUpdatesbyVariables = new ArrayList<>();
-        List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findByIds(interrogationId, questionnaireId);
-        List<Mode> modes = getDistinctsModes(surveyUnitModels);
-        modes.forEach(mode ->{
-            List<SurveyUnitModel> suByMode = surveyUnitModels.stream()
-                    .filter(surveyUnitModel -> surveyUnitModel.getMode().equals(mode))
-                    .sorted((o1, o2) -> o2.getRecordDate().compareTo(o1.getRecordDate())) //Sorting update by date (latest updates first by date of upload in database)
-                    .toList();
+        List<Mode> enumModes = findModesByQuestionnaireIdV2(questionnaireId);
+        // => convertion of "List<Mode>" -> "List<String>" for query using lamda
+        List<String> modes = enumModes.stream().map(Mode::getModeName).toList();
+        List<InterrogationId> interrogationIds = List.of(new InterrogationId(interrogationId));
 
-            //We had all the variables of the oldest update
-            latestUpdatesbyVariables.add(suByMode.getFirst());
-            //We keep the name of already added variables to skip them in older updates
-            List<VarIdScopeTuple> addedVariables = new ArrayList<>();
-            SurveyUnitModel latestUpdate = suByMode.getFirst();
-
-            if(latestUpdate.getCollectedVariables() == null){
-                latestUpdate.setCollectedVariables(new ArrayList<>());
+        List<SurveyUnitModel> responses = new ArrayList<>();
+        for(String mode : modes) {
+            List<List<SurveyUnitModel>> surveyUnitModels = findLatestByIdAndByQuestionnaireIdAndModeOrdered(questionnaireId, mode, interrogationIds);
+            for(List<SurveyUnitModel> singleSurveyUnitModel : surveyUnitModels) {
+                responses.addAll(singleSurveyUnitModel);
             }
-            if(latestUpdate.getExternalVariables() == null){
-                latestUpdate.setExternalVariables(new ArrayList<>());
-            }
+        }
 
-            latestUpdate.getCollectedVariables().forEach(colVar -> addedVariables.add(new VarIdScopeTuple(colVar.varId(),
-                    colVar.scope(), colVar.iteration())));
-            latestUpdate.getExternalVariables().forEach(extVar -> addedVariables.add(new VarIdScopeTuple(extVar.varId(), extVar.scope(), extVar.iteration())));
-
-            suByMode.forEach(surveyUnitModel -> {
-                List<VariableModel> collectedVariablesToKeep = new ArrayList<>();
-                List<VariableModel> externalVariablesToKeep = new ArrayList<>();
-                // We iterate over the variables of the update and add them to the list if they are not already added
-                if (surveyUnitModel.getCollectedVariables() != null) {
-                    surveyUnitModel.getCollectedVariables().stream()
-                            .filter(colVar -> !addedVariables.contains(new VarIdScopeTuple(colVar.varId(), colVar.scope()
-                                    , colVar.iteration())))
-                            .forEach(colVar -> {
-                                collectedVariablesToKeep.add(colVar);
-                                addedVariables.add(new VarIdScopeTuple(colVar.varId(), colVar.scope(), colVar.iteration()));
-                            });
-                }
-                if (surveyUnitModel.getExternalVariables() != null){
-                    surveyUnitModel.getExternalVariables().stream()
-                         .filter(extVar -> !addedVariables.contains(new VarIdScopeTuple(extVar.varId(), extVar.scope(),
-                                 extVar.iteration())))
-                         .forEach(extVar -> {
-                            externalVariablesToKeep.add(extVar);
-                            addedVariables.add(new VarIdScopeTuple(extVar.varId(), extVar.scope(), extVar.iteration()));
-                         });
-                }
-
-                // If there are new variables, we add the update to the list of latest updates
-                if (!collectedVariablesToKeep.isEmpty() || !externalVariablesToKeep.isEmpty()){
-                    surveyUnitModel.setCollectedVariables(collectedVariablesToKeep);
-                    surveyUnitModel.setExternalVariables(externalVariablesToKeep);
-                    latestUpdatesbyVariables.add(surveyUnitModel);
-                }
-            });
-        });
-        return latestUpdatesbyVariables;
+        return responses;
     }
 
 
-    //========= OPTIMISATIONS PERFS (START) ==========
     /**
+     * In this method we want to get the latest update for each variable of a survey unit
+     * But we need to separate the updates by mode
+     * So we will calculate the latest state for a given collection mode
+     * @param questionnaireId : Questionnaire id
+     * @param mode : collect mode
+     * @param interrogationIds : !!!A LIST OF!!! Survey unit ids
+     * @return the latest update for each variable of a survey unit
      * @author Adrien Marchal
      */
     @Override
@@ -146,12 +111,6 @@ public class SurveyUnitService implements SurveyUnitApiPort {
 
         //1) QUERY
         // => convertion of "List<InterrogationId>" -> "List<String>" for query using lamda
-        /*
-        List<String> queryInParam = new ArrayList<String>();
-        for(InterrogationId interrId : interrogationIds) {
-            queryInParam.add(interrId.getInterrogationId());
-        }
-        */
         List<String> queryInParam = interrogationIds.stream().map(InterrogationId::getInterrogationId).collect(Collectors.toList());
 
         //Get !!!all versions!!! of a set of "interrogationIds"
@@ -248,6 +207,9 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         return surveyUnitDto;
     }
 
+    /**
+     * !!!WARNING!!! : A CALL WITH THIS ENDPOINT ON A BIG COLLECTION (> 300k) MAY KILL THE GENESIS-API APP.!!!
+     */
     @Override
     public List<InterrogationId> findDistinctInterrogationIdsByQuestionnaireId(String questionnaireId) {
         List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findInterrogationIdsByQuestionnaireId(questionnaireId);
@@ -255,6 +217,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         surveyUnitModels.forEach(surveyUnitModel -> suIds.add(new InterrogationId(surveyUnitModel.getInterrogationId())));
         return suIds.stream().distinct().toList();
     }
+
 
     //============ OPTIMISATIONS PERFS (START) ============
 
@@ -298,27 +261,15 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     //=========== OPTIMISATIONS PERFS (END) =============
 
 
+    /**
+     * !!!WARNING!!! : A CALL WITH THIS ENDPOINT ON A BIG COLLECTION (> 300k) MAY KILL THE GENESIS-API APP.!!!
+     */
     @Override
     public List<SurveyUnitModel> findInterrogationIdsAndModesByQuestionnaireId(String questionnaireId) {
         List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findInterrogationIdsByQuestionnaireId(questionnaireId);
         return surveyUnitModels.stream().distinct().toList();
     }
 
-    @Override
-    public List<Mode> findModesByQuestionnaireId(String questionnaireId) {
-        List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findInterrogationIdsByQuestionnaireId(questionnaireId);
-        List<Mode> sources = new ArrayList<>();
-        surveyUnitModels.forEach(surveyUnitModel -> sources.add(surveyUnitModel.getMode()));
-        return sources.stream().distinct().toList();
-    }
-
-    @Override
-    public List<Mode> findModesByCampaignId(String campaignId) {
-        List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findInterrogationIdsByCampaignId(campaignId);
-        List<Mode> sources = new ArrayList<>();
-        surveyUnitModels.forEach(surveyUnitModel -> sources.add(surveyUnitModel.getMode()));
-        return sources.stream().distinct().toList();
-    }
 
     //========= OPTIMISATIONS PERFS (START) ==========
     @Override
@@ -348,10 +299,6 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         return surveyUnitPersistencePort.count();
     }
 
-    @Override
-    public Set<String> findQuestionnaireIdsByCampaignId(String campaignId) {
-            return surveyUnitPersistencePort.findQuestionnaireIdsByCampaignId(campaignId);
-    }
 
     //========= OPTIMISATIONS PERFS (START) ==========
     /**
@@ -368,15 +315,18 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         return surveyUnitPersistencePort.findDistinctCampaignIds();
     }
 
+
+    //========= OPTIMISATIONS PERFS (START) ==========
     @Override
-    public List<CampaignWithQuestionnaire> findCampaignsWithQuestionnaires() {
+    public List<CampaignWithQuestionnaire> findCampaignsWithQuestionnairesV2() {
         List<CampaignWithQuestionnaire> campaignsWithQuestionnaireList = new ArrayList<>();
         for(String campaignId : findDistinctCampaignIds()){
-            Set<String> questionnaires = findQuestionnaireIdsByCampaignId(campaignId);
+            Set<String> questionnaires = findQuestionnaireIdsByCampaignIdV2(campaignId);
             campaignsWithQuestionnaireList.add(new CampaignWithQuestionnaire(campaignId,questionnaires));
         }
         return campaignsWithQuestionnaireList;
     }
+    //========= OPTIMISATIONS PERFS (END) ==========
 
     @Override
     public long countResponsesByCampaignId(String campaignId){

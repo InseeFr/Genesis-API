@@ -28,6 +28,8 @@ public class InterrogationController implements CommonApiResponse {
     }
 
 
+    //NOTE : methode used (It has to be kept with V2 functions!)
+    //!!!WARNING!!! : A CALL WITH THIS ENDPOINT ON A BIG COLLECTION (> 300k) MAY KILL THE GENESIS-API APP.!!!
     @Operation(summary = "Retrieve all interrogations for a given questionnaire")
     @GetMapping(path = "/by-questionnaire")
     public ResponseEntity<List<InterrogationId>> getAllInterrogationIdsByQuestionnaire(@RequestParam("questionnaireId") String questionnaireId) {

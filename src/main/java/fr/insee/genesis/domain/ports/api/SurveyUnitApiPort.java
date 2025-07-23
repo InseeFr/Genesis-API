@@ -25,6 +25,7 @@ public interface SurveyUnitApiPort {
 
     Stream<SurveyUnitModel> findByQuestionnaireId(String questionnaireId);
 
+    //NEW VERSION OF THE METHOD
     List<SurveyUnitModel> findLatestByIdAndByQuestionnaireId(String interrogationId, String questionnaireId);
 
     //========= OPTIMISATIONS PERFS (START) ==========
@@ -35,6 +36,9 @@ public interface SurveyUnitApiPort {
 
     List<SurveyUnitModel> findInterrogationIdsAndModesByQuestionnaireId(String questionnaireId);
 
+    /**
+     * !!!WARNING!!! : A CALL WITH THIS ENDPOINT ON A BIG COLLECTION (> 300k) MAY KILL THE GENESIS-API APP.!!!
+     */
     List<InterrogationId> findDistinctInterrogationIdsByQuestionnaireId(String questionnaireId);
 
     //========= OPTIMISATIONS PERFS (START) ==========
@@ -46,9 +50,6 @@ public interface SurveyUnitApiPort {
     List<Mode> findModesByQuestionnaireIdV2(String questionnaireId);
     //========= OPTIMISATIONS PERFS (END) ==========
 
-    List<Mode> findModesByQuestionnaireId(String questionnaireId);
-
-    List<Mode> findModesByCampaignId(String campaignId);
 
     //========= OPTIMISATIONS PERFS (START) ==========
     List<Mode> findModesByCampaignIdV2(String campaignId);
@@ -58,7 +59,6 @@ public interface SurveyUnitApiPort {
 
     long countResponses();
 
-    Set<String> findQuestionnaireIdsByCampaignId(String campaignId);
 
     //========= OPTIMISATIONS PERFS (START) ==========
     /**
@@ -73,7 +73,9 @@ public interface SurveyUnitApiPort {
 
     Set<String> findDistinctQuestionnaireIds();
 
-    List<CampaignWithQuestionnaire> findCampaignsWithQuestionnaires();
+    //========= OPTIMISATIONS PERFS (START) ==========
+    List<CampaignWithQuestionnaire> findCampaignsWithQuestionnairesV2();
+    //========= OPTIMISATIONS PERFS (END) ==========
 
     List<QuestionnaireWithCampaign> findQuestionnairesWithCampaigns();
 

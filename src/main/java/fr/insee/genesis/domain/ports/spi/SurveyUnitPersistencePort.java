@@ -25,6 +25,9 @@ public interface SurveyUnitPersistencePort {
 
     Stream<SurveyUnitModel> findByQuestionnaireId(String questionnaireId);
 
+    /**
+     * !!!WARNING!!! : A CALL WITH THIS ENDPOINT ON A BIG COLLECTION (> 300k) MAY KILL THE GENESIS-API APP.!!!
+     */
     List<SurveyUnitModel> findInterrogationIdsByQuestionnaireId(String questionnaireId);
 
     //======== OPTIMISATIONS PERFS (START) ========
@@ -37,13 +40,11 @@ public interface SurveyUnitPersistencePort {
     List<SurveyUnitModel> findModesByQuestionnaireIdV2(String questionnaireId);
     //======= OPTIMISATIONS PERFS (END) =========
 
-    List<SurveyUnitModel> findInterrogationIdsByCampaignId(String campaignId);
 
     Long deleteByQuestionnaireId(String questionnaireId);
 
     long count();
 
-    Set<String> findQuestionnaireIdsByCampaignId(String campaignId);
 
     //========= OPTIMISATIONS PERFS (START) ==========
     /**

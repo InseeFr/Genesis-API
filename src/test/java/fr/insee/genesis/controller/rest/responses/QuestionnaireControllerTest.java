@@ -53,7 +53,7 @@ class QuestionnaireControllerTest {
     void getQuestionnairesByCampaignTest() {
         Utils.addAdditionalSurveyUnitModelToMongoStub("TESTQUESTIONNAIRE2", surveyUnitPersistencePortStub);
 
-        ResponseEntity<Set<String>> response = questionnaireControllerStatic.getQuestionnairesByCampaign("TESTCAMPAIGNID");
+        ResponseEntity<Set<String>> response = questionnaireControllerStatic.getQuestionnairesByCampaignV2("TESTCAMPAIGNID");
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().containsOnly(

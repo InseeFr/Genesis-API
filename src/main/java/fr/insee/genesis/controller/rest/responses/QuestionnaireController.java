@@ -46,12 +46,6 @@ public class QuestionnaireController implements CommonApiResponse {
         return ResponseEntity.ok(questionnaireWithCampaignList);
     }
 
-    @Operation(summary = "List questionnaires used for a given campaign")
-    @GetMapping(path = "/by-campaign")
-    public ResponseEntity<Set<String>> getQuestionnairesByCampaign(@RequestParam("campaignId") String campaignId) {
-        Set<String> questionnaires = surveyUnitService.findQuestionnaireIdsByCampaignId(campaignId);
-        return ResponseEntity.ok(questionnaires);
-    }
 
     //========= OPTIMISATIONS PERFS (START) ==========
     /**

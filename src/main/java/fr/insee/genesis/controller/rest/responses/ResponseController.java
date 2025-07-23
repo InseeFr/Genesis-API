@@ -1,7 +1,5 @@
 package fr.insee.genesis.controller.rest.responses;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.insee.bpm.exceptions.MetadataParserException;
 import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.bpm.metadata.reader.ddi.DDIReader;
@@ -245,6 +243,9 @@ public class ResponseController implements CommonApiResponse {
         return ResponseEntity.ok(responseQualityToolDto);
     }
 
+    /**
+     * !!!WARNING!!! : A CALL WITH THIS ENDPOINT ON A BIG COLLECTION (> 300k) MAY KILL THE GENESIS-API APP.!!!
+     */
     @Hidden
     @Operation(summary = "Retrieve all responses (for all interrogations) of one questionnaire")
     @GetMapping(path = "/by-questionnaire")
@@ -301,38 +302,6 @@ public class ResponseController implements CommonApiResponse {
     }
 
 
-    @Operation(summary = "Retrieve all responses for a questionnaire and a list of UE",
-            description = "Return the latest state for each variable for the given ids and a given questionnaire.<br>" +
-                    "For a given id, the endpoint returns a document by collection mode (if there is more than one).")
-    @PostMapping(path = "/simplified/by-list-interrogation-and-questionnaire/latest")
-    @PreAuthorize("hasRole('USER_KRAFTWERK')")
-    public ResponseEntity<List<SurveyUnitSimplified>> getLatestForInterrogationList(@RequestParam("questionnaireId") String questionnaireId,
-                                                                               @RequestBody List<InterrogationId> interrogationIds) {
-        List<SurveyUnitSimplified> results = new ArrayList<>();
-        List<Mode> modes = surveyUnitService.findModesByQuestionnaireId(questionnaireId);
-        interrogationIds.forEach(interrogationId -> {
-            List<SurveyUnitModel> responses = surveyUnitService.findLatestByIdAndByQuestionnaireId(interrogationId.getInterrogationId(), questionnaireId);
-            modes.forEach(mode -> {
-                List<VariableModel> outputVariables = new ArrayList<>();
-                List<VariableModel> outputExternalVariables = new ArrayList<>();
-                responses.stream().filter(rep -> rep.getMode().equals(mode)).forEach(response -> {
-                    outputVariables.addAll(response.getCollectedVariables());
-                    outputExternalVariables.addAll(response.getExternalVariables());
-                });
-                if (!outputVariables.isEmpty() || !outputExternalVariables.isEmpty()) {
-                    results.add(SurveyUnitSimplified.builder()
-                            .questionnaireId(responses.getFirst().getQuestionnaireId())
-                            .campaignId(responses.getFirst().getCampaignId())
-                            .interrogationId(responses.getFirst().getInterrogationId())
-                            .mode(mode)
-                            .variablesUpdate(outputVariables)
-                            .externalVariables(outputExternalVariables)
-                            .build());
-                }
-            });
-        });
-        return ResponseEntity.ok(results);
-    }
 
 
     //========= OPTIMISATIONS PERFS (START) ==========
@@ -342,7 +311,24 @@ public class ResponseController implements CommonApiResponse {
     @Operation(summary = "Retrieve all responses for a questionnaire and a list of UE",
             description = "Return the latest state for each variable for the given ids and a given questionnaire.<br>" +
                     "For a given id, the endpoint returns a document by collection mode (if there is more than one).")
-    @PostMapping(path = "/simplified/by-list-interrogation-and-questionnaire/latestV2")
+    @PostMapping(path = "/simplified/by-list-interrogation-and-questionnaire/latest")
+    @PreAuthorize("hasRole('USER_KRAFTWERK')")
+    public ResponseEntity<List<SurveyUnitSimplified>> getLatestForInterrogationList(@RequestParam("questionnaireId") String questionnaireId,
+                                                                                    @RequestBody List<InterrogationId> interrogationIds) {
+        List<Mode> enumModes = surveyUnitService.findModesByQuestionnaireIdV2(questionnaireId);
+        // => convertion of "List<Mode>" -> "List<String>" for query using lamda
+        List<String> modes = enumModes.stream().map(Mode::getModeName).toList();
+        return getLatestForInterrogationListV2(questionnaireId, modes, interrogationIds);
+    }
+
+
+    /**
+     * @author Adrien Marchal
+     */
+    @Operation(summary = "Retrieve all responses for a questionnaire and a list of UE",
+            description = "Return the latest state for each variable for the given ids and a given questionnaire.<br>" +
+                    "For a given id, the endpoint returns a document by collection mode (if there is more than one).")
+    @PostMapping(path = "/simplified/by-list-interrogation-and-questionnaire-and-modes/latest")
     @PreAuthorize("hasRole('USER_KRAFTWERK')")
     public ResponseEntity<List<SurveyUnitSimplified>> getLatestForInterrogationListV2(@RequestParam("questionnaireId") String questionnaireId,
                                                                                       @RequestParam List<String> modes,

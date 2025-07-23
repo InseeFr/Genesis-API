@@ -26,6 +26,9 @@ public interface SurveyUnitMongoDBRepository extends MongoRepository<SurveyUnitD
 	List<SurveyUnitDocument> findBySetOfIdsAndQuestionnaireIdAndMode(String questionnaireId, String mode, List<String> interrogationIdSet);
 	//========= OPTIMISATIONS PERFS (END) ==========
 
+	/**
+	 * !!!WARNING!!! : A CALL WITH THIS ENDPOINT ON A BIG COLLECTION (> 300k) MAY KILL THE GENESIS-API APP.!!!
+	 */
 	@Query(value = "{ 'questionnaireId' : ?0 }", fields = "{ 'interrogationId' : 1, 'mode' :  1 }")
 	List<SurveyUnitDocument> findInterrogationIdsByQuestionnaireId(String questionnaireId);
 
@@ -60,11 +63,9 @@ public interface SurveyUnitMongoDBRepository extends MongoRepository<SurveyUnitD
 			"{ '$group': { '_id': '$mode' } }",
 			"{ '$set': { 'mode': '$_id', '_id': '$$REMOVE' } }"
 	})
-	List<SurveyUnitDocument> findModesByQuestionnaireIdV2(String campaignId);
+	List<SurveyUnitDocument> findModesByQuestionnaireIdV2(String questionnaireId);
 	//========= OPTIMISATIONS PERFS (END) ==========
 
-	@Query(value = "{ 'campaignId' : ?0 }", fields = "{ 'interrogationId' : 1, 'mode' :  1 }")
-	List<SurveyUnitDocument> findInterrogationIdsByCampaignId(String campaignId);
 
 	Long deleteByQuestionnaireId(String questionnaireId);
 
@@ -73,8 +74,6 @@ public interface SurveyUnitMongoDBRepository extends MongoRepository<SurveyUnitD
 
 	long count();
 
-	@Query(value = "{ 'campaignId' : ?0 }", fields = "{ _id : 0, 'questionnaireId' : 1 }")
-	Set<String> findQuestionnaireIdsByCampaignId(String campaignId);
 
 	//========= OPTIMISATIONS PERFS (START) ==========
 	/**

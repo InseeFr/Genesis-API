@@ -35,7 +35,7 @@ public class CampaignController implements CommonApiResponse {
     @Operation(summary = "List campaigns in database with their questionnaires")
     @GetMapping(path = "/with-questionnaires")
     public ResponseEntity<List<CampaignWithQuestionnaire>> getCampaignsWithQuestionnaires() {
-        List<CampaignWithQuestionnaire> questionnairesByCampaigns = surveyUnitService.findCampaignsWithQuestionnaires();
+        List<CampaignWithQuestionnaire> questionnairesByCampaigns = surveyUnitService.findCampaignsWithQuestionnairesV2();
         return ResponseEntity.ok(questionnairesByCampaigns);
     }
 
