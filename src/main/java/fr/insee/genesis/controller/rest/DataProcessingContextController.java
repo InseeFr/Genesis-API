@@ -46,7 +46,7 @@ public class DataProcessingContextController {
 
     @Operation(summary = "Create or update a data processing context")
     @PutMapping(path = "/review")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('USER_BACK_OFFICE')")
     public ResponseEntity<Object> saveContext(
             @Parameter(description = "Identifier of the partition", required = true) @RequestParam("partitionId") String partitionId,
             @Parameter(description = "Allow reviewing") @RequestParam(value = "withReview", defaultValue = "false") Boolean withReview
