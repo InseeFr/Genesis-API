@@ -67,7 +67,7 @@ public class EditedResponseController {
             if (!jsonFileName.toLowerCase().endsWith(".json")) {
                 throw new GenesisException(400, "File must be a JSON file !");
             }
-            readEditedPreviousFile(questionnaireId, sourceState, filePath);
+            readEditedPreviousFile(questionnaireId.toUpperCase(), sourceState, filePath);
             moveFiles(questionnaireId, mode, fileUtils, filePath);
             return ResponseEntity.ok("Edited previous variable file %s saved !".formatted(filePath));
         }catch (GenesisException ge){
@@ -93,7 +93,7 @@ public class EditedResponseController {
             if (!jsonFileName.toLowerCase().endsWith(".json")) {
                 throw new GenesisException(400, "File must be a JSON file !");
             }
-            readEditedExternalFile(questionnaireId, filePath);
+            readEditedExternalFile(questionnaireId.toUpperCase(), filePath);
             moveFiles(questionnaireId, mode, fileUtils, filePath);
             return ResponseEntity.ok("Edited external variable file %s saved !".formatted(filePath));
         }catch (GenesisException ge){

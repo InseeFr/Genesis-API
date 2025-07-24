@@ -70,7 +70,7 @@ public class RawResponseController {
         log.info("Try to save interrogationId {} for campaign {}", interrogationId, campaignName);
         LunaticJsonRawDataModel rawData = LunaticJsonRawDataModel.builder()
                 .campaignId(campaignName)
-                .questionnaireId(questionnaireId)
+                .questionnaireId(questionnaireId.toUpperCase())
                 .interrogationId(interrogationId)
                 .idUE(idUE)
                 .mode(modeSpecified)
@@ -118,7 +118,7 @@ public class RawResponseController {
 
         LunaticJsonRawDataModel rawData = LunaticJsonRawDataModel.builder()
                 .campaignId(body.get(PARTITION_ID).toString())
-                .questionnaireId(body.get("questionnaireModelId").toString())
+                .questionnaireId(body.get("questionnaireModelId").toString().toUpperCase())
                 .interrogationId(body.get(INTERROGATION_ID).toString())
                 .idUE(body.get("surveyUnitId").toString())
                 .mode(Mode.getEnumFromJsonName(body.get("mode").toString()))

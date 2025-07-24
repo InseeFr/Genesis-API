@@ -36,7 +36,7 @@ public class LunaticModelController implements CommonApiResponse{
             @RequestParam("questionnaireId") String questionnaireId,
             @RequestBody Map<String, Object> dataJson
     ){
-        lunaticModelApiPort.save(questionnaireId, dataJson);
+        lunaticModelApiPort.save(questionnaireId.toUpperCase(), dataJson);
         return ResponseEntity.ok().build();
     }
 
