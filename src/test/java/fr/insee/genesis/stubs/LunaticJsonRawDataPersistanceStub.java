@@ -1,7 +1,6 @@
 package fr.insee.genesis.stubs;
 
 import fr.insee.genesis.domain.model.surveyunit.GroupedInterrogation;
-import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
 import fr.insee.genesis.domain.ports.spi.LunaticJsonRawDataPersistencePort;

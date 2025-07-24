@@ -8,5 +8,6 @@ public enum ApplicationRole {
     SCHEDULER,
     READER,
     USER_BACK_OFFICE
+    USER_BATCH_GENERIC
 }
 

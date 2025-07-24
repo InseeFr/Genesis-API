@@ -270,4 +270,44 @@ class Utils {
         surveyUnitPersistencePortStub.getMongoStub().add(recentSurveyUnitModel);
     }
 
+    static void addAdditionalSurveyUnitModelToMongoStub(DataState state,
+                                                        String variableName,
+                                                        String collectedVariableValue,
+                                                        String externalVariableValue,
+                                                        LocalDateTime fileDate,
+                                                        LocalDateTime recordDate,
+                                                        SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) {
+        List<VariableModel> externalVariableList = new ArrayList<>();
+        VariableModel variable = VariableModel.builder()
+                .varId(variableName)
+                .value(externalVariableValue)
+                .iteration(1)
+                .build();
+        externalVariableList.add(variable);
+
+        List<VariableModel> collectedVariableList = new ArrayList<>();
+        VariableModel collectedVariable = VariableModel.builder()
+                .varId(variableName)
+                .value(collectedVariableValue)
+                .scope("TESTSCOPE")
+                .iteration(1)
+                .parentId("TESTPARENTID")
+                .build();
+
+        collectedVariableList.add(collectedVariable);
+
+        SurveyUnitModel recentSurveyUnitModel = SurveyUnitModel.builder()
+                .campaignId("TEST-TABLEAUX")
+                .mode(Mode.WEB)
+                .interrogationId(DEFAULT_INTERROGATION_ID)
+                .questionnaireId(DEFAULT_QUESTIONNAIRE_ID)
+                .state(state)
+                .fileDate(fileDate)
+                .recordDate(recordDate)
+                .externalVariables(externalVariableList)
+                .collectedVariables(collectedVariableList)
+                .build();
+        surveyUnitPersistencePortStub.getMongoStub().add(recentSurveyUnitModel);
+    }
+
 }

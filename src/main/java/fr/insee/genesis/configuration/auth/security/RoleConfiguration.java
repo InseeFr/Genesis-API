@@ -37,6 +37,10 @@ public class RoleConfiguration {
     @Value("#{'${app.role.scheduler.claims}'.split(',')}")
     private List<String> schedulerClaims;
 
+    @Value("#{'${app.role.batch-generic.claims}'.split(',')}")
+    private List<String> batchGenericClaims;
+
+
     public Map<String, List<String>> getRolesByClaim() {
         return rolesByClaim;
     }
@@ -56,6 +60,7 @@ public class RoleConfiguration {
                 .role(ApplicationRole.ADMIN.toString()).implies(ApplicationRole.USER_BACK_OFFICE.toString())
                 .role(ApplicationRole.ADMIN.toString()).implies(ApplicationRole.COLLECT_PLATFORM.toString())
                 .role(ApplicationRole.ADMIN.toString()).implies(ApplicationRole.SCHEDULER.toString())
+                .role(ApplicationRole.ADMIN.toString()).implies(ApplicationRole.USER_BATCH_GENERIC.toString())
                 .role(ApplicationRole.USER_KRAFTWERK.toString()).implies(ApplicationRole.READER.toString())
                 .role(ApplicationRole.USER_PLATINE.toString()).implies(ApplicationRole.READER.toString())
                 .role(ApplicationRole.USER_BACK_OFFICE.toString()).implies(ApplicationRole.READER.toString())
@@ -109,6 +114,11 @@ public class RoleConfiguration {
         schedulerClaims.forEach(claim -> rolesByClaim
                 .computeIfAbsent(claim, k -> new ArrayList<>())
                 .add(String.valueOf(ApplicationRole.SCHEDULER)));
+
+        //Add claims for the USER_BATCH_GENERIC role
+        batchGenericClaims.forEach(claim -> rolesByClaim
+                .computeIfAbsent(claim, k -> new ArrayList<>())
+                .add(String.valueOf(ApplicationRole.USER_BATCH_GENERIC)));
 
         log.info("Roles configuration : {}", rolesByClaim);
     }
