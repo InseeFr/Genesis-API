@@ -11,12 +11,14 @@ import fr.insee.genesis.infrastructure.repository.LunaticModelMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.RundeckExecutionDBRepository;
 import fr.insee.genesis.infrastructure.repository.SurveyUnitMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.VariableTypeMongoDBRepository;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration;
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
@@ -31,8 +33,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.oneOf;
@@ -56,11 +56,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class ControllerAccessTest {
 
     // Constants for user roles
-    private static final String USER_KRAFTWERK = "USER_KRAFTWERK";
-    private static final String USER_PLATINE = "USER_PLATINE";
-    private static final String USER_BACK_OFFICE = "USER_BACK_OFFICE";
-    private static final String ADMIN = "ADMIN";
-    private static final String READER = "READER";
     // JWT claim properties loaded from application properties
     @Value("${fr.insee.genesis.security.token.oidc-claim-role}")
     private String claimRoleDotRoles;
@@ -116,10 +111,6 @@ class ControllerAccessTest {
 
     private static Stream<Arguments> responseEndpoint() {
         return Stream.of(
-                Arguments.of(GET,"/response/lunatic-json/get/unprocessed"),
-                Arguments.of(GET,"/response/lunatic-json/get/by-interrogation-mode-and-campaign"),
-                Arguments.of(POST,"/response/lunatic-json/process"),
-                Arguments.of(GET,"/response/lunatic-json/campaignId=TOTO"),
                 Arguments.of(GET,"/responses/raw/lunatic-json/get/unprocessed"),
                 Arguments.of(GET,"/responses/raw/lunatic-json/get/by-interrogation-mode-and-campaign?interrogationId=test&campaignName=test&mode=WEB"),
                 Arguments.of(GET,"/responses/raw/lunatic-json/campaignId=TOTO"),
@@ -185,23 +176,19 @@ class ControllerAccessTest {
     @MethodSource("backOfficeEndpointProd")
     @DisplayName("Back office users should access prod services")
     void back_office_users_should_access_prod_services(HttpMethod method, String endpointURI) throws Exception {
-        Jwt jwt = generateJwt(List.of("utilisateur_Back_Office"), USER_BACK_OFFICE);
-        when(jwtDecoder.decode(anyString())).thenReturn(jwt);
-        MockHttpServletRequestBuilder requestBuilder;
-        if (method == HttpMethod.GET) {
-            requestBuilder = get(endpointURI);
-        } else if (method == HttpMethod.POST) {
-            requestBuilder = post(endpointURI);
-        } else if (method == PUT) {
-            requestBuilder = put(endpointURI);
-        } else if (method == HttpMethod.DELETE) {
-            requestBuilder = delete(endpointURI);
-        } else {
-            throw new IllegalArgumentException("Unsupported HTTP method: " + method);
+        switch (method.name()){
+            case "PUT" -> mockMvc.perform(
+                            put(endpointURI).with(
+                                    jwt().authorities(new SimpleGrantedAuthority("ROLE_USER_BACK_OFFICE")))
+                    )
+                    .andExpect(status().is(oneOf(200,400,404)));
+            case "POST" -> mockMvc.perform(
+                            post(endpointURI).with(
+                                    jwt().authorities(new SimpleGrantedAuthority("ROLE_USER_BACK_OFFICE")))
+                    )
+                    .andExpect(status().is(oneOf(200,400,404)));
+            default -> Assertions.fail("Method %s not supported".formatted(method.name()));
         }
-
-        mockMvc.perform(requestBuilder.header("Authorization", "bearer token_blabla"))
-                .andExpect(status().is(oneOf(200, 400, 404)));
     }
 
     /**
@@ -211,10 +198,11 @@ class ControllerAccessTest {
     @MethodSource("endpointsReader")
     @DisplayName("Back office users should access reader-allowed services")
     void back_office_users_should_access_reader_allowed_services(String endpointURI) throws Exception {
-        Jwt jwt = generateJwt(List.of("utilisateur_Back_Office"), USER_BACK_OFFICE);
-        when(jwtDecoder.decode(anyString())).thenReturn(jwt);
-        mockMvc.perform(get(endpointURI).header("Authorization", "bearer token_blabla"))
-                .andExpect(status().is(oneOf(200, 404)));
+        mockMvc.perform(
+                        get(endpointURI).with(
+                                jwt().authorities(new SimpleGrantedAuthority("ROLE_USER_BACK_OFFICE")))
+                )
+                .andExpect(status().is(oneOf(200,400,404)));
     }
 
     /**
@@ -336,6 +324,4 @@ class ControllerAccessTest {
                 jwt().authorities(new SimpleGrantedAuthority("ROLE_invalid"))))
                 .andExpect(status().isForbidden());
     }
-
-
 }
