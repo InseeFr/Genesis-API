@@ -1,11 +1,9 @@
 package fr.insee.genesis.controller.rest.responses;
 
 import cucumber.TestConstants;
-import fr.insee.genesis.domain.model.surveyunit.DataState;
-import fr.insee.genesis.domain.model.surveyunit.Mode;
-import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
-import fr.insee.genesis.domain.model.surveyunit.VariableModel;
+import fr.insee.genesis.domain.model.surveyunit.*;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -309,5 +307,43 @@ class Utils {
                 .build();
         surveyUnitPersistencePortStub.getMongoStub().add(recentSurveyUnitModel);
     }
+
+
+    static void fillMongoStubForPerformances(DataState state,
+                                             LocalDateTime fileDate,
+                                             LocalDateTime recordDate,
+                                             SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) {
+        List<SurveyUnitModel> sumList = new ArrayList<>();
+
+
+        for (int i = 0; i < 1000 ; i++) {
+            SurveyUnitModel recentSurveyUnitModel = SurveyUnitModel.builder()
+                    .campaignId("TEST-TABLEAUX")
+                    .mode(Mode.WEB)
+                    //interrogationId example : "UE000000001"
+                    .interrogationId(StringUtils.leftPad(String.valueOf(i), 9, "0"))
+                    .questionnaireId(DEFAULT_QUESTIONNAIRE_ID)
+                    .state(state)
+                    .fileDate(fileDate)
+                    .recordDate(recordDate)
+                    .externalVariables(new ArrayList<>())
+                    .collectedVariables(new ArrayList<>())
+                    .build();
+            sumList.add(recentSurveyUnitModel);
+        }
+
+        surveyUnitPersistencePortStub.getMongoStub().addAll(sumList);
+    }
+
+
+    static List<InterrogationId> generateInterrogationIds() {
+        List<InterrogationId> ids = new ArrayList<>();
+        for (int i = 0; i < 1000; i++) {
+            InterrogationId interrogationId = new InterrogationId(StringUtils.leftPad(String.valueOf(i), 9, "0"));
+            ids.add(interrogationId);
+        }
+        return ids;
+    }
+
 
 }
