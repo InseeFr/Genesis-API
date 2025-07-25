@@ -2,7 +2,9 @@ package fr.insee.genesis.infrastructure.document.rundeck;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.insee.genesis.domain.model.rundeck.DateStarted;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data

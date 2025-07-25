@@ -134,7 +134,7 @@ public class DataVerifier {
     private static void collectedVariablesManagement(List<SurveyUnitModel> srcSurveyUnitModelsOfInterrogationId, VariablesMap variablesMap, List<VariableModel> correctedCollectedVariables){
         Map<String,List<Integer>> variableIterations = new LinkedHashMap<>();
 
-        List<VariableModel> variablesToVerify = new ArrayList<>();
+        List<VariableStateTuple> variablesToVerify = new ArrayList<>();
 
         //Sort from more priority to less
         List<SurveyUnitModel> sortedSurveyUnitModels = srcSurveyUnitModelsOfInterrogationId.stream().sorted(Comparator.comparing(surveyUnitModel -> dataStatesPriority.get(surveyUnitModel.getState()))).toList();
@@ -142,17 +142,18 @@ public class DataVerifier {
         //Get more priority variables to verify
         for(SurveyUnitModel srcSurveyUnitModel : sortedSurveyUnitModels){
             for(VariableModel collectedVariable : srcSurveyUnitModel.getCollectedVariables()){
-                addIteration(collectedVariable, variableIterations, variablesToVerify);
+                addIteration(collectedVariable, variableIterations, variablesToVerify, srcSurveyUnitModel.getState());
             }
         }
 
         //Verify variables
-        for(VariableModel collectedVariableToVerify : variablesToVerify){
-            if(variablesMap.hasVariable(collectedVariableToVerify.varId()))
+        for(VariableStateTuple collectedVariableToVerify : variablesToVerify){
+            if(variablesMap.hasVariable(collectedVariableToVerify.variableModel().varId()))
             {
                 VariableModel correctedCollectedVariable = verifyVariable(
-                        collectedVariableToVerify,
-                        variablesMap.getVariable(collectedVariableToVerify.varId())
+                        collectedVariableToVerify.variableModel(),
+                        variablesMap.getVariable(collectedVariableToVerify.variableModel().varId()),
+                        collectedVariableToVerify.dataState()
                 );
 
                 if(correctedCollectedVariable != null){
@@ -162,7 +163,11 @@ public class DataVerifier {
         }
     }
 
-    private static void addIteration(VariableModel variableToCheck, Map<String, List<Integer>> variableIterations, List<VariableModel> variablesToVerify) {
+    private static void addIteration(VariableModel variableToCheck,
+                                     Map<String, List<Integer>> variableIterations,
+                                     List<VariableStateTuple> variablesToVerify,
+                                     DataState dataState
+                                     ) {
         String varIdToCheck = variableToCheck.varId();
         Integer iterationToCheck = variableToCheck.iteration();
 
@@ -179,12 +184,16 @@ public class DataVerifier {
                     iterations
             );
 
-            variablesToVerify.add(variableToCheck);
+            variablesToVerify.add(new VariableStateTuple(variableToCheck, dataState));
         }
     }
 
-    private static VariableModel verifyVariable(VariableModel variableModel, fr.insee.bpm.metadata.model.Variable variableDefinition) {
-        if(isParseError(variableModel.value(), variableDefinition.getType())){
+    private static VariableModel verifyVariable(
+            VariableModel variableModel,
+            fr.insee.bpm.metadata.model.Variable variableDefinition,
+            DataState dataState
+    ) {
+        if(isParseError(variableModel.value(), variableDefinition.getType(),dataState)){
             return VariableModel.builder()
                     .varId(variableModel.varId())
                     .value("")
@@ -204,11 +213,13 @@ public class DataVerifier {
 
         //Verify variables
         if(surveyUnitModelOptional.isPresent()){
+            DataState state = surveyUnitModelOptional.get().getState();
             for(VariableModel externalVariable: surveyUnitModelOptional.get().getExternalVariables()){
                 if(variablesMap.hasVariable(externalVariable.varId())) {
                     VariableModel correctedExternalVariable = verifyVariable(
                             externalVariable,
-                            variablesMap.getVariable(externalVariable.varId())
+                            variablesMap.getVariable(externalVariable.varId()),
+                            state
                     );
                     if (correctedExternalVariable != null) {
                         correctedExternalVariables.add(correctedExternalVariable);
@@ -222,9 +233,16 @@ public class DataVerifier {
      * Use the correct parser and try to parse
      * @param value value to verify
      * @param type type of the variable
+     * @param state state of the data where the variable is contained in
      * @return true if the value is not conform to the variable type
      */
-    private static boolean isParseError(String value, VariableType type){
+    private static boolean isParseError(String value, VariableType type, DataState state){
+        //Allow null values
+        if(value == null){
+            return !(state.equals(DataState.EDITED)
+                    || state.equals(DataState.FORCED)
+                    || state.equals(DataState.FORMATTED)); //Return false if datastate one of those
+        }
         switch(type){
             case BOOLEAN:
                 if(!value.equals("true")

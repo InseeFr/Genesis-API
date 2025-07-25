@@ -25,10 +25,8 @@ import static org.mockito.Mockito.when;
 class SurveyUnitModelMongoAdapterTest {
 	
     static SurveyUnitMongoDBRepository mongoRepository = Mockito.mock(SurveyUnitMongoDBRepository.class);
-
 	@InjectMocks
 	static SurveyUnitMongoAdapter surveyUnitMongoAdapter;
-
 	static SurveyUnitDocument suDoc;
 	static SurveyUnitDocument suDoc2;
 	static SurveyUnitDocument suDoc3;
@@ -171,5 +169,23 @@ class SurveyUnitModelMongoAdapterTest {
 		// Then
 		Assertions.assertThat(updates).isEmpty();
 	}
+
+	@Test
+	void shouldReturnCampaignCount() {
+		when(mongoRepository.countByCampaignId("CAMP42")).thenReturn(7L);
+
+		long count = surveyUnitMongoAdapter.countByCampaignId("CAMP42");
+		Assertions.assertThat(count).isEqualTo(7L);
+	}
+
+	@Test
+	void shouldReturnZero_whenCountIsEmpty() {
+		when(mongoRepository.countByCampaignId("CAMP999")).thenReturn(0L);
+
+		long count = surveyUnitMongoAdapter.countByCampaignId("CAMP999");
+		Assertions.assertThat(count).isEqualTo(0L);
+	}
+
+
 
 }

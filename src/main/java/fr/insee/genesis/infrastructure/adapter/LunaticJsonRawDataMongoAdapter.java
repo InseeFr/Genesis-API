@@ -1,20 +1,26 @@
 package fr.insee.genesis.infrastructure.adapter;
 
 import fr.insee.genesis.Constants;
+import fr.insee.genesis.domain.model.surveyunit.GroupedInterrogation;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
 import fr.insee.genesis.domain.ports.spi.LunaticJsonRawDataPersistencePort;
 import fr.insee.genesis.infrastructure.document.rawdata.LunaticJsonRawDataDocument;
+import fr.insee.genesis.infrastructure.mappers.GroupedInterrogationDocumentMapper;
 import fr.insee.genesis.infrastructure.mappers.LunaticJsonRawDataDocumentMapper;
 import fr.insee.genesis.infrastructure.repository.LunaticJsonMongoDBRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
@@ -69,7 +75,21 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
     }
 
     @Override
+    public Page<LunaticJsonRawDataModel> findByCampaignIdAndDate(String campaignId, Instant startDt, Instant  endDt, Pageable pageable) {
+        Page<LunaticJsonRawDataDocument> rawDataDocsPage =  repository.findByCampaignIdAndRecordDateBetween(campaignId,startDt,endDt,pageable);
+        List<LunaticJsonRawDataModel> modelList = LunaticJsonRawDataDocumentMapper.INSTANCE.listDocumentToListModel(rawDataDocsPage.getContent());
+        return new PageImpl<>(modelList, rawDataDocsPage.getPageable(), rawDataDocsPage.getTotalElements());
+    }
+
+    @Override
     public long countResponsesByQuestionnaireId(String questionnaireId) {
         return repository.countByQuestionnaireId(questionnaireId);
     }
+
+    @Override
+    public List<GroupedInterrogation> findProcessedIdsGroupedByQuestionnaireSince(LocalDateTime since){
+        return GroupedInterrogationDocumentMapper.INSTANCE.listDocumentToListModel(repository.aggregateRawGrouped(since));
+    }
+
+
 }

@@ -9,6 +9,8 @@ import java.util.List;
 public interface DataProcessingContextPersistancePort {
     DataProcessingContextDocument findByPartitionId(String partitionId);
 
+    List<DataProcessingContextModel> findByPartitionIds(List<String> partitionIds);
+
     void save(DataProcessingContextDocument dataProcessingContextDocument);
 
     void saveAll(List<DataProcessingContextDocument> dataProcessingContextDocuments);

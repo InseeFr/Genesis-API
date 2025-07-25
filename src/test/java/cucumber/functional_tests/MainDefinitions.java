@@ -1,6 +1,5 @@
 package cucumber.functional_tests;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import cucumber.TestConstants;
 import fr.insee.bpm.exceptions.MetadataParserException;
 import fr.insee.bpm.metadata.model.VariablesMap;
@@ -76,7 +75,7 @@ public class MainDefinitions {
     ResponseEntity<Object> surveyUnitLatestStatesResponse;
 
     ResponseController responseController = new ResponseController(
-            new SurveyUnitService(surveyUnitPersistence),
+            new SurveyUnitService(surveyUnitPersistence, new MetadataService(), new FileUtils(config)),
             surveyUnitQualityService,
             new FileUtils(config),
             new ControllerUtils(new FileUtils(config)),
@@ -328,12 +327,11 @@ public class MainDefinitions {
     }
 
     @Then("If we get latest states for {string} in collected variable {string}, survey unit {string} we should have {string} for iteration {int}")
-    public void check_latest_state_collected(String questionnaireId, String variableName, String interrogationId, String expectedValue, int iteration) throws GenesisException, IOException {
+    public void check_latest_state_collected(String questionnaireId, String variableName, String interrogationId, String expectedValue, int iteration) throws GenesisException {
         ResponseEntity<Object> response =
                 responseController.findResponsesByInterrogationAndQuestionnaireLatestStates(interrogationId, questionnaireId);
         Assertions.assertThat(response.getStatusCode().value()).isEqualTo(200);
 
-        ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
         SurveyUnitQualityToolDto surveyUnitQualityToolDto = (SurveyUnitQualityToolDto) response.getBody();
 
         List<VariableQualityToolDto> variableQualityToolDtos = surveyUnitQualityToolDto.getCollectedVariables().stream().filter(
@@ -353,7 +351,7 @@ public class MainDefinitions {
     }
 
     @Then("If we get latest states for {string} in external variable {string}, survey unit {string} we should have {string} for iteration {int}")
-    public void check_latest_state_external(String questionnaireId, String variableName, String interrogationId, String expectedValue, int iteration) throws IOException, GenesisException {
+    public void check_latest_state_external(String questionnaireId, String variableName, String interrogationId, String expectedValue, int iteration) throws GenesisException {
         ResponseEntity<Object> response =
                 responseController.findResponsesByInterrogationAndQuestionnaireLatestStates(interrogationId, questionnaireId);
         Assertions.assertThat(response.getStatusCode().value()).isEqualTo(200);
@@ -435,7 +433,7 @@ public class MainDefinitions {
     @Then("The extracted survey unit latest states response should have a survey unit DTO has interrogationId " +
             "{string}" +
             " with {int} external variables")
-    public void check_su_latest_states_external_variables_volumetry(String interrogationId, int expectedVolumetry) throws IOException {
+    public void check_su_latest_states_external_variables_volumetry(String interrogationId, int expectedVolumetry) {
         Assertions.assertThat(surveyUnitLatestStatesResponse).isNotNull();
         Assertions.assertThat(surveyUnitLatestStatesResponse.getBody()).isNotNull();
         SurveyUnitQualityToolDto surveyUnitQualityToolDto = (SurveyUnitQualityToolDto) surveyUnitLatestStatesResponse.getBody();
@@ -457,12 +455,31 @@ public class MainDefinitions {
     public void check_log(String expectedLogContent) {
         Assertions.assertThat(outputStreamCaptor.toString()).contains(expectedLogContent);
     }
-
     @Then("The response of get latest states should have {int} status code")
     public void check_latest_status_status_code(int expectedStatusCode) {
         Assertions.assertThat(surveyUnitLatestStatesResponse.getStatusCode().value()).isEqualTo(expectedStatusCode);
     }
 
+    @Then("The extracted survey unit data latest states response dto should have a {string} collected variable named {string} with {string} as value for iteration {int}")
+    public void check_latest_states_variable_type(String variableType, String expectedVariableName, String expectedValue, int iteration){
+        Assertions.assertThat(surveyUnitLatestStatesResponse).isNotNull();
+        Assertions.assertThat(surveyUnitLatestStatesResponse.getBody()).isNotNull();
+        Assertions.assertThat(surveyUnitLatestStatesResponse.getStatusCode().value()).isEqualTo(200);
+
+        SurveyUnitQualityToolDto surveyUnitQualityToolDto = (SurveyUnitQualityToolDto) surveyUnitLatestStatesResponse.getBody();
+        List<VariableQualityToolDto> variableQualityToolDtos = surveyUnitQualityToolDto.getCollectedVariables().stream().filter(variable ->
+                variable.getVariableName().equals(expectedVariableName)
+                && variable.getIteration().equals(iteration)).toList();
+        Assertions.assertThat(variableQualityToolDtos).hasSize(1);
+
+        switch (variableType.toLowerCase()){
+            case "integer" -> Assertions.assertThat(variableQualityToolDtos.getFirst().getVariableStateDtoList().getFirst().getValue()).isInstanceOf(Integer.class).isEqualTo(Integer.parseInt(expectedValue));
+            case "float" -> Assertions.assertThat(variableQualityToolDtos.getFirst().getVariableStateDtoList().getFirst().getValue()).isInstanceOf(Float.class).isEqualTo(Float.parseFloat(expectedValue));
+            case "boolean" -> Assertions.assertThat(variableQualityToolDtos.getFirst().getVariableStateDtoList().getFirst().getValue()).isInstanceOf(Boolean.class).isEqualTo(Boolean.parseBoolean(expectedValue));
+            case "string" -> Assertions.assertThat(variableQualityToolDtos.getFirst().getVariableStateDtoList().getFirst().getValue()).isInstanceOf(String.class).isEqualTo(expectedValue);
+            default -> Assertions.fail("incorrect variable type %s".formatted(variableType));
+        }
+    }
     //AFTERs
     @After
     public void clean() throws IOException {

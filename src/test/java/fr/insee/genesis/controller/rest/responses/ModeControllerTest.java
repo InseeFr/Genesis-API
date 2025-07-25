@@ -1,8 +1,11 @@
 package fr.insee.genesis.controller.rest.responses;
 
+import fr.insee.genesis.controller.services.MetadataService;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
+import fr.insee.genesis.infrastructure.utils.FileUtils;
+import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -16,6 +19,7 @@ import java.util.List;
 import static fr.insee.genesis.TestConstants.DEFAULT_QUESTIONNAIRE_ID;
 
 class ModeControllerTest {
+    public static final String CAMPAIGN_ID = "TEST-TABLEAUX";
     //Given
     static ModeController modeControllerStatic;
     static SurveyUnitPersistencePortStub surveyUnitPersistencePortStub;
@@ -23,7 +27,11 @@ class ModeControllerTest {
     @BeforeAll
     static void init() {
         surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
-        SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(surveyUnitPersistencePortStub);
+        SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(
+                surveyUnitPersistencePortStub,
+                new MetadataService(),
+                new FileUtils(new ConfigStub())
+        );
 
         modeControllerStatic = new ModeController( surveyUnitApiPort );
 
@@ -47,7 +55,7 @@ class ModeControllerTest {
 
     @Test
     void getModesByCampaignTest() {
-        ResponseEntity<List<Mode>> response = modeControllerStatic.getModesByCampaign("TESTCAMPAIGNID");
+        ResponseEntity<List<Mode>> response = modeControllerStatic.getModesByCampaign(CAMPAIGN_ID);
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().hasSize(1);

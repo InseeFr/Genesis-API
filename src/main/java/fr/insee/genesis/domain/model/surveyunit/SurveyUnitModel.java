@@ -21,6 +21,9 @@ public class SurveyUnitModel {
 	private String interrogationId;
 	private DataState state;
 	private Mode mode;
+	private String contextualId;
+	private Boolean isCapturedIndirectly;
+	private LocalDateTime validationDate;
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'hh:mm")
 	private LocalDateTime recordDate;
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'hh:mm")
