@@ -300,69 +300,8 @@ public class ResponseController implements CommonApiResponse {
     public ResponseEntity<List<SurveyUnitSimplified>> getLatestForInterrogationListWithModes(@RequestParam("questionnaireId") String questionnaireId,
                                                                                       @RequestParam List<String> modes,
                                                                                         @RequestBody List<InterrogationId> interrogationIds) {
-        List<SurveyUnitSimplified> results = new ArrayList<>();
-
-        //!!!WARNING!!! : FOR PERFORMANCES PURPOSES, WE DONT'MAKE REQUESTS ON INDIVIDUAL ELEMENTS ANYMORE, BUT ON A SUBLIST OF THE INPUTLIST
-        final int SUBBLOCK_SIZE = 100;
-        int offset = 0;
-        List<InterrogationId> interrogationIdsSubList = null;
-
-        for(String mode : modes) {
-
-            while(offset <= interrogationIds.size()) {
-                //extract part of input list
-                int endOffset = Math.min(offset + SUBBLOCK_SIZE, interrogationIds.size());
-                interrogationIdsSubList = interrogationIds.subList(offset, endOffset);
-
-                //1) For each InterrogationId, we collect all responses versions, in which ONLY THE LATEST VERSION of each variable is kept.
-                List<List<SurveyUnitModel>> responses = surveyUnitService.findLatestByIdAndByQuestionnaireIdAndModeOrdered(questionnaireId, mode, interrogationIdsSubList);
-
-                responses.forEach(responsesForSingleInterrId -> {
-                    SurveyUnitSimplified simplifiedResponse = fusionWithLastUpdated(responsesForSingleInterrId, mode);
-                    if(simplifiedResponse != null) {
-                        results.add(simplifiedResponse);
-                    }
-                });
-
-                offset = offset + SUBBLOCK_SIZE;
-            }
-        }
-
+        List<SurveyUnitSimplified> results = surveyUnitService.getLatestForInterrogationListWithModes(questionnaireId, modes, interrogationIds);
         return ResponseEntity.ok(results);
-    }
-
-
-    private SurveyUnitSimplified fusionWithLastUpdated(List<SurveyUnitModel> responsesForSingleInterrId, String mode) {
-        //NOTE : 1) "responses" in input here corresponds to all collected responses versions of a given "InterrogationId",
-        //       in which ONLY THE LATEST VERSION of each variable is kept.
-
-        //return simplifiedResponse
-        SurveyUnitSimplified simplifiedResponse = null;
-
-        //2) storage of the !!!FUSION!!! OF ALL LATEST UPDATED variables (located in the different versions of the stored "InterrogationId")
-        List<VariableModel> outputVariables = new ArrayList<>();
-        List<VariableModel> outputExternalVariables = new ArrayList<>();
-
-        responsesForSingleInterrId.forEach(response -> {
-            outputVariables.addAll(response.getCollectedVariables());
-            outputExternalVariables.addAll(response.getExternalVariables());
-        });
-
-        //3) add to the result list the compiled fusion of all the latest variables
-        if (!outputVariables.isEmpty() || !outputExternalVariables.isEmpty()) {
-            Mode modeWrapped = Mode.getEnumFromModeName(mode);
-
-            simplifiedResponse = SurveyUnitSimplified.builder()
-                    .questionnaireId(responsesForSingleInterrId.getFirst().getQuestionnaireId())
-                    .campaignId(responsesForSingleInterrId.getFirst().getCampaignId())
-                    .interrogationId(responsesForSingleInterrId.getFirst().getInterrogationId())
-                    .mode(modeWrapped)
-                    .variablesUpdate(outputVariables)
-                    .externalVariables(outputExternalVariables)
-                    .build();
-        }
-
-        return simplifiedResponse;
     }
 
 

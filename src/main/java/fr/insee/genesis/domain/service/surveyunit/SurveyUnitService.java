@@ -2,13 +2,7 @@ package fr.insee.genesis.domain.service.surveyunit;
 
 import fr.insee.bpm.metadata.model.VariableType;
 import fr.insee.bpm.metadata.model.VariablesMap;
-import fr.insee.genesis.controller.dto.CampaignWithQuestionnaire;
-import fr.insee.genesis.controller.dto.QuestionnaireWithCampaign;
-import fr.insee.genesis.controller.dto.SurveyUnitDto;
-import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
-import fr.insee.genesis.controller.dto.VariableDto;
-import fr.insee.genesis.controller.dto.VariableInputDto;
-import fr.insee.genesis.controller.dto.VariableStateDto;
+import fr.insee.genesis.controller.dto.*;
 import fr.insee.genesis.controller.services.MetadataService;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
@@ -163,6 +157,40 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     }
 
 
+    @Override
+    public List<SurveyUnitSimplified> getLatestForInterrogationListWithModes(String questionnaireId, List<String> modes, List<InterrogationId> interrogationIds) {
+        List<SurveyUnitSimplified> results = new ArrayList<>();
+
+        //!!!WARNING!!! : FOR PERFORMANCES PURPOSES, WE DONT'MAKE REQUESTS ON INDIVIDUAL ELEMENTS ANYMORE, BUT ON A SUBLIST OF THE INPUTLIST
+        final int SUBBLOCK_SIZE = 100;
+        int offset = 0;
+        List<InterrogationId> interrogationIdsSubList = null;
+
+        for(String mode : modes) {
+
+            while(offset <= interrogationIds.size()) {
+                //extract part of input list
+                int endOffset = Math.min(offset + SUBBLOCK_SIZE, interrogationIds.size());
+                interrogationIdsSubList = interrogationIds.subList(offset, endOffset);
+
+                //1) For each InterrogationId, we collect all responses versions, in which ONLY THE LATEST VERSION of each variable is kept.
+                List<List<SurveyUnitModel>> responses = findLatestByIdAndByQuestionnaireIdAndModeOrdered(questionnaireId, mode, interrogationIdsSubList);
+
+                responses.forEach(responsesForSingleInterrId -> {
+                    SurveyUnitSimplified simplifiedResponse = fusionWithLastUpdated(responsesForSingleInterrId, mode);
+                    if(simplifiedResponse != null) {
+                        results.add(simplifiedResponse);
+                    }
+                });
+
+                offset = offset + SUBBLOCK_SIZE;
+            }
+        }
+
+        return results;
+    }
+
+
     /**
      * In this method we want to get the latest update for each variable of a survey unit
      * But we need to separate the updates by mode
@@ -173,8 +201,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
      * @return the latest update for each variable of a survey unit
      * @author Adrien Marchal
      */
-    @Override
-    public List<List<SurveyUnitModel>> findLatestByIdAndByQuestionnaireIdAndModeOrdered(String questionnaireId, String mode,
+    private List<List<SurveyUnitModel>> findLatestByIdAndByQuestionnaireIdAndModeOrdered(String questionnaireId, String mode,
                                                                                         List<InterrogationId> interrogationIds) {
         //return object
         List<List<SurveyUnitModel>> listLatestUpdatesbyVariables = new ArrayList<>();
@@ -248,6 +275,40 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         });
 
         return latestUpdatesbyVariables;
+    }
+
+
+    private SurveyUnitSimplified fusionWithLastUpdated(List<SurveyUnitModel> responsesForSingleInterrId, String mode) {
+        //NOTE : 1) "responses" in input here corresponds to all collected responses versions of a given "InterrogationId",
+        //       in which ONLY THE LATEST VERSION of each variable is kept.
+
+        //return simplifiedResponse
+        SurveyUnitSimplified simplifiedResponse = null;
+
+        //2) storage of the !!!FUSION!!! OF ALL LATEST UPDATED variables (located in the different versions of the stored "InterrogationId")
+        List<VariableModel> outputVariables = new ArrayList<>();
+        List<VariableModel> outputExternalVariables = new ArrayList<>();
+
+        responsesForSingleInterrId.forEach(response -> {
+            outputVariables.addAll(response.getCollectedVariables());
+            outputExternalVariables.addAll(response.getExternalVariables());
+        });
+
+        //3) add to the result list the compiled fusion of all the latest variables
+        if (!outputVariables.isEmpty() || !outputExternalVariables.isEmpty()) {
+            Mode modeWrapped = Mode.getEnumFromModeName(mode);
+
+            simplifiedResponse = SurveyUnitSimplified.builder()
+                    .questionnaireId(responsesForSingleInterrId.getFirst().getQuestionnaireId())
+                    .campaignId(responsesForSingleInterrId.getFirst().getCampaignId())
+                    .interrogationId(responsesForSingleInterrId.getFirst().getInterrogationId())
+                    .mode(modeWrapped)
+                    .variablesUpdate(outputVariables)
+                    .externalVariables(outputExternalVariables)
+                    .build();
+        }
+
+        return simplifiedResponse;
     }
 
 
