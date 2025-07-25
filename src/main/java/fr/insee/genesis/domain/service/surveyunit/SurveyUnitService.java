@@ -79,8 +79,6 @@ public class SurveyUnitService implements SurveyUnitApiPort {
      */
     @Override
     public List<SurveyUnitModel> findLatestByIdAndByQuestionnaireId(String interrogationId, String questionnaireId) {
-        //TODO : DIFFERENCES TO BE REVIEWED
-        /*
         List<Mode> enumModes = findModesByQuestionnaireId(questionnaireId);
         // => convertion of "List<Mode>" -> "List<String>" for query using lamda
         List<String> modes = enumModes.stream().map(Mode::getModeName).toList();
@@ -95,65 +93,6 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         }
 
         return responses;
-        */
-        List<SurveyUnitModel> latestUpdatesbyVariables = new ArrayList<>();
-        List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findByIds(interrogationId, questionnaireId);
-        List<Mode> modes = getDistinctsModes(surveyUnitModels);
-        modes.forEach(mode ->{
-            List<SurveyUnitModel> suByMode = surveyUnitModels.stream()
-                    .filter(surveyUnitModel -> surveyUnitModel.getMode().equals(mode))
-                    .sorted((o1, o2) -> o2.getRecordDate().compareTo(o1.getRecordDate())) //Sorting update by date (latest updates first by date of upload in database)
-                    .toList();
-
-            //We had all the variables of the oldest update
-            latestUpdatesbyVariables.add(suByMode.getFirst());
-            //We keep the name of already added variables to skip them in older updates
-            List<VarIdScopeTuple> addedVariables = new ArrayList<>();
-            SurveyUnitModel latestUpdate = suByMode.getFirst();
-
-            if(latestUpdate.getCollectedVariables() == null){
-                latestUpdate.setCollectedVariables(new ArrayList<>());
-            }
-            if(latestUpdate.getExternalVariables() == null){
-                latestUpdate.setExternalVariables(new ArrayList<>());
-            }
-
-            latestUpdate.getCollectedVariables().forEach(colVar -> addedVariables.add(new VarIdScopeTuple(colVar.varId(),
-                    colVar.scope(), colVar.iteration())));
-            latestUpdate.getExternalVariables().forEach(extVar -> addedVariables.add(new VarIdScopeTuple(extVar.varId(), extVar.scope(), extVar.iteration())));
-
-            suByMode.forEach(surveyUnitModel -> {
-                List<VariableModel> collectedVariablesToKeep = new ArrayList<>();
-                List<VariableModel> externalVariablesToKeep = new ArrayList<>();
-                // We iterate over the variables of the update and add them to the list if they are not already added
-                if (surveyUnitModel.getCollectedVariables() != null) {
-                    surveyUnitModel.getCollectedVariables().stream()
-                            .filter(colVar -> !addedVariables.contains(new VarIdScopeTuple(colVar.varId(), colVar.scope()
-                                    , colVar.iteration())))
-                            .forEach(colVar -> {
-                                collectedVariablesToKeep.add(colVar);
-                                addedVariables.add(new VarIdScopeTuple(colVar.varId(), colVar.scope(), colVar.iteration()));
-                            });
-                }
-                if (surveyUnitModel.getExternalVariables() != null){
-                    surveyUnitModel.getExternalVariables().stream()
-                         .filter(extVar -> !addedVariables.contains(new VarIdScopeTuple(extVar.varId(), extVar.scope(),
-                                 extVar.iteration())))
-                         .forEach(extVar -> {
-                            externalVariablesToKeep.add(extVar);
-                            addedVariables.add(new VarIdScopeTuple(extVar.varId(), extVar.scope(), extVar.iteration()));
-                         });
-                }
-
-                // If there are new variables, we add the update to the list of latest updates
-                if (!collectedVariablesToKeep.isEmpty() || !externalVariablesToKeep.isEmpty()){
-                    surveyUnitModel.setCollectedVariables(collectedVariablesToKeep);
-                    surveyUnitModel.setExternalVariables(externalVariablesToKeep);
-                    latestUpdatesbyVariables.add(surveyUnitModel);
-                }
-            });
-        });
-        return latestUpdatesbyVariables;
     }
 
 
@@ -161,7 +100,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     public List<SurveyUnitSimplified> getLatestForInterrogationListWithModes(String questionnaireId, List<String> modes, List<InterrogationId> interrogationIds) {
         List<SurveyUnitSimplified> results = new ArrayList<>();
 
-        //!!!WARNING!!! : FOR PERFORMANCES PURPOSES, WE DONT'MAKE REQUESTS ON INDIVIDUAL ELEMENTS ANYMORE, BUT ON A SUBLIST OF THE INPUTLIST
+        //!!!WARNING!!! : FOR PERFORMANCES PURPOSES, WE DON'T MAKE REQUESTS ON INDIVIDUAL ELEMENTS ANYMORE, BUT ON A SUBLIST OF THE INPUT LIST
         final int SUBBLOCK_SIZE = 100;
         int offset = 0;
         List<InterrogationId> interrogationIdsSubList = null;
@@ -331,9 +270,6 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                     .filter(surveyUnitModel -> surveyUnitModel.getMode().equals(mode))
                     .sorted((o1, o2) -> o2.getRecordDate().compareTo(o1.getRecordDate())) //Sorting update by date (latest updates first by date of upload in database)
                     .toList();
-            //TODO : REVIEW DIFFERENCES BETWEEN THE 2 VERSIONS!
-            //suByMode.forEach(surveyUnitModel -> extractVariables(surveyUnitModel, collectedVariableMap,externalVariableMap));
-            //----------
             VariablesMap variablesMap = null;
             for(SurveyUnitModel surveyUnitModel : suByMode){
                 if(variablesMap == null){
@@ -346,7 +282,6 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                 extractVariables(surveyUnitModel, collectedVariableMap,
                         externalVariableMap, variablesMap);
             }
-            //----------
         });
         collectedVariableMap.keySet().forEach(variableTuple -> surveyUnitDto.getCollectedVariables().add(collectedVariableMap.get(variableTuple)));
         externalVariableMap.keySet().forEach(variableName -> surveyUnitDto.getExternalVariables().add(externalVariableMap.get(variableName)));
