@@ -12,12 +12,10 @@ public interface SurveyUnitPersistencePort {
 
     List<SurveyUnitModel> findByIds(String interrogationId, String questionnaireId);
 
-    //========= OPTIMISATIONS PERFS (START) ==========
     /**
      * @author Adrien Marchal
      */
     List<SurveyUnitModel> findBySetOfIdsAndQuestionnaireIdAndMode(String questionnaireId, String mode, List<String> interrogationIdSet);
-    //========= OPTIMISATIONS PERFS (START) ==========
 
     List<SurveyUnitModel> findByInterrogationId(String interrogationId);
 
@@ -25,32 +23,29 @@ public interface SurveyUnitPersistencePort {
 
     Stream<SurveyUnitModel> findByQuestionnaireId(String questionnaireId);
 
+    /**
+     * !!!WARNING!!! : A CALL WITH THIS ENDPOINT ON A BIG COLLECTION (> 300k) MAY KILL THE GENESIS-API APP.!!!
+     */
     List<SurveyUnitModel> findInterrogationIdsByQuestionnaireId(String questionnaireId);
 
-    //======== OPTIMISATIONS PERFS (START) ========
     long countInterrogationIdsByQuestionnaireId(String questionnaireId);
 
     List<SurveyUnitModel> findPageableInterrogationIdsByQuestionnaireId(String questionnaireId, Long skip, Long limit);
 
-    List<SurveyUnitModel> findModesByCampaignIdV2(String campaignId);
+    List<SurveyUnitModel> findModesByCampaignId(String campaignId);
 
-    List<SurveyUnitModel> findModesByQuestionnaireIdV2(String questionnaireId);
-    //======= OPTIMISATIONS PERFS (END) =========
+    List<SurveyUnitModel> findModesByQuestionnaireId(String questionnaireId);
 
-    List<SurveyUnitModel> findInterrogationIdsByCampaignId(String campaignId);
 
     Long deleteByQuestionnaireId(String questionnaireId);
 
     long count();
 
-    Set<String> findQuestionnaireIdsByCampaignId(String campaignId);
 
-    //========= OPTIMISATIONS PERFS (START) ==========
     /**
      * @author Adrien Marchal
      */
-    Set<String> findQuestionnaireIdsByCampaignIdV2(String campaignId);
-    //========= OPTIMISATIONS PERFS (END) ==========
+    Set<String> findQuestionnaireIdsByCampaignId(String campaignId);
 
     Set<String> findDistinctCampaignIds();
 

@@ -6,6 +6,7 @@ import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
 import fr.insee.genesis.controller.dto.QuestionnaireWithCampaign;
 import fr.insee.genesis.controller.dto.SurveyUnitDto;
 import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
+import fr.insee.genesis.controller.dto.SurveyUnitSimplified;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.exceptions.GenesisException;
@@ -27,45 +28,36 @@ public interface SurveyUnitApiPort {
 
     List<SurveyUnitModel> findLatestByIdAndByQuestionnaireId(String interrogationId, String questionnaireId);
 
-    //========= OPTIMISATIONS PERFS (START) ==========
-    List<List<SurveyUnitModel>> findLatestByIdAndByQuestionnaireIdAndModeOrdered(String questionnaireId, String mode, List<InterrogationId> interrogationIds);
-    //========= OPTIMISATIONS PERFS (END) ==========
+    List<SurveyUnitSimplified> getLatestForInterrogationListWithModes(String questionnaireId, List<String> modes, List<InterrogationId> interrogationIds);
 
     SurveyUnitDto findLatestValuesByStateByIdAndByQuestionnaireId(String interrogationId, String questionnaireId);
 
     List<SurveyUnitModel> findInterrogationIdsAndModesByQuestionnaireId(String questionnaireId);
 
+    /**
+     * !!!WARNING!!! : A CALL WITH THIS ENDPOINT ON A BIG COLLECTION (> 300k) MAY KILL THE GENESIS-API APP.!!!
+     */
     List<InterrogationId> findDistinctInterrogationIdsByQuestionnaireId(String questionnaireId);
 
-    //========= OPTIMISATIONS PERFS (START) ==========
     long countInterrogationIdsByQuestionnaireId(String questionnaireId);
 
     List<InterrogationId> findDistinctPageableInterrogationIdsByQuestionnaireId(String questionnaireId,
                                                                                 long totalSize, long blockSize, long page);
 
-    List<Mode> findModesByQuestionnaireIdV2(String questionnaireId);
-    //========= OPTIMISATIONS PERFS (END) ==========
-
     List<Mode> findModesByQuestionnaireId(String questionnaireId);
 
-    List<Mode> findModesByCampaignId(String campaignId);
 
-    //========= OPTIMISATIONS PERFS (START) ==========
-    List<Mode> findModesByCampaignIdV2(String campaignId);
-    //========= OPTIMISATIONS PERFS (END) ==========
+    List<Mode> findModesByCampaignId(String campaignId);
 
     Long deleteByQuestionnaireId(String questionnaireId);
 
     long countResponses();
 
-    Set<String> findQuestionnaireIdsByCampaignId(String campaignId);
 
-    //========= OPTIMISATIONS PERFS (START) ==========
     /**
      * @author Adrien Marchal
      */
-    Set<String> findQuestionnaireIdsByCampaignIdV2(String campaignId);
-    //========= OPTIMISATIONS PERFS (END) ==========
+    Set<String> findQuestionnaireIdsByCampaignId(String campaignId);
 
     Set<String> findDistinctCampaignIds();
 

@@ -240,21 +240,14 @@ class SurveyUnitServiceTest {
         ).isNotEmpty().hasSize(1);
     }
 
+
     @Test
-    void findInterrogationIdsByQuestionnaireIdTest(){
+    void findModesByQuestionnaireIdTest(){
         Assertions.assertThat(surveyUnitServiceStatic.findModesByQuestionnaireId(DEFAULT_QUESTIONNAIRE_ID)).filteredOn(
                 mode -> mode.equals(Mode.WEB)
         ).isNotEmpty();
     }
 
-    //========= OPTIMISATIONS PERFS (START) ==========
-    @Test
-    void findModesByQuestionnaireIdV2Test(){
-        Assertions.assertThat(surveyUnitServiceStatic.findModesByQuestionnaireIdV2(DEFAULT_QUESTIONNAIRE_ID)).filteredOn(
-                mode -> mode.equals(Mode.WEB)
-        ).isNotEmpty();
-    }
-    //========= OPTIMISATIONS PERFS (END) ==========
 
     @Test
     void getQuestionnairesByCampaignTest() {
