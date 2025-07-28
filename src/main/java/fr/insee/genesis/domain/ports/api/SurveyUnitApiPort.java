@@ -1,14 +1,12 @@
 package fr.insee.genesis.domain.ports.api;
 
 import fr.insee.bpm.metadata.model.VariablesMap;
-import fr.insee.genesis.controller.dto.CampaignWithQuestionnaire;
+import fr.insee.genesis.controller.dto.*;
 import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
-import fr.insee.genesis.controller.dto.QuestionnaireWithCampaign;
-import fr.insee.genesis.controller.dto.SurveyUnitDto;
-import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.exceptions.NoDataException;
 
 import java.util.List;
 import java.util.Set;
@@ -84,4 +82,15 @@ public interface SurveyUnitApiPort {
     String findQuestionnaireIdByInterrogationId(String interrogationId) throws GenesisException;
 
     Set<String> findCampaignIdsFrom(SurveyUnitInputDto dto);
+
+    void saveResponsesFromXmlFile(String xmlFile, String metadataFilePath, Mode modeSpecified, boolean withDDI) throws Exception;
+
+    boolean saveResponsesFromXmlCampaignFolder(String campaignName, Mode modeSpecified) throws Exception;
+
+    void saveResponsesFromAllCampaignFolders() throws NoDataException, GenesisException;
+
+    SurveyUnitQualityToolDto findResponsesByInterrogationAndQuestionnaireLatestStates(String interrogationId, String questionnaireId) throws GenesisException;
+
+    void saveEditedVariables(SurveyUnitInputDto surveyUnitInputDto) throws GenesisException;
+
 }

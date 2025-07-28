@@ -71,18 +71,21 @@ public class MainDefinitions {
     );
 
     Config config = new ConfigStub();
+    FileUtils fileUtils = new FileUtils(config);
     ResponseEntity<List<SurveyUnitModel>> surveyUnitModelResponse;
     ResponseEntity<Object> surveyUnitLatestStatesResponse;
 
-    ResponseController responseController = new ResponseController(
-            new SurveyUnitService(surveyUnitPersistence, new MetadataService(), new FileUtils(config)),
-            surveyUnitQualityService,
-            new FileUtils(config),
-            new ControllerUtils(new FileUtils(config)),
-            new AuthUtils(config),
+    SurveyUnitService surveyUnitService = new SurveyUnitService(
+            surveyUnitPersistence,
             new MetadataService(),
-            dataProcessingContextApiPort
-        );
+            fileUtils,
+            dataProcessingContextApiPort,
+            surveyUnitQualityService,
+            new ControllerUtils(fileUtils),
+            new AuthUtils(config)
+    );
+
+    ResponseController responseController = new ResponseController(surveyUnitService);
 
     List<SurveyUnitModel> surveyUnitModels;
 

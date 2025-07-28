@@ -5,11 +5,13 @@ import fr.insee.genesis.TestConstants;
 import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.controller.rest.responses.RawResponseController;
 import fr.insee.genesis.controller.services.MetadataService;
+import fr.insee.genesis.controller.utils.AuthUtils;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
+import fr.insee.genesis.domain.ports.api.DataProcessingContextApiPort;
 import fr.insee.genesis.domain.service.context.DataProcessingContextService;
 import fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
@@ -66,11 +68,24 @@ public class RawDataDefinitions {
     DataProcessingContextPersistancePortStub contextStub = new DataProcessingContextPersistancePortStub();
     Config config = new ConfigStub();
     FileUtils fileUtils = new FileUtils(config);
-    SurveyUnitService surveyUnitService = new SurveyUnitService(surveyUnitPersistencePortStub, metadataService, fileUtils);
     ControllerUtils controllerUtils = new ControllerUtils(fileUtils);
     SurveyUnitQualityService surveyUnitQualityService = new SurveyUnitQualityService();
     DataProcessingContextPersistancePortStub dataProcessingContextPersistancePortStub =
             new DataProcessingContextPersistancePortStub();
+    DataProcessingContextApiPort dataProcessingContextApiPort = new DataProcessingContextService(
+            dataProcessingContextPersistancePortStub,
+            surveyUnitPersistencePortStub
+    );
+    SurveyUnitService surveyUnitService = new SurveyUnitService(
+            surveyUnitPersistencePortStub,
+            metadataService,
+            fileUtils,
+            dataProcessingContextApiPort,
+            surveyUnitQualityService,
+            controllerUtils,
+            new AuthUtils(config));
+
+
     SurveyUnitQualityToolPerretAdapterStub surveyUnitQualityToolPerretAdapterStub = new SurveyUnitQualityToolPerretAdapterStub();
     LunaticJsonRawDataService lunaticJsonRawDataService =
             new LunaticJsonRawDataService(

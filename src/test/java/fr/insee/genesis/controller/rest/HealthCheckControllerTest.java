@@ -1,12 +1,17 @@
 package fr.insee.genesis.controller.rest;
 
+import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.controller.services.MetadataService;
+import fr.insee.genesis.controller.utils.AuthUtils;
+import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
+import fr.insee.genesis.domain.ports.api.DataProcessingContextApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.service.context.DataProcessingContextService;
+import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
@@ -27,6 +32,15 @@ class HealthCheckControllerTest {
     static HealthCheckController healthCheckController;
 
     static SurveyUnitPersistencePortStub surveyUnitPersistencePortStub;
+    static Config config = new ConfigStub();
+    static FileUtils fileUtils = new FileUtils(config);
+    static SurveyUnitQualityService surveyUnitQualityService = new SurveyUnitQualityService();
+    static DataProcessingContextPersistancePortStub dataProcessingContextPersistancePortStub =
+            new DataProcessingContextPersistancePortStub();
+    static DataProcessingContextApiPort dataProcessingContextApiPort = new DataProcessingContextService(
+            dataProcessingContextPersistancePortStub,
+            surveyUnitPersistencePortStub
+    );
 
     @BeforeAll
     static void init() {
@@ -34,7 +48,11 @@ class HealthCheckControllerTest {
         SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(
                 surveyUnitPersistencePortStub,
                 new MetadataService(),
-                new FileUtils(new ConfigStub())
+                fileUtils,
+                dataProcessingContextApiPort,
+                surveyUnitQualityService,
+                new ControllerUtils(fileUtils),
+                new AuthUtils(config)
         );
         List<VariableModel> externalVariableList = new ArrayList<>();
         VariableModel variable = VariableModel.builder()

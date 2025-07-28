@@ -4,16 +4,23 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.insee.genesis.TestConstants;
+import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.controller.rest.LunaticModelController;
 import fr.insee.genesis.controller.rest.responses.QuestionnaireController;
 import fr.insee.genesis.controller.services.MetadataService;
+import fr.insee.genesis.controller.utils.AuthUtils;
+import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
+import fr.insee.genesis.domain.ports.api.DataProcessingContextApiPort;
+import fr.insee.genesis.domain.service.context.DataProcessingContextService;
 import fr.insee.genesis.domain.service.lunaticmodel.LunaticModelService;
+import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.domain.utils.JsonUtils;
 import fr.insee.genesis.infrastructure.document.lunaticmodel.LunaticModelDocument;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
+import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
 import fr.insee.genesis.stubs.LunaticModelPersistanceStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import io.cucumber.java.Before;
@@ -46,11 +53,27 @@ public class LunaticModelDefinitions {
     LunaticModelController lunaticModelController = new LunaticModelController(new LunaticModelService(lunaticModelPersistanceStub));
 
     SurveyUnitPersistencePortStub surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
+
+    Config config = new ConfigStub();
+    FileUtils fileUtils = new FileUtils(config);
+    SurveyUnitQualityService surveyUnitQualityService = new SurveyUnitQualityService();
+    DataProcessingContextPersistancePortStub dataProcessingContextPersistancePortStub =
+            new DataProcessingContextPersistancePortStub();
+    DataProcessingContextApiPort dataProcessingContextApiPort = new DataProcessingContextService(
+            dataProcessingContextPersistancePortStub,
+            surveyUnitPersistencePortStub
+    );
+
+
     QuestionnaireController questionnaireController = new QuestionnaireController(
             new SurveyUnitService(
                     surveyUnitPersistencePortStub,
                     new MetadataService(),
-                    new FileUtils(new ConfigStub())
+                    fileUtils,
+                    dataProcessingContextApiPort,
+                    surveyUnitQualityService,
+                    new ControllerUtils(fileUtils),
+                    new AuthUtils(config)
             )
     );
 

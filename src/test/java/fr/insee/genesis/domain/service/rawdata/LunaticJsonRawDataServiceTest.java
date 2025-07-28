@@ -2,7 +2,9 @@ package fr.insee.genesis.domain.service.rawdata;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import fr.insee.bpm.metadata.model.VariablesMap;
+import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.controller.services.MetadataService;
+import fr.insee.genesis.controller.utils.AuthUtils;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
@@ -10,6 +12,7 @@ import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
+import fr.insee.genesis.domain.ports.api.DataProcessingContextApiPort;
 import fr.insee.genesis.domain.service.context.DataProcessingContextService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
@@ -35,14 +38,28 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 class LunaticJsonRawDataServiceTest {
     LunaticJsonRawDataPersistanceStub lunaticJsonRawDataPersistanceStub = new LunaticJsonRawDataPersistanceStub();
-    FileUtils fileUtils = new FileUtils(new ConfigStub());
+    Config config = new ConfigStub();
+    FileUtils fileUtils = new FileUtils(config);
     ControllerUtils controllerUtils = new ControllerUtils(fileUtils);
     MetadataService metadataService = new MetadataService();
 
     SurveyUnitPersistencePortStub surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
-    SurveyUnitService surveyUnitService = new SurveyUnitService(surveyUnitPersistencePortStub, metadataService, fileUtils);
     SurveyUnitQualityService surveyUnitQualityService = new SurveyUnitQualityService();
     DataProcessingContextPersistancePortStub dataProcessingContextPersistancePortStub = new DataProcessingContextPersistancePortStub();
+    DataProcessingContextApiPort dataProcessingContextApiPort = new DataProcessingContextService(
+            dataProcessingContextPersistancePortStub,
+            surveyUnitPersistencePortStub
+    );
+    SurveyUnitService surveyUnitService = new SurveyUnitService(
+            surveyUnitPersistencePortStub,
+            metadataService,
+            fileUtils,
+            dataProcessingContextApiPort,
+            surveyUnitQualityService,
+            controllerUtils,
+            new AuthUtils(config)
+    );
+
     SurveyUnitQualityToolPerretAdapterStub surveyUnitQualityToolPerretAdapterStub = new SurveyUnitQualityToolPerretAdapterStub();
     ConfigStub configStub = new ConfigStub();
     LunaticJsonRawDataService lunaticJsonRawDataService =
@@ -50,8 +67,8 @@ class LunaticJsonRawDataServiceTest {
                     lunaticJsonRawDataPersistanceStub,
                     controllerUtils,
                     metadataService,
-                    new SurveyUnitService(surveyUnitPersistencePortStub, metadataService, fileUtils),
-                    new SurveyUnitQualityService(),
+                    surveyUnitService,
+                    surveyUnitQualityService,
                     fileUtils,
                     new DataProcessingContextService(dataProcessingContextPersistancePortStub, surveyUnitPersistencePortStub),
                     surveyUnitQualityToolPerretAdapterStub,

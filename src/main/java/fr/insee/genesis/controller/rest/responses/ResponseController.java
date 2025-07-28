@@ -1,36 +1,17 @@
 package fr.insee.genesis.controller.rest.responses;
 
 import fr.insee.bpm.exceptions.MetadataParserException;
-import fr.insee.bpm.metadata.model.VariablesMap;
-import fr.insee.bpm.metadata.reader.ddi.DDIReader;
-import fr.insee.bpm.metadata.reader.lunatic.LunaticReader;
-import fr.insee.genesis.Constants;
-import fr.insee.genesis.controller.adapter.LunaticXmlAdapter;
-import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
-import fr.insee.genesis.controller.dto.SurveyUnitDto;
-import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
 import fr.insee.genesis.controller.dto.SurveyUnitQualityToolDto;
+import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
+import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
 import fr.insee.genesis.controller.dto.SurveyUnitSimplified;
 import fr.insee.genesis.controller.rest.CommonApiResponse;
-import fr.insee.genesis.controller.services.MetadataService;
-import fr.insee.genesis.controller.sources.xml.LunaticXmlCampaign;
-import fr.insee.genesis.controller.sources.xml.LunaticXmlDataParser;
-import fr.insee.genesis.controller.sources.xml.LunaticXmlDataSequentialParser;
-import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
-import fr.insee.genesis.controller.utils.AuthUtils;
-import fr.insee.genesis.controller.utils.ControllerUtils;
-import fr.insee.genesis.controller.utils.DataTransformer;
-import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
-import fr.insee.genesis.domain.ports.api.DataProcessingContextApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
-import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
-import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.exceptions.NoDataException;
-import fr.insee.genesis.infrastructure.utils.FileUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -50,18 +31,9 @@ import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLStreamException;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Stream;
 
 @RequestMapping(path = "/responses" )
 @Controller
@@ -69,33 +41,13 @@ import java.util.stream.Stream;
 @Slf4j
 public class ResponseController implements CommonApiResponse {
 
-    public static final String PATH_FORMAT = "%s/%s";
-    private static final String CAMPAIGN_ERROR = "Error for campaign {}: {}";
-    private static final String SUCCESS_MESSAGE = "Data saved";
+    public static final String CAMPAIGN_ERROR = "Error for campaign {}: {}";
     private static final String SUCCESS_NO_DATA_MESSAGE = "No data has been saved";
+    public static final String SUCCESS_MESSAGE = "Data saved";
     private final SurveyUnitApiPort surveyUnitService;
-    private final SurveyUnitQualityService surveyUnitQualityService;
-    private final DataProcessingContextApiPort contextService;
-    private final FileUtils fileUtils;
-    private final ControllerUtils controllerUtils;
-    private final AuthUtils authUtils;
-    private final MetadataService metadataService;
 
-    public ResponseController(SurveyUnitApiPort surveyUnitService,
-                              SurveyUnitQualityService surveyUnitQualityService,
-                              FileUtils fileUtils,
-                              ControllerUtils controllerUtils,
-                              AuthUtils authUtils,
-                              MetadataService metadataService,
-                              DataProcessingContextApiPort contextService
-    ) {
+    public ResponseController(SurveyUnitApiPort surveyUnitService) {
         this.surveyUnitService = surveyUnitService;
-        this.surveyUnitQualityService = surveyUnitQualityService;
-        this.fileUtils = fileUtils;
-        this.controllerUtils = controllerUtils;
-        this.authUtils = authUtils;
-        this.metadataService = metadataService;
-        this.contextService = contextService;
     }
 
     //SAVE
@@ -107,31 +59,18 @@ public class ResponseController implements CommonApiResponse {
                                                            @RequestParam(value = "mode") Mode modeSpecified,
                                                            @RequestParam(value = "withDDI", defaultValue = "true") boolean withDDI
     )throws Exception {
-        VariablesMap variablesMap;
-        if(withDDI) {
-            //Parse DDI
-            log.info("Try to read DDI file : {}", metadataFilePath);
-            try {
-                variablesMap =
-                        DDIReader.getMetadataFromDDI(Path.of(metadataFilePath).toFile().toURI().toURL().toString(),
-                                new FileInputStream(metadataFilePath)).getVariables();
-            } catch (MetadataParserException e) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-            }
-        }else{
-            //Parse Lunatic
-            log.info("Try to read lunatic file : {}", metadataFilePath);
-
-            variablesMap = LunaticReader.getMetadataFromLunatic(new FileInputStream(metadataFilePath)).getVariables();
+        try {
+            surveyUnitService.saveResponsesFromXmlFile(xmlFile, metadataFilePath, modeSpecified, withDDI);
+            return ResponseEntity.ok().build();
+        } catch(MetadataParserException |
+                IOException |
+                ParserConfigurationException |
+                SAXException |
+                XMLStreamException ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
+        } catch(GenesisException e) {
+            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
         }
-
-        log.info("Try to read Xml file : {}", xmlFile);
-        Path filepath = Paths.get(xmlFile);
-
-        if (getFileSizeInMB(filepath) <= Constants.MAX_FILE_SIZE_UNTIL_SEQUENTIAL) {
-            return processXmlFileWithMemory(filepath, modeSpecified, variablesMap);
-        }
-        return processXmlFileSequentially(filepath, modeSpecified, variablesMap);
     }
 
     @Operation(summary = "Save multiple files to Genesis Database from the campaign root folder")
@@ -140,29 +79,14 @@ public class ResponseController implements CommonApiResponse {
     public ResponseEntity<Object> saveResponsesFromXmlCampaignFolder(@RequestParam("campaignName") String campaignName,
                                                                      @RequestParam(value = "mode", required = false) Mode modeSpecified
     )throws Exception {
-        List<GenesisError> errors = new ArrayList<>();
-        boolean isAnyDataSaved = false;
-
-        log.info("Try to import XML data for campaign: {}", campaignName);
-
-        List<Mode> modesList = controllerUtils.getModesList(campaignName, modeSpecified);
-        for (Mode currentMode : modesList) {
-            try {
-                processCampaignWithMode(campaignName, currentMode, errors, null);
-                isAnyDataSaved = true;
-            }catch (NoDataException nde){
-                //Don't stop if NoDataError thrown
-                log.warn(nde.getMessage());
-            }catch (Exception e){
-                log.error(CAMPAIGN_ERROR, campaignName, e.toString());
-                return ResponseEntity.status(500).body(e.getMessage());
-            }
-        }
-
-        if (errors.isEmpty()){
+        try {
+            boolean isAnyDataSaved = surveyUnitService.saveResponsesFromXmlCampaignFolder(campaignName, modeSpecified);
             return ResponseEntity.ok(getSuccessMessage(isAnyDataSaved));
+        } catch(GenesisException e) {
+            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
+        } catch(Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
-        return ResponseEntity.internalServerError().body(errors.getFirst().getMessage());
     }
 
     //SAVE ALL
@@ -170,34 +94,14 @@ public class ResponseController implements CommonApiResponse {
     @PutMapping(path = "/lunatic-xml/save-all-campaigns")
     @PreAuthorize("hasRole('SCHEDULER')")
     public ResponseEntity<Object> saveResponsesFromAllCampaignFolders(){
-        List<GenesisError> errors = new ArrayList<>();
-        List<File> campaignFolders = fileUtils.listAllSpecsFolders();
-
-        if (campaignFolders.isEmpty()) {
-            return ResponseEntity.ok("No campaign to save");
+        try {
+            surveyUnitService.saveResponsesFromAllCampaignFolders();
+            return ResponseEntity.ok(ResponseController.SUCCESS_MESSAGE);
+        } catch(NoDataException e) {
+            return ResponseEntity.ok(e.getMessage());
+        } catch(GenesisException e) {
+            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
         }
-
-        for (File  campaignFolder: campaignFolders) {
-            String campaignName = campaignFolder.getName();
-            log.info("Try to import data for campaign: {}", campaignName);
-
-            try {
-                List<Mode> modesList = controllerUtils.getModesList(campaignName, null); //modeSpecified null = all modes
-                for (Mode currentMode : modesList) {
-                    processCampaignWithMode(campaignName, currentMode, errors, Constants.DIFFERENTIAL_DATA_FOLDER_NAME);
-                }
-            }catch (NoDataException nde){
-                log.warn(nde.getMessage());
-            }
-            catch (Exception e) {
-                log.warn(CAMPAIGN_ERROR, campaignName, e.toString());
-                errors.add(new GenesisError(e.getMessage()));
-            }
-        }
-        if (errors.isEmpty()) {
-            return ResponseEntity.ok(SUCCESS_MESSAGE);
-        }
-        return ResponseEntity.status(209).body("Data saved with " + errors.size() + " errors");
     }
 
     
@@ -229,17 +133,12 @@ public class ResponseController implements CommonApiResponse {
     public ResponseEntity<Object> findResponsesByInterrogationAndQuestionnaireLatestStates(
             @RequestParam("interrogationId") String interrogationId,
             @RequestParam("questionnaireId") String questionnaireId) throws GenesisException {
-        //Check context
-        DataProcessingContextModel dataProcessingContextModel =
-                contextService.getContext(interrogationId);
-
-        if(dataProcessingContextModel == null || !dataProcessingContextModel.isWithReview()){
-            return ResponseEntity.status(403).body(new ApiError("Review is disabled for that partition"));
+        try {
+            SurveyUnitQualityToolDto responseQualityToolDto =  surveyUnitService.findResponsesByInterrogationAndQuestionnaireLatestStates(interrogationId, questionnaireId);
+            return ResponseEntity.ok(responseQualityToolDto);
+        } catch(GenesisException e) {
+            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
         }
-
-        SurveyUnitDto response = surveyUnitService.findLatestValuesByStateByIdAndByQuestionnaireId(interrogationId, questionnaireId);
-        SurveyUnitQualityToolDto responseQualityToolDto = DataTransformer.transformSurveyUnitDto(response);
-        return ResponseEntity.ok(responseQualityToolDto);
     }
 
     @Operation(summary = "Retrieve responses for an interrogation, using interrogationId and questionnaireId from Genesis Database. It returns only the latest value of each variable regardless of the state.")
@@ -394,194 +293,17 @@ public class ResponseController implements CommonApiResponse {
     public ResponseEntity<Object> saveEditedVariables(
             @RequestBody SurveyUnitInputDto surveyUnitInputDto
     ){
-        log.debug("Received in save edited : {}",surveyUnitInputDto.toString());
-        //Code quality : we need to put all that logic out of this controller
-        //Parse metadata
-        //Try to look for DDI first, if no DDI found looks for lunatic components
-        List<GenesisError> errors = new ArrayList<>();
-        //We need to retrieve campaignId
-        Set<String> campaignIds = surveyUnitService.findCampaignIdsFrom(surveyUnitInputDto);
-        if (campaignIds.size() != 1){
-            return ResponseEntity.status(500).body("Impossible to assign one campaignId to that response");
-        }
-        // If the size is equal to 1 we get this campaignId
-        String campaignId = campaignIds.iterator().next();
-        surveyUnitInputDto.setCampaignId(campaignId);
-        VariablesMap variablesMap = metadataService.readMetadatas(surveyUnitInputDto.getCampaignId(),
-                surveyUnitInputDto.getMode().getModeName(), fileUtils, errors);
-        if(variablesMap == null){
-            log.warn("Can't find DDI, trying with lunatic...");
-            variablesMap = metadataService.readMetadatas(surveyUnitInputDto.getCampaignId(),
-                    surveyUnitInputDto.getMode().getModeName(), fileUtils, errors);
-            if(variablesMap == null){
-                return ResponseEntity.status(404).body(errors.getLast().getMessage());
-            }
-        }
-
-        //Check if input edited variables are in metadatas
-        List<String> absentCollectedVariableNames =
-                surveyUnitQualityService.checkVariablesPresentInMetadata(surveyUnitInputDto.getCollectedVariables(),
-                variablesMap);
-        if (!absentCollectedVariableNames.isEmpty()) {
-            String absentVariables = String.join("\n", absentCollectedVariableNames);
-            return ResponseEntity.badRequest().body(
-                    String.format("The following variables are absent in metadatas : %n%s", absentVariables)
-            );
-        }
-
-        //Fetch user identifier from OIDC token
-        String userIdentifier = authUtils.getIDEP();
-
-
-        //Create surveyUnitModel for each STATE received (Quality tool could send variables with another STATE than EDITED)
-        List<SurveyUnitModel> surveyUnitModels;
-        try{
-            surveyUnitModels = surveyUnitService.parseEditedVariables(
-                    surveyUnitInputDto,
-                    userIdentifier,
-                    variablesMap
-            );
-        }catch (GenesisException e){
-           return ResponseEntity.status(e.getStatus()).body(e.getMessage());
-        }
-
-        //Check data with dataverifier (might create a FORCED document)
-        surveyUnitQualityService.verifySurveyUnits(surveyUnitModels, variablesMap);
-
-        //Save documents
-        surveyUnitService.saveSurveyUnits(surveyUnitModels);
-        return ResponseEntity.ok(SUCCESS_MESSAGE);
-    }
-
-
-
-    //Utilities
-    /**
-     * Process a campaign with a specific mode
-     * @param campaignName name of campaign
-     * @param mode mode of collected data
-     * @param errors error list to fill
-     */
-    private void processCampaignWithMode(String campaignName, Mode mode, List<GenesisError> errors, String rootDataFolder)
-            throws IOException, ParserConfigurationException, SAXException, XMLStreamException, NoDataException, GenesisException {
-        log.info("Starting data import for mode: {}", mode.getModeName());
-        String dataFolder = rootDataFolder == null ?
-                fileUtils.getDataFolder(campaignName, mode.getFolder(), null)
-                : fileUtils.getDataFolder(campaignName, mode.getFolder(), rootDataFolder);
-        List<String> dataFiles = fileUtils.listFiles(dataFolder);
-        log.info("Number of files to load in folder {} : {}", dataFolder, dataFiles.size());
-        if (dataFiles.isEmpty()) {
-            throw new NoDataException("No data file found in folder %s".formatted(dataFolder));
-        }
-
-        VariablesMap variablesMap = metadataService.readMetadatas(campaignName, mode.getModeName(), fileUtils, errors);
-        if (variablesMap == null){
-            return;
-        }
-
-        //For each XML data file
-        for (String fileName : dataFiles.stream().filter(s -> s.endsWith(".xml")).toList()) {
-            processOneXmlFileForCampaign(campaignName, mode, fileName, dataFolder, variablesMap);
-        }
-
-        //Create context if not exist
-        if(contextService.getContextByPartitionId(campaignName) == null){
-            contextService.saveContext(campaignName, false);
-        }
-
-    }
-
-    private void processOneXmlFileForCampaign(String campaignName,
-                                              Mode mode,
-                                              String fileName,
-                                              String dataFolder,
-                                              VariablesMap variablesMap) throws IOException, ParserConfigurationException, SAXException, XMLStreamException, GenesisException {
-        String filepathString = String.format(PATH_FORMAT, dataFolder, fileName);
-        Path filepath = Paths.get(filepathString);
-        //Check if file not in done folder, delete if true
-        if(isDataFileInDoneFolder(filepath, campaignName, mode.getFolder())){
-            log.warn("File {} already exists in DONE folder ! Deleting...", fileName);
-            Files.deleteIfExists(filepath);
-            return;
-        }
-        //Read file
-        log.info("Try to read Xml file : {}", fileName);
-        ResponseEntity<Object> response;
-        if (getFileSizeInMB(filepath) <= Constants.MAX_FILE_SIZE_UNTIL_SEQUENTIAL) {
-            response = processXmlFileWithMemory(filepath, mode, variablesMap);
-        } else {
-            response = processXmlFileSequentially(filepath, mode, variablesMap);
-        }
-        log.debug("File {} saved", fileName);
-        if (response.getStatusCode() == HttpStatus.OK) {
-            fileUtils.moveDataFile(campaignName, mode.getFolder(),filepath);
-            return;
-        }
-        log.error("Error {} on file {} : {}", response.getStatusCode(), fileName,  response.getBody());
-
-    }
-
-    private static long getFileSizeInMB(Path filepath) {
-        return filepath.toFile().length() / 1024 / 1024;
-    }
-
-    private boolean isDataFileInDoneFolder(Path filepath, String campaignName, String modeFolder) {
-        return Path.of(fileUtils.getDoneFolder(campaignName, modeFolder)).resolve(filepath.getFileName()).toFile().exists();
-    }
-
-    private ResponseEntity<Object> processXmlFileWithMemory(Path filepath, Mode modeSpecified, VariablesMap variablesMap) throws IOException, ParserConfigurationException, SAXException, GenesisException {
-        LunaticXmlCampaign campaign;
-        // DOM method
-        LunaticXmlDataParser parser = new LunaticXmlDataParser();
         try {
-            campaign = parser.parseDataFile(filepath);
-        } catch (GenesisException e) {
-            log.error(e.toString());
+            surveyUnitService.saveEditedVariables(surveyUnitInputDto);
+            return ResponseEntity.ok(ResponseController.SUCCESS_MESSAGE);
+        } catch(GenesisException e) {
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
         }
-
-        List<SurveyUnitModel> surveyUnitModels = new ArrayList<>();
-        for (LunaticXmlSurveyUnit su : campaign.getSurveyUnits()) {
-            surveyUnitModels.addAll(LunaticXmlAdapter.convert(su, variablesMap, campaign.getCampaignId(), modeSpecified));
-        }
-        surveyUnitQualityService.verifySurveyUnits(surveyUnitModels, variablesMap);
-
-        log.debug("Saving {} survey units updates", surveyUnitModels.size());
-        surveyUnitService.saveSurveyUnits(surveyUnitModels);
-        log.debug("Survey units updates saved");
-
-        log.info("File {} processed with {} survey units", filepath.getFileName(), surveyUnitModels.size());
-        return ResponseEntity.ok().build();
     }
 
-    private ResponseEntity<Object> processXmlFileSequentially(Path filepath, Mode modeSpecified, VariablesMap variablesMap) throws IOException, XMLStreamException, GenesisException {
-        LunaticXmlCampaign campaign;
-        //Sequential method
-        log.warn("File size > {} MB! Parsing XML file using sequential method...", Constants.MAX_FILE_SIZE_UNTIL_SEQUENTIAL);
-        try (final InputStream stream = new FileInputStream(filepath.toFile())) {
-            LunaticXmlDataSequentialParser parser = new LunaticXmlDataSequentialParser(filepath, stream);
-            int suCount = 0;
-
-            campaign = parser.getCampaign();
-            LunaticXmlSurveyUnit su = parser.readNextSurveyUnit();
-            contextService.saveContext(campaign.getCampaignId(), false);
-
-            while (su != null) {
-                List<SurveyUnitModel> surveyUnitModels = new ArrayList<>(LunaticXmlAdapter.convert(su, variablesMap, campaign.getCampaignId(), modeSpecified));
-
-                surveyUnitQualityService.verifySurveyUnits(surveyUnitModels, variablesMap);
-                surveyUnitService.saveSurveyUnits(surveyUnitModels);
-                suCount++;
-
-                su = parser.readNextSurveyUnit();
-            }
-
-            log.info("Saved {} survey units updates from Xml file {}", suCount,  filepath.getFileName());
-        }
-        return ResponseEntity.ok().build();
-    }
 
     private static String getSuccessMessage(boolean isAnyDataSaved) {
         return isAnyDataSaved ? SUCCESS_MESSAGE : SUCCESS_NO_DATA_MESSAGE;
     }
+
 }

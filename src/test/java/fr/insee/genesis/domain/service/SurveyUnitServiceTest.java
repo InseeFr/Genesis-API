@@ -1,15 +1,22 @@
 package fr.insee.genesis.domain.service;
 
+import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.controller.dto.SurveyUnitDto;
 import fr.insee.genesis.controller.dto.VariableDto;
 import fr.insee.genesis.controller.services.MetadataService;
+import fr.insee.genesis.controller.utils.AuthUtils;
+import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
+import fr.insee.genesis.domain.ports.api.DataProcessingContextApiPort;
+import fr.insee.genesis.domain.service.context.DataProcessingContextService;
+import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
+import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -28,6 +35,15 @@ class SurveyUnitServiceTest {
     static SurveyUnitService surveyUnitServiceStatic;
     static SurveyUnitPersistencePortStub surveyUnitPersistencePortStub;
 
+    static Config config = new ConfigStub();
+    static FileUtils fileUtils = new FileUtils(config);
+    static DataProcessingContextPersistancePortStub dataProcessingContextPersistancePortStub =
+            new DataProcessingContextPersistancePortStub();
+    static DataProcessingContextApiPort dataProcessingContextApiPort = new DataProcessingContextService(
+            dataProcessingContextPersistancePortStub,
+            surveyUnitPersistencePortStub
+    );
+
     //Constants
     static final String DEFAULT_INTERROGATION_ID = "TESTINTERROGATIONID";
     static final String DEFAULT_QUESTIONNAIRE_ID = "TESTQUESTIONNAIREID";
@@ -36,8 +52,15 @@ class SurveyUnitServiceTest {
     static void init(){
         surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
 
-        surveyUnitServiceStatic = new SurveyUnitService(surveyUnitPersistencePortStub, new MetadataService(),
-                new FileUtils(new ConfigStub()));
+        surveyUnitServiceStatic = new SurveyUnitService(
+                surveyUnitPersistencePortStub,
+                new MetadataService(),
+                fileUtils,
+                dataProcessingContextApiPort,
+                new SurveyUnitQualityService(),
+                new ControllerUtils(fileUtils),
+                new AuthUtils(config)
+        );
     }
 
     @BeforeEach

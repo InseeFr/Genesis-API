@@ -1,13 +1,16 @@
 package fr.insee.genesis.controller.rest.responses;
 
 
+import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.controller.dto.rawdata.LunaticJsonRawDataUnprocessedDto;
 import fr.insee.genesis.controller.services.MetadataService;
+import fr.insee.genesis.controller.utils.AuthUtils;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
+import fr.insee.genesis.domain.ports.api.DataProcessingContextApiPort;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.service.context.DataProcessingContextService;
 import fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService;
@@ -35,22 +38,39 @@ import java.util.List;
 import java.util.Map;
 
 class RawResponseControllerTest {
-    private final FileUtils fileUtils = new FileUtils(new ConfigStub());
+    Config config = new ConfigStub();
+    private final FileUtils fileUtils = new FileUtils(config);
     private final LunaticJsonRawDataPersistanceStub lunaticJsonRawDataPersistanceStub = new LunaticJsonRawDataPersistanceStub();
     private final SurveyUnitPersistencePortStub surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
     private final SurveyUnitQualityToolPerretAdapterStub surveyUnitQualityToolPerretAdapterStub = new SurveyUnitQualityToolPerretAdapterStub();
     private final DataProcessingContextPersistancePortStub dataProcessingContextPersistancePortStub =
             new DataProcessingContextPersistancePortStub();
+    private final DataProcessingContextApiPort dataProcessingContextApiPort = new DataProcessingContextService(
+            dataProcessingContextPersistancePortStub,
+            surveyUnitPersistencePortStub
+    );
+    MetadataService metadataService = new MetadataService();
+    SurveyUnitQualityService surveyUnitQualityService = new SurveyUnitQualityService();
+    ControllerUtils controllerUtils = new ControllerUtils(fileUtils);
+    SurveyUnitService surveyUnitService = new SurveyUnitService(
+            surveyUnitPersistencePortStub,
+            metadataService,
+            fileUtils,
+            dataProcessingContextApiPort,
+            surveyUnitQualityService,
+            controllerUtils,
+            new AuthUtils(config)
+    );
     private final LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort = new LunaticJsonRawDataService(lunaticJsonRawDataPersistanceStub,
-            new ControllerUtils(fileUtils),
-            new MetadataService(),
-            new SurveyUnitService(surveyUnitPersistencePortStub, new MetadataService(), fileUtils),
-            new SurveyUnitQualityService(),
+            controllerUtils,
+            metadataService,
+            surveyUnitService,
+            surveyUnitQualityService,
             fileUtils,
             new DataProcessingContextService(dataProcessingContextPersistancePortStub, surveyUnitPersistencePortStub),
             surveyUnitQualityToolPerretAdapterStub,
-            new ConfigStub(),
-            new DataProcessingContextPersistancePortStub()
+            config,
+            dataProcessingContextPersistancePortStub
     );
 
     private final RawResponseController rawResponseController = new RawResponseController(lunaticJsonRawDataApiPort);
