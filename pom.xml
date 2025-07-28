@@ -31,7 +31,7 @@
         </sonar.exclusions>
         <skipSurefireReport>true</skipSurefireReport>
         <!-- Pi Test-->
-        <pitest.version>1.20.0</pitest.version>
+        <pitest.version>1.20.1</pitest.version>
         <pitest.junit.version>1.2.3</pitest.junit.version>
         <jackson.version>2.19.0</jackson.version>
         <bpm.version>1.0.8</bpm.version>
