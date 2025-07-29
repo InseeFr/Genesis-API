@@ -2,6 +2,8 @@ package fr.insee.genesis.controller.rest;
 
 import cucumber.TestConstants;
 import fr.insee.genesis.Constants;
+import fr.insee.genesis.configuration.Config;
+import fr.insee.genesis.controller.utils.AuthUtils;
 import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
 import fr.insee.genesis.controller.services.MetadataService;
 import fr.insee.genesis.controller.utils.ControllerUtils;
@@ -9,6 +11,7 @@ import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
+import fr.insee.genesis.domain.ports.api.DataProcessingContextApiPort;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.ports.spi.DataProcessingContextPersistancePort;
@@ -50,11 +53,25 @@ class UtilsControllerTest {
     static DataProcessingContextPersistancePort contextStub = new DataProcessingContextPersistancePortStub();
     static SurveyUnitQualityToolPerretAdapterStub surveyUnitQualityToolPerretAdapterStub;
     static List<InterrogationId> interrogationIdList;
-    static FileUtils fileUtils = new FileUtils(new ConfigStub());
+    static Config config = new ConfigStub();
+    static FileUtils fileUtils = new FileUtils(config);
     static ControllerUtils controllerUtils = new ControllerUtils(fileUtils);
     static MetadataService metadataService = new MetadataService();
-    static SurveyUnitService surveyUnitService = new SurveyUnitService(new SurveyUnitPersistencePortStub(), metadataService, fileUtils);
+
+    static DataProcessingContextApiPort dataProcessingContextApiPort = new DataProcessingContextService(
+            new DataProcessingContextPersistancePortStub(),
+            surveyUnitPersistencePortStub
+    );
     static SurveyUnitQualityService surveyUnitQualityService = new SurveyUnitQualityService();
+    static SurveyUnitService surveyUnitService = new SurveyUnitService(
+            new SurveyUnitPersistencePortStub(),
+            metadataService,
+            fileUtils,
+            dataProcessingContextApiPort,
+            surveyUnitQualityService,
+            controllerUtils,
+            new AuthUtils(config));
+
     //Constants
     static final String DEFAULT_INTERROGATION_ID = "TESTINTERROGATIONID";
     static final String DEFAULT_QUESTIONNAIRE_ID = "TESTQUESTIONNAIREID";
@@ -63,7 +80,14 @@ class UtilsControllerTest {
     static void init() {
         surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
         lunaticJsonRawDataPersistencePort = new LunaticJsonRawDataPersistanceStub();
-        SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(surveyUnitPersistencePortStub, metadataService, fileUtils);
+        SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(
+                surveyUnitPersistencePortStub,
+                metadataService,
+                fileUtils,
+                dataProcessingContextApiPort,
+                surveyUnitQualityService,
+                controllerUtils,
+                new AuthUtils(config));
         LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort = new LunaticJsonRawDataService(
                         lunaticJsonRawDataPersistencePort,
                         controllerUtils,

@@ -64,18 +64,14 @@ class ResponseControllerTest {
         SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(
                 surveyUnitPersistencePortStub,
                 new MetadataService(),
-                fileUtils
+                fileUtils,
+                new DataProcessingContextService(dataProcessingContextPersistancePortStub, surveyUnitPersistencePortStub),
+                new SurveyUnitQualityService(),
+                new ControllerUtils(fileUtils),
+                new AuthUtils(config)
                 );
 
-        responseControllerStatic = new ResponseController(
-                surveyUnitApiPort
-                , new SurveyUnitQualityService()
-                , fileUtils
-                , new ControllerUtils(fileUtils)
-                , new AuthUtils(config)
-                , new MetadataService()
-                , new DataProcessingContextService(dataProcessingContextPersistancePortStub, surveyUnitPersistencePortStub)
-        );
+        responseControllerStatic = new ResponseController(surveyUnitApiPort);
 
         interrogationIdList = new ArrayList<>();
         interrogationIdList.add(new InterrogationId(DEFAULT_INTERROGATION_ID));
