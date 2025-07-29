@@ -30,14 +30,19 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
         return surveyUnitModelList;
     }
 
-    //========= OPTIMISATIONS PERFS (START) ==========
+
     /**
      * @author Adrien Marchal
      */
     public List<SurveyUnitModel> findBySetOfIdsAndQuestionnaireIdAndMode(String questionnaireId, String mode, List<String> interrogationIdSet) {
-        return new ArrayList<SurveyUnitModel>();
+        List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
+        for(SurveyUnitModel SurveyUnitModel : mongoStub){
+            if(interrogationIdSet.contains(SurveyUnitModel.getInterrogationId()) && SurveyUnitModel.getQuestionnaireId().equals(questionnaireId))
+                surveyUnitModelList.add(SurveyUnitModel);
+        }
+
+        return surveyUnitModelList;
     }
-    //========= OPTIMISATIONS PERFS (START) ==========
 
 
     @Override
@@ -75,6 +80,9 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
         return surveyUnitModelList.stream();
     }
 
+    /**
+     * !!!WARNING!!! : A CALL WITH THIS ENDPOINT ON A BIG COLLECTION (> 300k) MAY KILL THE GENESIS-API APP.!!!
+     */
     @Override
     public List<SurveyUnitModel> findInterrogationIdsByQuestionnaireId(String questionnaireId) {
         List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
@@ -89,7 +97,6 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     }
 
 
-    //======== OPTIMISATIONS PERFS (START) ========
     /**
      * @author Adrien Marchal
      */
@@ -101,12 +108,19 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
      * @author Adrien Marchal
      */
     public List<SurveyUnitModel> findPageableInterrogationIdsByQuestionnaireId(String questionnaireId, Long skip, Long limit) {
-        return List.of();
+        List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
+        for(SurveyUnitModel SurveyUnitModel : mongoStub){
+            if(SurveyUnitModel.getQuestionnaireId().equals(questionnaireId))
+                surveyUnitModelList.add(
+                        new SurveyUnitModel(SurveyUnitModel.getInterrogationId(), SurveyUnitModel.getMode())
+                );
+        }
+        return surveyUnitModelList;
     }
 
 
     @Override
-    public List<SurveyUnitModel> findModesByCampaignIdV2(String campaignId) {
+    public List<SurveyUnitModel> findModesByCampaignId(String campaignId) {
         List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
         for(SurveyUnitModel SurveyUnitModel : mongoStub){
             if(SurveyUnitModel.getCampaignId().equals(campaignId))
@@ -119,7 +133,7 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     }
 
     @Override
-    public List<SurveyUnitModel> findModesByQuestionnaireIdV2(String questionnaireId) {
+    public List<SurveyUnitModel> findModesByQuestionnaireId(String questionnaireId) {
         List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
         for(SurveyUnitModel SurveyUnitModel : mongoStub){
             if(SurveyUnitModel.getQuestionnaireId().equals(questionnaireId))
@@ -130,21 +144,7 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
 
         return surveyUnitModelList;
     }
-    //======= OPTIMISATIONS PERFS (END) =========
 
-
-    @Override
-    public List<SurveyUnitModel> findInterrogationIdsByCampaignId(String campaignId) {
-        List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
-        for(SurveyUnitModel SurveyUnitModel : mongoStub){
-            if(SurveyUnitModel.getCampaignId().equals(campaignId))
-                surveyUnitModelList.add(
-                        new SurveyUnitModel(SurveyUnitModel.getInterrogationId(), SurveyUnitModel.getMode())
-                );
-        }
-
-        return surveyUnitModelList;
-    }
 
     @Override
     public Long deleteByQuestionnaireId(String questionnaireId) {
@@ -155,6 +155,7 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     public long count() {
         return mongoStub.size();
     }
+
 
     @Override
     public Set<String> findQuestionnaireIdsByCampaignId(String campaignId) {
@@ -167,13 +168,6 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
         return questionnaireIdSet;
     }
 
-    //========= OPTIMISATIONS PERFS (START) ==========
-    @Override
-    public Set<String> findQuestionnaireIdsByCampaignIdV2(String campaignId) {
-        //This stub is explicitally the same as method "findQuestionnaireIdsByCampaignId()"
-        return findQuestionnaireIdsByCampaignId(campaignId);
-    }
-    //========= OPTIMISATIONS PERFS (END) ==========
 
     @Override
     public Set<String> findDistinctCampaignIds() {

@@ -28,6 +28,9 @@ public class InterrogationController implements CommonApiResponse {
     }
 
 
+    /**
+     * !!!WARNING!!! : A CALL WITH THIS ENDPOINT ON A BIG COLLECTION (> 300k) MAY KILL THE GENESIS-API APP.!!!
+     */
     @Operation(summary = "Retrieve all interrogations for a given questionnaire")
     @GetMapping(path = "/by-questionnaire")
     public ResponseEntity<List<InterrogationId>> getAllInterrogationIdsByQuestionnaire(@RequestParam("questionnaireId") String questionnaireId) {
@@ -36,7 +39,6 @@ public class InterrogationController implements CommonApiResponse {
     }
 
 
-    //========= OPTIMISATIONS PERFS (START) ==========
     /**
      * @author Adrien Marchal
      */
@@ -63,7 +65,6 @@ public class InterrogationController implements CommonApiResponse {
         List<InterrogationId> responses = surveyUnitService.findDistinctPageableInterrogationIdsByQuestionnaireId(questionnaireId, totalSize, blockSize, page);
         return ResponseEntity.ok(responses);
     }
-    //======== OPTIMISATIONS PERFS (END) ===========
 
 
 }

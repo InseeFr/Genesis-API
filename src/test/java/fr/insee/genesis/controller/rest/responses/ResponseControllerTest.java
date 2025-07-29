@@ -782,4 +782,34 @@ class ResponseControllerTest {
 
         Assertions.assertThat(docSaved.getModifiedBy()).isNull();
     }
+
+
+    @Test
+    void getLatestForInterrogationListWithModes_performance() throws GenesisException {
+        //GIVEN
+        Utils.fillMongoStubForPerformances(DataState.COLLECTED,
+                LocalDateTime.of(1999,2,2,0,0,0),
+                LocalDateTime.of(1999,2,2,0,0,0),
+                surveyUnitPersistencePortStub
+        );
+
+
+        //WHEN
+        List<String> modes = new ArrayList<>();
+        modes.add("WEB");
+        List<InterrogationId> interrogationIds = Utils.generateInterrogationIds();
+        long start = System.currentTimeMillis();
+        ResponseEntity<List<SurveyUnitSimplified>> response = responseControllerStatic.getLatestForInterrogationListWithModes(
+                DEFAULT_QUESTIONNAIRE_ID,
+                modes,
+                interrogationIds
+        );
+        long end = System.currentTimeMillis();
+        long delta = end - start;
+
+        //THEN
+        Assertions.assertThat(delta < 3000).isTrue();
+    }
+
+
 }
