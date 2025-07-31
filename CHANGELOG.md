@@ -1,4 +1,8 @@
 # Changelog
+## 1.7.1 [2025-07-31]
+### Updated
+- BPM 1.0.9
+
 ## 1.7.0 [2025-07-31]
 ### Added
 - Back office user role
