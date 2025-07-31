@@ -1,4 +1,15 @@
 # Changelog
+## 1.7.0 [2025-07-31]
+### Added
+- Back office user role
+### Changed
+- QuestionnaireIds are forced on capital case
+### Fixed
+- Invalid variable type in latest states call exception
+### Updated
+- Cucumber 7.27
+- Pitest 1.20.1
+
 ## 1.6.2 [2025-07-21]
 ### Added
 - Edited contextual variables storage
