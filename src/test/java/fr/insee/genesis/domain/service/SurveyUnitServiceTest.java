@@ -2,15 +2,17 @@ package fr.insee.genesis.domain.service;
 
 import fr.insee.genesis.controller.dto.SurveyUnitDto;
 import fr.insee.genesis.controller.dto.VariableDto;
-import fr.insee.genesis.controller.services.MetadataService;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
+import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
+import fr.insee.genesis.stubs.QuestionnaireMetadataPersistancePortStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
+import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,7 +38,8 @@ class SurveyUnitServiceTest {
     static void init(){
         surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
 
-        surveyUnitServiceStatic = new SurveyUnitService(surveyUnitPersistencePortStub, new MetadataService(),
+        surveyUnitServiceStatic = new SurveyUnitService(surveyUnitPersistencePortStub,
+                new QuestionnaireMetadataService(new QuestionnaireMetadataPersistancePortStub()),
                 new FileUtils(new ConfigStub()));
     }
 
@@ -270,6 +273,7 @@ class SurveyUnitServiceTest {
     }
 
     @Test
+    @SneakyThrows
     void findLatestByIdAndByQuestionnaireIdPerretTest(){
         //Given
         //Recent Collected already in stub
@@ -362,6 +366,7 @@ class SurveyUnitServiceTest {
     }
 
     @Test
+    @SneakyThrows
     void findLatestByIdAndByQuestionnaireIdPerretTest_null_collectedVariables(){
         //Given
         addAdditionnalSurveyUnitModelToMongoStub(DataState.EDITED,
@@ -435,6 +440,7 @@ class SurveyUnitServiceTest {
     }
 
     @Test
+    @SneakyThrows
     void findLatestByIdAndByQuestionnaireIdPerretTest_null_externalVariables(){
         //Given
         addAdditionnalSurveyUnitModelToMongoStub(DataState.EDITED,
@@ -506,6 +512,7 @@ class SurveyUnitServiceTest {
     }
 
     @Test
+    @SneakyThrows
     void findLatestValuesByStateByIdAndByQuestionnaireId_should_return_empty_values_too(){
         //Given
         addAdditionnalSurveyUnitModelToMongoStub(DataState.FORCED,
@@ -532,6 +539,7 @@ class SurveyUnitServiceTest {
     }
 
     @Test
+    @SneakyThrows
     void findLatestValuesByStateByIdAndByQuestionnaireId_should_return_null_values(){
         //Given
         addAdditionnalSurveyUnitModelToMongoStub(DataState.EDITED,

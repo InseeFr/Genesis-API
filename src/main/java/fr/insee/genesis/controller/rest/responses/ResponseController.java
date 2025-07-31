@@ -1,18 +1,17 @@
 package fr.insee.genesis.controller.rest.responses;
 
 import fr.insee.bpm.exceptions.MetadataParserException;
+import fr.insee.bpm.metadata.model.MetadataModel;
 import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.bpm.metadata.reader.ddi.DDIReader;
 import fr.insee.bpm.metadata.reader.lunatic.LunaticReader;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.adapter.LunaticXmlAdapter;
-import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
 import fr.insee.genesis.controller.dto.SurveyUnitDto;
 import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
 import fr.insee.genesis.controller.dto.SurveyUnitQualityToolDto;
 import fr.insee.genesis.controller.dto.SurveyUnitSimplified;
 import fr.insee.genesis.controller.rest.CommonApiResponse;
-import fr.insee.genesis.controller.services.MetadataService;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlCampaign;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlDataParser;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlDataSequentialParser;
@@ -21,11 +20,13 @@ import fr.insee.genesis.controller.utils.AuthUtils;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.controller.utils.DataTransformer;
 import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
+import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.ports.api.DataProcessingContextApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
+import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
@@ -57,11 +58,9 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Stream;
 
 @RequestMapping(path = "/responses" )
 @Controller
@@ -79,14 +78,14 @@ public class ResponseController implements CommonApiResponse {
     private final FileUtils fileUtils;
     private final ControllerUtils controllerUtils;
     private final AuthUtils authUtils;
-    private final MetadataService metadataService;
+    private final QuestionnaireMetadataService metadataService;
 
     public ResponseController(SurveyUnitApiPort surveyUnitService,
                               SurveyUnitQualityService surveyUnitQualityService,
                               FileUtils fileUtils,
                               ControllerUtils controllerUtils,
                               AuthUtils authUtils,
-                              MetadataService metadataService,
+                              QuestionnaireMetadataService metadataService,
                               DataProcessingContextApiPort contextService
     ) {
         this.surveyUnitService = surveyUnitService;
@@ -393,64 +392,65 @@ public class ResponseController implements CommonApiResponse {
     @PreAuthorize("hasRole('USER_PLATINE')")
     public ResponseEntity<Object> saveEditedVariables(
             @RequestBody SurveyUnitInputDto surveyUnitInputDto
-    ){
-        log.debug("Received in save edited : {}",surveyUnitInputDto.toString());
-        //Code quality : we need to put all that logic out of this controller
-        //Parse metadata
-        //Try to look for DDI first, if no DDI found looks for lunatic components
-        List<GenesisError> errors = new ArrayList<>();
-        //We need to retrieve campaignId
-        Set<String> campaignIds = surveyUnitService.findCampaignIdsFrom(surveyUnitInputDto);
-        if (campaignIds.size() != 1){
-            return ResponseEntity.status(500).body("Impossible to assign one campaignId to that response");
-        }
-        // If the size is equal to 1 we get this campaignId
-        String campaignId = campaignIds.iterator().next();
-        surveyUnitInputDto.setCampaignId(campaignId);
-        VariablesMap variablesMap = metadataService.readMetadatas(surveyUnitInputDto.getCampaignId(),
-                surveyUnitInputDto.getMode().getModeName(), fileUtils, errors);
-        if(variablesMap == null){
-            log.warn("Can't find DDI, trying with lunatic...");
-            variablesMap = metadataService.readMetadatas(surveyUnitInputDto.getCampaignId(),
-                    surveyUnitInputDto.getMode().getModeName(), fileUtils, errors);
-            if(variablesMap == null){
-                return ResponseEntity.status(404).body(errors.getLast().getMessage());
+    ) {
+        try {
+            log.debug("Received in save edited : {}", surveyUnitInputDto.toString());
+            //Code quality : we need to put all that logic out of this controller
+            //Parse metadata
+            //Try to look for DDI first, if no DDI found looks for lunatic components
+            List<GenesisError> errors = new ArrayList<>();
+            //We need to retrieve campaignId
+            Set<String> campaignIds = surveyUnitService.findCampaignIdsFrom(surveyUnitInputDto);
+            if (campaignIds.size() != 1) {
+                return ResponseEntity.status(500).body("Impossible to assign one campaignId to that response");
             }
-        }
+            // If the size is equal to 1 we get this campaignId
+            String campaignId = campaignIds.iterator().next();
+            surveyUnitInputDto.setCampaignId(campaignId);
 
-        //Check if input edited variables are in metadatas
-        List<String> absentCollectedVariableNames =
-                surveyUnitQualityService.checkVariablesPresentInMetadata(surveyUnitInputDto.getCollectedVariables(),
-                variablesMap);
-        if (!absentCollectedVariableNames.isEmpty()) {
-            String absentVariables = String.join("\n", absentCollectedVariableNames);
-            return ResponseEntity.badRequest().body(
-                    String.format("The following variables are absent in metadatas : %n%s", absentVariables)
-            );
-        }
+            MetadataModel metadataModel = metadataService.load(
+                    surveyUnitInputDto.getCampaignId(),
+                    surveyUnitInputDto.getQuestionnaireId(),
+                    surveyUnitInputDto.getMode(),
+                    fileUtils,
+                    errors);
+            if(metadataModel == null){
+                throw new GenesisException(404, errors.getLast().getMessage());
+            }
 
-        //Fetch user identifier from OIDC token
-        String userIdentifier = authUtils.getIDEP();
+            //Check if input edited variables are in metadatas
+            List<String> absentCollectedVariableNames =
+                    surveyUnitQualityService.checkVariablesPresentInMetadata(surveyUnitInputDto.getCollectedVariables(),
+                            metadataModel.getVariables());
+            if (!absentCollectedVariableNames.isEmpty()) {
+                String absentVariables = String.join("\n", absentCollectedVariableNames);
+                return ResponseEntity.badRequest().body(
+                        String.format("The following variables are absent in metadatas : %n%s", absentVariables)
+                );
+            }
+
+            //Fetch user identifier from OIDC token
+            String userIdentifier = authUtils.getIDEP();
 
 
-        //Create surveyUnitModel for each STATE received (Quality tool could send variables with another STATE than EDITED)
-        List<SurveyUnitModel> surveyUnitModels;
-        try{
+            //Create surveyUnitModel for each STATE received (Quality tool could send variables with another STATE
+            // than EDITED)
+            List<SurveyUnitModel> surveyUnitModels;
             surveyUnitModels = surveyUnitService.parseEditedVariables(
                     surveyUnitInputDto,
                     userIdentifier,
-                    variablesMap
+                    metadataModel.getVariables()
             );
-        }catch (GenesisException e){
-           return ResponseEntity.status(e.getStatus()).body(e.getMessage());
+
+            //Check data with dataverifier (might create a FORCED document)
+            surveyUnitQualityService.verifySurveyUnits(surveyUnitModels, metadataModel.getVariables());
+
+            //Save documents
+            surveyUnitService.saveSurveyUnits(surveyUnitModels);
+            return ResponseEntity.ok(SUCCESS_MESSAGE);
+        } catch (GenesisException ge) {
+            return ResponseEntity.status(ge.getStatus()).body(ge.getMessage());
         }
-
-        //Check data with dataverifier (might create a FORCED document)
-        surveyUnitQualityService.verifySurveyUnits(surveyUnitModels, variablesMap);
-
-        //Save documents
-        surveyUnitService.saveSurveyUnits(surveyUnitModels);
-        return ResponseEntity.ok(SUCCESS_MESSAGE);
     }
 
 
@@ -462,9 +462,11 @@ public class ResponseController implements CommonApiResponse {
      * @param mode mode of collected data
      * @param errors error list to fill
      */
-    private void processCampaignWithMode(String campaignName, Mode mode, List<GenesisError> errors, String rootDataFolder)
+    private void processCampaignWithMode(String campaignName, Mode mode,
+                                         List<GenesisError> errors, String rootDataFolder)
             throws IOException, ParserConfigurationException, SAXException, XMLStreamException, NoDataException, GenesisException {
         log.info("Starting data import for mode: {}", mode.getModeName());
+
         String dataFolder = rootDataFolder == null ?
                 fileUtils.getDataFolder(campaignName, mode.getFolder(), null)
                 : fileUtils.getDataFolder(campaignName, mode.getFolder(), rootDataFolder);
@@ -474,7 +476,8 @@ public class ResponseController implements CommonApiResponse {
             throw new NoDataException("No data file found in folder %s".formatted(dataFolder));
         }
 
-        VariablesMap variablesMap = metadataService.readMetadatas(campaignName, mode.getModeName(), fileUtils, errors);
+        VariablesMap variablesMap = metadataService.load(campaignName, campaignName, mode, fileUtils,
+                errors).getVariables();
         if (variablesMap == null){
             return;
         }

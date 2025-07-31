@@ -9,7 +9,6 @@ import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
 import fr.insee.genesis.controller.dto.VariableDto;
 import fr.insee.genesis.controller.dto.VariableInputDto;
 import fr.insee.genesis.controller.dto.VariableStateDto;
-import fr.insee.genesis.controller.services.MetadataService;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
@@ -18,6 +17,7 @@ import fr.insee.genesis.domain.model.surveyunit.VarIdScopeTuple;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
+import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.utils.GroupUtils;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
@@ -43,11 +43,11 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     @Qualifier("surveyUnitMongoAdapter")
     private final SurveyUnitPersistencePort surveyUnitPersistencePort;
 
-    private final MetadataService metadataService;
+    private final QuestionnaireMetadataService metadataService;
     private final FileUtils fileUtils;
 
     @Autowired
-    public SurveyUnitService(SurveyUnitPersistencePort surveyUnitPersistencePort, MetadataService metadataService,
+    public SurveyUnitService(SurveyUnitPersistencePort surveyUnitPersistencePort, QuestionnaireMetadataService metadataService,
                              FileUtils fileUtils) {
         this.surveyUnitPersistencePort = surveyUnitPersistencePort;
         this.metadataService = metadataService;
@@ -230,7 +230,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
 
     @Override
     public SurveyUnitDto findLatestValuesByStateByIdAndByQuestionnaireId(String interrogationId,
-                                                                         String questionnaireId) {
+                                                                         String questionnaireId) throws GenesisException {
         SurveyUnitDto surveyUnitDto = SurveyUnitDto.builder()
                 .interrogationId(interrogationId)
                 .collectedVariables(new ArrayList<>())
@@ -242,24 +242,26 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         Map<VarIdScopeTuple, VariableDto> externalVariableMap = new HashMap<>();
         List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findByIds(interrogationId, questionnaireId);
         List<Mode> modes = getDistinctsModes(surveyUnitModels);
-        modes.forEach(mode -> {
+        for (Mode mode : modes) {
             List<SurveyUnitModel> suByMode = surveyUnitModels.stream()
                     .filter(surveyUnitModel -> surveyUnitModel.getMode().equals(mode))
                     .sorted((o1, o2) -> o2.getRecordDate().compareTo(o1.getRecordDate())) //Sorting update by date (latest updates first by date of upload in database)
                     .toList();
+
             VariablesMap variablesMap = null;
-            for(SurveyUnitModel surveyUnitModel : suByMode){
-                if(variablesMap == null){
-                    variablesMap = metadataService.readMetadatas(
+            for (SurveyUnitModel surveyUnitModel : suByMode) {
+                if (variablesMap == null) {
+                    variablesMap = metadataService.load(
                             surveyUnitModel.getCampaignId(),
-                            surveyUnitModel.getMode().getModeName(),
+                            surveyUnitModel.getQuestionnaireId(),
+                            surveyUnitModel.getMode(),
                             fileUtils,
-                            new ArrayList<>());
+                            new ArrayList<>()).getVariables();
                 }
                 extractVariables(surveyUnitModel, collectedVariableMap,
                         externalVariableMap, variablesMap);
             }
-        });
+        }
         collectedVariableMap.keySet().forEach(variableTuple -> surveyUnitDto.getCollectedVariables().add(collectedVariableMap.get(variableTuple)));
         externalVariableMap.keySet().forEach(variableName -> surveyUnitDto.getExternalVariables().add(externalVariableMap.get(variableName)));
         return surveyUnitDto;
