@@ -51,7 +51,7 @@ class ResponseControllerTest {
     static final String DEFAULT_INTERROGATION_ID = "TESTINTERROGATIONID";
     static final String DEFAULT_QUESTIONNAIRE_ID = "TESTQUESTIONNAIREID";
     static final String CAMPAIGN_ID_WITH_DDI = "SAMPLETEST-PARADATA-v1";
-    static final String QUESTIONNAIRE_ID_WITH_DDI = "SAMPLETEST-PARADATA-v1";
+    static final String QUESTIONNAIRE_ID_WITH_DDI = "SAMPLETEST-PARADATA-v1".toUpperCase();
 
     @BeforeAll
     static void init() {
