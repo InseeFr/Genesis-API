@@ -50,7 +50,7 @@ public class EditedResponseController {
 
     @Operation(summary = "Add edited previous json file")
     @PostMapping(path = "previous/json")
-    @PreAuthorize("hasAnyRole('USER_PLATINE','SCHEDULER')")
+    @PreAuthorize("hasAnyRole('USER_PLATINE','SCHEDULER','USER_BACK_OFFICE')")
     public ResponseEntity<Object> readEditedPreviousJson(
             @RequestParam("questionnaireId") String questionnaireId,
             @RequestParam("mode") Mode mode,
@@ -77,7 +77,7 @@ public class EditedResponseController {
 
     @Operation(summary = "Add edited external json file")
     @PostMapping(path = "/external/json")
-    @PreAuthorize("hasAnyRole('USER_PLATINE','SCHEDULER')")
+    @PreAuthorize("hasAnyRole('USER_PLATINE','SCHEDULER','USER_BACK_OFFICE')")
     public ResponseEntity<Object> readEditedExternalJson(
             @RequestParam("questionnaireId") String questionnaireId,
             @RequestParam("mode") Mode mode,

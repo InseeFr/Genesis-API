@@ -11,12 +11,14 @@ import fr.insee.genesis.infrastructure.repository.LunaticModelMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.RundeckExecutionDBRepository;
 import fr.insee.genesis.infrastructure.repository.SurveyUnitMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.VariableTypeMongoDBRepository;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration;
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
@@ -30,6 +32,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
+import java.util.HashMap;
 import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.oneOf;
@@ -37,6 +40,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.POST;
+import static org.springframework.http.HttpMethod.PUT;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -51,6 +55,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @EnableAutoConfiguration(exclude = {MongoAutoConfiguration.class, MongoDataAutoConfiguration.class})
 class ControllerAccessTest {
 
+    // Constants for user roles
+    // JWT claim properties loaded from application properties
+    @Value("${fr.insee.genesis.security.token.oidc-claim-role}")
+    private String claimRoleDotRoles;
+    @Value("${fr.insee.genesis.security.token.oidc-claim-username}")
+    private String claimName;
     @Autowired
     private MockMvc mockMvc; // Simulates HTTP requests to the REST endpoints
 
@@ -108,6 +118,15 @@ class ControllerAccessTest {
         );
     }
 
+    private static Stream<Arguments> backOfficeEndpointProd() {
+        return Stream.of(
+                Arguments.of(PUT,"/lunatic-model/save?questionnaireId=TEST", new HashMap<>()),
+                Arguments.of(POST,"/edited/previous/json?questionnaireId=TEST&mode=WEB&jsonFileName=truc.json"),
+                Arguments.of(POST,"/edited/external/json?questionnaireId=TEST&mode=WEB&jsonFileName=truc.json"),
+                Arguments.of(PUT,"/context/review?partitionId=TEST")
+        );
+    }
+
     /**
      * Tests that users with the "ADMIN" role can access read-only endpoints.
      */
@@ -148,6 +167,42 @@ class ControllerAccessTest {
                                 jwt().authorities(new SimpleGrantedAuthority("ROLE_USER_PLATINE")))
                 )
                 .andExpect(status().is(oneOf(200,404)));
+    }
+
+    /**
+     * Tests that users with the "USER_BACK_OFFICE" role can access read-only endpoints.
+     */
+    @ParameterizedTest
+    @MethodSource("backOfficeEndpointProd")
+    @DisplayName("Back office users should access prod services")
+    void back_office_users_should_access_prod_services(HttpMethod method, String endpointURI) throws Exception {
+        switch (method.name()){
+            case "PUT" -> mockMvc.perform(
+                            put(endpointURI).with(
+                                    jwt().authorities(new SimpleGrantedAuthority("ROLE_USER_BACK_OFFICE")))
+                    )
+                    .andExpect(status().is(oneOf(200,400,404)));
+            case "POST" -> mockMvc.perform(
+                            post(endpointURI).with(
+                                    jwt().authorities(new SimpleGrantedAuthority("ROLE_USER_BACK_OFFICE")))
+                    )
+                    .andExpect(status().is(oneOf(200,400,404)));
+            default -> Assertions.fail("Method %s not supported".formatted(method.name()));
+        }
+    }
+
+    /**
+     * Tests that users with the "USER_BACK_OFFICE" role can access read-only endpoints.
+     */
+    @ParameterizedTest
+    @MethodSource("endpointsReader")
+    @DisplayName("Back office users should access reader-allowed services")
+    void back_office_users_should_access_reader_allowed_services(String endpointURI) throws Exception {
+        mockMvc.perform(
+                        get(endpointURI).with(
+                                jwt().authorities(new SimpleGrantedAuthority("ROLE_USER_BACK_OFFICE")))
+                )
+                .andExpect(status().is(oneOf(200,400,404)));
     }
 
     /**
@@ -269,6 +324,4 @@ class ControllerAccessTest {
                 jwt().authorities(new SimpleGrantedAuthority("ROLE_invalid"))))
                 .andExpect(status().isForbidden());
     }
-
-
 }

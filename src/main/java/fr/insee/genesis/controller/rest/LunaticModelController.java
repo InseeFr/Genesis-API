@@ -31,7 +31,7 @@ public class LunaticModelController implements CommonApiResponse{
 
     @Operation(summary = "Save lunatic json data from one interrogation in Genesis Database")
     @PutMapping(path = "/save")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('USER_BACK_OFFICE')")
     public ResponseEntity<String> saveRawResponsesFromJsonBody(
             @RequestParam("questionnaireId") String questionnaireId,
             @RequestBody Map<String, Object> dataJson
