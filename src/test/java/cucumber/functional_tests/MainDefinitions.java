@@ -205,7 +205,7 @@ public class MainDefinitions {
 
     @When("We extract survey unit data with questionnaireId {string} and interrogationId {string}")
     public void extract_survey_data(String questionnaireId, String interrogationId) {
-        this.surveyUnitModelResponse = responseController.getLatestByInterrogation(interrogationId, questionnaireId);
+        this.surveyUnitModelResponse = responseController.getLatestByInterrogation(interrogationId, questionnaireId.toUpperCase());
     }
 
     @When("We extract survey unit latest states with questionnaireId {string} and interrogationId {string}")
@@ -213,7 +213,7 @@ public class MainDefinitions {
         try {
             this.surveyUnitLatestStatesResponse =
                     responseController.findResponsesByInterrogationAndQuestionnaireLatestStates(interrogationId,
-                    questionnaireId);
+                    questionnaireId.toUpperCase());
         } catch (GenesisException e) {
             this.surveyUnitLatestStatesResponse = ResponseEntity.status(e.getStatus()).body(new ApiError(e.getMessage()));
         }
@@ -343,7 +343,7 @@ public class MainDefinitions {
     @Then("If we get latest states for {string} in collected variable {string}, survey unit {string} we should have {string} for iteration {int}")
     public void check_latest_state_collected(String questionnaireId, String variableName, String interrogationId, String expectedValue, int iteration) throws GenesisException {
         ResponseEntity<Object> response =
-                responseController.findResponsesByInterrogationAndQuestionnaireLatestStates(interrogationId, questionnaireId);
+                responseController.findResponsesByInterrogationAndQuestionnaireLatestStates(interrogationId, questionnaireId.toUpperCase());
         Assertions.assertThat(response.getStatusCode().value()).isEqualTo(200);
 
         SurveyUnitQualityToolDto surveyUnitQualityToolDto = (SurveyUnitQualityToolDto) response.getBody();
@@ -367,7 +367,7 @@ public class MainDefinitions {
     @Then("If we get latest states for {string} in external variable {string}, survey unit {string} we should have {string} for iteration {int}")
     public void check_latest_state_external(String questionnaireId, String variableName, String interrogationId, String expectedValue, int iteration) throws GenesisException {
         ResponseEntity<Object> response =
-                responseController.findResponsesByInterrogationAndQuestionnaireLatestStates(interrogationId, questionnaireId);
+                responseController.findResponsesByInterrogationAndQuestionnaireLatestStates(interrogationId, questionnaireId.toUpperCase());
         Assertions.assertThat(response.getStatusCode().value()).isEqualTo(200);
         SurveyUnitQualityToolDto surveyUnitQualityToolDto = (SurveyUnitQualityToolDto) response.getBody();
 

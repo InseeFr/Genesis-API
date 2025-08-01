@@ -66,7 +66,7 @@ class RawResponseControllerTest {
         //GIVEN
         lunaticJsonRawDataPersistanceStub.getMongoStub().clear();
         String campaignId = "SAMPLETEST-PARADATA-v1";
-        String questionnaireId = "testIdQuest";
+        String questionnaireId = "testIdQuest".toUpperCase();
         String interrogationId = "testinterrogationId";
         Map<String,Object> json = JsonUtils.jsonToMap("{\"COLLECTED\": {\"testdata\": {\"COLLECTED\": [\"test\"]}}}");
 

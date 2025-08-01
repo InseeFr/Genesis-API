@@ -443,7 +443,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
                     .campaignId(surveyUnitInputDto.getCampaignId())
                     .mode(surveyUnitInputDto.getMode())
-                    .questionnaireId(surveyUnitInputDto.getQuestionnaireId())
+                    .questionnaireId(surveyUnitInputDto.getQuestionnaireId().toUpperCase())
                     .interrogationId(surveyUnitInputDto.getInterrogationId())
                     .state(state)
                     .recordDate(LocalDateTime.now())

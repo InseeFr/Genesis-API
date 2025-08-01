@@ -50,7 +50,7 @@ public class EditedResponseController {
 
     @Operation(summary = "Add edited previous json file")
     @PostMapping(path = "previous/json")
-    @PreAuthorize("hasAnyRole('USER_PLATINE','SCHEDULER')")
+    @PreAuthorize("hasAnyRole('USER_PLATINE','SCHEDULER','USER_BACK_OFFICE')")
     public ResponseEntity<Object> readEditedPreviousJson(
             @RequestParam("questionnaireId") String questionnaireId,
             @RequestParam("mode") Mode mode,
@@ -67,7 +67,7 @@ public class EditedResponseController {
             if (!jsonFileName.toLowerCase().endsWith(".json")) {
                 throw new GenesisException(400, "File must be a JSON file !");
             }
-            readEditedPreviousFile(questionnaireId, sourceState, filePath);
+            readEditedPreviousFile(questionnaireId.toUpperCase(), sourceState, filePath);
             moveFiles(questionnaireId, mode, fileUtils, filePath);
             return ResponseEntity.ok("Edited previous variable file %s saved !".formatted(filePath));
         }catch (GenesisException ge){
@@ -77,7 +77,7 @@ public class EditedResponseController {
 
     @Operation(summary = "Add edited external json file")
     @PostMapping(path = "/external/json")
-    @PreAuthorize("hasAnyRole('USER_PLATINE','SCHEDULER')")
+    @PreAuthorize("hasAnyRole('USER_PLATINE','SCHEDULER','USER_BACK_OFFICE')")
     public ResponseEntity<Object> readEditedExternalJson(
             @RequestParam("questionnaireId") String questionnaireId,
             @RequestParam("mode") Mode mode,
@@ -93,7 +93,7 @@ public class EditedResponseController {
             if (!jsonFileName.toLowerCase().endsWith(".json")) {
                 throw new GenesisException(400, "File must be a JSON file !");
             }
-            readEditedExternalFile(questionnaireId, filePath);
+            readEditedExternalFile(questionnaireId.toUpperCase(), filePath);
             moveFiles(questionnaireId, mode, fileUtils, filePath);
             return ResponseEntity.ok("Edited external variable file %s saved !".formatted(filePath));
         }catch (GenesisException ge){
