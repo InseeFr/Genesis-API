@@ -148,4 +148,13 @@ public class QuestionnaireMetadataService implements QuestionnaireMetadataApiPor
     public void remove(String questionnaireId, Mode mode) {
         questionnaireMetadataPersistancePort.remove(questionnaireId, mode);
     }
+
+    @Override
+    public void save(String questionnaireId, Mode mode, MetadataModel metadataModel) {
+        questionnaireMetadataPersistancePort.save(new QuestionnaireMetadataModel(
+                questionnaireId,
+                mode,
+                metadataModel
+        ));
+    }
 }

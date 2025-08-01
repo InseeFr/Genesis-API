@@ -1,5 +1,6 @@
 package fr.insee.genesis.controller.rest;
 
+import fr.insee.bpm.metadata.model.MetadataModel;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.ports.api.QuestionnaireMetadataApiPort;
 import fr.insee.genesis.exceptions.GenesisException;
@@ -10,6 +11,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
@@ -18,7 +21,7 @@ public class QuestionnaireMetadataController {
 
     private final QuestionnaireMetadataApiPort questionnaireMetadataApiPort;
 
-    @Operation(summary = "Removes questionnaire metadata from database")
+    @Operation(summary = "Get questionnaire metadata from database")
     @GetMapping("")
     @PreAuthorize("hasRole('USER_KRAFTWERK')")
     public ResponseEntity<Object> getMetadata(
@@ -30,6 +33,18 @@ public class QuestionnaireMetadataController {
         } catch (GenesisException e) {
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
         }
+    }
+
+    @Operation(summary = "Save questionnaire metadata into database")
+    @PostMapping("")
+    @PreAuthorize("hasRole('USER_KRAFTWERK')")
+    public ResponseEntity<Object> saveMetadata(
+            @RequestParam("questionnaireId") String questionnaireId,
+            @RequestParam("mode") Mode mode,
+            @RequestBody MetadataModel body
+    ) {
+        questionnaireMetadataApiPort.save(questionnaireId, mode, body);
+        return ResponseEntity.ok().build();
     }
 
     @Operation(summary = "Removes questionnaire metadata from database")

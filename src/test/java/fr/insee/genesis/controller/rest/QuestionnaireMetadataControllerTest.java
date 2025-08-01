@@ -1,6 +1,8 @@
 package fr.insee.genesis.controller.rest;
 
 import fr.insee.bpm.metadata.model.MetadataModel;
+import fr.insee.bpm.metadata.model.Variable;
+import fr.insee.bpm.metadata.model.VariableType;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.infrastructure.document.metadata.QuestionnaireMetadataDocument;
@@ -57,6 +59,88 @@ class QuestionnaireMetadataControllerTest {
 
         //THEN
         Assertions.assertThat(response.getStatusCode().value()).isEqualTo(404);
+    }
+
+    @Test
+    void saveMetadataTest(){
+        //GIVEN
+        String questionnaireId = "TESTQUEST";
+        Mode mode = Mode.WEB;
+        String variableName = "TESTVAR";
+        MetadataModel metadataModel = new MetadataModel();
+        metadataModel.getVariables().putVariable(
+                new Variable(
+                        variableName,
+                        metadataModel.getRootGroup(),
+                        VariableType.STRING
+                )
+        );
+
+        //WHEN
+        ResponseEntity<Object> response = questionnaireMetadataController.saveMetadata(questionnaireId, mode, metadataModel);
+
+        //THEN
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        Assertions.assertThat(questionnaireMetadataPersistancePortStub.getMongoStub()).hasSize(1);
+        Assertions.assertThat(questionnaireMetadataPersistancePortStub.getMongoStub().getFirst().questionnaireId())
+                .isEqualTo(questionnaireId);
+        Assertions.assertThat(questionnaireMetadataPersistancePortStub.getMongoStub().getFirst().mode())
+                .isEqualTo(mode);
+        Assertions.assertThat(questionnaireMetadataPersistancePortStub.getMongoStub().getFirst().metadataModel().getVariables()
+                        .hasVariable(variableName)).isTrue();
+        Assertions.assertThat(questionnaireMetadataPersistancePortStub.getMongoStub().getFirst().metadataModel().getVariables()
+                .getVariable(variableName).getGroup()).isEqualTo(metadataModel.getRootGroup());
+        Assertions.assertThat(questionnaireMetadataPersistancePortStub.getMongoStub().getFirst().metadataModel().getVariables()
+                .getVariable(variableName).getType()).isEqualTo(VariableType.STRING);
+    }
+
+    @Test
+    void saveMetadataTest_overwrite(){
+        //GIVEN
+        String questionnaireId = "TESTQUEST";
+        Mode mode = Mode.WEB;
+        String variableName = "TESTVAR";
+        MetadataModel metadataModel = new MetadataModel();
+        metadataModel.getVariables().putVariable(
+                new Variable(
+                        variableName,
+                        metadataModel.getRootGroup(),
+                        VariableType.STRING
+                )
+        );
+        questionnaireMetadataPersistancePortStub.getMongoStub().add(
+                new QuestionnaireMetadataDocument(
+                        questionnaireId,
+                        mode,
+                        metadataModel
+                )
+        );
+        metadataModel = new MetadataModel();
+        variableName = "TESTVAR2";
+        metadataModel.getVariables().putVariable(
+                new Variable(
+                        variableName,
+                        metadataModel.getRootGroup(),
+                        VariableType.INTEGER
+                )
+        );
+
+        //WHEN
+        ResponseEntity<Object> response = questionnaireMetadataController.saveMetadata(questionnaireId, mode, metadataModel);
+
+        //THEN
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        Assertions.assertThat(questionnaireMetadataPersistancePortStub.getMongoStub()).hasSize(1);
+        Assertions.assertThat(questionnaireMetadataPersistancePortStub.getMongoStub().getFirst().questionnaireId())
+                .isEqualTo(questionnaireId);
+        Assertions.assertThat(questionnaireMetadataPersistancePortStub.getMongoStub().getFirst().mode())
+                .isEqualTo(mode);
+        Assertions.assertThat(questionnaireMetadataPersistancePortStub.getMongoStub().getFirst().metadataModel().getVariables()
+                .hasVariable(variableName)).isTrue();
+        Assertions.assertThat(questionnaireMetadataPersistancePortStub.getMongoStub().getFirst().metadataModel().getVariables()
+                .getVariable(variableName).getGroup()).isEqualTo(metadataModel.getRootGroup());
+        Assertions.assertThat(questionnaireMetadataPersistancePortStub.getMongoStub().getFirst().metadataModel().getVariables()
+                .getVariable(variableName).getType()).isEqualTo(VariableType.INTEGER);
     }
 
     @Test

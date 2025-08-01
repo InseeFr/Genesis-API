@@ -13,4 +13,6 @@ public interface QuestionnaireMetadataApiPort {
     MetadataModel load(String campaignName, String questionnaireId, Mode mode, FileUtils fileUtils,
                        List<GenesisError> errors) throws GenesisException;
     void remove(String questionnaireId, Mode mode);
+
+    void save(String questionnaireId, Mode mode, MetadataModel metadataModel);
 }
