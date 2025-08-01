@@ -1,6 +1,7 @@
 package fr.insee.genesis.stubs;
 
 import fr.insee.genesis.domain.model.metadata.QuestionnaireMetadataModel;
+import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.ports.spi.QuestionnaireMetadataPersistancePort;
 import fr.insee.genesis.infrastructure.document.metadata.QuestionnaireMetadataDocument;
 import fr.insee.genesis.infrastructure.mappers.QuestionnaireMetadataDocumentMapper;
@@ -15,14 +16,15 @@ public class QuestionnaireMetadataPersistancePortStub implements QuestionnaireMe
 
     @Override
     public void save(QuestionnaireMetadataModel questionnaireMetadataModel) {
-        remove(questionnaireMetadataModel.questionnaireId());
+        remove(questionnaireMetadataModel.questionnaireId(), questionnaireMetadataModel.mode());
         mongoStub.add(QuestionnaireMetadataDocumentMapper.INSTANCE.modelToDocument(questionnaireMetadataModel));
     }
 
     @Override
-    public QuestionnaireMetadataModel load(String questionnaireId) {
+    public QuestionnaireMetadataModel load(String questionnaireId, Mode mode) {
         List<QuestionnaireMetadataDocument> documents = mongoStub.stream().filter(
-                        questionnaireMetadataDocument -> questionnaireMetadataDocument.questionnaireId().equals(questionnaireId))
+                        questionnaireMetadataDocument -> questionnaireMetadataDocument.questionnaireId().equals(questionnaireId)
+                && questionnaireMetadataDocument.mode().equals(mode))
                 .toList();
         if (documents.isEmpty()) {
             return null;
@@ -31,7 +33,9 @@ public class QuestionnaireMetadataPersistancePortStub implements QuestionnaireMe
     }
 
     @Override
-    public void remove(String questionnaireId) {
-        mongoStub.removeIf(questionnaireMetadataDocument -> questionnaireMetadataDocument.questionnaireId().equals(questionnaireId));
+    public void remove(String questionnaireId, Mode mode) {
+        mongoStub.removeIf(questionnaireMetadataDocument -> questionnaireMetadataDocument.questionnaireId().equals(questionnaireId)
+            && questionnaireMetadataDocument.mode().equals(mode)
+        );
     }
 }

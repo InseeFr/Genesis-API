@@ -162,7 +162,8 @@ public class MainDefinitions {
             LunaticXmlDataParser parser = new LunaticXmlDataParser();
             LunaticXmlCampaign campaign;
             campaign = parser.parseDataFile(filePath);
-            QuestionnaireMetadataModel questionnaireMetadataModel = questionnaireMetadataPersistancePortStub.load(directory);
+            QuestionnaireMetadataModel questionnaireMetadataModel =
+                    questionnaireMetadataPersistancePortStub.load(directory, Mode.WEB);
             if(questionnaireMetadataModel == null){
                 MetadataModel metadataModel = DDIReader.getMetadataFromDDI(
                         ddiFilePath.toFile().toURI().toURL().toString(),
@@ -170,9 +171,10 @@ public class MainDefinitions {
                 );
                 questionnaireMetadataPersistancePortStub.save(new QuestionnaireMetadataModel(
                         directory,
+                        Mode.WEB,
                         metadataModel
                 ));
-                questionnaireMetadataModel = questionnaireMetadataPersistancePortStub.load(directory);
+                questionnaireMetadataModel = questionnaireMetadataPersistancePortStub.load(directory, Mode.WEB);
             }
             List<SurveyUnitModel> surveyUnitModels1 = new ArrayList<>();
             for (LunaticXmlSurveyUnit su : campaign.getSurveyUnits()) {

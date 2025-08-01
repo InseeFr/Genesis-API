@@ -1,5 +1,6 @@
 package fr.insee.genesis.controller.rest;
 
+import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.ports.api.QuestionnaireMetadataApiPort;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
@@ -19,9 +20,10 @@ public class QuestionnaireMetadataController {
     @DeleteMapping("")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> deleteMetadata(
-            @RequestParam("questionnaireId") String questionnaireId
+            @RequestParam("questionnaireId") String questionnaireId,
+            @RequestParam("mode") Mode mode
     ){
-        questionnaireMetadataApiPort.remove(questionnaireId);
+        questionnaireMetadataApiPort.remove(questionnaireId, mode);
         return ResponseEntity.ok().build();
     }
 }

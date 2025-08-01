@@ -1,6 +1,7 @@
 package fr.insee.genesis.controller.rest;
 
 import fr.insee.bpm.metadata.model.MetadataModel;
+import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.infrastructure.document.metadata.QuestionnaireMetadataDocument;
 import fr.insee.genesis.stubs.QuestionnaireMetadataPersistancePortStub;
@@ -20,16 +21,18 @@ class QuestionnaireMetadataControllerTest {
     void deleteMetadataTest(){
         //GIVEN
         String questionnaireId = "TESTQUEST";
+        Mode mode = Mode.WEB;
         questionnaireMetadataPersistancePortStub.getMongoStub().add(
                 new QuestionnaireMetadataDocument(
                         questionnaireId,
+                        mode,
                         new MetadataModel()
                 )
         );
         Assertions.assertThat(questionnaireMetadataPersistancePortStub.getMongoStub()).hasSize(1);
 
         //WHEN
-        questionnaireMetadataController.deleteMetadata(questionnaireId);
+        questionnaireMetadataController.deleteMetadata(questionnaireId, mode);
 
         //Then
         Assertions.assertThat(questionnaireMetadataPersistancePortStub.getMongoStub()).hasSize(0);

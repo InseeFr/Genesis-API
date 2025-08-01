@@ -11,5 +11,5 @@ import java.util.List;
 public interface QuestionnaireMetadataApiPort {
     MetadataModel load(String campaignName, String questionnaireId, Mode mode, FileUtils fileUtils,
                        List<GenesisError> errors) throws GenesisException;
-    void remove(String questionnaireId);
+    void remove(String questionnaireId, Mode mode);
 }
