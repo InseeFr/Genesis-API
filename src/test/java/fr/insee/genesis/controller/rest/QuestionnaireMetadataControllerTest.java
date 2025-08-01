@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
 
 class QuestionnaireMetadataControllerTest {
+    public static final String VARIABLE_NAME = "TESTVAR";
     static QuestionnaireMetadataPersistancePortStub questionnaireMetadataPersistancePortStub
             = new QuestionnaireMetadataPersistancePortStub();
 
@@ -31,11 +32,12 @@ class QuestionnaireMetadataControllerTest {
         //GIVEN
         String questionnaireId = "TESTQUEST";
         Mode mode = Mode.WEB;
+        String variableName = VARIABLE_NAME;
         questionnaireMetadataPersistancePortStub.getMongoStub().add(
                 new QuestionnaireMetadataDocument(
                         questionnaireId,
                         mode,
-                        new MetadataModel()
+                        getMetadataModel(variableName)
                 )
         );
         Assertions.assertThat(questionnaireMetadataPersistancePortStub.getMongoStub()).hasSize(1);
@@ -46,6 +48,12 @@ class QuestionnaireMetadataControllerTest {
         //THEN
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat((MetadataModel) response.getBody()).isNotNull();
+        Assertions.assertThat(((MetadataModel) response.getBody()).getVariables().hasVariable(variableName)
+        ).isTrue();
+        Assertions.assertThat(((MetadataModel) response.getBody()).getVariables().getVariable(variableName)
+                .getGroup()).isEqualTo(((MetadataModel) response.getBody()).getRootGroup());
+        Assertions.assertThat(((MetadataModel) response.getBody()).getVariables().getVariable(variableName)
+                .getType()).isEqualTo(VariableType.STRING);
     }
 
     @Test
@@ -66,15 +74,8 @@ class QuestionnaireMetadataControllerTest {
         //GIVEN
         String questionnaireId = "TESTQUEST";
         Mode mode = Mode.WEB;
-        String variableName = "TESTVAR";
-        MetadataModel metadataModel = new MetadataModel();
-        metadataModel.getVariables().putVariable(
-                new Variable(
-                        variableName,
-                        metadataModel.getRootGroup(),
-                        VariableType.STRING
-                )
-        );
+        String variableName = VARIABLE_NAME;
+        MetadataModel metadataModel = getMetadataModel(variableName);
 
         //WHEN
         ResponseEntity<Object> response = questionnaireMetadataController.saveMetadata(questionnaireId, mode, metadataModel);
@@ -99,15 +100,8 @@ class QuestionnaireMetadataControllerTest {
         //GIVEN
         String questionnaireId = "TESTQUEST";
         Mode mode = Mode.WEB;
-        String variableName = "TESTVAR";
-        MetadataModel metadataModel = new MetadataModel();
-        metadataModel.getVariables().putVariable(
-                new Variable(
-                        variableName,
-                        metadataModel.getRootGroup(),
-                        VariableType.STRING
-                )
-        );
+        String variableName = VARIABLE_NAME;
+        MetadataModel metadataModel = getMetadataModel(variableName);
         questionnaireMetadataPersistancePortStub.getMongoStub().add(
                 new QuestionnaireMetadataDocument(
                         questionnaireId,
@@ -164,5 +158,16 @@ class QuestionnaireMetadataControllerTest {
         Assertions.assertThat(questionnaireMetadataPersistancePortStub.getMongoStub()).isEmpty();
     }
 
+    private static MetadataModel getMetadataModel(String variableName) {
+        MetadataModel metadataModel = new MetadataModel();
+        metadataModel.getVariables().putVariable(
+                new Variable(
+                        variableName,
+                        metadataModel.getRootGroup(),
+                        VariableType.STRING
+                )
+        );
+        return metadataModel;
+    }
 
 }
