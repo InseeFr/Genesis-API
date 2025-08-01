@@ -101,7 +101,6 @@ class ResponseControllerTest {
                 Path.of(TestConstants.TEST_RESOURCES_DIRECTORY, "IN/WEB/SAMPLETEST-PARADATA-v1/reponse-platine/data.complete.validated.STPDv1.20231122164209.xml").toString()
                 , Path.of(TestConstants.TEST_RESOURCES_DIRECTORY, "specs/SAMPLETEST-PARADATA-v1/ddi-SAMPLETEST-PARADATA-v1.xml").toString()
                 , Mode.WEB
-                , true
         );
 
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).isNotEmpty();
@@ -113,7 +112,6 @@ class ResponseControllerTest {
                 Path.of(TestConstants.TEST_RESOURCES_DIRECTORY, "IN/WEB/SAMPLETEST-NO-COLLECTED/differential/data/data_diff_no_collected.xml").toString()
                 , Path.of(TestConstants.TEST_RESOURCES_DIRECTORY, "specs/SAMPLETEST-NO-COLLECTED/WEB/ddi_response_simple.xml").toString()
                 , Mode.WEB
-                , true
         )).doesNotThrowAnyException();
 
     }
