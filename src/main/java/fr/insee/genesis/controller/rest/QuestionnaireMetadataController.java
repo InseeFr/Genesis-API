@@ -2,12 +2,14 @@ package fr.insee.genesis.controller.rest;
 
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.ports.api.QuestionnaireMetadataApiPort;
+import fr.insee.genesis.exceptions.GenesisException;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
@@ -17,9 +19,23 @@ public class QuestionnaireMetadataController {
     private final QuestionnaireMetadataApiPort questionnaireMetadataApiPort;
 
     @Operation(summary = "Removes questionnaire metadata from database")
+    @GetMapping("")
+    @PreAuthorize("hasRole('USER_KRAFTWERK')")
+    public ResponseEntity<Object> getMetadata(
+            @RequestParam("questionnaireId") String questionnaireId,
+            @RequestParam("mode") Mode mode
+    ){
+        try {
+            return ResponseEntity.ok().body(questionnaireMetadataApiPort.find(questionnaireId, mode));
+        } catch (GenesisException e) {
+            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
+        }
+    }
+
+    @Operation(summary = "Removes questionnaire metadata from database")
     @DeleteMapping("")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> deleteMetadata(
+    public ResponseEntity<Object> deleteMetadata(
             @RequestParam("questionnaireId") String questionnaireId,
             @RequestParam("mode") Mode mode
     ){

@@ -15,6 +15,14 @@ public class QuestionnaireMetadataPersistancePortStub implements QuestionnaireMe
     List<QuestionnaireMetadataDocument> mongoStub = new ArrayList<>();
 
     @Override
+    public List<QuestionnaireMetadataModel> find(String questionnaireId, Mode mode) {
+        return QuestionnaireMetadataDocumentMapper.INSTANCE.listDocumentToListModel(mongoStub.stream().filter(
+                        questionnaireMetadataDocument -> questionnaireMetadataDocument.questionnaireId().equals(questionnaireId)
+                                && questionnaireMetadataDocument.mode().equals(mode))
+                .toList());
+    }
+
+    @Override
     public void save(QuestionnaireMetadataModel questionnaireMetadataModel) {
         remove(questionnaireMetadataModel.questionnaireId(), questionnaireMetadataModel.mode());
         mongoStub.add(QuestionnaireMetadataDocumentMapper.INSTANCE.modelToDocument(questionnaireMetadataModel));

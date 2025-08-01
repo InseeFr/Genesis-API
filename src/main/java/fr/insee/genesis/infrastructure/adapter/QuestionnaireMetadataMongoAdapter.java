@@ -19,6 +19,15 @@ public class QuestionnaireMetadataMongoAdapter implements QuestionnaireMetadataP
     private final QuestionnaireMetadataMongoDBRepository questionnaireMetadataMongoDBRepository;
 
     @Override
+    public List<QuestionnaireMetadataModel> find(String questionnaireId, Mode mode) {
+        return QuestionnaireMetadataDocumentMapper.INSTANCE.listDocumentToListModel(
+                questionnaireMetadataMongoDBRepository.findByQuestionnaireIdAndMode(
+                        questionnaireId, mode
+                )
+        );
+    }
+
+    @Override
     public void save(QuestionnaireMetadataModel questionnaireMetadataModel) {
         remove(questionnaireMetadataModel.questionnaireId(), questionnaireMetadataModel.mode());
         questionnaireMetadataMongoDBRepository.save(
