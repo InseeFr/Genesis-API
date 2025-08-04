@@ -8,6 +8,8 @@ import fr.insee.genesis.infrastructure.mappers.QuestionnaireMetadataDocumentMapp
 import fr.insee.genesis.infrastructure.repository.QuestionnaireMetadataMongoDBRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,6 +21,7 @@ public class QuestionnaireMetadataMongoAdapter implements QuestionnaireMetadataP
     private final QuestionnaireMetadataMongoDBRepository questionnaireMetadataMongoDBRepository;
 
     @Override
+    @Cacheable(value = "metadatas")
     public List<QuestionnaireMetadataModel> find(String questionnaireId, Mode mode) {
         return QuestionnaireMetadataDocumentMapper.INSTANCE.listDocumentToListModel(
                 questionnaireMetadataMongoDBRepository.findByQuestionnaireIdAndMode(
@@ -36,6 +39,7 @@ public class QuestionnaireMetadataMongoAdapter implements QuestionnaireMetadataP
     }
 
     @Override
+    @Cacheable(value = "metadatas")
     public QuestionnaireMetadataModel load(String questionnaireId, Mode mode) {
         List<QuestionnaireMetadataDocument> documents =
                 questionnaireMetadataMongoDBRepository.findByQuestionnaireIdAndMode(questionnaireId, mode);
@@ -44,6 +48,7 @@ public class QuestionnaireMetadataMongoAdapter implements QuestionnaireMetadataP
     }
 
     @Override
+    @CacheEvict(value = "metadatas")
     public void remove(String questionnaireId, Mode mode) {
         questionnaireMetadataMongoDBRepository.deleteByQuestionnaireIdAndMode(questionnaireId, mode);
     }
