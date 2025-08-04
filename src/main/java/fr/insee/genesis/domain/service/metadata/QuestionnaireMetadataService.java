@@ -46,14 +46,14 @@ public class QuestionnaireMetadataService implements QuestionnaireMetadataApiPor
     @Override
     public MetadataModel load(String campaignName, String questionnaireId, Mode mode, FileUtils fileUtils,
                               List<GenesisError> errors) throws GenesisException {
-        QuestionnaireMetadataModel questionnaireMetadataModel =
-                questionnaireMetadataPersistancePort.load(questionnaireId.toUpperCase(), mode);
-        if(questionnaireMetadataModel == null){
+        List<QuestionnaireMetadataModel> questionnaireMetadataModels =
+                questionnaireMetadataPersistancePort.find(questionnaireId.toUpperCase(), mode);
+        if(questionnaireMetadataModels.isEmpty()){
             MetadataModel metadataModel = readMetadatas(campaignName, mode.getModeName(), fileUtils, errors);
             saveMetadata(questionnaireId.toUpperCase(), mode, metadataModel);
             return metadataModel;
         }
-        return questionnaireMetadataModel.metadataModel();
+        return questionnaireMetadataModels.getFirst().metadataModel();
     }
 
     private void saveMetadata(String questionnaireId, Mode mode, MetadataModel metadataModel) {

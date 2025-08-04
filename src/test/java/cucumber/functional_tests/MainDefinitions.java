@@ -162,9 +162,9 @@ public class MainDefinitions {
             LunaticXmlDataParser parser = new LunaticXmlDataParser();
             LunaticXmlCampaign campaign;
             campaign = parser.parseDataFile(filePath);
-            QuestionnaireMetadataModel questionnaireMetadataModel =
-                    questionnaireMetadataPersistancePortStub.load(directory, Mode.WEB);
-            if(questionnaireMetadataModel == null){
+            List<QuestionnaireMetadataModel> questionnaireMetadataModels =
+                    questionnaireMetadataPersistancePortStub.find(directory, Mode.WEB);
+            if(questionnaireMetadataModels.isEmpty()){
                 MetadataModel metadataModel = DDIReader.getMetadataFromDDI(
                         ddiFilePath.toFile().toURI().toURL().toString(),
                         new FileInputStream(ddiFilePath.toFile())
@@ -174,13 +174,16 @@ public class MainDefinitions {
                         Mode.WEB,
                         metadataModel
                 ));
-                questionnaireMetadataModel = questionnaireMetadataPersistancePortStub.load(directory, Mode.WEB);
+                questionnaireMetadataModels = questionnaireMetadataPersistancePortStub.find(directory, Mode.WEB);
             }
             List<SurveyUnitModel> surveyUnitModels1 = new ArrayList<>();
             for (LunaticXmlSurveyUnit su : campaign.getSurveyUnits()) {
-                surveyUnitModels1.addAll(LunaticXmlAdapter.convert(su, questionnaireMetadataModel.metadataModel().getVariables(), campaign.getCampaignId(), Mode.WEB));
+                surveyUnitModels1.addAll(LunaticXmlAdapter.convert(su,
+                        questionnaireMetadataModels.getFirst().metadataModel().getVariables(), campaign.getCampaignId(),
+                        Mode.WEB));
             }
-            surveyUnitQualityService.verifySurveyUnits(surveyUnitModels1,questionnaireMetadataModel.metadataModel().getVariables());
+            surveyUnitQualityService.verifySurveyUnits(surveyUnitModels1,
+                    questionnaireMetadataModels.getFirst().metadataModel().getVariables());
             surveyUnitModels = surveyUnitModels1;
         }
     }

@@ -8,7 +8,6 @@ import java.util.List;
 public interface QuestionnaireMetadataPersistancePort {
     List<QuestionnaireMetadataModel> find(String questionnaireId, Mode mode);
     void save(QuestionnaireMetadataModel questionnaireMetadataModel);
-    QuestionnaireMetadataModel load(String questionnaireId, Mode mode);
 
     void remove(String questionnaireId, Mode mode);
 }

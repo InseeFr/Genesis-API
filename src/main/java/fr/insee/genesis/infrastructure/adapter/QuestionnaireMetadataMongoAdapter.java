@@ -3,7 +3,6 @@ package fr.insee.genesis.infrastructure.adapter;
 import fr.insee.genesis.domain.model.metadata.QuestionnaireMetadataModel;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.ports.spi.QuestionnaireMetadataPersistancePort;
-import fr.insee.genesis.infrastructure.document.metadata.QuestionnaireMetadataDocument;
 import fr.insee.genesis.infrastructure.mappers.QuestionnaireMetadataDocumentMapper;
 import fr.insee.genesis.infrastructure.repository.QuestionnaireMetadataMongoDBRepository;
 import lombok.AllArgsConstructor;
@@ -36,15 +35,6 @@ public class QuestionnaireMetadataMongoAdapter implements QuestionnaireMetadataP
         questionnaireMetadataMongoDBRepository.save(
                 QuestionnaireMetadataDocumentMapper.INSTANCE.modelToDocument(questionnaireMetadataModel)
         );
-    }
-
-    @Override
-    @Cacheable(value = "metadatas")
-    public QuestionnaireMetadataModel load(String questionnaireId, Mode mode) {
-        List<QuestionnaireMetadataDocument> documents =
-                questionnaireMetadataMongoDBRepository.findByQuestionnaireIdAndMode(questionnaireId, mode);
-        if(documents.isEmpty()) return null;
-        return QuestionnaireMetadataDocumentMapper.INSTANCE.documentToModel(documents.getFirst());
     }
 
     @Override
