@@ -20,7 +20,7 @@ public class QuestionnaireMetadataMongoAdapter implements QuestionnaireMetadataP
     private final QuestionnaireMetadataMongoDBRepository questionnaireMetadataMongoDBRepository;
 
     @Override
-    @Cacheable(value = "metadatas")
+    @Cacheable(value = "metadatas", key = "#questionnaireId + '-' + #mode")
     public List<QuestionnaireMetadataModel> find(String questionnaireId, Mode mode) {
         return QuestionnaireMetadataDocumentMapper.INSTANCE.listDocumentToListModel(
                 questionnaireMetadataMongoDBRepository.findByQuestionnaireIdAndMode(
@@ -30,6 +30,7 @@ public class QuestionnaireMetadataMongoAdapter implements QuestionnaireMetadataP
     }
 
     @Override
+    @CacheEvict(value = "metadatas", key = "#questionnaireMetadataModel.questionnaireId() + '-' + #questionnaireMetadataModel.mode()")
     public void save(QuestionnaireMetadataModel questionnaireMetadataModel) {
         remove(questionnaireMetadataModel.questionnaireId(), questionnaireMetadataModel.mode());
         questionnaireMetadataMongoDBRepository.save(
