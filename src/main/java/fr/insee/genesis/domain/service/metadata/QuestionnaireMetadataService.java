@@ -48,7 +48,7 @@ public class QuestionnaireMetadataService implements QuestionnaireMetadataApiPor
                               List<GenesisError> errors) throws GenesisException {
         List<QuestionnaireMetadataModel> questionnaireMetadataModels =
                 questionnaireMetadataPersistancePort.find(questionnaireId.toUpperCase(), mode);
-        if(questionnaireMetadataModels.isEmpty()){
+        if(questionnaireMetadataModels.isEmpty() || questionnaireMetadataModels.getFirst().metadataModel() == null){
             MetadataModel metadataModel = readMetadatas(campaignName, mode.getModeName(), fileUtils, errors);
             saveMetadata(questionnaireId.toUpperCase(), mode, metadataModel);
             return metadataModel;
