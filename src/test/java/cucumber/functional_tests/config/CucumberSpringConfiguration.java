@@ -6,6 +6,7 @@ import fr.insee.genesis.infrastructure.repository.EditedExternalResponseMongoDBR
 import fr.insee.genesis.infrastructure.repository.EditedPreviousResponseMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.LunaticJsonMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.LunaticModelMongoDBRepository;
+import fr.insee.genesis.infrastructure.repository.QuestionnaireMetadataMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.RundeckExecutionDBRepository;
 import fr.insee.genesis.infrastructure.repository.SurveyUnitMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.VariableTypeMongoDBRepository;
@@ -41,5 +42,7 @@ public class CucumberSpringConfiguration {
     private EditedPreviousResponseMongoDBRepository editedPreviousResponseMongoDBRepository;
     @MockitoBean
     private EditedExternalResponseMongoDBRepository editedExternalResponseMongoDBRepository;
+    @MockitoBean
+    private QuestionnaireMetadataMongoDBRepository questionnaireMetadataMongoDBRepository;
 }
 

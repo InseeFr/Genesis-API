@@ -3,21 +3,21 @@ package fr.insee.genesis.controller.rest.responses;
 import cucumber.TestConstants;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.configuration.Config;
-import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
 import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
 import fr.insee.genesis.controller.dto.SurveyUnitQualityToolDto;
 import fr.insee.genesis.controller.dto.SurveyUnitSimplified;
 import fr.insee.genesis.controller.dto.VariableInputDto;
 import fr.insee.genesis.controller.dto.VariableQualityToolDto;
 import fr.insee.genesis.controller.dto.VariableStateInputDto;
-import fr.insee.genesis.controller.services.MetadataService;
 import fr.insee.genesis.controller.utils.AuthUtils;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
+import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.service.context.DataProcessingContextService;
+import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.exceptions.GenesisException;
@@ -25,6 +25,7 @@ import fr.insee.genesis.infrastructure.document.context.DataProcessingContextDoc
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
+import fr.insee.genesis.stubs.QuestionnaireMetadataPersistancePortStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -45,25 +46,27 @@ class ResponseControllerTest {
     static ResponseController responseControllerStatic;
     static SurveyUnitPersistencePortStub surveyUnitPersistencePortStub;
     static DataProcessingContextPersistancePortStub dataProcessingContextPersistancePortStub;
+    static QuestionnaireMetadataPersistancePortStub questionnaireMetadataPersistancePortStub;
 
     static List<InterrogationId> interrogationIdList;
     //Constants
     static final String DEFAULT_INTERROGATION_ID = "TESTINTERROGATIONID";
     static final String DEFAULT_QUESTIONNAIRE_ID = "TESTQUESTIONNAIREID";
     static final String CAMPAIGN_ID_WITH_DDI = "SAMPLETEST-PARADATA-v1";
-    static final String QUESTIONNAIRE_ID_WITH_DDI = "SAMPLETEST-PARADATA-v1".toUpperCase();
+    static final String QUESTIONNAIRE_ID_WITH_DDI = "quest_model_famille_AD_ttp".toUpperCase();
 
     @BeforeAll
     static void init() {
         surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
 
         dataProcessingContextPersistancePortStub = new DataProcessingContextPersistancePortStub();
+        questionnaireMetadataPersistancePortStub = new QuestionnaireMetadataPersistancePortStub();
 
         Config config = new ConfigStub();
         FileUtils fileUtils = new FileUtils(config);
         SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(
                 surveyUnitPersistencePortStub,
-                new MetadataService(),
+                new QuestionnaireMetadataService(questionnaireMetadataPersistancePortStub),
                 fileUtils
                 );
 
@@ -73,7 +76,7 @@ class ResponseControllerTest {
                 , fileUtils
                 , new ControllerUtils(fileUtils)
                 , new AuthUtils(config)
-                , new MetadataService()
+                , new QuestionnaireMetadataService(questionnaireMetadataPersistancePortStub)
                 , new DataProcessingContextService(dataProcessingContextPersistancePortStub, surveyUnitPersistencePortStub)
         );
 
@@ -98,7 +101,6 @@ class ResponseControllerTest {
                 Path.of(TestConstants.TEST_RESOURCES_DIRECTORY, "IN/WEB/SAMPLETEST-PARADATA-v1/reponse-platine/data.complete.validated.STPDv1.20231122164209.xml").toString()
                 , Path.of(TestConstants.TEST_RESOURCES_DIRECTORY, "specs/SAMPLETEST-PARADATA-v1/ddi-SAMPLETEST-PARADATA-v1.xml").toString()
                 , Mode.WEB
-                , true
         );
 
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).isNotEmpty();
@@ -110,7 +112,6 @@ class ResponseControllerTest {
                 Path.of(TestConstants.TEST_RESOURCES_DIRECTORY, "IN/WEB/SAMPLETEST-NO-COLLECTED/differential/data/data_diff_no_collected.xml").toString()
                 , Path.of(TestConstants.TEST_RESOURCES_DIRECTORY, "specs/SAMPLETEST-NO-COLLECTED/WEB/ddi_response_simple.xml").toString()
                 , Mode.WEB
-                , true
         )).doesNotThrowAnyException();
 
     }
@@ -588,7 +589,7 @@ class ResponseControllerTest {
         SurveyUnitInputDto surveyUnitInputDto = SurveyUnitInputDto.builder()
                 .campaignId(campaignId)
                 .mode(Mode.WEB)
-                .questionnaireId(DEFAULT_QUESTIONNAIRE_ID)
+                .questionnaireId(campaignId)
                 .interrogationId(DEFAULT_INTERROGATION_ID)
                 .collectedVariables(newVariables)
                 .build();
@@ -598,17 +599,16 @@ class ResponseControllerTest {
                 .campaignId(campaignId)
                 .state(DataState.COLLECTED)
                 .mode(Mode.WEB)
-                .questionnaireId(DEFAULT_QUESTIONNAIRE_ID)
+                .questionnaireId(campaignId)
                 .interrogationId(DEFAULT_INTERROGATION_ID)
                 .collectedVariables(List.of())
                 .build();
         surveyUnitPersistencePortStub.getMongoStub().add(suModel);
 
-
+        ResponseEntity<Object> response =  responseControllerStatic.saveEditedVariables(
+                surveyUnitInputDto);
         Assertions.assertThat(
-            responseControllerStatic.saveEditedVariables(
-                    surveyUnitInputDto
-            ).getStatusCode()
+           response.getStatusCode()
         ).isEqualTo(HttpStatusCode.valueOf(404));
     }
 

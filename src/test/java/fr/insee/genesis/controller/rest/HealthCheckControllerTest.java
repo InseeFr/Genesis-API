@@ -1,16 +1,17 @@
 package fr.insee.genesis.controller.rest;
 
-import fr.insee.genesis.controller.services.MetadataService;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.service.context.DataProcessingContextService;
+import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
+import fr.insee.genesis.stubs.QuestionnaireMetadataPersistancePortStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
@@ -33,7 +34,7 @@ class HealthCheckControllerTest {
         surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
         SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(
                 surveyUnitPersistencePortStub,
-                new MetadataService(),
+                new QuestionnaireMetadataService(new QuestionnaireMetadataPersistancePortStub()),
                 new FileUtils(new ConfigStub())
         );
         List<VariableModel> externalVariableList = new ArrayList<>();
@@ -73,7 +74,7 @@ class HealthCheckControllerTest {
                 .interrogationId("TESTINTERROGATIONID")
                 .questionnaireId("TESTQUESTIONNAIREID")
                 .state(DataState.COLLECTED)
-                .fileDate(LocalDateTime.of(2023, 1, 1, 0, 0, 0))
+                .fileDate(LocalDateTime.of(2023, 1, 1, 0, 0 , 0))
                 .recordDate(LocalDateTime.of(2024, 1, 1, 0, 0, 0))
                 .externalVariables(externalVariableList)
                 .collectedVariables(collectedVariableList)

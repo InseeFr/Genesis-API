@@ -4,13 +4,13 @@ import cucumber.functional_tests.config.CucumberSpringConfiguration;
 import fr.insee.genesis.TestConstants;
 import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.controller.rest.responses.RawResponseController;
-import fr.insee.genesis.controller.services.MetadataService;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.service.context.DataProcessingContextService;
+import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
@@ -19,8 +19,9 @@ import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
 import fr.insee.genesis.stubs.LunaticJsonRawDataPersistanceStub;
-import fr.insee.genesis.stubs.SurveyUnitQualityToolPerretAdapterStub;
+import fr.insee.genesis.stubs.QuestionnaireMetadataPersistancePortStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
+import fr.insee.genesis.stubs.SurveyUnitQualityToolPerretAdapterStub;
 import io.cucumber.java.Before;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -61,12 +62,12 @@ public class RawDataDefinitions {
     private TestRestTemplate rest;
 
     LunaticJsonRawDataPersistanceStub lunaticJsonRawDataPersistanceStub = new LunaticJsonRawDataPersistanceStub();
-    MetadataService metadataService = new MetadataService();
+    static QuestionnaireMetadataPersistancePortStub questionnaireMetadataPersistancePortStub = new QuestionnaireMetadataPersistancePortStub();
     SurveyUnitPersistencePortStub surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
     DataProcessingContextPersistancePortStub contextStub = new DataProcessingContextPersistancePortStub();
     Config config = new ConfigStub();
     FileUtils fileUtils = new FileUtils(config);
-    SurveyUnitService surveyUnitService = new SurveyUnitService(surveyUnitPersistencePortStub, metadataService, fileUtils);
+    SurveyUnitService surveyUnitService = new SurveyUnitService(surveyUnitPersistencePortStub, new QuestionnaireMetadataService(questionnaireMetadataPersistancePortStub), fileUtils);
     ControllerUtils controllerUtils = new ControllerUtils(fileUtils);
     SurveyUnitQualityService surveyUnitQualityService = new SurveyUnitQualityService();
     DataProcessingContextPersistancePortStub dataProcessingContextPersistancePortStub =
@@ -76,7 +77,7 @@ public class RawDataDefinitions {
             new LunaticJsonRawDataService(
                     lunaticJsonRawDataPersistanceStub,
                     controllerUtils,
-                    metadataService,
+                    new QuestionnaireMetadataService(questionnaireMetadataPersistancePortStub),
                     surveyUnitService,
                     surveyUnitQualityService,
                     fileUtils,

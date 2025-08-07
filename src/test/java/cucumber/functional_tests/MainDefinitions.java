@@ -2,7 +2,7 @@ package cucumber.functional_tests;
 
 import cucumber.TestConstants;
 import fr.insee.bpm.exceptions.MetadataParserException;
-import fr.insee.bpm.metadata.model.VariablesMap;
+import fr.insee.bpm.metadata.model.MetadataModel;
 import fr.insee.bpm.metadata.reader.ddi.DDIReader;
 import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.controller.adapter.LunaticXmlAdapter;
@@ -11,18 +11,19 @@ import fr.insee.genesis.controller.dto.VariableQualityToolDto;
 import fr.insee.genesis.controller.dto.VariableStateDto;
 import fr.insee.genesis.controller.rest.responses.ApiError;
 import fr.insee.genesis.controller.rest.responses.ResponseController;
-import fr.insee.genesis.controller.services.MetadataService;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlCampaign;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlDataParser;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
 import fr.insee.genesis.controller.utils.AuthUtils;
 import fr.insee.genesis.controller.utils.ControllerUtils;
+import fr.insee.genesis.domain.model.metadata.QuestionnaireMetadataModel;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.ports.api.DataProcessingContextApiPort;
 import fr.insee.genesis.domain.service.context.DataProcessingContextService;
+import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.exceptions.GenesisException;
@@ -30,6 +31,7 @@ import fr.insee.genesis.infrastructure.document.context.DataProcessingContextDoc
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
+import fr.insee.genesis.stubs.QuestionnaireMetadataPersistancePortStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
@@ -63,6 +65,10 @@ public class MainDefinitions {
 
     SurveyUnitQualityService surveyUnitQualityService = new SurveyUnitQualityService();
     SurveyUnitPersistencePortStub surveyUnitPersistence = new SurveyUnitPersistencePortStub();
+    static QuestionnaireMetadataPersistancePortStub questionnaireMetadataPersistancePortStub =
+            new QuestionnaireMetadataPersistancePortStub();
+    static QuestionnaireMetadataService questionnaireMetadataService =
+            new QuestionnaireMetadataService(questionnaireMetadataPersistancePortStub);
     DataProcessingContextPersistancePortStub dataProcessingContextPersistancePortStub =
             new DataProcessingContextPersistancePortStub();
     DataProcessingContextApiPort dataProcessingContextApiPort = new DataProcessingContextService(
@@ -75,12 +81,12 @@ public class MainDefinitions {
     ResponseEntity<Object> surveyUnitLatestStatesResponse;
 
     ResponseController responseController = new ResponseController(
-            new SurveyUnitService(surveyUnitPersistence, new MetadataService(), new FileUtils(config)),
+            new SurveyUnitService(surveyUnitPersistence, new QuestionnaireMetadataService(questionnaireMetadataPersistancePortStub), new FileUtils(config)),
             surveyUnitQualityService,
             new FileUtils(config),
             new ControllerUtils(new FileUtils(config)),
             new AuthUtils(config),
-            new MetadataService(),
+            questionnaireMetadataService,
             dataProcessingContextApiPort
         );
 
@@ -156,15 +162,28 @@ public class MainDefinitions {
             LunaticXmlDataParser parser = new LunaticXmlDataParser();
             LunaticXmlCampaign campaign;
             campaign = parser.parseDataFile(filePath);
-            VariablesMap variablesMap = DDIReader.getMetadataFromDDI(
-                    ddiFilePath.toFile().toURI().toURL().toString(),
-                    new FileInputStream(ddiFilePath.toFile())
-            ).getVariables();
+            List<QuestionnaireMetadataModel> questionnaireMetadataModels =
+                    questionnaireMetadataPersistancePortStub.find(directory, Mode.WEB);
+            if(questionnaireMetadataModels.isEmpty()){
+                MetadataModel metadataModel = DDIReader.getMetadataFromDDI(
+                        ddiFilePath.toFile().toURI().toURL().toString(),
+                        new FileInputStream(ddiFilePath.toFile())
+                );
+                questionnaireMetadataPersistancePortStub.save(new QuestionnaireMetadataModel(
+                        directory,
+                        Mode.WEB,
+                        metadataModel
+                ));
+                questionnaireMetadataModels = questionnaireMetadataPersistancePortStub.find(directory, Mode.WEB);
+            }
             List<SurveyUnitModel> surveyUnitModels1 = new ArrayList<>();
             for (LunaticXmlSurveyUnit su : campaign.getSurveyUnits()) {
-                surveyUnitModels1.addAll(LunaticXmlAdapter.convert(su, variablesMap, campaign.getCampaignId(), Mode.WEB));
+                surveyUnitModels1.addAll(LunaticXmlAdapter.convert(su,
+                        questionnaireMetadataModels.getFirst().metadataModel().getVariables(), campaign.getCampaignId(),
+                        Mode.WEB));
             }
-            surveyUnitQualityService.verifySurveyUnits(surveyUnitModels1,variablesMap);
+            surveyUnitQualityService.verifySurveyUnits(surveyUnitModels1,
+                    questionnaireMetadataModels.getFirst().metadataModel().getVariables());
             surveyUnitModels = surveyUnitModels1;
         }
     }
