@@ -107,7 +107,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
         List<Mode> modesList = controllerUtils.getModesList(campaignName, null);
         for (Mode mode : modesList) {
             //Load and save metadata into database, throw exception if none
-            VariablesMap variablesMap = metadataService.load(campaignName, campaignName, mode, fileUtils,
+            VariablesMap variablesMap = metadataService.loadAndSaveIfNotExists(campaignName, campaignName, mode, fileUtils,
                     errors).getVariables();
             if (variablesMap == null) {
                 throw new GenesisException(400,

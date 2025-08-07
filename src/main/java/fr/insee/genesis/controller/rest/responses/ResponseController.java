@@ -392,7 +392,7 @@ public class ResponseController implements CommonApiResponse {
             String campaignId = campaignIds.iterator().next();
             surveyUnitInputDto.setCampaignId(campaignId);
 
-            MetadataModel metadataModel = metadataService.load(
+            MetadataModel metadataModel = metadataService.loadAndSaveIfNotExists(
                     surveyUnitInputDto.getCampaignId(),
                     surveyUnitInputDto.getQuestionnaireId(),
                     surveyUnitInputDto.getMode(),
@@ -583,7 +583,7 @@ public class ResponseController implements CommonApiResponse {
         }
         VariablesMap variablesMap;
         List<GenesisError> genesisErrors = new ArrayList<>();
-        MetadataModel metadataModel = metadataService.load(
+        MetadataModel metadataModel = metadataService.loadAndSaveIfNotExists(
                 campaign.getCampaignId(),
                 surveyUnit.getQuestionnaireModelId(),
                 modeSpecified,

@@ -10,8 +10,8 @@ import java.util.List;
 
 public interface QuestionnaireMetadataApiPort {
     MetadataModel find(String questionnaireId, Mode mode) throws GenesisException;
-    MetadataModel load(String campaignName, String questionnaireId, Mode mode, FileUtils fileUtils,
-                       List<GenesisError> errors) throws GenesisException;
+    MetadataModel loadAndSaveIfNotExists(String campaignName, String questionnaireId, Mode mode, FileUtils fileUtils,
+                                         List<GenesisError> errors) throws GenesisException;
     void remove(String questionnaireId, Mode mode);
 
     void save(String questionnaireId, Mode mode, MetadataModel metadataModel);
