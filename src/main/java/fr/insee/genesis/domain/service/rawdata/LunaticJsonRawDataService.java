@@ -4,12 +4,10 @@ import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.controller.dto.rawdata.LunaticJsonRawDataUnprocessedDto;
-import fr.insee.genesis.controller.services.MetadataService;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.GroupedInterrogation;
-import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
@@ -21,6 +19,7 @@ import fr.insee.genesis.domain.ports.spi.DataProcessingContextPersistancePort;
 import fr.insee.genesis.domain.ports.spi.LunaticJsonRawDataPersistencePort;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitQualityToolPort;
 import fr.insee.genesis.domain.service.context.DataProcessingContextService;
+import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.domain.utils.GroupUtils;
@@ -52,7 +51,7 @@ import java.util.stream.Collectors;
 public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
 
     private final ControllerUtils controllerUtils;
-    private final MetadataService metadataService;
+    private final QuestionnaireMetadataService metadataService;
     private final SurveyUnitService surveyUnitService;
     private final SurveyUnitQualityService surveyUnitQualityService;
     private final SurveyUnitQualityToolPort surveyUnitQualityToolPort;
@@ -68,7 +67,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     @Autowired
     public LunaticJsonRawDataService(LunaticJsonRawDataPersistencePort lunaticJsonRawDataNewPersistencePort,
                                      ControllerUtils controllerUtils,
-                                     MetadataService metadataService,
+                                     QuestionnaireMetadataService metadataService,
                                      SurveyUnitService surveyUnitService,
                                      SurveyUnitQualityService surveyUnitQualityService,
                                      FileUtils fileUtils,
@@ -108,8 +107,8 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
         List<Mode> modesList = controllerUtils.getModesList(campaignName, null);
         for (Mode mode : modesList) {
             //Load and save metadata into database, throw exception if none
-            VariablesMap variablesMap = metadataService.readMetadatas(campaignName, mode.getModeName(), fileUtils,
-                    errors);
+            VariablesMap variablesMap = metadataService.loadAndSaveIfNotExists(campaignName, campaignName, mode, fileUtils,
+                    errors).getVariables();
             if (variablesMap == null) {
                 throw new GenesisException(400,
                         "Error during metadata parsing for mode %s :%n%s"

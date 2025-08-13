@@ -1,4 +1,13 @@
 # Changelog
+## 1.8.0 [2025-08-07]
+### Added
+- Metadata endpoints
+- Save and cache metadata after loading
+
+## 1.7.2 [2025-08-07]
+### Updated
+- BPM 1.0.12
+
 ## 1.7.1 [2025-07-31]
 ### Updated
 - BPM 1.0.9

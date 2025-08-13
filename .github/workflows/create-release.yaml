@@ -20,7 +20,7 @@ jobs:
           java-version: '21'
 
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Get source version
         id: version-step
@@ -69,7 +69,7 @@ jobs:
           mvn clean install --no-transfer-progress
           cd ..
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Build app
         run: mvn package --no-transfer-progress
 
@@ -84,7 +84,7 @@ jobs:
     if: needs.check-version.outputs.should_run_next_job == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: ${{ github.ref }}
           fetch-depth: 0
@@ -116,10 +116,10 @@ jobs:
     needs: [ check-version, create-release ]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Download uploaded jar
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: app-jar
           path: target/
