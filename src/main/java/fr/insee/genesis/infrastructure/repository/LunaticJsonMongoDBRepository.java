@@ -46,4 +46,21 @@ public interface LunaticJsonMongoDBRepository extends MongoRepository<LunaticJso
     })
     List<GroupedInterrogationDocument> aggregateRawGrouped(LocalDateTime since);
 
+    @Aggregation(pipeline = {
+            "{ '$match': { 'processDate': null } }",
+            "{ '$group': { " +
+                    "'_id': { " +
+                    "'questionnaireId': '$questionnaireId', " +
+                    "'partitionOrCampaignId': { '$ifNull': ['$partitionId', '$campaignId'] } " +
+                    "}, " +
+                    "'interrogationIds': { '$addToSet': '$interrogationId' } " +
+                    "} }",
+            "{ '$project': { " +
+                    "'questionnaireId': '$_id.questionnaireId', " +
+                    "'partitionOrCampaignId': '$_id.partitionOrCampaignId', " +
+                    "'interrogationIds': 1, " +
+                    "'_id': 0 " +
+                    "} }"
+    })
+    List<GroupedInterrogationDocument> aggregateRawGroupedWithNullProcessDate();
 }

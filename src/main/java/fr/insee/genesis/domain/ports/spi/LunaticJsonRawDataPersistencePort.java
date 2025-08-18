@@ -21,4 +21,5 @@ public interface LunaticJsonRawDataPersistencePort {
     Page<LunaticJsonRawDataModel> findByCampaignIdAndDate(String campaignId, Instant startDt, Instant endDt, Pageable pageable);
     long countResponsesByQuestionnaireId(String questionnaireId);
     List<GroupedInterrogation> findProcessedIdsGroupedByQuestionnaireSince(LocalDateTime since);
+    List<GroupedInterrogation> findUnprocessedIds();
 }

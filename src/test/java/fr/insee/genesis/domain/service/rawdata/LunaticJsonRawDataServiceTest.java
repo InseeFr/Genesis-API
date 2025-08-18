@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -478,6 +479,68 @@ class LunaticJsonRawDataServiceTest {
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).hasSize(2);
         Assertions.assertThat(surveyUnitQualityToolPerretAdapterStub.getReceivedMaps()).isEmpty();
     }
+
+    @Test
+    void getUnprocessedDataIdsTest_only_processed_data() throws JsonProcessingException {
+        surveyUnitPersistencePortStub.getMongoStub().clear();
+        String campaignId = "SAMPLETEST-PARADATA-v1";
+        String questionnaireId = "TESTIDQUEST";
+        String interrogationId = "TESTinterrogationId";
+        String json = "{\"EXTERNAL\": {\"TESTVAR_EXT\": \"test_ext\"}, " +
+                "\"COLLECTED\": {\"TESTVAR\": {\"COLLECTED\": [\"test\"], \"EDITED\": [\"test_ed\"]}}}";
+
+        LunaticJsonRawDataModel rawDataModel = LunaticJsonRawDataModel.builder()
+                .campaignId(campaignId)
+                .questionnaireId(questionnaireId)
+                .interrogationId(interrogationId)
+                .data(JsonUtils.jsonToMap(json))
+                .mode(Mode.WEB)
+                .processDate(LocalDateTime.now())
+                .build();
+
+        //WHEN
+        lunaticJsonRawDataService.save(rawDataModel);
+
+        Assertions.assertThat(lunaticJsonRawDataService.getUnprocessedDataIds()).isEmpty();
+    }
+    @Test
+    void getUnprocessedDataIdsTest_unprocessed_data() throws JsonProcessingException {
+        surveyUnitPersistencePortStub.getMongoStub().clear();
+        String campaignId = "SAMPLETEST-PARADATA-v1";
+        String questionnaireId = "TESTIDQUEST";
+        String interrogationId = "TESTinterrogationId";
+        String json = "{\"EXTERNAL\": {\"TESTVAR_EXT\": \"test_ext\"}, " +
+                "\"COLLECTED\": {\"TESTVAR\": {\"COLLECTED\": [\"test\"], \"EDITED\": [\"test_ed\"]}}}";
+
+        LunaticJsonRawDataModel rawDataModel = LunaticJsonRawDataModel.builder()
+                .campaignId(campaignId)
+                .questionnaireId(questionnaireId)
+                .interrogationId(interrogationId)
+                .data(JsonUtils.jsonToMap(json))
+                .mode(Mode.WEB)
+                .processDate(LocalDateTime.now())
+                .build();
+
+        String interrogationId2 = "TESTinterrogationId2";
+        String json2 = "{\"EXTERNAL\": {\"TESTVAR_EXT\": \"test_ext2\"}, " +
+                "\"COLLECTED\": {\"TESTVAR\": {\"COLLECTED\": [\"test2\"], \"EDITED\": [\"test_ed2\"]}}}";
+
+        LunaticJsonRawDataModel rawDataModel2 = LunaticJsonRawDataModel.builder()
+                .campaignId(campaignId)
+                .questionnaireId(questionnaireId)
+                .interrogationId(interrogationId2)
+                .data(JsonUtils.jsonToMap(json2))
+                .mode(Mode.WEB)
+                .build();
+        //WHEN
+        lunaticJsonRawDataService.save(rawDataModel);
+        lunaticJsonRawDataService.save(rawDataModel2);
+
+        Assertions.assertThat(lunaticJsonRawDataService.getUnprocessedDataIds()).isNotEmpty();
+        Assertions.assertThat(lunaticJsonRawDataService.getUnprocessedDataIds()).hasSize(1);
+        Assertions.assertThat(lunaticJsonRawDataService.getUnprocessedDataIds().getFirst().interrogationId()).isEqualTo("TESTinterrogationId2");
+    }
+
 
     private List<String> prepareConvertTest(int rawDataSize, String campaignId, String questionnaireId) throws JsonProcessingException {
         //CLEAN
