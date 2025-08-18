@@ -1,4 +1,10 @@
 # Changelog
+## 1.8.1 [TODO]
+### Fixed
+- Get unprocessed Id service gets too much data
+### Updated
+- Cucumber 7.27.1
+
 ## 1.8.0 [2025-08-07]
 ### Added
 - Metadata endpoints
