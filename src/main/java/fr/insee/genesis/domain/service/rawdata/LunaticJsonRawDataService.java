@@ -247,13 +247,15 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     public List<LunaticJsonRawDataUnprocessedDto> getUnprocessedDataIds() {
         List<LunaticJsonRawDataUnprocessedDto> dtos = new ArrayList<>();
 
-        for (LunaticJsonRawDataModel dataModel : lunaticJsonRawDataPersistencePort.getAllUnprocessedData()) {
-            dtos.add(LunaticJsonRawDataUnprocessedDto.builder()
-                    .campaignId(dataModel.campaignId())
-                    .questionnaireId(dataModel.questionnaireId())
-                    .interrogationId(dataModel.interrogationId())
-                    .build()
-            );
+        for (GroupedInterrogation groupedInterrogation : lunaticJsonRawDataPersistencePort.findUnprocessedIds()) {
+            for (String interrogationId : groupedInterrogation.interrogationIds()){
+                dtos.add(LunaticJsonRawDataUnprocessedDto.builder()
+                        .campaignId(groupedInterrogation.partitionOrCampaignId())
+                        .questionnaireId(groupedInterrogation.questionnaireId())
+                        .interrogationId(interrogationId)
+                        .build()
+                );
+            }
         }
         return dtos;
     }
