@@ -91,5 +91,9 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
         return GroupedInterrogationDocumentMapper.INSTANCE.listDocumentToListModel(repository.aggregateRawGrouped(since));
     }
 
+    @Override
+    public List<GroupedInterrogation> findUnprocessedIds() {
+        return GroupedInterrogationDocumentMapper.INSTANCE.listDocumentToListModel(repository.aggregateRawGroupedWithNullProcessDate());
+    }
 
 }
