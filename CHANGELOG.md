@@ -1,4 +1,10 @@
 # Changelog
+## 1.8.2 [TODO]
+### Updated
+- Cucumber 7.27.2
+- Pitest 1.20.2
+
+
 ## 1.8.1 [2025-08-18]
 ### Fixed
 - Get unprocessed Id service gets too much data
