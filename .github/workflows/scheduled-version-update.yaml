@@ -204,3 +204,6 @@ jobs:
   launch-create-release-workflow:
     needs: wait-for-merge
     uses: ./.github/workflows/create-release.yaml
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
