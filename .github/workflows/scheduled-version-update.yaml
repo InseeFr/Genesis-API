@@ -16,12 +16,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
         with:
+          path: genesis
           ref: main
           fetch-depth: 0
 
       - name: Get last commit SHA
         id: current_sha
         run: |
+          cd genesis
           CURRENT_SHA=$(git log -n 1 --pretty=format:"%H")
           echo "last commit SHA : $CURRENT_SHA"
           echo "current_sha=$CURRENT_SHA" >> $GITHUB_OUTPUT
@@ -29,6 +31,7 @@ jobs:
       - name: Get last version tag and SHA
         id: last_tag
         run: |
+          cd genesis
           LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
           TAG_SHA=$(git rev-list -n 1 "$LAST_TAG")
           echo "Last version SHA : $TAG_SHA"
@@ -47,6 +50,7 @@ jobs:
       - name: Get version from changelog
         id: changelog_version
         run: |
+          cd genesis
           FILE_VERSION=$(grep -m1 '^## ' CHANGELOG.md | sed -E 's/^## ([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
           echo "Last version in changelog : $FILE_VERSION"
           echo "file_version=$FILE_VERSION" >> $GITHUB_OUTPUT
@@ -70,20 +74,85 @@ jobs:
           fi
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
+      - name: Clone BPM
+        uses: actions/checkout@master
+        with:
+          repository: InseeFr/BPM
+          path: bpm
+
+      - name: Get BPM version
+        id: bpm-version
+        run: |
+          cd bpm
+          BPM_VERSION=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
+          echo "bpm_version=$BPM_VERSION" >> $GITHUB_OUTPUT
+
       - name: Update files and commit
         run: |
-          #Update poms
+          cd genesis
+          BPM_VERSION="${{ steps.bpm-version.outputs.bpm_version }}"
+          NEW_VERSION="${{ steps.determine_version.outputs.new_version }}"
+          NEW_VERSION_NO_V="${NEW_VERSION#v}"
+          FILE="CHANGELOG.md"
+          
+          #Update BPM version
+          ##POM
+          CURRENT_BPM_VERSION=$(grep -oPm1 "(?<=<bpm.version>)[0-9]+\.[0-9]+\.[0-9]+(?=</bpm.version>)" pom.xml)
+          if [ "$CURRENT_BPM_VERSION" != "$BPM_VERSION" ]; then
+            echo "BPM version changed!"
+            sed -i "s|<bpm.version>.*</bpm.version>|<bpm.version>${BPM_VERSION}</bpm.version>|" pom.xml
+            git add pom.xml
+            
+            ##Change "Changed" Changelog
+            NEW_LINE="- BPM ${BPM_VERSION}"
+            if awk -v ver="^## ${NEW_VERSION_NO_V}" -v line="$NEW_LINE" '
+              $0 ~ ver {in_ver=1; next}
+              in_ver && /^## / {exit}
+              in_ver && $0==line {found=1; exit}
+              END {exit !found}
+              ' "$FILE"; then
+              echo "BPM version already present in changelog"
+            else
+              echo "Adding BPM to changelog"
+              if awk -v ver="^## ${NEW_VERSION_NO_V}" '
+                $0 ~ ver {in_ver=1; next}
+                in_ver && /^## / {exit}
+                in_ver && /^### Updated/ {found=1; exit}
+                END {exit !found}
+                ' "$FILE"; then
+                echo "Adding BPM ${BPM_VERSION} to existing updated section"
+                awk -v ver="^## ${NEW_VERSION_NO_V}" -v newline="$NEW_LINE" '
+                $0 ~ ver {print; in_ver=1; next}
+                in_ver && /^## / {in_ver=0}
+                in_ver && /^### Updated/ {print; print newline; next}
+                {print}
+                ' "$FILE" > tmp && mv tmp "$FILE"
+              else
+                ### New changed section
+                echo "Adding BPM ${BPM_VERSION} to a new updated section"
+                awk -v ver="^## ${NEW_VERSION_NO_V}" -v newline="$NEW_LINE" '
+                $0 ~ ver {print; in_ver=1; next}
+                in_ver && /^## / {print "### Updated"; print newline; in_ver=0}
+                {print}
+                END { if(in_ver) {print "### Updated"; print newline} }
+                ' "$FILE" > tmp && mv tmp "$FILE"
+              fi
+            fi
+          fi
+          
+          #Update app version
+          ##Update pom
           mvn versions:set -DnewVersion="${{ steps.determine_version.outputs.new_version }}" -DprocessAllModules
           mvn versions:commit
           
-          # Update TODO to today in changelog
+          ## Update TODO to today in changelog
           TODAY=$(date +%Y-%m-%d)
           if grep -q '\[TODO\]' CHANGELOG.md; then
             sed -i "0,/\[TODO\]/s/\[TODO\]/[$TODAY]/" CHANGELOG.md
-            git add CHANGELOG.md
           else
-            echo "No change done in changelog"
+            echo "No date change done in changelog"
           fi
+          git add CHANGELOG.md
           
           git config user.name 'github-actions'
           git config user.email 'github-actions@github.com'
@@ -93,6 +162,7 @@ jobs:
         id: create_pr
         uses: peter-evans/create-pull-request@v7
         with:
+          path: genesis
           token: ${{ secrets.GITHUB_TOKEN }}
           base: "main"
           commit-message: "Update for release ${{ steps.determine_version.outputs.new_version }}"
@@ -103,7 +173,9 @@ jobs:
           labels: "Version Update - Prod"
 
       - name: Merge pull request
-        run: gh pr merge --merge --auto "${{ steps.create_pr.outputs.pull-request-number }}"
+        run: |
+          cd genesis
+          gh pr merge --merge --auto "${{ steps.create_pr.outputs.pull-request-number }}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
