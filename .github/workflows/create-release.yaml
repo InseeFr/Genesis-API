@@ -65,7 +65,7 @@ jobs:
           java-version: '21'
 
       - name: Clone BPM
-        uses: actions/checkout@master
+        uses: actions/checkout@v5
         with:
           repository: InseeFr/BPM
           path: bpm
@@ -78,7 +78,10 @@ jobs:
 
       - uses: actions/checkout@v5
       - name: Build app
-        run: mvn package --no-transfer-progress
+        run: |
+          git fetch origin main
+          git checkout origin/main
+          mvn package --no-transfer-progress
 
       - name: Upload app jar
         uses: actions/upload-artifact@v4
