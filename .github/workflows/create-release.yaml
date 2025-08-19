@@ -7,6 +7,11 @@ on:
   pull_request:
     branches: [ "main" ]
   workflow_call:
+    secrets:
+      DOCKERHUB_USERNAME:
+        required: true
+      DOCKERHUB_TOKEN:
+        required: true
 
 jobs:
   check-version:
