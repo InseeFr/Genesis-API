@@ -26,6 +26,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerAuthenticationManagerResolver;
 import org.springframework.security.web.SecurityFilterChain;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -112,39 +113,47 @@ public class OIDCSecurityConfig {
             @Override
             @SuppressWarnings({"unchecked"})
             public Collection<GrantedAuthority> convert(Jwt source) {
-
-                String[] claimPath = inseeSecurityTokenProperties.getOidcClaimRole().split("\\.");
-                Map<String, Object> claims = source.getClaims();
                 try {
+                    List<String> allTokenClaims = new ArrayList<>();
+
+                    // 🔹 1. Retrieve roles from realm_access.roles
+                    String[] claimPath = inseeSecurityTokenProperties.getOidcClaimRole().split("\\.");
+                    Map<String, Object> claims = source.getClaims();
                     for (int i = 0; i < claimPath.length - 1; i++) {
                         claims = (Map<String, Object>) claims.get(claimPath[i]);
                     }
                     if (claims != null) {
                         List<String> tokenClaims = (List<String>) claims.getOrDefault(claimPath[claimPath.length - 1], List.of());
-                        // Collect distinct values from mapping associated with input keys
-                        List<String> claimedRoles = tokenClaims.stream()
-                                .filter(roleConfiguration.getRolesByClaim()::containsKey) // Ensure the key exists in the mapping
-                                .flatMap(key -> roleConfiguration.getRolesByClaim().get(key).stream()) // Get the list of values associated with the key
-                                .distinct() // Remove duplicates
-                                .toList();
-
-                        return Collections.unmodifiableCollection(claimedRoles.stream().map(s -> new GrantedAuthority() {
-                            @Override
-                            public String getAuthority() {
-                                return ROLE_PREFIX + s;
-                            }
-
-                            @Override
-                            public String toString() {
-                                return getAuthority();
-                            }
-                        }).toList());
+                        allTokenClaims.addAll(tokenClaims);
                     }
+
+                    // 🔹 2. Retrieve roles from inseegroupedefaut
+                    Object inseeGroups = source.getClaims().get("inseegroupedefaut");
+                    if (inseeGroups instanceof List<?> groups) {
+                        groups.stream()
+                                .filter(String.class::isInstance)
+                                .map(String.class::cast)
+                                .forEach(allTokenClaims::add);
+                    }
+
+                    // 🔹 3. Mapping with Spring roles
+                    List<String> claimedRoles = allTokenClaims.stream()
+                            .filter(roleConfiguration.getRolesByClaim()::containsKey)
+                            .flatMap(key -> roleConfiguration.getRolesByClaim().get(key).stream())
+                            .distinct()
+                            .toList();
+
+                    // 🔹 4. Transforms in GrantedAuthority
+                    return Collections.unmodifiableCollection(
+                            claimedRoles.stream()
+                                    .map(s -> (GrantedAuthority) () -> ROLE_PREFIX + s)
+                                    .toList()
+                    );
+
                 } catch (ClassCastException e) {
                     // role path not correctly found, assume that no role for this user
                     return List.of();
                 }
-                return List.of();
             }
         };
     }
