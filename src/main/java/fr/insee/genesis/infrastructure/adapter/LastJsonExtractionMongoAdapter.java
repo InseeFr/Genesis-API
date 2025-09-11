@@ -8,6 +8,7 @@ import fr.insee.genesis.infrastructure.document.extraction.json.LastJsonExtracti
 import fr.insee.genesis.infrastructure.mappers.LastJsonExtractionDocumentMapper;
 import fr.insee.genesis.infrastructure.repository.LastJsonExtractionMongoDBRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +21,7 @@ public class LastJsonExtractionMongoAdapter implements LastJsonExtractionPersist
 
     private final LastJsonExtractionMongoDBRepository extractionRepository;
 
+    @Autowired
     public LastJsonExtractionMongoAdapter(LastJsonExtractionMongoDBRepository extractionRepository) {
         this.extractionRepository = extractionRepository;
     }

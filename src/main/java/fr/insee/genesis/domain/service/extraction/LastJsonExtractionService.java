@@ -7,12 +7,14 @@ import fr.insee.genesis.domain.ports.spi.LastJsonExtractionPersistencePort;
 import fr.insee.genesis.exceptions.GenesisException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
 public class LastJsonExtractionService implements LastJsonExtractionApiPort {
 
+    @Qualifier("lastJsonExtractionMongoAdapter")
     LastJsonExtractionPersistencePort extractionPersistencePort;
 
     @Autowired
