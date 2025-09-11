@@ -6,6 +6,7 @@ import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RequestMapping(path = "/interrogations" )
@@ -32,6 +34,15 @@ public class InterrogationController implements CommonApiResponse {
     @GetMapping(path = "/by-questionnaire")
     public ResponseEntity<List<InterrogationId>> getAllInterrogationIdsByQuestionnaire(@RequestParam("questionnaireId") String questionnaireId) {
         List<InterrogationId> responses = surveyUnitService.findDistinctInterrogationIdsByQuestionnaireId(questionnaireId);
+        return ResponseEntity.ok(responses);
+    }
+
+    @Operation(summary = "Retrieve interrogations recorded since a specified date for a given questionnaire")
+    @GetMapping(path = "/by-questionnaire-and-since-datetime")
+    public ResponseEntity<List<InterrogationId>> getAllInterrogationIdsByQuestionnaire(
+            @RequestParam("questionnaireId") String questionnaireId,
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime since) {
+        List<InterrogationId> responses = surveyUnitService.findDistinctInterrogationIdsByQuestionnaireIdAndDateAfter(questionnaireId, since);
         return ResponseEntity.ok(responses);
     }
 

@@ -4,6 +4,7 @@ import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -86,6 +87,11 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
         }
 
         return surveyUnitModelList;
+    }
+
+    @Override
+    public List<SurveyUnitModel> findInterrogationIdsByQuestionnaireIdAndDateAfter(String questionnaireId, LocalDateTime since) {
+        return List.of();
     }
 
 
