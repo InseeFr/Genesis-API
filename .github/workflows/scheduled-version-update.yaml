@@ -6,7 +6,12 @@ permissions:
 
 on:
   schedule:
-    - cron: 45 7 * * 4
+    # 08:30 Europe/Paris pendant l'heure d'été (CEST = UTC+2)
+    # mois 3-10 (mars à octobre inclus)
+    - cron: '30 6 * 3-10 4'
+    # 08:30 Europe/Paris pendant l'heure d'hiver (CET = UTC+1)
+    # mois 11,12,1,2 (novembre, décembre, janvier, février)
+    - cron: '30 7 * 11,12,1,2 4'
   workflow_dispatch:
 
 jobs:
@@ -24,7 +29,13 @@ jobs:
         id: current_sha
         run: |
           cd genesis
-          CURRENT_SHA=$(git log -n 1 --pretty=format:"%H")
+          CURRENT_SHA=$(
+            git log --pretty=format:"%H" \
+            --invert-grep --grep="^ci:" \
+            --invert-grep --grep="^Merge branch 'main'" \
+            --invert-grep --grep="^Revert " \
+            -n 1
+          )
           echo "last commit SHA : $CURRENT_SHA"
           echo "current_sha=$CURRENT_SHA" >> $GITHUB_OUTPUT
 
@@ -44,7 +55,7 @@ jobs:
         run: |
           if [ "${{ steps.current_sha.outputs.current_sha }}" = "${{ steps.last_tag.outputs.tag_sha }}" ]; then
             echo "No new commit since version. Exiting."
-            exit 0
+            exit 1
           fi
 
       - name: Get version from changelog
@@ -122,19 +133,21 @@ jobs:
                 ' "$FILE"; then
                 echo "Adding BPM ${BPM_VERSION} to existing updated section"
                 awk -v ver="^## ${NEW_VERSION_NO_V}" -v newline="$NEW_LINE" '
-                $0 ~ ver {print; in_ver=1; next}
-                in_ver && /^## / {in_ver=0}
-                in_ver && /^### Updated/ {print; print newline; next}
-                {print}
+                  $0 ~ ver {print; in_ver=1; next}
+                  in_ver && /^## / {in_ver=0}
+                  in_ver && !done && /^### Updated/ {print; print newline; done=1; next}
+                  {print}
                 ' "$FILE" > tmp && mv tmp "$FILE"
               else
                 ### New changed section
                 echo "Adding BPM ${BPM_VERSION} to a new updated section"
                 awk -v ver="^## ${NEW_VERSION_NO_V}" -v newline="$NEW_LINE" '
-                $0 ~ ver {print; in_ver=1; next}
-                in_ver && /^## / {print "### Updated"; print newline; in_ver=0}
-                {print}
-                END { if(in_ver) {print "### Updated"; print newline} }
+                  $0 ~ ver {print; in_ver=1; next}
+                  in_ver && /^## / && !done {
+                    print "### Updated"; print newline; in_ver=0; done=1
+                  }
+                  {print}
+                  END { if(in_ver && !done) {print "### Updated"; print newline} }
                 ' "$FILE" > tmp && mv tmp "$FILE"
               fi
             fi

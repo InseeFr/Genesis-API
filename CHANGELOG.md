@@ -1,4 +1,19 @@
 # Changelog
+## 1.8.4 [2025-09-11]
+### Updated
+- Sonar 5.2.0.4988
+- Springdoc openapi webmvc 2.8.13
+- Cucumber 7.28.2
+
+
+## 1.8.3 [2025-08-28]
+### Updated
+- Springboot 3.5.5
+- Springdoc openapi webmvc 2.8.11
+
+### Added
+- CI pipeline
+
 ## 1.8.2 [2025-08-19]
 ### Updated
 - BPM 1.0.13
