@@ -38,7 +38,7 @@ public class EditedResponseController {
 
     @Operation(summary = "Get edited variables (edited and previous)")
     @GetMapping(path = "/")
-    @PreAuthorize("hasRole('USER_PLATINE')")
+    @PreAuthorize("hasAnyRole('USER_PLATINE','SCHEDULER')")
     public ResponseEntity<Object> getEditedResponses(
             @RequestParam("questionnaireId") String questionnaireId,
             @RequestParam("interrogationId") String interrogationId
