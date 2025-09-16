@@ -35,6 +35,7 @@ class HealthCheckControllerTest {
         SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(
                 surveyUnitPersistencePortStub,
                 new QuestionnaireMetadataService(new QuestionnaireMetadataPersistancePortStub()),
+                new DataProcessingContextService(new DataProcessingContextPersistancePortStub(), surveyUnitPersistencePortStub),
                 new FileUtils(new ConfigStub())
         );
         List<VariableModel> externalVariableList = new ArrayList<>();

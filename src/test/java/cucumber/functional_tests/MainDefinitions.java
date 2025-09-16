@@ -81,7 +81,12 @@ public class MainDefinitions {
     ResponseEntity<Object> surveyUnitLatestStatesResponse;
 
     ResponseController responseController = new ResponseController(
-            new SurveyUnitService(surveyUnitPersistence, new QuestionnaireMetadataService(questionnaireMetadataPersistancePortStub), new FileUtils(config)),
+            new SurveyUnitService(
+                    surveyUnitPersistence,
+                    new QuestionnaireMetadataService(questionnaireMetadataPersistancePortStub),
+                    new DataProcessingContextService(dataProcessingContextPersistancePortStub, surveyUnitPersistence),
+                    new FileUtils(config)
+            ),
             surveyUnitQualityService,
             new FileUtils(config),
             new ControllerUtils(new FileUtils(config)),

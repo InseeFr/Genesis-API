@@ -52,7 +52,11 @@ class LunaticJsonRawDataServiceTest {
                     lunaticJsonRawDataPersistanceStub,
                     controllerUtils,
                     metadataService,
-                    new SurveyUnitService(surveyUnitPersistencePortStub, metadataService, fileUtils),
+                    new SurveyUnitService(surveyUnitPersistencePortStub,
+                            metadataService,
+                            new DataProcessingContextService(dataProcessingContextPersistancePortStub, surveyUnitPersistencePortStub),
+                            fileUtils
+                    ),
                     new SurveyUnitQualityService(),
                     fileUtils,
                     new DataProcessingContextService(dataProcessingContextPersistancePortStub, surveyUnitPersistencePortStub),

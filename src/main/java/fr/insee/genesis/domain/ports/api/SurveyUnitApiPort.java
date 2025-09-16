@@ -72,6 +72,7 @@ public interface SurveyUnitApiPort {
     long countResponsesByCampaignId(String campaignId);
 
     Set<String> findDistinctQuestionnaireIds();
+    Set<String> findDistinctQuestionnaireIds(boolean withReview);
 
     List<CampaignWithQuestionnaire> findCampaignsWithQuestionnaires();
 

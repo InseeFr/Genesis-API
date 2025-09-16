@@ -67,8 +67,9 @@ class ResponseControllerTest {
         SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(
                 surveyUnitPersistencePortStub,
                 new QuestionnaireMetadataService(questionnaireMetadataPersistancePortStub),
+                new DataProcessingContextService(dataProcessingContextPersistancePortStub, surveyUnitPersistencePortStub),
                 fileUtils
-                );
+        );
 
         responseControllerStatic = new ResponseController(
                 surveyUnitApiPort

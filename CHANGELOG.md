@@ -1,4 +1,9 @@
 # Changelog
+## 1.9.0 [TODO]
+### Added
+- Authorizations for scheduled Perret calls
+- Get questionnaires by review activated or not endpoint
+
 ## 1.8.4 [2025-09-11]
 ### Updated
 - Sonar 5.2.0.4988

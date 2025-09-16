@@ -2,10 +2,12 @@ package fr.insee.genesis.controller.rest.responses;
 
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
+import fr.insee.genesis.domain.service.context.DataProcessingContextService;
 import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
+import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
 import fr.insee.genesis.stubs.QuestionnaireMetadataPersistancePortStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import org.assertj.core.api.Assertions;
@@ -31,6 +33,7 @@ class ModeControllerTest {
         SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(
                 surveyUnitPersistencePortStub,
                 new QuestionnaireMetadataService(new QuestionnaireMetadataPersistancePortStub()),
+                new DataProcessingContextService(new DataProcessingContextPersistancePortStub(), surveyUnitPersistencePortStub),
                 new FileUtils(new ConfigStub())
         );
 

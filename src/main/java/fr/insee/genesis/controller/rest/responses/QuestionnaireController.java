@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,6 +35,16 @@ public class QuestionnaireController implements CommonApiResponse {
     @GetMapping(path = "/")
     public ResponseEntity<Set<String>> getQuestionnaires() {
         Set<String> questionnaires = surveyUnitService.findDistinctQuestionnaireIds();
+        return ResponseEntity.ok(questionnaires);
+    }
+
+    @Operation(summary = "List questionnaires in database that have a context with a specific withReview")
+    @GetMapping(path = "/with-review")
+    @PreAuthorize("hasAnyRole('USER_PLATINE','SCHEDULER')")
+    public ResponseEntity<Set<String>> getQuestionnairesWithReview(
+            @RequestParam(value = "withReview") boolean withReview
+    ) {
+        Set<String> questionnaires = surveyUnitService.findDistinctQuestionnaireIds(withReview);
         return ResponseEntity.ok(questionnaires);
     }
 
