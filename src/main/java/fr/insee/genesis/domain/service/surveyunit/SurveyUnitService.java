@@ -17,7 +17,6 @@ import fr.insee.genesis.domain.model.surveyunit.VarIdScopeTuple;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
-import fr.insee.genesis.domain.service.context.DataProcessingContextService;
 import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.utils.GroupUtils;
 import fr.insee.genesis.exceptions.GenesisException;
@@ -45,17 +44,13 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     private final SurveyUnitPersistencePort surveyUnitPersistencePort;
 
     private final QuestionnaireMetadataService metadataService;
-    private final DataProcessingContextService dataProcessingContextService;
     private final FileUtils fileUtils;
 
     @Autowired
-    public SurveyUnitService(SurveyUnitPersistencePort surveyUnitPersistencePort,
-                             QuestionnaireMetadataService metadataService,
-                             DataProcessingContextService dataProcessingContextService,
+    public SurveyUnitService(SurveyUnitPersistencePort surveyUnitPersistencePort, QuestionnaireMetadataService metadataService,
                              FileUtils fileUtils) {
         this.surveyUnitPersistencePort = surveyUnitPersistencePort;
         this.metadataService = metadataService;
-        this.dataProcessingContextService = dataProcessingContextService;
         this.fileUtils = fileUtils;
     }
 
@@ -410,20 +405,6 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     @Override
     public Set<String> findDistinctQuestionnaireIds() {
         return surveyUnitPersistencePort.findDistinctQuestionnaireIds();
-    }
-
-    @Override
-    public Set<String> findDistinctQuestionnaireIds(boolean withReview) {
-        Set<String> allQuestionnaireIds = surveyUnitPersistencePort.findDistinctQuestionnaireIds();
-        if (allQuestionnaireIds.isEmpty()){
-            return new HashSet<>();
-        }
-        return new HashSet<>(allQuestionnaireIds.stream().filter(
-                questionnaireId ->
-                        dataProcessingContextService.getContextByPartitionId(questionnaireId) != null
-                && dataProcessingContextService.getContextByPartitionId(questionnaireId)
-                        .isWithReview() == withReview
-        ).toList());
     }
 
     @Override

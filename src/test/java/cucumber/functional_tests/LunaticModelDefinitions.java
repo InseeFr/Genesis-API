@@ -54,8 +54,11 @@ public class LunaticModelDefinitions {
             new SurveyUnitService(
                     surveyUnitPersistencePortStub,
                     new QuestionnaireMetadataService(questionnaireMetadataPersistancePortStub),
-                    new DataProcessingContextService(new DataProcessingContextPersistancePortStub(),surveyUnitPersistencePortStub),
                     new FileUtils(new ConfigStub())
+            ),
+            new DataProcessingContextService(
+                    new DataProcessingContextPersistancePortStub(),
+                    surveyUnitPersistencePortStub
             )
     );
 

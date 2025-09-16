@@ -6,12 +6,10 @@ import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
-import fr.insee.genesis.domain.service.context.DataProcessingContextService;
 import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
-import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
 import fr.insee.genesis.stubs.QuestionnaireMetadataPersistancePortStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import lombok.SneakyThrows;
@@ -42,7 +40,6 @@ class SurveyUnitServiceTest {
 
         surveyUnitServiceStatic = new SurveyUnitService(surveyUnitPersistencePortStub,
                 new QuestionnaireMetadataService(new QuestionnaireMetadataPersistancePortStub()),
-                new DataProcessingContextService(new DataProcessingContextPersistancePortStub(), surveyUnitPersistencePortStub),
                 new FileUtils(new ConfigStub()));
     }
 

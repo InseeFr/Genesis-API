@@ -82,4 +82,9 @@ public class DataProcessingContextPersistancePortStub implements DataProcessingC
         mongoStub.add(DataProcessingContextMapper.INSTANCE.modelToDocument(dataProcessingContextModel));
         return kraftwerkExecutionSchedulesToRemove;
     }
+
+    @Override
+    public List<DataProcessingContextDocument> findAllByReview(boolean withReview) {
+        return mongoStub.stream().filter(doc -> doc.isWithReview() == withReview).toList();
+    }
 }

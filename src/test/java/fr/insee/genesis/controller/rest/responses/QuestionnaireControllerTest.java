@@ -37,11 +37,13 @@ class QuestionnaireControllerTest {
         SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(
                 surveyUnitPersistencePortStub,
                 new QuestionnaireMetadataService(new QuestionnaireMetadataPersistancePortStub()),
-                new DataProcessingContextService(dataProcessingContextPersistancePortStub, surveyUnitPersistencePortStub),
                 new FileUtils(new ConfigStub())
         );
 
-        questionnaireControllerStatic = new QuestionnaireController(surveyUnitApiPort);
+        questionnaireControllerStatic = new QuestionnaireController(
+                surveyUnitApiPort,
+                new DataProcessingContextService(dataProcessingContextPersistancePortStub, surveyUnitPersistencePortStub)
+        );
 
     }
 
@@ -71,7 +73,7 @@ class QuestionnaireControllerTest {
         String questionnaireId = "TESTQUESTIONNAIRE2";
         Utils.addAdditionalSurveyUnitModelToMongoStub(questionnaireId, surveyUnitPersistencePortStub);
 
-        ResponseEntity<Set<String>> response = questionnaireControllerStatic.getQuestionnairesWithReview(true);
+        ResponseEntity<List<String>> response = questionnaireControllerStatic.getQuestionnairesWithReview(true);
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isEmpty();
 
@@ -108,7 +110,7 @@ class QuestionnaireControllerTest {
         String questionnaireId = "TESTQUESTIONNAIRE2";
         Utils.addAdditionalSurveyUnitModelToMongoStub(questionnaireId, surveyUnitPersistencePortStub);
 
-        ResponseEntity<Set<String>> response = questionnaireControllerStatic.getQuestionnairesWithReview(false);
+        ResponseEntity<List<String>> response = questionnaireControllerStatic.getQuestionnairesWithReview(false);
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isEmpty();
 
