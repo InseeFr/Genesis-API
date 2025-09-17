@@ -43,7 +43,10 @@ public class EditedExternalResponseJsonService implements EditedExternalResponse
             goToEditedExternalToken(jsonParser);
             long savedCount = 0;
             Set<String> savedInterrogationIds = new HashSet<>();
-            jsonParser.nextToken(); //skip field name
+            if(jsonParser.nextToken() == null){ //skip field name, stop if end of file
+                log.warn("Reached end of file, found no editedExternal part.");
+                return;
+            }
             jsonParser.nextToken(); //skip [
             while (jsonParser.currentToken() != JsonToken.END_ARRAY) {
                 EditedExternalResponseModel editedExternalResponseModel = readNextEditedExternal(
@@ -74,12 +77,12 @@ public class EditedExternalResponseJsonService implements EditedExternalResponse
         }
     }
 
-    private static void goToEditedExternalToken(JsonParser jsonParser) throws IOException, GenesisException {
+    private static void goToEditedExternalToken(JsonParser jsonParser) throws IOException{
         boolean isTokenFound = false;
         while (!isTokenFound){
             jsonParser.nextToken();
             if(jsonParser.currentToken() == null){
-                throw new GenesisException(400, "editedExternal object not found in JSON");
+                return;
             }
             if(jsonParser.currentToken().equals(JsonToken.FIELD_NAME)
                     && jsonParser.currentName() != null

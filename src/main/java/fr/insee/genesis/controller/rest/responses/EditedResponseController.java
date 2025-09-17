@@ -23,7 +23,9 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.stream.Stream;
 
 @RequestMapping(path = "/edited")
 @Controller
@@ -48,6 +50,35 @@ public class EditedResponseController {
         );
     }
 
+    @Operation(summary = "Save all edited variables json files (edited and previous)")
+    @PostMapping(path = "/json")
+    @PreAuthorize("hasAnyRole('USER_PLATINE','SCHEDULER')")
+    public ResponseEntity<Object> saveEditedResponses(
+            @RequestParam("questionnaireId") String questionnaireId
+    ){
+        try {
+            FileUtils fileUtils = new FileUtils(config);
+            int fileCount = 0;
+
+            for(Mode mode : Mode.values()){
+                try(Stream<Path> jsonFilePaths = Files.list(Path.of(fileUtils.getDataFolder(questionnaireId, mode.getFolder()
+                        , null))).filter(path -> path.toString().endsWith(".json"))){
+                    for(Path jsonFilePath : jsonFilePaths.toList()){
+                        readEditedPreviousFile(questionnaireId.toUpperCase(), null, jsonFilePath.toString());
+                        readEditedExternalFile(questionnaireId.toUpperCase(), jsonFilePath.toString());
+                        moveFile(questionnaireId, mode, fileUtils, jsonFilePath.toString());
+                        fileCount++;
+                    }
+                }catch (IOException ioe){
+                    log.warn(ioe.toString());
+                }
+            }
+            return ResponseEntity.ok("%d file(s) processed for questionnaire %s !".formatted(fileCount, questionnaireId));
+        }catch (GenesisException ge){
+            return ResponseEntity.status(HttpStatusCode.valueOf(ge.getStatus())).body(ge.getMessage());
+        }
+    }
+
     @Operation(summary = "Add edited previous json file")
     @PostMapping(path = "previous/json")
     @PreAuthorize("hasAnyRole('USER_PLATINE','SCHEDULER','USER_BACK_OFFICE')")
@@ -68,7 +99,7 @@ public class EditedResponseController {
                 throw new GenesisException(400, "File must be a JSON file !");
             }
             readEditedPreviousFile(questionnaireId.toUpperCase(), sourceState, filePath);
-            moveFiles(questionnaireId, mode, fileUtils, filePath);
+            moveFile(questionnaireId, mode, fileUtils, filePath);
             return ResponseEntity.ok("Edited previous variable file %s saved !".formatted(filePath));
         }catch (GenesisException ge){
             return ResponseEntity.status(HttpStatusCode.valueOf(ge.getStatus())).body(ge.getMessage());
@@ -94,7 +125,7 @@ public class EditedResponseController {
                 throw new GenesisException(400, "File must be a JSON file !");
             }
             readEditedExternalFile(questionnaireId.toUpperCase(), filePath);
-            moveFiles(questionnaireId, mode, fileUtils, filePath);
+            moveFile(questionnaireId, mode, fileUtils, filePath);
             return ResponseEntity.ok("Edited external variable file %s saved !".formatted(filePath));
         }catch (GenesisException ge){
             return ResponseEntity.status(HttpStatusCode.valueOf(ge.getStatus())).body(ge.getMessage());
@@ -121,7 +152,7 @@ public class EditedResponseController {
         }
     }
 
-    private static void moveFiles(String questionnaireId, Mode mode, FileUtils fileUtils, String filePath) throws GenesisException {
+    private static void moveFile(String questionnaireId, Mode mode, FileUtils fileUtils, String filePath) throws GenesisException {
         try {
             fileUtils.moveFiles(Path.of(filePath), fileUtils.getDoneFolder(questionnaireId, mode.getFolder()));
         } catch (IOException e) {

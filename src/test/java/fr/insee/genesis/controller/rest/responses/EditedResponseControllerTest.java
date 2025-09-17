@@ -167,6 +167,139 @@ class EditedResponseControllerTest {
         Assertions.assertThat(editedResponseModel.editedExternal()).isNotNull().isEmpty();
     }
 
+    //POST
+    @Test
+    @SneakyThrows
+    void saveEditedResponses_previous_test() {
+        //GIVEN
+        Files.createDirectories(SOURCE_PATH_PREVIOUS);
+        Files.copy(
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("edited_previous").resolve("ok.json"),
+                SOURCE_PATH_PREVIOUS.resolve("ok.json"),
+                StandardCopyOption.REPLACE_EXISTING
+        );
+
+        //WHEN
+        editedResponseController.saveEditedResponses(QUESTIONNAIRE_ID_PREVIOUS);
+
+        //THEN
+        Assertions.assertThat(previousStub.getMongoStub().get(Constants.MONGODB_EDITED_PREVIOUS_COLLECTION_NAME)).hasSize(2);
+
+        List<EditedPreviousResponseDocument> filter = previousStub.getMongoStub().get(Constants.MONGODB_EDITED_PREVIOUS_COLLECTION_NAME)
+                .stream().filter(doc -> doc.getInterrogationId().equals("AUTO104")).toList();
+        Assertions.assertThat(filter).hasSize(1);
+        Assertions.assertThat(filter.getFirst().getSourceState()).isNull();
+        Assertions.assertThat(filter.getFirst().getQuestionnaireId()).isEqualTo(QUESTIONNAIRE_ID_PREVIOUS);
+
+        Assertions.assertThat(filter.getFirst().getVariables()).hasSize(15);
+        assertVariable(filter.getFirst(), "TEXTECOURT", "");
+        assertVariable(filter.getFirst(), "TEXTELONG", "test d'une donnée antérieure sur un texte long pour voir comment ça marche");
+        assertVariable(filter.getFirst(), "FLOAT", 50.25d);
+        assertVariableNull(filter.getFirst(), "INTEGER");
+        assertVariable(filter.getFirst(), "BOOLEEN", true);
+        assertVariable(filter.getFirst(), "DROPDOWN", "03");
+        assertVariable(filter.getFirst(), "QCM_B1", true);
+        assertVariable(filter.getFirst(), "QCM_B2", false);
+        assertVariable(filter.getFirst(), "QCM_B4", true);
+        assertVariable(filter.getFirst(), "TABLEAU2A11", 200);
+        assertVariable(filter.getFirst(), "TABLEAU2A12", 150);
+        assertVariable(filter.getFirst(), "TABLEAU2A23", 1000);
+        assertVariableNull(filter.getFirst(), "TABLEAU2A24");
+        assertVariable(filter.getFirst(), "TABOFATS1",0, "AA");
+        assertVariable(filter.getFirst(), "TABOFATS1",1, "");
+        assertVariable(filter.getFirst(), "TABOFATS1",2, "BB");
+        assertVariable(filter.getFirst(), "TABOFATS1",3, "CC");
+        assertVariable(filter.getFirst(), "TABOFATS3",0, 5);
+        assertVariableNull(filter.getFirst(), "TABOFATS3",1);
+        assertVariable(filter.getFirst(), "TABOFATS3",2, 3);
+
+        filter = previousStub.getMongoStub().get(Constants.MONGODB_EDITED_PREVIOUS_COLLECTION_NAME)
+                .stream().filter(doc -> doc.getInterrogationId().equals("AUTO108")).toList();
+        Assertions.assertThat(filter).hasSize(1);
+            Assertions.assertThat(filter.getFirst().getSourceState()).isNull();
+        Assertions.assertThat(filter.getFirst().getQuestionnaireId()).isEqualTo(QUESTIONNAIRE_ID_PREVIOUS);
+
+        Assertions.assertThat(filter.getFirst().getVariables()).hasSize(14);
+        assertVariable(filter.getFirst(), "TEXTECOURT", "test previous");
+        assertVariable(filter.getFirst(), "TEXTELONG", "");
+        assertVariable(filter.getFirst(), "FLOAT", 12.2d);
+        assertVariable(filter.getFirst(), "BOOLEEN", false);
+        assertVariable(filter.getFirst(), "DROPDOWN", "");
+        assertVariable(filter.getFirst(), "QCM_B1", false);
+        assertVariable(filter.getFirst(), "QCM_B2", false);
+        assertVariable(filter.getFirst(), "QCM_B5", true);
+        assertVariable(filter.getFirst(), "TABLEAU2A11", 1);
+        assertVariable(filter.getFirst(), "TABLEAU2A12", 2);
+        assertVariable(filter.getFirst(), "TABLEAU2A23", 3);
+        assertVariable(filter.getFirst(), "TABLEAU2A24",4);
+        assertVariable(filter.getFirst(), "TABOFATS1",0, "BB");
+        assertVariable(filter.getFirst(), "TABOFATS1",1, "BB");
+        assertVariable(filter.getFirst(), "TABOFATS3",0, 10);
+        assertVariable(filter.getFirst(), "TABOFATS3",1, 4);
+        assertVariable(filter.getFirst(), "TABOFATS3",2, 0);
+    }
+
+    @Test
+    @SneakyThrows
+    void saveEditedResponses_external_test() {
+        //GIVEN
+        Files.createDirectories(SOURCE_PATH_EXTERNAL);
+        Files.copy(
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("edited_external").resolve("ok.json"),
+                SOURCE_PATH_EXTERNAL.resolve("ok.json"),
+                StandardCopyOption.REPLACE_EXISTING
+        );
+
+        //WHEN
+        editedResponseController.saveEditedResponses(QUESTIONNAIRE_ID_EXTERNAL);
+
+        //THEN
+        Assertions.assertThat(externalStub.getMongoStub().get(Constants.MONGODB_EDITED_EXTERNAL_COLLECTION_NAME)).hasSize(2);
+
+        List<EditedExternalResponseDocument> filter = externalStub.getMongoStub().get(Constants.MONGODB_EDITED_EXTERNAL_COLLECTION_NAME)
+                .stream().filter(doc -> doc.getInterrogationId().equals("AUTO204")).toList();
+        Assertions.assertThat(filter).hasSize(1);
+
+        Assertions.assertThat(filter.getFirst().getQuestionnaireId()).isEqualTo(QUESTIONNAIRE_ID_EXTERNAL);
+
+        Assertions.assertThat(filter.getFirst().getVariables()).hasSize(12);
+        assertVariable(filter.getFirst(), "TVA", 302.34d);
+        assertVariable(filter.getFirst(), "CA", 22.45d);
+        assertVariable(filter.getFirst(), "COM_AUTRE", "blablablabla");
+        assertVariable(filter.getFirst(), "INTERRO_N_1", true);
+        assertVariable(filter.getFirst(), "INTERRO_N_2", false);
+        assertVariable(filter.getFirst(), "NAF25", "9560Y");
+        assertVariable(filter.getFirst(), "POIDS", 1.25);
+        assertVariable(filter.getFirst(), "MILLESIME", "2024");
+        assertVariable(filter.getFirst(), "NSUBST", true);
+        assertVariable(filter.getFirst(), "TAB_EXTNUM",0, 50);
+        assertVariable(filter.getFirst(), "TAB_EXTNUM",1, 23);
+        assertVariable(filter.getFirst(), "TAB_EXTNUM",2, 10);
+        assertVariableNull(filter.getFirst(), "TAB_EXTNUM",3);
+        assertVariable(filter.getFirst(), "TAB_EXTCAR",0, "A");
+        assertVariable(filter.getFirst(), "TAB_EXTCAR",1, "");
+        assertVariable(filter.getFirst(), "TAB_EXTCAR",2, "B");
+
+        filter = externalStub.getMongoStub().get(Constants.MONGODB_EDITED_EXTERNAL_COLLECTION_NAME)
+                .stream().filter(doc -> doc.getInterrogationId().equals("AUTO208")).toList();
+        Assertions.assertThat(filter).hasSize(1);
+        Assertions.assertThat(filter.getFirst().getQuestionnaireId()).isEqualTo(QUESTIONNAIRE_ID_EXTERNAL);
+
+        Assertions.assertThat(filter.getFirst().getVariables()).hasSize(11);
+        assertVariable(filter.getFirst(), "TVA", "");
+        assertVariable(filter.getFirst(), "COM_AUTRE", "");
+        assertVariable(filter.getFirst(), "SECTEUR", "123456789");
+        assertVariable(filter.getFirst(), "INTERRO_N_1", false);
+        assertVariable(filter.getFirst(), "INTERRO_N_2", false);
+        assertVariable(filter.getFirst(), "NAF25", "1014Z");
+        assertVariable(filter.getFirst(), "POIDS", 12);
+        assertVariable(filter.getFirst(), "MILLESIME", "2024");
+        assertVariable(filter.getFirst(), "NSUBST", false);
+        assertVariable(filter.getFirst(), "TAB_EXTNUM",0, 10);
+        assertVariable(filter.getFirst(), "TAB_EXTCAR",0, "C");
+        assertVariable(filter.getFirst(), "TAB_EXTCAR",1, "C");
+    }
+
     //PREVIOUS
     @Test
     @SneakyThrows
