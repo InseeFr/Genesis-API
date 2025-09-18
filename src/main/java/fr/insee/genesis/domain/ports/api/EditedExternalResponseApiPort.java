@@ -5,5 +5,5 @@ import fr.insee.genesis.exceptions.GenesisException;
 import java.io.InputStream;
 
 public interface EditedExternalResponseApiPort {
-    void readEditedExternalFile(InputStream inputStream, String questionnaireId) throws GenesisException;
+    boolean readEditedExternalFile(InputStream inputStream, String questionnaireId) throws GenesisException;
     }

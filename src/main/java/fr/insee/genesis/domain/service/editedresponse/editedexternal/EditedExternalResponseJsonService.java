@@ -34,7 +34,7 @@ public class EditedExternalResponseJsonService implements EditedExternalResponse
     }
 
     @Override
-    public void readEditedExternalFile(InputStream inputStream,
+    public boolean readEditedExternalFile(InputStream inputStream,
                                        String questionnaireId) throws GenesisException {
         JsonFactory jsonFactory = new JsonFactory();
         moveCollectionToBackup(questionnaireId);
@@ -45,7 +45,7 @@ public class EditedExternalResponseJsonService implements EditedExternalResponse
             Set<String> savedInterrogationIds = new HashSet<>();
             if(jsonParser.nextToken() == null){ //skip field name, stop if end of file
                 log.warn("Reached end of file, found no editedExternal part.");
-                return;
+                return false;
             }
             jsonParser.nextToken(); //skip [
             while (jsonParser.currentToken() != JsonToken.END_ARRAY) {
@@ -68,6 +68,7 @@ public class EditedExternalResponseJsonService implements EditedExternalResponse
             savedCount += toSave.size();
             log.info("Reached end of edited external file, saved %d interrogations".formatted(savedCount));
             editedExternalResponsePersistancePort.deleteBackup(questionnaireId);
+            return true;
         }catch (JsonParseException jpe){
             editedExternalResponsePersistancePort.restoreBackup(questionnaireId);
             throw new GenesisException(400, "JSON Parsing exception : %s".formatted(jpe.toString()));

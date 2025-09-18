@@ -167,7 +167,7 @@ class EditedResponseControllerTest {
         Assertions.assertThat(editedResponseModel.editedExternal()).isNotNull().isEmpty();
     }
 
-    //POST
+    //POST ALL FILES OF QUESTIONNAIRE
     @Test
     @SneakyThrows
     void saveEditedResponses_previous_test() {
@@ -180,9 +180,10 @@ class EditedResponseControllerTest {
         );
 
         //WHEN
-        editedResponseController.saveEditedResponses(QUESTIONNAIRE_ID_PREVIOUS);
+        ResponseEntity<Object> response = editedResponseController.saveEditedResponses(QUESTIONNAIRE_ID_PREVIOUS);
 
         //THEN
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(previousStub.getMongoStub().get(Constants.MONGODB_EDITED_PREVIOUS_COLLECTION_NAME)).hasSize(2);
 
         List<EditedPreviousResponseDocument> filter = previousStub.getMongoStub().get(Constants.MONGODB_EDITED_PREVIOUS_COLLECTION_NAME)
@@ -251,9 +252,10 @@ class EditedResponseControllerTest {
         );
 
         //WHEN
-        editedResponseController.saveEditedResponses(QUESTIONNAIRE_ID_EXTERNAL);
+        ResponseEntity<Object> response = editedResponseController.saveEditedResponses(QUESTIONNAIRE_ID_EXTERNAL);
 
         //THEN
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(externalStub.getMongoStub().get(Constants.MONGODB_EDITED_EXTERNAL_COLLECTION_NAME)).hasSize(2);
 
         List<EditedExternalResponseDocument> filter = externalStub.getMongoStub().get(Constants.MONGODB_EDITED_EXTERNAL_COLLECTION_NAME)
@@ -298,6 +300,25 @@ class EditedResponseControllerTest {
         assertVariable(filter.getFirst(), "TAB_EXTNUM",0, 10);
         assertVariable(filter.getFirst(), "TAB_EXTCAR",0, "C");
         assertVariable(filter.getFirst(), "TAB_EXTCAR",1, "C");
+    }
+
+    @Test
+    @SneakyThrows
+    void saveEditedResponses_random_json_test() {
+        //GIVEN
+        Files.createDirectories(SOURCE_PATH_EXTERNAL);
+        Files.copy(
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("edited_external").resolve("random_json.json"),
+                SOURCE_PATH_EXTERNAL.resolve("random_json.json"),
+                StandardCopyOption.REPLACE_EXISTING
+        );
+
+        //WHEN
+        ResponseEntity<Object> response = editedResponseController.saveEditedResponses(QUESTIONNAIRE_ID_EXTERNAL);
+
+        //THEN
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        Assertions.assertThat(externalStub.getMongoStub().get(Constants.MONGODB_EDITED_EXTERNAL_COLLECTION_NAME)).isEmpty();
     }
 
     //PREVIOUS

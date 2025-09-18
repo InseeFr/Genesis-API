@@ -34,7 +34,7 @@ public class EditedPreviousResponseJsonService implements EditedPreviousResponse
     }
 
     @Override
-    public void readEditedPreviousFile(InputStream inputStream,
+    public boolean readEditedPreviousFile(InputStream inputStream,
                                        String questionnaireId,
                                        String sourceState) throws GenesisException {
         checkSourceStateLength(sourceState);
@@ -48,7 +48,7 @@ public class EditedPreviousResponseJsonService implements EditedPreviousResponse
             Set<String> savedInterrogationIds = new HashSet<>();
             if(jsonParser.nextToken() == null){ //skip field name, stop if end of file
                 log.warn("Reached end of file, found no EditedPrevious part.");
-                return;
+                return false;
             }
             jsonParser.nextToken(); //skip [
             while (jsonParser.currentToken() != JsonToken.END_ARRAY) {
@@ -71,6 +71,7 @@ public class EditedPreviousResponseJsonService implements EditedPreviousResponse
             savedCount = saveBlock(toSave, savedCount);
             log.info("Reached end of edited previous file, saved %d interrogations".formatted(savedCount));
             editedPreviousResponsePersistancePort.deleteBackup(questionnaireId);
+            return true;
         }catch (JsonParseException jpe){
             editedPreviousResponsePersistancePort.restoreBackup(questionnaireId);
             throw new GenesisException(400, "JSON Parsing exception : %s".formatted(jpe.toString()));

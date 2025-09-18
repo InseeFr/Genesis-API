@@ -65,10 +65,11 @@ public class EditedResponseController {
                 try(Stream<Path> jsonFilePaths = Files.list(Path.of(fileUtils.getDataFolder(questionnaireId, mode.getFolder()
                         , null))).filter(path -> path.toString().endsWith(".json"))){
                     for(Path jsonFilePath : jsonFilePaths.toList()){
-                        readEditedPreviousFile(questionnaireId.toUpperCase(), null, jsonFilePath.toString());
-                        readEditedExternalFile(questionnaireId.toUpperCase(), jsonFilePath.toString());
-                        moveFile(questionnaireId, mode, fileUtils, jsonFilePath.toString());
-                        fileCount++;
+                        if(processEditedFile(questionnaireId, jsonFilePath)){
+                            //If the file is indeed a edited variables file and had been processed
+                            moveFile(questionnaireId, mode, fileUtils, jsonFilePath.toString());
+                            fileCount++;
+                        }
                     }
                 }catch (NoSuchFileException nsfe) {
                     log.debug(nsfe.toString());
@@ -81,6 +82,14 @@ public class EditedResponseController {
         }catch (GenesisException ge){
             return ResponseEntity.status(HttpStatusCode.valueOf(ge.getStatus())).body(ge.getMessage());
         }
+    }
+
+    /**
+     * @return true if any edited variable part found in file, false otherwise
+     */
+    private boolean processEditedFile(String questionnaireId, Path jsonFilePath) throws GenesisException {
+        return readEditedPreviousFile(questionnaireId.toUpperCase(), null, jsonFilePath.toString())
+                || readEditedExternalFile(questionnaireId.toUpperCase(), jsonFilePath.toString());
     }
 
     @Operation(summary = "Add edited previous json file")
@@ -136,9 +145,9 @@ public class EditedResponseController {
         }
     }
 
-    private void readEditedPreviousFile(String questionnaireId, String sourceState, String filePath) throws GenesisException {
+    private boolean readEditedPreviousFile(String questionnaireId, String sourceState, String filePath) throws GenesisException {
         try (InputStream inputStream = new FileInputStream(filePath)) {
-            editedPreviousResponseApiPort.readEditedPreviousFile(inputStream, questionnaireId, sourceState);
+            return editedPreviousResponseApiPort.readEditedPreviousFile(inputStream, questionnaireId, sourceState);
         } catch (FileNotFoundException e) {
             throw new GenesisException(404, "File %s not found".formatted(filePath));
         } catch (IOException e) {
@@ -146,9 +155,9 @@ public class EditedResponseController {
         }
     }
 
-    private void readEditedExternalFile(String questionnaireId, String filePath) throws GenesisException {
+    private boolean readEditedExternalFile(String questionnaireId, String filePath) throws GenesisException {
         try (InputStream inputStream = new FileInputStream(filePath)) {
-            editedExternalResponseApiPort.readEditedExternalFile(inputStream, questionnaireId);
+            return editedExternalResponseApiPort.readEditedExternalFile(inputStream, questionnaireId);
         } catch (FileNotFoundException e) {
             throw new GenesisException(404, "File %s not found".formatted(filePath));
         } catch (IOException e) {
