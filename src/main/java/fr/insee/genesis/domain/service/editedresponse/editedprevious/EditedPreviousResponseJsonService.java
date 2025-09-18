@@ -34,7 +34,7 @@ public class EditedPreviousResponseJsonService implements EditedPreviousResponse
     }
 
     @Override
-    public void readEditedPreviousFile(InputStream inputStream,
+    public boolean readEditedPreviousFile(InputStream inputStream,
                                        String questionnaireId,
                                        String sourceState) throws GenesisException {
         checkSourceStateLength(sourceState);
@@ -46,7 +46,10 @@ public class EditedPreviousResponseJsonService implements EditedPreviousResponse
             goToEditedPreviousToken(jsonParser);
             long savedCount = 0;
             Set<String> savedInterrogationIds = new HashSet<>();
-            jsonParser.nextToken(); //skip field name
+            if(jsonParser.nextToken() == null){ //skip field name, stop if end of file
+                log.warn("Reached end of file, found no EditedPrevious part.");
+                return false;
+            }
             jsonParser.nextToken(); //skip [
             while (jsonParser.currentToken() != JsonToken.END_ARRAY) {
                 EditedPreviousResponseModel editedPreviousResponseModel = readNextEditedPrevious(
@@ -68,6 +71,7 @@ public class EditedPreviousResponseJsonService implements EditedPreviousResponse
             savedCount = saveBlock(toSave, savedCount);
             log.info("Reached end of edited previous file, saved %d interrogations".formatted(savedCount));
             editedPreviousResponsePersistancePort.deleteBackup(questionnaireId);
+            return true;
         }catch (JsonParseException jpe){
             editedPreviousResponsePersistancePort.restoreBackup(questionnaireId);
             throw new GenesisException(400, "JSON Parsing exception : %s".formatted(jpe.toString()));
@@ -95,12 +99,12 @@ public class EditedPreviousResponseJsonService implements EditedPreviousResponse
         }
     }
 
-    private static void goToEditedPreviousToken(JsonParser jsonParser) throws IOException, GenesisException {
+    private static void goToEditedPreviousToken(JsonParser jsonParser) throws IOException{
         boolean isTokenFound = false;
         while (!isTokenFound){
             jsonParser.nextToken();
             if(jsonParser.currentToken() == null){
-                throw new GenesisException(400, "editedPrevious object not found in JSON");
+                return;
             }
             if(jsonParser.currentToken().equals(JsonToken.FIELD_NAME)
                     && jsonParser.currentName() != null

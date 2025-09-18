@@ -173,4 +173,15 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
         );
     }
 
+    @Override
+    public List<String> getPartitionIds(boolean withReview){
+        List<String> partitionIds = new ArrayList<>();
+        for(DataProcessingContextModel dataProcessingContextModel
+        : DataProcessingContextMapper.INSTANCE.listDocumentToListModel(
+                dataProcessingContextPersistancePort.findAllByReview(withReview)
+        )){
+            partitionIds.add(dataProcessingContextModel.getPartitionId());
+        }
+        return partitionIds;
+    }
 }

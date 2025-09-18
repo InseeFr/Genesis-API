@@ -2,12 +2,14 @@ package fr.insee.genesis.controller.rest.responses;
 
 import fr.insee.genesis.controller.dto.QuestionnaireWithCampaign;
 import fr.insee.genesis.controller.rest.CommonApiResponse;
+import fr.insee.genesis.domain.ports.api.DataProcessingContextApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.exceptions.GenesisException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,18 +24,33 @@ import java.util.Set;
 public class QuestionnaireController implements CommonApiResponse {
 
     private final SurveyUnitApiPort surveyUnitService;
+    private final DataProcessingContextApiPort dataProcessingContextService;
 
 
-    public QuestionnaireController(SurveyUnitApiPort surveyUnitService) {
+    public QuestionnaireController(
+            SurveyUnitApiPort surveyUnitService,
+            DataProcessingContextApiPort dataProcessingContextService
+    ) {
         this.surveyUnitService = surveyUnitService;
+        this.dataProcessingContextService = dataProcessingContextService;
     }
 
 
 
-    @Operation(summary = "List questionnaires in database")
+    @Operation(summary = "List questionnaires from responses database")
     @GetMapping(path = "/")
     public ResponseEntity<Set<String>> getQuestionnaires() {
         Set<String> questionnaires = surveyUnitService.findDistinctQuestionnaireIds();
+        return ResponseEntity.ok(questionnaires);
+    }
+
+    @Operation(summary = "List questionnaires in database that have a context with a specific withReview")
+    @GetMapping(path = "/with-review")
+    @PreAuthorize("hasAnyRole('USER_PLATINE','SCHEDULER')")
+    public ResponseEntity<List<String>> getQuestionnairesWithReview(
+            @RequestParam(value = "withReview") boolean withReview
+    ) {
+        List<String> questionnaires = dataProcessingContextService.getPartitionIds(withReview);
         return ResponseEntity.ok(questionnaires);
     }
 

@@ -22,4 +22,6 @@ public interface DataProcessingContextPersistancePort {
     long count();
 
     List<KraftwerkExecutionSchedule> removeExpiredSchedules(DataProcessingContextModel dataProcessingContextModel);
+
+    List<DataProcessingContextDocument> findAllByReview(boolean withReview);
 }
