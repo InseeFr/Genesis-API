@@ -1,4 +1,9 @@
 # Changelog
+
+## 1.8.6 [2025-09-18]
+### Added
+- print role authorities on endpoint for batch generic for debug purpose
+
 ## 1.8.4 [2025-09-11]
 ### Updated
 - Sonar 5.2.0.4988
