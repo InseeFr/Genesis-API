@@ -24,6 +24,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
@@ -69,7 +70,10 @@ public class EditedResponseController {
                         moveFile(questionnaireId, mode, fileUtils, jsonFilePath.toString());
                         fileCount++;
                     }
-                }catch (IOException ioe){
+                }catch (NoSuchFileException nsfe) {
+                    log.debug(nsfe.toString());
+                }
+                catch (IOException ioe){
                     log.warn(ioe.toString());
                 }
             }
