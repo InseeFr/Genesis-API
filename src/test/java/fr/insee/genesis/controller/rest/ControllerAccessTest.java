@@ -6,6 +6,7 @@ import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.infrastructure.repository.DataProcessingContextMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.EditedExternalResponseMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.EditedPreviousResponseMongoDBRepository;
+import fr.insee.genesis.infrastructure.repository.LastJsonExtractionMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.LunaticJsonMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.LunaticModelMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.QuestionnaireMetadataMongoDBRepository;
@@ -77,6 +78,8 @@ class ControllerAccessTest {
     private LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort;
     @MockitoBean
     private SurveyUnitMongoDBRepository surveyUnitMongoDBRepository;
+    @MockitoBean
+    private LastJsonExtractionMongoDBRepository lastJsonExtractionMongoDBRepository;
     @MockitoBean
     private LunaticJsonMongoDBRepository lunaticJsonMongoDBRepository;
     @MockitoBean

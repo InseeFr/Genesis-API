@@ -2,6 +2,7 @@ package fr.insee.genesis.domain.ports.spi;
 
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -26,6 +27,8 @@ public interface SurveyUnitPersistencePort {
     Stream<SurveyUnitModel> findByQuestionnaireId(String questionnaireId);
 
     List<SurveyUnitModel> findInterrogationIdsByQuestionnaireId(String questionnaireId);
+
+    List<SurveyUnitModel> findInterrogationIdsByQuestionnaireIdAndDateAfter(String questionnaireId, LocalDateTime since);
 
     //======== OPTIMISATIONS PERFS (START) ========
     long countInterrogationIdsByQuestionnaireId(String questionnaireId);
