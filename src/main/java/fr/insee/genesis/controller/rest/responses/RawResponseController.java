@@ -205,7 +205,7 @@ public class RawResponseController {
         log.info("Try to read raw JSONs for campaign {}, with startDate={} and endDate={} - page={} - size={}", campaignId, startDate, endDate,page,size);
         Pageable pageable = PageRequest.of(page, size);
         Page<LunaticJsonRawDataModel> rawResponses = lunaticJsonRawDataApiPort.findRawDataByCampaignIdAndDate(campaignId, startDate, endDate, pageable);
-        log.info("rawResponses=" + rawResponses.getContent().size());
+        log.info("rawResponses={}", rawResponses.getContent().size());
         return ResponseEntity.status(HttpStatus.OK).body(new PagedModel<>(rawResponses));
     }
 
