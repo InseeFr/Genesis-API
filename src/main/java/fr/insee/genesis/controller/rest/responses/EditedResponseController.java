@@ -26,6 +26,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.util.Iterator;
 import java.util.stream.Stream;
 
 @RequestMapping(path = "/edited")
@@ -61,20 +62,24 @@ public class EditedResponseController {
             FileUtils fileUtils = new FileUtils(config);
             int fileCount = 0;
 
-            for(Mode mode : Mode.values()){
-                try(Stream<Path> jsonFilePaths = Files.list(Path.of(fileUtils.getDataFolder(questionnaireId, mode.getFolder()
-                        , null))).filter(path -> path.toString().endsWith(".json"))){
-                    for(Path jsonFilePath : jsonFilePaths.toList()){
-                        if(processEditedFile(questionnaireId, jsonFilePath)){
+            for (Mode mode : Mode.values()) {
+                try (Stream<Path> filePaths = Files.list(Path.of(fileUtils.getDataFolder(questionnaireId,
+                        mode.getFolder()
+                        , null)))) {
+                    Iterator<Path> it = filePaths
+                            .filter(path -> path.toString().endsWith(".json"))
+                            .iterator();
+                    while (it.hasNext()) {
+                        Path jsonFilePath = it.next();
+                        if (processEditedFile(questionnaireId, jsonFilePath)) {
                             //If the file is indeed a edited variables file and had been processed
                             moveFile(questionnaireId, mode, fileUtils, jsonFilePath.toString());
                             fileCount++;
                         }
                     }
-                }catch (NoSuchFileException nsfe) {
+                } catch (NoSuchFileException nsfe) {
                     log.debug(nsfe.toString());
-                }
-                catch (IOException ioe){
+                } catch (IOException ioe) {
                     log.warn(ioe.toString());
                 }
             }
