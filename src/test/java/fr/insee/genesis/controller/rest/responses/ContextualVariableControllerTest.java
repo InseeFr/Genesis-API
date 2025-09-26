@@ -4,17 +4,17 @@ import fr.insee.genesis.Constants;
 import fr.insee.genesis.TestConstants;
 import fr.insee.genesis.controller.dto.VariableQualityToolDto;
 import fr.insee.genesis.controller.dto.VariableStateDto;
-import fr.insee.genesis.domain.model.editedresponse.EditedResponseModel;
+import fr.insee.genesis.domain.model.contextualvariable.ContextualVariableModel;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
-import fr.insee.genesis.domain.service.editedresponse.EditedResponseJsonService;
-import fr.insee.genesis.domain.service.editedresponse.editedexternal.EditedExternalResponseJsonService;
-import fr.insee.genesis.domain.service.editedresponse.editedprevious.EditedPreviousResponseJsonService;
-import fr.insee.genesis.infrastructure.document.editedexternal.EditedExternalResponseDocument;
-import fr.insee.genesis.infrastructure.document.editedprevious.EditedPreviousResponseDocument;
+import fr.insee.genesis.domain.service.contextualvariable.ContextualVariableJsonService;
+import fr.insee.genesis.domain.service.contextualvariable.external.ContextualExternalVariableJsonService;
+import fr.insee.genesis.domain.service.contextualvariable.previous.ContextualPreviousVariableJsonService;
+import fr.insee.genesis.infrastructure.document.contextualexternal.ContextualExternalVariableDocument;
+import fr.insee.genesis.infrastructure.document.contextualprevious.ContextualPreviousVariableDocument;
 import fr.insee.genesis.stubs.ConfigStub;
-import fr.insee.genesis.stubs.EditedExternalResponsePersistancePortStub;
-import fr.insee.genesis.stubs.EditedPreviousResponsePersistancePortStub;
+import fr.insee.genesis.stubs.ContextualExternalVariablePersistancePortStub;
+import fr.insee.genesis.stubs.ContextualPreviousVariablePersistancePortStub;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
@@ -37,28 +37,28 @@ import java.util.List;
 import java.util.Map;
 
 @Slf4j
-class EditedResponseControllerTest {
+class ContextualVariableControllerTest {
 
-    private static final String QUESTIONNAIRE_ID = "TEST-EDITED";
+    private static final String QUESTIONNAIRE_ID = "TEST-CONTEXTUAL";
     private static final String INTERROGATION_ID_1 = "TEST1";
     private static final String INTERROGATION_ID_2 = "TEST2";
 
-    private static final String QUESTIONNAIRE_ID_PREVIOUS = "TEST-EDITED-PREVIOUS";
-    private static final String QUESTIONNAIRE_ID_EXTERNAL = "TEST-EDITED-EXTERNAL";
+    private static final String QUESTIONNAIRE_ID_PREVIOUS = "TEST-CONTEXTUAL-PREVIOUS";
+    private static final String QUESTIONNAIRE_ID_EXTERNAL = "TEST-CONTEXTUAL-EXTERNAL";
     private static final Path SOURCE_PATH_PREVIOUS =
             Path.of(TestConstants.TEST_RESOURCES_DIRECTORY,"IN", Mode.WEB.getFolder()).resolve(QUESTIONNAIRE_ID_PREVIOUS);
     private static final Path SOURCE_PATH_EXTERNAL =
             Path.of(TestConstants.TEST_RESOURCES_DIRECTORY,"IN", Mode.WEB.getFolder()).resolve(QUESTIONNAIRE_ID_EXTERNAL);
 
-    private static final EditedPreviousResponsePersistancePortStub previousStub =
-            new EditedPreviousResponsePersistancePortStub();
-    private static final EditedExternalResponsePersistancePortStub externalStub =
-            new EditedExternalResponsePersistancePortStub();
+    private static final ContextualPreviousVariablePersistancePortStub previousStub =
+            new ContextualPreviousVariablePersistancePortStub();
+    private static final ContextualExternalVariablePersistancePortStub externalStub =
+            new ContextualExternalVariablePersistancePortStub();
 
-    private final EditedResponseController editedResponseController = new EditedResponseController(
-            new EditedPreviousResponseJsonService(previousStub),
-            new EditedExternalResponseJsonService(externalStub),
-            new EditedResponseJsonService(
+    private final ContextualVariableController contextualVariableController = new ContextualVariableController(
+            new ContextualPreviousVariableJsonService(previousStub),
+            new ContextualExternalVariableJsonService(externalStub),
+            new ContextualVariableJsonService(
                     previousStub,
                     externalStub
             ),
@@ -74,119 +74,119 @@ class EditedResponseControllerTest {
         previousStub.getMongoStub().clear();
         externalStub.getMongoStub().clear();
 
-        previousStub.getMongoStub().put(Constants.MONGODB_EDITED_PREVIOUS_COLLECTION_NAME, new ArrayList<>());
-        externalStub.getMongoStub().put(Constants.MONGODB_EDITED_EXTERNAL_COLLECTION_NAME, new ArrayList<>());
+        previousStub.getMongoStub().put(Constants.MONGODB_CONTEXTUAL_PREVIOUS_COLLECTION_NAME, new ArrayList<>());
+        externalStub.getMongoStub().put(Constants.MONGODB_CONTEXTUAL_EXTERNAL_COLLECTION_NAME, new ArrayList<>());
     }
 
     //OK CASES
     //GET
     @Test
-    void getEditedResponses_test() {
+    void getContextualVariables_test() {
         //GIVEN
-        previousStub.getMongoStub().get(Constants.MONGODB_EDITED_PREVIOUS_COLLECTION_NAME).addAll(
-                getEditedPreviousTestDocuments()
+        previousStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_PREVIOUS_COLLECTION_NAME).addAll(
+                getContextualPreviousTestDocuments()
         );
-        externalStub.getMongoStub().get(Constants.MONGODB_EDITED_EXTERNAL_COLLECTION_NAME).addAll(
-                getEditedExternalTestDocuments()
+        externalStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_EXTERNAL_COLLECTION_NAME).addAll(
+                getContextualExternalTestDocuments()
         );
 
         //WHEN
-        ResponseEntity<Object> response = editedResponseController.getEditedResponses(QUESTIONNAIRE_ID, INTERROGATION_ID_1);
+        ResponseEntity<Object> response = contextualVariableController.getContextualVariables(QUESTIONNAIRE_ID, INTERROGATION_ID_1);
 
         //THEN
         if(!response.getStatusCode().is2xxSuccessful()){
             log.error((String)response.getBody());
         }
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(response.getBody()).isInstanceOf(EditedResponseModel.class);
+        Assertions.assertThat(response.getBody()).isInstanceOf(ContextualVariableModel.class);
 
-        EditedPreviousResponseDocument editedPreviousResponseDocument = previousStub.getMongoStub().get(Constants.MONGODB_EDITED_PREVIOUS_COLLECTION_NAME).stream().filter(
-                editedPreviousResponseDocument1 ->
-                        editedPreviousResponseDocument1.getQuestionnaireId().equals(QUESTIONNAIRE_ID)
-                                && editedPreviousResponseDocument1.getInterrogationId().equals(INTERROGATION_ID_1)
+        ContextualPreviousVariableDocument contextualPreviousVariableDocument = previousStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_PREVIOUS_COLLECTION_NAME).stream().filter(
+                contextualPreviousVariableDocument1 ->
+                        contextualPreviousVariableDocument1.getQuestionnaireId().equals(QUESTIONNAIRE_ID)
+                                && contextualPreviousVariableDocument1.getInterrogationId().equals(INTERROGATION_ID_1)
         ).toList().getFirst();
-        EditedExternalResponseDocument editedExternalResponseDocument =
-                externalStub.getMongoStub().get(Constants.MONGODB_EDITED_EXTERNAL_COLLECTION_NAME).stream().filter(
-                        editedExternalResponseDocument1 ->
-                                editedExternalResponseDocument1.getQuestionnaireId().equals(QUESTIONNAIRE_ID)
-                                        && editedExternalResponseDocument1.getInterrogationId().equals(INTERROGATION_ID_1)
+        ContextualExternalVariableDocument contextualExternalVariableDocument =
+                externalStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_EXTERNAL_COLLECTION_NAME).stream().filter(
+                        contextualExternalVariableDocument1 ->
+                                contextualExternalVariableDocument1.getQuestionnaireId().equals(QUESTIONNAIRE_ID)
+                                        && contextualExternalVariableDocument1.getInterrogationId().equals(INTERROGATION_ID_1)
                 ).toList().getFirst();
-        EditedResponseModel editedResponseModel = (EditedResponseModel) response.getBody();
-        Assertions.assertThat(editedResponseModel.interrogationId()).isEqualTo(INTERROGATION_ID_1);
-        assertDocumentEqualToDto(editedPreviousResponseDocument, editedResponseModel);
-        assertDocumentEqualToDto(editedExternalResponseDocument, editedResponseModel);
+        ContextualVariableModel contextualVariableModel = (ContextualVariableModel) response.getBody();
+        Assertions.assertThat(contextualVariableModel.interrogationId()).isEqualTo(INTERROGATION_ID_1);
+        assertDocumentEqualToDto(contextualPreviousVariableDocument, contextualVariableModel);
+        assertDocumentEqualToDto(contextualExternalVariableDocument, contextualVariableModel);
     }
 
     @Test
-    void getEditedResponses_test_no_external() {
+    void getContextualVariables_test_no_external() {
         //GIVEN
-        previousStub.getMongoStub().get(Constants.MONGODB_EDITED_PREVIOUS_COLLECTION_NAME).addAll(
-                getEditedPreviousTestDocuments()
+        previousStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_PREVIOUS_COLLECTION_NAME).addAll(
+                getContextualPreviousTestDocuments()
         );
-        externalStub.getMongoStub().get(Constants.MONGODB_EDITED_EXTERNAL_COLLECTION_NAME).addAll(
-                getEditedExternalTestDocuments()
+        externalStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_EXTERNAL_COLLECTION_NAME).addAll(
+                getContextualExternalTestDocuments()
         );
 
         //WHEN
-        ResponseEntity<Object> response = editedResponseController.getEditedResponses(QUESTIONNAIRE_ID, INTERROGATION_ID_2);
+        ResponseEntity<Object> response = contextualVariableController.getContextualVariables(QUESTIONNAIRE_ID, INTERROGATION_ID_2);
 
         //THEN
         if(!response.getStatusCode().is2xxSuccessful()){
             log.error((String)response.getBody());
         }
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(response.getBody()).isInstanceOf(EditedResponseModel.class);
+        Assertions.assertThat(response.getBody()).isInstanceOf(ContextualVariableModel.class);
 
-        EditedPreviousResponseDocument editedPreviousResponseDocument = previousStub.getMongoStub().get(Constants.MONGODB_EDITED_PREVIOUS_COLLECTION_NAME).stream().filter(
-                editedPreviousResponseDocument1 ->
-                        editedPreviousResponseDocument1.getQuestionnaireId().equals(QUESTIONNAIRE_ID)
-                                && editedPreviousResponseDocument1.getInterrogationId().equals(INTERROGATION_ID_2)
+        ContextualPreviousVariableDocument contextualPreviousVariableDocument = previousStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_PREVIOUS_COLLECTION_NAME).stream().filter(
+                contextualPreviousVariableDocument1 ->
+                        contextualPreviousVariableDocument1.getQuestionnaireId().equals(QUESTIONNAIRE_ID)
+                                && contextualPreviousVariableDocument1.getInterrogationId().equals(INTERROGATION_ID_2)
         ).toList().getFirst();
 
-        EditedResponseModel editedResponseModel = (EditedResponseModel) response.getBody();
-        Assertions.assertThat(editedResponseModel.interrogationId()).isEqualTo(INTERROGATION_ID_2);
-        assertDocumentEqualToDto(editedPreviousResponseDocument, editedResponseModel);
-        Assertions.assertThat(editedResponseModel.editedExternal()).isNotNull().isEmpty();
+        ContextualVariableModel contextualVariableModel = (ContextualVariableModel) response.getBody();
+        Assertions.assertThat(contextualVariableModel.interrogationId()).isEqualTo(INTERROGATION_ID_2);
+        assertDocumentEqualToDto(contextualPreviousVariableDocument, contextualVariableModel);
+        Assertions.assertThat(contextualVariableModel.contextualExternal()).isNotNull().isEmpty();
     }
 
     @Test
-    void getEditedResponses_test_not_found(){
+    void getContextualVariables_test_not_found(){
         //GIVEN
         //Empty stubs from clean()
 
         //WHEN
-        ResponseEntity<Object> response = editedResponseController.getEditedResponses(QUESTIONNAIRE_ID,
+        ResponseEntity<Object> response = contextualVariableController.getContextualVariables(QUESTIONNAIRE_ID,
                 INTERROGATION_ID_1);
 
         //THEN
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(response.getBody()).isInstanceOf(EditedResponseModel.class);
-        EditedResponseModel editedResponseModel = (EditedResponseModel) response.getBody();
-        Assertions.assertThat(editedResponseModel.interrogationId()).isEqualTo(INTERROGATION_ID_1);
-        Assertions.assertThat(editedResponseModel.editedPrevious()).isNotNull().isEmpty();
-        Assertions.assertThat(editedResponseModel.editedExternal()).isNotNull().isEmpty();
+        Assertions.assertThat(response.getBody()).isInstanceOf(ContextualVariableModel.class);
+        ContextualVariableModel contextualVariableModel = (ContextualVariableModel) response.getBody();
+        Assertions.assertThat(contextualVariableModel.interrogationId()).isEqualTo(INTERROGATION_ID_1);
+        Assertions.assertThat(contextualVariableModel.contextualPrevious()).isNotNull().isEmpty();
+        Assertions.assertThat(contextualVariableModel.contextualExternal()).isNotNull().isEmpty();
     }
 
     //POST ALL FILES OF QUESTIONNAIRE
     @Test
     @SneakyThrows
-    void saveEditedResponses_previous_test() {
+    void saveContextualVariables_previous_test() {
         //GIVEN
         Files.createDirectories(SOURCE_PATH_PREVIOUS);
         Files.copy(
-                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("edited_previous").resolve("ok.json"),
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("contextual_previous").resolve("ok.json"),
                 SOURCE_PATH_PREVIOUS.resolve("ok.json"),
                 StandardCopyOption.REPLACE_EXISTING
         );
 
         //WHEN
-        ResponseEntity<Object> response = editedResponseController.saveEditedResponses(QUESTIONNAIRE_ID_PREVIOUS);
+        ResponseEntity<Object> response = contextualVariableController.saveContextualVariables(QUESTIONNAIRE_ID_PREVIOUS);
 
         //THEN
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(previousStub.getMongoStub().get(Constants.MONGODB_EDITED_PREVIOUS_COLLECTION_NAME)).hasSize(2);
+        Assertions.assertThat(previousStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_PREVIOUS_COLLECTION_NAME)).hasSize(2);
 
-        List<EditedPreviousResponseDocument> filter = previousStub.getMongoStub().get(Constants.MONGODB_EDITED_PREVIOUS_COLLECTION_NAME)
+        List<ContextualPreviousVariableDocument> filter = previousStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_PREVIOUS_COLLECTION_NAME)
                 .stream().filter(doc -> doc.getInterrogationId().equals("AUTO104")).toList();
         Assertions.assertThat(filter).hasSize(1);
         Assertions.assertThat(filter.getFirst().getSourceState()).isNull();
@@ -214,7 +214,7 @@ class EditedResponseControllerTest {
         assertVariableNull(filter.getFirst(), "TABOFATS3",1);
         assertVariable(filter.getFirst(), "TABOFATS3",2, 3);
 
-        filter = previousStub.getMongoStub().get(Constants.MONGODB_EDITED_PREVIOUS_COLLECTION_NAME)
+        filter = previousStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_PREVIOUS_COLLECTION_NAME)
                 .stream().filter(doc -> doc.getInterrogationId().equals("AUTO108")).toList();
         Assertions.assertThat(filter).hasSize(1);
             Assertions.assertThat(filter.getFirst().getSourceState()).isNull();
@@ -242,23 +242,23 @@ class EditedResponseControllerTest {
 
     @Test
     @SneakyThrows
-    void saveEditedResponses_external_test() {
+    void saveContextualVariables_external_test() {
         //GIVEN
         Files.createDirectories(SOURCE_PATH_EXTERNAL);
         Files.copy(
-                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("edited_external").resolve("ok.json"),
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("contextual_external").resolve("ok.json"),
                 SOURCE_PATH_EXTERNAL.resolve("ok.json"),
                 StandardCopyOption.REPLACE_EXISTING
         );
 
         //WHEN
-        ResponseEntity<Object> response = editedResponseController.saveEditedResponses(QUESTIONNAIRE_ID_EXTERNAL);
+        ResponseEntity<Object> response = contextualVariableController.saveContextualVariables(QUESTIONNAIRE_ID_EXTERNAL);
 
         //THEN
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(externalStub.getMongoStub().get(Constants.MONGODB_EDITED_EXTERNAL_COLLECTION_NAME)).hasSize(2);
+        Assertions.assertThat(externalStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_EXTERNAL_COLLECTION_NAME)).hasSize(2);
 
-        List<EditedExternalResponseDocument> filter = externalStub.getMongoStub().get(Constants.MONGODB_EDITED_EXTERNAL_COLLECTION_NAME)
+        List<ContextualExternalVariableDocument> filter = externalStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_EXTERNAL_COLLECTION_NAME)
                 .stream().filter(doc -> doc.getInterrogationId().equals("AUTO204")).toList();
         Assertions.assertThat(filter).hasSize(1);
 
@@ -282,7 +282,7 @@ class EditedResponseControllerTest {
         assertVariable(filter.getFirst(), "TAB_EXTCAR",1, "");
         assertVariable(filter.getFirst(), "TAB_EXTCAR",2, "B");
 
-        filter = externalStub.getMongoStub().get(Constants.MONGODB_EDITED_EXTERNAL_COLLECTION_NAME)
+        filter = externalStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_EXTERNAL_COLLECTION_NAME)
                 .stream().filter(doc -> doc.getInterrogationId().equals("AUTO208")).toList();
         Assertions.assertThat(filter).hasSize(1);
         Assertions.assertThat(filter.getFirst().getQuestionnaireId()).isEqualTo(QUESTIONNAIRE_ID_EXTERNAL);
@@ -304,21 +304,21 @@ class EditedResponseControllerTest {
 
     @Test
     @SneakyThrows
-    void saveEditedResponses_random_json_test() {
+    void saveContextualVariables_random_json_test() {
         //GIVEN
         Files.createDirectories(SOURCE_PATH_EXTERNAL);
         Files.copy(
-                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("edited_external").resolve("random_json.json"),
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("contextual_external").resolve("random_json.json"),
                 SOURCE_PATH_EXTERNAL.resolve("random_json.json"),
                 StandardCopyOption.REPLACE_EXISTING
         );
 
         //WHEN
-        ResponseEntity<Object> response = editedResponseController.saveEditedResponses(QUESTIONNAIRE_ID_EXTERNAL);
+        ResponseEntity<Object> response = contextualVariableController.saveContextualVariables(QUESTIONNAIRE_ID_EXTERNAL);
 
         //THEN
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(externalStub.getMongoStub().get(Constants.MONGODB_EDITED_EXTERNAL_COLLECTION_NAME)).isEmpty();
+        Assertions.assertThat(externalStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_EXTERNAL_COLLECTION_NAME)).isEmpty();
     }
 
     //PREVIOUS
@@ -339,18 +339,18 @@ class EditedResponseControllerTest {
         //GIVEN
         Files.createDirectories(SOURCE_PATH_PREVIOUS);
         Files.copy(
-                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("edited_previous").resolve("ok.json"),
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("contextual_previous").resolve("ok.json"),
                 SOURCE_PATH_PREVIOUS.resolve("ok.json"),
                 StandardCopyOption.REPLACE_EXISTING
         );
 
         //WHEN
-        editedResponseController.readEditedPreviousJson(QUESTIONNAIRE_ID_PREVIOUS, Mode.WEB, sourceState, "ok.json");
+        contextualVariableController.readContextualPreviousJson(QUESTIONNAIRE_ID_PREVIOUS, Mode.WEB, sourceState, "ok.json");
 
         //THEN
-        Assertions.assertThat(previousStub.getMongoStub().get(Constants.MONGODB_EDITED_PREVIOUS_COLLECTION_NAME)).hasSize(2);
+        Assertions.assertThat(previousStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_PREVIOUS_COLLECTION_NAME)).hasSize(2);
 
-        List<EditedPreviousResponseDocument> filter = previousStub.getMongoStub().get(Constants.MONGODB_EDITED_PREVIOUS_COLLECTION_NAME)
+        List<ContextualPreviousVariableDocument> filter = previousStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_PREVIOUS_COLLECTION_NAME)
                 .stream().filter(doc -> doc.getInterrogationId().equals("AUTO104")).toList();
         Assertions.assertThat(filter).hasSize(1);
         if(sourceState == null){
@@ -382,7 +382,7 @@ class EditedResponseControllerTest {
         assertVariableNull(filter.getFirst(), "TABOFATS3",1);
         assertVariable(filter.getFirst(), "TABOFATS3",2, 3);
 
-        filter = previousStub.getMongoStub().get(Constants.MONGODB_EDITED_PREVIOUS_COLLECTION_NAME)
+        filter = previousStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_PREVIOUS_COLLECTION_NAME)
                 .stream().filter(doc -> doc.getInterrogationId().equals("AUTO108")).toList();
         Assertions.assertThat(filter).hasSize(1);
         if(sourceState == null){
@@ -418,26 +418,26 @@ class EditedResponseControllerTest {
         //GIVEN
         Files.createDirectories(SOURCE_PATH_PREVIOUS);
         Files.copy(
-                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("edited_previous").resolve("ok.json"),
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("contextual_previous").resolve("ok.json"),
                 SOURCE_PATH_PREVIOUS.resolve("ok.json"),
                 StandardCopyOption.REPLACE_EXISTING
         );
-        editedResponseController.readEditedPreviousJson(QUESTIONNAIRE_ID_PREVIOUS, Mode.WEB, null, "ok.json");
+        contextualVariableController.readContextualPreviousJson(QUESTIONNAIRE_ID_PREVIOUS, Mode.WEB, null, "ok.json");
         Files.createDirectories(SOURCE_PATH_PREVIOUS);
         Files.copy(
-                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("edited_previous").resolve("ok2.json"),
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("contextual_previous").resolve("ok2.json"),
                 SOURCE_PATH_PREVIOUS.resolve("ok2.json"),
                 StandardCopyOption.REPLACE_EXISTING
         );
 
         //WHEN
-        editedResponseController.readEditedPreviousJson(QUESTIONNAIRE_ID_PREVIOUS, Mode.WEB, null, "ok2.json");
+        contextualVariableController.readContextualPreviousJson(QUESTIONNAIRE_ID_PREVIOUS, Mode.WEB, null, "ok2.json");
 
         //THEN
-        Assertions.assertThat(previousStub.getMongoStub().get(Constants.MONGODB_EDITED_PREVIOUS_COLLECTION_NAME)).hasSize(2);
+        Assertions.assertThat(previousStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_PREVIOUS_COLLECTION_NAME)).hasSize(2);
 
-        List<EditedPreviousResponseDocument> filter =
-                previousStub.getMongoStub().get(Constants.MONGODB_EDITED_PREVIOUS_COLLECTION_NAME)
+        List<ContextualPreviousVariableDocument> filter =
+                previousStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_PREVIOUS_COLLECTION_NAME)
                 .stream().filter(doc -> doc.getInterrogationId().equals("AUTO104")).toList();
         Assertions.assertThat(filter).hasSize(1);
         Assertions.assertThat(filter.getFirst().getQuestionnaireId()).isEqualTo(QUESTIONNAIRE_ID_PREVIOUS);
@@ -464,7 +464,7 @@ class EditedResponseControllerTest {
         assertVariableNull(filter.getFirst(), "TABOFATS3",1);
         assertVariable(filter.getFirst(), "TABOFATS3",2, 3);
 
-        filter = previousStub.getMongoStub().get(Constants.MONGODB_EDITED_PREVIOUS_COLLECTION_NAME)
+        filter = previousStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_PREVIOUS_COLLECTION_NAME)
                 .stream().filter(doc -> doc.getInterrogationId().equals("AUTO200")).toList();
         Assertions.assertThat(filter).hasSize(1);
         Assertions.assertThat(filter.getFirst().getQuestionnaireId()).isEqualTo(QUESTIONNAIRE_ID_PREVIOUS);
@@ -488,7 +488,7 @@ class EditedResponseControllerTest {
         assertVariable(filter.getFirst(), "TABOFATS3",1, 4);
         assertVariable(filter.getFirst(), "TABOFATS3",2, 0);
 
-        filter = previousStub.getMongoStub().get(Constants.MONGODB_EDITED_PREVIOUS_COLLECTION_NAME)
+        filter = previousStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_PREVIOUS_COLLECTION_NAME)
                 .stream().filter(doc -> doc.getInterrogationId().equals("AUTO108")).toList();
         Assertions.assertThat(filter).isEmpty();
     }
@@ -501,13 +501,13 @@ class EditedResponseControllerTest {
         String fileName = "ok.json";
         Files.createDirectories(SOURCE_PATH_PREVIOUS);
         Files.copy(
-                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("edited_previous").resolve(fileName),
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("contextual_previous").resolve(fileName),
                 SOURCE_PATH_PREVIOUS.resolve(fileName),
                 StandardCopyOption.REPLACE_EXISTING
         );
 
         //WHEN + THEN
-        ResponseEntity<Object> response = editedResponseController.readEditedPreviousJson(QUESTIONNAIRE_ID_PREVIOUS, Mode.WEB, sourceState,
+        ResponseEntity<Object> response = contextualVariableController.readContextualPreviousJson(QUESTIONNAIRE_ID_PREVIOUS, Mode.WEB, sourceState,
                 fileName);
         Assertions.assertThat(response.getStatusCode().value()).isEqualTo(400);
     }
@@ -519,13 +519,13 @@ class EditedResponseControllerTest {
         //GIVEN
         Files.createDirectories(SOURCE_PATH_PREVIOUS);
         Files.copy(
-                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("edited_previous").resolve(syntaxErrorFileName),
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("contextual_previous").resolve(syntaxErrorFileName),
                 SOURCE_PATH_PREVIOUS.resolve(syntaxErrorFileName),
                 StandardCopyOption.REPLACE_EXISTING
         );
 
         //WHEN + THEN
-        ResponseEntity<Object> response = editedResponseController.readEditedPreviousJson(QUESTIONNAIRE_ID_PREVIOUS, Mode.WEB, null,
+        ResponseEntity<Object> response = contextualVariableController.readContextualPreviousJson(QUESTIONNAIRE_ID_PREVIOUS, Mode.WEB, null,
                 syntaxErrorFileName);
         Assertions.assertThat(response.getStatusCode().value()).isEqualTo(400);
     }
@@ -536,13 +536,13 @@ class EditedResponseControllerTest {
         //GIVEN
         Files.createDirectories(SOURCE_PATH_PREVIOUS);
         Files.copy(
-                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("edited_previous").resolve(syntaxErrorFileName),
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("contextual_previous").resolve(syntaxErrorFileName),
                 SOURCE_PATH_PREVIOUS.resolve(syntaxErrorFileName),
                 StandardCopyOption.REPLACE_EXISTING
         );
 
         //WHEN + THEN
-        ResponseEntity<Object> response = editedResponseController.readEditedPreviousJson(QUESTIONNAIRE_ID_PREVIOUS, Mode.WEB, null,
+        ResponseEntity<Object> response = contextualVariableController.readContextualPreviousJson(QUESTIONNAIRE_ID_PREVIOUS, Mode.WEB, null,
                 syntaxErrorFileName);
         Assertions.assertThat(response.getStatusCode().value()).isEqualTo(400);
     }
@@ -556,13 +556,13 @@ class EditedResponseControllerTest {
         //GIVEN
         Files.createDirectories(SOURCE_PATH_PREVIOUS);
         Files.copy(
-                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("edited_previous").resolve(fileName),
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("contextual_previous").resolve(fileName),
                 SOURCE_PATH_PREVIOUS.resolve(fileName),
                 StandardCopyOption.REPLACE_EXISTING
         );
 
         //WHEN + THEN
-        ResponseEntity<Object> response = editedResponseController.readEditedPreviousJson(QUESTIONNAIRE_ID_PREVIOUS, Mode.WEB, null, fileName);
+        ResponseEntity<Object> response = contextualVariableController.readContextualPreviousJson(QUESTIONNAIRE_ID_PREVIOUS, Mode.WEB, null, fileName);
         Assertions.assertThat(response.getStatusCode().value()).isEqualTo(400);
     }
 
@@ -574,18 +574,18 @@ class EditedResponseControllerTest {
         //GIVEN
         Files.createDirectories(SOURCE_PATH_EXTERNAL);
         Files.copy(
-                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("edited_external").resolve("ok.json"),
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("contextual_external").resolve("ok.json"),
                 SOURCE_PATH_EXTERNAL.resolve("ok.json"),
                 StandardCopyOption.REPLACE_EXISTING
         );
 
         //WHEN
-        editedResponseController.readEditedExternalJson(QUESTIONNAIRE_ID_EXTERNAL, Mode.WEB, "ok.json");
+        contextualVariableController.readContextualExternalJson(QUESTIONNAIRE_ID_EXTERNAL, Mode.WEB, "ok.json");
 
         //THEN
-        Assertions.assertThat(externalStub.getMongoStub().get(Constants.MONGODB_EDITED_EXTERNAL_COLLECTION_NAME)).hasSize(2);
+        Assertions.assertThat(externalStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_EXTERNAL_COLLECTION_NAME)).hasSize(2);
 
-        List<EditedExternalResponseDocument> filter = externalStub.getMongoStub().get(Constants.MONGODB_EDITED_EXTERNAL_COLLECTION_NAME)
+        List<ContextualExternalVariableDocument> filter = externalStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_EXTERNAL_COLLECTION_NAME)
                 .stream().filter(doc -> doc.getInterrogationId().equals("AUTO204")).toList();
         Assertions.assertThat(filter).hasSize(1);
 
@@ -609,7 +609,7 @@ class EditedResponseControllerTest {
         assertVariable(filter.getFirst(), "TAB_EXTCAR",1, "");
         assertVariable(filter.getFirst(), "TAB_EXTCAR",2, "B");
 
-        filter = externalStub.getMongoStub().get(Constants.MONGODB_EDITED_EXTERNAL_COLLECTION_NAME)
+        filter = externalStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_EXTERNAL_COLLECTION_NAME)
                 .stream().filter(doc -> doc.getInterrogationId().equals("AUTO208")).toList();
         Assertions.assertThat(filter).hasSize(1);
         Assertions.assertThat(filter.getFirst().getQuestionnaireId()).isEqualTo(QUESTIONNAIRE_ID_EXTERNAL);
@@ -635,26 +635,26 @@ class EditedResponseControllerTest {
         //GIVEN
         Files.createDirectories(SOURCE_PATH_EXTERNAL);
         Files.copy(
-                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("edited_external").resolve("ok.json"),
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("contextual_external").resolve("ok.json"),
                 SOURCE_PATH_EXTERNAL.resolve("ok.json"),
                 StandardCopyOption.REPLACE_EXISTING
         );
-        editedResponseController.readEditedExternalJson(QUESTIONNAIRE_ID_EXTERNAL, Mode.WEB, "ok.json");
+        contextualVariableController.readContextualExternalJson(QUESTIONNAIRE_ID_EXTERNAL, Mode.WEB, "ok.json");
         Files.createDirectories(SOURCE_PATH_EXTERNAL);
         Files.copy(
-                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("edited_external").resolve("ok2.json"),
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("contextual_external").resolve("ok2.json"),
                 SOURCE_PATH_EXTERNAL.resolve("ok2.json"),
                 StandardCopyOption.REPLACE_EXISTING
         );
 
         //WHEN
-        editedResponseController.readEditedExternalJson(QUESTIONNAIRE_ID_EXTERNAL, Mode.WEB, "ok2.json");
+        contextualVariableController.readContextualExternalJson(QUESTIONNAIRE_ID_EXTERNAL, Mode.WEB, "ok2.json");
 
         //THEN
-        Assertions.assertThat(externalStub.getMongoStub().get(Constants.MONGODB_EDITED_EXTERNAL_COLLECTION_NAME)).hasSize(2);
+        Assertions.assertThat(externalStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_EXTERNAL_COLLECTION_NAME)).hasSize(2);
 
-        List<EditedExternalResponseDocument> filter =
-                externalStub.getMongoStub().get(Constants.MONGODB_EDITED_EXTERNAL_COLLECTION_NAME)
+        List<ContextualExternalVariableDocument> filter =
+                externalStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_EXTERNAL_COLLECTION_NAME)
                 .stream().filter(doc -> doc.getInterrogationId().equals("AUTO204")).toList();
         Assertions.assertThat(filter).hasSize(1);
         Assertions.assertThat(filter.getFirst().getQuestionnaireId()).isEqualTo(QUESTIONNAIRE_ID_EXTERNAL);
@@ -677,7 +677,7 @@ class EditedResponseControllerTest {
         assertVariable(filter.getFirst(), "TAB_EXTCAR",1, "");
         assertVariable(filter.getFirst(), "TAB_EXTCAR",2, "B");
 
-        filter = externalStub.getMongoStub().get(Constants.MONGODB_EDITED_EXTERNAL_COLLECTION_NAME)
+        filter = externalStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_EXTERNAL_COLLECTION_NAME)
                 .stream().filter(doc -> doc.getInterrogationId().equals("AUTO200")).toList();
         Assertions.assertThat(filter).hasSize(1);
         Assertions.assertThat(filter.getFirst().getQuestionnaireId()).isEqualTo(QUESTIONNAIRE_ID_EXTERNAL);
@@ -709,54 +709,54 @@ class EditedResponseControllerTest {
         //GIVEN
         Files.createDirectories(SOURCE_PATH_EXTERNAL);
         Files.copy(
-                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("edited_external").resolve(fileName),
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("contextual_external").resolve(fileName),
                 SOURCE_PATH_EXTERNAL.resolve(fileName),
                 StandardCopyOption.REPLACE_EXISTING
         );
 
         //WHEN + THEN
-        ResponseEntity<Object> response = editedResponseController.readEditedExternalJson(QUESTIONNAIRE_ID_EXTERNAL, Mode.WEB, fileName);
+        ResponseEntity<Object> response = contextualVariableController.readContextualExternalJson(QUESTIONNAIRE_ID_EXTERNAL, Mode.WEB, fileName);
         Assertions.assertThat(response.getStatusCode().value()).isEqualTo(400);
     }
 
     //UTILS
     //THEN
-    private static void assertVariable(EditedPreviousResponseDocument document,
+    private static void assertVariable(ContextualPreviousVariableDocument document,
                                        String variableName,
                                        String expectedValue
     ) {
         Assertions.assertThat(document.getVariables().get(variableName)).isNotNull().isEqualTo(expectedValue);
     }
 
-    private static void assertVariable(EditedPreviousResponseDocument document,
+    private static void assertVariable(ContextualPreviousVariableDocument document,
                                        String variableName,
                                        double expectedValue
     ) {
         Assertions.assertThat(document.getVariables().get(variableName)).isNotNull().isInstanceOf(Double.class).isEqualTo(expectedValue);
     }
 
-    private static void assertVariable(EditedPreviousResponseDocument document,
+    private static void assertVariable(ContextualPreviousVariableDocument document,
                                        String variableName,
                                        boolean expectedValue
     ) {
         Assertions.assertThat(document.getVariables().get(variableName)).isNotNull().isInstanceOf(Boolean.class).isEqualTo(expectedValue);
     }
 
-    private static void assertVariable(EditedPreviousResponseDocument document,
+    private static void assertVariable(ContextualPreviousVariableDocument document,
                                        String variableName,
                                        int expectedValue
     ) {
         Assertions.assertThat(document.getVariables().get(variableName)).isNotNull().isInstanceOf(Integer.class).isEqualTo(expectedValue);
     }
 
-    private static void assertVariableNull(EditedPreviousResponseDocument document,
+    private static void assertVariableNull(ContextualPreviousVariableDocument document,
                                            String variableName
     ) {
         Assertions.assertThat(document.getVariables().get(variableName)).isNull();
     }
 
     @SuppressWarnings("unchecked")
-    private static void assertVariableNull(EditedPreviousResponseDocument document,
+    private static void assertVariableNull(ContextualPreviousVariableDocument document,
                                            String arrayVariableName,
                                            int index
     ) {
@@ -767,7 +767,7 @@ class EditedResponseControllerTest {
     }
 
     @SuppressWarnings("unchecked")
-    private static void assertVariable(EditedPreviousResponseDocument document,
+    private static void assertVariable(ContextualPreviousVariableDocument document,
                                        String arrayVariableName,
                                        int index,
                                        String expectedValue
@@ -781,7 +781,7 @@ class EditedResponseControllerTest {
     }
 
     @SuppressWarnings("unchecked")
-    private static void assertVariable(EditedPreviousResponseDocument document,
+    private static void assertVariable(ContextualPreviousVariableDocument document,
                                        String arrayVariableName,
                                        int index,
                                        int expectedValue
@@ -794,98 +794,98 @@ class EditedResponseControllerTest {
         Assertions.assertThat((Integer)list.get(index)).isInstanceOf(Integer.class).isEqualTo(expectedValue);
     }
 
-    private List<EditedPreviousResponseDocument> getEditedPreviousTestDocuments() {
-        List<EditedPreviousResponseDocument> editedPreviousResponseDocumentList = new ArrayList<>();
+    private List<ContextualPreviousVariableDocument> getContextualPreviousTestDocuments() {
+        List<ContextualPreviousVariableDocument> contextualPreviousVariableDocumentList = new ArrayList<>();
 
-        EditedPreviousResponseDocument editedPreviousResponseDocument = new EditedPreviousResponseDocument();
-        editedPreviousResponseDocument.setQuestionnaireId(QUESTIONNAIRE_ID);
-        editedPreviousResponseDocument.setInterrogationId(INTERROGATION_ID_1);
-        editedPreviousResponseDocument.setVariables(new HashMap<>());
-        editedPreviousResponseDocument.getVariables().put("TEXTECOURT", "");
-        editedPreviousResponseDocument.getVariables().put("TEXTELONG", "test d'une donnée antérieure sur un texte long pour voir comment ça marche");
-        editedPreviousResponseDocument.getVariables().put("FLOAT", 50.25d);
-        editedPreviousResponseDocument.getVariables().put("INTEGER", null);
-        editedPreviousResponseDocument.getVariables().put("BOOLEEN", true);
-        editedPreviousResponseDocument.getVariables().put("DROPDOWN", "03");
-        editedPreviousResponseDocument.getVariables().put("QCM_B1", true);
-        editedPreviousResponseDocument.getVariables().put("QCM_B2", false);
-        editedPreviousResponseDocument.getVariables().put("QCM_B4", true);
-        editedPreviousResponseDocument.getVariables().put("TABLEAU2A11", 200);
-        editedPreviousResponseDocument.getVariables().put("TABLEAU2A12", 150);
-        editedPreviousResponseDocument.getVariables().put("TABLEAU2A23", 1000);
-        editedPreviousResponseDocument.getVariables().put("TABLEAU2A24", null);
-        editedPreviousResponseDocument.getVariables().put("TABOFATS1", List.of("AA","","BB","CC"));
-        editedPreviousResponseDocument.getVariables().put("TABOFATS3", Arrays.asList(5,null,3));
-        editedPreviousResponseDocumentList.add(editedPreviousResponseDocument);
+        ContextualPreviousVariableDocument contextualPreviousVariableDocument = new ContextualPreviousVariableDocument();
+        contextualPreviousVariableDocument.setQuestionnaireId(QUESTIONNAIRE_ID);
+        contextualPreviousVariableDocument.setInterrogationId(INTERROGATION_ID_1);
+        contextualPreviousVariableDocument.setVariables(new HashMap<>());
+        contextualPreviousVariableDocument.getVariables().put("TEXTECOURT", "");
+        contextualPreviousVariableDocument.getVariables().put("TEXTELONG", "test d'une donnée antérieure sur un texte long pour voir comment ça marche");
+        contextualPreviousVariableDocument.getVariables().put("FLOAT", 50.25d);
+        contextualPreviousVariableDocument.getVariables().put("INTEGER", null);
+        contextualPreviousVariableDocument.getVariables().put("BOOLEEN", true);
+        contextualPreviousVariableDocument.getVariables().put("DROPDOWN", "03");
+        contextualPreviousVariableDocument.getVariables().put("QCM_B1", true);
+        contextualPreviousVariableDocument.getVariables().put("QCM_B2", false);
+        contextualPreviousVariableDocument.getVariables().put("QCM_B4", true);
+        contextualPreviousVariableDocument.getVariables().put("TABLEAU2A11", 200);
+        contextualPreviousVariableDocument.getVariables().put("TABLEAU2A12", 150);
+        contextualPreviousVariableDocument.getVariables().put("TABLEAU2A23", 1000);
+        contextualPreviousVariableDocument.getVariables().put("TABLEAU2A24", null);
+        contextualPreviousVariableDocument.getVariables().put("TABOFATS1", List.of("AA","","BB","CC"));
+        contextualPreviousVariableDocument.getVariables().put("TABOFATS3", Arrays.asList(5,null,3));
+        contextualPreviousVariableDocumentList.add(contextualPreviousVariableDocument);
 
-        editedPreviousResponseDocument = new EditedPreviousResponseDocument();
-        editedPreviousResponseDocument.setQuestionnaireId(QUESTIONNAIRE_ID);
-        editedPreviousResponseDocument.setInterrogationId(INTERROGATION_ID_2);
-        editedPreviousResponseDocument.setVariables(new HashMap<>());
-        editedPreviousResponseDocument.getVariables().put("TEXTECOURT", "test previous");
-        editedPreviousResponseDocument.getVariables().put("TEXTELONG", "");
-        editedPreviousResponseDocument.getVariables().put("FLOAT", 12.2d);
-        editedPreviousResponseDocument.getVariables().put("BOOLEEN", false);
-        editedPreviousResponseDocument.getVariables().put("DROPDOWN", "");
-        editedPreviousResponseDocument.getVariables().put("QCM_B1", false);
-        editedPreviousResponseDocument.getVariables().put("QCM_B2", false);
-        editedPreviousResponseDocument.getVariables().put("QCM_B5", true);
-        editedPreviousResponseDocument.getVariables().put("TABLEAU2A11", 1);
-        editedPreviousResponseDocument.getVariables().put("TABLEAU2A12", 2);
-        editedPreviousResponseDocument.getVariables().put("TABLEAU2A23", 3);
-        editedPreviousResponseDocument.getVariables().put("TABLEAU2A24", 4);
-        editedPreviousResponseDocument.getVariables().put("TABOFATS1", List.of("BB","BB"));
-        editedPreviousResponseDocument.getVariables().put("TABOFATS3", List.of(10,4,0));
-        editedPreviousResponseDocumentList.add(editedPreviousResponseDocument);
+        contextualPreviousVariableDocument = new ContextualPreviousVariableDocument();
+        contextualPreviousVariableDocument.setQuestionnaireId(QUESTIONNAIRE_ID);
+        contextualPreviousVariableDocument.setInterrogationId(INTERROGATION_ID_2);
+        contextualPreviousVariableDocument.setVariables(new HashMap<>());
+        contextualPreviousVariableDocument.getVariables().put("TEXTECOURT", "test previous");
+        contextualPreviousVariableDocument.getVariables().put("TEXTELONG", "");
+        contextualPreviousVariableDocument.getVariables().put("FLOAT", 12.2d);
+        contextualPreviousVariableDocument.getVariables().put("BOOLEEN", false);
+        contextualPreviousVariableDocument.getVariables().put("DROPDOWN", "");
+        contextualPreviousVariableDocument.getVariables().put("QCM_B1", false);
+        contextualPreviousVariableDocument.getVariables().put("QCM_B2", false);
+        contextualPreviousVariableDocument.getVariables().put("QCM_B5", true);
+        contextualPreviousVariableDocument.getVariables().put("TABLEAU2A11", 1);
+        contextualPreviousVariableDocument.getVariables().put("TABLEAU2A12", 2);
+        contextualPreviousVariableDocument.getVariables().put("TABLEAU2A23", 3);
+        contextualPreviousVariableDocument.getVariables().put("TABLEAU2A24", 4);
+        contextualPreviousVariableDocument.getVariables().put("TABOFATS1", List.of("BB","BB"));
+        contextualPreviousVariableDocument.getVariables().put("TABOFATS3", List.of(10,4,0));
+        contextualPreviousVariableDocumentList.add(contextualPreviousVariableDocument);
 
-        return editedPreviousResponseDocumentList;
+        return contextualPreviousVariableDocumentList;
     }
 
-    private List<EditedExternalResponseDocument> getEditedExternalTestDocuments() {
-        List<EditedExternalResponseDocument> editedExternalResponseDocumentList = new ArrayList<>();
+    private List<ContextualExternalVariableDocument> getContextualExternalTestDocuments() {
+        List<ContextualExternalVariableDocument> contextualExternalVariableDocumentList = new ArrayList<>();
 
-        EditedExternalResponseDocument editedExternalResponseDocument = new EditedExternalResponseDocument();
-        editedExternalResponseDocument.setQuestionnaireId(QUESTIONNAIRE_ID);
-        editedExternalResponseDocument.setInterrogationId(INTERROGATION_ID_1);
-        editedExternalResponseDocument.setVariables(new HashMap<>());
-        editedExternalResponseDocument.getVariables().put("TVA", 302.34d);
-        editedExternalResponseDocument.getVariables().put("CA", 22.45d);
-        editedExternalResponseDocument.getVariables().put("COM_AUTRE", "blablablabla");
-        editedExternalResponseDocument.getVariables().put("SECTEUR", "110110110");
-        editedExternalResponseDocument.getVariables().put("CATEGORIE", "");
-        editedExternalResponseDocument.getVariables().put("INTERRO_N_1", true);
-        editedExternalResponseDocument.getVariables().put("INTERRO_N_2", false);
-        editedExternalResponseDocument.getVariables().put("NAF25", "9560Y");
-        editedExternalResponseDocument.getVariables().put("POIDS", null);
-        editedExternalResponseDocument.getVariables().put("MILLESIME", "2024");
-        editedExternalResponseDocument.getVariables().put("NSUBST", true);
-        editedExternalResponseDocument.getVariables().put("TAB_EXTNUM", Arrays.asList(50,23,10,null));
-        editedExternalResponseDocument.getVariables().put("TAB_EXTCAR", Arrays.asList("A", "", "B"));
-        editedExternalResponseDocumentList.add(editedExternalResponseDocument);
-        return editedExternalResponseDocumentList;
+        ContextualExternalVariableDocument contextualExternalVariableDocument = new ContextualExternalVariableDocument();
+        contextualExternalVariableDocument.setQuestionnaireId(QUESTIONNAIRE_ID);
+        contextualExternalVariableDocument.setInterrogationId(INTERROGATION_ID_1);
+        contextualExternalVariableDocument.setVariables(new HashMap<>());
+        contextualExternalVariableDocument.getVariables().put("TVA", 302.34d);
+        contextualExternalVariableDocument.getVariables().put("CA", 22.45d);
+        contextualExternalVariableDocument.getVariables().put("COM_AUTRE", "blablablabla");
+        contextualExternalVariableDocument.getVariables().put("SECTEUR", "110110110");
+        contextualExternalVariableDocument.getVariables().put("CATEGORIE", "");
+        contextualExternalVariableDocument.getVariables().put("INTERRO_N_1", true);
+        contextualExternalVariableDocument.getVariables().put("INTERRO_N_2", false);
+        contextualExternalVariableDocument.getVariables().put("NAF25", "9560Y");
+        contextualExternalVariableDocument.getVariables().put("POIDS", null);
+        contextualExternalVariableDocument.getVariables().put("MILLESIME", "2024");
+        contextualExternalVariableDocument.getVariables().put("NSUBST", true);
+        contextualExternalVariableDocument.getVariables().put("TAB_EXTNUM", Arrays.asList(50,23,10,null));
+        contextualExternalVariableDocument.getVariables().put("TAB_EXTCAR", Arrays.asList("A", "", "B"));
+        contextualExternalVariableDocumentList.add(contextualExternalVariableDocument);
+        return contextualExternalVariableDocumentList;
     }
 
 
-    private void assertDocumentEqualToDto(EditedPreviousResponseDocument editedPreviousResponseDocument,
-                                          EditedResponseModel editedResponseModel) {
+    private void assertDocumentEqualToDto(ContextualPreviousVariableDocument contextualPreviousVariableDocument,
+                                          ContextualVariableModel contextualVariableModel) {
         //For each variable of document
-        for (Map.Entry<String, Object> documentVariable : editedPreviousResponseDocument.getVariables().entrySet()) {
-            //Get edited previous dtos of that variable (1 per iteration)
+        for (Map.Entry<String, Object> documentVariable : contextualPreviousVariableDocument.getVariables().entrySet()) {
+            //Get contextual previous dtos of that variable (1 per iteration)
             List<VariableQualityToolDto> variableQualityToolDtosOfEntry =
-                    editedResponseModel.editedPrevious().stream().filter(
+                    contextualVariableModel.contextualPrevious().stream().filter(
                             variableQualityToolDto -> variableQualityToolDto.getVariableName().equals(documentVariable.getKey())
                     ).toList();
             assertEntryEqualToDto(documentVariable, variableQualityToolDtosOfEntry);
         }
     }
 
-    private void assertDocumentEqualToDto(EditedExternalResponseDocument editedExternalResponseDocument,
-                                          EditedResponseModel editedResponseModel) {
+    private void assertDocumentEqualToDto(ContextualExternalVariableDocument contextualExternalVariableDocument,
+                                          ContextualVariableModel contextualVariableModel) {
         //For each variable of document
-        for (Map.Entry<String, Object> documentVariable : editedExternalResponseDocument.getVariables().entrySet()) {
-            //Get edited previous dtos of that variable (1 per iteration)
+        for (Map.Entry<String, Object> documentVariable : contextualExternalVariableDocument.getVariables().entrySet()) {
+            //Get contextual previous dtos of that variable (1 per iteration)
             List<VariableQualityToolDto> variableQualityToolDtosOfEntry =
-                    editedResponseModel.editedExternal().stream().filter(
+                    contextualVariableModel.contextualExternal().stream().filter(
                             variableQualityToolDto -> variableQualityToolDto.getVariableName().equals(documentVariable.getKey())
                     ).toList();
             assertEntryEqualToDto(documentVariable, variableQualityToolDtosOfEntry);
@@ -926,28 +926,28 @@ class EditedResponseControllerTest {
         }
     }
 
-    private static void assertVariable(EditedExternalResponseDocument document,
+    private static void assertVariable(ContextualExternalVariableDocument document,
                                        String variableName,
                                        String expectedValue
     ) {
         Assertions.assertThat(document.getVariables().get(variableName)).isNotNull().isEqualTo(expectedValue);
     }
 
-    private static void assertVariable(EditedExternalResponseDocument document,
+    private static void assertVariable(ContextualExternalVariableDocument document,
                                        String variableName,
                                        double expectedValue
     ) {
         Assertions.assertThat(document.getVariables().get(variableName)).isNotNull().isInstanceOf(Double.class).isEqualTo(expectedValue);
     }
 
-    private static void assertVariable(EditedExternalResponseDocument document,
+    private static void assertVariable(ContextualExternalVariableDocument document,
                                        String variableName,
                                        boolean expectedValue
     ) {
         Assertions.assertThat(document.getVariables().get(variableName)).isNotNull().isInstanceOf(Boolean.class).isEqualTo(expectedValue);
     }
 
-    private static void assertVariable(EditedExternalResponseDocument document,
+    private static void assertVariable(ContextualExternalVariableDocument document,
                                        String variableName,
                                        int expectedValue
     ) {
@@ -955,7 +955,7 @@ class EditedResponseControllerTest {
     }
 
     @SuppressWarnings("unchecked")
-    private static void assertVariableNull(EditedExternalResponseDocument document,
+    private static void assertVariableNull(ContextualExternalVariableDocument document,
                                            String arrayVariableName,
                                            int index
     ) {
@@ -966,7 +966,7 @@ class EditedResponseControllerTest {
     }
 
     @SuppressWarnings("unchecked")
-    private static void assertVariable(EditedExternalResponseDocument document,
+    private static void assertVariable(ContextualExternalVariableDocument document,
                                        String arrayVariableName,
                                        int index,
                                        String expectedValue
@@ -980,7 +980,7 @@ class EditedResponseControllerTest {
     }
 
     @SuppressWarnings("unchecked")
-    private static void assertVariable(EditedExternalResponseDocument document,
+    private static void assertVariable(ContextualExternalVariableDocument document,
                                        String arrayVariableName,
                                        int index,
                                        int expectedValue

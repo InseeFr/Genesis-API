@@ -1,12 +1,12 @@
-package fr.insee.genesis.domain.service.editedresponse.editedprevious;
+package fr.insee.genesis.domain.service.contextualvariable.previous;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
-import fr.insee.genesis.domain.model.editedresponse.EditedPreviousResponseModel;
-import fr.insee.genesis.domain.ports.api.EditedPreviousResponseApiPort;
-import fr.insee.genesis.domain.ports.spi.EditedPreviousResponsePersistancePort;
+import fr.insee.genesis.domain.model.contextualvariable.ContextualPreviousVariableModel;
+import fr.insee.genesis.domain.ports.api.ContextualPreviousVariableApiPort;
+import fr.insee.genesis.domain.ports.spi.ContextualPreviousVariablePersistancePort;
 import fr.insee.genesis.domain.utils.JsonUtils;
 import fr.insee.genesis.exceptions.GenesisException;
 import lombok.extern.slf4j.Slf4j;
@@ -23,18 +23,18 @@ import java.util.Set;
 
 @Service
 @Slf4j
-public class EditedPreviousResponseJsonService implements EditedPreviousResponseApiPort {
-    private final EditedPreviousResponsePersistancePort editedPreviousResponsePersistancePort;
+public class ContextualPreviousVariableJsonService implements ContextualPreviousVariableApiPort {
+    private final ContextualPreviousVariablePersistancePort contextualPreviousVariablePersistancePort;
 
     private static final int BLOCK_SIZE = 1000;
 
     @Autowired
-    public EditedPreviousResponseJsonService(EditedPreviousResponsePersistancePort editedPreviousResponsePersistancePort) {
-        this.editedPreviousResponsePersistancePort = editedPreviousResponsePersistancePort;
+    public ContextualPreviousVariableJsonService(ContextualPreviousVariablePersistancePort contextualPreviousVariablePersistancePort) {
+        this.contextualPreviousVariablePersistancePort = contextualPreviousVariablePersistancePort;
     }
 
     @Override
-    public boolean readEditedPreviousFile(InputStream inputStream,
+    public boolean readContextualPreviousFile(InputStream inputStream,
                                        String questionnaireId,
                                        String sourceState) throws GenesisException {
         checkSourceStateLength(sourceState);
@@ -42,7 +42,7 @@ public class EditedPreviousResponseJsonService implements EditedPreviousResponse
 
         JsonFactory jsonFactory = new JsonFactory();
         try(JsonParser jsonParser = jsonFactory.createParser(inputStream)){
-            List<EditedPreviousResponseModel> toSave = new ArrayList<>();
+            List<ContextualPreviousVariableModel> toSave = new ArrayList<>();
             goToEditedPreviousToken(jsonParser);
             long savedCount = 0;
             Set<String> savedInterrogationIds = new HashSet<>();
@@ -52,16 +52,16 @@ public class EditedPreviousResponseJsonService implements EditedPreviousResponse
             }
             jsonParser.nextToken(); //skip [
             while (jsonParser.currentToken() != JsonToken.END_ARRAY) {
-                EditedPreviousResponseModel editedPreviousResponseModel = readNextEditedPrevious(
+                ContextualPreviousVariableModel contextualPreviousVariableModel = readNextContextualPrevious(
                         jsonParser,
                         questionnaireId,
                         sourceState
                 );
 
-                checkModel(editedPreviousResponseModel, jsonParser, savedInterrogationIds);
+                checkModel(contextualPreviousVariableModel, jsonParser, savedInterrogationIds);
 
-                toSave.add(editedPreviousResponseModel);
-                savedInterrogationIds.add(editedPreviousResponseModel.getInterrogationId());
+                toSave.add(contextualPreviousVariableModel);
+                savedInterrogationIds.add(contextualPreviousVariableModel.getInterrogationId());
 
                 if(toSave.size() >= BLOCK_SIZE){
                     savedCount = saveBlock(toSave, savedCount);
@@ -69,28 +69,28 @@ public class EditedPreviousResponseJsonService implements EditedPreviousResponse
                 jsonParser.nextToken();
             }
             savedCount = saveBlock(toSave, savedCount);
-            log.info("Reached end of edited previous file, saved %d interrogations".formatted(savedCount));
-            editedPreviousResponsePersistancePort.deleteBackup(questionnaireId);
+            log.info("Reached end of contextual previous file, saved %d interrogations".formatted(savedCount));
+            contextualPreviousVariablePersistancePort.deleteBackup(questionnaireId);
             return true;
         }catch (JsonParseException jpe){
-            editedPreviousResponsePersistancePort.restoreBackup(questionnaireId);
+            contextualPreviousVariablePersistancePort.restoreBackup(questionnaireId);
             throw new GenesisException(400, "JSON Parsing exception : %s".formatted(jpe.toString()));
         }catch (IOException ioe){
-            editedPreviousResponsePersistancePort.restoreBackup(questionnaireId);
+            contextualPreviousVariablePersistancePort.restoreBackup(questionnaireId);
             throw new GenesisException(500, ioe.toString());
         }
     }
 
-    private long saveBlock(List<EditedPreviousResponseModel> toSave, long savedCount) {
-        editedPreviousResponsePersistancePort.saveAll(toSave);
+    private long saveBlock(List<ContextualPreviousVariableModel> toSave, long savedCount) {
+        contextualPreviousVariablePersistancePort.saveAll(toSave);
         savedCount += toSave.size();
         toSave.clear();
         return savedCount;
     }
 
     private void moveCollectionToBackup(String questionnaireId) {
-        editedPreviousResponsePersistancePort.backup(questionnaireId);
-        editedPreviousResponsePersistancePort.delete(questionnaireId);
+        contextualPreviousVariablePersistancePort.backup(questionnaireId);
+        contextualPreviousVariablePersistancePort.delete(questionnaireId);
     }
 
     private static void checkSourceStateLength(String sourceState) throws GenesisException {
@@ -114,14 +114,14 @@ public class EditedPreviousResponseJsonService implements EditedPreviousResponse
         }
     }
 
-    private EditedPreviousResponseModel readNextEditedPrevious(JsonParser jsonParser,
+    private ContextualPreviousVariableModel readNextContextualPrevious(JsonParser jsonParser,
                                                                String questionnaireId,
                                                                String sourceState
                                                                ) throws IOException {
         if(jsonParser.currentToken() != JsonToken.START_OBJECT){
             throw new JsonParseException("Expected { on line %d, got token %s".formatted(jsonParser.currentLocation().getLineNr(), jsonParser.currentToken()));
         }
-        EditedPreviousResponseModel editedPreviousResponseModel = EditedPreviousResponseModel.builder()
+        ContextualPreviousVariableModel contextualPreviousVariableModel = ContextualPreviousVariableModel.builder()
                 .questionnaireId(questionnaireId)
                 .sourceState(sourceState)
                 .variables(new HashMap<>())
@@ -130,18 +130,18 @@ public class EditedPreviousResponseJsonService implements EditedPreviousResponse
         while (!jsonParser.currentToken().equals(JsonToken.END_OBJECT)){
             if(jsonParser.currentToken().equals(JsonToken.FIELD_NAME) && jsonParser.currentName().equals("interrogationId")){
                 jsonParser.nextToken();
-                editedPreviousResponseModel.setInterrogationId(jsonParser.getText());
+                contextualPreviousVariableModel.setInterrogationId(jsonParser.getText());
                 jsonParser.nextToken();
                 continue;
             }
             jsonParser.nextToken();
-            editedPreviousResponseModel.getVariables().put(
+            contextualPreviousVariableModel.getVariables().put(
                     jsonParser.currentName(),
                     JsonUtils.readValue(jsonParser)
             );
             jsonParser.nextToken();
         }
-        return editedPreviousResponseModel;
+        return contextualPreviousVariableModel;
     }
 
     private Object readValue(JsonParser jsonParser) throws IOException{
@@ -180,16 +180,16 @@ public class EditedPreviousResponseJsonService implements EditedPreviousResponse
         return list;
     }
 
-    private static void checkModel(EditedPreviousResponseModel editedPreviousResponseModel, JsonParser jsonParser, Set<String> savedInterrogationIds) throws GenesisException {
-        if(editedPreviousResponseModel.getInterrogationId() == null){
+    private static void checkModel(ContextualPreviousVariableModel contextualPreviousVariableModel, JsonParser jsonParser, Set<String> savedInterrogationIds) throws GenesisException {
+        if(contextualPreviousVariableModel.getInterrogationId() == null){
             throw new GenesisException(400,
                     "Missing interrogationId on the object that ends on line %d"
                             .formatted(jsonParser.currentLocation().getLineNr())
             );
         }
-        if(savedInterrogationIds.contains(editedPreviousResponseModel.getInterrogationId())){
+        if(savedInterrogationIds.contains(contextualPreviousVariableModel.getInterrogationId())){
             throw new GenesisException(400,
-                    "Double interrogationId : %s".formatted(editedPreviousResponseModel.getInterrogationId()));
+                    "Double interrogationId : %s".formatted(contextualPreviousVariableModel.getInterrogationId()));
         }
     }
 }
