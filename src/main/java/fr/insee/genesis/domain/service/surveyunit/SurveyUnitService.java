@@ -275,6 +275,14 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         return suIds.stream().distinct().toList();
     }
 
+    @Override
+    public List<InterrogationId> findDistinctInterrogationIdsByQuestionnaireIdAndDateAfter(String questionnaireId, LocalDateTime since) {
+        List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findInterrogationIdsByQuestionnaireIdAndDateAfter(questionnaireId, since);
+        List<InterrogationId> suIds = new ArrayList<>();
+        surveyUnitModels.forEach(surveyUnitModel -> suIds.add(new InterrogationId(surveyUnitModel.getInterrogationId())));
+        return suIds.stream().distinct().toList();
+    }
+
     //============ OPTIMISATIONS PERFS (START) ============
 
     /**
