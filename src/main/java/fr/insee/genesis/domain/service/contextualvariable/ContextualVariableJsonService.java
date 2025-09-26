@@ -6,26 +6,37 @@ import fr.insee.genesis.domain.model.contextualvariable.ContextualExternalVariab
 import fr.insee.genesis.domain.model.contextualvariable.ContextualPreviousVariableModel;
 import fr.insee.genesis.domain.model.contextualvariable.ContextualVariableModel;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
+import fr.insee.genesis.domain.model.surveyunit.Mode;
+import fr.insee.genesis.domain.ports.api.ContextualExternalVariableApiPort;
+import fr.insee.genesis.domain.ports.api.ContextualPreviousVariableApiPort;
 import fr.insee.genesis.domain.ports.api.ContextualVariableApiPort;
-import fr.insee.genesis.domain.ports.spi.ContextualExternalVariablePersistancePort;
-import fr.insee.genesis.domain.ports.spi.ContextualPreviousVariablePersistancePort;
+import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.infrastructure.utils.FileUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 @Service
+@Slf4j
 public class ContextualVariableJsonService implements ContextualVariableApiPort {
-    private final ContextualPreviousVariablePersistancePort contextualPreviousVariablePersistancePort;
-    private final ContextualExternalVariablePersistancePort contextualExternalVariablePersistancePort;
+    private final ContextualPreviousVariableApiPort contextualPreviousVariableApiPort;
+    private final ContextualExternalVariableApiPort contextualExternalVariableApiPort;
 
     @Autowired
-    public ContextualVariableJsonService(ContextualPreviousVariablePersistancePort contextualPreviousVariablePersistancePort, ContextualExternalVariablePersistancePort contextualExternalVariablePersistancePort) {
-        this.contextualPreviousVariablePersistancePort = contextualPreviousVariablePersistancePort;
-        this.contextualExternalVariablePersistancePort = contextualExternalVariablePersistancePort;
+    public ContextualVariableJsonService(ContextualPreviousVariableApiPort contextualPreviousVariableApiPort, ContextualExternalVariableApiPort contextualExternalVariableApiPort) {
+        this.contextualPreviousVariableApiPort = contextualPreviousVariableApiPort;
+        this.contextualExternalVariableApiPort = contextualExternalVariableApiPort;
     }
 
     @Override
@@ -37,7 +48,7 @@ public class ContextualVariableJsonService implements ContextualVariableApiPort 
                 .build();
 
         ContextualPreviousVariableModel contextualPreviousVariableModel =
-                        contextualPreviousVariablePersistancePort.findByQuestionnaireIdAndInterrogationId(
+                        contextualPreviousVariableApiPort.findByQuestionnaireIdAndInterrogationId(
                                 questionnaireId,
                                 interrogationId
                         );
@@ -49,7 +60,7 @@ public class ContextualVariableJsonService implements ContextualVariableApiPort 
         }
 
         ContextualExternalVariableModel contextualExternalVariableModel =
-                        contextualExternalVariablePersistancePort.findByQuestionnaireIdAndInterrogationId(
+                        contextualExternalVariableApiPort.findByQuestionnaireIdAndInterrogationId(
                                 questionnaireId,
                                 interrogationId
                         );
@@ -61,6 +72,42 @@ public class ContextualVariableJsonService implements ContextualVariableApiPort 
         }
 
         return contextualVariableModel;
+    }
+
+    @Override
+    public int saveContextualVariableFiles(String questionnaireId, FileUtils fileUtils) throws GenesisException {
+        int fileCount = 0;
+
+        for (Mode mode : Mode.values()) {
+            try (Stream<Path> filePaths = Files.list(Path.of(fileUtils.getDataFolder(questionnaireId,
+                    mode.getFolder()
+                    , null)))) {
+                Iterator<Path> it = filePaths
+                        .filter(path -> path.toString().endsWith(".json"))
+                        .iterator();
+                while (it.hasNext()) {
+                    Path jsonFilePath = it.next();
+                    if (processContextualVariableFile(questionnaireId, jsonFilePath)) {
+                        //If the file is indeed a contextual variables file and had been processed
+                        moveFile(questionnaireId, mode, fileUtils, jsonFilePath.toString());
+                        fileCount++;
+                    }
+                }
+            } catch (NoSuchFileException nsfe) {
+                log.debug(nsfe.toString());
+            } catch (IOException ioe) {
+                log.warn(ioe.toString());
+            }
+        }
+        return fileCount;
+    }
+
+    private static void moveFile(String questionnaireId, Mode mode, FileUtils fileUtils, String filePath) throws GenesisException {
+        try {
+            fileUtils.moveFiles(Path.of(filePath), fileUtils.getDoneFolder(questionnaireId, mode.getFolder()));
+        } catch (IOException e) {
+            throw new GenesisException(500, "Error while moving file to done : %s".formatted(e.toString()));
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -97,4 +144,17 @@ public class ContextualVariableJsonService implements ContextualVariableApiPort 
         return variableQualityToolDto;
     }
 
+    /**
+     * @return true if any contextual variable part found in file, false otherwise
+     */
+    private boolean processContextualVariableFile(String questionnaireId, Path jsonFilePath) throws GenesisException {
+        return contextualPreviousVariableApiPort.readContextualPreviousFile(
+                questionnaireId.toUpperCase(),
+                null,
+                jsonFilePath.toString()
+        ) || contextualExternalVariableApiPort.readContextualExternalFile(
+                questionnaireId.toUpperCase(),
+                jsonFilePath.toString()
+        );
+    }
 }

@@ -13,8 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,41 +34,42 @@ public class ContextualExternalVariableJsonService implements ContextualExternal
     }
 
     @Override
-    public boolean readContextualExternalFile(InputStream inputStream,
-                                       String questionnaireId) throws GenesisException {
-        JsonFactory jsonFactory = new JsonFactory();
-        moveCollectionToBackup(questionnaireId);
-        try(JsonParser jsonParser = jsonFactory.createParser(inputStream)){
-            List<ContextualExternalVariableModel> toSave = new ArrayList<>();
-            goToContextualExternalToken(jsonParser);
-            long savedCount = 0;
-            Set<String> savedInterrogationIds = new HashSet<>();
-            if(jsonParser.nextToken() == null){ //skip field name, stop if end of file
-                log.warn("Reached end of file, found no contextualExternal part.");
-                return false;
-            }
-            jsonParser.nextToken(); //skip [
-            while (jsonParser.currentToken() != JsonToken.END_ARRAY) {
-                ContextualExternalVariableModel contextualExternalVariableModel = readNextContextualExternal(
-                        jsonParser,
-                        questionnaireId
-                );
-
-                checkModel(contextualExternalVariableModel, jsonParser, savedInterrogationIds);
-
-                toSave.add(contextualExternalVariableModel);
-                savedInterrogationIds.add(contextualExternalVariableModel.getInterrogationId());
-
-                if(toSave.size() >= BLOCK_SIZE){
-                    savedCount = saveBlock(toSave, savedCount);
+    public boolean readContextualExternalFile(String questionnaireId, String filePath) throws GenesisException {
+        try(FileInputStream inputStream = new FileInputStream(filePath)){
+            JsonFactory jsonFactory = new JsonFactory();
+            moveCollectionToBackup(questionnaireId);
+            try(JsonParser jsonParser = jsonFactory.createParser(inputStream)){
+                List<ContextualExternalVariableModel> toSave = new ArrayList<>();
+                goToContextualExternalToken(jsonParser);
+                long savedCount = 0;
+                Set<String> savedInterrogationIds = new HashSet<>();
+                if(jsonParser.nextToken() == null){ //skip field name, stop if end of file
+                    log.warn("Reached end of file, found no contextualExternal part.");
+                    return false;
                 }
-                jsonParser.nextToken();
+                jsonParser.nextToken(); //skip [
+                while (jsonParser.currentToken() != JsonToken.END_ARRAY) {
+                    ContextualExternalVariableModel contextualExternalVariableModel = readNextContextualExternal(
+                            jsonParser,
+                            questionnaireId
+                    );
+
+                    checkModel(contextualExternalVariableModel, jsonParser, savedInterrogationIds);
+
+                    toSave.add(contextualExternalVariableModel);
+                    savedInterrogationIds.add(contextualExternalVariableModel.getInterrogationId());
+
+                    if(toSave.size() >= BLOCK_SIZE){
+                        savedCount = saveBlock(toSave, savedCount);
+                    }
+                    jsonParser.nextToken();
+                }
+                contextualExternalVariablePersistancePort.saveAll(toSave);
+                savedCount += toSave.size();
+                log.info("Reached end of contextual external file, saved %d interrogations".formatted(savedCount));
+                contextualExternalVariablePersistancePort.deleteBackup(questionnaireId);
+                return true;
             }
-            contextualExternalVariablePersistancePort.saveAll(toSave);
-            savedCount += toSave.size();
-            log.info("Reached end of contextual external file, saved %d interrogations".formatted(savedCount));
-            contextualExternalVariablePersistancePort.deleteBackup(questionnaireId);
-            return true;
         }catch (JsonParseException jpe){
             contextualExternalVariablePersistancePort.restoreBackup(questionnaireId);
             throw new GenesisException(400, "JSON Parsing exception : %s".formatted(jpe.toString()));
@@ -76,6 +77,11 @@ public class ContextualExternalVariableJsonService implements ContextualExternal
             contextualExternalVariablePersistancePort.restoreBackup(questionnaireId);
             throw new GenesisException(500, ioe.toString());
         }
+    }
+
+    @Override
+    public ContextualExternalVariableModel findByQuestionnaireIdAndInterrogationId(String questionnaireId, String interrogationId) {
+        return contextualExternalVariablePersistancePort.findByQuestionnaireIdAndInterrogationId(questionnaireId, interrogationId);
     }
 
     private static void goToContextualExternalToken(JsonParser jsonParser) throws IOException{

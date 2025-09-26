@@ -19,15 +19,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.util.Iterator;
-import java.util.stream.Stream;
 
 @RequestMapping(path = "/contextual-variable")
 @Controller
@@ -60,41 +53,11 @@ public class ContextualVariableController {
     ){
         try {
             FileUtils fileUtils = new FileUtils(config);
-            int fileCount = 0;
-
-            for (Mode mode : Mode.values()) {
-                try (Stream<Path> filePaths = Files.list(Path.of(fileUtils.getDataFolder(questionnaireId,
-                        mode.getFolder()
-                        , null)))) {
-                    Iterator<Path> it = filePaths
-                            .filter(path -> path.toString().endsWith(".json"))
-                            .iterator();
-                    while (it.hasNext()) {
-                        Path jsonFilePath = it.next();
-                        if (processContextualFile(questionnaireId, jsonFilePath)) {
-                            //If the file is indeed a contextual variables file and had been processed
-                            moveFile(questionnaireId, mode, fileUtils, jsonFilePath.toString());
-                            fileCount++;
-                        }
-                    }
-                } catch (NoSuchFileException nsfe) {
-                    log.debug(nsfe.toString());
-                } catch (IOException ioe) {
-                    log.warn(ioe.toString());
-                }
-            }
+            int fileCount = contextualVariableApiPort.saveContextualVariableFiles(questionnaireId, fileUtils);
             return ResponseEntity.ok("%d file(s) processed for questionnaire %s !".formatted(fileCount, questionnaireId));
         }catch (GenesisException ge){
             return ResponseEntity.status(HttpStatusCode.valueOf(ge.getStatus())).body(ge.getMessage());
         }
-    }
-
-    /**
-     * @return true if any contextual variable part found in file, false otherwise
-     */
-    private boolean processContextualFile(String questionnaireId, Path jsonFilePath) throws GenesisException {
-        return readContextualPreviousFile(questionnaireId.toUpperCase(), null, jsonFilePath.toString())
-                || readContextualExternalFile(questionnaireId.toUpperCase(), jsonFilePath.toString());
     }
 
     @Operation(summary = "Add contextual previous json file")
@@ -116,7 +79,7 @@ public class ContextualVariableController {
             if (!jsonFileName.toLowerCase().endsWith(".json")) {
                 throw new GenesisException(400, "File must be a JSON file !");
             }
-            readContextualPreviousFile(questionnaireId.toUpperCase(), sourceState, filePath);
+            contextualPreviousVariableApiPort.readContextualPreviousFile(questionnaireId.toUpperCase(), sourceState, filePath);
             moveFile(questionnaireId, mode, fileUtils, filePath);
             return ResponseEntity.ok("Contextual previous variable file %s saved !".formatted(filePath));
         }catch (GenesisException ge){
@@ -142,31 +105,11 @@ public class ContextualVariableController {
             if (!jsonFileName.toLowerCase().endsWith(".json")) {
                 throw new GenesisException(400, "File must be a JSON file !");
             }
-            readContextualExternalFile(questionnaireId.toUpperCase(), filePath);
+            contextualExternalVariableApiPort.readContextualExternalFile(questionnaireId, filePath);
             moveFile(questionnaireId, mode, fileUtils, filePath);
             return ResponseEntity.ok("Contextual external variable file %s saved !".formatted(filePath));
         }catch (GenesisException ge){
             return ResponseEntity.status(HttpStatusCode.valueOf(ge.getStatus())).body(ge.getMessage());
-        }
-    }
-
-    private boolean readContextualPreviousFile(String questionnaireId, String sourceState, String filePath) throws GenesisException {
-        try (InputStream inputStream = new FileInputStream(filePath)) {
-            return contextualPreviousVariableApiPort.readContextualPreviousFile(inputStream, questionnaireId, sourceState);
-        } catch (FileNotFoundException e) {
-            throw new GenesisException(404, "File %s not found".formatted(filePath));
-        } catch (IOException e) {
-            throw new GenesisException(500, e.toString());
-        }
-    }
-
-    private boolean readContextualExternalFile(String questionnaireId, String filePath) throws GenesisException {
-        try (InputStream inputStream = new FileInputStream(filePath)) {
-            return contextualExternalVariableApiPort.readContextualExternalFile(inputStream, questionnaireId);
-        } catch (FileNotFoundException e) {
-            throw new GenesisException(404, "File %s not found".formatted(filePath));
-        } catch (IOException e) {
-            throw new GenesisException(500, e.toString());
         }
     }
 

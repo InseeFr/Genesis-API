@@ -13,8 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,44 +34,46 @@ public class ContextualPreviousVariableJsonService implements ContextualPrevious
     }
 
     @Override
-    public boolean readContextualPreviousFile(InputStream inputStream,
-                                       String questionnaireId,
-                                       String sourceState) throws GenesisException {
-        checkSourceStateLength(sourceState);
-        moveCollectionToBackup(questionnaireId);
+    public boolean readContextualPreviousFile(String questionnaireId,
+                                              String sourceState,
+                                              String filePath) throws GenesisException {
+        try(FileInputStream inputStream = new FileInputStream(filePath)){
+            checkSourceStateLength(sourceState);
+            moveCollectionToBackup(questionnaireId);
 
-        JsonFactory jsonFactory = new JsonFactory();
-        try(JsonParser jsonParser = jsonFactory.createParser(inputStream)){
-            List<ContextualPreviousVariableModel> toSave = new ArrayList<>();
-            goToEditedPreviousToken(jsonParser);
-            long savedCount = 0;
-            Set<String> savedInterrogationIds = new HashSet<>();
-            if(jsonParser.nextToken() == null){ //skip field name, stop if end of file
-                log.warn("Reached end of file, found no EditedPrevious part.");
-                return false;
-            }
-            jsonParser.nextToken(); //skip [
-            while (jsonParser.currentToken() != JsonToken.END_ARRAY) {
-                ContextualPreviousVariableModel contextualPreviousVariableModel = readNextContextualPrevious(
-                        jsonParser,
-                        questionnaireId,
-                        sourceState
-                );
-
-                checkModel(contextualPreviousVariableModel, jsonParser, savedInterrogationIds);
-
-                toSave.add(contextualPreviousVariableModel);
-                savedInterrogationIds.add(contextualPreviousVariableModel.getInterrogationId());
-
-                if(toSave.size() >= BLOCK_SIZE){
-                    savedCount = saveBlock(toSave, savedCount);
+            JsonFactory jsonFactory = new JsonFactory();
+            try (JsonParser jsonParser = jsonFactory.createParser(inputStream)) {
+                List<ContextualPreviousVariableModel> toSave = new ArrayList<>();
+                goToEditedPreviousToken(jsonParser);
+                long savedCount = 0;
+                Set<String> savedInterrogationIds = new HashSet<>();
+                if (jsonParser.nextToken() == null) { //skip field name, stop if end of file
+                    log.warn("Reached end of file, found no EditedPrevious part.");
+                    return false;
                 }
-                jsonParser.nextToken();
+                jsonParser.nextToken(); //skip [
+                while (jsonParser.currentToken() != JsonToken.END_ARRAY) {
+                    ContextualPreviousVariableModel contextualPreviousVariableModel = readNextContextualPrevious(
+                            jsonParser,
+                            questionnaireId,
+                            sourceState
+                    );
+
+                    checkModel(contextualPreviousVariableModel, jsonParser, savedInterrogationIds);
+
+                    toSave.add(contextualPreviousVariableModel);
+                    savedInterrogationIds.add(contextualPreviousVariableModel.getInterrogationId());
+
+                    if (toSave.size() >= BLOCK_SIZE) {
+                        savedCount = saveBlock(toSave, savedCount);
+                    }
+                    jsonParser.nextToken();
+                }
+                savedCount = saveBlock(toSave, savedCount);
+                log.info("Reached end of contextual previous file, saved %d interrogations".formatted(savedCount));
+                contextualPreviousVariablePersistancePort.deleteBackup(questionnaireId);
+                return true;
             }
-            savedCount = saveBlock(toSave, savedCount);
-            log.info("Reached end of contextual previous file, saved %d interrogations".formatted(savedCount));
-            contextualPreviousVariablePersistancePort.deleteBackup(questionnaireId);
-            return true;
         }catch (JsonParseException jpe){
             contextualPreviousVariablePersistancePort.restoreBackup(questionnaireId);
             throw new GenesisException(400, "JSON Parsing exception : %s".formatted(jpe.toString()));
@@ -79,6 +81,14 @@ public class ContextualPreviousVariableJsonService implements ContextualPrevious
             contextualPreviousVariablePersistancePort.restoreBackup(questionnaireId);
             throw new GenesisException(500, ioe.toString());
         }
+    }
+
+    @Override
+    public ContextualPreviousVariableModel findByQuestionnaireIdAndInterrogationId(String questionnaireId, String interrogationId) {
+        return contextualPreviousVariablePersistancePort.findByQuestionnaireIdAndInterrogationId(
+                questionnaireId,
+                interrogationId
+        );
     }
 
     private long saveBlock(List<ContextualPreviousVariableModel> toSave, long savedCount) {

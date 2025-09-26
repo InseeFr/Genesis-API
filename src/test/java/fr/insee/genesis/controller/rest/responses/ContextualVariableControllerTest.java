@@ -59,8 +59,8 @@ class ContextualVariableControllerTest {
             new ContextualPreviousVariableJsonService(previousStub),
             new ContextualExternalVariableJsonService(externalStub),
             new ContextualVariableJsonService(
-                    previousStub,
-                    externalStub
+                    new ContextualPreviousVariableJsonService(previousStub),
+                    new ContextualExternalVariableJsonService(externalStub)
             ),
             new ConfigStub()
     );
