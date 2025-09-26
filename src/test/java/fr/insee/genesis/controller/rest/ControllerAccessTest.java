@@ -4,8 +4,8 @@ import fr.insee.genesis.domain.ports.api.DataProcessingContextApiPort;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.infrastructure.repository.DataProcessingContextMongoDBRepository;
-import fr.insee.genesis.infrastructure.repository.EditedExternalResponseMongoDBRepository;
-import fr.insee.genesis.infrastructure.repository.EditedPreviousResponseMongoDBRepository;
+import fr.insee.genesis.infrastructure.repository.ContextualExternalVariableMongoDBRepository;
+import fr.insee.genesis.infrastructure.repository.ContextualPreviousVariableMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.LunaticJsonMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.LunaticModelMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.QuestionnaireMetadataMongoDBRepository;
@@ -88,9 +88,9 @@ class ControllerAccessTest {
     @MockitoBean
     private LunaticModelMongoDBRepository lunaticModelMongoDBRepository;
     @MockitoBean
-    private EditedPreviousResponseMongoDBRepository editedPreviousResponseMongoDBRepository;
+    private ContextualPreviousVariableMongoDBRepository contextualPreviousVariableMongoDBRepository;
     @MockitoBean
-    private EditedExternalResponseMongoDBRepository editedExternalResponseMongoDBRepository;
+    private ContextualExternalVariableMongoDBRepository contextualExternalVariableMongoDBRepository;
 
     @MockitoBean
     private QuestionnaireMetadataMongoDBRepository questionnaireMetadataMongoDBRepository;

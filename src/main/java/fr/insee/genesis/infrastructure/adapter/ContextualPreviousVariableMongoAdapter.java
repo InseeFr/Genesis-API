@@ -1,10 +1,10 @@
 package fr.insee.genesis.infrastructure.adapter;
 
-import fr.insee.genesis.domain.model.editedresponse.EditedExternalResponseModel;
-import fr.insee.genesis.domain.ports.spi.EditedExternalResponsePersistancePort;
-import fr.insee.genesis.infrastructure.document.editedexternal.EditedExternalResponseDocument;
-import fr.insee.genesis.infrastructure.mappers.EditedExternalResponseDocumentMapper;
-import fr.insee.genesis.infrastructure.repository.EditedExternalResponseMongoDBRepository;
+import fr.insee.genesis.domain.model.contextualvariable.ContextualPreviousVariableModel;
+import fr.insee.genesis.domain.ports.spi.ContextualPreviousVariablePersistancePort;
+import fr.insee.genesis.infrastructure.document.contextualprevious.ContextualPreviousVariableDocument;
+import fr.insee.genesis.infrastructure.mappers.ContextualPreviousVariableDocumentMapper;
+import fr.insee.genesis.infrastructure.repository.ContextualPreviousVariableMongoDBRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -18,12 +18,12 @@ import java.util.List;
 
 @Slf4j
 @Service
-@Qualifier("editedExternalResponseMongoAdapter")
-public class EditedExternalResponseMongoAdapter implements EditedExternalResponsePersistancePort {
+@Qualifier("contextualPreviousVariableMongoAdapter")
+public class ContextualPreviousVariableMongoAdapter implements ContextualPreviousVariablePersistancePort {
     private final MongoTemplate mongoTemplate;
-    private final EditedExternalResponseMongoDBRepository repository;
+    private final ContextualPreviousVariableMongoDBRepository repository;
 
-    public EditedExternalResponseMongoAdapter(EditedExternalResponseMongoDBRepository repository, MongoTemplate mongoTemplate) {
+    public ContextualPreviousVariableMongoAdapter(ContextualPreviousVariableMongoDBRepository repository, MongoTemplate mongoTemplate) {
         this.repository = repository;
         this.mongoTemplate = mongoTemplate;
     }
@@ -41,11 +41,11 @@ public class EditedExternalResponseMongoAdapter implements EditedExternalRespons
 
         Aggregation aggregation = Aggregation.newAggregation(match, merge);
 
-        mongoTemplate.aggregate(aggregation, "editedExternalResponses", EditedExternalResponseDocument.class);
+        mongoTemplate.aggregate(aggregation, "editedPreviousResponses", ContextualPreviousVariableDocument.class);
     }
 
     private static String getFormattedCollection(String questionnaireId) {
-        return "editedExternalResponses_%s_backup".formatted(questionnaireId);
+        return "editedPreviousResponses_%s_backup".formatted(questionnaireId);
     }
 
     @Override
@@ -60,7 +60,7 @@ public class EditedExternalResponseMongoAdapter implements EditedExternalRespons
         delete(questionnaireId);
         MergeOperation merge = Aggregation
                 .merge()
-                .intoCollection("editedExternalResponses")
+                .intoCollection("editedPreviousResponses")
                 .whenMatched(MergeOperation.WhenDocumentsMatch.replaceDocument())
                 .whenDocumentsDontMatch(MergeOperation.WhenDocumentsDontMatch.insertNewDocument())
                 .build();
@@ -68,13 +68,13 @@ public class EditedExternalResponseMongoAdapter implements EditedExternalRespons
         Aggregation aggregation = Aggregation.newAggregation(merge);
 
         mongoTemplate.aggregate(aggregation, getFormattedCollection(questionnaireId),
-                EditedExternalResponseDocument.class);
+                ContextualPreviousVariableDocument.class);
     }
 
     @Override
-    public void saveAll(List<EditedExternalResponseModel> editedExternalResponseModelList) {
-        repository.saveAll(EditedExternalResponseDocumentMapper.INSTANCE.listModelToListDocument(
-                editedExternalResponseModelList)
+    public void saveAll(List<ContextualPreviousVariableModel> contextualPreviousVariableModelList) {
+        repository.saveAll(ContextualPreviousVariableDocumentMapper.INSTANCE.listModelToListDocument(
+                contextualPreviousVariableModelList)
         );
     }
 
@@ -84,15 +84,15 @@ public class EditedExternalResponseMongoAdapter implements EditedExternalRespons
     }
 
     @Override
-    public EditedExternalResponseModel findByQuestionnaireIdAndInterrogationId(String questionnaireId, String interrogationId) {
-        List<EditedExternalResponseDocument> editedExternalResponseDocumentList =
+    public ContextualPreviousVariableModel findByQuestionnaireIdAndInterrogationId(String questionnaireId, String interrogationId) {
+        List<ContextualPreviousVariableDocument> contextualPreviousVariableDocumentList =
                 repository.findByQuestionnaireIdAndInterrogationId(questionnaireId, interrogationId);
-        if(editedExternalResponseDocumentList.isEmpty()){
+        if(contextualPreviousVariableDocumentList.isEmpty()){
             return null;
         }
-        if(editedExternalResponseDocumentList.size() > 1){
-            log.warn("More than 1 edited external response document for questionnaire {}, interrogation {}", questionnaireId, interrogationId);
+        if(contextualPreviousVariableDocumentList.size() > 1){
+            log.warn("More than 1 contextual previous response document for questionnaire {}, interrogation {}", questionnaireId, interrogationId);
         }
-        return EditedExternalResponseDocumentMapper.INSTANCE.documentToModel(editedExternalResponseDocumentList.getFirst());
+        return ContextualPreviousVariableDocumentMapper.INSTANCE.documentToModel(contextualPreviousVariableDocumentList.getFirst());
     }
 }

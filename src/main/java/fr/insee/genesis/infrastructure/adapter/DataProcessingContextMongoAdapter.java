@@ -92,4 +92,12 @@ public class DataProcessingContextMongoAdapter implements DataProcessingContextP
         }
         return deletedKraftwerkExecutionSchedules;
     }
+
+    @Override
+    public List<DataProcessingContextDocument> findAllByReview(boolean withReview) {
+        return ContextDedupUtils.deduplicateContexts(dataProcessingContextMongoDBRepository.findAll())
+                .stream().filter(doc ->
+                        doc.isWithReview() == withReview
+                ).toList();
+    }
 }

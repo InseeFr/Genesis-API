@@ -1,4 +1,11 @@
 # Changelog
+## 1.9.0 [TODO]
+### Added
+- Authorizations for scheduled Perret calls
+- Get questionnaires by review activated or not endpoint
+- Save all edited previous/external files for one questionnaire endpoint
+### Changed
+- No more 400 if the previous/external file has no corresponding part (warn in log instead)
 
 ## 1.8.6 [2025-09-18]
 ### Added

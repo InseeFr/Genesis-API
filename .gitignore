@@ -50,4 +50,6 @@ src/test/resources/OUT/*
 /src/test/resources/IN/WEB/SAMPLETEST/
 /src/test/resources/IN/WEB/TEST-EDITED-PREVIOUS/
 /src/test/resources/IN/WEB/TEST-EDITED-EXTERNAL/
+/src/test/resources/IN/WEB/TEST-CONTEXTUAL-PREVIOUS/
+/src/test/resources/IN/WEB/TEST-CONTEXTUAL-EXTERNAL/
 /src/main/resources/application-mbg.properties
