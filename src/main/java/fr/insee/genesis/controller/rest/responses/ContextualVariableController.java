@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.io.IOException;
 import java.nio.file.Path;
 
-@RequestMapping(path = "/contextual-variable")
+@RequestMapping(path = "/contextual-variables")
 @Controller
 @Slf4j
 @AllArgsConstructor
