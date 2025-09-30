@@ -33,7 +33,7 @@ public class LastJsonExtractionMongoAdapter implements LastJsonExtractionPersist
 
     @Override
     public LastJsonExtractionModel getLastExecutionDate(String questionnaireModelId, Mode mode) throws GenesisException {
-        String id = questionnaireModelId + "_" + mode;
+        String id = String.format("%s_%s",questionnaireModelId, mode);
         Optional<LastJsonExtractionDocument> extraction = extractionRepository.findById(id);
         if (extraction.isPresent()) {
             return LastJsonExtractionDocumentMapper.INSTANCE.documentToModel(extraction.get());
