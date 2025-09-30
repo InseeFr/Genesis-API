@@ -14,6 +14,7 @@ public class SurveyUnitSimplified {
 	private String questionnaireId;
 	private String campaignId;
 	private String interrogationId;
+	private String surveyUnitId;
 	private Mode mode;
 	private List<VariableModel> variablesUpdate;
 	private List<VariableModel> externalVariables;
