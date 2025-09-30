@@ -24,10 +24,10 @@ public class LastJsonExtractionService implements LastJsonExtractionApiPort {
 
     @Override
     public void recordDate(LastJsonExtractionModel extraction) {
-        // Crée un id unique à partir du questionnaire et du mode
-        extraction.setId(extraction.getQuestionnaireModelId() + "_" + extraction.getMode());
+        // Create a unique ID based on the questionnaire and the mode.
+        extraction.setId(String.format("%s_%s",extraction.getQuestionnaireModelId(),extraction.getMode()));
 
-        // save() fait insert si id inexistant ou update sinon
+        // save() does an insert if the id doesn't exist, otherwise an update
         extractionPersistencePort.save(extraction);
     }
 
