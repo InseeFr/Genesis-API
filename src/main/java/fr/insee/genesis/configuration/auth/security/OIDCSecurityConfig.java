@@ -144,12 +144,18 @@ public class OIDCSecurityConfig {
                             .toList();
 
                     // 🔹 4. Transforms in GrantedAuthority
-                    return Collections.unmodifiableCollection(
+                    List<GrantedAuthority> authorities =
                             claimedRoles.stream()
                                     .map(s -> (GrantedAuthority) () -> ROLE_PREFIX + s)
-                                    .toList()
-                    );
+                                    .toList();
 
+                    //TODO put on debug once genesis bug is corrected
+                    log.info("Authorities extracted from JWT: {}",
+                            authorities.stream()
+                                    .map(GrantedAuthority::getAuthority)
+                                    .toList());
+
+                    return authorities;
                 } catch (ClassCastException e) {
                     // role path not correctly found, assume that no role for this user
                     return List.of();
