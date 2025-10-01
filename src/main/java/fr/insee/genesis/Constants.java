@@ -14,6 +14,7 @@ public class Constants {
     public static final String FILTER_RESULT_PREFIX = "FILTER_RESULT_";
     public static final String MISSING_SUFFIX = "_MISSING";
     public static final String MONGODB_LUNATIC_RAWDATA_COLLECTION_NAME = "lunaticjsondata";
+    public static final String MONGODB_EXTRACTION_JSON_COLLECTION_NAME = "lastjsonextraction";
     private static final String[] ENO_VARIABLES = {"COMMENT_QE","COMMENT_UE","HEURE_REMPL","MIN_REMPL"};
 
     public static final String MONGODB_SCHEDULE_COLLECTION_NAME = "schedules";

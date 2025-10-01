@@ -4,6 +4,7 @@ import fr.insee.genesis.GenesisApi;
 import fr.insee.genesis.infrastructure.repository.DataProcessingContextMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.EditedExternalResponseMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.EditedPreviousResponseMongoDBRepository;
+import fr.insee.genesis.infrastructure.repository.LastJsonExtractionMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.LunaticJsonMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.LunaticModelMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.QuestionnaireMetadataMongoDBRepository;
@@ -36,6 +37,8 @@ public class CucumberSpringConfiguration {
     private VariableTypeMongoDBRepository variableTypeMongoDBRepository;
     @MockitoBean
     private LunaticModelMongoDBRepository lunaticModelMongoDBRepository;
+    @MockitoBean
+    private LastJsonExtractionMongoDBRepository lastJsonExtractionMongoDBRepository;
     @MockitoBean
     private DataProcessingContextMongoDBRepository dataProcessingContextMongoDBRepository;
     @MockitoBean
