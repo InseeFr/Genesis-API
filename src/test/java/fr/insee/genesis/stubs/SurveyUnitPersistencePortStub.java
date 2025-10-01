@@ -91,7 +91,15 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
 
     @Override
     public List<SurveyUnitModel> findInterrogationIdsByQuestionnaireIdAndDateAfter(String questionnaireId, LocalDateTime since) {
-        return List.of();
+        List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
+        for(SurveyUnitModel surveyUnitModel : mongoStub){
+            if(surveyUnitModel.getQuestionnaireId().equals(questionnaireId) && surveyUnitModel.getRecordDate().isAfter(since))
+                surveyUnitModelList.add(
+                        new SurveyUnitModel(surveyUnitModel.getInterrogationId(), surveyUnitModel.getMode())
+                );
+        }
+
+        return surveyUnitModelList;
     }
 
 
