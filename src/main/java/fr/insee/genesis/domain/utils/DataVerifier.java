@@ -76,6 +76,7 @@ public class DataVerifier {
                 .questionnaireId(sampleSurveyUnitModel.getQuestionnaireId())
                 .campaignId(sampleSurveyUnitModel.getCampaignId())
                 .interrogationId(interrogationId)
+                .idUE(sampleSurveyUnitModel.getIdUE())
                 .state(DataState.FORMATTED)
                 .mode(sampleSurveyUnitModel.getMode())
                 .recordDate(LocalDateTime.now().plusSeconds(1)) // Add 1 second to avoid same recordDate as COLLECTED

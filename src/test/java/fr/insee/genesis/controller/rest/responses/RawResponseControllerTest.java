@@ -68,6 +68,7 @@ class RawResponseControllerTest {
         String campaignId = "SAMPLETEST-PARADATA-v1";
         String questionnaireId = "testIdQuest".toUpperCase();
         String interrogationId = "testinterrogationId";
+        String idUE = "testIdUE";
         Map<String,Object> json = JsonUtils.jsonToMap("{\"COLLECTED\": {\"testdata\": {\"COLLECTED\": [\"test\"]}}}");
 
         //WHEN
@@ -75,7 +76,7 @@ class RawResponseControllerTest {
                 campaignId
                 , questionnaireId
                 , interrogationId
-                , null
+                , idUE
                 , Mode.WEB
                 , json
         );
@@ -85,6 +86,7 @@ class RawResponseControllerTest {
         Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub()).isNotEmpty().hasSize(1);
         Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().campaignId()).isNotNull().isEqualTo(campaignId);
         Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().questionnaireId()).isNotNull().isEqualTo(questionnaireId);
+        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().idUE()).isNotNull().isEqualTo(idUE);
         Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().interrogationId()).isNotNull().isEqualTo(interrogationId);
         Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().mode()).isEqualTo(Mode.WEB);
 
@@ -145,9 +147,11 @@ class RawResponseControllerTest {
         String campaignId = "SAMPLETEST-PARADATA-v2";
         String questionnaireId = campaignId + "_quest";
         String interrogationId = "testinterrogationId1";
+        String idUE = "testIdUE1";
         String varName = "AVIS_MAIL";
         String varValue = "TEST";
-        addJsonRawDataDocumentToStub(campaignId, questionnaireId, interrogationId, null, LocalDateTime.now(),varName, varValue);
+        addJsonRawDataDocumentToStub(campaignId, questionnaireId, interrogationId, idUE, null, LocalDateTime.now(),varName
+                , varValue);
 
         dataProcessingContextPersistancePortStub.getMongoStub().add(
                 DataProcessingContextMapper.INSTANCE.modelToDocument(
@@ -175,6 +179,7 @@ class RawResponseControllerTest {
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getQuestionnaireId()).isNotNull().isEqualTo(questionnaireId);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getMode()).isNotNull().isEqualTo(Mode.WEB);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getInterrogationId()).isEqualTo(interrogationId);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getIdUE()).isEqualTo(idUE);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getFileDate()).isNotNull();
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getRecordDate()).isNotNull();
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables()).isNotNull().isNotEmpty().hasSize(1);
@@ -205,7 +210,7 @@ class RawResponseControllerTest {
         Instant recordDate = Instant.parse("2025-01-01T01:00:00.000Z");
         Instant processDate = Instant.parse("2025-01-02T01:00:00.000Z");
 
-        addJsonRawDataDocumentToStub(campaignId, questionnaireId, interrogationId,
+        addJsonRawDataDocumentToStub(campaignId, questionnaireId, interrogationId, null,
                 LocalDateTime.ofInstant(processDate, ZoneOffset.UTC),
                 LocalDateTime.ofInstant(recordDate, ZoneOffset.UTC),
                 varName, varValue);
@@ -236,11 +241,15 @@ class RawResponseControllerTest {
         lunaticJsonRawDataPersistanceStub.getMongoStub().add(lunaticJsonDataDocument);
     }
 
-    private void addJsonRawDataDocumentToStub(String campaignId, String questionnaireId, String interrogationId,
-                                                                    LocalDateTime processDate,
-                                                                    LocalDateTime recordDate,
-                                                                    String variableName, String variableValue)  {
-
+    private void addJsonRawDataDocumentToStub(String campaignId,
+                                              String questionnaireId,
+                                              String interrogationId,
+                                              String idUE,
+                                              LocalDateTime processDate,
+                                              LocalDateTime recordDate,
+                                              String variableName,
+                                              String variableValue)
+    {
         Map<String, Object> jsonMap = Map.of(
                 "COLLECTED", Map.of(variableName, Map.of("COLLECTED", variableValue)),
                 "EXTERNAL", Map.of(variableName + "_EXTERNAL", variableValue + "_EXTERNAL")
@@ -251,6 +260,7 @@ class RawResponseControllerTest {
                 .questionnaireId(questionnaireId)
                 .mode(Mode.WEB)
                 .interrogationId(interrogationId)
+                .idUE(idUE)
                 .recordDate(recordDate)
                 .processDate(processDate)
                 .data(jsonMap)

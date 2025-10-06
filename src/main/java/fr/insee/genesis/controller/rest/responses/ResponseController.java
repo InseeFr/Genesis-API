@@ -251,6 +251,7 @@ public class ResponseController implements CommonApiResponse {
                 .questionnaireId(responses.getFirst().getQuestionnaireId())
                 .campaignId(responses.getFirst().getCampaignId())
                 .interrogationId(responses.getFirst().getInterrogationId())
+                .surveyUnitId(responses.getFirst().getIdUE())
                 .variablesUpdate(outputVariables)
                 .externalVariables(outputExternalVariables)
                 .build());
@@ -280,6 +281,7 @@ public class ResponseController implements CommonApiResponse {
                             .questionnaireId(responses.getFirst().getQuestionnaireId())
                             .campaignId(responses.getFirst().getCampaignId())
                             .interrogationId(responses.getFirst().getInterrogationId())
+                            .surveyUnitId(responses.getFirst().getIdUE())
                             .mode(mode)
                             .variablesUpdate(outputVariables)
                             .externalVariables(outputExternalVariables)

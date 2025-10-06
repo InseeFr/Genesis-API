@@ -19,6 +19,7 @@ public class SurveyUnitDocument {
 	private String campaignId;
 	@Indexed
 	private String interrogationId;
+	private String idUE;
 	private String questionnaireId;
 	private String state;
 	@Indexed
