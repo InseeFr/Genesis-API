@@ -208,7 +208,7 @@ public class ResponseController implements CommonApiResponse {
     @Operation(summary = "Retrieve responses for an interrogation, using interrogationId and questionnaireId from Genesis Database with the latest value for each available state of every variable")
     @GetMapping(path = "/by-ue-and-questionnaire/latest-states",
                 produces = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("hasRole('USER_PLATINE')")
+    @PreAuthorize("hasAnyRole('USER_PLATINE','SCHEDULER')")
     public ResponseEntity<Object> findResponsesByInterrogationAndQuestionnaireLatestStates(
             @RequestParam("interrogationId") String interrogationId,
             @RequestParam("questionnaireId") String questionnaireId) throws GenesisException {
