@@ -33,7 +33,7 @@ public class ContextualVariableController {
     private final ContextualVariableApiPort contextualVariableApiPort;
     private final Config config;
 
-    @Operation(summary = "Get contextual variables (contextual and previous)")
+    @Operation(summary = "Get contextual variables (external and previous)")
     @GetMapping(path = "/")
     @PreAuthorize("hasAnyRole('USER_PLATINE','SCHEDULER')")
     public ResponseEntity<Object> getContextualVariables(
@@ -45,7 +45,7 @@ public class ContextualVariableController {
         );
     }
 
-    @Operation(summary = "Save all contextual variables json files (contextual and previous)")
+    @Operation(summary = "Save all contextual variables json files (external and previous)")
     @PostMapping(path = "/json")
     @PreAuthorize("hasAnyRole('USER_PLATINE','SCHEDULER')")
     public ResponseEntity<Object> saveContextualVariables(
