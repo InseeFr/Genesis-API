@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.dto.ScheduleDto;
+import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
 import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionSchedule;
 import fr.insee.genesis.domain.model.context.schedule.ServiceToCall;
 import fr.insee.genesis.domain.model.context.schedule.TrustParameters;
@@ -46,11 +47,11 @@ public class DataProcessingContextController {
 
     @Operation(summary = "Create or update a data processing context")
     @PutMapping(path = "/review")
-    @PreAuthorize("hasAnyRole('USER_BACK_OFFICE','SCHEDULER')")
+    @PreAuthorize("hasAnyRole('USER_PLATINE','SCHEDULER')")
     public ResponseEntity<Object> saveContext(
             @Parameter(description = "Identifier of the partition", required = true) @RequestParam("partitionId") String partitionId,
             @Parameter(description = "Allow reviewing") @RequestParam(value = "withReview", defaultValue = "false") Boolean withReview
-    ) {
+    ){
         try {
             withReview = withReview != null && withReview; //False if null
             dataProcessingContextApiPort.saveContext(partitionId, withReview);
@@ -58,6 +59,20 @@ public class DataProcessingContextController {
             return new ResponseEntity<>(e.getMessage(), HttpStatusCode.valueOf(e.getStatus()));
         }
         return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Returns partition review indicator")
+    @GetMapping(path = "/review")
+    @PreAuthorize("hasAnyRole('USER_BACK_OFFICE','SCHEDULER')")
+    public ResponseEntity<Object> getReviewIndicator(
+            @Parameter(description = "Identifier of the partition", required = true) @RequestParam("partitionId") String partitionId
+    ){
+        try {
+            boolean withReview = dataProcessingContextApiPort.getReviewByPartitionId(partitionId);
+            return ResponseEntity.ok(withReview);
+        }catch (GenesisException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatusCode.valueOf(e.getStatus()));
+        }
     }
 
     @Operation(summary = "Schedule a Kraftwerk execution")

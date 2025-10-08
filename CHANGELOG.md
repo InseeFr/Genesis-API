@@ -1,4 +1,8 @@
 # Changelog
+## 1.10.0 [TODO]
+### Added
+- Get review indicator endpoint
+
 ## 1.9.0 [TODO]
 ### Added
 - Authorizations for scheduled Perret calls
