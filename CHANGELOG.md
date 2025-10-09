@@ -1,5 +1,5 @@
 # Changelog
-## 1.9.0 [TODO]
+## 1.9.0 [2025-10-09]
 ### Added
 - Authorizations for scheduled Perret calls
 - Get questionnaires by review activated or not endpoint
