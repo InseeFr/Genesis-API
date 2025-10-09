@@ -10,6 +10,7 @@ import fr.insee.genesis.domain.ports.api.DataProcessingContextApiPort;
 import fr.insee.genesis.domain.ports.spi.DataProcessingContextPersistancePort;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
 import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.infrastructure.document.context.DataProcessingContextDocument;
 import fr.insee.genesis.infrastructure.mappers.DataProcessingContextMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -168,7 +169,7 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
 
     @Override
     public DataProcessingContextModel getContextByPartitionId(String partitionId){
-        return  DataProcessingContextMapper.INSTANCE.documentToModel(
+        return DataProcessingContextMapper.INSTANCE.documentToModel(
                 dataProcessingContextPersistancePort.findByPartitionId(partitionId)
         );
     }
@@ -183,5 +184,17 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
             partitionIds.add(dataProcessingContextModel.getPartitionId());
         }
         return partitionIds;
+    }
+
+    @Override
+    public boolean getReviewByPartitionId(String partitionId) throws GenesisException {
+        DataProcessingContextDocument dataProcessingContextDocument =
+                dataProcessingContextPersistancePort.findByPartitionId(partitionId);
+        if(dataProcessingContextDocument == null){
+            throw new GenesisException(404, "Data processing context not found");
+        }
+        return DataProcessingContextMapper.INSTANCE.documentToModel(
+                dataProcessingContextPersistancePort.findByPartitionId(partitionId)
+        ).isWithReview();
     }
 }
