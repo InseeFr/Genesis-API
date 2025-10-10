@@ -1,4 +1,8 @@
 # Changelog
+## 1.9.1 [TODO]
+### Fixed
+- Cache eviction not working when delete questionnaire metadata
+
 ## 1.9.0 [2025-10-09]
 ### Added
 - Authorizations for scheduled Perret calls

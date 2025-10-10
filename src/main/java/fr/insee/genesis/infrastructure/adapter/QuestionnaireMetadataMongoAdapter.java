@@ -39,7 +39,7 @@ public class QuestionnaireMetadataMongoAdapter implements QuestionnaireMetadataP
     }
 
     @Override
-    @CacheEvict(value = "metadatas")
+    @CacheEvict(value = "metadatas", key = "#questionnaireId + '-' + #mode")
     public void remove(String questionnaireId, Mode mode) {
         questionnaireMetadataMongoDBRepository.deleteByQuestionnaireIdAndMode(questionnaireId, mode);
     }
