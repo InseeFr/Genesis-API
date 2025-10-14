@@ -123,7 +123,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
                 int maxIndex = Math.min(interrogationIdListForMode.size(), config.getRawDataProcessingBatchSize());
                 List<String> interrogationIdToProcess = interrogationIdListForMode.subList(0, maxIndex);
 
-                List<LunaticJsonRawDataModel> rawData = getRawData(campaignName,mode, interrogationIdToProcess);
+                List<LunaticJsonRawDataModel> rawData = getRawData(campaignName, mode, interrogationIdToProcess);
 
                 List<SurveyUnitModel> surveyUnitModels = convertRawData(
                         rawData,
@@ -210,6 +210,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
                         .questionnaireId(rawData.questionnaireId())
                         .mode(rawData.mode())
                         .interrogationId(rawData.interrogationId())
+                        .idUE(rawData.idUE())
                         .contextualId(contextualId)
                         .validationDate(validationDate)
                         .isCapturedIndirectly(isCapturedIndirectly)
