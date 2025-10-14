@@ -1,5 +1,7 @@
 # Changelog
-## 1.9.1 [TODO]
+## 1.10.0 [TODO]
+### Added
+- Survey unit id export
 ### Fixed
 - Cache eviction not working when delete questionnaire metadata
 
