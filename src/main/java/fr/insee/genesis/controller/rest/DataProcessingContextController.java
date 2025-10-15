@@ -62,7 +62,7 @@ public class DataProcessingContextController {
 
     @Operation(summary = "Returns partition review indicator")
     @GetMapping(path = "/review")
-    @PreAuthorize("hasAnyRole('USER_BACK_OFFICE','SCHEDULER')")
+    @PreAuthorize("hasAnyRole('USER_BACK_OFFICE','SCHEDULER','USER_PLATINE')")
     public ResponseEntity<Object> getReviewIndicator(
             @Parameter(description = "Identifier of the partition", required = true) @RequestParam("partitionId") String partitionId
     ){
