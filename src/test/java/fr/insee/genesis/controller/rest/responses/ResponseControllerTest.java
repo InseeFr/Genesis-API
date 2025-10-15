@@ -52,6 +52,7 @@ class ResponseControllerTest {
     //Constants
     static final String DEFAULT_INTERROGATION_ID = "TESTINTERROGATIONID";
     static final String DEFAULT_QUESTIONNAIRE_ID = "TESTQUESTIONNAIREID";
+    static final String DEFAULT_ID_UE = "TESTIDUE";
     static final String CAMPAIGN_ID_WITH_DDI = "SAMPLETEST-PARADATA-v1";
     static final String QUESTIONNAIRE_ID_WITH_DDI = "quest_model_famille_AD_ttp".toUpperCase();
 
@@ -155,6 +156,7 @@ class ResponseControllerTest {
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
         Assertions.assertThat(response.getBody().getFirst().getInterrogationId()).isEqualTo(DEFAULT_INTERROGATION_ID);
+        Assertions.assertThat(response.getBody().getFirst().getIdUE()).isEqualTo(DEFAULT_ID_UE);
         Assertions.assertThat(response.getBody().getFirst().getQuestionnaireId()).isEqualTo(DEFAULT_QUESTIONNAIRE_ID);
     }
 
@@ -167,6 +169,7 @@ class ResponseControllerTest {
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
         Assertions.assertThat(response.getBody().getFirst().getInterrogationId()).isEqualTo(DEFAULT_INTERROGATION_ID);
+        Assertions.assertThat(response.getBody().getFirst().getIdUE()).isEqualTo(DEFAULT_ID_UE);
         Assertions.assertThat(response.getBody().getFirst().getQuestionnaireId()).isEqualTo(DEFAULT_QUESTIONNAIRE_ID);
         Assertions.assertThat(response.getBody().getFirst().getFileDate()).hasMonth(Month.FEBRUARY);
     }
@@ -178,6 +181,7 @@ class ResponseControllerTest {
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull();
         Assertions.assertThat(response.getBody().getInterrogationId()).isEqualTo(DEFAULT_INTERROGATION_ID);
+        Assertions.assertThat(response.getBody().getSurveyUnitId()).isEqualTo(DEFAULT_ID_UE);
         Assertions.assertThat(response.getBody().getQuestionnaireId()).isEqualTo(DEFAULT_QUESTIONNAIRE_ID);
     }
 
@@ -188,6 +192,7 @@ class ResponseControllerTest {
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
         Assertions.assertThat(response.getBody().getFirst().getInterrogationId()).isEqualTo(DEFAULT_INTERROGATION_ID);
+        Assertions.assertThat(response.getBody().getFirst().getSurveyUnitId()).isEqualTo(DEFAULT_ID_UE);
     }
 
     // Perret tests

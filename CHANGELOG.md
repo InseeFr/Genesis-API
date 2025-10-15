@@ -2,6 +2,9 @@
 ## 1.10.0 [TODO]
 ### Added
 - Get review indicator endpoint
+- Survey unit id export
+### Fixed
+- Cache eviction not working when delete questionnaire metadata
 
 ## 1.9.0 [2025-10-09]
 ### Added
