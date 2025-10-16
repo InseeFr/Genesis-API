@@ -1,5 +1,5 @@
 # Changelog
-## 1.10.0 [TODO]
+## 1.10.0 [2025-10-16]
 ### Added
 - Survey unit id export
 ### Fixed
