@@ -22,12 +22,13 @@ class Utils {
     //Constants
     static final String DEFAULT_INTERROGATION_ID = "TESTINTERROGATIONID";
     static final String DEFAULT_QUESTIONNAIRE_ID = "TESTQUESTIONNAIREID";
+    static final String DEFAULT_ID_UE = "TESTIDUE";
 
     static void reset(SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) throws IOException {
         //MongoDB stub management
         surveyUnitPersistencePortStub.getMongoStub().clear();
 
-        addAdditionalSurveyUnitModelToMongoStub("TEST-TABLEAUX", DEFAULT_QUESTIONNAIRE_ID,
+        addAdditionalSurveyUnitModelToMongoStub("TEST-TABLEAUX", DEFAULT_QUESTIONNAIRE_ID, DEFAULT_ID_UE,
                 LocalDateTime.of(2023, 1, 1, 0, 0, 0),
                 LocalDateTime.of(2024, 1, 1, 0, 0, 0),
                 surveyUnitPersistencePortStub);
@@ -174,13 +175,13 @@ class Utils {
     }
 
     static void addAdditionalSurveyUnitModelToMongoStub(String campaignId, String questionnaireId, SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) {
-        addAdditionalSurveyUnitModelToMongoStub(campaignId,questionnaireId,
+        addAdditionalSurveyUnitModelToMongoStub(campaignId,questionnaireId, DEFAULT_ID_UE,
                 LocalDateTime.of(2023, 2, 2, 0, 0, 0),
                 LocalDateTime.of(2024, 2, 2, 0, 0, 0),
                 surveyUnitPersistencePortStub);
     }
 
-    static void addAdditionalSurveyUnitModelToMongoStub(String campaignId, String questionnaireId,
+    static void addAdditionalSurveyUnitModelToMongoStub(String campaignId, String questionnaireId, String idUE,
                                                         LocalDateTime fileDate, LocalDateTime recordDate,
                                                         SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) {
         List<VariableModel> externalVariableList = new ArrayList<>();
@@ -219,6 +220,7 @@ class Utils {
                 .campaignId(campaignId)
                 .mode(Mode.WEB)
                 .interrogationId(DEFAULT_INTERROGATION_ID)
+                .idUE(idUE)
                 .questionnaireId(questionnaireId)
                 .state(DataState.COLLECTED)
                 .fileDate(fileDate)

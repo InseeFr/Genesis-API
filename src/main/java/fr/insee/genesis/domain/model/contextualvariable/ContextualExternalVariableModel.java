@@ -1,4 +1,4 @@
-package fr.insee.genesis.domain.model.editedresponse;
+package fr.insee.genesis.domain.model.contextualvariable;
 
 import lombok.Builder;
 import lombok.Data;
@@ -7,7 +7,7 @@ import java.util.Map;
 
 @Builder
 @Data
-public class EditedExternalResponseModel {
+public class ContextualExternalVariableModel {
     String id;
     String questionnaireId;
     String interrogationId;

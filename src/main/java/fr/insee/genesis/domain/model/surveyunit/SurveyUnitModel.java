@@ -19,6 +19,7 @@ public class SurveyUnitModel {
 	private String questionnaireId;
 	private String campaignId;
 	private String interrogationId;
+	private String idUE;
 	private DataState state;
 	private Mode mode;
 	private String contextualId;

@@ -2,9 +2,9 @@ package fr.insee.genesis.controller.rest.responses;
 
 import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
-import fr.insee.genesis.domain.ports.api.EditedExternalResponseApiPort;
-import fr.insee.genesis.domain.ports.api.EditedPreviousResponseApiPort;
-import fr.insee.genesis.domain.ports.api.EditedResponseApiPort;
+import fr.insee.genesis.domain.ports.api.ContextualExternalVariableApiPort;
+import fr.insee.genesis.domain.ports.api.ContextualPreviousVariableApiPort;
+import fr.insee.genesis.domain.ports.api.ContextualVariableApiPort;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,39 +19,51 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Path;
 
-@RequestMapping(path = "/edited")
+@RequestMapping(path = "/contextual-variables")
 @Controller
 @Slf4j
 @AllArgsConstructor
-public class EditedResponseController {
+public class ContextualVariableController {
 
-    private final EditedPreviousResponseApiPort editedPreviousResponseApiPort;
-    private final EditedExternalResponseApiPort editedExternalResponseApiPort;
-    private final EditedResponseApiPort editedResponseApiPort;
+    private final ContextualPreviousVariableApiPort contextualPreviousVariableApiPort;
+    private final ContextualExternalVariableApiPort contextualExternalVariableApiPort;
+    private final ContextualVariableApiPort contextualVariableApiPort;
     private final Config config;
 
-    @Operation(summary = "Get edited variables (edited and previous)")
+    @Operation(summary = "Get contextual variables (external and previous)")
     @GetMapping(path = "/")
-    @PreAuthorize("hasRole('USER_PLATINE')")
-    public ResponseEntity<Object> getEditedResponses(
+    @PreAuthorize("hasAnyRole('USER_PLATINE','SCHEDULER')")
+    public ResponseEntity<Object> getContextualVariables(
             @RequestParam("questionnaireId") String questionnaireId,
             @RequestParam("interrogationId") String interrogationId
     ){
         return ResponseEntity.ok().body(
-                editedResponseApiPort.getEditedResponse(questionnaireId, interrogationId)
+                contextualVariableApiPort.getContextualVariable(questionnaireId, interrogationId)
         );
     }
 
-    @Operation(summary = "Add edited previous json file")
+    @Operation(summary = "Save all contextual variables json files (external and previous)")
+    @PostMapping(path = "/json")
+    @PreAuthorize("hasAnyRole('USER_PLATINE','SCHEDULER')")
+    public ResponseEntity<Object> saveContextualVariables(
+            @RequestParam("questionnaireId") String questionnaireId
+    ){
+        try {
+            FileUtils fileUtils = new FileUtils(config);
+            int fileCount = contextualVariableApiPort.saveContextualVariableFiles(questionnaireId, fileUtils);
+            return ResponseEntity.ok("%d file(s) processed for questionnaire %s !".formatted(fileCount, questionnaireId));
+        }catch (GenesisException ge){
+            return ResponseEntity.status(HttpStatusCode.valueOf(ge.getStatus())).body(ge.getMessage());
+        }
+    }
+
+    @Operation(summary = "Add contextual previous json file")
     @PostMapping(path = "previous/json")
     @PreAuthorize("hasAnyRole('USER_PLATINE','SCHEDULER','USER_BACK_OFFICE')")
-    public ResponseEntity<Object> readEditedPreviousJson(
+    public ResponseEntity<Object> readContextualPreviousJson(
             @RequestParam("questionnaireId") String questionnaireId,
             @RequestParam("mode") Mode mode,
             @RequestParam(value = "sourceState", required = false) String sourceState,
@@ -67,18 +79,18 @@ public class EditedResponseController {
             if (!jsonFileName.toLowerCase().endsWith(".json")) {
                 throw new GenesisException(400, "File must be a JSON file !");
             }
-            readEditedPreviousFile(questionnaireId.toUpperCase(), sourceState, filePath);
-            moveFiles(questionnaireId, mode, fileUtils, filePath);
-            return ResponseEntity.ok("Edited previous variable file %s saved !".formatted(filePath));
+            contextualPreviousVariableApiPort.readContextualPreviousFile(questionnaireId.toUpperCase(), sourceState, filePath);
+            moveFile(questionnaireId, mode, fileUtils, filePath);
+            return ResponseEntity.ok("Contextual previous variable file %s saved !".formatted(filePath));
         }catch (GenesisException ge){
             return ResponseEntity.status(HttpStatusCode.valueOf(ge.getStatus())).body(ge.getMessage());
         }
     }
 
-    @Operation(summary = "Add edited external json file")
+    @Operation(summary = "Add contextual external json file")
     @PostMapping(path = "/external/json")
     @PreAuthorize("hasAnyRole('USER_PLATINE','SCHEDULER','USER_BACK_OFFICE')")
-    public ResponseEntity<Object> readEditedExternalJson(
+    public ResponseEntity<Object> readContextualExternalJson(
             @RequestParam("questionnaireId") String questionnaireId,
             @RequestParam("mode") Mode mode,
             @RequestParam(value = "jsonFileName") String jsonFileName
@@ -93,35 +105,15 @@ public class EditedResponseController {
             if (!jsonFileName.toLowerCase().endsWith(".json")) {
                 throw new GenesisException(400, "File must be a JSON file !");
             }
-            readEditedExternalFile(questionnaireId.toUpperCase(), filePath);
-            moveFiles(questionnaireId, mode, fileUtils, filePath);
-            return ResponseEntity.ok("Edited external variable file %s saved !".formatted(filePath));
+            contextualExternalVariableApiPort.readContextualExternalFile(questionnaireId, filePath);
+            moveFile(questionnaireId, mode, fileUtils, filePath);
+            return ResponseEntity.ok("Contextual external variable file %s saved !".formatted(filePath));
         }catch (GenesisException ge){
             return ResponseEntity.status(HttpStatusCode.valueOf(ge.getStatus())).body(ge.getMessage());
         }
     }
 
-    private void readEditedPreviousFile(String questionnaireId, String sourceState, String filePath) throws GenesisException {
-        try (InputStream inputStream = new FileInputStream(filePath)) {
-            editedPreviousResponseApiPort.readEditedPreviousFile(inputStream, questionnaireId, sourceState);
-        } catch (FileNotFoundException e) {
-            throw new GenesisException(404, "File %s not found".formatted(filePath));
-        } catch (IOException e) {
-            throw new GenesisException(500, e.toString());
-        }
-    }
-
-    private void readEditedExternalFile(String questionnaireId, String filePath) throws GenesisException {
-        try (InputStream inputStream = new FileInputStream(filePath)) {
-            editedExternalResponseApiPort.readEditedExternalFile(inputStream, questionnaireId);
-        } catch (FileNotFoundException e) {
-            throw new GenesisException(404, "File %s not found".formatted(filePath));
-        } catch (IOException e) {
-            throw new GenesisException(500, e.toString());
-        }
-    }
-
-    private static void moveFiles(String questionnaireId, Mode mode, FileUtils fileUtils, String filePath) throws GenesisException {
+    private static void moveFile(String questionnaireId, Mode mode, FileUtils fileUtils, String filePath) throws GenesisException {
         try {
             fileUtils.moveFiles(Path.of(filePath), fileUtils.getDoneFolder(questionnaireId, mode.getFolder()));
         } catch (IOException e) {

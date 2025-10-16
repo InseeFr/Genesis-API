@@ -7,6 +7,7 @@ import fr.insee.genesis.TestConstants;
 import fr.insee.genesis.controller.rest.LunaticModelController;
 import fr.insee.genesis.controller.rest.responses.QuestionnaireController;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
+import fr.insee.genesis.domain.service.context.DataProcessingContextService;
 import fr.insee.genesis.domain.service.lunaticmodel.LunaticModelService;
 import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
@@ -14,6 +15,7 @@ import fr.insee.genesis.domain.utils.JsonUtils;
 import fr.insee.genesis.infrastructure.document.lunaticmodel.LunaticModelDocument;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
+import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
 import fr.insee.genesis.stubs.LunaticModelPersistanceStub;
 import fr.insee.genesis.stubs.QuestionnaireMetadataPersistancePortStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
@@ -53,6 +55,10 @@ public class LunaticModelDefinitions {
                     surveyUnitPersistencePortStub,
                     new QuestionnaireMetadataService(questionnaireMetadataPersistancePortStub),
                     new FileUtils(new ConfigStub())
+            ),
+            new DataProcessingContextService(
+                    new DataProcessingContextPersistancePortStub(),
+                    surveyUnitPersistencePortStub
             )
     );
 

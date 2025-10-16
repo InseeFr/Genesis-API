@@ -1,4 +1,18 @@
 # Changelog
+## 1.10.0 [2025-10-16]
+### Added
+- Survey unit id export
+### Fixed
+- Cache eviction not working when delete questionnaire metadata
+
+## 1.9.0 [2025-10-09]
+### Added
+- Authorizations for scheduled Perret calls
+- Get questionnaires by review activated or not endpoint
+- Save all contextual previous/external variables files for one questionnaire endpoint
+### Changed
+- No more 400 if the previous/external file has no corresponding part (warn in log instead)
+- Changed edited to contextual
 
 ## 1.8.6 [2025-09-18]
 ### Added
