@@ -17,6 +17,8 @@ import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.ResponseEntity;
 
 import java.io.IOException;
@@ -442,6 +444,41 @@ class DataProcessingContextControllerTest {
                 .toFile()).exists().content().isNotEmpty().contains("2000","2001");
     }
 
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void getReview_test(boolean withReview){
+        //GIVEN
+        String partitionId = "TESTPARTITION";
+        dataProcessingContextPersistancePortStub.getMongoStub().add(
+                new DataProcessingContextDocument(
+                        "TESTPARTITION",
+                        new ArrayList<>(),
+                        withReview
+                )
+        );
+
+        //WHEN
+        ResponseEntity<Object> response = dataProcessingContextController.getReviewIndicator(partitionId);
+
+        //THEN
+        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(200);
+        Assertions.assertThat(response.getBody().getClass()).isEqualTo(Boolean.class);
+        Assertions.assertThat((Boolean) response.getBody()).isEqualTo(withReview);
+    }
+
+    @Test
+    void getReview_no_context_test(){
+        //WHEN
+        ResponseEntity<Object> response = dataProcessingContextController.getReviewIndicator(
+                "TESTPARTITIONIDNOCONTEXT"
+        );
+
+        //THEN
+        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(404);
+    }
+
+
+    //UTILITY
     private void addNewDocumentToStub() {
         DataProcessingContextDocument dataProcessingContextDocumentTest = new DataProcessingContextDocument(
                 "TESTSURVEY",
