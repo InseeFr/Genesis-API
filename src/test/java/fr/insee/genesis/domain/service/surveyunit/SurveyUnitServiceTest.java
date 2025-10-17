@@ -1,4 +1,4 @@
-package fr.insee.genesis.domain.service;
+package fr.insee.genesis.domain.service.surveyunit;
 
 import fr.insee.genesis.controller.dto.SurveyUnitDto;
 import fr.insee.genesis.controller.dto.VariableDto;
@@ -7,7 +7,6 @@ import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
-import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.QuestionnaireMetadataPersistancePortStub;
@@ -239,6 +238,24 @@ class SurveyUnitServiceTest {
         addAdditionnalSurveyUnitModelToMongoStub();
 
         Assertions.assertThat(surveyUnitServiceStatic.findDistinctInterrogationIdsByQuestionnaireId(DEFAULT_QUESTIONNAIRE_ID)).filteredOn(
+                interrogationId -> interrogationId.getInterrogationId().equals(DEFAULT_INTERROGATION_ID)
+        ).isNotEmpty().hasSize(1);
+    }
+
+    @Test
+    void findDistinctInterrogationIdsByQuestionnaireIdAndDateAfterTest_no_doc_in_period(){
+        addAdditionnalSurveyUnitModelToMongoStub();
+
+        Assertions.assertThat(surveyUnitServiceStatic.findDistinctInterrogationIdsByQuestionnaireIdAndDateAfter(DEFAULT_QUESTIONNAIRE_ID,LocalDateTime.of(2025,9,1,0,0,0))).filteredOn(
+                interrogationId -> interrogationId.getInterrogationId().equals(DEFAULT_INTERROGATION_ID)
+        ).isEmpty();
+    }
+
+    @Test
+    void findDistinctInterrogationIdsByQuestionnaireIdAndDateAfterTest_doc_in_period(){
+        addAdditionnalSurveyUnitModelToMongoStub();
+
+        Assertions.assertThat(surveyUnitServiceStatic.findDistinctInterrogationIdsByQuestionnaireIdAndDateAfter(DEFAULT_QUESTIONNAIRE_ID,LocalDateTime.of(2022,1,1,0,0,0))).filteredOn(
                 interrogationId -> interrogationId.getInterrogationId().equals(DEFAULT_INTERROGATION_ID)
         ).isNotEmpty().hasSize(1);
     }
