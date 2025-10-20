@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.11.0 [TODO]
+## 1.11.0 [2025-10-20]
 ### Added
 - Storage of the date of the last json extraction for a survey and a mode
 
