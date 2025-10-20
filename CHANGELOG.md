@@ -1,4 +1,9 @@
 # Changelog
+
+## 1.11.0 [TODO]
+### Added
+- Storage of the date of the last json extraction for a survey and a mode
+
 ## 1.10.0 [2025-10-16]
 ### Added
 - Survey unit id export
