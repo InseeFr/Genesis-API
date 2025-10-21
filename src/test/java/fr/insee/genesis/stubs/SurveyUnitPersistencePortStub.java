@@ -4,6 +4,7 @@ import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -82,6 +83,19 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
             if(SurveyUnitModel.getQuestionnaireId().equals(questionnaireId))
                 surveyUnitModelList.add(
                         new SurveyUnitModel(SurveyUnitModel.getInterrogationId(), SurveyUnitModel.getMode())
+                );
+        }
+
+        return surveyUnitModelList;
+    }
+
+    @Override
+    public List<SurveyUnitModel> findInterrogationIdsByQuestionnaireIdAndDateAfter(String questionnaireId, LocalDateTime since) {
+        List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
+        for(SurveyUnitModel surveyUnitModel : mongoStub){
+            if(surveyUnitModel.getQuestionnaireId().equals(questionnaireId) && surveyUnitModel.getRecordDate().isAfter(since))
+                surveyUnitModelList.add(
+                        new SurveyUnitModel(surveyUnitModel.getInterrogationId(), surveyUnitModel.getMode())
                 );
         }
 
