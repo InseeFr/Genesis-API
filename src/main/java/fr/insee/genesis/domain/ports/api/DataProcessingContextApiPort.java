@@ -33,4 +33,11 @@ public interface DataProcessingContextApiPort {
     DataProcessingContextModel getContext(String interrogationId) throws GenesisException;
     DataProcessingContextModel getContextByPartitionId(String partitionId) throws GenesisException;
     List<String> getPartitionIds(boolean withReview);
+
+    /**
+     * Gets the review indicator for a partition
+     * @param partitionId id of the partition
+     * @return the review indicator stored in genesis
+     */
+    boolean getReviewByPartitionId(String partitionId) throws GenesisException;
 }
