@@ -1,5 +1,5 @@
 # Changelog
-## 1.12.0 [TODO]
+## 1.12.0 [2025-10-23]
 - Get review indicator endpoint
 
 ## 1.11.0 [2025-10-20]
