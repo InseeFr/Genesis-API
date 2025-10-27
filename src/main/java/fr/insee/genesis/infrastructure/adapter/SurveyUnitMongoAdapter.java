@@ -28,7 +28,8 @@ import java.util.stream.Stream;
 @Qualifier("surveyUnitMongoAdapter")
 public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 
-	private final SurveyUnitMongoDBRepository mongoRepository;
+    public static final String QUESTIONNAIRE_ID = "questionnaireId";
+    private final SurveyUnitMongoDBRepository mongoRepository;
 	private final MongoTemplate mongoTemplate;
 
 	@Autowired
@@ -105,7 +106,7 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 			ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 			try{
 				JsonNode jsonNode = objectMapper.readTree(line);
-				questionnaireIds.add(jsonNode.get("questionnaireId").asText());
+				questionnaireIds.add(jsonNode.get(QUESTIONNAIRE_ID).asText());
 			}catch (JsonProcessingException e){
 				log.error(e.getMessage());
 			}
@@ -129,7 +130,7 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 			ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 			try{
 				JsonNode jsonNode = objectMapper.readTree(line);
-				questionnaireIds.add(jsonNode.get("questionnaireId").asText());
+				questionnaireIds.add(jsonNode.get(QUESTIONNAIRE_ID).asText());
 			}catch (JsonProcessingException e){
 				log.error(e.getMessage());
 			}
@@ -202,7 +203,7 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 	public Set<String> findDistinctQuestionnaireIds() {
 		Set<String> questionnaireIds = new HashSet<>();
 		for(String questionnaireId : mongoTemplate.getCollection(Constants.MONGODB_RESPONSE_COLLECTION_NAME).distinct(
-				"questionnaireId",
+                QUESTIONNAIRE_ID,
 				String.class)){
 			questionnaireIds.add(questionnaireId);
 		}
