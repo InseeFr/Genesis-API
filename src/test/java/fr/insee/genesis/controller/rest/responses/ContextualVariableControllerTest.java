@@ -17,11 +17,13 @@ import fr.insee.genesis.stubs.ContextualExternalVariablePersistancePortStub;
 import fr.insee.genesis.stubs.ContextualPreviousVariablePersistancePortStub;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.FileSystemUtils;
@@ -35,6 +37,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 @Slf4j
 class ContextualVariableControllerTest {
@@ -97,8 +101,8 @@ class ContextualVariableControllerTest {
         if(!response.getStatusCode().is2xxSuccessful()){
             log.error((String)response.getBody());
         }
-        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(response.getBody()).isInstanceOf(ContextualVariableModel.class);
+        Assertions.assertTrue(response.getStatusCode().is2xxSuccessful());
+        Assertions.assertInstanceOf(ContextualVariableModel.class,response.getBody());
 
         ContextualPreviousVariableDocument contextualPreviousVariableDocument = previousStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_PREVIOUS_COLLECTION_NAME).stream().filter(
                 contextualPreviousVariableDocument1 ->
@@ -112,7 +116,8 @@ class ContextualVariableControllerTest {
                                         && contextualExternalVariableDocument1.getInterrogationId().equals(INTERROGATION_ID_1)
                 ).toList().getFirst();
         ContextualVariableModel contextualVariableModel = (ContextualVariableModel) response.getBody();
-        Assertions.assertThat(contextualVariableModel.interrogationId()).isEqualTo(INTERROGATION_ID_1);
+        Assertions.assertNotNull(contextualVariableModel);
+        Assertions.assertEquals(INTERROGATION_ID_1,contextualVariableModel.interrogationId());
         assertDocumentEqualToDto(contextualPreviousVariableDocument, contextualVariableModel);
         assertDocumentEqualToDto(contextualExternalVariableDocument, contextualVariableModel);
     }
@@ -134,8 +139,8 @@ class ContextualVariableControllerTest {
         if(!response.getStatusCode().is2xxSuccessful()){
             log.error((String)response.getBody());
         }
-        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(response.getBody()).isInstanceOf(ContextualVariableModel.class);
+        Assertions.assertTrue(response.getStatusCode().is2xxSuccessful());
+        Assertions.assertInstanceOf(ContextualVariableModel.class,response.getBody());
 
         ContextualPreviousVariableDocument contextualPreviousVariableDocument = previousStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_PREVIOUS_COLLECTION_NAME).stream().filter(
                 contextualPreviousVariableDocument1 ->
@@ -144,9 +149,10 @@ class ContextualVariableControllerTest {
         ).toList().getFirst();
 
         ContextualVariableModel contextualVariableModel = (ContextualVariableModel) response.getBody();
-        Assertions.assertThat(contextualVariableModel.interrogationId()).isEqualTo(INTERROGATION_ID_2);
+        Assertions.assertEquals(INTERROGATION_ID_2,contextualVariableModel.interrogationId());
         assertDocumentEqualToDto(contextualPreviousVariableDocument, contextualVariableModel);
-        Assertions.assertThat(contextualVariableModel.contextualExternal()).isNotNull().isEmpty();
+        Assertions.assertNotNull(contextualVariableModel.contextualExternal());
+        Assertions.assertTrue(contextualVariableModel.contextualExternal().isEmpty());
     }
 
     @Test
@@ -159,22 +165,32 @@ class ContextualVariableControllerTest {
                 INTERROGATION_ID_1);
 
         //THEN
-        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(response.getBody()).isInstanceOf(ContextualVariableModel.class);
+        Assertions.assertTrue(response.getStatusCode().is2xxSuccessful());
+        Assertions.assertInstanceOf(ContextualVariableModel.class,response.getBody());
         ContextualVariableModel contextualVariableModel = (ContextualVariableModel) response.getBody();
-        Assertions.assertThat(contextualVariableModel.interrogationId()).isEqualTo(INTERROGATION_ID_1);
-        Assertions.assertThat(contextualVariableModel.contextualPrevious()).isNotNull().isEmpty();
-        Assertions.assertThat(contextualVariableModel.contextualExternal()).isNotNull().isEmpty();
+        Assertions.assertEquals(INTERROGATION_ID_1,contextualVariableModel.interrogationId());
+        Assertions.assertNotNull(contextualVariableModel.contextualPrevious());
+        Assertions.assertTrue(contextualVariableModel.contextualPrevious().isEmpty());
+        Assertions.assertNotNull(contextualVariableModel.contextualExternal());
+        Assertions.assertTrue(contextualVariableModel.contextualExternal().isEmpty());
     }
 
     //POST ALL FILES OF QUESTIONNAIRE
-    @Test
     @SneakyThrows
-    void saveContextualVariables_previous_test() {
+    @ParameterizedTest(name = "[{index}] saveContextualVariables - previous {0}")
+    @MethodSource("casesPrevious")
+    void saveContextualVariables_previous_test(
+            String interrogationId,
+            int expectedCollectionSize,
+            int expectedVarCount,
+            Consumer<ContextualPreviousVariableDocument> assertionsForDoc
+    ) {
         //GIVEN
         Files.createDirectories(SOURCE_PATH_PREVIOUS);
         Files.copy(
-                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("contextual_previous").resolve("ok.json"),
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
+                        .resolve("contextual_previous")
+                        .resolve("ok.json"),
                 SOURCE_PATH_PREVIOUS.resolve("ok.json"),
                 StandardCopyOption.REPLACE_EXISTING
         );
@@ -183,70 +199,95 @@ class ContextualVariableControllerTest {
         ResponseEntity<Object> response = contextualVariableController.saveContextualVariables(QUESTIONNAIRE_ID_PREVIOUS);
 
         //THEN
-        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(previousStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_PREVIOUS_COLLECTION_NAME)).hasSize(2);
+        Assertions.assertTrue(response.getStatusCode().is2xxSuccessful());
+        List<ContextualPreviousVariableDocument> previousVarDocumentList = previousStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_PREVIOUS_COLLECTION_NAME);
+        Assertions.assertEquals(expectedCollectionSize,previousVarDocumentList.size());
 
-        List<ContextualPreviousVariableDocument> filter = previousStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_PREVIOUS_COLLECTION_NAME)
-                .stream().filter(doc -> doc.getInterrogationId().equals("AUTO104")).toList();
-        Assertions.assertThat(filter).hasSize(1);
-        Assertions.assertThat(filter.getFirst().getSourceState()).isNull();
-        Assertions.assertThat(filter.getFirst().getQuestionnaireId()).isEqualTo(QUESTIONNAIRE_ID_PREVIOUS);
+        List<ContextualPreviousVariableDocument> filter =
+                previousVarDocumentList
+                        .stream()
+                        .filter(doc -> doc.getInterrogationId().equals(interrogationId)).toList();
+        Assertions.assertEquals(1,filter.size());
 
-        Assertions.assertThat(filter.getFirst().getVariables()).hasSize(15);
-        assertVariable(filter.getFirst(), "TEXTECOURT", "");
-        assertVariable(filter.getFirst(), "TEXTELONG", "test d'une donnée antérieure sur un texte long pour voir comment ça marche");
-        assertVariable(filter.getFirst(), "FLOAT", 50.25d);
-        assertVariableNull(filter.getFirst(), "INTEGER");
-        assertVariable(filter.getFirst(), "BOOLEEN", true);
-        assertVariable(filter.getFirst(), "DROPDOWN", "03");
-        assertVariable(filter.getFirst(), "QCM_B1", true);
-        assertVariable(filter.getFirst(), "QCM_B2", false);
-        assertVariable(filter.getFirst(), "QCM_B4", true);
-        assertVariable(filter.getFirst(), "TABLEAU2A11", 200);
-        assertVariable(filter.getFirst(), "TABLEAU2A12", 150);
-        assertVariable(filter.getFirst(), "TABLEAU2A23", 1000);
-        assertVariableNull(filter.getFirst(), "TABLEAU2A24");
-        assertVariable(filter.getFirst(), "TABOFATS1",0, "AA");
-        assertVariable(filter.getFirst(), "TABOFATS1",1, "");
-        assertVariable(filter.getFirst(), "TABOFATS1",2, "BB");
-        assertVariable(filter.getFirst(), "TABOFATS1",3, "CC");
-        assertVariable(filter.getFirst(), "TABOFATS3",0, 5);
-        assertVariableNull(filter.getFirst(), "TABOFATS3",1);
-        assertVariable(filter.getFirst(), "TABOFATS3",2, 3);
+        ContextualPreviousVariableDocument firstDocument = filter.getFirst();
+        Assertions.assertNull(firstDocument.getSourceState());
+        Assertions.assertEquals(QUESTIONNAIRE_ID_PREVIOUS,firstDocument.getQuestionnaireId());
 
-        filter = previousStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_PREVIOUS_COLLECTION_NAME)
-                .stream().filter(doc -> doc.getInterrogationId().equals("AUTO108")).toList();
-        Assertions.assertThat(filter).hasSize(1);
-            Assertions.assertThat(filter.getFirst().getSourceState()).isNull();
-        Assertions.assertThat(filter.getFirst().getQuestionnaireId()).isEqualTo(QUESTIONNAIRE_ID_PREVIOUS);
+        Assertions.assertEquals(expectedVarCount,firstDocument.getVariables().size());
 
-        Assertions.assertThat(filter.getFirst().getVariables()).hasSize(14);
-        assertVariable(filter.getFirst(), "TEXTECOURT", "test previous");
-        assertVariable(filter.getFirst(), "TEXTELONG", "");
-        assertVariable(filter.getFirst(), "FLOAT", 12.2d);
-        assertVariable(filter.getFirst(), "BOOLEEN", false);
-        assertVariable(filter.getFirst(), "DROPDOWN", "");
-        assertVariable(filter.getFirst(), "QCM_B1", false);
-        assertVariable(filter.getFirst(), "QCM_B2", false);
-        assertVariable(filter.getFirst(), "QCM_B5", true);
-        assertVariable(filter.getFirst(), "TABLEAU2A11", 1);
-        assertVariable(filter.getFirst(), "TABLEAU2A12", 2);
-        assertVariable(filter.getFirst(), "TABLEAU2A23", 3);
-        assertVariable(filter.getFirst(), "TABLEAU2A24",4);
-        assertVariable(filter.getFirst(), "TABOFATS1",0, "BB");
-        assertVariable(filter.getFirst(), "TABOFATS1",1, "BB");
-        assertVariable(filter.getFirst(), "TABOFATS3",0, 10);
-        assertVariable(filter.getFirst(), "TABOFATS3",1, 4);
-        assertVariable(filter.getFirst(), "TABOFATS3",2, 0);
+        // Assertions spécifiques au cas
+        assertionsForDoc.accept(firstDocument);
+    }
+    static Stream<Arguments> casesPrevious() {
+        return Stream.of(
+                Arguments.of(
+                        "AUTO104",
+                        /* expectedCollectionSize */ 2,
+                        /* expectedVarCount */ 15,
+                        (Consumer<ContextualPreviousVariableDocument>) doc -> {
+                            assertVariable(doc, "TEXTECOURT", "");
+                            assertVariable(doc, "TEXTELONG",
+                                    "test d'une donnée antérieure sur un texte long pour voir comment ça marche");
+                            assertVariable(doc, "FLOAT", 50.25d);
+                            assertVariableNull(doc, "INTEGER");
+                            assertVariable(doc, "BOOLEEN", true);
+                            assertVariable(doc, "DROPDOWN", "03");
+                            assertVariable(doc, "QCM_B1", true);
+                            assertVariable(doc, "QCM_B2", false);
+                            assertVariable(doc, "QCM_B4", true);
+                            assertVariable(doc, "TABLEAU2A11", 200);
+                            assertVariable(doc, "TABLEAU2A12", 150);
+                            assertVariable(doc, "TABLEAU2A23", 1000);
+                            assertVariableNull(doc, "TABLEAU2A24");
+                            assertVariable(doc, "TABOFATS1", 0, "AA");
+                            assertVariable(doc, "TABOFATS1", 1, "");
+                            assertVariable(doc, "TABOFATS1", 2, "BB");
+                            assertVariable(doc, "TABOFATS1", 3, "CC");
+                            assertVariable(doc, "TABOFATS3", 0, 5);
+                            assertVariableNull(doc, "TABOFATS3", 1);
+                            assertVariable(doc, "TABOFATS3", 2, 3);
+                        }
+                ),
+                Arguments.of(
+                        "AUTO108",
+                        /* expectedCollectionSize */ 2,
+                        /* expectedVarCount */ 14,
+                        (Consumer<ContextualPreviousVariableDocument>) doc -> {
+                            assertVariable(doc, "TEXTECOURT", "test previous");
+                            assertVariable(doc, "TEXTELONG", "");
+                            assertVariable(doc, "FLOAT", 12.2d);
+                            assertVariable(doc, "BOOLEEN", false);
+                            assertVariable(doc, "DROPDOWN", "");
+                            assertVariable(doc, "QCM_B1", false);
+                            assertVariable(doc, "QCM_B2", false);
+                            assertVariable(doc, "QCM_B5", true);
+                            assertVariable(doc, "TABLEAU2A11", 1);
+                            assertVariable(doc, "TABLEAU2A12", 2);
+                            assertVariable(doc, "TABLEAU2A23", 3);
+                            assertVariable(doc, "TABLEAU2A24", 4);
+                            assertVariable(doc, "TABOFATS1", 0, "BB");
+                            assertVariable(doc, "TABOFATS1", 1, "BB");
+                            assertVariable(doc, "TABOFATS3", 0, 10);
+                            assertVariable(doc, "TABOFATS3", 1, 4);
+                            assertVariable(doc, "TABOFATS3", 2, 0);
+                        }
+                )
+        );
     }
 
-    @Test
     @SneakyThrows
-    void saveContextualVariables_external_test() {
+    @ParameterizedTest(name = "[{index}] saveContextualVariables_external - cas {0}")
+    @MethodSource("casesExternal")
+    void saveContextualVariables_external_test( String interrogationId,
+                                                int expectedCollectionSize,
+                                                int expectedVarCount,
+                                                Consumer<ContextualExternalVariableDocument> assertionsForDoc) {
         //GIVEN
         Files.createDirectories(SOURCE_PATH_EXTERNAL);
         Files.copy(
-                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("contextual_external").resolve("ok.json"),
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
+                        .resolve("contextual_external")
+                        .resolve("ok.json"),
                 SOURCE_PATH_EXTERNAL.resolve("ok.json"),
                 StandardCopyOption.REPLACE_EXISTING
         );
@@ -255,52 +296,70 @@ class ContextualVariableControllerTest {
         ResponseEntity<Object> response = contextualVariableController.saveContextualVariables(QUESTIONNAIRE_ID_EXTERNAL);
 
         //THEN
-        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(externalStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_EXTERNAL_COLLECTION_NAME)).hasSize(2);
+        Assertions.assertTrue(response.getStatusCode().is2xxSuccessful());
+        Assertions.assertEquals(expectedCollectionSize,externalStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_EXTERNAL_COLLECTION_NAME).size());
 
         List<ContextualExternalVariableDocument> filter = externalStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_EXTERNAL_COLLECTION_NAME)
-                .stream().filter(doc -> doc.getInterrogationId().equals("AUTO204")).toList();
-        Assertions.assertThat(filter).hasSize(1);
+                .stream().filter(doc -> doc.getInterrogationId().equals(interrogationId)).toList();
+        Assertions.assertEquals(1,filter.size());
 
-        Assertions.assertThat(filter.getFirst().getQuestionnaireId()).isEqualTo(QUESTIONNAIRE_ID_EXTERNAL);
+        ContextualExternalVariableDocument firstDoc = filter.getFirst();
+        Assertions.assertEquals(QUESTIONNAIRE_ID_EXTERNAL, firstDoc.getQuestionnaireId());
+        Assertions.assertEquals(expectedVarCount, firstDoc.getVariables().size());
+        assertionsForDoc.accept(firstDoc);
 
-        Assertions.assertThat(filter.getFirst().getVariables()).hasSize(12);
-        assertVariable(filter.getFirst(), "TVA", 302.34d);
-        assertVariable(filter.getFirst(), "CA", 22.45d);
-        assertVariable(filter.getFirst(), "COM_AUTRE", "blablablabla");
-        assertVariable(filter.getFirst(), "INTERRO_N_1", true);
-        assertVariable(filter.getFirst(), "INTERRO_N_2", false);
-        assertVariable(filter.getFirst(), "NAF25", "9560Y");
-        assertVariable(filter.getFirst(), "POIDS", 1.25);
-        assertVariable(filter.getFirst(), "MILLESIME", "2024");
-        assertVariable(filter.getFirst(), "NSUBST", true);
-        assertVariable(filter.getFirst(), "TAB_EXTNUM",0, 50);
-        assertVariable(filter.getFirst(), "TAB_EXTNUM",1, 23);
-        assertVariable(filter.getFirst(), "TAB_EXTNUM",2, 10);
-        assertVariableNull(filter.getFirst(), "TAB_EXTNUM",3);
-        assertVariable(filter.getFirst(), "TAB_EXTCAR",0, "A");
-        assertVariable(filter.getFirst(), "TAB_EXTCAR",1, "");
-        assertVariable(filter.getFirst(), "TAB_EXTCAR",2, "B");
-
-        filter = externalStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_EXTERNAL_COLLECTION_NAME)
-                .stream().filter(doc -> doc.getInterrogationId().equals("AUTO208")).toList();
-        Assertions.assertThat(filter).hasSize(1);
-        Assertions.assertThat(filter.getFirst().getQuestionnaireId()).isEqualTo(QUESTIONNAIRE_ID_EXTERNAL);
-
-        Assertions.assertThat(filter.getFirst().getVariables()).hasSize(11);
-        assertVariable(filter.getFirst(), "TVA", "");
-        assertVariable(filter.getFirst(), "COM_AUTRE", "");
-        assertVariable(filter.getFirst(), "SECTEUR", "123456789");
-        assertVariable(filter.getFirst(), "INTERRO_N_1", false);
-        assertVariable(filter.getFirst(), "INTERRO_N_2", false);
-        assertVariable(filter.getFirst(), "NAF25", "1014Z");
-        assertVariable(filter.getFirst(), "POIDS", 12);
-        assertVariable(filter.getFirst(), "MILLESIME", "2024");
-        assertVariable(filter.getFirst(), "NSUBST", false);
-        assertVariable(filter.getFirst(), "TAB_EXTNUM",0, 10);
-        assertVariable(filter.getFirst(), "TAB_EXTCAR",0, "C");
-        assertVariable(filter.getFirst(), "TAB_EXTCAR",1, "C");
     }
+
+    static Stream<Arguments> casesExternal() {
+        return Stream.of(
+                Arguments.of(
+                        "AUTO204",
+                        /* expectedCollectionSize */ 2,
+                        /* expectedVarCount */ 12,
+                        (Consumer<ContextualExternalVariableDocument>) doc -> {
+                            assertVariable(doc, "TVA", 302.34d);
+                            assertVariable(doc, "CA", 22.45d);
+                            assertVariable(doc, "COM_AUTRE", "blablablabla");
+                            assertVariable(doc, "INTERRO_N_1", true);
+                            assertVariable(doc, "INTERRO_N_2", false);
+                            assertVariable(doc, "NAF25", "9560Y");
+                            assertVariable(doc, "POIDS", 1.25);
+                            assertVariable(doc, "MILLESIME", "2024");
+                            assertVariable(doc, "NSUBST", true);
+
+                            assertVariable(doc, "TAB_EXTNUM", 0, 50);
+                            assertVariable(doc, "TAB_EXTNUM", 1, 23);
+                            assertVariable(doc, "TAB_EXTNUM", 2, 10);
+                            assertVariableNull(doc, "TAB_EXTNUM", 3);
+
+                            assertVariable(doc, "TAB_EXTCAR", 0, "A");
+                            assertVariable(doc, "TAB_EXTCAR", 1, "");
+                            assertVariable(doc, "TAB_EXTCAR", 2, "B");
+                        }
+                ),
+                Arguments.of(
+                        "AUTO208",
+                        /* expectedCollectionSize */ 2,
+                        /* expectedVarCount */ 11,
+                        (Consumer<ContextualExternalVariableDocument>) doc -> {
+                            assertVariable(doc, "TVA", "");
+                            assertVariable(doc, "COM_AUTRE", "");
+                            assertVariable(doc, "SECTEUR", "123456789");
+                            assertVariable(doc, "INTERRO_N_1", false);
+                            assertVariable(doc, "INTERRO_N_2", false);
+                            assertVariable(doc, "NAF25", "1014Z");
+                            assertVariable(doc, "POIDS", 12);
+                            assertVariable(doc, "MILLESIME", "2024");
+                            assertVariable(doc, "NSUBST", false);
+
+                            assertVariable(doc, "TAB_EXTNUM", 0, 10);
+                            assertVariable(doc, "TAB_EXTCAR", 0, "C");
+                            assertVariable(doc, "TAB_EXTCAR", 1, "C");
+                        }
+                )
+        );
+    }
+
 
     @Test
     @SneakyThrows
@@ -317,9 +376,13 @@ class ContextualVariableControllerTest {
         ResponseEntity<Object> response = contextualVariableController.saveContextualVariables(QUESTIONNAIRE_ID_EXTERNAL);
 
         //THEN
-        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(externalStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_EXTERNAL_COLLECTION_NAME)).isEmpty();
-    }
+        Assertions.assertTrue(response.getStatusCode().is2xxSuccessful());
+        Assertions.assertTrue(
+                externalStub.getMongoStub()
+                        .get(Constants.MONGODB_CONTEXTUAL_EXTERNAL_COLLECTION_NAME)
+                        .isEmpty(),
+                "MONGODB_CONTEXTUAL_EXTERNAL_COLLECTION_NAME should be empty"
+        );    }
 
     //PREVIOUS
     @Test
@@ -348,19 +411,20 @@ class ContextualVariableControllerTest {
         contextualVariableController.readContextualPreviousJson(QUESTIONNAIRE_ID_PREVIOUS, Mode.WEB, sourceState, "ok.json");
 
         //THEN
-        Assertions.assertThat(previousStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_PREVIOUS_COLLECTION_NAME)).hasSize(2);
+        Assertions.assertEquals(2,previousStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_PREVIOUS_COLLECTION_NAME).size());
 
         List<ContextualPreviousVariableDocument> filter = previousStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_PREVIOUS_COLLECTION_NAME)
                 .stream().filter(doc -> doc.getInterrogationId().equals("AUTO104")).toList();
-        Assertions.assertThat(filter).hasSize(1);
+        Assertions.assertEquals(1,filter.size());
         if(sourceState == null){
-            Assertions.assertThat(filter.getFirst().getSourceState()).isNull();
+            Assertions.assertNull(filter.getFirst().getSourceState());
         }else{
-            Assertions.assertThat(filter.getFirst().getSourceState()).isNotNull().isEqualTo(sourceState);
+            Assertions.assertNotNull(filter.getFirst().getSourceState());
+            Assertions.assertEquals(sourceState, filter.getFirst().getSourceState());
         }
-        Assertions.assertThat(filter.getFirst().getQuestionnaireId()).isEqualTo(QUESTIONNAIRE_ID_PREVIOUS);
+        Assertions.assertEquals(QUESTIONNAIRE_ID_PREVIOUS,filter.getFirst().getQuestionnaireId());
 
-        Assertions.assertThat(filter.getFirst().getVariables()).hasSize(15);
+        Assertions.assertEquals(15,filter.getFirst().getVariables().size());
         assertVariable(filter.getFirst(), "TEXTECOURT", "");
         assertVariable(filter.getFirst(), "TEXTELONG", "test d'une donnée antérieure sur un texte long pour voir comment ça marche");
         assertVariable(filter.getFirst(), "FLOAT", 50.25d);
@@ -384,15 +448,16 @@ class ContextualVariableControllerTest {
 
         filter = previousStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_PREVIOUS_COLLECTION_NAME)
                 .stream().filter(doc -> doc.getInterrogationId().equals("AUTO108")).toList();
-        Assertions.assertThat(filter).hasSize(1);
+        Assertions.assertEquals(1,filter.size());
         if(sourceState == null){
-            Assertions.assertThat(filter.getFirst().getSourceState()).isNull();
+            Assertions.assertNull(filter.getFirst().getSourceState());
         }else{
-            Assertions.assertThat(filter.getFirst().getSourceState()).isNotNull().isEqualTo(sourceState);
+            Assertions.assertNotNull(filter.getFirst().getSourceState());
+            Assertions.assertEquals(sourceState, filter.getFirst().getSourceState());
         }
-        Assertions.assertThat(filter.getFirst().getQuestionnaireId()).isEqualTo(QUESTIONNAIRE_ID_PREVIOUS);
+        Assertions.assertEquals(QUESTIONNAIRE_ID_PREVIOUS,filter.getFirst().getQuestionnaireId());
 
-        Assertions.assertThat(filter.getFirst().getVariables()).hasSize(14);
+        Assertions.assertEquals(14,filter.getFirst().getVariables().size());
         assertVariable(filter.getFirst(), "TEXTECOURT", "test previous");
         assertVariable(filter.getFirst(), "TEXTELONG", "");
         assertVariable(filter.getFirst(), "FLOAT", 12.2d);
@@ -412,20 +477,25 @@ class ContextualVariableControllerTest {
         assertVariable(filter.getFirst(), "TABOFATS3",2, 0);
     }
 
-    @Test
+    @ParameterizedTest(name = "[{index}] readPreviousJson_override_interrogation_id — {0}")
+    @MethodSource("overridePreviousCases")
     @SneakyThrows
-    void readPreviousJson_override_interrogation_id(){
+    void readPreviousJson_override_interrogation_id( String interrogationId,
+                                                     int expectedVarCount,
+                                                     Consumer<ContextualPreviousVariableDocument> assertionsForDoc){
         //GIVEN
         Files.createDirectories(SOURCE_PATH_PREVIOUS);
+        Path path = Path.of(TestConstants.TEST_RESOURCES_DIRECTORY);
         Files.copy(
-                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("contextual_previous").resolve("ok.json"),
+
+                path.resolve("contextual_previous").resolve("ok.json"),
                 SOURCE_PATH_PREVIOUS.resolve("ok.json"),
                 StandardCopyOption.REPLACE_EXISTING
         );
         contextualVariableController.readContextualPreviousJson(QUESTIONNAIRE_ID_PREVIOUS, Mode.WEB, null, "ok.json");
         Files.createDirectories(SOURCE_PATH_PREVIOUS);
         Files.copy(
-                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("contextual_previous").resolve("ok2.json"),
+                path.resolve("contextual_previous").resolve("ok2.json"),
                 SOURCE_PATH_PREVIOUS.resolve("ok2.json"),
                 StandardCopyOption.REPLACE_EXISTING
         );
@@ -434,63 +504,81 @@ class ContextualVariableControllerTest {
         contextualVariableController.readContextualPreviousJson(QUESTIONNAIRE_ID_PREVIOUS, Mode.WEB, null, "ok2.json");
 
         //THEN
-        Assertions.assertThat(previousStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_PREVIOUS_COLLECTION_NAME)).hasSize(2);
+        Assertions.assertEquals(2,previousStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_PREVIOUS_COLLECTION_NAME).size());
 
         List<ContextualPreviousVariableDocument> filter =
                 previousStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_PREVIOUS_COLLECTION_NAME)
-                .stream().filter(doc -> doc.getInterrogationId().equals("AUTO104")).toList();
-        Assertions.assertThat(filter).hasSize(1);
-        Assertions.assertThat(filter.getFirst().getQuestionnaireId()).isEqualTo(QUESTIONNAIRE_ID_PREVIOUS);
+                .stream().filter(doc -> doc.getInterrogationId().equals(interrogationId)).toList();
+        Assertions.assertEquals(1, filter.size());
+        ContextualPreviousVariableDocument firstDoc = filter.getFirst();
+        Assertions.assertEquals(QUESTIONNAIRE_ID_PREVIOUS, firstDoc.getQuestionnaireId());
 
-        Assertions.assertThat(filter.getFirst().getVariables()).hasSize(15);
-        assertVariable(filter.getFirst(), "TEXTECOURT", "");
-        assertVariable(filter.getFirst(), "TEXTELONG", "test d'une donnée antérieure sur un texte long pour voir comment ça marche");
-        assertVariable(filter.getFirst(), "FLOAT", 50.25d);
-        assertVariableNull(filter.getFirst(), "INTEGER");
-        assertVariable(filter.getFirst(), "BOOLEEN", true);
-        assertVariable(filter.getFirst(), "DROPDOWN", "03");
-        assertVariable(filter.getFirst(), "QCM_B1", true);
-        assertVariable(filter.getFirst(), "QCM_B2", false);
-        assertVariable(filter.getFirst(), "QCM_B4", true);
-        assertVariable(filter.getFirst(), "TABLEAU2A11", 200);
-        assertVariable(filter.getFirst(), "TABLEAU2A12", 150);
-        assertVariable(filter.getFirst(), "TABLEAU2A23", 1000);
-        assertVariableNull(filter.getFirst(), "TABLEAU2A24");
-        assertVariable(filter.getFirst(), "TABOFATS1",0, "AA");
-        assertVariable(filter.getFirst(), "TABOFATS1",1, "");
-        assertVariable(filter.getFirst(), "TABOFATS1",2, "BB");
-        assertVariable(filter.getFirst(), "TABOFATS1",3, "CC");
-        assertVariable(filter.getFirst(), "TABOFATS3",0, 5);
-        assertVariableNull(filter.getFirst(), "TABOFATS3",1);
-        assertVariable(filter.getFirst(), "TABOFATS3",2, 3);
+        Assertions.assertAll(interrogationId + " metadata",
+                () -> Assertions.assertEquals(QUESTIONNAIRE_ID_PREVIOUS, firstDoc.getQuestionnaireId()),
+                () -> Assertions.assertEquals(expectedVarCount, firstDoc.getVariables().size())
+        );
 
-        filter = previousStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_PREVIOUS_COLLECTION_NAME)
-                .stream().filter(doc -> doc.getInterrogationId().equals("AUTO200")).toList();
-        Assertions.assertThat(filter).hasSize(1);
-        Assertions.assertThat(filter.getFirst().getQuestionnaireId()).isEqualTo(QUESTIONNAIRE_ID_PREVIOUS);
+        assertionsForDoc.accept(firstDoc);
+        Assertions.assertTrue(
+                previousStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_PREVIOUS_COLLECTION_NAME).stream()
+                        .noneMatch(d -> "AUTO108".equals(d.getInterrogationId())),
+                "AUTO108 ne devrait plus être présent après override"
+        );
+    }
 
-        Assertions.assertThat(filter.getFirst().getVariables()).hasSize(14);
-        assertVariable(filter.getFirst(), "TEXTECOURT", "test previous");
-        assertVariable(filter.getFirst(), "TEXTELONG", "");
-        assertVariable(filter.getFirst(), "FLOAT", 12.2d);
-        assertVariable(filter.getFirst(), "BOOLEEN", false);
-        assertVariable(filter.getFirst(), "DROPDOWN", "");
-        assertVariable(filter.getFirst(), "QCM_B1", false);
-        assertVariable(filter.getFirst(), "QCM_B2", false);
-        assertVariable(filter.getFirst(), "QCM_B5", true);
-        assertVariable(filter.getFirst(), "TABLEAU2A11", 1);
-        assertVariable(filter.getFirst(), "TABLEAU2A12", 2);
-        assertVariable(filter.getFirst(), "TABLEAU2A23", 3);
-        assertVariable(filter.getFirst(), "TABLEAU2A24",4);
-        assertVariable(filter.getFirst(), "TABOFATS1",0, "BB");
-        assertVariable(filter.getFirst(), "TABOFATS1",1, "BB");
-        assertVariable(filter.getFirst(), "TABOFATS3",0, 10);
-        assertVariable(filter.getFirst(), "TABOFATS3",1, 4);
-        assertVariable(filter.getFirst(), "TABOFATS3",2, 0);
 
-        filter = previousStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_PREVIOUS_COLLECTION_NAME)
-                .stream().filter(doc -> doc.getInterrogationId().equals("AUTO108")).toList();
-        Assertions.assertThat(filter).isEmpty();
+    static Stream<Arguments> overridePreviousCases() {
+        return Stream.of(
+                Arguments.of(
+                        "AUTO104",
+                        /* expectedVarCount */ 15,
+                        (Consumer<ContextualPreviousVariableDocument>) doc -> {
+                            assertVariable(doc, "TEXTECOURT", "");
+                            assertVariable(doc, "TEXTELONG", "test d'une donnée antérieure sur un texte long pour voir comment ça marche");
+                            assertVariable(doc, "FLOAT", 50.25d);
+                            assertVariableNull(doc, "INTEGER");
+                            assertVariable(doc, "BOOLEEN", true);
+                            assertVariable(doc, "DROPDOWN", "03");
+                            assertVariable(doc, "QCM_B1", true);
+                            assertVariable(doc, "QCM_B2", false);
+                            assertVariable(doc, "QCM_B4", true);
+                            assertVariable(doc, "TABLEAU2A11", 200);
+                            assertVariable(doc, "TABLEAU2A12", 150);
+                            assertVariable(doc, "TABLEAU2A23", 1000);
+                            assertVariableNull(doc, "TABLEAU2A24");
+                            assertVariable(doc, "TABOFATS1", 0, "AA");
+                            assertVariable(doc, "TABOFATS1", 1, "");
+                            assertVariable(doc, "TABOFATS1", 2, "BB");
+                            assertVariable(doc, "TABOFATS1", 3, "CC");
+                            assertVariable(doc, "TABOFATS3", 0, 5);
+                            assertVariableNull(doc, "TABOFATS3", 1);
+                            assertVariable(doc, "TABOFATS3", 2, 3);
+                        }
+                ),
+                Arguments.of(
+                        "AUTO200",
+                        /* expectedVarCount */ 14,
+                        (Consumer<ContextualPreviousVariableDocument>) doc -> {
+                            assertVariable(doc, "TEXTECOURT", "test previous");
+                            assertVariable(doc, "TEXTELONG", "");
+                            assertVariable(doc, "FLOAT", 12.2d);
+                            assertVariable(doc, "BOOLEEN", false);
+                            assertVariable(doc, "DROPDOWN", "");
+                            assertVariable(doc, "QCM_B1", false);
+                            assertVariable(doc, "QCM_B2", false);
+                            assertVariable(doc, "QCM_B5", true);
+                            assertVariable(doc, "TABLEAU2A11", 1);
+                            assertVariable(doc, "TABLEAU2A12", 2);
+                            assertVariable(doc, "TABLEAU2A23", 3);
+                            assertVariable(doc, "TABLEAU2A24", 4);
+                            assertVariable(doc, "TABOFATS1", 0, "BB");
+                            assertVariable(doc, "TABOFATS1", 1, "BB");
+                            assertVariable(doc, "TABOFATS3", 0, 10);
+                            assertVariable(doc, "TABOFATS3", 1, 4);
+                            assertVariable(doc, "TABOFATS3", 2, 0);
+                        }
+                )
+        );
     }
 
     @ParameterizedTest
@@ -509,7 +597,7 @@ class ContextualVariableControllerTest {
         //WHEN + THEN
         ResponseEntity<Object> response = contextualVariableController.readContextualPreviousJson(QUESTIONNAIRE_ID_PREVIOUS, Mode.WEB, sourceState,
                 fileName);
-        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(400);
+        Assertions.assertEquals(400,response.getStatusCode().value());
     }
 
     @Test
@@ -527,7 +615,7 @@ class ContextualVariableControllerTest {
         //WHEN + THEN
         ResponseEntity<Object> response = contextualVariableController.readContextualPreviousJson(QUESTIONNAIRE_ID_PREVIOUS, Mode.WEB, null,
                 syntaxErrorFileName);
-        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(400);
+        Assertions.assertEquals(400,response.getStatusCode().value());
     }
     @Test
     @SneakyThrows
@@ -544,7 +632,7 @@ class ContextualVariableControllerTest {
         //WHEN + THEN
         ResponseEntity<Object> response = contextualVariableController.readContextualPreviousJson(QUESTIONNAIRE_ID_PREVIOUS, Mode.WEB, null,
                 syntaxErrorFileName);
-        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(400);
+        Assertions.assertEquals(400,response.getStatusCode().value());
     }
 
 
@@ -563,14 +651,16 @@ class ContextualVariableControllerTest {
 
         //WHEN + THEN
         ResponseEntity<Object> response = contextualVariableController.readContextualPreviousJson(QUESTIONNAIRE_ID_PREVIOUS, Mode.WEB, null, fileName);
-        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(400);
+        Assertions.assertEquals(400,response.getStatusCode().value());
     }
 
 
     //EXTERNAL
-    @Test
-    @SneakyThrows
-    void readExternalJson_test(){
+    @ParameterizedTest(name = "[{index}] readExternalJson — {0}")
+    @MethodSource("readExternalCases")    @SneakyThrows
+    void readExternalJson_test( String interrogationId,
+                                int expectedVarCount,
+                                Consumer<ContextualExternalVariableDocument> assertionsForDoc){
         //GIVEN
         Files.createDirectories(SOURCE_PATH_EXTERNAL);
         Files.copy(
@@ -583,66 +673,86 @@ class ContextualVariableControllerTest {
         contextualVariableController.readContextualExternalJson(QUESTIONNAIRE_ID_EXTERNAL, Mode.WEB, "ok.json");
 
         //THEN
-        Assertions.assertThat(externalStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_EXTERNAL_COLLECTION_NAME)).hasSize(2);
+        Assertions.assertEquals(2,externalStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_EXTERNAL_COLLECTION_NAME).size());
 
         List<ContextualExternalVariableDocument> filter = externalStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_EXTERNAL_COLLECTION_NAME)
-                .stream().filter(doc -> doc.getInterrogationId().equals("AUTO204")).toList();
-        Assertions.assertThat(filter).hasSize(1);
+                .stream().filter(doc -> doc.getInterrogationId().equals(interrogationId)).toList();
+        Assertions.assertEquals(1,filter.size());
 
-        Assertions.assertThat(filter.getFirst().getQuestionnaireId()).isEqualTo(QUESTIONNAIRE_ID_EXTERNAL);
-
-        Assertions.assertThat(filter.getFirst().getVariables()).hasSize(12);
-        assertVariable(filter.getFirst(), "TVA", 302.34d);
-        assertVariable(filter.getFirst(), "CA", 22.45d);
-        assertVariable(filter.getFirst(), "COM_AUTRE", "blablablabla");
-        assertVariable(filter.getFirst(), "INTERRO_N_1", true);
-        assertVariable(filter.getFirst(), "INTERRO_N_2", false);
-        assertVariable(filter.getFirst(), "NAF25", "9560Y");
-        assertVariable(filter.getFirst(), "POIDS", 1.25);
-        assertVariable(filter.getFirst(), "MILLESIME", "2024");
-        assertVariable(filter.getFirst(), "NSUBST", true);
-        assertVariable(filter.getFirst(), "TAB_EXTNUM",0, 50);
-        assertVariable(filter.getFirst(), "TAB_EXTNUM",1, 23);
-        assertVariable(filter.getFirst(), "TAB_EXTNUM",2, 10);
-        assertVariableNull(filter.getFirst(), "TAB_EXTNUM",3);
-        assertVariable(filter.getFirst(), "TAB_EXTCAR",0, "A");
-        assertVariable(filter.getFirst(), "TAB_EXTCAR",1, "");
-        assertVariable(filter.getFirst(), "TAB_EXTCAR",2, "B");
-
-        filter = externalStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_EXTERNAL_COLLECTION_NAME)
-                .stream().filter(doc -> doc.getInterrogationId().equals("AUTO208")).toList();
-        Assertions.assertThat(filter).hasSize(1);
-        Assertions.assertThat(filter.getFirst().getQuestionnaireId()).isEqualTo(QUESTIONNAIRE_ID_EXTERNAL);
-
-        Assertions.assertThat(filter.getFirst().getVariables()).hasSize(11);
-        assertVariable(filter.getFirst(), "TVA", "");
-        assertVariable(filter.getFirst(), "COM_AUTRE", "");
-        assertVariable(filter.getFirst(), "SECTEUR", "123456789");
-        assertVariable(filter.getFirst(), "INTERRO_N_1", false);
-        assertVariable(filter.getFirst(), "INTERRO_N_2", false);
-        assertVariable(filter.getFirst(), "NAF25", "1014Z");
-        assertVariable(filter.getFirst(), "POIDS", 12);
-        assertVariable(filter.getFirst(), "MILLESIME", "2024");
-        assertVariable(filter.getFirst(), "NSUBST", false);
-        assertVariable(filter.getFirst(), "TAB_EXTNUM",0, 10);
-        assertVariable(filter.getFirst(), "TAB_EXTCAR",0, "C");
-        assertVariable(filter.getFirst(), "TAB_EXTCAR",1, "C");
+        ContextualExternalVariableDocument firstDoc = filter.getFirst();
+        Assertions.assertEquals(QUESTIONNAIRE_ID_EXTERNAL, firstDoc.getQuestionnaireId());
+        Assertions.assertEquals(expectedVarCount, firstDoc.getVariables().size());
+        assertionsForDoc.accept(firstDoc);
     }
 
-    @Test
+
+    static Stream<Arguments> readExternalCases() {
+        return Stream.of(
+                Arguments.of(
+                        "AUTO204",
+                        /* expectedVarCount */ 12,
+                        (Consumer<ContextualExternalVariableDocument>) doc -> {
+                            assertVariable(doc, "TVA", 302.34d);
+                            assertVariable(doc, "CA", 22.45d);
+                            assertVariable(doc, "COM_AUTRE", "blablablabla");
+                            assertVariable(doc, "INTERRO_N_1", true);
+                            assertVariable(doc, "INTERRO_N_2", false);
+                            assertVariable(doc, "NAF25", "9560Y");
+                            assertVariable(doc, "POIDS", 1.25);
+                            assertVariable(doc, "MILLESIME", "2024");
+                            assertVariable(doc, "NSUBST", true);
+
+                            assertVariable(doc, "TAB_EXTNUM", 0, 50);
+                            assertVariable(doc, "TAB_EXTNUM", 1, 23);
+                            assertVariable(doc, "TAB_EXTNUM", 2, 10);
+                            assertVariableNull(doc, "TAB_EXTNUM", 3);
+
+                            assertVariable(doc, "TAB_EXTCAR", 0, "A");
+                            assertVariable(doc, "TAB_EXTCAR", 1, "");
+                            assertVariable(doc, "TAB_EXTCAR", 2, "B");
+                        }
+                ),
+                Arguments.of(
+                        "AUTO208",
+                        /* expectedVarCount */ 11,
+                        (Consumer<ContextualExternalVariableDocument>) doc -> {
+                            assertVariable(doc, "TVA", "");
+                            assertVariable(doc, "COM_AUTRE", "");
+                            assertVariable(doc, "SECTEUR", "123456789");
+                            assertVariable(doc, "INTERRO_N_1", false);
+                            assertVariable(doc, "INTERRO_N_2", false);
+                            assertVariable(doc, "NAF25", "1014Z");
+                            assertVariable(doc, "POIDS", 12);
+                            assertVariable(doc, "MILLESIME", "2024");
+                            assertVariable(doc, "NSUBST", false);
+
+                            assertVariable(doc, "TAB_EXTNUM", 0, 10);
+                            assertVariable(doc, "TAB_EXTCAR", 0, "C");
+                            assertVariable(doc, "TAB_EXTCAR", 1, "C");
+                        }
+                )
+        );
+    }
+
+    @ParameterizedTest(name = "[{index}] readExternalJson_override_interrogation_id — {0}")
+    @MethodSource("overrideExternalCases")
     @SneakyThrows
-    void readExternalJson_override_interrogation_id(){
+    void readExternalJson_override_interrogation_id(    String interrogationId,
+                                                        int expectedVarCount,
+                                                       Consumer<ContextualExternalVariableDocument> assertionsForDoc
+    ){
         //GIVEN
         Files.createDirectories(SOURCE_PATH_EXTERNAL);
+        Path path = Path.of(TestConstants.TEST_RESOURCES_DIRECTORY);
         Files.copy(
-                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("contextual_external").resolve("ok.json"),
+                path.resolve("contextual_external").resolve("ok.json"),
                 SOURCE_PATH_EXTERNAL.resolve("ok.json"),
                 StandardCopyOption.REPLACE_EXISTING
         );
         contextualVariableController.readContextualExternalJson(QUESTIONNAIRE_ID_EXTERNAL, Mode.WEB, "ok.json");
         Files.createDirectories(SOURCE_PATH_EXTERNAL);
         Files.copy(
-                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("contextual_external").resolve("ok2.json"),
+                path.resolve("contextual_external").resolve("ok2.json"),
                 SOURCE_PATH_EXTERNAL.resolve("ok2.json"),
                 StandardCopyOption.REPLACE_EXISTING
         );
@@ -651,50 +761,72 @@ class ContextualVariableControllerTest {
         contextualVariableController.readContextualExternalJson(QUESTIONNAIRE_ID_EXTERNAL, Mode.WEB, "ok2.json");
 
         //THEN
-        Assertions.assertThat(externalStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_EXTERNAL_COLLECTION_NAME)).hasSize(2);
+        Assertions.assertEquals(2,externalStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_EXTERNAL_COLLECTION_NAME).size());
 
         List<ContextualExternalVariableDocument> filter =
                 externalStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_EXTERNAL_COLLECTION_NAME)
-                .stream().filter(doc -> doc.getInterrogationId().equals("AUTO204")).toList();
-        Assertions.assertThat(filter).hasSize(1);
-        Assertions.assertThat(filter.getFirst().getQuestionnaireId()).isEqualTo(QUESTIONNAIRE_ID_EXTERNAL);
+                .stream().filter(doc -> doc.getInterrogationId().equals(interrogationId)).toList();
+        Assertions.assertEquals(1,filter.size());
+        Assertions.assertEquals(QUESTIONNAIRE_ID_EXTERNAL,filter.getFirst().getQuestionnaireId());
+        Assertions.assertEquals(expectedVarCount,filter.getFirst().getVariables().size());
 
-        Assertions.assertThat(filter.getFirst().getVariables()).hasSize(12);
-        assertVariable(filter.getFirst(), "TVA", 302.34d);
-        assertVariable(filter.getFirst(), "CA", 22.45d);
-        assertVariable(filter.getFirst(), "COM_AUTRE", "blablablabla");
-        assertVariable(filter.getFirst(), "INTERRO_N_1", true);
-        assertVariable(filter.getFirst(), "INTERRO_N_2", false);
-        assertVariable(filter.getFirst(), "NAF25", "9560Y");
-        assertVariable(filter.getFirst(), "POIDS", 1.25);
-        assertVariable(filter.getFirst(), "MILLESIME", "2024");
-        assertVariable(filter.getFirst(), "NSUBST", true);
-        assertVariable(filter.getFirst(), "TAB_EXTNUM",0, 50);
-        assertVariable(filter.getFirst(), "TAB_EXTNUM",1, 23);
-        assertVariable(filter.getFirst(), "TAB_EXTNUM",2, 10);
-        assertVariableNull(filter.getFirst(), "TAB_EXTNUM",3);
-        assertVariable(filter.getFirst(), "TAB_EXTCAR",0, "A");
-        assertVariable(filter.getFirst(), "TAB_EXTCAR",1, "");
-        assertVariable(filter.getFirst(), "TAB_EXTCAR",2, "B");
+        assertionsForDoc.accept(filter.getFirst());
 
-        filter = externalStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_EXTERNAL_COLLECTION_NAME)
-                .stream().filter(doc -> doc.getInterrogationId().equals("AUTO200")).toList();
-        Assertions.assertThat(filter).hasSize(1);
-        Assertions.assertThat(filter.getFirst().getQuestionnaireId()).isEqualTo(QUESTIONNAIRE_ID_EXTERNAL);
+        // L'ancien AUTO208 ne doit plus être présent
+        Assertions.assertTrue(
+                externalStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_EXTERNAL_COLLECTION_NAME)
+                        .stream().noneMatch(d -> "AUTO208".equals(d.getInterrogationId())),
+                "AUTO208 ne devrait plus être présent après override"
+        );
+    }
 
-        Assertions.assertThat(filter.getFirst().getVariables()).hasSize(11);
-        assertVariable(filter.getFirst(), "TVA", "");
-        assertVariable(filter.getFirst(), "COM_AUTRE", "");
-        assertVariable(filter.getFirst(), "SECTEUR", "123456789");
-        assertVariable(filter.getFirst(), "INTERRO_N_1", false);
-        assertVariable(filter.getFirst(), "INTERRO_N_2", false);
-        assertVariable(filter.getFirst(), "NAF25", "1014Z");
-        assertVariable(filter.getFirst(), "POIDS", 12);
-        assertVariable(filter.getFirst(), "MILLESIME", "2024");
-        assertVariable(filter.getFirst(), "NSUBST", false);
-        assertVariable(filter.getFirst(), "TAB_EXTNUM",0, 10);
-        assertVariable(filter.getFirst(), "TAB_EXTCAR",0, "C");
-        assertVariable(filter.getFirst(), "TAB_EXTCAR",1, "C");
+
+    static Stream<Arguments> overrideExternalCases() {
+        return Stream.of(
+                Arguments.of(
+                        "AUTO204",
+                        /* expectedVarCount */ 12,
+                        (Consumer<ContextualExternalVariableDocument>) doc -> {
+                            assertVariable(doc, "TVA", 302.34d);
+                            assertVariable(doc, "CA", 22.45d);
+                            assertVariable(doc, "COM_AUTRE", "blablablabla");
+                            assertVariable(doc, "INTERRO_N_1", true);
+                            assertVariable(doc, "INTERRO_N_2", false);
+                            assertVariable(doc, "NAF25", "9560Y");
+                            assertVariable(doc, "POIDS", 1.25);
+                            assertVariable(doc, "MILLESIME", "2024");
+                            assertVariable(doc, "NSUBST", true);
+
+                            assertVariable(doc, "TAB_EXTNUM", 0, 50);
+                            assertVariable(doc, "TAB_EXTNUM", 1, 23);
+                            assertVariable(doc, "TAB_EXTNUM", 2, 10);
+                            assertVariableNull(doc, "TAB_EXTNUM", 3);
+
+                            assertVariable(doc, "TAB_EXTCAR", 0, "A");
+                            assertVariable(doc, "TAB_EXTCAR", 1, "");
+                            assertVariable(doc, "TAB_EXTCAR", 2, "B");
+                        }
+                ),
+                Arguments.of(
+                        "AUTO200",
+                        /* expectedVarCount */ 11,
+                        (Consumer<ContextualExternalVariableDocument>) doc -> {
+                            assertVariable(doc, "TVA", "");
+                            assertVariable(doc, "COM_AUTRE", "");
+                            assertVariable(doc, "SECTEUR", "123456789");
+                            assertVariable(doc, "INTERRO_N_1", false);
+                            assertVariable(doc, "INTERRO_N_2", false);
+                            assertVariable(doc, "NAF25", "1014Z");
+                            assertVariable(doc, "POIDS", 12);
+                            assertVariable(doc, "MILLESIME", "2024");
+                            assertVariable(doc, "NSUBST", false);
+
+                            assertVariable(doc, "TAB_EXTNUM", 0, 10);
+                            assertVariable(doc, "TAB_EXTCAR", 0, "C");
+                            assertVariable(doc, "TAB_EXTCAR", 1, "C");
+                        }
+                )
+        );
     }
 
     @ParameterizedTest
@@ -716,7 +848,7 @@ class ContextualVariableControllerTest {
 
         //WHEN + THEN
         ResponseEntity<Object> response = contextualVariableController.readContextualExternalJson(QUESTIONNAIRE_ID_EXTERNAL, Mode.WEB, fileName);
-        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(400);
+        Assertions.assertEquals(400,response.getStatusCode().value());
     }
 
     //UTILS
@@ -725,45 +857,48 @@ class ContextualVariableControllerTest {
                                        String variableName,
                                        String expectedValue
     ) {
-        Assertions.assertThat(document.getVariables().get(variableName)).isNotNull().isEqualTo(expectedValue);
+        Assertions.assertNotNull(document.getVariables().get(variableName));
+        Assertions.assertEquals(expectedValue,document.getVariables().get(variableName));
     }
 
     private static void assertVariable(ContextualPreviousVariableDocument document,
                                        String variableName,
                                        double expectedValue
     ) {
-        Assertions.assertThat(document.getVariables().get(variableName)).isNotNull().isInstanceOf(Double.class).isEqualTo(expectedValue);
+        Assertions.assertNotNull(document.getVariables().get(variableName));
+        Assertions.assertInstanceOf(Double.class,document.getVariables().get(variableName));
+        Assertions.assertEquals(expectedValue,document.getVariables().get(variableName));
     }
 
     private static void assertVariable(ContextualPreviousVariableDocument document,
                                        String variableName,
                                        boolean expectedValue
     ) {
-        Assertions.assertThat(document.getVariables().get(variableName)).isNotNull().isInstanceOf(Boolean.class).isEqualTo(expectedValue);
-    }
+        Assertions.assertNotNull(document.getVariables().get(variableName));
+        Assertions.assertInstanceOf(Boolean.class,document.getVariables().get(variableName));
+        Assertions.assertEquals(expectedValue,document.getVariables().get(variableName));    }
 
     private static void assertVariable(ContextualPreviousVariableDocument document,
                                        String variableName,
                                        int expectedValue
     ) {
-        Assertions.assertThat(document.getVariables().get(variableName)).isNotNull().isInstanceOf(Integer.class).isEqualTo(expectedValue);
-    }
+        Assertions.assertNotNull(document.getVariables().get(variableName));
+        Assertions.assertInstanceOf(Integer.class,document.getVariables().get(variableName));
+        Assertions.assertEquals(expectedValue,document.getVariables().get(variableName));    }
 
     private static void assertVariableNull(ContextualPreviousVariableDocument document,
                                            String variableName
     ) {
-        Assertions.assertThat(document.getVariables().get(variableName)).isNull();
+        Assertions.assertNull(document.getVariables().get(variableName));
     }
 
     @SuppressWarnings("unchecked")
     private static void assertVariableNull(ContextualPreviousVariableDocument document,
                                            String arrayVariableName,
-                                           int index
-    ) {
-        Assertions.assertThat((List<Object>)document.getVariables().get(arrayVariableName)).hasSizeGreaterThan(index);
-        List<Object> list = (List<Object>)document.getVariables().get(arrayVariableName);
-        Assertions.assertThat(list).hasSizeGreaterThan(index);
-        Assertions.assertThat(list.get(index)).isNull();
+                                           int index    ) {
+        var list = (List<Object>) document.getVariables().get(arrayVariableName);
+        Assertions.assertTrue(list.size()>index);
+        Assertions.assertNull(list.get(index));
     }
 
     @SuppressWarnings("unchecked")
@@ -772,12 +907,10 @@ class ContextualVariableControllerTest {
                                        int index,
                                        String expectedValue
     ) throws ClassCastException{
-        Assertions.assertThat((List<Object>)document.getVariables().get(arrayVariableName)).hasSizeGreaterThan(index);
-
-        List<Object> list = (List<Object>)document.getVariables().get(arrayVariableName);
-        Assertions.assertThat(list).hasSizeGreaterThan(index);
-        Assertions.assertThat(list.get(index)).isInstanceOf(String.class);
-        Assertions.assertThat((String)list.get(index)).isEqualTo(expectedValue);
+        var list = (List<Object>)document.getVariables().get(arrayVariableName);
+        Assertions.assertTrue(list.size()>index);
+        Assertions.assertInstanceOf(String.class,list.get(index));
+        Assertions.assertEquals(expectedValue,list.get(index));
     }
 
     @SuppressWarnings("unchecked")
@@ -786,12 +919,10 @@ class ContextualVariableControllerTest {
                                        int index,
                                        int expectedValue
     ) throws ClassCastException{
-        Assertions.assertThat((List<Object>)document.getVariables().get(arrayVariableName)).hasSizeGreaterThan(index);
-
         List<Object> list = (List<Object>)document.getVariables().get(arrayVariableName);
-        Assertions.assertThat(list).hasSizeGreaterThan(index);
-        Assertions.assertThat(list.get(index)).isInstanceOf(Integer.class);
-        Assertions.assertThat((Integer)list.get(index)).isInstanceOf(Integer.class).isEqualTo(expectedValue);
+        Assertions.assertTrue(list.size()>index);
+        Assertions.assertInstanceOf(Integer.class,list.get(index));
+        Assertions.assertEquals(expectedValue,(Integer)list.get(index));
     }
 
     private List<ContextualPreviousVariableDocument> getContextualPreviousTestDocuments() {
@@ -895,17 +1026,17 @@ class ContextualVariableControllerTest {
     @SuppressWarnings("unchecked")
     private void assertEntryEqualToDto(Map.Entry<String, Object> documentVariable,
                                        List<VariableQualityToolDto> variableQualityToolDtosOfEntry) {
-        Assertions.assertThat(variableQualityToolDtosOfEntry).isNotEmpty();
+        Assertions.assertFalse(variableQualityToolDtosOfEntry.isEmpty());
 
         //If that variable is not a list
         if (!(documentVariable.getValue() instanceof List<?>)) {
-            Assertions.assertThat(variableQualityToolDtosOfEntry).hasSize(1);
+            Assertions.assertEquals(1,variableQualityToolDtosOfEntry.size());
             List<VariableStateDto> variableStateDtos =
                     variableQualityToolDtosOfEntry.getFirst().getVariableStateDtoList();
 
-            Assertions.assertThat(variableStateDtos).hasSize(1); // Only 1 state
-            Assertions.assertThat(variableStateDtos.getFirst().getState()).isEqualTo(DataState.COLLECTED);
-            Assertions.assertThat(variableStateDtos.getFirst().getValue()).isEqualTo(documentVariable.getValue());
+            Assertions.assertEquals(1,variableStateDtos.size()); // Only 1 state
+            Assertions.assertEquals(DataState.COLLECTED,variableStateDtos.getFirst().getState());
+            Assertions.assertEquals(documentVariable.getValue(),variableStateDtos.getFirst().getValue());
             return;
         }
         int i = 1;
@@ -915,13 +1046,13 @@ class ContextualVariableControllerTest {
                     variableQualityToolDtosOfEntry.stream().filter(
                             variableQualityToolDto -> variableQualityToolDto.getIteration().equals(finalI)
                     ).toList();
-            Assertions.assertThat(variableQualityToolDtosOfIteration).hasSize(1);
+            Assertions.assertEquals(1,variableQualityToolDtosOfIteration.size());
 
             List<VariableStateDto> variableStateDtos =
                     variableQualityToolDtosOfIteration.getFirst().getVariableStateDtoList();
-            Assertions.assertThat(variableStateDtos).hasSize(1);
-            Assertions.assertThat(variableStateDtos.getFirst().getState()).isEqualTo(DataState.COLLECTED);
-            Assertions.assertThat(variableStateDtos.getFirst().getValue()).isEqualTo(documentVariableElement);
+            Assertions.assertEquals(1,variableStateDtos.size());
+            Assertions.assertEquals(DataState.COLLECTED,variableStateDtos.getFirst().getState());
+            Assertions.assertEquals(documentVariableElement,variableStateDtos.getFirst().getValue());
             i++;
         }
     }
@@ -930,28 +1061,34 @@ class ContextualVariableControllerTest {
                                        String variableName,
                                        String expectedValue
     ) {
-        Assertions.assertThat(document.getVariables().get(variableName)).isNotNull().isEqualTo(expectedValue);
+        Assertions.assertNotNull(document.getVariables().get(variableName));
+        Assertions.assertEquals(expectedValue,document.getVariables().get(variableName));
     }
 
     private static void assertVariable(ContextualExternalVariableDocument document,
                                        String variableName,
                                        double expectedValue
     ) {
-        Assertions.assertThat(document.getVariables().get(variableName)).isNotNull().isInstanceOf(Double.class).isEqualTo(expectedValue);
+        Assertions.assertNotNull(document.getVariables().get(variableName));
+        Assertions.assertInstanceOf(Double.class,document.getVariables().get(variableName));
+        Assertions.assertEquals(expectedValue,document.getVariables().get(variableName));
     }
 
     private static void assertVariable(ContextualExternalVariableDocument document,
                                        String variableName,
                                        boolean expectedValue
     ) {
-        Assertions.assertThat(document.getVariables().get(variableName)).isNotNull().isInstanceOf(Boolean.class).isEqualTo(expectedValue);
-    }
+        Assertions.assertNotNull(document.getVariables().get(variableName));
+        Assertions.assertInstanceOf(Boolean.class,document.getVariables().get(variableName));
+        Assertions.assertEquals(expectedValue,document.getVariables().get(variableName));        }
 
     private static void assertVariable(ContextualExternalVariableDocument document,
                                        String variableName,
                                        int expectedValue
     ) {
-        Assertions.assertThat(document.getVariables().get(variableName)).isNotNull().isInstanceOf(Integer.class).isEqualTo(expectedValue);
+        Assertions.assertNotNull(document.getVariables().get(variableName));
+        Assertions.assertInstanceOf(Integer.class,document.getVariables().get(variableName));
+        Assertions.assertEquals(expectedValue,document.getVariables().get(variableName));
     }
 
     @SuppressWarnings("unchecked")
@@ -959,10 +1096,9 @@ class ContextualVariableControllerTest {
                                            String arrayVariableName,
                                            int index
     ) {
-        Assertions.assertThat((List<Object>)document.getVariables().get(arrayVariableName)).hasSizeGreaterThan(index);
         List<Object> list = (List<Object>)document.getVariables().get(arrayVariableName);
-        Assertions.assertThat(list).hasSizeGreaterThan(index);
-        Assertions.assertThat(list.get(index)).isNull();
+        Assertions.assertTrue(list.size()>index);
+        Assertions.assertNull(list.get(index));
     }
 
     @SuppressWarnings("unchecked")
@@ -971,12 +1107,10 @@ class ContextualVariableControllerTest {
                                        int index,
                                        String expectedValue
     ) throws ClassCastException{
-        Assertions.assertThat((List<Object>)document.getVariables().get(arrayVariableName)).hasSizeGreaterThan(index);
-
         List<Object> list = (List<Object>)document.getVariables().get(arrayVariableName);
-        Assertions.assertThat(list).hasSizeGreaterThan(index);
-        Assertions.assertThat(list.get(index)).isInstanceOf(String.class);
-        Assertions.assertThat((String)list.get(index)).isEqualTo(expectedValue);
+        Assertions.assertTrue(list.size()>index);
+        Assertions.assertInstanceOf(String.class,list.get(index));
+        Assertions.assertEquals(expectedValue,list.get(index));
     }
 
     @SuppressWarnings("unchecked")
@@ -985,12 +1119,10 @@ class ContextualVariableControllerTest {
                                        int index,
                                        int expectedValue
     ) throws ClassCastException{
-        Assertions.assertThat((List<Object>)document.getVariables().get(arrayVariableName)).hasSizeGreaterThan(index);
-
         List<Object> list = (List<Object>)document.getVariables().get(arrayVariableName);
-        Assertions.assertThat(list).hasSizeGreaterThan(index);
-        Assertions.assertThat(list.get(index)).isInstanceOf(Integer.class);
-        Assertions.assertThat((Integer)list.get(index)).isInstanceOf(Integer.class).isEqualTo(expectedValue);
+        Assertions.assertTrue(list.size()>index);
+        Assertions.assertInstanceOf(Integer.class,list.get(index));
+        Assertions.assertEquals(expectedValue,(Integer)list.get(index));
 
     }
 }
