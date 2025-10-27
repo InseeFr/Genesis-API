@@ -289,7 +289,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
 
     /**
      * @author Adrien Marchal
-     * Calculations made to establish the data a worker will be responsible of, among the whole data to be processed.
+     * Calculations made to establish the data a worker will be responsible for, among the whole data to be processed.
      * (needed for distributed process / horizontal scaling)
      */
     @Override
@@ -544,18 +544,16 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         for (VariableModel collectedVariable : surveyUnitModel.getCollectedVariables()) {
             VarIdScopeTuple loopIdTuple = new VarIdScopeTuple(collectedVariable.varId(), collectedVariable.scope(),
                     collectedVariable.iteration());
-            VariableDto variableDto = collectedVariableMap.get(loopIdTuple);
 
-            //Create variable into map if not exists
-            if (variableDto == null) {
-                variableDto = VariableDto.builder()
-                        .variableName(collectedVariable.varId())
-                        .scope(collectedVariable.scope())
-                        .iteration(collectedVariable.iteration())
-                        .variableStateDtoList(new ArrayList<>())
-                        .build();
-                collectedVariableMap.put(loopIdTuple, variableDto);
-            }
+            VariableDto variableDto = collectedVariableMap.computeIfAbsent(loopIdTuple, k ->
+                    VariableDto.builder()
+                            .variableName(collectedVariable.varId())
+                            .scope(collectedVariable.scope())
+                            .iteration(collectedVariable.iteration())
+                            .variableStateDtoList(new ArrayList<>())
+                            .build()
+            );
+
             //Extract variable state
             if (isMostRecentForSameState(surveyUnitModel, variableDto)) {
                 variableDto.getVariableStateDtoList().add(
@@ -577,18 +575,17 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         }
         for(VariableModel externalVariable : surveyUnitModel.getExternalVariables()){
             VarIdScopeTuple loopIdTuple = new VarIdScopeTuple(externalVariable.varId(), externalVariable.scope(), externalVariable.iteration());
-            VariableDto variableDto = externalVariableMap.get(loopIdTuple);
 
-            //Create variable into map if not exists
-            if(variableDto == null){
-                variableDto = VariableDto.builder()
-                        .variableName(externalVariable.varId())
-                        .scope(externalVariable.scope())
-                        .iteration(externalVariable.iteration())
-                        .variableStateDtoList(new ArrayList<>())
-                        .build();
-                externalVariableMap.put(loopIdTuple, variableDto);
-            }
+            VariableDto variableDto = externalVariableMap.computeIfAbsent(loopIdTuple, k ->
+                    VariableDto.builder()
+                            .variableName(externalVariable.varId())
+                            .scope(externalVariable.scope())
+                            .iteration(externalVariable.iteration())
+                            .variableStateDtoList(new ArrayList<>())
+                            .build()
+            );
+
+
             //Extract variable state
             if(isMostRecentForSameState(surveyUnitModel, variableDto)){
                 variableDto.getVariableStateDtoList().add(
