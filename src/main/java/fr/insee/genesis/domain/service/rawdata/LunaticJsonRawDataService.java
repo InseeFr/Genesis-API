@@ -28,7 +28,6 @@ import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
@@ -239,7 +238,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
         return surveyUnitModels;
     }
 
-    private static @NotNull RawDataModelType getRawDataModelType(LunaticJsonRawDataModel rawData) {
+    private static RawDataModelType getRawDataModelType(LunaticJsonRawDataModel rawData) {
         return rawData.data().containsKey("data") ?
                 RawDataModelType.FILIERE :
                 RawDataModelType.DEFAULT;
