@@ -223,7 +223,8 @@ class RawResponseControllerTest {
 
         //THEN
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(response.getBody().getContent().size()).isEqualTo(1);
+        org.junit.jupiter.api.Assertions.assertNotNull(response.getBody());
+        Assertions.assertThat(response.getBody().getContent()).hasSize(1);
     }
 
     //Utils

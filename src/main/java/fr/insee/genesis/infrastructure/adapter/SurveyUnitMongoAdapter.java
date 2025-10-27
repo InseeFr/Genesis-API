@@ -215,7 +215,7 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 		List<String> mongoResponse =
 				mongoRepository.findCampaignIdsByQuestionnaireId(questionnaireId).stream().distinct().toList();
 
-		//Extract idCampagigns from JSON response
+		//Extract idCampaigns from JSON response
 		Set<String> campaignIds = new HashSet<>();
 		for(String line : mongoResponse){
 			ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
