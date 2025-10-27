@@ -28,6 +28,7 @@ import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
@@ -139,25 +140,14 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
 
                 //Increment data count
                 dataCount += surveyUnitModels.size();
-                formattedDataCount += surveyUnitModels.stream().filter(
-                        surveyUnitModel -> surveyUnitModel.getState().equals(DataState.FORMATTED)
-                ).toList().size();
+                formattedDataCount += surveyUnitModels.stream()
+                        .filter(surveyUnitModel -> surveyUnitModel.getState().equals(DataState.FORMATTED))
+                        .toList()
+                        .size();
 
                 //Send processed ids grouped by questionnaire (if review activated)
                 if(dataProcessingContext != null && dataProcessingContext.isWithReview()) {
-                    try {
-                        ResponseEntity<Object> response =
-                                surveyUnitQualityToolPort.sendProcessedIds(getProcessedIdsMap(surveyUnitModels));
-
-                    if (response.getStatusCode().is2xxSuccessful()) {
-                        log.info("Successfully sent {} ids to quality tool", getProcessedIdsMap(surveyUnitModels).keySet().size());
-                    }else{
-                        log.warn("Survey unit quality tool responded non-2xx code {} and body {}",
-                                response.getStatusCode(), response.getBody());
-                    }
-                    }catch (IOException e){
-                        log.error("Error during Perret call request building : {}", e.toString());
-                    }
+                    sendProcessedIdsToQualityTool(surveyUnitModels);
                 }
 
                 //Remove processed ids from list
@@ -167,6 +157,22 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
             }
         }
         return new DataProcessResult(dataCount, formattedDataCount);
+    }
+
+    private void sendProcessedIdsToQualityTool(List<SurveyUnitModel> surveyUnitModels) {
+        try {
+            ResponseEntity<Object> response =
+                    surveyUnitQualityToolPort.sendProcessedIds(getProcessedIdsMap(surveyUnitModels));
+
+        if (response.getStatusCode().is2xxSuccessful()) {
+            log.info("Successfully sent {} ids to quality tool", getProcessedIdsMap(surveyUnitModels).size());
+        }else{
+            log.warn("Survey unit quality tool responded non-2xx code {} and body {}",
+                    response.getStatusCode(), response.getBody());
+        }
+        }catch (IOException e){
+            log.error("Error during Perret call request building : {}", e.toString());
+        }
     }
 
     private Map<String, Set<String>> getProcessedIdsMap(List<SurveyUnitModel> surveyUnitModels) {
@@ -186,24 +192,12 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
         //For each possible data state (we receive COLLECTED or EDITED)
         for(DataState dataState : List.of(DataState.COLLECTED,DataState.EDITED)){
             for (LunaticJsonRawDataModel rawData : rawDataList) {
-                RawDataModelType rawDataModelType =
-                        rawData.data().containsKey("data") ?
-                                RawDataModelType.FILIERE :
-                                RawDataModelType.DEFAULT;
+                RawDataModelType rawDataModelType = getRawDataModelType(rawData);
 
                 //Get optional fields
-                String contextualId = null;
-                Boolean isCapturedIndirectly = null;
-                LocalDateTime validationDate = null;
-                try{
-                    contextualId = rawData.data().get("contextualId") == null ? null : rawData.data().get("contextualId").toString();
-                    isCapturedIndirectly = rawData.data().get("isCapturedIndirectly") == null ? null :
-                            Boolean.parseBoolean(rawData.data().get("isCapturedIndirectly").toString());
-                    validationDate = rawData.data().get("validationDate") == null ? null :
-                            LocalDateTime.parse(rawData.data().get("validationDate").toString());
-                }catch(Exception e){
-                    log.warn("Exception during optional fields parsing : %s".formatted(e.toString()));
-                }
+                String contextualId = getContextualId(rawData);
+                Boolean isCapturedIndirectly = getIsCapturedIndirectly(rawData);
+                LocalDateTime validationDate = getValidationDate(rawData);
 
                 SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
                         .campaignId(rawData.campaignId())
@@ -225,23 +219,60 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
                 convertRawDataCollectedVariables(rawData, surveyUnitModel, dataState, rawDataModelType, variablesMap);
 
                 //External variables conversion into COLLECTED document
-                if(dataState.equals(DataState.COLLECTED)){
+                if(dataState == DataState.COLLECTED){
                     convertRawDataExternalVariables(rawData, surveyUnitModel, rawDataModelType, variablesMap);
                 }
 
-                if(surveyUnitModel.getCollectedVariables().isEmpty()
-                        && surveyUnitModel.getExternalVariables().isEmpty()
-                ){
+                boolean hasNoVariable = surveyUnitModel.getCollectedVariables().isEmpty()
+                        && surveyUnitModel.getExternalVariables().isEmpty();
+
+                if(hasNoVariable){
                     if(surveyUnitModel.getState() == DataState.COLLECTED){
                         log.warn("No collected or external variable for interrogation {}, raw data is ignored.", rawData.interrogationId());
                     }
-                    continue;
+                    continue;// don't add suModel
                 }
                 surveyUnitModels.add(surveyUnitModel);
             }
         }
 
         return surveyUnitModels;
+    }
+
+    private static @NotNull RawDataModelType getRawDataModelType(LunaticJsonRawDataModel rawData) {
+        return rawData.data().containsKey("data") ?
+                RawDataModelType.FILIERE :
+                RawDataModelType.DEFAULT;
+    }
+
+    private static LocalDateTime getValidationDate(LunaticJsonRawDataModel rawData) {
+        try{
+            return rawData.data().get("validationDate") == null ? null :
+                LocalDateTime.parse(rawData.data().get("validationDate").toString());
+        }catch(Exception e){
+            log.warn("Exception when parsing validation date : {}}",e.toString());
+            return null;
+        }
+    }
+
+    private static Boolean getIsCapturedIndirectly(LunaticJsonRawDataModel rawData) {
+        try{
+            return rawData.data().get("isCapturedIndirectly") == null ? null :
+                    Boolean.parseBoolean(rawData.data().get("isCapturedIndirectly").toString());
+        }catch(Exception e){
+            log.warn("Exception when parsing isCapturedIndirectly : {}}",e.toString());
+            return Boolean.FALSE;
+        }
+
+    }
+
+    private static String getContextualId(LunaticJsonRawDataModel rawData) {
+        try{
+            return rawData.data().get("contextualId") == null ? null : rawData.data().get("contextualId").toString();
+        }catch(Exception e){
+            log.warn("Exception when parsing contextual id : {}}",e.toString());
+            return null;
+        }
     }
 
     @Override
@@ -333,22 +364,34 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
 
     }
 
-    private static void convertToCollectedVar(SurveyUnitModel dstSurveyUnitModel, DataState dataState, VariablesMap variablesMap, Map<String, Object> collectedMap) {
-        for(Map.Entry<String, Object> collectedVariable : collectedMap.entrySet()) {
+    private static void convertToCollectedVar(
+            SurveyUnitModel dstSurveyUnitModel,
+            DataState dataState,
+            VariablesMap variablesMap,
+            Map<String, Object> collectedMap
+    ) {
+        final String stateKey = dataState.toString();
+        final var dest = dstSurveyUnitModel.getCollectedVariables();
 
-            //Skip if collected variable does not have state
-            if(!JsonUtils.asMap(collectedVariable.getValue()).containsKey(dataState.toString())){
-                continue;
-            }
+        for (Map.Entry<String, Object> collectedVariable : collectedMap.entrySet()) {
+            // Map for this variable (COLLECTED/EDITED -> value)
+            Map<String, Object> states = JsonUtils.asMap(collectedVariable.getValue());
 
-            //Value
-            Object valuesForState = JsonUtils.asMap(collectedVariable.getValue()).get(dataState.toString());
-            if (valuesForState != null) {
-                if (valuesForState instanceof List<?>) {
-                    convertListVar(valuesForState, collectedVariable, variablesMap, dstSurveyUnitModel.getCollectedVariables());
-                    continue;
+            // nothing if no state
+            if (states.containsKey(stateKey)) {
+                Object value = states.get(stateKey);
+
+                // liste ?
+                if (value instanceof List<?>) {
+                    // on garde exactement ta signature existante
+                    convertListVar(value, collectedVariable, variablesMap, dest);
                 }
-                convertOneVar(collectedVariable, valuesForState.toString(), variablesMap, 1, dstSurveyUnitModel.getCollectedVariables());
+
+                // scalaire non null ?
+                if (value != null && !(value instanceof List<?>)) {
+                    // idem: on garde convertOneVar(entry, String, ...)
+                    convertOneVar(collectedVariable, String.valueOf(value), variablesMap, 1, dest);
+                }
             }
         }
     }
