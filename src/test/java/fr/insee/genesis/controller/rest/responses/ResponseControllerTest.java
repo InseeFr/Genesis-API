@@ -1,7 +1,8 @@
 package fr.insee.genesis.controller.rest.responses;
 
-import cucumber.TestConstants;
+
 import fr.insee.genesis.Constants;
+import fr.insee.genesis.TestConstants;
 import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
 import fr.insee.genesis.controller.dto.SurveyUnitQualityToolDto;
