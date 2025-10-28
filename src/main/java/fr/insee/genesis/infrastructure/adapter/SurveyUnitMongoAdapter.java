@@ -10,6 +10,7 @@ import fr.insee.genesis.infrastructure.document.surveyunit.SurveyUnitDocument;
 import fr.insee.genesis.infrastructure.mappers.SurveyUnitDocumentMapper;
 import fr.insee.genesis.infrastructure.repository.SurveyUnitMongoDBRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -101,18 +102,7 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 				mongoRepository.findQuestionnaireIdsByCampaignId(campaignId);
 
 		//Extract questionnaireIds from JSON response
-		Set<String> questionnaireIds = new HashSet<>();
-		for(String line : mongoResponse){
-			ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
-			try{
-				JsonNode jsonNode = objectMapper.readTree(line);
-				questionnaireIds.add(jsonNode.get(QUESTIONNAIRE_ID).asText());
-			}catch (JsonProcessingException e){
-				log.error(e.getMessage());
-			}
-		}
-
-		return questionnaireIds;
+        return extractQuestionnaireIdsFromJson(mongoResponse);
 	}
 
 	//========= OPTIMISATIONS PERFS (START) ==========
@@ -125,20 +115,23 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 				mongoRepository.findQuestionnaireIdsByCampaignIdV2(campaignId);
 
 		//Extract questionnaireIds from JSON response
-		Set<String> questionnaireIds = new HashSet<>();
-		for(String line : mongoResponse){
-			ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
-			try{
-				JsonNode jsonNode = objectMapper.readTree(line);
-				questionnaireIds.add(jsonNode.get(QUESTIONNAIRE_ID).asText());
-			}catch (JsonProcessingException e){
-				log.error(e.getMessage());
-			}
-		}
-
-		return questionnaireIds;
+        return extractQuestionnaireIdsFromJson(mongoResponse);
 	}
-	//========= OPTIMISATIONS PERFS (END) ==========
+
+    private static @NotNull Set<String> extractQuestionnaireIdsFromJson(Set<String> mongoResponse) {
+        Set<String> questionnaireIds = new HashSet<>();
+        for(String line : mongoResponse){
+            ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
+            try{
+                JsonNode jsonNode = objectMapper.readTree(line);
+                questionnaireIds.add(jsonNode.get(QUESTIONNAIRE_ID).asText());
+            }catch (JsonProcessingException e){
+                log.error(e.getMessage());
+            }
+        }
+        return questionnaireIds;
+    }
+    //========= OPTIMISATIONS PERFS (END) ==========
 
 	@Override
 	public Set<String> findDistinctCampaignIds() {
