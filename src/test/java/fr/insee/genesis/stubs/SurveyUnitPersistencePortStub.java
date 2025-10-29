@@ -36,7 +36,7 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
      * @author Adrien Marchal
      */
     public List<SurveyUnitModel> findBySetOfIdsAndQuestionnaireIdAndMode(String questionnaireId, String mode, List<String> interrogationIdSet) {
-        return new ArrayList<SurveyUnitModel>();
+        return new ArrayList<>();
     }
     //========= OPTIMISATIONS PERFS (START) ==========
 
@@ -90,6 +90,28 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     }
 
     @Override
+    public List<SurveyUnitModel> findModesByQuestionnaireIdV2(String questionnaireId) {
+        return findInterrogationIdsByQuestionnaireId(questionnaireId);
+    }
+
+    @Override
+    public List<SurveyUnitModel> findInterrogationIdsByCampaignId(String campaignId) {
+        return findModesByCampaignIdV2(campaignId);
+    }
+
+    public List<SurveyUnitModel> findModesByCampaignIdV2(String campaignId) {
+        List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
+        for (SurveyUnitModel SurveyUnitModel : mongoStub) {
+            if (SurveyUnitModel.getCampaignId().equals(campaignId))
+                surveyUnitModelList.add(
+                        new SurveyUnitModel(SurveyUnitModel.getInterrogationId(), SurveyUnitModel.getMode())
+                );
+        }
+
+        return surveyUnitModelList;
+    }
+
+    @Override
     public List<SurveyUnitModel> findInterrogationIdsByQuestionnaireIdAndDateAfter(String questionnaireId, LocalDateTime since) {
         List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
         for(SurveyUnitModel surveyUnitModel : mongoStub){
@@ -118,47 +140,13 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
         return List.of();
     }
 
+    
 
-    @Override
-    public List<SurveyUnitModel> findModesByCampaignIdV2(String campaignId) {
-        List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
-        for(SurveyUnitModel SurveyUnitModel : mongoStub){
-            if(SurveyUnitModel.getCampaignId().equals(campaignId))
-                surveyUnitModelList.add(
-                        new SurveyUnitModel(SurveyUnitModel.getInterrogationId(), SurveyUnitModel.getMode())
-                );
-        }
 
-        return surveyUnitModelList;
-    }
-
-    @Override
-    public List<SurveyUnitModel> findModesByQuestionnaireIdV2(String questionnaireId) {
-        List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
-        for(SurveyUnitModel SurveyUnitModel : mongoStub){
-            if(SurveyUnitModel.getQuestionnaireId().equals(questionnaireId))
-                surveyUnitModelList.add(
-                        new SurveyUnitModel(SurveyUnitModel.getInterrogationId(), SurveyUnitModel.getMode())
-                );
-        }
-
-        return surveyUnitModelList;
-    }
     //======= OPTIMISATIONS PERFS (END) =========
 
 
-    @Override
-    public List<SurveyUnitModel> findInterrogationIdsByCampaignId(String campaignId) {
-        List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
-        for(SurveyUnitModel SurveyUnitModel : mongoStub){
-            if(SurveyUnitModel.getCampaignId().equals(campaignId))
-                surveyUnitModelList.add(
-                        new SurveyUnitModel(SurveyUnitModel.getInterrogationId(), SurveyUnitModel.getMode())
-                );
-        }
 
-        return surveyUnitModelList;
-    }
 
     @Override
     public Long deleteByQuestionnaireId(String questionnaireId) {

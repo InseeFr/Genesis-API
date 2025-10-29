@@ -2,8 +2,8 @@ package fr.insee.genesis.infrastructure.adapter;
 
 import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitQualityToolPort;
-import fr.insee.genesis.infrastructure.utils.http.OidcService;
 import fr.insee.genesis.infrastructure.utils.http.HttpUtils;
+import fr.insee.genesis.infrastructure.utils.http.OidcService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -20,11 +20,14 @@ import java.util.Set;
 @Slf4j
 public class SurveyQualityToolPerretAdapter implements SurveyUnitQualityToolPort {
 
-    @Autowired
-    Config config;
+    private final Config config;
+    private final OidcService oidcService;
 
     @Autowired
-    OidcService oidcService;
+    public SurveyQualityToolPerretAdapter( Config config,OidcService oidcService) {
+        this.config = config;
+        this.oidcService = oidcService;
+    }
 
 
     @Override

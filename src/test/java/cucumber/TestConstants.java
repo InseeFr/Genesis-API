@@ -5,13 +5,5 @@ package cucumber;
  */
 public class TestConstants {
 
-	public static final String TEST_RESOURCES_DIRECTORY = "src/test/resources";
 
-	//Functional tests
-	public static final String FUNCTIONAL_TESTS_INPUT_DIRECTORY = TEST_RESOURCES_DIRECTORY + "/IN";
-	public static final String FUNCTIONAL_TESTS_WEB_DIRECTORY = FUNCTIONAL_TESTS_INPUT_DIRECTORY + "/WEB";
-	public static final String FUNCTIONAL_TESTS_DDI_DIRECTORY = TEST_RESOURCES_DIRECTORY + "/specs";
-	public static final String FUNCTIONAL_TESTS_TEMP_DIRECTORY = TEST_RESOURCES_DIRECTORY + "/functional_tests/temp";
-	public static final String FUNCTIONAL_TESTS_OUTPUT_DIRECTORY = TEST_RESOURCES_DIRECTORY + "/functional_tests/out";
-	public static final String FUNCTIONAL_TESTS_API_URL = "http://localhost:8080";
 }

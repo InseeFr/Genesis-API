@@ -9,6 +9,7 @@ import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
 import fr.insee.genesis.infrastructure.document.surveyunit.SurveyUnitDocument;
 import fr.insee.genesis.infrastructure.mappers.SurveyUnitDocumentMapper;
 import fr.insee.genesis.infrastructure.repository.SurveyUnitMongoDBRepository;
+import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -28,7 +29,8 @@ import java.util.stream.Stream;
 @Qualifier("surveyUnitMongoAdapter")
 public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 
-	private final SurveyUnitMongoDBRepository mongoRepository;
+    public static final String QUESTIONNAIRE_ID = "questionnaireId";
+    private final SurveyUnitMongoDBRepository mongoRepository;
 	private final MongoTemplate mongoTemplate;
 
 	@Autowired
@@ -100,18 +102,7 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 				mongoRepository.findQuestionnaireIdsByCampaignId(campaignId);
 
 		//Extract questionnaireIds from JSON response
-		Set<String> questionnaireIds = new HashSet<>();
-		for(String line : mongoResponse){
-			ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
-			try{
-				JsonNode jsonNode = objectMapper.readTree(line);
-				questionnaireIds.add(jsonNode.get("questionnaireId").asText());
-			}catch (JsonProcessingException e){
-				log.error(e.getMessage());
-			}
-		}
-
-		return questionnaireIds;
+        return extractQuestionnaireIdsFromJson(mongoResponse);
 	}
 
 	//========= OPTIMISATIONS PERFS (START) ==========
@@ -124,20 +115,23 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 				mongoRepository.findQuestionnaireIdsByCampaignIdV2(campaignId);
 
 		//Extract questionnaireIds from JSON response
-		Set<String> questionnaireIds = new HashSet<>();
-		for(String line : mongoResponse){
-			ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
-			try{
-				JsonNode jsonNode = objectMapper.readTree(line);
-				questionnaireIds.add(jsonNode.get("questionnaireId").asText());
-			}catch (JsonProcessingException e){
-				log.error(e.getMessage());
-			}
-		}
-
-		return questionnaireIds;
+        return extractQuestionnaireIdsFromJson(mongoResponse);
 	}
-	//========= OPTIMISATIONS PERFS (END) ==========
+
+    private static @NotNull Set<String> extractQuestionnaireIdsFromJson(Set<String> mongoResponse) {
+        Set<String> questionnaireIds = new HashSet<>();
+        for(String line : mongoResponse){
+            ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
+            try{
+                JsonNode jsonNode = objectMapper.readTree(line);
+                questionnaireIds.add(jsonNode.get(QUESTIONNAIRE_ID).asText());
+            }catch (JsonProcessingException e){
+                log.error(e.getMessage());
+            }
+        }
+        return questionnaireIds;
+    }
+    //========= OPTIMISATIONS PERFS (END) ==========
 
 	@Override
 	public Set<String> findDistinctCampaignIds() {
@@ -202,7 +196,7 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 	public Set<String> findDistinctQuestionnaireIds() {
 		Set<String> questionnaireIds = new HashSet<>();
 		for(String questionnaireId : mongoTemplate.getCollection(Constants.MONGODB_RESPONSE_COLLECTION_NAME).distinct(
-				"questionnaireId",
+                QUESTIONNAIRE_ID,
 				String.class)){
 			questionnaireIds.add(questionnaireId);
 		}
@@ -214,7 +208,7 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 		List<String> mongoResponse =
 				mongoRepository.findCampaignIdsByQuestionnaireId(questionnaireId).stream().distinct().toList();
 
-		//Extract idCampagigns from JSON response
+		//Extract idCampaigns from JSON response
 		Set<String> campaignIds = new HashSet<>();
 		for(String line : mongoResponse){
 			ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();

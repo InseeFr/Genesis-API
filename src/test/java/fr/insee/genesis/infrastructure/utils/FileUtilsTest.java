@@ -1,6 +1,7 @@
 package fr.insee.genesis.infrastructure.utils;
 
-import cucumber.TestConstants;
+
+import fr.insee.genesis.TestConstants;
 import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.stubs.ConfigStub;
 import lombok.extern.slf4j.Slf4j;

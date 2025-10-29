@@ -1,6 +1,7 @@
 package fr.insee.genesis.stubs;
 
-import cucumber.TestConstants;
+
+import fr.insee.genesis.TestConstants;
 import fr.insee.genesis.configuration.Config;
 
 public class ConfigStub extends Config {

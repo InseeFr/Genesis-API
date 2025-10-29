@@ -1,5 +1,6 @@
 package fr.insee.genesis.infrastructure.utils.http;
 
+import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
@@ -8,6 +9,7 @@ import reactor.core.publisher.Mono;
 import java.io.IOException;
 
 @Slf4j
+@UtilityClass
 public class PerretAuthWebClientFilter {
     public static ExchangeFilterFunction perretAuthFilter(OidcService oidcService) {
         return ExchangeFilterFunction.ofRequestProcessor(request -> {

@@ -102,11 +102,6 @@ public class QuestionnaireMetadataService implements QuestionnaireMetadataApiPor
             }
         }
 
-/*        // Adding Eno variables if necessary
-        // For review : not sure if this the best way to do it
-        for (String enoVar : Arrays.stream(Constants.getEnoVariables()).toList()){
-            variablesMap.putVariable(new Variable(enoVar, ));
-        }*/
         if(!errors.isEmpty()){
             throw new GenesisException(404, errors.getLast().getMessage());
         }

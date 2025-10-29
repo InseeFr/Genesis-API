@@ -183,7 +183,7 @@ class SurveyUnitModelMongoAdapterTest {
 		when(mongoRepository.countByCampaignId("CAMP999")).thenReturn(0L);
 
 		long count = surveyUnitMongoAdapter.countByCampaignId("CAMP999");
-		Assertions.assertThat(count).isEqualTo(0L);
+		Assertions.assertThat(count).isZero();
 	}
 
 

@@ -1,6 +1,7 @@
 package fr.insee.genesis.controller.rest.responses;
 
-import cucumber.TestConstants;
+
+import fr.insee.genesis.TestConstants;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
