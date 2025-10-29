@@ -8,9 +8,9 @@ ENV JAVA_TOOL_OPTIONS_DEFAULT \
     -XX:MaxRAMPercentage=75
 
 # Setup a non-root user context (security)
-RUN addgroup -g 1000 tomcatgroup
-&& adduser -D -s / -u 1000 tomcatuser -G tomcatgroup
-&& mkdir /opt/app/temp-files
+RUN addgroup -g 1000 tomcatgroup \
+&& adduser -D -s / -u 1000 tomcatuser -G tomcatgroup \
+&& mkdir /opt/app/temp-files \
 && chown -R 1000:1000 /opt/app
 
 USER 1000
