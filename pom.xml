@@ -27,6 +27,7 @@
         <sonar.language>java</sonar.language>
         <sonar.sourceEncoding>UTF-8</sonar.sourceEncoding>
         <sonar.exclusions>
+            **/*MapperImpl.class, <!-- Generated mappers by mapstruct -->
             src/main/java/fr/insee/genesis/configuration/**/*.java
         </sonar.exclusions>
         <skipSurefireReport>true</skipSurefireReport>
