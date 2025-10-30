@@ -2,10 +2,10 @@ package fr.insee.genesis.controller.rest.responses;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.networknt.schema.JsonSchema;
-import com.networknt.schema.JsonSchemaFactory;
-import com.networknt.schema.SpecVersion;
-import com.networknt.schema.ValidationMessage;
+import com.networknt.schema.Error;
+import com.networknt.schema.Schema;
+import com.networknt.schema.SchemaRegistry;
+import com.networknt.schema.dialect.Dialects;
 import fr.insee.genesis.controller.dto.rawdata.LunaticJsonRawDataUnprocessedDto;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
@@ -38,7 +38,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -94,14 +93,15 @@ public class RawResponseController {
     public ResponseEntity<String> saveRawResponsesFromJsonBodyWithValidation(
             @RequestBody Map<String, Object> body
     ) {
-        JsonSchema jsonSchema = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7).getSchema(
-                RawResponseController.class.getResourceAsStream("/jsonSchemas/RawResponse.json")
+        SchemaRegistry schemaRegistry = SchemaRegistry.withDialect(Dialects.getDraft202012(), SchemaRegistry.Builder::build);
+        Schema jsonSchema = schemaRegistry
+                .getSchema(RawResponseController.class.getResourceAsStream("/jsonSchemas/RawResponse.json")
         );
         try {
             if (jsonSchema == null) {
                 throw new GenesisException(500, "No RawResponse json schema has been found");
             }
-            Set<ValidationMessage> errors = jsonSchema.validate(
+            List<Error> errors = jsonSchema.validate(
                     new ObjectMapper().readTree(
                             new ObjectMapper().writeValueAsString(body)
                     )
@@ -209,10 +209,10 @@ public class RawResponseController {
         return ResponseEntity.status(HttpStatus.OK).body(new PagedModel<>(rawResponses));
     }
 
-    private void validate(Set<ValidationMessage> errors) throws GenesisException {
+    private void validate(List<Error> errors) throws GenesisException {
         if (!errors.isEmpty()) {
             String errorMessage = errors.stream()
-                    .map(ValidationMessage::getMessage)
+                    .map(Error::getMessage)
                     .collect(Collectors.joining(System.lineSeparator() + " - "));
 
             throw new GenesisException(
