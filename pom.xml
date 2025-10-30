@@ -28,7 +28,8 @@
         <sonar.sourceEncoding>UTF-8</sonar.sourceEncoding>
         <sonar.exclusions>
             **/*MapperImpl.class, <!-- Generated mappers by mapstruct -->
-            src/main/java/fr/insee/genesis/configuration/**/*.java
+            src/main/java/fr/insee/genesis/configuration/**/*.java,
+            src/main/java/fr/insee/genesis/exceptions/*.java
         </sonar.exclusions>
         <skipSurefireReport>true</skipSurefireReport>
         <!-- Pi Test-->
@@ -181,6 +182,8 @@
                     <configuration>
                         <excludes>
                             <exclude>src/main/java/fr/insee/genesis/configuration/**/*</exclude>
+                            <exclude>**/*MapperImpl.class</exclude>
+                            <exclude>src/main/java/fr/insee/genesis/exceptions/*</exclude>
                         </excludes>
                     </configuration>
                     <executions>
