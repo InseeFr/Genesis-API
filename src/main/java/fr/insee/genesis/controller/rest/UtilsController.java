@@ -4,6 +4,7 @@ import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.service.volumetry.VolumetryLogService;
 import fr.insee.genesis.domain.utils.XMLSplitter;
+import fr.insee.genesis.exceptions.GenesisException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +45,7 @@ public class UtilsController implements CommonApiResponse{
 														   @RequestParam("outputFolder") String outputFolder,
 														   @RequestParam("filename") String filename,
 														   @RequestParam("nbResponsesByFile") int nbSU)
-			throws XMLStreamException, IOException {
+            throws XMLStreamException, IOException, GenesisException {
 		XMLSplitter.split(inputFolder, filename, outputFolder, "SurveyUnit", nbSU);
 		return ResponseEntity.ok("File split");
 	}
