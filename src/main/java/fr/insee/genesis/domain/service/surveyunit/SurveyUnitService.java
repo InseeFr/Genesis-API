@@ -156,7 +156,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         List<List<SurveyUnitModel>> listLatestUpdatesbyVariables = new ArrayList<>();
 
         //1) QUERY
-        // => conversion of "List<InterrogationId>" -> "List<String>" for query using lamda
+        // => conversion of "List<InterrogationId>" -> "List<String>" for query using lambda
         List<String> queryInParam = interrogationIds.stream().map(InterrogationId::getInterrogationId).toList();
 
         //Get !!!all versions!!! of a set of "interrogationIds"
