@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>fr.insee.genesis</groupId>
     <artifactId>genesis-api</artifactId>
-    <version>1.12.0</version>
+    <version>1.12.1</version>
     <packaging>jar</packaging>
     <name>genesis-api</name>
 
@@ -36,7 +36,7 @@
         <pitest.version>1.21.0</pitest.version>
         <pitest.junit.version>1.2.3</pitest.junit.version>
         <jackson.version>2.19.0</jackson.version>
-        <bpm.version>1.0.17</bpm.version>
+        <bpm.version>1.0.18</bpm.version>
     </properties>
     <dependencies>
         <dependency>
