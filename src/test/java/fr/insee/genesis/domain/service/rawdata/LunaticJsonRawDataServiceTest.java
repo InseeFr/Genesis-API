@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService.getValueString;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 class LunaticJsonRawDataServiceTest {
@@ -569,5 +570,39 @@ class LunaticJsonRawDataServiceTest {
                     .add(LunaticJsonRawDataDocumentMapper.INSTANCE.modelToDocument(rawDataModel));
         }
         return interrogationIdList;
+    }
+
+    @Test
+    void getValueString_null_test(){
+        Object stringObject = null;
+
+        Assertions.assertThat(getValueString(stringObject)).isEqualTo("null");
+    }
+
+    @Test
+    void getValueString_string_test(){
+        Object stringObject = "test";
+
+        Assertions.assertThat(getValueString(stringObject)).isEqualTo("test");
+    }
+    @Test
+    void getValueString_int_test(){
+        Object intObject = 10;
+
+        Assertions.assertThat(getValueString(intObject)).isEqualTo("10");
+    }
+
+    @Test
+    void getValueString_float_test(){
+        Object floatObject = 10.111f;
+
+        Assertions.assertThat(getValueString(floatObject)).isEqualTo("10.111");
+    }
+
+    @Test
+    void getValueString_double_test(){
+        Object doubleObject = 101010101010.111d;
+
+        Assertions.assertThat(getValueString(doubleObject)).isEqualTo("101010101010.111");
     }
 }
