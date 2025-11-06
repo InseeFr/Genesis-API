@@ -1,4 +1,8 @@
 # Changelog
+## 1.12.2 [TODO]
+### Fixed
+- Scientific notation for Doubles during raw data processing
+
 ## 1.12.0 [2025-10-23]
 - Get review indicator endpoint
 
