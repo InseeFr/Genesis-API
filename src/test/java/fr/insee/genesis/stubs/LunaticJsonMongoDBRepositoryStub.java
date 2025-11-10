@@ -136,6 +136,14 @@ public class LunaticJsonMongoDBRepositoryStub implements LunaticJsonMongoDBRepos
         return result;
     }
 
+    @Override
+    public List<String> getUnprocessedInterrogationIds(String questionnaireId) {
+        List<String> interrogationIds = new ArrayList<>();
+        documents.stream().filter(doc -> doc.questionnaireId().equals(questionnaireId) && doc.processDate() == null).toList()
+                .forEach(doc -> interrogationIds.add(doc.interrogationId()));
+        return interrogationIds;
+    }
+
     // Implémentations vides requises par MongoRepository
     @Override public <S extends LunaticJsonRawDataDocument> S save(S entity) { return null; }
     @Override public Optional<LunaticJsonRawDataDocument> findById(String s) { return Optional.empty(); }

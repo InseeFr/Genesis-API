@@ -6,6 +6,7 @@ import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
 import fr.insee.genesis.domain.ports.spi.LunaticJsonRawDataPersistencePort;
 import fr.insee.genesis.infrastructure.document.rawdata.LunaticJsonRawDataDocument;
+import fr.insee.genesis.infrastructure.document.surveyunit.GroupedInterrogationDocument;
 import fr.insee.genesis.infrastructure.mappers.GroupedInterrogationDocumentMapper;
 import fr.insee.genesis.infrastructure.mappers.LunaticJsonRawDataDocumentMapper;
 import fr.insee.genesis.infrastructure.repository.LunaticJsonMongoDBRepository;
@@ -96,4 +97,8 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
         return GroupedInterrogationDocumentMapper.INSTANCE.listDocumentToListModel(repository.aggregateRawGroupedWithNullProcessDate());
     }
 
+    @Override
+    public Set<String> findUnprocessedInterrogationIdsByQuestionnaire(String questionnaireId) {
+        return new HashSet<>(repository.getUnprocessedInterrogationIds(questionnaireId));
+    }
 }

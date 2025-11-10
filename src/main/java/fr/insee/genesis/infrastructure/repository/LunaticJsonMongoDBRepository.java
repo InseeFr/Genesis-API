@@ -63,4 +63,7 @@ public interface LunaticJsonMongoDBRepository extends MongoRepository<LunaticJso
                     "} }"
     })
     List<GroupedInterrogationDocument> aggregateRawGroupedWithNullProcessDate();
+
+    @Query(value = "{ 'questionnaireId' : ?0, 'processDate': null}", fields = "{ 'interrogationId' :  1 }")
+    List<String> getUnprocessedInterrogationIds(String questionnaireId);
 }

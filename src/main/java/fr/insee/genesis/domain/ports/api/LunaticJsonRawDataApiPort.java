@@ -28,6 +28,10 @@ public interface LunaticJsonRawDataApiPort {
     long countResponsesByQuestionnaireId(String campaignId);
     Page<LunaticJsonRawDataModel> findRawDataByCampaignIdAndDate(String campaignId, Instant  startDt, Instant endDt, Pageable pageable);
 
+    @Deprecated(since = "1.13.0")
     DataProcessResult processRawData(String campaignName, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException;
+
+    DataProcessResult processRawData(String questionnaireId) throws GenesisException;
+
     Map<String, List<String>> findProcessedIdsgroupedByQuestionnaireSince(LocalDateTime since);
 }

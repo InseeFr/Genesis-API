@@ -100,6 +100,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     }
 
     @Override
+    @Deprecated(since = "1.13.0")
     public DataProcessResult processRawData(String campaignName, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException {
         int dataCount=0;
         int formattedDataCount=0;
@@ -156,7 +157,73 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
                 batchNumber++;
             }
         }
-        return new DataProcessResult(dataCount, formattedDataCount);
+        return new DataProcessResult(dataCount, formattedDataCount, errors);
+    }
+
+    @Override
+    public DataProcessResult processRawData(String questionnaireId) throws GenesisException {
+        int dataCount=0;
+        int formattedDataCount=0;
+        DataProcessingContextModel dataProcessingContext =
+                dataProcessingContextService.getContextByPartitionId(questionnaireId);
+        List<GenesisError> errors = new ArrayList<>();
+
+        List<Mode> modesList = controllerUtils.getModesList(questionnaireId, null);
+        for (Mode mode : modesList) {
+            //Load and save metadata into database, throw exception if none
+            VariablesMap variablesMap = metadataService.loadAndSaveIfNotExists(questionnaireId, questionnaireId, mode, fileUtils,
+                    errors).getVariables();
+            if (variablesMap == null) {
+                throw new GenesisException(400,
+                        "Error during metadata parsing for mode %s :%n%s"
+                                .formatted(mode, errors.getLast().getMessage())
+                );
+            }
+            Set<String> interrogationIds =
+                    lunaticJsonRawDataPersistencePort.findUnprocessedInterrogationIdsByQuestionnaire(questionnaireId);
+
+
+            int totalBatchs = Math.ceilDiv(interrogationIds.size() , config.getRawDataProcessingBatchSize());
+            int batchNumber = 1;
+            List<String> interrogationIdListForMode = new ArrayList<>(interrogationIds);
+            while(!interrogationIdListForMode.isEmpty()){
+                log.info("Processing raw data batch {}/{}", batchNumber, totalBatchs);
+                int maxIndex = Math.min(interrogationIdListForMode.size(), config.getRawDataProcessingBatchSize());
+                List<String> interrogationIdToProcess = interrogationIdListForMode.subList(0, maxIndex);
+
+                List<LunaticJsonRawDataModel> rawData = getRawData(questionnaireId, mode, interrogationIdToProcess);
+
+                List<SurveyUnitModel> surveyUnitModels = convertRawData(
+                        rawData,
+                        variablesMap
+                );
+
+                //Save converted data
+                surveyUnitQualityService.verifySurveyUnits(surveyUnitModels, variablesMap);
+                surveyUnitService.saveSurveyUnits(surveyUnitModels);
+
+                //Update process dates
+                updateProcessDates(surveyUnitModels);
+
+                //Increment data count
+                dataCount += surveyUnitModels.size();
+                formattedDataCount += surveyUnitModels.stream()
+                        .filter(surveyUnitModel -> surveyUnitModel.getState().equals(DataState.FORMATTED))
+                        .toList()
+                        .size();
+
+                //Send processed ids grouped by questionnaire (if review activated)
+                if(dataProcessingContext != null && dataProcessingContext.isWithReview()) {
+                    sendProcessedIdsToQualityTool(surveyUnitModels);
+                }
+
+                //Remove processed ids from list
+                interrogationIdListForMode = interrogationIdListForMode.subList(maxIndex, interrogationIdListForMode.size());
+
+                batchNumber++;
+            }
+        }
+        return new DataProcessResult(dataCount, formattedDataCount, errors);
     }
 
     private void sendProcessedIdsToQualityTool(List<SurveyUnitModel> surveyUnitModels) {
