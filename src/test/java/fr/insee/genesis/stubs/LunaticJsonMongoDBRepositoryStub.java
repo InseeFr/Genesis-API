@@ -14,6 +14,7 @@ import org.springframework.data.repository.query.FluentQuery;
 import java.time.LocalDateTime;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -137,11 +138,14 @@ public class LunaticJsonMongoDBRepositoryStub implements LunaticJsonMongoDBRepos
     }
 
     @Override
-    public List<String> getUnprocessedInterrogationIds(String questionnaireId) {
-        List<String> interrogationIds = new ArrayList<>();
+    public List<GroupedInterrogationDocument> aggregateRawGroupedWithNullProcessDate(String questionnaireId) {
+        GroupedInterrogationDocument groupedInterrogationDocument = new GroupedInterrogationDocument();
+        groupedInterrogationDocument.setQuestionnaireId(questionnaireId);
+        groupedInterrogationDocument.setPartitionOrCampaignId(questionnaireId);
+        groupedInterrogationDocument.setInterrogationIds(new ArrayList<>());
         documents.stream().filter(doc -> doc.questionnaireId().equals(questionnaireId) && doc.processDate() == null).toList()
-                .forEach(doc -> interrogationIds.add(doc.interrogationId()));
-        return interrogationIds;
+                .forEach(doc -> groupedInterrogationDocument.getInterrogationIds().add(doc.interrogationId()));
+        return Collections.singletonList(groupedInterrogationDocument);
     }
 
     // Implémentations vides requises par MongoRepository
