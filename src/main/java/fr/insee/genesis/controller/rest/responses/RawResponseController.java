@@ -147,7 +147,7 @@ public class RawResponseController {
 
     @Operation(summary = "Save lunatic json data from one interrogation in Genesis Database (with json " +
             "schema validation)")
-    @PutMapping(path="/raw-responses")
+    @PostMapping(path="/raw-responses")
     @PreAuthorize("hasRole('COLLECT_PLATFORM')")
     public ResponseEntity<String> saveRawResponsesFromJsonBodyWithValidation(
             @RequestBody Map<String, Object> body
@@ -171,6 +171,17 @@ public class RawResponseController {
         } catch (SchemaValidationException | IOException e) {
             return ResponseEntity.status(400).body(e.toString());
         }
+        return ResponseEntity.ok("Change this when ready");
+    }
+
+    @Operation(summary = "Save lunatic json data from one interrogation in Genesis Database (with json " +
+            "schema validation)")
+    @PostMapping(path="/raw-responses/dto")
+    @PreAuthorize("hasRole('COLLECT_PLATFORM')")
+    public ResponseEntity<String> saveRawResponsesFromRawResponseDto(
+            @RequestBody RawResponseDto dto
+    ) {
+        rawRepository.saveAsRawJson(dto);
         return ResponseEntity.ok("Change this when ready");
     }
 
