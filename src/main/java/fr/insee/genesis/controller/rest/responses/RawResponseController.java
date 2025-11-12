@@ -20,6 +20,7 @@ import fr.insee.genesis.infrastructure.repository.RawResponseInputRepository;
 import fr.insee.modelefiliere.RawResponseDto;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -179,7 +180,7 @@ public class RawResponseController {
     @PostMapping(path="/raw-responses/dto")
     @PreAuthorize("hasRole('COLLECT_PLATFORM')")
     public ResponseEntity<String> saveRawResponsesFromRawResponseDto(
-            @RequestBody RawResponseDto dto
+            @Valid @RequestBody RawResponseDto dto
     ) {
         rawRepository.saveAsRawJson(dto);
         return ResponseEntity.ok("Change this when ready");
