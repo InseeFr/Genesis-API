@@ -148,7 +148,7 @@ public class RawResponseController {
 
     @Operation(summary = "Save lunatic json data from one interrogation in Genesis Database (with json " +
             "schema validation)")
-    @PostMapping(path="/raw-responses")
+    @PostMapping(path="/raw-responses/debug")
     @PreAuthorize("hasRole('COLLECT_PLATFORM')")
     public ResponseEntity<String> saveRawResponsesFromJsonBodyWithValidation(
             @RequestBody Map<String, Object> body
@@ -172,18 +172,18 @@ public class RawResponseController {
         } catch (SchemaValidationException | IOException e) {
             return ResponseEntity.status(400).body(e.toString());
         }
-        return ResponseEntity.ok("Change this when ready");
+        return ResponseEntity.status(201).body(String.format(SUCCESS_MESSAGE, body.get(INTERROGATION_ID).toString()));
     }
 
     @Operation(summary = "Save lunatic json data from one interrogation in Genesis Database (with json " +
             "schema validation)")
-    @PostMapping(path="/raw-responses/dto")
+    @PostMapping(path="/raw-responses")
     @PreAuthorize("hasRole('COLLECT_PLATFORM')")
     public ResponseEntity<String> saveRawResponsesFromRawResponseDto(
             @Valid @RequestBody RawResponseDto dto
     ) {
         rawRepository.saveAsRawJson(dto);
-        return ResponseEntity.ok("Change this when ready");
+        return ResponseEntity.status(201).body(String.format(SUCCESS_MESSAGE, dto.getInterrogationId()));
     }
 
     //GET unprocessed
