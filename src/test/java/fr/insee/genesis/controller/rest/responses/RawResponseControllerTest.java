@@ -16,6 +16,7 @@ import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.domain.utils.JsonUtils;
 import fr.insee.genesis.infrastructure.document.rawdata.LunaticJsonRawDataDocument;
 import fr.insee.genesis.infrastructure.mappers.DataProcessingContextMapper;
+import fr.insee.genesis.infrastructure.repository.RawResponseInputRepository;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
@@ -23,6 +24,7 @@ import fr.insee.genesis.stubs.LunaticJsonRawDataPersistanceStub;
 import fr.insee.genesis.stubs.QuestionnaireMetadataPersistancePortStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import fr.insee.genesis.stubs.SurveyUnitQualityToolPerretAdapterStub;
+import fr.insee.modelefiliere.RawResponseDto;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.web.PagedModel;
@@ -58,7 +60,15 @@ class RawResponseControllerTest {
             new DataProcessingContextPersistancePortStub()
     );
 
-    private final RawResponseController rawResponseController = new RawResponseController(lunaticJsonRawDataApiPort);
+    // TODO: change this
+    RawResponseInputRepository rawResponseInputRepositoryStub = new RawResponseInputRepository(null, null) {
+        @Override
+        public void saveAsRawJson(RawResponseDto dto) {
+            // Ne rien faire — stub pour les tests
+        }
+    };
+
+    private final RawResponseController rawResponseController = new RawResponseController(lunaticJsonRawDataApiPort, rawResponseInputRepositoryStub);
 
 
     @Test

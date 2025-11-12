@@ -15,6 +15,7 @@ import fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.domain.utils.JsonUtils;
+import fr.insee.genesis.infrastructure.repository.RawResponseInputRepository;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
@@ -22,6 +23,7 @@ import fr.insee.genesis.stubs.LunaticJsonRawDataPersistanceStub;
 import fr.insee.genesis.stubs.QuestionnaireMetadataPersistancePortStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import fr.insee.genesis.stubs.SurveyUnitQualityToolPerretAdapterStub;
+import fr.insee.modelefiliere.RawResponseDto;
 import io.cucumber.java.Before;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -88,8 +90,14 @@ public class RawDataDefinitions {
                     config,
                     dataProcessingContextPersistancePortStub);
 
+    RawResponseInputRepository rawResponseInputRepositoryStub = new RawResponseInputRepository(null, null) {
+        @Override
+        public void saveAsRawJson(RawResponseDto dto) {
+            // Ne rien faire — stub pour les tests
+        }
+    };
     RawResponseController rawResponseController = new RawResponseController(
-            lunaticJsonRawDataService
+            lunaticJsonRawDataService, rawResponseInputRepositoryStub
     );
     Path rawDataFilePath;
     String rawJsonData;

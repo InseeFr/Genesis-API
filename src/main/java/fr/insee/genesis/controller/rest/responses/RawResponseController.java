@@ -1,18 +1,22 @@
 package fr.insee.genesis.controller.rest.responses;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.networknt.schema.Error;
-import com.networknt.schema.Schema;
-import com.networknt.schema.SchemaRegistry;
-import com.networknt.schema.dialect.Dialects;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import fr.insee.genesis.controller.dto.rawdata.LunaticJsonRawDataUnprocessedDto;
+import fr.insee.genesis.controller.utils.ExtendedJsonNormalizer;
+import fr.insee.genesis.controller.utils.JsonSchemaValidator;
+import fr.insee.genesis.controller.utils.SchemaType;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.exceptions.SchemaValidationException;
+import fr.insee.genesis.infrastructure.repository.RawResponseInputRepository;
+import fr.insee.modelefiliere.RawResponseDto;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
@@ -30,9 +34,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -42,20 +46,22 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Controller
-@RequestMapping(path = "/responses/raw")
 public class RawResponseController {
 
     private static final String SUCCESS_MESSAGE = "Interrogation %s saved";
     private static final String PARTITION_ID = "partitionId";
     private static final String INTERROGATION_ID = "interrogationId";
     private final LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort;
+    private final RawResponseInputRepository rawRepository;
 
-    public RawResponseController(LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort) {
+
+    public RawResponseController(LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort, RawResponseInputRepository rawRepository) {
         this.lunaticJsonRawDataApiPort = lunaticJsonRawDataApiPort;
+        this.rawRepository = rawRepository;
     }
 
     @Operation(summary = "Save lunatic json data from one interrogation in Genesis Database")
-    @PutMapping(path = "/lunatic-json/save")
+    @PutMapping(path = "/responses/raw/lunatic-json/save")
     @PreAuthorize("hasRole('COLLECT_PLATFORM')")
     public ResponseEntity<String> saveRawResponsesFromJsonBody(
 
@@ -86,16 +92,18 @@ public class RawResponseController {
         return ResponseEntity.status(201).body(String.format(SUCCESS_MESSAGE, interrogationId));
     }
 
-    @Operation(summary = "Save lunatic json data from one interrogation in Genesis Database (with json " +
-            "schema validation)")
-    @PutMapping(path = "/lunatic-json")
+/*    @Operation(summary = "Deprecated")
+    @PutMapping(path="/lunatic-json")
     @PreAuthorize("hasRole('COLLECT_PLATFORM')")
-    public ResponseEntity<String> saveRawResponsesFromJsonBodyWithValidation(
+    // Check version when merging
+    @Deprecated(since="1.13.0", forRemoval=true)
+    public ResponseEntity<String> saveRawResponsesFromJsonBodyWithValidationDeprecated(
             @RequestBody Map<String, Object> body
     ) {
+
         SchemaRegistry schemaRegistry = SchemaRegistry.withDialect(Dialects.getDraft202012(), SchemaRegistry.Builder::build);
         Schema jsonSchema = schemaRegistry
-                .getSchema(RawResponseController.class.getResourceAsStream("/jsonSchemas/RawResponse.json")
+                .getSchema(RawResponseController.class.getResourceAsStream("/modele-filiere-spec/RawResponse.json")
         );
         try {
             if (jsonSchema == null) {
@@ -134,11 +142,40 @@ public class RawResponseController {
         log.info("Data saved for interrogationId {} and partition {}", body.get(INTERROGATION_ID).toString(),
                 body.get(PARTITION_ID).toString());
         return ResponseEntity.status(201).body(String.format(SUCCESS_MESSAGE, body.get(INTERROGATION_ID).toString()));
+    }*/
+
+    @Operation(summary = "Save lunatic json data from one interrogation in Genesis Database (with json " +
+            "schema validation)")
+    @PutMapping(path="/raw-responses")
+    @PreAuthorize("hasRole('COLLECT_PLATFORM')")
+    public ResponseEntity<String> saveRawResponsesFromJsonBodyWithValidation(
+            @RequestBody Map<String, Object> body
+    ) {
+        ObjectMapper objectMapperLocal = new ObjectMapper();
+        objectMapperLocal.registerModule(new JavaTimeModule());
+        objectMapperLocal.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);   // ISO-8601
+        objectMapperLocal.disable(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE);
+
+        try {
+            RawResponseDto rawResponseDto = JsonSchemaValidator.readAndValidateFromClasspath(
+                    ExtendedJsonNormalizer.normalize(new ObjectMapper().readTree(
+                            new ObjectMapper().writeValueAsString(body))),
+                    SchemaType.RAW_RESPONSE.getSchemaFileName(),
+                    RawResponseDto.class,
+                    objectMapperLocal
+            );
+            rawRepository.saveAsRawJson(rawResponseDto);
+        } catch (SchemaValidationException | IOException e) {
+            return ResponseEntity.status(400).body(e.toString());
+        }
+        return ResponseEntity.ok("Change this when ready");
+    }
+
     }
 
     //GET unprocessed
     @Operation(summary = "Get campaign id and interrogationId from all unprocessed raw json data")
-    @GetMapping(path = "/lunatic-json/get/unprocessed")
+    @GetMapping(path = "/responses/raw/lunatic-json/get/unprocessed")
     @PreAuthorize("hasRole('SCHEDULER')")
     public ResponseEntity<List<LunaticJsonRawDataUnprocessedDto>> getUnproccessedJsonRawData() {
         log.info("Try to get unprocessed raw JSON datas...");
@@ -146,7 +183,7 @@ public class RawResponseController {
     }
 
     @Hidden
-    @GetMapping(path = "/lunatic-json/get/by-interrogation-mode-and-campaign")
+    @GetMapping(path = "/responses/raw/lunatic-json/get/by-interrogation-mode-and-campaign")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<LunaticJsonRawDataModel> getJsonRawData(
             @RequestParam(INTERROGATION_ID) String interrogationId,
@@ -159,7 +196,7 @@ public class RawResponseController {
 
     //PROCESS
     @Operation(summary = "Process raw data of a campaign")
-    @PostMapping(path = "/lunatic-json/process")
+    @PostMapping(path = "/responses/raw/lunatic-json/process")
     @PreAuthorize("hasRole('SCHEDULER')")
     public ResponseEntity<String> processJsonRawData(
             @RequestParam("campaignName") String campaignName,
@@ -181,7 +218,7 @@ public class RawResponseController {
     }
 
     @Operation(summary = "Get processed data ids from last n hours (default 24h)")
-    @GetMapping(path = "/lunatic-json/processed/ids")
+    @GetMapping(path = "/responses/raw/lunatic-json/processed/ids")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, List<String>>> getProcessedDataIdsSinceHours(
             @RequestParam("questionnaireId") String questionnaireId,
@@ -193,7 +230,7 @@ public class RawResponseController {
     }
 
     @Operation(summary = "Get lunatic JSON data from one campaign in Genesis Database, filtered by start and end dates")
-    @GetMapping(path = "/lunatic-json/{campaignId}")
+    @GetMapping(path = "/responses/raw/lunatic-json/{campaignId}")
     @PreAuthorize("hasRole('USER_BATCH_GENERIC')")
     public ResponseEntity<PagedModel<LunaticJsonRawDataModel>> getRawResponsesFromJsonBody(
             @PathVariable String campaignId,
