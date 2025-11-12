@@ -1,5 +1,6 @@
 package fr.insee.genesis.controller.rest.responses;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -150,16 +151,18 @@ public class RawResponseController {
     @PreAuthorize("hasRole('COLLECT_PLATFORM')")
     public ResponseEntity<String> saveRawResponsesFromJsonBodyWithValidation(
             @RequestBody Map<String, Object> body
-    ) {
+    ) throws JsonProcessingException {
+
         ObjectMapper objectMapperLocal = new ObjectMapper();
         objectMapperLocal.registerModule(new JavaTimeModule());
         objectMapperLocal.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);   // ISO-8601
         objectMapperLocal.disable(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE);
 
+        log.info(objectMapperLocal.writeValueAsString(body));
         try {
             RawResponseDto rawResponseDto = JsonSchemaValidator.readAndValidateFromClasspath(
-                    ExtendedJsonNormalizer.normalize(new ObjectMapper().readTree(
-                            new ObjectMapper().writeValueAsString(body))),
+                    ExtendedJsonNormalizer.normalize(objectMapperLocal.readTree(
+                            objectMapperLocal.writeValueAsString(body))),
                     SchemaType.RAW_RESPONSE.getSchemaFileName(),
                     RawResponseDto.class,
                     objectMapperLocal
