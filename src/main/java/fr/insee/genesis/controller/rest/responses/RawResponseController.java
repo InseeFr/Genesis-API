@@ -171,8 +171,6 @@ public class RawResponseController {
         return ResponseEntity.ok("Change this when ready");
     }
 
-    }
-
     //GET unprocessed
     @Operation(summary = "Get campaign id and interrogationId from all unprocessed raw json data")
     @GetMapping(path = "/responses/raw/lunatic-json/get/unprocessed")
