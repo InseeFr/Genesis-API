@@ -22,6 +22,8 @@ public class DataProcessingContextModel {
 
     private String partitionId;
 
+    private String collectionInstrumentId; //QuestionnaireId
+
     private LocalDateTime lastExecution;
 
     List<KraftwerkExecutionSchedule> kraftwerkExecutionScheduleList;
@@ -31,6 +33,7 @@ public class DataProcessingContextModel {
     public ScheduleDto toScheduleDto(){
         return ScheduleDto.builder()
                 .surveyName(partitionId)
+                .collectionInstrumentId(collectionInstrumentId)
                 .lastExecution(lastExecution)
                 .kraftwerkExecutionScheduleList(kraftwerkExecutionScheduleList)
                 .build();

@@ -24,6 +24,7 @@ public class DataProcessingContextDocument{
         @Id
         private ObjectId id;
         private String partitionId; //ex Survey Name, campaignId
+        private String collectionInstrumentId; // QuestionnaireId
         private LocalDateTime lastExecution;
         private List<KraftwerkExecutionSchedule> kraftwerkExecutionScheduleList;
         private boolean withReview;

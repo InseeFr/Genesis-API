@@ -11,6 +11,8 @@ public interface DataProcessingContextPersistancePort {
 
     List<DataProcessingContextModel> findByPartitionIds(List<String> partitionIds);
 
+    List<DataProcessingContextModel> findByCollectionInstrumentIds(List<String> collectionInstrumentIds);
+
     void save(DataProcessingContextDocument dataProcessingContextDocument);
 
     void saveAll(List<DataProcessingContextDocument> dataProcessingContextDocuments);

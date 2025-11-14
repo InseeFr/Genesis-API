@@ -1,0 +1,18 @@
+package fr.insee.genesis.domain.model.surveyunit.rawdata;
+
+import fr.insee.genesis.domain.model.surveyunit.Mode;
+import org.bson.types.ObjectId;
+
+import java.time.LocalDateTime;
+import java.util.Map;
+
+public record RawResponse(
+        ObjectId id,
+        String interrogationId,
+        String collectionInstrumentId,
+        Mode mode,
+        Map<String,Object> payload,
+        LocalDateTime recordDate,
+        LocalDateTime processDate
+)
+{}

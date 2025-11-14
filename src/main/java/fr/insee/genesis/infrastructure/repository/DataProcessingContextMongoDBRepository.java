@@ -12,6 +12,9 @@ public interface DataProcessingContextMongoDBRepository extends MongoRepository<
     @Query(value = "{ 'partitionId' : {$in: ?0} }")
     List<DataProcessingContextDocument> findByPartitionIdList(List<String> partitionIds);
 
+    @Query(value = "{ 'collectionInstrumentId' : {$in: ?0} }")
+    List<DataProcessingContextDocument> findByCollectionInstrumentIdList(List<String> collectionInstrumentIds);
+
     @Query(value = "{ 'partitionId' : ?0 }", delete = true)
     void deleteByPartitionId(String partitionId);
 }

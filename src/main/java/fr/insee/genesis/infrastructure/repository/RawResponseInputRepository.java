@@ -30,6 +30,7 @@ public class RawResponseInputRepository {
             Map<String, Object> document = new java.util.HashMap<>();
             document.put("interrogationId", dto.getInterrogationId());
             document.put("collectionInstrumentId", dto.getCollectionInstrumentId());
+            document.put("mode", dto.getMode());
             document.put("recordDate", Instant.now());
             document.put("payload", payload);
             mongoTemplate.save(document, "rawResponses");

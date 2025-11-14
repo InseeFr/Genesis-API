@@ -1,6 +1,7 @@
 package cucumber.functional_tests;
 
 import cucumber.functional_tests.config.CucumberSpringConfiguration;
+import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.TestConstants;
 import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.controller.rest.responses.RawResponseController;
@@ -9,12 +10,17 @@ import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
+import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
+import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponse;
+import fr.insee.genesis.domain.ports.api.RawResponseApiPort;
 import fr.insee.genesis.domain.service.context.DataProcessingContextService;
 import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.domain.utils.JsonUtils;
+import fr.insee.genesis.exceptions.GenesisError;
+import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.repository.RawResponseInputRepository;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
@@ -90,14 +96,37 @@ public class RawDataDefinitions {
                     config,
                     dataProcessingContextPersistancePortStub);
 
+    // TODO : implements real stubs
     RawResponseInputRepository rawResponseInputRepositoryStub = new RawResponseInputRepository(null, null) {
         @Override
         public void saveAsRawJson(RawResponseDto dto) {
             // Ne rien faire — stub pour les tests
         }
     };
+
+    RawResponseApiPort rawResponseApiPortStub = new RawResponseApiPort() {
+        @Override
+        public List<RawResponse> getRawResponses(String questionnaireModelId, Mode mode, List<String> interrogationIdList) {
+            return List.of();
+        }
+
+        @Override
+        public DataProcessResult processRawResponses(String questionnaireId, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException {
+            return null;
+        }
+
+        @Override
+        public List<SurveyUnitModel> convertRawResponse(List<RawResponse> rawResponses, VariablesMap variablesMap) {
+            return List.of();
+        }
+
+        @Override
+        public void updateProcessDates(List<SurveyUnitModel> surveyUnitModels) {
+
+        }
+    };
     RawResponseController rawResponseController = new RawResponseController(
-            lunaticJsonRawDataService, rawResponseInputRepositoryStub
+            lunaticJsonRawDataService, rawResponseApiPortStub, rawResponseInputRepositoryStub
     );
     Path rawDataFilePath;
     String rawJsonData;

@@ -1,0 +1,15 @@
+package fr.insee.genesis.domain.ports.spi;
+
+import fr.insee.genesis.domain.model.surveyunit.Mode;
+import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponse;
+
+import java.util.List;
+import java.util.Set;
+
+public interface RawResponsePersistencePort {
+
+    List<RawResponse> findRawResponses(String questionnaireId, Mode mode, List<String> interrogationIdList);
+
+
+    void updateProcessDates(String collectionInstrumentId, Set<String> interrogationIds);
+}

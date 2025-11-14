@@ -10,11 +10,17 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
+/*
+ * This model class should be in equation with the model of our information system ("modèle filière)
+ * Its up to the adapter and mappers to deal with old fields
+ *
+ */
 @Builder
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class SurveyUnitModel {
+
 
 	private String questionnaireId;
 	private String campaignId;

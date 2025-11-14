@@ -32,6 +32,9 @@ public interface DataProcessingContextApiPort {
 
     DataProcessingContextModel getContext(String interrogationId) throws GenesisException;
     DataProcessingContextModel getContextByPartitionId(String partitionId) throws GenesisException;
+
+    DataProcessingContextModel getContextByCollectionInstrumentId(String collectionInstrumentId);
+
     List<String> getPartitionIds(boolean withReview);
 
     /**

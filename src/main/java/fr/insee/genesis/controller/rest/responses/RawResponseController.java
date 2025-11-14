@@ -13,6 +13,7 @@ import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
+import fr.insee.genesis.domain.ports.api.RawResponseApiPort;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.exceptions.SchemaValidationException;
@@ -54,11 +55,13 @@ public class RawResponseController {
     private static final String PARTITION_ID = "partitionId";
     private static final String INTERROGATION_ID = "interrogationId";
     private final LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort;
+    private final RawResponseApiPort rawResponseApiPort;
     private final RawResponseInputRepository rawRepository;
 
 
-    public RawResponseController(LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort, RawResponseInputRepository rawRepository) {
+    public RawResponseController(LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort, RawResponseApiPort rawResponseApiPort, RawResponseInputRepository rawRepository) {
         this.lunaticJsonRawDataApiPort = lunaticJsonRawDataApiPort;
+        this.rawResponseApiPort = rawResponseApiPort;
         this.rawRepository = rawRepository;
     }
 
@@ -184,6 +187,28 @@ public class RawResponseController {
     ) {
         rawRepository.saveAsRawJson(dto);
         return ResponseEntity.status(201).body(String.format(SUCCESS_MESSAGE, dto.getInterrogationId()));
+    }
+
+    //PROCESS
+    @Operation(summary = "Process raw data of a campaign")
+    @PostMapping(path = "/raw-responses/process")
+    @PreAuthorize("hasRole('SCHEDULER')")
+    public ResponseEntity<String> processRawResponses(
+            @RequestParam("questionnaireId") String questionnaireId,
+            @RequestBody List<String> interrogationIdList
+    ) {
+        log.info("Try to process raw responses for questionnaireId {} and {} interrogationIds", interrogationIdList.size());
+        List<GenesisError> errors = new ArrayList<>();
+
+        try {
+            DataProcessResult result = rawResponseApiPort.processRawResponses(questionnaireId, interrogationIdList, errors);
+            return result.formattedDataCount() == 0 ?
+                    ResponseEntity.ok("%d document(s) processed".formatted(result.dataCount()))
+                    : ResponseEntity.ok("%d document(s) processed, including %d FORMATTED after data verification"
+                    .formatted(result.dataCount(), result.formattedDataCount()));
+        } catch (GenesisException e) {
+            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
+        }
     }
 
     //GET unprocessed

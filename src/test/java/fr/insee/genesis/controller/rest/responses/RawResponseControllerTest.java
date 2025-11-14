@@ -1,19 +1,26 @@
 package fr.insee.genesis.controller.rest.responses;
 
 
+import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.controller.dto.rawdata.LunaticJsonRawDataUnprocessedDto;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
+import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
+import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
+import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponse;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
+import fr.insee.genesis.domain.ports.api.RawResponseApiPort;
 import fr.insee.genesis.domain.service.context.DataProcessingContextService;
 import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.domain.utils.JsonUtils;
+import fr.insee.genesis.exceptions.GenesisError;
+import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.document.rawdata.LunaticJsonRawDataDocument;
 import fr.insee.genesis.infrastructure.mappers.DataProcessingContextMapper;
 import fr.insee.genesis.infrastructure.repository.RawResponseInputRepository;
@@ -68,7 +75,29 @@ class RawResponseControllerTest {
         }
     };
 
-    private final RawResponseController rawResponseController = new RawResponseController(lunaticJsonRawDataApiPort, rawResponseInputRepositoryStub);
+    RawResponseApiPort rawResponseApiPortStub = new RawResponseApiPort() {
+        @Override
+        public List<RawResponse> getRawResponses(String questionnaireModelId, Mode mode, List<String> interrogationIdList) {
+            return List.of();
+        }
+
+        @Override
+        public DataProcessResult processRawResponses(String questionnaireId, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException {
+            return null;
+        }
+
+        @Override
+        public List<SurveyUnitModel> convertRawResponse(List<RawResponse> rawResponses, VariablesMap variablesMap) {
+            return List.of();
+        }
+
+        @Override
+        public void updateProcessDates(List<SurveyUnitModel> surveyUnitModels) {
+
+        }
+    };
+
+    private final RawResponseController rawResponseController = new RawResponseController(lunaticJsonRawDataApiPort,  rawResponseApiPortStub, rawResponseInputRepositoryStub);
 
 
     @Test
