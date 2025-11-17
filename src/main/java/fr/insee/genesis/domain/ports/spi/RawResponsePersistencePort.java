@@ -8,8 +8,6 @@ import java.util.Set;
 
 public interface RawResponsePersistencePort {
 
-    List<RawResponse> findRawResponses(String questionnaireId, Mode mode, List<String> interrogationIdList);
-
-
+    List<RawResponse> findRawResponses(String collectionInstrumentId, Mode mode, List<String> interrogationIdList);
     void updateProcessDates(String collectionInstrumentId, Set<String> interrogationIds);
 }

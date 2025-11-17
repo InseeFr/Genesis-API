@@ -1,6 +1,5 @@
 package fr.insee.genesis.infrastructure.document.rawdata;
 
-import fr.insee.genesis.domain.model.surveyunit.Mode;
 import lombok.Builder;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
@@ -18,7 +17,7 @@ public record RawResponseDocument (
         ObjectId id,
         String interrogationId,
         String collectionInstrumentId,
-        Mode mode,
+        String mode,
         Map<String,Object> payload,
         LocalDateTime recordDate,
         @Indexed(direction = IndexDirection.DESCENDING)

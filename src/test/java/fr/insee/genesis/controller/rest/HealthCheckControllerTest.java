@@ -72,7 +72,7 @@ class HealthCheckControllerTest {
                 .campaignId("TESTCAMPAIGNID")
                 .mode(Mode.WEB)
                 .interrogationId("TESTINTERROGATIONID")
-                .questionnaireId("TESTQUESTIONNAIREID")
+                .collectionInstrumentId("TESTQUESTIONNAIREID")
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2023, 1, 1, 0, 0 , 0))
                 .recordDate(LocalDateTime.of(2024, 1, 1, 0, 0, 0))

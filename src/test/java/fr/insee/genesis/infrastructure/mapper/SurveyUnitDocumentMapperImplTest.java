@@ -25,6 +25,8 @@ class SurveyUnitDocumentMapperImplTest {
 
     static SurveyUnitModel surveyUnitStatic;
 
+    // TODO : make different tests for document to model transformation, for old documents and new ones
+
     @BeforeAll
     static void init(){
         surveyUnitDocumentMapperImplStatic = new SurveyUnitDocumentMapperImpl();
@@ -71,7 +73,7 @@ class SurveyUnitDocumentMapperImplTest {
                 .campaignId("TESTCAMPAIGNID")
                 .mode(Mode.WEB)
                 .interrogationId("TESTINTERROGATIONID")
-                .questionnaireId("TESTQUESTIONNAIREID")
+                .collectionInstrumentId("TESTQUESTIONNAIREID")
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2023,1,1,0,0,0))
                 .recordDate(LocalDateTime.of(2024,1,1,0,0,0))
@@ -99,7 +101,7 @@ class SurveyUnitDocumentMapperImplTest {
         Assertions.assertThat(surveyUnit.getCampaignId()).isEqualTo("TESTCAMPAIGNID");
         Assertions.assertThat(surveyUnit.getMode()).isEqualTo(Mode.WEB);
         Assertions.assertThat(surveyUnit.getInterrogationId()).isEqualTo("TESTINTERROGATIONID");
-        Assertions.assertThat(surveyUnit.getQuestionnaireId()).isEqualTo("TESTQUESTIONNAIREID");
+        Assertions.assertThat(surveyUnit.getCollectionInstrumentId()).isEqualTo("TESTQUESTIONNAIREID");
         Assertions.assertThat(surveyUnit.getState()).isEqualTo(DataState.COLLECTED);
         Assertions.assertThat(surveyUnit.getFileDate()).isEqualTo(LocalDateTime.of(2023,1,1,0,0,0));
 
@@ -123,7 +125,7 @@ class SurveyUnitDocumentMapperImplTest {
         Assertions.assertThat(surveyUnitDocument.getCampaignId()).isEqualTo("TESTCAMPAIGNID");
         Assertions.assertThat(surveyUnitDocument.getMode()).isEqualTo("WEB");
         Assertions.assertThat(surveyUnitDocument.getInterrogationId()).isEqualTo("TESTINTERROGATIONID");
-        Assertions.assertThat(surveyUnitDocument.getQuestionnaireId()).isEqualTo("TESTQUESTIONNAIREID");
+        Assertions.assertThat(surveyUnitDocument.getCollectionInstrumentId()).isEqualTo("TESTQUESTIONNAIREID");
         Assertions.assertThat(surveyUnitDocument.getState()).isEqualTo("COLLECTED");
         Assertions.assertThat(surveyUnitDocument.getFileDate()).isEqualTo(LocalDateTime.of(2023,1,1,0,0,0));
 
@@ -151,7 +153,7 @@ class SurveyUnitDocumentMapperImplTest {
         Assertions.assertThat(surveyUnitList.getFirst().getCampaignId()).isEqualTo("TESTCAMPAIGNID");
         Assertions.assertThat(surveyUnitList.getFirst().getMode()).isEqualTo(Mode.WEB);
         Assertions.assertThat(surveyUnitList.getFirst().getInterrogationId()).isEqualTo("TESTINTERROGATIONID");
-        Assertions.assertThat(surveyUnitList.getFirst().getQuestionnaireId()).isEqualTo("TESTQUESTIONNAIREID");
+        Assertions.assertThat(surveyUnitList.getFirst().getCollectionInstrumentId()).isEqualTo("TESTQUESTIONNAIREID");
         Assertions.assertThat(surveyUnitList.getFirst().getState()).isEqualTo(DataState.COLLECTED);
         Assertions.assertThat(surveyUnitList.getFirst().getFileDate()).isEqualTo(LocalDateTime.of(2023,1,1,0,0,0));
 
@@ -177,7 +179,7 @@ class SurveyUnitDocumentMapperImplTest {
         Assertions.assertThat(surveyUnitDocumentList.getFirst().getCampaignId()).isEqualTo("TESTCAMPAIGNID");
         Assertions.assertThat(surveyUnitDocumentList.getFirst().getMode()).isEqualTo("WEB");
         Assertions.assertThat(surveyUnitDocumentList.getFirst().getInterrogationId()).isEqualTo("TESTINTERROGATIONID");
-        Assertions.assertThat(surveyUnitDocumentList.getFirst().getQuestionnaireId()).isEqualTo("TESTQUESTIONNAIREID");
+        Assertions.assertThat(surveyUnitDocumentList.getFirst().getCollectionInstrumentId()).isEqualTo("TESTQUESTIONNAIREID");
         Assertions.assertThat(surveyUnitDocumentList.getFirst().getState()).isEqualTo("COLLECTED");
         Assertions.assertThat(surveyUnitDocumentList.getFirst().getFileDate()).isEqualTo(LocalDateTime.of(2023,1,1,0,0,0));
 

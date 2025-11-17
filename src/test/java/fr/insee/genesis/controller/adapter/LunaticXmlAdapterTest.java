@@ -234,7 +234,7 @@ class LunaticXmlAdapterTest {
         // When
         List<SurveyUnitModel> surveyUnitModels = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit1, metadataModel.getVariables(), CAMPAIGN_ID, Mode.WEB);
         // Then
-        Assertions.assertThat(surveyUnitModels.getFirst().getQuestionnaireId()).isEqualTo("questionnaireId1".toUpperCase());
+        Assertions.assertThat(surveyUnitModels.getFirst().getCollectionInstrumentId()).isEqualTo("questionnaireId1".toUpperCase());
     }
 
     @Test

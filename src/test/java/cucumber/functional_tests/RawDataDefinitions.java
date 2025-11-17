@@ -323,9 +323,9 @@ public class RawDataDefinitions {
     }
 
 
-    @Then("In surveyUnit {string} of the campaign {string} we must have {string} as contextualId, " +
+    @Then("In surveyUnit {string} of the campaign {string} we must have " +
             "isCapturedIndirectly to {string} and validationDate null")
-    public void check_optional_values(String interrogationId, String campaignId, String expectedContextualId,
+    public void check_optional_values(String interrogationId, String campaignId,
                                        String expectedCapturedIndirectly) {
         //Get SurveyUnitModel
         List<SurveyUnitModel> concernedSurveyUnitModels = surveyUnitPersistencePortStub.getMongoStub().stream().filter(surveyUnitModel ->
@@ -335,7 +335,6 @@ public class RawDataDefinitions {
         ).toList();
         Assertions.assertThat(concernedSurveyUnitModels).hasSize(1);
 
-        Assertions.assertThat(concernedSurveyUnitModels.getFirst().getContextualId()).isEqualTo(expectedContextualId);
         Assertions.assertThat(concernedSurveyUnitModels.getFirst().getIsCapturedIndirectly()).isEqualTo(Boolean.parseBoolean(expectedCapturedIndirectly));
         Assertions.assertThat(concernedSurveyUnitModels.getFirst().getValidationDate()).isNull();
     }

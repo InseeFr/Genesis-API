@@ -248,10 +248,10 @@ public class ResponseController implements CommonApiResponse {
             outputExternalVariables.addAll(response.getExternalVariables());
         });
         return ResponseEntity.ok(SurveyUnitSimplified.builder()
-                .questionnaireId(responses.getFirst().getQuestionnaireId())
+                .questionnaireId(responses.getFirst().getCollectionInstrumentId())
                 .campaignId(responses.getFirst().getCampaignId())
                 .interrogationId(responses.getFirst().getInterrogationId())
-                .surveyUnitId(responses.getFirst().getIdUE())
+                .surveyUnitId(responses.getFirst().getUsualSurveyUnitId())
                 .variablesUpdate(outputVariables)
                 .externalVariables(outputExternalVariables)
                 .build());
@@ -278,10 +278,10 @@ public class ResponseController implements CommonApiResponse {
                 });
                 if (!outputVariables.isEmpty() || !outputExternalVariables.isEmpty()) {
                     results.add(SurveyUnitSimplified.builder()
-                            .questionnaireId(responses.getFirst().getQuestionnaireId())
+                            .questionnaireId(responses.getFirst().getCollectionInstrumentId())
                             .campaignId(responses.getFirst().getCampaignId())
                             .interrogationId(responses.getFirst().getInterrogationId())
-                            .surveyUnitId(responses.getFirst().getIdUE())
+                            .surveyUnitId(responses.getFirst().getUsualSurveyUnitId())
                             .mode(mode)
                             .variablesUpdate(outputVariables)
                             .externalVariables(outputExternalVariables)
@@ -358,7 +358,7 @@ public class ResponseController implements CommonApiResponse {
             Mode modeWrapped = Mode.getEnumFromModeName(mode);
 
             simplifiedResponse = SurveyUnitSimplified.builder()
-                    .questionnaireId(responsesForSingleInterrId.getFirst().getQuestionnaireId())
+                    .questionnaireId(responsesForSingleInterrId.getFirst().getCollectionInstrumentId())
                     .campaignId(responsesForSingleInterrId.getFirst().getCampaignId())
                     .interrogationId(responsesForSingleInterrId.getFirst().getInterrogationId())
                     .mode(modeWrapped)

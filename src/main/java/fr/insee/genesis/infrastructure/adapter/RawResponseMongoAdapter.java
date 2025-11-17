@@ -33,8 +33,8 @@ public class RawResponseMongoAdapter implements RawResponsePersistencePort {
     }
 
     @Override
-    public List<RawResponse> findRawResponses(String questionnaireId, Mode mode, List<String> interrogationIdList) {
-        List<RawResponseDocument> rawDataDocs = repository.findByCollectionInstrumentIdAndModeAndInterrogationIdList(questionnaireId, mode, interrogationIdList);
+    public List<RawResponse> findRawResponses(String collectionInstrumentId, Mode mode, List<String> interrogationIdList) {
+        List<RawResponseDocument> rawDataDocs = repository.findByCollectionInstrumentIdAndModeAndInterrogationIdList(collectionInstrumentId, mode.getJsonName(), interrogationIdList);
         return RawResponseDocumentMapper.INSTANCE.listDocumentToListModel(rawDataDocs);
     }
 

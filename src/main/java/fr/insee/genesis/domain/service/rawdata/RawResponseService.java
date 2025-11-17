@@ -1,12 +1,14 @@
 package fr.insee.genesis.domain.service.rawdata;
 
 import fr.insee.bpm.metadata.model.VariablesMap;
+import fr.insee.genesis.Constants;
 import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
+import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponse;
 import fr.insee.genesis.domain.ports.api.RawResponseApiPort;
@@ -16,6 +18,8 @@ import fr.insee.genesis.domain.service.context.DataProcessingContextService;
 import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
+import fr.insee.genesis.domain.utils.GroupUtils;
+import fr.insee.genesis.domain.utils.JsonUtils;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
@@ -25,6 +29,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -61,8 +66,8 @@ public class RawResponseService implements RawResponseApiPort {
     }
 
     @Override
-    public List<RawResponse> getRawResponses(String questionnaireModelId, Mode mode, List<String> interrogationIdList) {
-        return List.of();
+    public List<RawResponse> getRawResponses(String collectionInstrumentId, Mode mode, List<String> interrogationIdList) {
+        return rawResponsePersistencePort.findRawResponses(collectionInstrumentId,mode,interrogationIdList);
     }
 
     @Override
@@ -122,43 +127,43 @@ public class RawResponseService implements RawResponseApiPort {
                 batchNumber++;
             }
         }
-        return null;
+        return new DataProcessResult(dataCount, formattedDataCount);
     }
 
     @Override
     public List<SurveyUnitModel> convertRawResponse(List<RawResponse> rawResponses, VariablesMap variablesMap) {
-/*        //Convert to genesis model
+        //Convert to genesis model
         List<SurveyUnitModel> surveyUnitModels = new ArrayList<>();
         //For each possible data state (we receive COLLECTED or EDITED)
         for(DataState dataState : List.of(DataState.COLLECTED,DataState.EDITED)){
             for (RawResponse rawResponse : rawResponses) {
                 //Get optional fields
-                String contextualId = getContextualId(rawData);
-                Boolean isCapturedIndirectly = getIsCapturedIndirectly(rawData);
-                LocalDateTime validationDate = getValidationDate(rawData);
+                Boolean isCapturedIndirectly = getIsCapturedIndirectly(rawResponse);
+                LocalDateTime validationDate = getValidationDate(rawResponse);
+                String usualSurveyUnitId = getStringFieldInPayload(rawResponse,"usualSurveyUnitId");
+                String majorModelVersion = getStringFieldInPayload(rawResponse, "majorModelVersion");
 
                 SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
-                        .campaignId(rawData.campaignId())
-                        .questionnaireId(rawData.questionnaireId())
-                        .mode(rawData.mode())
-                        .interrogationId(rawData.interrogationId())
-                        .idUE(rawData.idUE())
-                        .contextualId(contextualId)
+                        .collectionInstrumentId(rawResponse.collectionInstrumentId())
+                        .majorModelVersion(majorModelVersion)
+                        .mode(rawResponse.mode())
+                        .interrogationId(rawResponse.interrogationId())
+                        .usualSurveyUnitId(usualSurveyUnitId)
                         .validationDate(validationDate)
                         .isCapturedIndirectly(isCapturedIndirectly)
                         .state(dataState)
-                        .fileDate(rawData.recordDate())
+                        .fileDate(rawResponse.recordDate())
                         .recordDate(LocalDateTime.now())
                         .collectedVariables(new ArrayList<>())
                         .externalVariables(new ArrayList<>())
                         .build();
 
                 //Data collected variables conversion
-                convertRawDataCollectedVariables(rawData, surveyUnitModel, dataState, rawDataModelType, variablesMap);
+                convertRawDataCollectedVariables(rawResponse, surveyUnitModel, dataState, variablesMap);
 
                 //External variables conversion into COLLECTED document
                 if(dataState == DataState.COLLECTED){
-                    convertRawDataExternalVariables(rawData, surveyUnitModel, rawDataModelType, variablesMap);
+                    convertRawDataExternalVariables(rawResponse, surveyUnitModel, variablesMap);
                 }
 
                 boolean hasNoVariable = surveyUnitModel.getCollectedVariables().isEmpty()
@@ -166,30 +171,29 @@ public class RawResponseService implements RawResponseApiPort {
 
                 if(hasNoVariable){
                     if(surveyUnitModel.getState() == DataState.COLLECTED){
-                        log.warn("No collected or external variable for interrogation {}, raw data is ignored.", rawData.interrogationId());
+                        log.warn("No collected or external variable for interrogation {}, raw data is ignored.", rawResponse.interrogationId());
                     }
                     continue;// don't add suModel
                 }
                 surveyUnitModels.add(surveyUnitModel);
             }
         }
-
-        return surveyUnitModels;*/
-        return List.of();
+        return surveyUnitModels;
+        //return List.of();
     }
 
     @Override
     public void updateProcessDates(List<SurveyUnitModel> surveyUnitModels) {
         Set<String> collectionInstrumentIds = new HashSet<>();
         for (SurveyUnitModel surveyUnitModel : surveyUnitModels) {
-            collectionInstrumentIds.add(surveyUnitModel.getQuestionnaireId());
+            collectionInstrumentIds.add(surveyUnitModel.getCollectionInstrumentId());
         }
 
         for (String collectionInstrumentId : collectionInstrumentIds) {
             Set<String> interrogationIds = new HashSet<>();
             for (SurveyUnitModel surveyUnitModel :
                     surveyUnitModels.stream().filter(
-                            surveyUnitModel -> surveyUnitModel.getQuestionnaireId().equals(collectionInstrumentId)
+                            surveyUnitModel -> surveyUnitModel.getCollectionInstrumentId().equals(collectionInstrumentId)
                     ).toList()) {
                 interrogationIds.add(surveyUnitModel.getInterrogationId());
             }
@@ -201,7 +205,7 @@ public class RawResponseService implements RawResponseApiPort {
         Map<String, Set<String>> processedInterrogationIdsPerQuestionnaire = new HashMap<>();
         surveyUnitModels.forEach(model ->
                 processedInterrogationIdsPerQuestionnaire
-                        .computeIfAbsent(model.getQuestionnaireId(), k -> new HashSet<>())
+                        .computeIfAbsent(model.getCollectionInstrumentId(), k -> new HashSet<>())
                         .add(model.getInterrogationId())
         );
         return processedInterrogationIdsPerQuestionnaire;
@@ -220,6 +224,152 @@ public class RawResponseService implements RawResponseApiPort {
             }
         }catch (IOException e){
             log.error("Error during Perret call request building : {}", e.toString());
+        }
+    }
+
+    private static Boolean getIsCapturedIndirectly(RawResponse rawResponse) {
+        try{
+            return rawResponse.payload().get("isCapturedIndirectly") == null ? null :
+                    Boolean.parseBoolean(rawResponse.payload().get("isCapturedIndirectly").toString());
+        }catch(Exception e){
+            log.warn("Exception when parsing isCapturedIndirectly : {}}",e.toString());
+            return Boolean.FALSE;
+        }
+    }
+
+    private static LocalDateTime getValidationDate(RawResponse rawResponse) {
+        try{
+            return rawResponse.payload().get("validationDate") == null ? null :
+                    LocalDateTime.parse(rawResponse.payload().get("validationDate").toString());
+        }catch(Exception e){
+            log.warn("Exception when parsing validation date : {}}",e.toString());
+            return null;
+        }
+    }
+
+    private static String getStringFieldInPayload(RawResponse rawResponse, String field) {
+        try{
+            return rawResponse.payload().get(field).toString();
+        }catch(Exception e){
+            log.warn("Exception when parsing {} : {}",field, e.toString());
+            return null;
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void convertRawDataCollectedVariables(
+            RawResponse rawResponse,
+            SurveyUnitModel dstSurveyUnitModel,
+            DataState dataState,
+            VariablesMap variablesMap
+    ) {
+        Map<String, Object> dataMap = rawResponse.payload();
+        dataMap = (Map<String, Object>) dataMap.get("data");
+
+        dataMap = (Map<String, Object>)dataMap.get("COLLECTED");
+
+
+        Map<String,Object> collectedMap = JsonUtils.asMap(dataMap);
+        if (collectedMap == null || collectedMap.isEmpty()){
+            if(dataState.equals(DataState.COLLECTED)) {
+                log.warn("No collected data for interrogation {}", rawResponse.interrogationId());
+            }
+            return;
+        }
+        convertToCollectedVar(dstSurveyUnitModel, dataState, variablesMap, collectedMap);
+    }
+
+    private static void convertToCollectedVar(
+            SurveyUnitModel dstSurveyUnitModel,
+            DataState dataState,
+            VariablesMap variablesMap,
+            Map<String, Object> collectedMap
+    ) {
+        final String stateKey = dataState.toString();
+        final var dest = dstSurveyUnitModel.getCollectedVariables();
+
+        for (Map.Entry<String, Object> collectedVariable : collectedMap.entrySet()) {
+            // Map for this variable (COLLECTED/EDITED -> value)
+            Map<String, Object> states = JsonUtils.asMap(collectedVariable.getValue());
+
+            // nothing if no state
+            if (states.containsKey(stateKey)) {
+                Object value = states.get(stateKey);
+
+                // liste ?
+                if (value instanceof List<?>) {
+                    // on garde exactement ta signature existante
+                    convertListVar(value, collectedVariable, variablesMap, dest);
+                }
+
+                // scalaire non null ?
+                if (value != null && !(value instanceof List<?>)) {
+                    // idem: on garde convertOneVar(entry, String, ...)
+                    convertOneVar(collectedVariable, String.valueOf(value), variablesMap, 1, dest);
+                }
+            }
+        }
+    }
+
+    private static void convertListVar(Object valuesForState, Map.Entry<String, Object> collectedVariable, VariablesMap variablesMap, List<VariableModel> dstSurveyUnitModel) {
+        List<String> values = JsonUtils.asStringList(valuesForState);
+        if (!values.isEmpty()) {
+            int iteration = 1;
+            for (String value : values) {
+                convertOneVar(collectedVariable, value, variablesMap, iteration, dstSurveyUnitModel);
+                iteration++;
+            }
+        }
+    }
+
+    private static void convertOneVar(Map.Entry<String, Object> externalVariableEntry, String valueObject, VariablesMap variablesMap, int iteration, List<VariableModel> dstSurveyUnitModel) {
+        VariableModel externalVariableModel = VariableModel.builder()
+                .varId(externalVariableEntry.getKey())
+                .value(valueObject)
+                .scope(getIdLoop(variablesMap, externalVariableEntry.getKey()))
+                .iteration(iteration)
+                .parentId(GroupUtils.getParentGroupName(externalVariableEntry.getKey(), variablesMap))
+                .build();
+        dstSurveyUnitModel.add(externalVariableModel);
+    }
+
+    private static String getIdLoop(VariablesMap variablesMap, String variableName) {
+        if (variablesMap.getVariable(variableName) == null) {
+            log.warn("Variable {} not present in metadatas, assigning to {}", variableName, Constants.ROOT_GROUP_NAME);
+            return Constants.ROOT_GROUP_NAME;
+        }
+        return variablesMap.getVariable(variableName).getGroupName();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void convertRawDataExternalVariables(
+            RawResponse rawResponse,
+            SurveyUnitModel dstSurveyUnitModel,
+            VariablesMap variablesMap
+    ) {
+        Map<String, Object> dataMap = rawResponse.payload();
+        dataMap = (Map<String, Object>) dataMap.get("data");
+
+
+        dataMap = (Map<String, Object>)dataMap.get("EXTERNAL");
+        Map<String,Object> externalMap = JsonUtils.asMap(dataMap);
+        if (externalMap != null && !externalMap.isEmpty()){
+            convertToExternalVar(dstSurveyUnitModel, variablesMap, externalMap);
+        }
+    }
+
+    private static void convertToExternalVar(SurveyUnitModel dstSurveyUnitModel, VariablesMap variablesMap, Map<String, Object> externalMap) {
+        for(Map.Entry<String, Object> externalVariableEntry : externalMap.entrySet()){
+            Object valueObject = externalVariableEntry.getValue();
+            if (valueObject instanceof List<?>){
+                //Array of values
+                convertListVar(valueObject, externalVariableEntry, variablesMap, dstSurveyUnitModel.getExternalVariables());
+                continue;
+            }
+            //Value
+            if (valueObject != null) {
+                convertOneVar(externalVariableEntry, valueObject.toString(), variablesMap, 1, dstSurveyUnitModel.getExternalVariables());
+            }
         }
     }
 }

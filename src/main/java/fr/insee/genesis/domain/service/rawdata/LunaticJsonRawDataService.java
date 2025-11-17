@@ -178,7 +178,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
         Map<String, Set<String>> processedInterrogationIdsPerQuestionnaire = new HashMap<>();
         surveyUnitModels.forEach(model ->
                 processedInterrogationIdsPerQuestionnaire
-                        .computeIfAbsent(model.getQuestionnaireId(), k -> new HashSet<>())
+                        .computeIfAbsent(model.getCollectionInstrumentId(), k -> new HashSet<>())
                         .add(model.getInterrogationId())
         );
         return processedInterrogationIdsPerQuestionnaire;
@@ -200,11 +200,10 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
 
                 SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
                         .campaignId(rawData.campaignId())
-                        .questionnaireId(rawData.questionnaireId())
+                        .collectionInstrumentId(rawData.questionnaireId())
                         .mode(rawData.mode())
                         .interrogationId(rawData.interrogationId())
-                        .idUE(rawData.idUE())
-                        .contextualId(contextualId)
+                        .usualSurveyUnitId(rawData.idUE())
                         .validationDate(validationDate)
                         .isCapturedIndirectly(isCapturedIndirectly)
                         .state(dataState)

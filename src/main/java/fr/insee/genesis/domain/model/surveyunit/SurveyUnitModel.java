@@ -21,14 +21,18 @@ import java.util.Objects;
 @AllArgsConstructor
 public class SurveyUnitModel {
 
-
-	private String questionnaireId;
+	// New name of questionnaireId
+	private String collectionInstrumentId;
+	// To be removed
 	private String campaignId;
 	private String interrogationId;
-	private String idUE;
+	// New name of idUE
+	private String usualSurveyUnitId;
+	private String technicalSurveyUnitId;
+	// Represents the major version of the "modèle filière"
+	private String majorModelVersion;
 	private DataState state;
 	private Mode mode;
-	private String contextualId;
 	private Boolean isCapturedIndirectly;
 	private LocalDateTime validationDate;
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'hh:mm")

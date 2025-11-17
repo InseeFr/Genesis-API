@@ -108,7 +108,7 @@ public class LunaticModelDefinitions {
         surveyUnitPersistencePortStub.getMongoStub().add(
                 SurveyUnitModel.builder()
                         .campaignId(campaignId)
-                        .questionnaireId(questionnaireId)
+                        .collectionInstrumentId(questionnaireId)
                         .interrogationId(interrogationId)
                         .build()
         );

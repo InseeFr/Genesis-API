@@ -296,6 +296,7 @@ class DataProcessingContextControllerTest {
         DataProcessingContextModel dataProcessingContextModel = new DataProcessingContextModel(
                 null,
                 "TESTSURVEYADDED",
+                "TESTSURVEYADDED",
                 null,
                 new ArrayList<>(),
                 false
@@ -342,6 +343,7 @@ class DataProcessingContextControllerTest {
         //Given
         DataProcessingContextModel dataProcessingContextModel = new DataProcessingContextModel(
                 null,
+                "TESTSURVEYADDED",
                 "TESTSURVEYADDED",
                 null,
                 new ArrayList<>(),
@@ -390,6 +392,7 @@ class DataProcessingContextControllerTest {
         //Given
         DataProcessingContextModel dataProcessingContextModel = new DataProcessingContextModel(
                 null,
+                "TESTSURVEYADDED2",
                 "TESTSURVEYADDED2",
                 null,
                 new ArrayList<>(),

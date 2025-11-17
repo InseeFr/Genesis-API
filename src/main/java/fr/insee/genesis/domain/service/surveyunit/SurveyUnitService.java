@@ -253,7 +253,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                 if (variablesMap == null) {
                     variablesMap = metadataService.loadAndSaveIfNotExists(
                             surveyUnitModel.getCampaignId(),
-                            surveyUnitModel.getQuestionnaireId(),
+                            surveyUnitModel.getCollectionInstrumentId(),
                             surveyUnitModel.getMode(),
                             fileUtils,
                             new ArrayList<>()).getVariables();
@@ -453,7 +453,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
                     .campaignId(surveyUnitInputDto.getCampaignId())
                     .mode(surveyUnitInputDto.getMode())
-                    .questionnaireId(surveyUnitInputDto.getQuestionnaireId().toUpperCase())
+                    .collectionInstrumentId(surveyUnitInputDto.getQuestionnaireId().toUpperCase())
                     .interrogationId(surveyUnitInputDto.getInterrogationId())
                     .state(state)
                     .recordDate(LocalDateTime.now())
@@ -496,7 +496,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         }
         Set<String> questionnaireIds = new HashSet<>();
         for(SurveyUnitModel surveyUnitModel : surveyUnitModels){
-            questionnaireIds.add(surveyUnitModel.getQuestionnaireId());
+            questionnaireIds.add(surveyUnitModel.getCollectionInstrumentId());
         }
         if(questionnaireIds.size() > 1){
             throw new GenesisException(207,String.format("Multiple questionnaires for %s :%n%s",

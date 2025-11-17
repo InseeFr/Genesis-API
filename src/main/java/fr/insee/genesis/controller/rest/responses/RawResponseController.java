@@ -21,6 +21,7 @@ import fr.insee.genesis.infrastructure.repository.RawResponseInputRepository;
 import fr.insee.modelefiliere.RawResponseDto;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -194,14 +195,18 @@ public class RawResponseController {
     @PostMapping(path = "/raw-responses/process")
     @PreAuthorize("hasRole('SCHEDULER')")
     public ResponseEntity<String> processRawResponses(
-            @RequestParam("questionnaireId") String questionnaireId,
+            @Parameter(
+                    description = "Id of the collection instrument (old questionnaireId)",
+                    example = "ENQTEST2025X00"
+            )
+            @RequestParam("collectionInstrumentId") String collectionInstrumentId,
             @RequestBody List<String> interrogationIdList
     ) {
-        log.info("Try to process raw responses for questionnaireId {} and {} interrogationIds", interrogationIdList.size());
+        log.info("Try to process raw responses for questionnaireId {} and {} interrogationIds", collectionInstrumentId, interrogationIdList.size());
         List<GenesisError> errors = new ArrayList<>();
 
         try {
-            DataProcessResult result = rawResponseApiPort.processRawResponses(questionnaireId, interrogationIdList, errors);
+            DataProcessResult result = rawResponseApiPort.processRawResponses(collectionInstrumentId, interrogationIdList, errors);
             return result.formattedDataCount() == 0 ?
                     ResponseEntity.ok("%d document(s) processed".formatted(result.dataCount()))
                     : ResponseEntity.ok("%d document(s) processed, including %d FORMATTED after data verification"
