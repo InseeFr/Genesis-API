@@ -161,6 +161,7 @@ public class RawResponseController {
     @Operation(summary = "Process raw data of a campaign")
     @PostMapping(path = "/lunatic-json/process")
     @PreAuthorize("hasRole('SCHEDULER')")
+    @Deprecated(since = "1.13.0")
     public ResponseEntity<String> processJsonRawData(
             @RequestParam("campaignName") String campaignName,
             @RequestParam("questionnaireId") String questionnaireId,
@@ -171,6 +172,24 @@ public class RawResponseController {
 
         try {
             DataProcessResult result = lunaticJsonRawDataApiPort.processRawData(campaignName, interrogationIdList, errors);
+            return result.formattedDataCount() == 0 ?
+                    ResponseEntity.ok("%d document(s) processed".formatted(result.dataCount()))
+                    : ResponseEntity.ok("%d document(s) processed, including %d FORMATTED after data verification"
+                    .formatted(result.dataCount(), result.formattedDataCount()));
+        } catch (GenesisException e) {
+            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
+        }
+    }
+
+    @Operation(summary = "Process raw data of a questionnaire")
+    @PostMapping(path = "/lunatic-json/{questionnaireId}/process")
+    @PreAuthorize("hasRole('SCHEDULER')")
+    public ResponseEntity<String> processJsonRawData(
+            @PathVariable String questionnaireId
+    ) {
+        log.info("Try to process raw JSON datas for questionnaire {}",questionnaireId);
+        try {
+            DataProcessResult result = lunaticJsonRawDataApiPort.processRawData(questionnaireId);
             return result.formattedDataCount() == 0 ?
                     ResponseEntity.ok("%d document(s) processed".formatted(result.dataCount()))
                     : ResponseEntity.ok("%d document(s) processed, including %d FORMATTED after data verification"

@@ -1,4 +1,8 @@
 # Changelog
+## 1.13.0 [TODO]
+### Changed
+- New raw data process endpoint
+
 ## 1.12.2 [2025-11-06]
 ### Fixed
 - Scientific notation for Doubles during raw data processing

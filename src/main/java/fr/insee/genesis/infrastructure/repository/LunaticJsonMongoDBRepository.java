@@ -63,4 +63,22 @@ public interface LunaticJsonMongoDBRepository extends MongoRepository<LunaticJso
                     "} }"
     })
     List<GroupedInterrogationDocument> aggregateRawGroupedWithNullProcessDate();
+
+    @Aggregation(pipeline = {
+            "{ '$match': {'questionnaireId': ?0 ,'processDate': null } }",
+            "{ '$group': { " +
+                    "'_id': { " +
+                    "'questionnaireId': '$questionnaireId', " +
+                    "'partitionOrCampaignId': { '$ifNull': ['$partitionId', '$campaignId'] } " +
+                    "}, " +
+                    "'interrogationIds': { '$addToSet': '$interrogationId' } " +
+                    "} }",
+            "{ '$project': { " +
+                    "'questionnaireId': '$_id.questionnaireId', " +
+                    "'partitionOrCampaignId': '$_id.partitionOrCampaignId', " +
+                    "'interrogationIds': 1, " +
+                    "'_id': 0 " +
+                    "} }"
+    })
+    List<GroupedInterrogationDocument> aggregateRawGroupedWithNullProcessDate(String questionnaireId);
 }
