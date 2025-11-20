@@ -185,27 +185,42 @@ public class ResponseController implements CommonApiResponse {
 
     
     //DELETE
-    @Operation(summary = "Delete all responses associated with a questionnaire")
-    @DeleteMapping(path = "/delete/by-questionnaire")
+    @Operation(summary = "Delete all responses associated with a collection instrument (formerly questionnaire)")
+    @DeleteMapping(path = "/delete/by-collection-instrument")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Object> deleteAllResponsesByQuestionnaire(@RequestParam("questionnaireId") String questionnaireId) {
-        log.info("Try to delete all responses of questionnaire : {}", questionnaireId);
-        Long ndDocuments = surveyUnitService.deleteByQuestionnaireId(questionnaireId);
+    public ResponseEntity<Object> deleteAllResponsesByCollectionInstrument(@RequestParam("collectionInstrumentId") String collectionInstrumentId) {
+        log.info("Try to delete all responses of collection instrument : {}", collectionInstrumentId);
+        Long ndDocuments = surveyUnitService.deleteByCollectionInstrumentId(collectionInstrumentId);
         log.info("{} responses deleted", ndDocuments);
         return ResponseEntity.ok(String.format("%d responses deleted", ndDocuments));
     }
 
     //GET
-    @Operation(summary = "Retrieve responses for an interrogation, using interrogationId and questionnaireId from Genesis Database")
-    @GetMapping(path = "/by-ue-and-questionnaire")
+    @Operation(summary = "Retrieve responses for an interrogation, using interrogationId and collectionInstrumentId (formerly questionnaireId) from Genesis Database")
+    @GetMapping(path = "/by-interrogation-and-collection-instrument")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<SurveyUnitModel>> findResponsesByInterrogationAndQuestionnaire(@RequestParam("interrogationId") String interrogationId,
-                                                                                   @RequestParam("questionnaireId") String questionnaireId) {
-        List<SurveyUnitModel> responses = surveyUnitService.findByIdsInterrogationAndQuestionnaire(interrogationId, questionnaireId);
+    public ResponseEntity<List<SurveyUnitModel>> findResponsesByInterrogationAndCollectionInstrument(
+            @RequestParam("interrogationId") String interrogationId,
+            @RequestParam("collectionInstrumentId") String collectionInstrumentId)
+    {
+        List<SurveyUnitModel> responses = surveyUnitService.findByIdsInterrogationAndCollectionInstrument(interrogationId, collectionInstrumentId);
         return ResponseEntity.ok(responses);
     }
 
-    @Operation(summary = "Retrieve responses for an interrogation, using interrogationId and questionnaireId from Genesis Database with the latest value for each available state of every variable")
+    /**
+     * @deprecated
+     * This endpoint is deprecated because the parameter `questionnaireId` has been renamed
+     * to `collectionInstrumentId` in the Information System (modeled in the modelefiliere library).
+     *
+     * A new endpoint using the updated parameter names will be provided to remain compliant with
+     * the current data model. This endpoint will be removed once all dependent APIs have adopted
+     * the new naming convention.
+     *
+     * Use the new endpoint with `collectionInstrumentId` for future implementations.
+     */
+    @Deprecated(forRemoval = true)
+    @Operation(summary = "Retrieve responses for an interrogation, using interrogationId and questionnaireId from Genesis Database with the latest value for each available state of every variable",
+                description = "use /by-interrogation-and-collection-instrument/latest-states instead")
     @GetMapping(path = "/by-ue-and-questionnaire/latest-states",
                 produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyRole('USER_PLATINE','SCHEDULER')")
@@ -220,27 +235,47 @@ public class ResponseController implements CommonApiResponse {
             return ResponseEntity.status(403).body(new ApiError("Review is disabled for that partition"));
         }
 
-        SurveyUnitDto response = surveyUnitService.findLatestValuesByStateByIdAndByQuestionnaireId(interrogationId, questionnaireId);
+        SurveyUnitDto response = surveyUnitService.findLatestValuesByStateByIdAndByCollectionInstrumentId(interrogationId, questionnaireId);
         SurveyUnitQualityToolDto responseQualityToolDto = DataTransformer.transformSurveyUnitDto(response);
         return ResponseEntity.ok(responseQualityToolDto);
     }
 
-    @Operation(summary = "Retrieve responses for an interrogation, using interrogationId and questionnaireId from Genesis Database. It returns only the latest value of each variable regardless of the state.")
-    @GetMapping(path = "/by-ue-and-questionnaire/latest")
+    @Operation(summary = "Retrieve the latest available values for each variable state for a given interrogation and collection instrument (formerly questionnaire).")
+    @GetMapping(path = "/by-interrogation-and-collection-instrument/latest-states",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyRole('USER_PLATINE','SCHEDULER')")
+    public ResponseEntity<Object> findResponsesByInterrogationAndCollectionInstrumentLatestStates(
+            @RequestParam("interrogationId") String interrogationId,
+            @RequestParam("collectionInstrumentId") String collectionInstrumentId) throws GenesisException {
+        //Check context
+        DataProcessingContextModel dataProcessingContextModel =
+                contextService.getContext(interrogationId);
+
+        if(dataProcessingContextModel == null || !dataProcessingContextModel.isWithReview()){
+            return ResponseEntity.status(403).body(new ApiError("Review is disabled for that partition"));
+        }
+
+        SurveyUnitDto response = surveyUnitService.findLatestValuesByStateByIdAndByCollectionInstrumentId(interrogationId, collectionInstrumentId);
+        SurveyUnitQualityToolDto responseQualityToolDto = DataTransformer.transformSurveyUnitDto(response);
+        return ResponseEntity.ok(responseQualityToolDto);
+    }
+
+    @Operation(summary = "Retrieve responses for an interrogation, using interrogationId and collectionInstrumentId from Genesis Database. It returns only the latest value of each variable regardless of the state.")
+    @GetMapping(path = "/by-interrogation-and-collection-instrument/latest")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<SurveyUnitModel>> getLatestByInterrogation(@RequestParam("interrogationId") String interrogationId,
-                                                               @RequestParam("questionnaireId") String questionnaireId) {
-        List<SurveyUnitModel> responses = surveyUnitService.findLatestByIdAndByQuestionnaireId(interrogationId, questionnaireId);
+    public ResponseEntity<List<SurveyUnitModel>> getLatestByInterrogationAndCollectionInstrument(@RequestParam("interrogationId") String interrogationId,
+                                                               @RequestParam("collectionInstrumentId") String collectionInstrumentId) {
+        List<SurveyUnitModel> responses = surveyUnitService.findLatestByIdAndByCollectionInstrumentId(interrogationId, collectionInstrumentId);
         return ResponseEntity.ok(responses);
     }
 
-    @Operation(summary = "Retrieve responses for an interrogation, using interrogationId and questionnaireId from Genesis Database. For a given mode, it returns only the latest value of each variable regardless of the state. The result is one object by mode in the output")
-    @GetMapping(path = "/simplified/by-ue-questionnaire-and-mode/latest")
+    @Operation(summary = "Retrieve responses for an interrogation, using interrogationId and collectionInstrumentId from Genesis Database. For a given mode, it returns only the latest value of each variable regardless of the state. The result is one object by mode in the output")
+    @GetMapping(path = "/simplified/by-interrogation-collection-instrument-and-mode/latest")
     @PreAuthorize("hasRole('USER_KRAFTWERK')")
     public ResponseEntity<SurveyUnitSimplified> getLatestByInterrogationOneObject(@RequestParam("interrogationId") String interrogationId,
-                                                                             @RequestParam("questionnaireId") String questionnaireId,
+                                                                             @RequestParam("collectionInstrumentId") String collectionInstrumentId,
                                                                              @RequestParam("mode") Mode mode) {
-        List<SurveyUnitModel> responses = surveyUnitService.findLatestByIdAndByQuestionnaireId(interrogationId, questionnaireId);
+        List<SurveyUnitModel> responses = surveyUnitService.findLatestByIdAndByCollectionInstrumentId(interrogationId, collectionInstrumentId);
         List<VariableModel> outputVariables = new ArrayList<>();
         List<VariableModel> outputExternalVariables = new ArrayList<>();
         responses.stream().filter(rep -> rep.getMode().equals(mode)).forEach(response -> {
@@ -258,17 +293,19 @@ public class ResponseController implements CommonApiResponse {
     }
 
 
-    @Operation(summary = "Retrieve all responses for a questionnaire and a list of UE",
-            description = "Return the latest state for each variable for the given ids and a given questionnaire.<br>" +
+    @Operation(summary = "Retrieve all responses for a collection instrument and a list of interrogations",
+            description = "Return the latest state for each variable for the given interrogationIds and a given collection instrument (formerly questionnaire).<br>" +
                     "For a given id, the endpoint returns a document by collection mode (if there is more than one).")
-    @PostMapping(path = "/simplified/by-list-interrogation-and-questionnaire/latest")
+    @PostMapping(path = "/simplified/by-list-interrogation-and-collection-instrument/latest")
     @PreAuthorize("hasRole('USER_KRAFTWERK')")
-    public ResponseEntity<List<SurveyUnitSimplified>> getLatestForInterrogationList(@RequestParam("questionnaireId") String questionnaireId,
-                                                                               @RequestBody List<InterrogationId> interrogationIds) {
+    public ResponseEntity<List<SurveyUnitSimplified>> getLatestForInterrogationListAndCollectionInstrument(
+            @RequestParam("collectionInstrumentId") String collectionInstrumentId,
+            @RequestBody List<InterrogationId> interrogationIds)
+    {
         List<SurveyUnitSimplified> results = new ArrayList<>();
-        List<Mode> modes = surveyUnitService.findModesByQuestionnaireId(questionnaireId);
+        List<Mode> modes = surveyUnitService.findModesByCollectionInstrumentId(collectionInstrumentId);
         interrogationIds.forEach(interrogationId -> {
-            List<SurveyUnitModel> responses = surveyUnitService.findLatestByIdAndByQuestionnaireId(interrogationId.getInterrogationId(), questionnaireId);
+            List<SurveyUnitModel> responses = surveyUnitService.findLatestByIdAndByCollectionInstrumentId(interrogationId.getInterrogationId(), collectionInstrumentId);
             modes.forEach(mode -> {
                 List<VariableModel> outputVariables = new ArrayList<>();
                 List<VariableModel> outputExternalVariables = new ArrayList<>();

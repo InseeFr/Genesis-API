@@ -31,7 +31,7 @@ class SurveyUnitServiceTest {
 
     //Constants
     static final String DEFAULT_INTERROGATION_ID = "TESTINTERROGATIONID";
-    static final String DEFAULT_QUESTIONNAIRE_ID = "TESTQUESTIONNAIREID";
+    static final String DEFAULT_COLLECTION_INSTRUMENT_ID = "TESTCOLLECTIONINSTRUMENTID";
 
     @BeforeAll
     static void init(){
@@ -80,7 +80,7 @@ class SurveyUnitServiceTest {
                 .campaignId("TEST-TABLEAUX")
                 .mode(Mode.WEB)
                 .interrogationId(DEFAULT_INTERROGATION_ID)
-                .collectionInstrumentId(DEFAULT_QUESTIONNAIRE_ID)
+                .collectionInstrumentId(DEFAULT_COLLECTION_INSTRUMENT_ID)
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2023,1,1,0,0,0))
                 .recordDate(LocalDateTime.of(2024,1,1,0,0,0))
@@ -133,7 +133,7 @@ class SurveyUnitServiceTest {
                         .campaignId("TEST-TABLEAUX")
                         .mode(Mode.WEB)
                         .interrogationId("TESTINTERROGATIONID2")
-                        .collectionInstrumentId(DEFAULT_QUESTIONNAIRE_ID)
+                        .collectionInstrumentId(DEFAULT_COLLECTION_INSTRUMENT_ID)
                         .state(DataState.COLLECTED)
                         .fileDate(LocalDateTime.of(2023,1,1,0,0,0))
                         .recordDate(LocalDateTime.of(2024,1,1,0,0,0))
@@ -148,7 +148,7 @@ class SurveyUnitServiceTest {
                         surveyUnitModel.getCampaignId().equals("TEST-TABLEAUX")
                         && surveyUnitModel.getMode().equals(Mode.WEB)
                         && surveyUnitModel.getInterrogationId().equals("TESTINTERROGATIONID2")
-                        && surveyUnitModel.getCollectionInstrumentId().equals(DEFAULT_QUESTIONNAIRE_ID)
+                        && surveyUnitModel.getCollectionInstrumentId().equals(DEFAULT_COLLECTION_INSTRUMENT_ID)
                         && surveyUnitModel.getState().equals(DataState.COLLECTED)
                         && surveyUnitModel.getFileDate().equals(LocalDateTime.of(2023,1,1,0,0,0))
                         && surveyUnitModel.getRecordDate().equals(LocalDateTime.of(2024,1,1,0,0,0))
@@ -167,10 +167,10 @@ class SurveyUnitServiceTest {
 
     @Test
     void findByIdsUEAndQuestionnaireTest(){
-        Assertions.assertThat(surveyUnitServiceStatic.findByIdsInterrogationAndQuestionnaire(DEFAULT_INTERROGATION_ID, DEFAULT_QUESTIONNAIRE_ID)).filteredOn(
+        Assertions.assertThat(surveyUnitServiceStatic.findByIdsInterrogationAndCollectionInstrument(DEFAULT_INTERROGATION_ID, DEFAULT_COLLECTION_INSTRUMENT_ID)).filteredOn(
                 surveyUnitModel ->
                         surveyUnitModel.getInterrogationId().equals(DEFAULT_INTERROGATION_ID)
-                        && surveyUnitModel.getCollectionInstrumentId().equals(DEFAULT_QUESTIONNAIRE_ID)
+                        && surveyUnitModel.getCollectionInstrumentId().equals(DEFAULT_COLLECTION_INSTRUMENT_ID)
         ).isNotEmpty();
     }
 
@@ -183,19 +183,12 @@ class SurveyUnitServiceTest {
     }
 
     @Test
-    void findByQuestionnaireIdTest(){
-        Assertions.assertThat(surveyUnitServiceStatic.findByQuestionnaireId(DEFAULT_QUESTIONNAIRE_ID)).filteredOn(
-                surveyUnitModel -> surveyUnitModel.getCollectionInstrumentId().equals(DEFAULT_QUESTIONNAIRE_ID)
-        ).isNotEmpty();
-    }
-
-    @Test
     void findLatestByIdAndByModeTest(){
         addAdditionnalSurveyUnitModelToMongoStub();
 
-        Assertions.assertThat(surveyUnitServiceStatic.findLatestByIdAndByQuestionnaireId(DEFAULT_INTERROGATION_ID, DEFAULT_QUESTIONNAIRE_ID)).filteredOn(
+        Assertions.assertThat(surveyUnitServiceStatic.findLatestByIdAndByCollectionInstrumentId(DEFAULT_INTERROGATION_ID, DEFAULT_COLLECTION_INSTRUMENT_ID)).filteredOn(
                 surveyUnitModel -> surveyUnitModel.getInterrogationId().equals(DEFAULT_INTERROGATION_ID)
-                && surveyUnitModel.getCollectionInstrumentId().equals(DEFAULT_QUESTIONNAIRE_ID)
+                && surveyUnitModel.getCollectionInstrumentId().equals(DEFAULT_COLLECTION_INSTRUMENT_ID)
                 && surveyUnitModel.getFileDate().getMonth().equals(Month.FEBRUARY)
         ).isNotEmpty();
     }
@@ -210,9 +203,9 @@ class SurveyUnitServiceTest {
         );
         surveyUnitPersistencePortStub.getMongoStub().getLast().setCollectedVariables(null);
 
-        Assertions.assertThat(surveyUnitServiceStatic.findLatestByIdAndByQuestionnaireId(DEFAULT_INTERROGATION_ID, DEFAULT_QUESTIONNAIRE_ID)).filteredOn(
+        Assertions.assertThat(surveyUnitServiceStatic.findLatestByIdAndByCollectionInstrumentId(DEFAULT_INTERROGATION_ID, DEFAULT_COLLECTION_INSTRUMENT_ID)).filteredOn(
                 surveyUnitModel -> surveyUnitModel.getInterrogationId().equals(DEFAULT_INTERROGATION_ID)
-                        && surveyUnitModel.getCollectionInstrumentId().equals(DEFAULT_QUESTIONNAIRE_ID)
+                        && surveyUnitModel.getCollectionInstrumentId().equals(DEFAULT_COLLECTION_INSTRUMENT_ID)
                         && surveyUnitModel.getFileDate().getMonth().equals(Month.FEBRUARY)
         ).isNotEmpty();
     }
@@ -226,9 +219,9 @@ class SurveyUnitServiceTest {
         );
         surveyUnitPersistencePortStub.getMongoStub().getLast().setExternalVariables(null);
 
-        Assertions.assertThat(surveyUnitServiceStatic.findLatestByIdAndByQuestionnaireId(DEFAULT_INTERROGATION_ID, DEFAULT_QUESTIONNAIRE_ID)).filteredOn(
+        Assertions.assertThat(surveyUnitServiceStatic.findLatestByIdAndByCollectionInstrumentId(DEFAULT_INTERROGATION_ID, DEFAULT_COLLECTION_INSTRUMENT_ID)).filteredOn(
                 surveyUnitModel -> surveyUnitModel.getInterrogationId().equals(DEFAULT_INTERROGATION_ID)
-                        && surveyUnitModel.getCollectionInstrumentId().equals(DEFAULT_QUESTIONNAIRE_ID)
+                        && surveyUnitModel.getCollectionInstrumentId().equals(DEFAULT_COLLECTION_INSTRUMENT_ID)
                         && surveyUnitModel.getFileDate().getMonth().equals(Month.FEBRUARY)
         ).isNotEmpty();
     }
@@ -237,7 +230,7 @@ class SurveyUnitServiceTest {
     void findDistinctInterrogationIdsByQuestionnaireIdTest(){
         addAdditionnalSurveyUnitModelToMongoStub();
 
-        Assertions.assertThat(surveyUnitServiceStatic.findDistinctInterrogationIdsByQuestionnaireId(DEFAULT_QUESTIONNAIRE_ID)).filteredOn(
+        Assertions.assertThat(surveyUnitServiceStatic.findDistinctInterrogationIdsByQuestionnaireId(DEFAULT_COLLECTION_INSTRUMENT_ID)).filteredOn(
                 interrogationId -> interrogationId.getInterrogationId().equals(DEFAULT_INTERROGATION_ID)
         ).isNotEmpty().hasSize(1);
     }
@@ -246,7 +239,7 @@ class SurveyUnitServiceTest {
     void findDistinctInterrogationIdsByQuestionnaireIdAndDateAfterTest_no_doc_in_period(){
         addAdditionnalSurveyUnitModelToMongoStub();
 
-        Assertions.assertThat(surveyUnitServiceStatic.findDistinctInterrogationIdsByQuestionnaireIdAndDateAfter(DEFAULT_QUESTIONNAIRE_ID,LocalDateTime.of(2025,9,1,0,0,0))).filteredOn(
+        Assertions.assertThat(surveyUnitServiceStatic.findDistinctInterrogationIdsByQuestionnaireIdAndDateAfter(DEFAULT_COLLECTION_INSTRUMENT_ID,LocalDateTime.of(2025,9,1,0,0,0))).filteredOn(
                 interrogationId -> interrogationId.getInterrogationId().equals(DEFAULT_INTERROGATION_ID)
         ).isEmpty();
     }
@@ -255,14 +248,14 @@ class SurveyUnitServiceTest {
     void findDistinctInterrogationIdsByQuestionnaireIdAndDateAfterTest_doc_in_period(){
         addAdditionnalSurveyUnitModelToMongoStub();
 
-        Assertions.assertThat(surveyUnitServiceStatic.findDistinctInterrogationIdsByQuestionnaireIdAndDateAfter(DEFAULT_QUESTIONNAIRE_ID,LocalDateTime.of(2022,1,1,0,0,0))).filteredOn(
+        Assertions.assertThat(surveyUnitServiceStatic.findDistinctInterrogationIdsByQuestionnaireIdAndDateAfter(DEFAULT_COLLECTION_INSTRUMENT_ID,LocalDateTime.of(2022,1,1,0,0,0))).filteredOn(
                 interrogationId -> interrogationId.getInterrogationId().equals(DEFAULT_INTERROGATION_ID)
         ).isNotEmpty().hasSize(1);
     }
 
     @Test
     void findInterrogationIdsByQuestionnaireIdTest(){
-        Assertions.assertThat(surveyUnitServiceStatic.findModesByQuestionnaireId(DEFAULT_QUESTIONNAIRE_ID)).filteredOn(
+        Assertions.assertThat(surveyUnitServiceStatic.findModesByCollectionInstrumentId(DEFAULT_COLLECTION_INSTRUMENT_ID)).filteredOn(
                 mode -> mode.equals(Mode.WEB)
         ).isNotEmpty();
     }
@@ -270,7 +263,7 @@ class SurveyUnitServiceTest {
     //========= OPTIMISATIONS PERFS (START) ==========
     @Test
     void findModesByQuestionnaireIdV2Test(){
-        Assertions.assertThat(surveyUnitServiceStatic.findModesByQuestionnaireIdV2(DEFAULT_QUESTIONNAIRE_ID)).filteredOn(
+        Assertions.assertThat(surveyUnitServiceStatic.findModesByQuestionnaireIdV2(DEFAULT_COLLECTION_INSTRUMENT_ID)).filteredOn(
                 mode -> mode.equals(Mode.WEB)
         ).isNotEmpty();
     }
@@ -320,9 +313,9 @@ class SurveyUnitServiceTest {
 
 
         //When
-        SurveyUnitDto surveyUnitDto = surveyUnitServiceStatic.findLatestValuesByStateByIdAndByQuestionnaireId(
+        SurveyUnitDto surveyUnitDto = surveyUnitServiceStatic.findLatestValuesByStateByIdAndByCollectionInstrumentId(
                 DEFAULT_INTERROGATION_ID,
-                DEFAULT_QUESTIONNAIRE_ID
+                DEFAULT_COLLECTION_INSTRUMENT_ID
         );
 
 
@@ -396,9 +389,9 @@ class SurveyUnitServiceTest {
 
 
         //When
-        SurveyUnitDto surveyUnitDto = surveyUnitServiceStatic.findLatestValuesByStateByIdAndByQuestionnaireId(
+        SurveyUnitDto surveyUnitDto = surveyUnitServiceStatic.findLatestValuesByStateByIdAndByCollectionInstrumentId(
                 DEFAULT_INTERROGATION_ID,
-                DEFAULT_QUESTIONNAIRE_ID
+                DEFAULT_COLLECTION_INSTRUMENT_ID
         );
 
 
@@ -470,9 +463,9 @@ class SurveyUnitServiceTest {
 
 
         //When
-        SurveyUnitDto surveyUnitDto = surveyUnitServiceStatic.findLatestValuesByStateByIdAndByQuestionnaireId(
+        SurveyUnitDto surveyUnitDto = surveyUnitServiceStatic.findLatestValuesByStateByIdAndByCollectionInstrumentId(
                 DEFAULT_INTERROGATION_ID,
-                DEFAULT_QUESTIONNAIRE_ID
+                DEFAULT_COLLECTION_INSTRUMENT_ID
         );
 
 
@@ -540,9 +533,9 @@ class SurveyUnitServiceTest {
         );
 
         //When
-        SurveyUnitDto surveyUnitDto = surveyUnitServiceStatic.findLatestValuesByStateByIdAndByQuestionnaireId(
+        SurveyUnitDto surveyUnitDto = surveyUnitServiceStatic.findLatestValuesByStateByIdAndByCollectionInstrumentId(
                 DEFAULT_INTERROGATION_ID,
-                DEFAULT_QUESTIONNAIRE_ID
+                DEFAULT_COLLECTION_INSTRUMENT_ID
         );
         List<VariableDto> variableDtos = surveyUnitDto.getCollectedVariables().stream().filter(
                 variableDto -> variableDto.getVariableName().equals("TESTVARID")
@@ -568,9 +561,9 @@ class SurveyUnitServiceTest {
         );
 
         //When
-        SurveyUnitDto surveyUnitDto = surveyUnitServiceStatic.findLatestValuesByStateByIdAndByQuestionnaireId(
+        SurveyUnitDto surveyUnitDto = surveyUnitServiceStatic.findLatestValuesByStateByIdAndByCollectionInstrumentId(
                 DEFAULT_INTERROGATION_ID,
-                DEFAULT_QUESTIONNAIRE_ID
+                DEFAULT_COLLECTION_INSTRUMENT_ID
         );
         List<VariableDto> variableDtos = surveyUnitDto.getCollectedVariables().stream().filter(
                 variableDto -> variableDto.getVariableName().equals("TABLEAUTIC11")
@@ -612,7 +605,7 @@ class SurveyUnitServiceTest {
                 .campaignId("TEST-TABLEAUX")
                 .mode(Mode.WEB)
                 .interrogationId(DEFAULT_INTERROGATION_ID)
-                .collectionInstrumentId(DEFAULT_QUESTIONNAIRE_ID)
+                .collectionInstrumentId(DEFAULT_COLLECTION_INSTRUMENT_ID)
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2023,2,2,0,0,0))
                 .recordDate(LocalDateTime.of(2024,2,2,0,0,0))
@@ -697,7 +690,7 @@ class SurveyUnitServiceTest {
                 .campaignId("TEST-TABLEAUX")
                 .mode(Mode.WEB)
                 .interrogationId(DEFAULT_INTERROGATION_ID)
-                .collectionInstrumentId(DEFAULT_QUESTIONNAIRE_ID)
+                .collectionInstrumentId(DEFAULT_COLLECTION_INSTRUMENT_ID)
                 .state(state)
                 .fileDate(fileDate)
                 .recordDate(recordDate)
@@ -736,7 +729,7 @@ class SurveyUnitServiceTest {
                 .campaignId("TEST-TABLEAUX")
                 .mode(Mode.WEB)
                 .interrogationId(DEFAULT_INTERROGATION_ID)
-                .collectionInstrumentId(DEFAULT_QUESTIONNAIRE_ID)
+                .collectionInstrumentId(DEFAULT_COLLECTION_INSTRUMENT_ID)
                 .state(state)
                 .fileDate(fileDate)
                 .recordDate(recordDate)

@@ -210,7 +210,7 @@ public class MainDefinitions {
 
     @When("We extract survey unit data with questionnaireId {string} and interrogationId {string}")
     public void extract_survey_data(String questionnaireId, String interrogationId) {
-        this.surveyUnitModelResponse = responseController.getLatestByInterrogation(interrogationId, questionnaireId.toUpperCase());
+        this.surveyUnitModelResponse = responseController.getLatestByInterrogationAndCollectionInstrument(interrogationId, questionnaireId.toUpperCase());
     }
 
     @When("We extract survey unit latest states with questionnaireId {string} and interrogationId {string}")

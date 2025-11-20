@@ -18,6 +18,7 @@ public interface SurveyUnitMongoDBRepository extends MongoRepository<SurveyUnitD
 	List<SurveyUnitDocument> findByInterrogationId(String interrogationId);
 
 	List<SurveyUnitDocument> findByInterrogationIdAndQuestionnaireId(String interrogationId, String questionnaireId);
+	List<SurveyUnitDocument> findByInterrogationIdAndCollectionInstrumentId(String interrogationId, String collectionInstrumentId);
 
 	//========= OPTIMISATIONS PERFS (START) ==========
 	/**
@@ -29,6 +30,9 @@ public interface SurveyUnitMongoDBRepository extends MongoRepository<SurveyUnitD
 
 	@Query(value = "{ 'questionnaireId' : ?0 }", fields = "{ 'interrogationId' : 1, 'mode' :  1 }")
 	List<SurveyUnitDocument> findInterrogationIdsByQuestionnaireId(String questionnaireId);
+
+	@Query(value = "{ 'collectionInstrumentId' : ?0 }", fields = "{ 'interrogationId' : 1, 'mode' :  1 }")
+	List<SurveyUnitDocument> findInterrogationIdsByCollectionInstrumentId(String questionnaireId);
 
 	@Query(value = "{ 'questionnaireId' : ?0, 'recordDate': { $gte: ?1 } }", fields = "{ 'interrogationId' : 1, 'mode' :  1 }")
 	List<SurveyUnitDocument> findInterrogationIdsByQuestionnaireIdAndDateAfter(String questionnaireId, LocalDateTime since);
@@ -71,6 +75,7 @@ public interface SurveyUnitMongoDBRepository extends MongoRepository<SurveyUnitD
 	List<SurveyUnitDocument> findInterrogationIdsByCampaignId(String campaignId);
 
 	Long deleteByQuestionnaireId(String questionnaireId);
+	Long deleteByCollectionInstrumentId(String collectionInstrumentId);
 
 	@Meta(cursorBatchSize = 20)
 	Stream<SurveyUnitDocument> findByQuestionnaireId(String questionnaireId);

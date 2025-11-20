@@ -152,7 +152,7 @@ class ResponseControllerTest {
     //Gets
     @Test
     void findResponsesByUEAndQuestionnaireTest() {
-        ResponseEntity<List<SurveyUnitModel>> response = responseControllerStatic.findResponsesByInterrogationAndQuestionnaire(DEFAULT_INTERROGATION_ID, DEFAULT_QUESTIONNAIRE_ID);
+        ResponseEntity<List<SurveyUnitModel>> response = responseControllerStatic.findResponsesByInterrogationAndCollectionInstrument(DEFAULT_INTERROGATION_ID, DEFAULT_QUESTIONNAIRE_ID);
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
@@ -165,7 +165,7 @@ class ResponseControllerTest {
     void getLatestByUETest() {
         Utils.addAdditionalSurveyUnitModelToMongoStub(surveyUnitPersistencePortStub);
 
-        ResponseEntity<List<SurveyUnitModel>> response = responseControllerStatic.getLatestByInterrogation(DEFAULT_INTERROGATION_ID, DEFAULT_QUESTIONNAIRE_ID);
+        ResponseEntity<List<SurveyUnitModel>> response = responseControllerStatic.getLatestByInterrogationAndCollectionInstrument(DEFAULT_INTERROGATION_ID, DEFAULT_QUESTIONNAIRE_ID);
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
@@ -188,7 +188,7 @@ class ResponseControllerTest {
 
     @Test
     void getLatestForUEListTest() {
-        ResponseEntity<List<SurveyUnitSimplified>> response = responseControllerStatic.getLatestForInterrogationList(DEFAULT_QUESTIONNAIRE_ID, interrogationIdList);
+        ResponseEntity<List<SurveyUnitSimplified>> response = responseControllerStatic.getLatestForInterrogationListAndCollectionInstrument(DEFAULT_QUESTIONNAIRE_ID, interrogationIdList);
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();

@@ -46,8 +46,13 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 	}
 
 	@Override
-	public List<SurveyUnitModel> findByIds(String interrogationId, String questionnaireId) {
-		List<SurveyUnitDocument> surveyUnits = mongoRepository.findByInterrogationIdAndQuestionnaireId(interrogationId, questionnaireId);
+	public List<SurveyUnitModel> findByIds(String interrogationId, String collectionInstrumentId) {
+		List<SurveyUnitDocument> surveyUnits = mongoRepository.findByInterrogationIdAndCollectionInstrumentId(interrogationId, collectionInstrumentId);
+		// To ensure compatibility with older documents (with questionnaireId instead of collectionInstrumentId)
+		List<SurveyUnitDocument> surveyUnitsLegacy = mongoRepository.findByInterrogationIdAndQuestionnaireId(interrogationId, collectionInstrumentId);
+		if(!surveyUnitsLegacy.isEmpty()){
+			surveyUnits.addAll(surveyUnitsLegacy);
+		}
 		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnits);
 	}
 
@@ -87,8 +92,11 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 	}
 
 	@Override
-	public Long deleteByQuestionnaireId(String questionnaireId) {
-		return mongoRepository.deleteByQuestionnaireId(questionnaireId);
+	public Long deleteByCollectionInstrumentId(String collectionInstrumentId) {
+		Long countDeleted = mongoRepository.deleteByCollectionInstrumentId(collectionInstrumentId);
+		// If the responses are in the old format (previous to modele filiere)
+		countDeleted += mongoRepository.deleteByQuestionnaireId(collectionInstrumentId);
+		return countDeleted;
 	}
 
 	@Override
@@ -146,6 +154,12 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 	@Override
 	public List<SurveyUnitModel> findInterrogationIdsByQuestionnaireId(String questionnaireId) {
 		List<SurveyUnitDocument> surveyUnits = mongoRepository.findInterrogationIdsByQuestionnaireId(questionnaireId);
+		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnits);
+	}
+
+	@Override
+	public List<SurveyUnitModel> findInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId) {
+		List<SurveyUnitDocument> surveyUnits = mongoRepository.findInterrogationIdsByCollectionInstrumentId(collectionInstrumentId);
 		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnits);
 	}
 

@@ -21,10 +21,10 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     }
 
     @Override
-    public List<SurveyUnitModel> findByIds(String interrogationId, String questionnaireId) {
+    public List<SurveyUnitModel> findByIds(String interrogationId, String collectionInstrumentId) {
         List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
         for(SurveyUnitModel SurveyUnitModel : mongoStub){
-            if(SurveyUnitModel.getInterrogationId().equals(interrogationId) && SurveyUnitModel.getCollectionInstrumentId().equals(questionnaireId))
+            if(SurveyUnitModel.getInterrogationId().equals(interrogationId) && SurveyUnitModel.getCollectionInstrumentId().equals(collectionInstrumentId))
                 surveyUnitModelList.add(SurveyUnitModel);
         }
 
@@ -90,6 +90,18 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     }
 
     @Override
+    public List<SurveyUnitModel> findInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId) {
+        List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
+        for(SurveyUnitModel SurveyUnitModel : mongoStub){
+            if(SurveyUnitModel.getCollectionInstrumentId().equals(collectionInstrumentId))
+                surveyUnitModelList.add(
+                        new SurveyUnitModel(SurveyUnitModel.getInterrogationId(), SurveyUnitModel.getMode())
+                );
+        }
+        return surveyUnitModelList;
+    }
+
+    @Override
     public List<SurveyUnitModel> findModesByQuestionnaireIdV2(String questionnaireId) {
         return findInterrogationIdsByQuestionnaireId(questionnaireId);
     }
@@ -140,17 +152,11 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
         return List.of();
     }
 
-    
-
-
     //======= OPTIMISATIONS PERFS (END) =========
 
-
-
-
     @Override
-    public Long deleteByQuestionnaireId(String questionnaireId) {
-        return null;
+    public Long deleteByCollectionInstrumentId(String collectionInstrumentId) {
+        return (long) mongoStub.stream().filter(su -> !su.getCollectionInstrumentId().equals(collectionInstrumentId)).toList().size();
     }
 
     @Override
