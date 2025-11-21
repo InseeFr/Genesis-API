@@ -29,12 +29,17 @@ public class ContextualPreviousVariableMongoAdapter implements ContextualPreviou
     }
 
     @Override
-    public void backup(String questionnaireId) {
-        deleteBackup(questionnaireId);
-        MatchOperation match = Aggregation.match(Criteria.where("questionnaireId").is(questionnaireId));
+    public void backup(String collectionInstrumentId) {
+        deleteBackup(collectionInstrumentId);
+        MatchOperation match = Aggregation.match(
+                new Criteria().orOperator(
+                        Criteria.where("questionnaireId").is(collectionInstrumentId),
+                        Criteria.where("collectionInstrumentId").is(collectionInstrumentId)
+                )
+        );
         MergeOperation merge = Aggregation
                 .merge()
-                .intoCollection(getFormattedCollection(questionnaireId))
+                .intoCollection(getFormattedCollection(collectionInstrumentId))
                 .whenMatched(MergeOperation.WhenDocumentsMatch.replaceDocument())
                 .whenDocumentsDontMatch(MergeOperation.WhenDocumentsDontMatch.insertNewDocument())
                 .build();
@@ -44,20 +49,20 @@ public class ContextualPreviousVariableMongoAdapter implements ContextualPreviou
         mongoTemplate.aggregate(aggregation, "editedPreviousResponses", ContextualPreviousVariableDocument.class);
     }
 
-    private static String getFormattedCollection(String questionnaireId) {
-        return "editedPreviousResponses_%s_backup".formatted(questionnaireId);
+    private static String getFormattedCollection(String collectionInstrumentId) {
+        return "editedPreviousResponses_%s_backup".formatted(collectionInstrumentId);
     }
 
     @Override
-    public void deleteBackup(String questionnaireId) {
-        if (mongoTemplate.collectionExists(getFormattedCollection(questionnaireId))){
-            mongoTemplate.dropCollection(getFormattedCollection(questionnaireId));
+    public void deleteBackup(String collectionInstrumentId) {
+        if (mongoTemplate.collectionExists(getFormattedCollection(collectionInstrumentId))){
+            mongoTemplate.dropCollection(getFormattedCollection(collectionInstrumentId));
         }
     }
 
     @Override
-    public void restoreBackup(String questionnaireId) {
-        delete(questionnaireId);
+    public void restoreBackup(String collectionInstrumentId) {
+        delete(collectionInstrumentId);
         MergeOperation merge = Aggregation
                 .merge()
                 .intoCollection("editedPreviousResponses")
@@ -67,7 +72,7 @@ public class ContextualPreviousVariableMongoAdapter implements ContextualPreviou
 
         Aggregation aggregation = Aggregation.newAggregation(merge);
 
-        mongoTemplate.aggregate(aggregation, getFormattedCollection(questionnaireId),
+        mongoTemplate.aggregate(aggregation, getFormattedCollection(collectionInstrumentId),
                 ContextualPreviousVariableDocument.class);
     }
 
@@ -79,19 +84,25 @@ public class ContextualPreviousVariableMongoAdapter implements ContextualPreviou
     }
 
     @Override
-    public void delete(String questionnaireId) {
-        repository.deleteByQuestionnaireId(questionnaireId);
+    public void delete(String collectionInstrumentId) {
+        repository.deleteByCollectionInstrumentId(collectionInstrumentId);
+        repository.deleteByQuestionnaireId(collectionInstrumentId);
     }
 
     @Override
-    public ContextualPreviousVariableModel findByQuestionnaireIdAndInterrogationId(String questionnaireId, String interrogationId) {
+    public ContextualPreviousVariableModel findByCollectionInstrumentIdAndInterrogationId(String collectionInstrumentId, String interrogationId) {
         List<ContextualPreviousVariableDocument> contextualPreviousVariableDocumentList =
-                repository.findByQuestionnaireIdAndInterrogationId(questionnaireId, interrogationId);
+                repository.findByQuestionnaireIdAndInterrogationId(collectionInstrumentId, interrogationId);
+        List<ContextualPreviousVariableDocument> docIdentifiedByCollectionInstrumentId =
+                repository.findByCollectionInstrumentIdAndInterrogationId(collectionInstrumentId, interrogationId);
+        if (!docIdentifiedByCollectionInstrumentId.isEmpty()){
+            contextualPreviousVariableDocumentList.addAll(docIdentifiedByCollectionInstrumentId);
+        }
         if(contextualPreviousVariableDocumentList.isEmpty()){
             return null;
         }
         if(contextualPreviousVariableDocumentList.size() > 1){
-            log.warn("More than 1 contextual previous response document for questionnaire {}, interrogation {}", questionnaireId, interrogationId);
+            log.warn("More than 1 contextual previous response document for collection instrument {}, interrogation {}", collectionInstrumentId, interrogationId);
         }
         return ContextualPreviousVariableDocumentMapper.INSTANCE.documentToModel(contextualPreviousVariableDocumentList.getFirst());
     }

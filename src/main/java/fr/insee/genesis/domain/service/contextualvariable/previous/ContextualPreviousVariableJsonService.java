@@ -34,12 +34,12 @@ public class ContextualPreviousVariableJsonService implements ContextualPrevious
     }
 
     @Override
-    public boolean readContextualPreviousFile(String questionnaireId,
+    public boolean readContextualPreviousFile(String collectionInstrumentId,
                                               String sourceState,
                                               String filePath) throws GenesisException {
         try(FileInputStream inputStream = new FileInputStream(filePath)){
             checkSourceStateLength(sourceState);
-            moveCollectionToBackup(questionnaireId);
+            moveCollectionToBackup(collectionInstrumentId);
 
             JsonFactory jsonFactory = new JsonFactory();
             try (JsonParser jsonParser = jsonFactory.createParser(inputStream)) {
@@ -55,7 +55,7 @@ public class ContextualPreviousVariableJsonService implements ContextualPrevious
                 while (jsonParser.currentToken() != JsonToken.END_ARRAY) {
                     ContextualPreviousVariableModel contextualPreviousVariableModel = readNextContextualPrevious(
                             jsonParser,
-                            questionnaireId,
+                            collectionInstrumentId,
                             sourceState
                     );
 
@@ -71,22 +71,22 @@ public class ContextualPreviousVariableJsonService implements ContextualPrevious
                 }
                 savedCount = saveBlock(toSave, savedCount);
                 log.info("Reached end of contextual previous file, saved %d interrogations".formatted(savedCount));
-                contextualPreviousVariablePersistancePort.deleteBackup(questionnaireId);
+                contextualPreviousVariablePersistancePort.deleteBackup(collectionInstrumentId);
                 return true;
             }
         }catch (JsonParseException jpe){
-            contextualPreviousVariablePersistancePort.restoreBackup(questionnaireId);
+            contextualPreviousVariablePersistancePort.restoreBackup(collectionInstrumentId);
             throw new GenesisException(400, "JSON Parsing exception : %s".formatted(jpe.toString()));
         }catch (IOException ioe){
-            contextualPreviousVariablePersistancePort.restoreBackup(questionnaireId);
+            contextualPreviousVariablePersistancePort.restoreBackup(collectionInstrumentId);
             throw new GenesisException(500, ioe.toString());
         }
     }
 
     @Override
-    public ContextualPreviousVariableModel findByQuestionnaireIdAndInterrogationId(String questionnaireId, String interrogationId) {
-        return contextualPreviousVariablePersistancePort.findByQuestionnaireIdAndInterrogationId(
-                questionnaireId,
+    public ContextualPreviousVariableModel findByCollectionInstrumentIdAndInterrogationId(String collectionInstrumentId, String interrogationId) {
+        return contextualPreviousVariablePersistancePort.findByCollectionInstrumentIdAndInterrogationId(
+                collectionInstrumentId,
                 interrogationId
         );
     }
@@ -98,9 +98,9 @@ public class ContextualPreviousVariableJsonService implements ContextualPrevious
         return savedCount;
     }
 
-    private void moveCollectionToBackup(String questionnaireId) {
-        contextualPreviousVariablePersistancePort.backup(questionnaireId);
-        contextualPreviousVariablePersistancePort.delete(questionnaireId);
+    private void moveCollectionToBackup(String collectionInstrumentId) {
+        contextualPreviousVariablePersistancePort.backup(collectionInstrumentId);
+        contextualPreviousVariablePersistancePort.delete(collectionInstrumentId);
     }
 
     private static void checkSourceStateLength(String sourceState) throws GenesisException {
@@ -125,14 +125,14 @@ public class ContextualPreviousVariableJsonService implements ContextualPrevious
     }
 
     private ContextualPreviousVariableModel readNextContextualPrevious(JsonParser jsonParser,
-                                                               String questionnaireId,
+                                                               String collectionInstrumentId,
                                                                String sourceState
                                                                ) throws IOException {
         if(jsonParser.currentToken() != JsonToken.START_OBJECT){
             throw new JsonParseException("Expected { on line %d, got token %s".formatted(jsonParser.currentLocation().getLineNr(), jsonParser.currentToken()));
         }
         ContextualPreviousVariableModel contextualPreviousVariableModel = ContextualPreviousVariableModel.builder()
-                .questionnaireId(questionnaireId)
+                .collectionInstrumentId(collectionInstrumentId)
                 .sourceState(sourceState)
                 .variables(new HashMap<>())
                 .build();

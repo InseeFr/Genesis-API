@@ -29,12 +29,17 @@ public class ContextualExternalVariableMongoAdapter implements ContextualExterna
     }
 
     @Override
-    public void backup(String questionnaireId) {
-        deleteBackup(questionnaireId);
-        MatchOperation match = Aggregation.match(Criteria.where("questionnaireId").is(questionnaireId));
+    public void backup(String collectionInstrumentId) {
+        deleteBackup(collectionInstrumentId);
+        MatchOperation match = Aggregation.match(
+                new Criteria().orOperator(
+                        Criteria.where("questionnaireId").is(collectionInstrumentId),
+                        Criteria.where("collectionInstrumentId").is(collectionInstrumentId)
+                )
+        );
         MergeOperation merge = Aggregation
                 .merge()
-                .intoCollection(getFormattedCollection(questionnaireId))
+                .intoCollection(getFormattedCollection(collectionInstrumentId))
                 .whenMatched(MergeOperation.WhenDocumentsMatch.replaceDocument())
                 .whenDocumentsDontMatch(MergeOperation.WhenDocumentsDontMatch.insertNewDocument())
                 .build();
@@ -56,8 +61,8 @@ public class ContextualExternalVariableMongoAdapter implements ContextualExterna
     }
 
     @Override
-    public void restoreBackup(String questionnaireId) {
-        delete(questionnaireId);
+    public void restoreBackup(String collectionInstrumentId) {
+        delete(collectionInstrumentId);
         MergeOperation merge = Aggregation
                 .merge()
                 .intoCollection("editedExternalResponses")
@@ -67,7 +72,7 @@ public class ContextualExternalVariableMongoAdapter implements ContextualExterna
 
         Aggregation aggregation = Aggregation.newAggregation(merge);
 
-        mongoTemplate.aggregate(aggregation, getFormattedCollection(questionnaireId),
+        mongoTemplate.aggregate(aggregation, getFormattedCollection(collectionInstrumentId),
                 ContextualExternalVariableDocument.class);
     }
 
@@ -79,19 +84,27 @@ public class ContextualExternalVariableMongoAdapter implements ContextualExterna
     }
 
     @Override
-    public void delete(String questionnaireId) {
-        repository.deleteByQuestionnaireId(questionnaireId);
+    public void delete(String collectionInstrumentId) {
+        repository.deleteByCollectionInstrumentId(collectionInstrumentId);
+        // For older documents
+        repository.deleteByQuestionnaireId(collectionInstrumentId);
     }
 
     @Override
-    public ContextualExternalVariableModel findByQuestionnaireIdAndInterrogationId(String questionnaireId, String interrogationId) {
+    public ContextualExternalVariableModel findByCollectionInstrumentIdAndInterrogationId(String collectionInstrumentId, String interrogationId) {
         List<ContextualExternalVariableDocument> contextualExternalVariableDocumentList =
-                repository.findByQuestionnaireIdAndInterrogationId(questionnaireId, interrogationId);
+                repository.findByQuestionnaireIdAndInterrogationId(collectionInstrumentId, interrogationId);
+        // For older documents
+        List<ContextualExternalVariableDocument> docIdentifiedByCollectionInstrumentId =
+                repository.findByCollectionInstrumentIdAndInterrogationId(collectionInstrumentId, interrogationId);
+        if (!docIdentifiedByCollectionInstrumentId.isEmpty()){
+            contextualExternalVariableDocumentList.addAll(docIdentifiedByCollectionInstrumentId);
+        }
         if(contextualExternalVariableDocumentList.isEmpty()){
             return null;
         }
         if(contextualExternalVariableDocumentList.size() > 1){
-            log.warn("More than 1 contextual external response document for questionnaire {}, interrogation {}", questionnaireId, interrogationId);
+            log.warn("More than 1 contextual external response document for collection instrument {}, interrogation {}", collectionInstrumentId, interrogationId);
         }
         return ContextualExternalVariableDocumentMapper.INSTANCE.documentToModel(contextualExternalVariableDocumentList.getFirst());
     }

@@ -5,10 +5,10 @@ import fr.insee.genesis.domain.model.contextualvariable.ContextualPreviousVariab
 import java.util.List;
 
 public interface ContextualPreviousVariablePersistancePort {
-    void backup(String questionnaireId);
-    void deleteBackup(String questionnaireId);
-    void restoreBackup(String questionnaireId);
+    void backup(String collectionInstrumentId);
+    void deleteBackup(String collectionInstrumentId);
+    void restoreBackup(String collectionInstrumentId);
     void saveAll(List<ContextualPreviousVariableModel> contextualPreviousVariableModelList);
-    void delete(String questionnaireId);
-    ContextualPreviousVariableModel findByQuestionnaireIdAndInterrogationId(String questionnaireId, String interrogationId);
+    void delete(String collectionInstrumentId);
+    ContextualPreviousVariableModel findByCollectionInstrumentIdAndInterrogationId(String collectionInstrumentId, String interrogationId);
 }
