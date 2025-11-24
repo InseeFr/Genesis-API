@@ -31,7 +31,7 @@ import fr.insee.genesis.infrastructure.document.context.DataProcessingContextDoc
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
-import fr.insee.genesis.stubs.QuestionnaireMetadataPersistancePortStub;
+import fr.insee.genesis.stubs.QuestionnaireMetadataPersistencePortStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
@@ -65,10 +65,10 @@ public class MainDefinitions {
 
     SurveyUnitQualityService surveyUnitQualityService = new SurveyUnitQualityService();
     SurveyUnitPersistencePortStub surveyUnitPersistence = new SurveyUnitPersistencePortStub();
-    static QuestionnaireMetadataPersistancePortStub questionnaireMetadataPersistancePortStub =
-            new QuestionnaireMetadataPersistancePortStub();
+    static QuestionnaireMetadataPersistencePortStub questionnaireMetadataPersistencePortStub =
+            new QuestionnaireMetadataPersistencePortStub();
     static QuestionnaireMetadataService questionnaireMetadataService =
-            new QuestionnaireMetadataService(questionnaireMetadataPersistancePortStub);
+            new QuestionnaireMetadataService(questionnaireMetadataPersistencePortStub);
     DataProcessingContextPersistancePortStub dataProcessingContextPersistancePortStub =
             new DataProcessingContextPersistancePortStub();
     DataProcessingContextApiPort dataProcessingContextApiPort = new DataProcessingContextService(
@@ -81,7 +81,7 @@ public class MainDefinitions {
     ResponseEntity<Object> surveyUnitLatestStatesResponse;
 
     ResponseController responseController = new ResponseController(
-            new SurveyUnitService(surveyUnitPersistence, new QuestionnaireMetadataService(questionnaireMetadataPersistancePortStub), new FileUtils(config)),
+            new SurveyUnitService(surveyUnitPersistence, new QuestionnaireMetadataService(questionnaireMetadataPersistencePortStub), new FileUtils(config)),
             surveyUnitQualityService,
             new FileUtils(config),
             new ControllerUtils(new FileUtils(config)),
@@ -163,18 +163,18 @@ public class MainDefinitions {
             LunaticXmlCampaign campaign;
             campaign = parser.parseDataFile(filePath);
             List<QuestionnaireMetadataModel> questionnaireMetadataModels =
-                    questionnaireMetadataPersistancePortStub.find(directory, Mode.WEB);
+                    questionnaireMetadataPersistencePortStub.find(directory, Mode.WEB);
             if(questionnaireMetadataModels.isEmpty()){
                 MetadataModel metadataModel = DDIReader.getMetadataFromDDI(
                         ddiFilePath.toFile().toURI().toURL().toString(),
                         new FileInputStream(ddiFilePath.toFile())
                 );
-                questionnaireMetadataPersistancePortStub.save(new QuestionnaireMetadataModel(
+                questionnaireMetadataPersistencePortStub.save(new QuestionnaireMetadataModel(
                         directory,
                         Mode.WEB,
                         metadataModel
                 ));
-                questionnaireMetadataModels = questionnaireMetadataPersistancePortStub.find(directory, Mode.WEB);
+                questionnaireMetadataModels = questionnaireMetadataPersistencePortStub.find(directory, Mode.WEB);
             }
             List<SurveyUnitModel> surveyUnitModels1 = new ArrayList<>();
             for (LunaticXmlSurveyUnit su : campaign.getSurveyUnits()) {

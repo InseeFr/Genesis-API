@@ -9,7 +9,7 @@ import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
-import fr.insee.genesis.stubs.QuestionnaireMetadataPersistancePortStub;
+import fr.insee.genesis.stubs.QuestionnaireMetadataPersistencePortStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
@@ -38,7 +38,7 @@ class SurveyUnitServiceTest {
         surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
 
         surveyUnitServiceStatic = new SurveyUnitService(surveyUnitPersistencePortStub,
-                new QuestionnaireMetadataService(new QuestionnaireMetadataPersistancePortStub()),
+                new QuestionnaireMetadataService(new QuestionnaireMetadataPersistencePortStub()),
                 new FileUtils(new ConfigStub()));
     }
 

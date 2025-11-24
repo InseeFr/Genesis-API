@@ -9,7 +9,7 @@ import fr.insee.genesis.infrastructure.document.context.DataProcessingContextDoc
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
-import fr.insee.genesis.stubs.QuestionnaireMetadataPersistancePortStub;
+import fr.insee.genesis.stubs.QuestionnaireMetadataPersistencePortStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -36,7 +36,7 @@ class QuestionnaireControllerTest {
         dataProcessingContextPersistancePortStub = new DataProcessingContextPersistancePortStub();
         SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(
                 surveyUnitPersistencePortStub,
-                new QuestionnaireMetadataService(new QuestionnaireMetadataPersistancePortStub()),
+                new QuestionnaireMetadataService(new QuestionnaireMetadataPersistencePortStub()),
                 new FileUtils(new ConfigStub())
         );
 

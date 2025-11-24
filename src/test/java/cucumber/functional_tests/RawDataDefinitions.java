@@ -26,7 +26,7 @@ import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
 import fr.insee.genesis.stubs.LunaticJsonRawDataPersistanceStub;
-import fr.insee.genesis.stubs.QuestionnaireMetadataPersistancePortStub;
+import fr.insee.genesis.stubs.QuestionnaireMetadataPersistencePortStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import fr.insee.genesis.stubs.SurveyUnitQualityToolPerretAdapterStub;
 import fr.insee.modelefiliere.RawResponseDto;
@@ -70,12 +70,12 @@ public class RawDataDefinitions {
     private TestRestTemplate rest;
 
     LunaticJsonRawDataPersistanceStub lunaticJsonRawDataPersistanceStub = new LunaticJsonRawDataPersistanceStub();
-    static QuestionnaireMetadataPersistancePortStub questionnaireMetadataPersistancePortStub = new QuestionnaireMetadataPersistancePortStub();
+    static QuestionnaireMetadataPersistencePortStub questionnaireMetadataPersistencePortStub = new QuestionnaireMetadataPersistencePortStub();
     SurveyUnitPersistencePortStub surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
     DataProcessingContextPersistancePortStub contextStub = new DataProcessingContextPersistancePortStub();
     Config config = new ConfigStub();
     FileUtils fileUtils = new FileUtils(config);
-    SurveyUnitService surveyUnitService = new SurveyUnitService(surveyUnitPersistencePortStub, new QuestionnaireMetadataService(questionnaireMetadataPersistancePortStub), fileUtils);
+    SurveyUnitService surveyUnitService = new SurveyUnitService(surveyUnitPersistencePortStub, new QuestionnaireMetadataService(questionnaireMetadataPersistencePortStub), fileUtils);
     ControllerUtils controllerUtils = new ControllerUtils(fileUtils);
     SurveyUnitQualityService surveyUnitQualityService = new SurveyUnitQualityService();
     DataProcessingContextPersistancePortStub dataProcessingContextPersistancePortStub =
@@ -85,7 +85,7 @@ public class RawDataDefinitions {
             new LunaticJsonRawDataService(
                     lunaticJsonRawDataPersistanceStub,
                     controllerUtils,
-                    new QuestionnaireMetadataService(questionnaireMetadataPersistancePortStub),
+                    new QuestionnaireMetadataService(questionnaireMetadataPersistencePortStub),
                     surveyUnitService,
                     surveyUnitQualityService,
                     fileUtils,

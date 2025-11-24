@@ -22,7 +22,7 @@ import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
 import fr.insee.genesis.stubs.LunaticJsonRawDataPersistanceStub;
-import fr.insee.genesis.stubs.QuestionnaireMetadataPersistancePortStub;
+import fr.insee.genesis.stubs.QuestionnaireMetadataPersistencePortStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import fr.insee.genesis.stubs.SurveyUnitQualityToolPerretAdapterStub;
 import org.assertj.core.api.Assertions;
@@ -54,7 +54,7 @@ class UtilsControllerTest {
     static List<InterrogationId> interrogationIdList;
     static FileUtils fileUtils = new FileUtils(new ConfigStub());
     static ControllerUtils controllerUtils = new ControllerUtils(fileUtils);
-    static QuestionnaireMetadataService metadataService = new QuestionnaireMetadataService(new QuestionnaireMetadataPersistancePortStub());
+    static QuestionnaireMetadataService metadataService = new QuestionnaireMetadataService(new QuestionnaireMetadataPersistencePortStub());
     static SurveyUnitService surveyUnitService = new SurveyUnitService(new SurveyUnitPersistencePortStub(), metadataService, fileUtils);
     static SurveyUnitQualityService surveyUnitQualityService = new SurveyUnitQualityService();
     //Constants

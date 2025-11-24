@@ -11,7 +11,7 @@ import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
-import fr.insee.genesis.stubs.QuestionnaireMetadataPersistancePortStub;
+import fr.insee.genesis.stubs.QuestionnaireMetadataPersistencePortStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
@@ -34,7 +34,7 @@ class HealthCheckControllerTest {
         surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
         SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(
                 surveyUnitPersistencePortStub,
-                new QuestionnaireMetadataService(new QuestionnaireMetadataPersistancePortStub()),
+                new QuestionnaireMetadataService(new QuestionnaireMetadataPersistencePortStub()),
                 new FileUtils(new ConfigStub())
         );
         List<VariableModel> externalVariableList = new ArrayList<>();

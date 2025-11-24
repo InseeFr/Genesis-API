@@ -6,7 +6,7 @@ import fr.insee.bpm.metadata.model.VariableType;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.infrastructure.document.metadata.QuestionnaireMetadataDocument;
-import fr.insee.genesis.stubs.QuestionnaireMetadataPersistancePortStub;
+import fr.insee.genesis.stubs.QuestionnaireMetadataPersistencePortStub;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,17 +14,17 @@ import org.springframework.http.ResponseEntity;
 
 class QuestionnaireMetadataControllerTest {
     public static final String VARIABLE_NAME = "TESTVAR";
-    static QuestionnaireMetadataPersistancePortStub questionnaireMetadataPersistancePortStub
-            = new QuestionnaireMetadataPersistancePortStub();
+    static QuestionnaireMetadataPersistencePortStub questionnaireMetadataPersistencePortStub
+            = new QuestionnaireMetadataPersistencePortStub();
 
 
     static QuestionnaireMetadataController questionnaireMetadataController = new QuestionnaireMetadataController(
-            new QuestionnaireMetadataService(questionnaireMetadataPersistancePortStub)
+            new QuestionnaireMetadataService(questionnaireMetadataPersistencePortStub)
     );
 
     @BeforeEach
     void clean(){
-        questionnaireMetadataPersistancePortStub.getMongoStub().clear();
+        questionnaireMetadataPersistencePortStub.getMongoStub().clear();
     }
 
     @Test
@@ -33,14 +33,15 @@ class QuestionnaireMetadataControllerTest {
         String questionnaireId = "TESTQUEST";
         Mode mode = Mode.WEB;
         String variableName = VARIABLE_NAME;
-        questionnaireMetadataPersistancePortStub.getMongoStub().add(
+        questionnaireMetadataPersistencePortStub.getMongoStub().add(
                 new QuestionnaireMetadataDocument(
                         questionnaireId,
+                        null,
                         mode,
                         getMetadataModel(variableName)
                 )
         );
-        Assertions.assertThat(questionnaireMetadataPersistancePortStub.getMongoStub()).hasSize(1);
+        Assertions.assertThat(questionnaireMetadataPersistencePortStub.getMongoStub()).hasSize(1);
 
         //WHEN
         ResponseEntity<Object> response = questionnaireMetadataController.getMetadata(questionnaireId, mode);
@@ -82,16 +83,16 @@ class QuestionnaireMetadataControllerTest {
 
         //THEN
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(questionnaireMetadataPersistancePortStub.getMongoStub()).hasSize(1);
-        Assertions.assertThat(questionnaireMetadataPersistancePortStub.getMongoStub().getFirst().questionnaireId())
+        Assertions.assertThat(questionnaireMetadataPersistencePortStub.getMongoStub()).hasSize(1);
+        Assertions.assertThat(questionnaireMetadataPersistencePortStub.getMongoStub().getFirst().collectionInstrumentId())
                 .isEqualTo(questionnaireId);
-        Assertions.assertThat(questionnaireMetadataPersistancePortStub.getMongoStub().getFirst().mode())
+        Assertions.assertThat(questionnaireMetadataPersistencePortStub.getMongoStub().getFirst().mode())
                 .isEqualTo(mode);
-        Assertions.assertThat(questionnaireMetadataPersistancePortStub.getMongoStub().getFirst().metadataModel().getVariables()
+        Assertions.assertThat(questionnaireMetadataPersistencePortStub.getMongoStub().getFirst().metadataModel().getVariables()
                         .hasVariable(variableName)).isTrue();
-        Assertions.assertThat(questionnaireMetadataPersistancePortStub.getMongoStub().getFirst().metadataModel().getVariables()
+        Assertions.assertThat(questionnaireMetadataPersistencePortStub.getMongoStub().getFirst().metadataModel().getVariables()
                 .getVariable(variableName).getGroup()).isEqualTo(metadataModel.getRootGroup());
-        Assertions.assertThat(questionnaireMetadataPersistancePortStub.getMongoStub().getFirst().metadataModel().getVariables()
+        Assertions.assertThat(questionnaireMetadataPersistencePortStub.getMongoStub().getFirst().metadataModel().getVariables()
                 .getVariable(variableName).getType()).isEqualTo(VariableType.STRING);
     }
 
@@ -102,9 +103,10 @@ class QuestionnaireMetadataControllerTest {
         Mode mode = Mode.WEB;
         String variableName = VARIABLE_NAME;
         MetadataModel metadataModel = getMetadataModel(variableName);
-        questionnaireMetadataPersistancePortStub.getMongoStub().add(
+        questionnaireMetadataPersistencePortStub.getMongoStub().add(
                 new QuestionnaireMetadataDocument(
                         questionnaireId,
+                        null,
                         mode,
                         metadataModel
                 )
@@ -124,16 +126,16 @@ class QuestionnaireMetadataControllerTest {
 
         //THEN
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(questionnaireMetadataPersistancePortStub.getMongoStub()).hasSize(1);
-        Assertions.assertThat(questionnaireMetadataPersistancePortStub.getMongoStub().getFirst().questionnaireId())
+        Assertions.assertThat(questionnaireMetadataPersistencePortStub.getMongoStub()).hasSize(1);
+        Assertions.assertThat(questionnaireMetadataPersistencePortStub.getMongoStub().getFirst().collectionInstrumentId())
                 .isEqualTo(questionnaireId);
-        Assertions.assertThat(questionnaireMetadataPersistancePortStub.getMongoStub().getFirst().mode())
+        Assertions.assertThat(questionnaireMetadataPersistencePortStub.getMongoStub().getFirst().mode())
                 .isEqualTo(mode);
-        Assertions.assertThat(questionnaireMetadataPersistancePortStub.getMongoStub().getFirst().metadataModel().getVariables()
+        Assertions.assertThat(questionnaireMetadataPersistencePortStub.getMongoStub().getFirst().metadataModel().getVariables()
                 .hasVariable(variableName)).isTrue();
-        Assertions.assertThat(questionnaireMetadataPersistancePortStub.getMongoStub().getFirst().metadataModel().getVariables()
+        Assertions.assertThat(questionnaireMetadataPersistencePortStub.getMongoStub().getFirst().metadataModel().getVariables()
                 .getVariable(variableName).getGroup()).isEqualTo(metadataModel.getRootGroup());
-        Assertions.assertThat(questionnaireMetadataPersistancePortStub.getMongoStub().getFirst().metadataModel().getVariables()
+        Assertions.assertThat(questionnaireMetadataPersistencePortStub.getMongoStub().getFirst().metadataModel().getVariables()
                 .getVariable(variableName).getType()).isEqualTo(VariableType.INTEGER);
     }
 
@@ -142,20 +144,21 @@ class QuestionnaireMetadataControllerTest {
         //GIVEN
         String questionnaireId = "TESTQUEST";
         Mode mode = Mode.WEB;
-        questionnaireMetadataPersistancePortStub.getMongoStub().add(
+        questionnaireMetadataPersistencePortStub.getMongoStub().add(
                 new QuestionnaireMetadataDocument(
                         questionnaireId,
+                        null,
                         mode,
                         new MetadataModel()
                 )
         );
-        Assertions.assertThat(questionnaireMetadataPersistancePortStub.getMongoStub()).hasSize(1);
+        Assertions.assertThat(questionnaireMetadataPersistencePortStub.getMongoStub()).hasSize(1);
 
         //WHEN
         questionnaireMetadataController.deleteMetadata(questionnaireId, mode);
 
         //THEN
-        Assertions.assertThat(questionnaireMetadataPersistancePortStub.getMongoStub()).isEmpty();
+        Assertions.assertThat(questionnaireMetadataPersistencePortStub.getMongoStub()).isEmpty();
     }
 
     private static MetadataModel getMetadataModel(String variableName) {

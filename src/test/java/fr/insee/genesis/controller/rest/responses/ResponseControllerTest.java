@@ -26,7 +26,7 @@ import fr.insee.genesis.infrastructure.document.context.DataProcessingContextDoc
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
-import fr.insee.genesis.stubs.QuestionnaireMetadataPersistancePortStub;
+import fr.insee.genesis.stubs.QuestionnaireMetadataPersistencePortStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -47,7 +47,7 @@ class ResponseControllerTest {
     static ResponseController responseControllerStatic;
     static SurveyUnitPersistencePortStub surveyUnitPersistencePortStub;
     static DataProcessingContextPersistancePortStub dataProcessingContextPersistancePortStub;
-    static QuestionnaireMetadataPersistancePortStub questionnaireMetadataPersistancePortStub;
+    static QuestionnaireMetadataPersistencePortStub questionnaireMetadataPersistencePortStub;
 
     static List<InterrogationId> interrogationIdList;
     //Constants
@@ -62,13 +62,13 @@ class ResponseControllerTest {
         surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
 
         dataProcessingContextPersistancePortStub = new DataProcessingContextPersistancePortStub();
-        questionnaireMetadataPersistancePortStub = new QuestionnaireMetadataPersistancePortStub();
+        questionnaireMetadataPersistencePortStub = new QuestionnaireMetadataPersistencePortStub();
 
         Config config = new ConfigStub();
         FileUtils fileUtils = new FileUtils(config);
         SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(
                 surveyUnitPersistencePortStub,
-                new QuestionnaireMetadataService(questionnaireMetadataPersistancePortStub),
+                new QuestionnaireMetadataService(questionnaireMetadataPersistencePortStub),
                 fileUtils
                 );
 
@@ -78,7 +78,7 @@ class ResponseControllerTest {
                 , fileUtils
                 , new ControllerUtils(fileUtils)
                 , new AuthUtils(config)
-                , new QuestionnaireMetadataService(questionnaireMetadataPersistancePortStub)
+                , new QuestionnaireMetadataService(questionnaireMetadataPersistencePortStub)
                 , new DataProcessingContextService(dataProcessingContextPersistancePortStub, surveyUnitPersistencePortStub)
         );
 

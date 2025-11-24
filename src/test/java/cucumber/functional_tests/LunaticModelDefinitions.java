@@ -17,7 +17,7 @@ import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
 import fr.insee.genesis.stubs.LunaticModelPersistanceStub;
-import fr.insee.genesis.stubs.QuestionnaireMetadataPersistancePortStub;
+import fr.insee.genesis.stubs.QuestionnaireMetadataPersistencePortStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import io.cucumber.java.Before;
 import io.cucumber.java.en.Given;
@@ -49,11 +49,11 @@ public class LunaticModelDefinitions {
     LunaticModelController lunaticModelController = new LunaticModelController(new LunaticModelService(lunaticModelPersistanceStub));
 
     SurveyUnitPersistencePortStub surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
-    static QuestionnaireMetadataPersistancePortStub questionnaireMetadataPersistancePortStub = new QuestionnaireMetadataPersistancePortStub();
+    static QuestionnaireMetadataPersistencePortStub questionnaireMetadataPersistencePortStub = new QuestionnaireMetadataPersistencePortStub();
     QuestionnaireController questionnaireController = new QuestionnaireController(
             new SurveyUnitService(
                     surveyUnitPersistencePortStub,
-                    new QuestionnaireMetadataService(questionnaireMetadataPersistancePortStub),
+                    new QuestionnaireMetadataService(questionnaireMetadataPersistencePortStub),
                     new FileUtils(new ConfigStub())
             ),
             new DataProcessingContextService(

@@ -20,7 +20,7 @@ import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
 import fr.insee.genesis.stubs.LunaticJsonRawDataPersistanceStub;
-import fr.insee.genesis.stubs.QuestionnaireMetadataPersistancePortStub;
+import fr.insee.genesis.stubs.QuestionnaireMetadataPersistencePortStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import fr.insee.genesis.stubs.SurveyUnitQualityToolPerretAdapterStub;
 import org.assertj.core.api.Assertions;
@@ -41,7 +41,7 @@ class LunaticJsonRawDataServiceTest {
     ControllerUtils controllerUtils = new ControllerUtils(fileUtils);
 
     static QuestionnaireMetadataService metadataService =
-            new QuestionnaireMetadataService(new QuestionnaireMetadataPersistancePortStub());
+            new QuestionnaireMetadataService(new QuestionnaireMetadataPersistencePortStub());
 
     SurveyUnitPersistencePortStub surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
     DataProcessingContextPersistancePortStub dataProcessingContextPersistancePortStub = new DataProcessingContextPersistancePortStub();
