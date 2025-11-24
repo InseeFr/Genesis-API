@@ -15,7 +15,6 @@ import fr.insee.genesis.infrastructure.repository.RawResponseInputRepository;
 import fr.insee.genesis.infrastructure.repository.RawResponseRepository;
 import fr.insee.genesis.infrastructure.repository.RundeckExecutionDBRepository;
 import fr.insee.genesis.infrastructure.repository.SurveyUnitMongoDBRepository;
-import fr.insee.genesis.infrastructure.repository.VariableTypeMongoDBRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -93,8 +92,6 @@ class ControllerAccessTest {
     private RundeckExecutionDBRepository rundeckExecutionDBRepository;
     @MockitoBean
     private DataProcessingContextMongoDBRepository dataProcessingContextMongoDBRepository;
-    @MockitoBean
-    private VariableTypeMongoDBRepository variableTypeMongoDBRepository;
     @MockitoBean
     private LunaticModelMongoDBRepository lunaticModelMongoDBRepository;
     @MockitoBean

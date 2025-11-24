@@ -10,7 +10,6 @@ import fr.insee.genesis.infrastructure.repository.LunaticModelMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.QuestionnaireMetadataMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.RundeckExecutionDBRepository;
 import fr.insee.genesis.infrastructure.repository.SurveyUnitMongoDBRepository;
-import fr.insee.genesis.infrastructure.repository.VariableTypeMongoDBRepository;
 import io.cucumber.spring.CucumberContextConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration;
@@ -33,8 +32,6 @@ public class CucumberSpringConfiguration {
     private LunaticJsonMongoDBRepository lunaticJsonMongoDBRepository;
     @MockitoBean
     private RundeckExecutionDBRepository rundeckExecutionDBRepository;
-    @MockitoBean
-    private VariableTypeMongoDBRepository variableTypeMongoDBRepository;
     @MockitoBean
     private LunaticModelMongoDBRepository lunaticModelMongoDBRepository;
     @MockitoBean
