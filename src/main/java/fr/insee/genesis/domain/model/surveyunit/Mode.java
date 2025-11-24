@@ -2,7 +2,7 @@ package fr.insee.genesis.domain.model.surveyunit;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 @Getter
 public enum Mode {

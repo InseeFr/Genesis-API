@@ -19,7 +19,6 @@
         <springdoc.version>2.8.14</springdoc.version>
         <mapstruct.version>1.6.3</mapstruct.version>
         <cucumber.version>7.32.0</cucumber.version>
-        <junit-jupiter.version>5.13.4</junit-jupiter.version>
 
         <!-- Proprietes sonar -->
         <jacoco.version>0.8.14</jacoco.version>
@@ -74,6 +73,17 @@
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-resttestclient</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <!-- AssertJ -->
         <!-- https://www.baeldung.com/introduction-to-assertj -->
         <!-- https://mvnrepository.com/artifact/org.assertj/assertj-core -->
