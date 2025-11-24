@@ -7,12 +7,12 @@ import fr.insee.genesis.infrastructure.repository.LunaticModelMongoDBRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
-
-import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 @Slf4j
 @Service
@@ -28,14 +28,24 @@ public class LunaticModelMongoAdapter implements LunaticModelPersistancePort {
 
     @Override
     public void save(LunaticModelModel lunaticModelModel) {
+        Criteria criteria = new Criteria().orOperator(
+                Criteria.where("questionnaireId").is(lunaticModelModel.collectionInstrumentId()),
+                Criteria.where("collectionInstrumentId").is(lunaticModelModel.collectionInstrumentId())
+        );
         mongoTemplate.update(LunaticModelDocument.class)
-                .matching(where("questionnaireId").is(lunaticModelModel.questionnaireId()))
+                .matching(criteria)
                 .apply(new Update().set("lunaticModel", lunaticModelModel.lunaticModel()))
                 .upsert();
     }
 
     @Override
-    public List<LunaticModelDocument> find(String questionnaireId) {
-        return repository.findByQuestionnaireId(questionnaireId);
+    public List<LunaticModelDocument> find(String collectionInstrumentId) {
+        List<LunaticModelDocument> results = new ArrayList<>();
+        results.addAll(repository.findByCollectionInstrumentId(collectionInstrumentId));
+        results.addAll(repository.findByQuestionnaireId(collectionInstrumentId));
+        return results.stream()
+                .distinct()
+                .toList();
     }
+
 }

@@ -7,7 +7,7 @@ import java.util.Map;
 
 @Builder
 public record LunaticModelModel (
-    String questionnaireId,
+    String collectionInstrumentId,
     Map<String,Object> lunaticModel,
     LocalDateTime recordDate
 ){}

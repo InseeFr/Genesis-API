@@ -14,6 +14,7 @@ import org.springframework.data.mongodb.core.aggregation.MergeOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -92,20 +93,16 @@ public class ContextualExternalVariableMongoAdapter implements ContextualExterna
 
     @Override
     public ContextualExternalVariableModel findByCollectionInstrumentIdAndInterrogationId(String collectionInstrumentId, String interrogationId) {
-        List<ContextualExternalVariableDocument> contextualExternalVariableDocumentList =
-                repository.findByQuestionnaireIdAndInterrogationId(collectionInstrumentId, interrogationId);
+        List<ContextualExternalVariableDocument> results = new ArrayList<>();
+        results.addAll(repository.findByQuestionnaireIdAndInterrogationId(collectionInstrumentId, interrogationId));
         // For older documents
-        List<ContextualExternalVariableDocument> docIdentifiedByCollectionInstrumentId =
-                repository.findByCollectionInstrumentIdAndInterrogationId(collectionInstrumentId, interrogationId);
-        if (!docIdentifiedByCollectionInstrumentId.isEmpty()){
-            contextualExternalVariableDocumentList.addAll(docIdentifiedByCollectionInstrumentId);
-        }
-        if(contextualExternalVariableDocumentList.isEmpty()){
+        results.addAll(repository.findByCollectionInstrumentIdAndInterrogationId(collectionInstrumentId, interrogationId));
+        if(results.isEmpty()){
             return null;
         }
-        if(contextualExternalVariableDocumentList.size() > 1){
+        if(results.size() > 1){
             log.warn("More than 1 contextual external response document for collection instrument {}, interrogation {}", collectionInstrumentId, interrogationId);
         }
-        return ContextualExternalVariableDocumentMapper.INSTANCE.documentToModel(contextualExternalVariableDocumentList.getFirst());
+        return ContextualExternalVariableDocumentMapper.INSTANCE.documentToModel(results.getFirst());
     }
 }

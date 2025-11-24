@@ -14,6 +14,7 @@ import org.springframework.data.mongodb.core.aggregation.MergeOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -91,19 +92,15 @@ public class ContextualPreviousVariableMongoAdapter implements ContextualPreviou
 
     @Override
     public ContextualPreviousVariableModel findByCollectionInstrumentIdAndInterrogationId(String collectionInstrumentId, String interrogationId) {
-        List<ContextualPreviousVariableDocument> contextualPreviousVariableDocumentList =
-                repository.findByQuestionnaireIdAndInterrogationId(collectionInstrumentId, interrogationId);
-        List<ContextualPreviousVariableDocument> docIdentifiedByCollectionInstrumentId =
-                repository.findByCollectionInstrumentIdAndInterrogationId(collectionInstrumentId, interrogationId);
-        if (!docIdentifiedByCollectionInstrumentId.isEmpty()){
-            contextualPreviousVariableDocumentList.addAll(docIdentifiedByCollectionInstrumentId);
-        }
-        if(contextualPreviousVariableDocumentList.isEmpty()){
+        List<ContextualPreviousVariableDocument> results = new ArrayList<>();
+        results.addAll(repository.findByQuestionnaireIdAndInterrogationId(collectionInstrumentId, interrogationId));
+        results.addAll(repository.findByCollectionInstrumentIdAndInterrogationId(collectionInstrumentId, interrogationId));
+        if(results.isEmpty()){
             return null;
         }
-        if(contextualPreviousVariableDocumentList.size() > 1){
+        if(results.size() > 1){
             log.warn("More than 1 contextual previous response document for collection instrument {}, interrogation {}", collectionInstrumentId, interrogationId);
         }
-        return ContextualPreviousVariableDocumentMapper.INSTANCE.documentToModel(contextualPreviousVariableDocumentList.getFirst());
+        return ContextualPreviousVariableDocumentMapper.INSTANCE.documentToModel(results.getFirst());
     }
 }
