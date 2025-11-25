@@ -43,7 +43,7 @@ public class RawResponseMongoAdapter implements RawResponsePersistencePort {
         mongoTemplate.updateMulti(
                 Query.query(Criteria.where("collectionInstrumentId").is(collectionInstrumentId).and("interrogationId").in(interrogationIds))
                 , new Update().set("processDate", LocalDateTime.now())
-                , Constants.MONGODB_LUNATIC_RAWDATA_COLLECTION_NAME
+                , Constants.MONGODB_RAW_RESPONSES_COLLECTION_NAME
         );
     }
 }
