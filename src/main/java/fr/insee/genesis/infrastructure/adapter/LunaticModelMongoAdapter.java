@@ -34,7 +34,9 @@ public class LunaticModelMongoAdapter implements LunaticModelPersistancePort {
         );
         mongoTemplate.update(LunaticModelDocument.class)
                 .matching(criteria)
-                .apply(new Update().set("lunaticModel", lunaticModelModel.lunaticModel()))
+                .apply(new Update()
+                        .set("lunaticModel", lunaticModelModel.lunaticModel())
+                        .setOnInsert("collectionInstrumentId", lunaticModelModel.collectionInstrumentId()))
                 .upsert();
     }
 
