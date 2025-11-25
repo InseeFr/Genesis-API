@@ -3,6 +3,7 @@ package fr.insee.genesis.infrastructure.adapter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mongodb.client.MongoCollection;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
@@ -11,6 +12,7 @@ import fr.insee.genesis.infrastructure.mappers.SurveyUnitDocumentMapper;
 import fr.insee.genesis.infrastructure.repository.SurveyUnitMongoDBRepository;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -207,11 +209,11 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 	@Override
 	public Set<String> findDistinctQuestionnaireIds() {
 		Set<String> questionnaireIds = new HashSet<>();
-		for(String questionnaireId : mongoTemplate.getCollection(Constants.MONGODB_RESPONSE_COLLECTION_NAME).distinct(
-                QUESTIONNAIRE_ID,
-				String.class)){
-			questionnaireIds.add(questionnaireId);
-		}
+		// Id selection is executed by mongoDB
+		MongoCollection<Document> collection = mongoTemplate.getCollection(Constants.MONGODB_RESPONSE_COLLECTION_NAME);
+		collection.distinct("questionnaireId", String.class).into(questionnaireIds);
+		collection.distinct("collectionInstrumentId", String.class).into(questionnaireIds);
+		questionnaireIds.remove(null);
 		return questionnaireIds;
 	}
 

@@ -24,6 +24,10 @@ public class SurveyUnitModel {
 	// New name of questionnaireId
 	private String collectionInstrumentId;
 	// To be removed
+	/**
+	 * @deprecated We will not receive this identifier anymore
+	 */
+	@Deprecated(forRemoval = true)
 	private String campaignId;
 	private String interrogationId;
 	// New name of idUE

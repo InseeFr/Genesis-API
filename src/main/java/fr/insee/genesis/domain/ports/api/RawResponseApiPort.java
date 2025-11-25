@@ -12,8 +12,8 @@ import java.util.List;
 
 public interface RawResponseApiPort {
 
-    List<RawResponse> getRawResponses(String questionnaireModelId, Mode mode, List<String> interrogationIdList);
-    DataProcessResult processRawResponses(String questionnaireId, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException;
+    List<RawResponse> getRawResponses(String collectionInstrumentId, Mode mode, List<String> interrogationIdList);
+    DataProcessResult processRawResponses(String collectionInstrumentId, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException;
     List<SurveyUnitModel> convertRawResponse(List<RawResponse> rawResponses, VariablesMap variablesMap);
     void updateProcessDates(List<SurveyUnitModel> surveyUnitModels);
 }
