@@ -36,6 +36,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -376,6 +377,10 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
             Map<String, Object> states = JsonUtils.asMap(collectedVariable.getValue());
 
             // nothing if no state
+            if (states == null || states.isEmpty()) {
+                continue;
+            }
+
             if (states.containsKey(stateKey)) {
                 Object value = states.get(stateKey);
 
@@ -388,7 +393,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
                 // scalaire non null ?
                 if (value != null && !(value instanceof List<?>)) {
                     // idem: on garde convertOneVar(entry, String, ...)
-                    convertOneVar(collectedVariable, String.valueOf(value), variablesMap, 1, dest);
+                    convertOneVar(collectedVariable, getValueString(value), variablesMap, 1, dest);
                 }
             }
         }
@@ -461,4 +466,15 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
 
     }
 
+    //Utils
+    protected static String getValueString(Object value) {
+        if (value instanceof Double || value instanceof Float) {
+            BigDecimal bd = new BigDecimal(value.toString());
+            return bd.stripTrailingZeros().toPlainString();
+        }
+        if (value instanceof Number) {
+            return value.toString();
+        }
+        return String.valueOf(value);
+    }
 }

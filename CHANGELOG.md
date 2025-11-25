@@ -1,4 +1,10 @@
 # Changelog
+## 1.12.2 [2025-11-06]
+### Fixed
+- Scientific notation for Doubles during raw data processing
+
+### Updated
+- BPM 1.0.19
 ## 1.12.0 [2025-10-23]
 - Get review indicator endpoint
 
