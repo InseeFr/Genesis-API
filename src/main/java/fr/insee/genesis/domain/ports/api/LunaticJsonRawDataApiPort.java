@@ -27,7 +27,6 @@ public interface LunaticJsonRawDataApiPort {
     Set<String> findDistinctQuestionnaireIds();
     long countResponsesByQuestionnaireId(String campaignId);
     Page<LunaticJsonRawDataModel> findRawDataByCampaignIdAndDate(String campaignId, Instant  startDt, Instant endDt, Pageable pageable);
-
     DataProcessResult processRawData(String campaignName, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException;
     Map<String, List<String>> findProcessedIdsgroupedByQuestionnaireSince(LocalDateTime since);
 }

@@ -28,7 +28,7 @@ public class JsonUtils {
     public static List<String> asStringList(Object obj) {
         if (obj instanceof List<?> list) {
             return list.stream()
-                    .map(e -> e == null ? "" : String.valueOf(e))
+                    .map(e -> e == null ? null : String.valueOf(e))
                     .toList();
         }
         throw new IllegalArgumentException("Object is not a List");
