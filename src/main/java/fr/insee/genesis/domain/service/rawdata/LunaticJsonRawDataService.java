@@ -405,7 +405,9 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
         if (!values.isEmpty()) {
             int iteration = 1;
             for (String value : values) {
-                convertOneVar(collectedVariable, value, variablesMap, iteration, dstSurveyUnitModel);
+                if (value!=null) {
+                    convertOneVar(collectedVariable, value, variablesMap, iteration, dstSurveyUnitModel);
+                }
                 iteration++;
             }
         }
