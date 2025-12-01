@@ -182,8 +182,8 @@ class ResponseControllerTest {
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull();
         Assertions.assertThat(response.getBody().getInterrogationId()).isEqualTo(DEFAULT_INTERROGATION_ID);
-        Assertions.assertThat(response.getBody().getSurveyUnitId()).isEqualTo(DEFAULT_ID_UE);
-        Assertions.assertThat(response.getBody().getQuestionnaireId()).isEqualTo(DEFAULT_QUESTIONNAIRE_ID);
+        Assertions.assertThat(response.getBody().getUsualSurveyUnitId()).isEqualTo(DEFAULT_ID_UE);
+        Assertions.assertThat(response.getBody().getCollectionInstrumentId()).isEqualTo(DEFAULT_QUESTIONNAIRE_ID);
     }
 
     @Test
@@ -193,7 +193,7 @@ class ResponseControllerTest {
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
         Assertions.assertThat(response.getBody().getFirst().getInterrogationId()).isEqualTo(DEFAULT_INTERROGATION_ID);
-        Assertions.assertThat(response.getBody().getFirst().getSurveyUnitId()).isEqualTo(DEFAULT_ID_UE);
+        Assertions.assertThat(response.getBody().getFirst().getUsualSurveyUnitId()).isEqualTo(DEFAULT_ID_UE);
     }
 
     // Perret tests
