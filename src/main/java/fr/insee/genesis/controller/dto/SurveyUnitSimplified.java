@@ -11,10 +11,14 @@ import java.util.List;
 @Data
 public class SurveyUnitSimplified {
 
-	private String questionnaireId;
+	private String collectionInstrumentId;
+	/**
+	 * @deprecated We will not reveive this piece of information anymore
+	 */
+	@Deprecated(forRemoval = true)
 	private String campaignId;
 	private String interrogationId;
-	private String surveyUnitId;
+	private String usualSurveyUnitId;
 	private Mode mode;
 	private List<VariableModel> variablesUpdate;
 	private List<VariableModel> externalVariables;

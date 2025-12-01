@@ -111,7 +111,7 @@ class ControllerAccessTest {
                 Arguments.of("/questionnaires/with-campaigns"),
                 Arguments.of("/questionnaires/by-campaign?campaignId=CAMPAIGNTEST"),
                 Arguments.of("/questionnaires/"),
-                Arguments.of("/modes/by-questionnaire?collectionInstrumentId=QUESTTEST"),
+                Arguments.of("/modes/by-questionnaire?questionnaireId=QUESTTEST"),
                 Arguments.of("/modes/by-campaign?campaignId=CAMPAIGNTEST"),
                 Arguments.of("/interrogations/by-questionnaire?questionnaireId=QUESTTEST"),
                 Arguments.of("/campaigns/with-questionnaires"),

@@ -26,8 +26,6 @@ public interface SurveyUnitPersistencePort {
 
     Stream<SurveyUnitModel> findByQuestionnaireId(String questionnaireId);
 
-    List<SurveyUnitModel> findInterrogationIdsByQuestionnaireId(String questionnaireId);
-
     List<SurveyUnitModel> findInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId);
 
     List<SurveyUnitModel> findInterrogationIdsByQuestionnaireIdAndDateAfter(String questionnaireId, LocalDateTime since);

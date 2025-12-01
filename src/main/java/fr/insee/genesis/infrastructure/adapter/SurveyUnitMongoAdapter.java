@@ -152,15 +152,11 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 	}
 
 	@Override
-	public List<SurveyUnitModel> findInterrogationIdsByQuestionnaireId(String questionnaireId) {
-		List<SurveyUnitDocument> surveyUnits = mongoRepository.findInterrogationIdsByQuestionnaireId(questionnaireId);
-		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnits);
-	}
-
-	@Override
 	public List<SurveyUnitModel> findInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId) {
-		List<SurveyUnitDocument> surveyUnits = mongoRepository.findInterrogationIdsByCollectionInstrumentId(collectionInstrumentId);
-		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnits);
+		List<SurveyUnitDocument> results =  new ArrayList<>();
+		results.addAll(mongoRepository.findInterrogationIdsByCollectionInstrumentId(collectionInstrumentId));
+		results.addAll(mongoRepository.findInterrogationIdsByQuestionnaireId(collectionInstrumentId));
+		return results.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(results);
 	}
 
 	@Override

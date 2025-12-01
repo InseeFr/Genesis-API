@@ -77,19 +77,6 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     }
 
     @Override
-    public List<SurveyUnitModel> findInterrogationIdsByQuestionnaireId(String questionnaireId) {
-        List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
-        for(SurveyUnitModel SurveyUnitModel : mongoStub){
-            if(SurveyUnitModel.getCollectionInstrumentId().equals(questionnaireId))
-                surveyUnitModelList.add(
-                        new SurveyUnitModel(SurveyUnitModel.getInterrogationId(), SurveyUnitModel.getMode())
-                );
-        }
-
-        return surveyUnitModelList;
-    }
-
-    @Override
     public List<SurveyUnitModel> findInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId) {
         List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
         for(SurveyUnitModel SurveyUnitModel : mongoStub){
@@ -103,7 +90,7 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
 
     @Override
     public List<SurveyUnitModel> findModesByQuestionnaireIdV2(String questionnaireId) {
-        return findInterrogationIdsByQuestionnaireId(questionnaireId);
+        return findInterrogationIdsByCollectionInstrumentId(questionnaireId);
     }
 
     @Override
