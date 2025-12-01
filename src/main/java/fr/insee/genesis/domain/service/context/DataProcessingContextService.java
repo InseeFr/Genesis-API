@@ -168,7 +168,7 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
     }
 
     @Override
-    public DataProcessingContextModel getContextByPartitionId(String partitionId){
+    public DataProcessingContextModel getContextByCollectionInstrumentId(String partitionId){
         return DataProcessingContextMapper.INSTANCE.documentToModel(
                 dataProcessingContextPersistancePort.findByPartitionId(partitionId)
         );

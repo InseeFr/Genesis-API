@@ -98,10 +98,10 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
     }
 
     @Override
-    public Set<String> findUnprocessedInterrogationIdsByQuestionnaire(String questionnaireId) {
+    public Set<String> findUnprocessedInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId) {
         Set<String> interrogationIds = new HashSet<>();
 
-        repository.aggregateRawGroupedWithNullProcessDate(questionnaireId).forEach(
+        repository.aggregateRawGroupedWithNullProcessDate(collectionInstrumentId).forEach(
                 groupedInterrogationDocument -> interrogationIds.addAll(groupedInterrogationDocument.getInterrogationIds())
         );
 
