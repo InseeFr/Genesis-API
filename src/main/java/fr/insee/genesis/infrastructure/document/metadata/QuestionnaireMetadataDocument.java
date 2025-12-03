@@ -12,6 +12,7 @@ I choose to keep the record here (this choice can be challenged)*/
         "java:S6355"  // Add 'since' and/or 'forRemoval' arguments to the @Deprecated annotation
 })
 @CompoundIndex(name = "questionnaireId_1_mode_1", def = "{'questionnaireId': 1, 'mode': 1}")
+@CompoundIndex(name = "collectionInstrumentId_1_mode_1", def = "{'collectionInstrumentId': 1, 'mode': 1}")
 @Document(collection = "questionnaireMetadatas")
 public record QuestionnaireMetadataDocument(
         @Deprecated

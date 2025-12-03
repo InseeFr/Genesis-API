@@ -16,6 +16,8 @@ import java.util.List;
 @CompoundIndex(name = "questionnaireId_1_campaignId_1", def = "{'questionnaireId': 1, 'campaignId': 1}")
 @CompoundIndex(name = "questionnaireId_1_interrogationId_1", def = "{'questionnaireId': 1, 'interrogationId': 1}")
 @CompoundIndex(name = "interrogationId_1_questionnaireId_1", def = "{'interrogationId': 1, 'questionnaireId': 1}")
+@CompoundIndex(name = "collectionInstrumentId_1_interrogationId_1", def = "{'collectionInstrumentId': 1, 'interrogationId': 1}")
+@CompoundIndex(name = "interrogationId_1_collectionInstrumentId_1", def = "{'interrogationId': 1, 'collectionInstrumentId': 1}")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SurveyUnitDocument {
 
