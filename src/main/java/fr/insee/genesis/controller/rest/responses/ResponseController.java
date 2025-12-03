@@ -466,7 +466,7 @@ public class ResponseController implements CommonApiResponse {
         }
 
         //Create context if not exist
-        if(contextService.getContextByPartitionId(campaignName) == null){
+        if(contextService.getContextByCollectionInstrumentId(campaignName) == null){
             contextService.saveContext(campaignName, false);
         }
 

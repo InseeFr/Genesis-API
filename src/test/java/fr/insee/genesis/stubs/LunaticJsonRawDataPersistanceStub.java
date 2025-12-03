@@ -176,4 +176,15 @@ public class LunaticJsonRawDataPersistanceStub implements LunaticJsonRawDataPers
         return GroupedInterrogationDocumentMapper.INSTANCE.listDocumentToListModel(result);
     }
 
+    @Override
+    public Set<String> findUnprocessedInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId) {
+       List<LunaticJsonRawDataDocument> unprocessedDocuments =
+               mongoStub.stream().filter(
+                       lunaticJsonDataDocument -> lunaticJsonDataDocument.processDate() == null
+                       && lunaticJsonDataDocument.questionnaireId().equals(collectionInstrumentId)
+               ).toList();
+       Set<String> interrogationIds = new HashSet<>();
+       unprocessedDocuments.forEach(doc -> interrogationIds.add(doc.interrogationId()));
+       return interrogationIds;
+    }
 }
