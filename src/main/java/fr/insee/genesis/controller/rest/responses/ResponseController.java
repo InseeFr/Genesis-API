@@ -43,6 +43,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -189,9 +190,9 @@ public class ResponseController implements CommonApiResponse {
     
     //DELETE
     @Operation(summary = "Delete all responses associated with a collection instrument (formerly questionnaire)")
-    @DeleteMapping(path = "/delete/by-collection-instrument")
+    @DeleteMapping(path = "/delete/{collectionInstrumentId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Object> deleteAllResponsesByCollectionInstrument(@RequestParam("collectionInstrumentId") String collectionInstrumentId) {
+    public ResponseEntity<Object> deleteAllResponsesByCollectionInstrument(@PathVariable("collectionInstrumentId") String collectionInstrumentId) {
         log.info("Try to delete all responses of collection instrument : {}", collectionInstrumentId);
         Long ndDocuments = surveyUnitService.deleteByCollectionInstrumentId(collectionInstrumentId);
         log.info("{} responses deleted", ndDocuments);
