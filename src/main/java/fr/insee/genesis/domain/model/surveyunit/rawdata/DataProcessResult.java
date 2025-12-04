@@ -1,4 +1,8 @@
 package fr.insee.genesis.domain.model.surveyunit.rawdata;
 
-public record DataProcessResult(int dataCount, int formattedDataCount) {
+import fr.insee.genesis.exceptions.GenesisError;
+
+import java.util.List;
+
+public record DataProcessResult(int dataCount, int formattedDataCount, List<GenesisError> errors) {
 }
