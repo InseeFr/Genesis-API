@@ -121,6 +121,11 @@ public class RawDataDefinitions {
         }
 
         @Override
+        public List<String> getUnprocessedCollectionInstrumentIds() {
+            return List.of();
+        }
+
+        @Override
         public void updateProcessDates(List<SurveyUnitModel> surveyUnitModels) {
             // Do nothing - stub for test
         }

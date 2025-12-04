@@ -127,7 +127,7 @@ public class RawResponseService implements RawResponseApiPort {
                 batchNumber++;
             }
         }
-        return new DataProcessResult(dataCount, formattedDataCount);
+        return new DataProcessResult(dataCount, formattedDataCount, List.of());
     }
 
     @Override
@@ -180,6 +180,11 @@ public class RawResponseService implements RawResponseApiPort {
         }
         return surveyUnitModels;
         //return List.of();
+    }
+
+    @Override
+    public List<String> getUnprocessedCollectionInstrumentIds() {
+        return rawResponsePersistencePort.getUnprocessedCollectionIds();
     }
 
     @Override

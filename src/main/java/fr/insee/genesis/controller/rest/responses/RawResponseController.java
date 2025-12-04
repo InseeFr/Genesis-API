@@ -215,6 +215,13 @@ public class RawResponseController {
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
         }
     }
+    @Operation(summary = "Get the list of collection instruments containing unprocessed interrogations")
+    @GetMapping(path = "/raw-responses/unprocessed/collection-intrument-ids")
+    @PreAuthorize("hasRole('SCHEDULER')")
+    public ResponseEntity<List<String>> getUnprocessedCollectionInstrument(){
+        log.info("Try to get collection instruments containing unprocessed interrogations...");
+        return ResponseEntity.ok(rawResponseApiPort.getUnprocessedCollectionInstrumentIds());
+    }
 
     //GET unprocessed
     @Operation(summary = "Get campaign id and interrogationId from all unprocessed raw json data")
