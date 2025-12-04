@@ -67,7 +67,7 @@ import java.util.Set;
 
 @RequestMapping(path = "/responses" )
 @Controller
-@Tag(name = "Response services", description = "A **response** is considered the entire set of data associated with an interrogation (survey unit x questionnaireId). \n\n These data may have different state (collected, edited, external, ...) ")
+@Tag(name = "Response services", description = "A **response** is considered the entire set of data associated with an interrogation (survey unit x collecton Intrument Id [ex questionnaire]). \n\n These data may have different state (collected, edited, external, ...) ")
 @Slf4j
 public class ResponseController implements CommonApiResponse {
 
@@ -108,7 +108,7 @@ public class ResponseController implements CommonApiResponse {
                                                            @RequestParam(value = "pathSpecFile") String metadataFilePath,
                                                            @RequestParam(value = "mode") Mode modeSpecified
     )throws Exception {
-        log.info("Try to read Xml file : {}", xmlFile);
+        log.info("Try to read one Xml file : {}", xmlFile);
         Path filepath = Paths.get(xmlFile);
 
         if (getFileSizeInMB(filepath) <= Constants.MAX_FILE_SIZE_UNTIL_SEQUENTIAL) {
@@ -248,8 +248,7 @@ public class ResponseController implements CommonApiResponse {
             @RequestParam("interrogationId") String interrogationId,
             @RequestParam("collectionInstrumentId") String collectionInstrumentId) throws GenesisException {
         //Check context
-        DataProcessingContextModel dataProcessingContextModel =
-                contextService.getContext(interrogationId);
+        DataProcessingContextModel dataProcessingContextModel = contextService.getContext(interrogationId);
 
         if(dataProcessingContextModel == null || !dataProcessingContextModel.isWithReview()){
             return ResponseEntity.status(403).body(new ApiError("Review is disabled for that partition"));
@@ -347,7 +346,7 @@ public class ResponseController implements CommonApiResponse {
         //!!!WARNING!!! : FOR PERFORMANCES PURPOSES, WE DONT'MAKE REQUESTS ON INDIVIDUAL ELEMENTS ANYMORE, BUT ON A SUBLIST OF THE INPUTLIST
         final int SUBBLOCK_SIZE = 100;
         int offset = 0;
-        List<InterrogationId> interrogationIdsSubList = null;
+        List<InterrogationId> interrogationIdsSubList;
 
         for(String mode : modes) {
 
