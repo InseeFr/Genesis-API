@@ -1,5 +1,5 @@
 # Changelog
-## 1.13.0 [TODO]
+## 1.13.0 [2025-12-04]
 ### Changed
 - New raw data process endpoint
 
