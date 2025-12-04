@@ -98,57 +98,6 @@ public class RawResponseController {
         return ResponseEntity.status(201).body(String.format(SUCCESS_MESSAGE, interrogationId));
     }
 
-/*    @Operation(summary = "Deprecated")
-    @PutMapping(path="/lunatic-json")
-    @PreAuthorize("hasRole('COLLECT_PLATFORM')")
-    // Check version when merging
-    @Deprecated(since="1.13.0", forRemoval=true)
-    public ResponseEntity<String> saveRawResponsesFromJsonBodyWithValidationDeprecated(
-            @RequestBody Map<String, Object> body
-    ) {
-
-        SchemaRegistry schemaRegistry = SchemaRegistry.withDialect(Dialects.getDraft202012(), SchemaRegistry.Builder::build);
-        Schema jsonSchema = schemaRegistry
-                .getSchema(RawResponseController.class.getResourceAsStream("/modele-filiere-spec/RawResponse.json")
-        );
-        try {
-            if (jsonSchema == null) {
-                throw new GenesisException(500, "No RawResponse json schema has been found");
-            }
-            List<Error> errors = jsonSchema.validate(
-                    new ObjectMapper().readTree(
-                            new ObjectMapper().writeValueAsString(body)
-                    )
-            );
-            // Throw Genesis exception if errors are present
-            validate(errors);
-            //Check required ids
-            checkRequiredIds(body);
-        } catch (JsonProcessingException jpe) {
-            return ResponseEntity.status(400).body(jpe.toString());
-        } catch (GenesisException ge) {
-            return ResponseEntity.status(ge.getStatus()).body(ge.getMessage());
-        }
-
-        LunaticJsonRawDataModel rawData = LunaticJsonRawDataModel.builder()
-                .campaignId(body.get(PARTITION_ID).toString())
-                .questionnaireId(body.get("questionnaireModelId").toString().toUpperCase())
-                .interrogationId(body.get(INTERROGATION_ID).toString())
-                .idUE(body.get("surveyUnitId").toString())
-                .mode(Mode.getEnumFromJsonName(body.get("mode").toString()))
-                .data(body)
-                .recordDate(LocalDateTime.now())
-                .build();
-        try {
-            lunaticJsonRawDataApiPort.save(rawData);
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body("Unexpected error");
-        }
-
-        log.info("Data saved for interrogationId {} and partition {}", body.get(INTERROGATION_ID).toString(),
-                body.get(PARTITION_ID).toString());
-        return ResponseEntity.status(201).body(String.format(SUCCESS_MESSAGE, body.get(INTERROGATION_ID).toString()));
-    }*/
 
     @Operation(summary = "Save lunatic json data from one interrogation in Genesis Database (with json " +
             "schema validation)")

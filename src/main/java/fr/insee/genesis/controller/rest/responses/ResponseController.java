@@ -101,6 +101,7 @@ public class ResponseController implements CommonApiResponse {
     }
 
     //SAVE
+    @Deprecated(since = "2026-01-01")
     @Operation(summary = "Save one file of responses to Genesis Database, passing its path as a parameter")
     @PutMapping(path = "/lunatic-xml/save-one")
     @PreAuthorize("hasRole('ADMIN')")
@@ -117,6 +118,7 @@ public class ResponseController implements CommonApiResponse {
         return processXmlFileSequentially(filepath, modeSpecified, metadataFilePath);
     }
 
+    @Deprecated(since = "2026-01-01")
     @Operation(summary = "Save multiple files to Genesis Database from the campaign root folder")
     @PutMapping(path = "/lunatic-xml/save-folder")
     @PreAuthorize("hasRole('ADMIN')")
@@ -149,6 +151,7 @@ public class ResponseController implements CommonApiResponse {
     }
 
     //SAVE ALL
+    @Deprecated(since = "2026-01-01")
     @Operation(summary = "Save all files to Genesis Database (differential data folder only), regardless of the campaign")
     @PutMapping(path = "/lunatic-xml/save-all-campaigns")
     @PreAuthorize("hasRole('SCHEDULER')")
@@ -211,14 +214,13 @@ public class ResponseController implements CommonApiResponse {
      * @deprecated
      * This endpoint is deprecated because the parameter `questionnaireId` has been renamed
      * to `collectionInstrumentId` in the Information System (modeled in the modelefiliere library).
-     *
      * A new endpoint using the updated parameter names will be provided to remain compliant with
      * the current data model. This endpoint will be removed once all dependent APIs have adopted
      * the new naming convention.
      *
      * Use the new endpoint with `collectionInstrumentId` for future implementations.
      */
-    @Deprecated(forRemoval = true)
+    @Deprecated(forRemoval = true, since= "2026-01-01")
     @Operation(summary = "Retrieve responses for an interrogation, using interrogationId and questionnaireId from Genesis Database with the latest value for each available state of every variable",
                 description = "use /by-interrogation-and-collection-instrument/latest-states instead")
     @GetMapping(path = "/by-ue-and-questionnaire/latest-states",
