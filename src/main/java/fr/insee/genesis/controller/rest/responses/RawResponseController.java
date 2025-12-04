@@ -46,14 +46,12 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Controller
 public class RawResponseController {
 
     private static final String SUCCESS_MESSAGE = "Interrogation %s saved";
-    private static final String PARTITION_ID = "partitionId";
     private static final String INTERROGATION_ID = "interrogationId";
     private final LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort;
     private final RawResponseApiPort rawResponseApiPort;
@@ -238,31 +236,5 @@ public class RawResponseController {
         return ResponseEntity.status(HttpStatus.OK).body(new PagedModel<>(rawResponses));
     }
 
-    private void validate(List<Error> errors) throws GenesisException {
-        if (!errors.isEmpty()) {
-            String errorMessage = errors.stream()
-                    .map(Error::getMessage)
-                    .collect(Collectors.joining(System.lineSeparator() + " - "));
-
-            throw new GenesisException(
-                    400,
-                    "Input data JSON is not valid: %n - %s".formatted(errorMessage)
-            );
-        }
-    }
-
-    private void checkRequiredIds(Map<String, Object> body) throws GenesisException {
-        for (String requiredKey : List.of(
-                PARTITION_ID,
-                "questionnaireModelId",
-                INTERROGATION_ID,
-                "surveyUnitId",
-                "mode"
-        )) {
-            if (body.get(requiredKey) == null) {
-                throw new GenesisException(400, "No %s found in body".formatted(requiredKey));
-            }
-        }
-    }
 
 }
