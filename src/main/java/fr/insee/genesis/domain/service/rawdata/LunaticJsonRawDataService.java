@@ -195,7 +195,6 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
                 RawDataModelType rawDataModelType = getRawDataModelType(rawData);
 
                 //Get optional fields
-                String contextualId = getContextualId(rawData);
                 Boolean isCapturedIndirectly = getIsCapturedIndirectly(rawData);
                 LocalDateTime validationDate = getValidationDate(rawData);
 
@@ -263,15 +262,6 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
             return Boolean.FALSE;
         }
 
-    }
-
-    private static String getContextualId(LunaticJsonRawDataModel rawData) {
-        try{
-            return rawData.data().get("contextualId") == null ? null : rawData.data().get("contextualId").toString();
-        }catch(Exception e){
-            log.warn("Exception when parsing contextual id : {}}",e.toString());
-            return null;
-        }
     }
 
     @Override

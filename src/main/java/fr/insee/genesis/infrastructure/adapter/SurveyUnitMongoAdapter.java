@@ -207,7 +207,7 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 		Set<String> questionnaireIds = new HashSet<>();
 		// Id selection is executed by mongoDB
 		MongoCollection<Document> collection = mongoTemplate.getCollection(Constants.MONGODB_RESPONSE_COLLECTION_NAME);
-		collection.distinct("questionnaireId", String.class).into(questionnaireIds);
+		collection.distinct(QUESTIONNAIRE_ID, String.class).into(questionnaireIds);
 		collection.distinct("collectionInstrumentId", String.class).into(questionnaireIds);
 		questionnaireIds.remove(null);
 		return questionnaireIds;
