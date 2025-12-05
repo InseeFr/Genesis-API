@@ -149,9 +149,13 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
             throw new GenesisException(404,"No interrogation in database with id %s".formatted(interrogationId));
         }
         Set<String> partitionIds = new HashSet<>();
-        surveyUnitModels.forEach(
-                surveyUnitModel -> partitionIds.add(surveyUnitModel.getCampaignId())
-        );
+        for (SurveyUnitModel su : surveyUnitModels){
+            if (su.getCampaignId()!=null){
+                partitionIds.add(su.getCampaignId());
+                break;
+            }
+            partitionIds.add(su.getCollectionInstrumentId());
+        }
         if(partitionIds.isEmpty()){
             return null;
         }
