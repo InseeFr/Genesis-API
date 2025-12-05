@@ -156,7 +156,7 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
                 campaignIds.add(su.getCampaignId());
             }
             if (su.getCollectionInstrumentId()!=null){
-                collectionInstrumentIds.add(su.getCampaignId());
+                collectionInstrumentIds.add(su.getCollectionInstrumentId());
             }
         }
         if(campaignIds.size() > 1 || collectionInstrumentIds.size()>1){
