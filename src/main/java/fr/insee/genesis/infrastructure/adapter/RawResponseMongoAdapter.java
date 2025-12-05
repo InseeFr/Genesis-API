@@ -16,6 +16,7 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -50,5 +51,11 @@ public class RawResponseMongoAdapter implements RawResponsePersistencePort {
     @Override
     public List<String> getUnprocessedCollectionIds() {
         return repository.findDistinctCollectionInstrumentIdByProcessDateIsNull();
+    }
+
+    @Override
+    public Set<String> findUnprocessedInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId) {
+        // We remove duplicate ids
+        return new HashSet<>(repository.findInterrogationIdByCollectionInstrumentId(collectionInstrumentId));
     }
 }

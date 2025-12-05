@@ -116,6 +116,11 @@ public class RawDataDefinitions {
         }
 
         @Override
+        public DataProcessResult processRawResponses(String collectionInstrumentId) throws GenesisException {
+            return null;
+        }
+
+        @Override
         public List<SurveyUnitModel> convertRawResponse(List<RawResponse> rawResponses, VariablesMap variablesMap) {
             return List.of();
         }

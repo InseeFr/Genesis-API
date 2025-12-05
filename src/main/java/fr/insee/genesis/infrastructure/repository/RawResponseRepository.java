@@ -19,4 +19,11 @@ public interface RawResponseRepository extends MongoRepository<RawResponseDocume
             "{ $project: { _id: 0, collectionInstrumentId: '$_id' } }"
     })
     List<String> findDistinctCollectionInstrumentIdByProcessDateIsNull();
+
+    @Aggregation(pipeline = {
+            "{ $match: { collectionInstrumentId: ?0 } }",
+            "{ $project: { _id: 0, interrogationId: '$interrogationId' } }"
+    })
+    List<String> findInterrogationIdByCollectionInstrumentId(String collectionInstrumentId);
+
 }

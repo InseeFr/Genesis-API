@@ -191,7 +191,7 @@ public class RawResponseController {
     }
 
     //PROCESS
-    @Operation(summary = "Process raw data of a campaign")
+    @Operation(summary = "Process raw data for a list of interrogations")
     @PostMapping(path = "/raw-responses/process")
     @PreAuthorize("hasRole('SCHEDULER')")
     public ResponseEntity<String> processRawResponses(
@@ -202,9 +202,8 @@ public class RawResponseController {
             @RequestParam("collectionInstrumentId") String collectionInstrumentId,
             @RequestBody List<String> interrogationIdList
     ) {
-        log.info("Try to process raw responses for questionnaireId {} and {} interrogationIds", collectionInstrumentId, interrogationIdList.size());
+        log.info("Try to process raw responses for collectionInstrumentId {} and {} interrogationIds", collectionInstrumentId, interrogationIdList.size());
         List<GenesisError> errors = new ArrayList<>();
-
         try {
             DataProcessResult result = rawResponseApiPort.processRawResponses(collectionInstrumentId, interrogationIdList, errors);
             return result.formattedDataCount() == 0 ?
@@ -215,6 +214,29 @@ public class RawResponseController {
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
         }
     }
+
+    @Operation(summary = "Process raw data for all data of an collection instrument")
+    @PostMapping(path = "/raw-responses/{collectionInstrumentId}/process")
+    @PreAuthorize("hasRole('SCHEDULER')")
+    public ResponseEntity<String> processRawResponsesByCollectionInstrumentId(
+            @Parameter(
+                    description = "Id of the collection instrument (old questionnaireId)",
+                    example = "ENQTEST2025X00"
+            )
+            @PathVariable("collectionInstrumentId") String collectionInstrumentId
+    ) {
+        log.info("Try to process raw responses for collectionInstrumentId {}", collectionInstrumentId);
+        try {
+            DataProcessResult result = rawResponseApiPort.processRawResponses(collectionInstrumentId);
+            return result.formattedDataCount() == 0 ?
+                    ResponseEntity.ok("%d document(s) processed".formatted(result.dataCount()))
+                    : ResponseEntity.ok("%d document(s) processed, including %d FORMATTED after data verification"
+                    .formatted(result.dataCount(), result.formattedDataCount()));
+        } catch (GenesisException e) {
+            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
+        }
+    }
+
     @Operation(summary = "Get the list of collection instruments containing unprocessed interrogations")
     @GetMapping(path = "/raw-responses/unprocessed/collection-intrument-ids")
     @PreAuthorize("hasRole('SCHEDULER')")
@@ -269,7 +291,7 @@ public class RawResponseController {
     }
 
     @Operation(summary = "Process raw data of a questionnaire")
-    @PostMapping(path = "/{collectionInstrumentId}/process")
+    @PostMapping(path = "/responses/raw/lunatic-json/{collectionInstrumentId}/process")
     @PreAuthorize("hasRole('SCHEDULER')")
     public ResponseEntity<String> processJsonRawData(
             @PathVariable String collectionInstrumentId
