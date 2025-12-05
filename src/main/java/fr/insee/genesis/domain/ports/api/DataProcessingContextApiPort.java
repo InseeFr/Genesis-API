@@ -31,7 +31,9 @@ public interface DataProcessingContextApiPort {
     long countSchedules();
 
     DataProcessingContextModel getContext(String interrogationId) throws GenesisException;
-    DataProcessingContextModel getContextByCollectionInstrumentId(String partitionId) throws GenesisException;
+
+    DataProcessingContextModel getContextByCollectionInstrumentId(String collectionInstrumentId);
+
     List<String> getPartitionIds(boolean withReview);
 
     /**

@@ -60,7 +60,7 @@ class DataVerifierTest {
 
         SurveyUnitModel surveyUnit = SurveyUnitModel.builder()
                 .interrogationId("UE1100000001")
-                .questionnaireId("Quest1")
+                .collectionInstrumentId("Quest1")
                 .campaignId("Camp1")
                 .state(DataState.COLLECTED)
                 .collectedVariables(List.of(collectedVariable1, collectedVariable2))
@@ -102,7 +102,7 @@ class DataVerifierTest {
                 .build();
         SurveyUnitModel surveyUnit = SurveyUnitModel.builder()
                 .interrogationId("UE1100000001")
-                .questionnaireId("Quest1")
+                .collectionInstrumentId("Quest1")
                 .campaignId("Camp1")
                 .state(DataState.COLLECTED)
                 .collectedVariables(List.of(collectedVariable1, collectedVariable2))
@@ -140,7 +140,7 @@ class DataVerifierTest {
 
         SurveyUnitModel surveyUnitWithInvalidExt = SurveyUnitModel.builder()
                 .interrogationId("UE1100000002")
-                .questionnaireId("Quest1")
+                .collectionInstrumentId("Quest1")
                 .campaignId("Camp1")
                 .state(DataState.COLLECTED)
                 .collectedVariables(List.of())
@@ -186,7 +186,7 @@ class DataVerifierTest {
                 .build();
         SurveyUnitModel surveyUnit = SurveyUnitModel.builder()
                 .interrogationId("UE1100000001")
-                .questionnaireId("Quest1")
+                .collectionInstrumentId("Quest1")
                 .campaignId("Camp1")
                 .state(DataState.COLLECTED)
                 .collectedVariables(List.of(collectedVariable1, collectedVariable2, collectedVariable3))
@@ -239,7 +239,7 @@ class DataVerifierTest {
                 .build();
         SurveyUnitModel surveyUnit = SurveyUnitModel.builder()
                 .interrogationId("UE1100000001")
-                .questionnaireId("Quest1")
+                .collectionInstrumentId("Quest1")
                 .campaignId("Camp1")
                 .state(DataState.COLLECTED)
                 .collectedVariables(List.of(collectedVariable1, collectedVariable2, collectedVariable3, collectedVariable4))
@@ -287,7 +287,7 @@ class DataVerifierTest {
                     .build();
             SurveyUnitModel surveyUnit = SurveyUnitModel.builder()
                     .interrogationId("UE1100000001")
-                    .questionnaireId("Quest1")
+                    .collectionInstrumentId("Quest1")
                     .campaignId("Camp1")
                     .state(dataState)
                     .collectedVariables(List.of(collectedVariable1))
@@ -340,7 +340,7 @@ class DataVerifierTest {
                     .build();
             SurveyUnitModel surveyUnit = SurveyUnitModel.builder()
                     .interrogationId("UE1100000001")
-                    .questionnaireId("Quest1")
+                    .collectionInstrumentId("Quest1")
                     .campaignId("Camp1")
                     .state(dataState)
                     .collectedVariables(List.of(collectedVariable1))

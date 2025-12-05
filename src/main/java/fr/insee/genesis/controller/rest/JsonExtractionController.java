@@ -30,11 +30,11 @@ public class JsonExtractionController {
     @PutMapping(path = "/json")
     @PreAuthorize("hasAnyRole('USER_KRAFTWERK','SCHEDULER')")
     public ResponseEntity<String> saveLastJsonExtractionDate(
-            @RequestParam("questionnaireId") String questionnaireId,
+            @RequestParam("collectionInstrumentId") String collectionInstrumentId,
             @RequestParam(value = "mode", required = false) Mode mode){
         LocalDateTime extractDate = LocalDateTime.now();
         LastJsonExtractionModel extract = LastJsonExtractionModel.builder()
-                .questionnaireModelId(questionnaireId)
+                .collectionInstrumentId(collectionInstrumentId)
                 .mode(mode)
                 .lastExtractionDate(extractDate)
                 .build();
@@ -46,10 +46,10 @@ public class JsonExtractionController {
     @GetMapping(path = "/json")
     @PreAuthorize("hasAnyRole('USER_KRAFTWERK','SCHEDULER')")
     public ResponseEntity<LastExtractionResponseDto> getLastJsonExtractionDate(
-            @RequestParam("questionnaireId") String questionnaireId,
+            @RequestParam("collectionInstrumentId") String collectionInstrumentId,
             @RequestParam(value = "mode", required = false) Mode mode){
         try{
-            LastJsonExtractionModel lastJsonExtraction = lastJsonExtractionApiPort.getLastExtractionDate(questionnaireId,mode);
+            LastJsonExtractionModel lastJsonExtraction = lastJsonExtractionApiPort.getLastExtractionDate(collectionInstrumentId,mode);
             return ResponseEntity.ok(new LastExtractionResponseDto(lastJsonExtraction.getLastExtractionDate()));
         } catch (GenesisException e){
             return ResponseEntity.notFound().build();

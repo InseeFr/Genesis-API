@@ -26,7 +26,7 @@ public interface SurveyUnitPersistencePort {
 
     Stream<SurveyUnitModel> findByQuestionnaireId(String questionnaireId);
 
-    List<SurveyUnitModel> findInterrogationIdsByQuestionnaireId(String questionnaireId);
+    List<SurveyUnitModel> findInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId);
 
     List<SurveyUnitModel> findInterrogationIdsByQuestionnaireIdAndDateAfter(String questionnaireId, LocalDateTime since);
 
@@ -42,7 +42,7 @@ public interface SurveyUnitPersistencePort {
 
     List<SurveyUnitModel> findInterrogationIdsByCampaignId(String campaignId);
 
-    Long deleteByQuestionnaireId(String questionnaireId);
+    Long deleteByCollectionInstrumentId(String collectionInstrumentId);
 
     long count();
 

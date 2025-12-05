@@ -5,6 +5,6 @@ import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 
 public interface ContextualVariableApiPort {
-    ContextualVariableModel getContextualVariable(String questionnaireId, String interrogationId);
-    int saveContextualVariableFiles(String questionnaireId, FileUtils fileUtils) throws GenesisException;
+    ContextualVariableModel getContextualVariable(String collectionInstrumentId, String interrogationId);
+    int saveContextualVariableFiles(String collectionInstrumentId, FileUtils fileUtils) throws GenesisException;
 }

@@ -50,6 +50,13 @@ public class DataProcessingContextMongoAdapter implements DataProcessingContextP
     }
 
     @Override
+    public List<DataProcessingContextModel> findByCollectionInstrumentIds(List<String> collectionInstrumentIds) {
+        List<DataProcessingContextDocument> existingDocuments =
+                dataProcessingContextMongoDBRepository.findByCollectionInstrumentIdList(collectionInstrumentIds);
+        return DataProcessingContextMapper.INSTANCE.listDocumentToListModel(ContextDedupUtils.deduplicateContexts(existingDocuments));
+    }
+
+    @Override
     public void save(DataProcessingContextDocument dataProcessingContextDocument) {
         dataProcessingContextMongoDBRepository.save(dataProcessingContextDocument);
     }

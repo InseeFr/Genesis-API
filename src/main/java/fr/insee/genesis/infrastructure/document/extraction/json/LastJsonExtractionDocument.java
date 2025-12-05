@@ -14,7 +14,7 @@ public class LastJsonExtractionDocument {
 
     @Id
     private String id;
-    private String questionnaireModelId;
+    private String collectionInstrumentId;
     private Mode mode;
     private LocalDateTime lastExtractionDate;
 

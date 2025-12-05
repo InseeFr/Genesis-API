@@ -2,7 +2,9 @@ package fr.insee.genesis.infrastructure.mappers;
 
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.infrastructure.document.surveyunit.SurveyUnitDocument;
+import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.factory.Mappers;
 
 import java.util.List;
@@ -18,5 +20,19 @@ public interface SurveyUnitDocumentMapper {
 	List<SurveyUnitModel> listDocumentToListModel(List<SurveyUnitDocument> surveyUnits);
 
 	List<SurveyUnitDocument> listModelToListDocument(List<SurveyUnitModel> surveyUnitModels);
+
+	@AfterMapping
+	default void fillModelAfterRead(SurveyUnitDocument doc,
+									@MappingTarget SurveyUnitModel model) {
+
+		if (model.getUsualSurveyUnitId() == null) {
+			model.setUsualSurveyUnitId(doc.getIdUE());
+		}
+
+		if (model.getCollectionInstrumentId() == null) {
+			model.setCollectionInstrumentId(doc.getQuestionnaireId());
+		}
+
+	}
 
 }

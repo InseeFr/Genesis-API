@@ -209,7 +209,7 @@ class DataProcessingContextServiceTest {
         //To ensure test is portable on Unix/Linux/macOS and windows systems
         String normalizedMessage = ex.getMessage().replaceAll("\\r?\\n", "");
         Assertions.assertThat(ex.getStatus()).isEqualTo(500);
-        Assertions.assertThat(normalizedMessage).isEqualTo("Multiple partitions for interrogation 00001 [CAMPAIGN2, CAMPAIGN1]");
+        Assertions.assertThat(normalizedMessage).isEqualTo("Multiple partitions for interrogation 00001");
     }
 
     @Test

@@ -23,8 +23,7 @@ public class Constants {
     public static final String MONGODB_CONTEXTUAL_EXTERNAL_COLLECTION_NAME = "editedExternal";
     public static final String LOOP_NAME_PREFIX = "BOUCLE";
     public static final String MONGODB_RESPONSE_COLLECTION_NAME = "responses";
-    public static final String MONGODB_RESPONSE_RAW_COLLECTION_NAME = "lunaticjsondata";
-    public static final String MONGODB_VARIABLETYPE_COLLECTION_NAME = "variabletypes";
+    public static final String MONGODB_RAW_RESPONSES_COLLECTION_NAME = "rawResponses";
     public static final String VOLUMETRY_FOLDER_NAME = "genesis_volumetries";
     public static final String VOLUMETRY_FILE_SUFFIX = "_VOLUMETRY";
     public static final String VOLUMETRY_RAW_FILE_SUFFIX = "_RAW_VOLUMETRY";

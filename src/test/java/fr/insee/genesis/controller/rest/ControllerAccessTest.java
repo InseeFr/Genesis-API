@@ -2,6 +2,7 @@ package fr.insee.genesis.controller.rest;
 
 import fr.insee.genesis.domain.ports.api.DataProcessingContextApiPort;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
+import fr.insee.genesis.domain.ports.api.RawResponseApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.infrastructure.repository.ContextualExternalVariableMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.ContextualPreviousVariableMongoDBRepository;
@@ -10,9 +11,10 @@ import fr.insee.genesis.infrastructure.repository.LastJsonExtractionMongoDBRepos
 import fr.insee.genesis.infrastructure.repository.LunaticJsonMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.LunaticModelMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.QuestionnaireMetadataMongoDBRepository;
+import fr.insee.genesis.infrastructure.repository.RawResponseInputRepository;
+import fr.insee.genesis.infrastructure.repository.RawResponseRepository;
 import fr.insee.genesis.infrastructure.repository.RundeckExecutionDBRepository;
 import fr.insee.genesis.infrastructure.repository.SurveyUnitMongoDBRepository;
-import fr.insee.genesis.infrastructure.repository.VariableTypeMongoDBRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -77,6 +79,10 @@ class ControllerAccessTest {
     @MockitoBean
     private LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort;
     @MockitoBean
+    private RawResponseApiPort rawResponseApiPort;
+    @MockitoBean
+    private RawResponseInputRepository rawRepository;
+    @MockitoBean
     private SurveyUnitMongoDBRepository surveyUnitMongoDBRepository;
     @MockitoBean
     private LastJsonExtractionMongoDBRepository lastJsonExtractionMongoDBRepository;
@@ -87,16 +93,15 @@ class ControllerAccessTest {
     @MockitoBean
     private DataProcessingContextMongoDBRepository dataProcessingContextMongoDBRepository;
     @MockitoBean
-    private VariableTypeMongoDBRepository variableTypeMongoDBRepository;
-    @MockitoBean
     private LunaticModelMongoDBRepository lunaticModelMongoDBRepository;
     @MockitoBean
     private ContextualPreviousVariableMongoDBRepository contextualPreviousVariableMongoDBRepository;
     @MockitoBean
     private ContextualExternalVariableMongoDBRepository contextualExternalVariableMongoDBRepository;
-
     @MockitoBean
     private QuestionnaireMetadataMongoDBRepository questionnaireMetadataMongoDBRepository;
+    @MockitoBean
+    private RawResponseRepository rawResponseRepository;
 
     /**
      * Provides a stream of URIs that are allowed for reader.

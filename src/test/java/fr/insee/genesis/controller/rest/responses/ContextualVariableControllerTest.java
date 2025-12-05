@@ -211,7 +211,7 @@ class ContextualVariableControllerTest {
 
         ContextualPreviousVariableDocument firstDocument = filter.getFirst();
         Assertions.assertNull(firstDocument.getSourceState());
-        Assertions.assertEquals(QUESTIONNAIRE_ID_PREVIOUS,firstDocument.getQuestionnaireId());
+        Assertions.assertEquals(QUESTIONNAIRE_ID_PREVIOUS,firstDocument.getCollectionInstrumentId());
 
         Assertions.assertEquals(expectedVarCount,firstDocument.getVariables().size());
 
@@ -304,7 +304,7 @@ class ContextualVariableControllerTest {
         Assertions.assertEquals(1,filter.size());
 
         ContextualExternalVariableDocument firstDoc = filter.getFirst();
-        Assertions.assertEquals(QUESTIONNAIRE_ID_EXTERNAL, firstDoc.getQuestionnaireId());
+        Assertions.assertEquals(QUESTIONNAIRE_ID_EXTERNAL, firstDoc.getCollectionInstrumentId());
         Assertions.assertEquals(expectedVarCount, firstDoc.getVariables().size());
         assertionsForDoc.accept(firstDoc);
 
@@ -422,7 +422,7 @@ class ContextualVariableControllerTest {
             Assertions.assertNotNull(filter.getFirst().getSourceState());
             Assertions.assertEquals(sourceState, filter.getFirst().getSourceState());
         }
-        Assertions.assertEquals(QUESTIONNAIRE_ID_PREVIOUS,filter.getFirst().getQuestionnaireId());
+        Assertions.assertEquals(QUESTIONNAIRE_ID_PREVIOUS,filter.getFirst().getCollectionInstrumentId());
 
         Assertions.assertEquals(15,filter.getFirst().getVariables().size());
         assertVariable(filter.getFirst(), "TEXTECOURT", "");
@@ -455,7 +455,7 @@ class ContextualVariableControllerTest {
             Assertions.assertNotNull(filter.getFirst().getSourceState());
             Assertions.assertEquals(sourceState, filter.getFirst().getSourceState());
         }
-        Assertions.assertEquals(QUESTIONNAIRE_ID_PREVIOUS,filter.getFirst().getQuestionnaireId());
+        Assertions.assertEquals(QUESTIONNAIRE_ID_PREVIOUS,filter.getFirst().getCollectionInstrumentId());
 
         Assertions.assertEquals(14,filter.getFirst().getVariables().size());
         assertVariable(filter.getFirst(), "TEXTECOURT", "test previous");
@@ -511,17 +511,17 @@ class ContextualVariableControllerTest {
                 .stream().filter(doc -> doc.getInterrogationId().equals(interrogationId)).toList();
         Assertions.assertEquals(1, filter.size());
         ContextualPreviousVariableDocument firstDoc = filter.getFirst();
-        Assertions.assertEquals(QUESTIONNAIRE_ID_PREVIOUS, firstDoc.getQuestionnaireId());
+        Assertions.assertEquals(QUESTIONNAIRE_ID_PREVIOUS, firstDoc.getCollectionInstrumentId());
 
         Assertions.assertAll(interrogationId + " metadata",
-                () -> Assertions.assertEquals(QUESTIONNAIRE_ID_PREVIOUS, firstDoc.getQuestionnaireId()),
+                () -> Assertions.assertEquals(QUESTIONNAIRE_ID_PREVIOUS, firstDoc.getCollectionInstrumentId()),
                 () -> Assertions.assertEquals(expectedVarCount, firstDoc.getVariables().size())
         );
 
         assertionsForDoc.accept(firstDoc);
         Assertions.assertTrue(
                 previousStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_PREVIOUS_COLLECTION_NAME).stream()
-                        .noneMatch(d -> "AUTO108".equals(d.getInterrogationId())),
+                        .noneMatch(d -> "AUTO108".equals(d.getCollectionInstrumentId())),
                 "AUTO108 ne devrait plus être présent après override"
         );
     }
@@ -680,7 +680,7 @@ class ContextualVariableControllerTest {
         Assertions.assertEquals(1,filter.size());
 
         ContextualExternalVariableDocument firstDoc = filter.getFirst();
-        Assertions.assertEquals(QUESTIONNAIRE_ID_EXTERNAL, firstDoc.getQuestionnaireId());
+        Assertions.assertEquals(QUESTIONNAIRE_ID_EXTERNAL, firstDoc.getCollectionInstrumentId());
         Assertions.assertEquals(expectedVarCount, firstDoc.getVariables().size());
         assertionsForDoc.accept(firstDoc);
     }
@@ -767,7 +767,7 @@ class ContextualVariableControllerTest {
                 externalStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_EXTERNAL_COLLECTION_NAME)
                 .stream().filter(doc -> doc.getInterrogationId().equals(interrogationId)).toList();
         Assertions.assertEquals(1,filter.size());
-        Assertions.assertEquals(QUESTIONNAIRE_ID_EXTERNAL,filter.getFirst().getQuestionnaireId());
+        Assertions.assertEquals(QUESTIONNAIRE_ID_EXTERNAL,filter.getFirst().getCollectionInstrumentId());
         Assertions.assertEquals(expectedVarCount,filter.getFirst().getVariables().size());
 
         assertionsForDoc.accept(filter.getFirst());
@@ -775,7 +775,7 @@ class ContextualVariableControllerTest {
         // L'ancien AUTO208 ne doit plus être présent
         Assertions.assertTrue(
                 externalStub.getMongoStub().get(Constants.MONGODB_CONTEXTUAL_EXTERNAL_COLLECTION_NAME)
-                        .stream().noneMatch(d -> "AUTO208".equals(d.getInterrogationId())),
+                        .stream().noneMatch(d -> "AUTO208".equals(d.getCollectionInstrumentId())),
                 "AUTO208 ne devrait plus être présent après override"
         );
     }
