@@ -5,6 +5,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import org.springframework.lang.Nullable;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Getter
 public enum Mode {
 
@@ -28,41 +31,42 @@ public enum Mode {
 		this.jsonName = jsonName;
 	}
 
-	@JsonCreator
-	public static Mode fromString(String value) {
-		if (value == null) return null;
+    // lookup Maps
+    private static final Map<String, Mode> BY_MODE_NAME = new HashMap<>();
+    private static final Map<String, Mode> BY_JSON_NAME = new HashMap<>();
+    private static final Map<String, Mode> BY_ANY_NAME = new HashMap<>();
 
-		for (Mode m : values()) {
-			if (value.equalsIgnoreCase(m.modeName) ||
-					value.equalsIgnoreCase(m.jsonName)) {
-				return m;
-			}
-		}
-		throw new IllegalArgumentException("Invalid Mode: " + value);
-	}
+    static {
+        for (Mode mode : values()) {
+            if (mode.modeName != null && !mode.modeName.isBlank()) {
+                BY_MODE_NAME.put(mode.modeName.toUpperCase(), mode);
+                BY_ANY_NAME.put(mode.modeName.toUpperCase(), mode);
+            }
+            if (mode.jsonName != null && !mode.jsonName.isBlank()) {
+                BY_JSON_NAME.put(mode.jsonName.toUpperCase(), mode);
+                BY_ANY_NAME.put(mode.jsonName.toUpperCase(), mode);
+            }
+        }
+    }
 
-	public static Mode getEnumFromModeName(String modeName) {
-		if (modeName == null){
-			return null;
-		}
-		for (Mode mode : Mode.values()) {
-			if (modeName.equals(mode.getModeName())) {
-				return mode;
-			}
-		}
-		return null;
-	}
+    @JsonCreator
+    public static Mode fromString(String value) {
+        if (value == null){ return null;}
 
-	public static Mode getEnumFromJsonName(String modeName) {
-		if (modeName == null){
-			return null;
-		}
-		for (Mode mode : Mode.values()) {
-			if (modeName.equals(mode.getJsonName())) {
-				return mode;
-			}
-		}
-		return null;
-	}
+        Mode mode = BY_ANY_NAME.get(value.trim().toUpperCase());
+        if (mode != null) { return mode;  }
+
+        throw new IllegalArgumentException("Invalid Mode: " + value);
+    }
+
+    public static Mode getEnumFromModeName(@Nullable String modeName) {
+        if (modeName == null) { return null;     }
+        return BY_MODE_NAME.get(modeName.trim().toUpperCase());
+    }
+
+    public static Mode getEnumFromJsonName(@Nullable String jsonName) {
+        if (jsonName == null) {  return null;   }
+        return BY_JSON_NAME.get(jsonName.trim().toUpperCase());
+    }
 
 }
