@@ -167,16 +167,17 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
             return null;
         }
 
+
         DataProcessingContextModel contextModel = new DataProcessingContextModel();
-        if (!collectionInstrumentIds.isEmpty()){
+        if (!campaignIds.isEmpty()){
             contextModel = DataProcessingContextMapper.INSTANCE.documentToModel(
-                    dataProcessingContextPersistancePort.findByPartitionId(collectionInstrumentIds.stream().toList().getFirst())
+                    dataProcessingContextPersistancePort.findByPartitionId(campaignIds.stream().toList().getFirst())
             );
         }
 
-        if (contextModel.getId()==null && !campaignIds.isEmpty()) {
+        if (contextModel.getPartitionId()==null && !collectionInstrumentIds.isEmpty()) {
             contextModel = DataProcessingContextMapper.INSTANCE.documentToModel(
-                    dataProcessingContextPersistancePort.findByPartitionId(campaignIds.stream().toList().getFirst()));
+                    dataProcessingContextPersistancePort.findByPartitionId(collectionInstrumentIds.stream().toList().getFirst()));
         }
 
         return contextModel;
