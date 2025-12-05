@@ -162,6 +162,13 @@ public class RawResponseController {
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
         }
     }
+    @Operation(summary = "Get the list of collection instruments containing unprocessed interrogations")
+    @GetMapping(path = "/raw-responses/unprocessed/collection-intrument-ids")
+    @PreAuthorize("hasRole('SCHEDULER')")
+    public ResponseEntity<List<String>> getUnprocessedCollectionInstrument(){
+        log.info("Try to get collection instruments containing unprocessed interrogations...");
+        return ResponseEntity.ok(rawResponseApiPort.getUnprocessedCollectionInstrumentIds());
+    }
 
     //GET unprocessed
     @Operation(summary = "Get campaign id and interrogationId from all unprocessed raw json data")
@@ -188,6 +195,7 @@ public class RawResponseController {
     @Operation(summary = "Process raw data of a campaign")
     @PostMapping(path = "/responses/raw/lunatic-json/process")
     @PreAuthorize("hasRole('SCHEDULER')")
+    @Deprecated(since = "1.13.0")
     public ResponseEntity<String> processJsonRawData(
             @RequestParam("campaignName") String campaignName,
             @RequestParam("questionnaireId") String questionnaireId,
@@ -198,6 +206,24 @@ public class RawResponseController {
 
         try {
             DataProcessResult result = lunaticJsonRawDataApiPort.processRawData(campaignName, interrogationIdList, errors);
+            return result.formattedDataCount() == 0 ?
+                    ResponseEntity.ok("%d document(s) processed".formatted(result.dataCount()))
+                    : ResponseEntity.ok("%d document(s) processed, including %d FORMATTED after data verification"
+                    .formatted(result.dataCount(), result.formattedDataCount()));
+        } catch (GenesisException e) {
+            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
+        }
+    }
+
+    @Operation(summary = "Process raw data of a questionnaire")
+    @PostMapping(path = "/{collectionInstrumentId}/process")
+    @PreAuthorize("hasRole('SCHEDULER')")
+    public ResponseEntity<String> processJsonRawData(
+            @PathVariable String collectionInstrumentId
+    ) {
+        log.info("Try to process raw JSON datas for questionnaire {}",collectionInstrumentId);
+        try {
+            DataProcessResult result = lunaticJsonRawDataApiPort.processRawData(collectionInstrumentId);
             return result.formattedDataCount() == 0 ?
                     ResponseEntity.ok("%d document(s) processed".formatted(result.dataCount()))
                     : ResponseEntity.ok("%d document(s) processed, including %d FORMATTED after data verification"

@@ -1,6 +1,7 @@
 package fr.insee.genesis.infrastructure.repository;
 
 import fr.insee.genesis.infrastructure.document.rawdata.RawResponseDocument;
+import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -12,4 +13,10 @@ public interface RawResponseRepository extends MongoRepository<RawResponseDocume
 
     @Query(value = "{ 'collectionInstrumentId' : ?0, 'mode' : ?1, 'interrogationId': {$in: ?2} }")
     List<RawResponseDocument> findByCollectionInstrumentIdAndModeAndInterrogationIdList(String questionnaireId, String mode, List<String> interrogationIdList);
+    @Aggregation(pipeline = {
+            "{ $match: { processDate: null } }",
+            "{ $group: { _id: '$collectionInstrumentId' } }",
+            "{ $project: { _id: 0, collectionInstrumentId: '$_id' } }"
+    })
+    List<String> findDistinctCollectionInstrumentIdByProcessDateIsNull();
 }

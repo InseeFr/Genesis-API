@@ -100,22 +100,16 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     }
 
     @Override
+    @Deprecated(since = "1.13.0")
     public DataProcessResult processRawData(String campaignName, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException {
         int dataCount=0;
         int formattedDataCount=0;
         DataProcessingContextModel dataProcessingContext =
-                dataProcessingContextService.getContextByPartitionId(campaignName);
+                dataProcessingContextService.getContextByCollectionInstrumentId(campaignName);
         List<Mode> modesList = controllerUtils.getModesList(campaignName, null);
         for (Mode mode : modesList) {
             //Load and save metadata into database, throw exception if none
-            VariablesMap variablesMap = metadataService.loadAndSaveIfNotExists(campaignName, campaignName, mode, fileUtils,
-                    errors).getVariables();
-            if (variablesMap == null) {
-                throw new GenesisException(400,
-                        "Error during metadata parsing for mode %s :%n%s"
-                                .formatted(mode, errors.getLast().getMessage())
-                );
-            }
+            VariablesMap variablesMap = getVariablesMap(campaignName, mode, errors);
             int totalBatchs = Math.ceilDiv(interrogationIdList.size() , config.getRawDataProcessingBatchSize());
             int batchNumber = 1;
             List<String> interrogationIdListForMode = new ArrayList<>(interrogationIdList);
@@ -156,7 +150,85 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
                 batchNumber++;
             }
         }
-        return new DataProcessResult(dataCount, formattedDataCount);
+        return new DataProcessResult(dataCount, formattedDataCount, errors);
+    }
+
+    @Override
+    public DataProcessResult processRawData(String questionnaireId) throws GenesisException {
+        int dataCount=0;
+        int formattedDataCount=0;
+        DataProcessingContextModel dataProcessingContext =
+                dataProcessingContextService.getContextByCollectionInstrumentId(questionnaireId);
+        List<GenesisError> errors = new ArrayList<>();
+
+        List<Mode> modesList = controllerUtils.getModesList(questionnaireId, null);
+        for (Mode mode : modesList) {
+            //Load and save metadata into database, throw exception if none
+            VariablesMap variablesMap = getVariablesMap(questionnaireId, mode, errors);
+            Set<String> interrogationIds =
+                    lunaticJsonRawDataPersistencePort.findUnprocessedInterrogationIdsByCollectionInstrumentId(questionnaireId);
+
+            int totalBatchs = Math.ceilDiv(interrogationIds.size() , config.getRawDataProcessingBatchSize());
+            int batchNumber = 1;
+            List<String> interrogationIdListForMode = new ArrayList<>(interrogationIds);
+            while(!interrogationIdListForMode.isEmpty()){
+                log.info("Processing raw data batch {}/{}", batchNumber, totalBatchs);
+
+                int maxIndex = Math.min(interrogationIdListForMode.size(), config.getRawDataProcessingBatchSize());
+                List<SurveyUnitModel> surveyUnitModels = getConvertedSurveyUnits(
+                        questionnaireId,
+                        mode,
+                        interrogationIdListForMode,
+                        maxIndex,
+                        variablesMap
+                );
+
+                //Save converted data
+                surveyUnitQualityService.verifySurveyUnits(surveyUnitModels, variablesMap);
+                surveyUnitService.saveSurveyUnits(surveyUnitModels);
+
+                //Update process dates
+                updateProcessDates(surveyUnitModels);
+
+                //Increment data count
+                dataCount += surveyUnitModels.size();
+                formattedDataCount += surveyUnitModels.stream()
+                        .filter(surveyUnitModel -> surveyUnitModel.getState().equals(DataState.FORMATTED))
+                        .toList()
+                        .size();
+
+                //Send processed ids grouped by questionnaire (if review activated)
+                if(dataProcessingContext != null && dataProcessingContext.isWithReview()) {
+                    sendProcessedIdsToQualityTool(surveyUnitModels);
+                }
+
+                //Remove processed ids from list
+                interrogationIdListForMode = interrogationIdListForMode.subList(maxIndex, interrogationIdListForMode.size());
+                batchNumber++;
+            }
+        }
+        return new DataProcessResult(dataCount, formattedDataCount, errors);
+    }
+
+    private VariablesMap getVariablesMap(String questionnaireId, Mode mode, List<GenesisError> errors) throws GenesisException {
+        VariablesMap variablesMap = metadataService.loadAndSaveIfNotExists(questionnaireId, questionnaireId, mode, fileUtils,
+                errors).getVariables();
+        if (variablesMap == null) {
+            throw new GenesisException(400,
+                    "Error during metadata parsing for mode %s :%n%s"
+                            .formatted(mode, errors.getLast().getMessage())
+            );
+        }
+        return variablesMap;
+    }
+
+    private List<SurveyUnitModel> getConvertedSurveyUnits(String questionnaireId, Mode mode, List<String> interrogationIdListForMode, int maxIndex, VariablesMap variablesMap) {
+        List<String> interrogationIdToProcess = interrogationIdListForMode.subList(0, maxIndex);
+        List<LunaticJsonRawDataModel> rawData = getRawData(questionnaireId, mode, interrogationIdToProcess);
+        return convertRawData(
+                rawData,
+                variablesMap
+        );
     }
 
     private void sendProcessedIdsToQualityTool(List<SurveyUnitModel> surveyUnitModels) {
@@ -195,7 +267,6 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
                 RawDataModelType rawDataModelType = getRawDataModelType(rawData);
 
                 //Get optional fields
-                String contextualId = getContextualId(rawData);
                 Boolean isCapturedIndirectly = getIsCapturedIndirectly(rawData);
                 LocalDateTime validationDate = getValidationDate(rawData);
 
@@ -263,15 +334,6 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
             return Boolean.FALSE;
         }
 
-    }
-
-    private static String getContextualId(LunaticJsonRawDataModel rawData) {
-        try{
-            return rawData.data().get("contextualId") == null ? null : rawData.data().get("contextualId").toString();
-        }catch(Exception e){
-            log.warn("Exception when parsing contextual id : {}}",e.toString());
-            return null;
-        }
     }
 
     @Override

@@ -1,6 +1,7 @@
 package fr.insee.genesis.infrastructure.document.lunaticmodel;
 
 import lombok.Builder;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
@@ -15,8 +16,11 @@ I choose to keep the record here (this choice can be challenged)*/
 @Builder
 @Document(collection = "lunaticmodels")
 public record LunaticModelDocument (
+
     @Deprecated
+    @Indexed
     String questionnaireId,
+    @Indexed
     String collectionInstrumentId,
     Map<String,Object> lunaticModel,
     LocalDateTime recordDate

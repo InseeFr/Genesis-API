@@ -100,7 +100,7 @@ public class RawDataDefinitions {
     RawResponseInputRepository rawResponseInputRepositoryStub = new RawResponseInputRepository(null, null) {
         @Override
         public void saveAsRawJson(RawResponseDto dto) {
-            // Ne rien faire — stub pour les tests
+            // Do nothing - stub for test
         }
     };
 
@@ -121,10 +121,16 @@ public class RawDataDefinitions {
         }
 
         @Override
-        public void updateProcessDates(List<SurveyUnitModel> surveyUnitModels) {
+        public List<String> getUnprocessedCollectionInstrumentIds() {
+            return List.of();
+        }
 
+        @Override
+        public void updateProcessDates(List<SurveyUnitModel> surveyUnitModels) {
+            // Do nothing - stub for test
         }
     };
+
     RawResponseController rawResponseController = new RawResponseController(
             lunaticJsonRawDataService, rawResponseApiPortStub, rawResponseInputRepositoryStub
     );

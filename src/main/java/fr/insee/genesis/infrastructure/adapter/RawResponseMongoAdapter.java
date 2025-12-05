@@ -46,4 +46,9 @@ public class RawResponseMongoAdapter implements RawResponsePersistencePort {
                 , Constants.MONGODB_RAW_RESPONSES_COLLECTION_NAME
         );
     }
+
+    @Override
+    public List<String> getUnprocessedCollectionIds() {
+        return repository.findDistinctCollectionInstrumentIdByProcessDateIsNull();
+    }
 }
