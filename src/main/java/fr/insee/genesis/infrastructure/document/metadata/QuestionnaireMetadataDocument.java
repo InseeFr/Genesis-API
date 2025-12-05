@@ -17,7 +17,7 @@ I choose to keep the record here (this choice can be challenged)*/
 @Document(collection = "questionnaireMetadatas")
 public record QuestionnaireMetadataDocument(
 
-        @Deprecated
+        @Deprecated (since = "2026-01-01", forRemoval = true)
         @Indexed
         String questionnaireId,
         @Indexed

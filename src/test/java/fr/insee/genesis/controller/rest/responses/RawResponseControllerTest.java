@@ -162,7 +162,7 @@ class RawResponseControllerTest {
         addJsonRawDataDocumentToStub(campaignId, questionnaireId, interrogationId, null);
 
         //WHEN
-        List<LunaticJsonRawDataUnprocessedDto> dtos = rawResponseController.getUnproccessedJsonRawData().getBody();
+        List<LunaticJsonRawDataUnprocessedDto> dtos = rawResponseController.getUnprocessedJsonRawData().getBody();
 
         //THEN
         Assertions.assertThat(dtos).isNotNull().isNotEmpty().hasSize(1);
@@ -181,7 +181,7 @@ class RawResponseControllerTest {
         addJsonRawDataDocumentToStub(campaignId, questionnaireId, interrogationId, LocalDateTime.now());
 
         //WHEN
-        List<LunaticJsonRawDataUnprocessedDto> dtos = rawResponseController.getUnproccessedJsonRawData().getBody();
+        List<LunaticJsonRawDataUnprocessedDto> dtos = rawResponseController.getUnprocessedJsonRawData().getBody();
 
         //THEN
         Assertions.assertThat(dtos).isNotNull().isEmpty();

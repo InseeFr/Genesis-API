@@ -42,23 +42,23 @@ public class JsonSchemaValidator {
         }
         String cp = resourcePath.startsWith("/") ? resourcePath.substring(1) : resourcePath;
         try (InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream(cp)) {
-            if (in == null) throw new IOException("Schema not found on classpath: " + resourcePath);
+            if (in == null){ throw new IOException("Schema not found on classpath: " + resourcePath);}
             JsonNode schemaNode = mapper.readTree(in);
             return JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V202012).getSchema(schemaNode);
         }
     }
 
     private static void ensureValid(JsonNode root, JsonSchema schema) throws SchemaValidationException {
-        log.info("Schéma Apply : " + schema.getSchemaNode().get("title"));
+        log.info("Schéma Apply : {}", schema.getSchemaNode().get("title"));
         java.util.Set<ValidationMessage> errors = schema.validate(root);
         if (!errors.isEmpty()) {
             String formatted = errors.stream()
                     .sorted(java.util.Comparator.comparing(ValidationMessage::getEvaluationPath))
-                    .map(err -> err.getMessage())
+                    .map(ValidationMessage::getMessage)
                     .collect(java.util.stream.Collectors.joining("\n"));
             throw new SchemaValidationException(
                     "Uploaded JSON is not correct according to the json-schema:\n" + formatted, errors);
         }
-        log.info("Schema-compliant JSON : " + schema.getSchemaNode().get("title"));
+        log.info("Schema-compliant JSON : {}", schema.getSchemaNode().get("title"));
     }
 }

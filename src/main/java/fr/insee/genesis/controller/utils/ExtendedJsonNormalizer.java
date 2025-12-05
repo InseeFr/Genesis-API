@@ -1,18 +1,18 @@
 package fr.insee.genesis.controller.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.*;
-
-import java.util.Iterator;
-import java.util.Map;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 public class ExtendedJsonNormalizer {
+
+    public static final String $_DATE = "$date";
 
     private ExtendedJsonNormalizer() {}
 
     /**
      * Recursively converts Mongo Extended JSON objects into simple types expected by the schema:
      *  - {"$date": "..."}  -> TextNode("...")
-     *
      * Leaves all other values untouched. Returns a structural copy of the node (does not mutate the original).
      */
 
@@ -23,8 +23,8 @@ public class ExtendedJsonNormalizer {
             ObjectNode obj = (ObjectNode) node;
 
             if (obj.size() == 1) {
-                if (obj.has("$date") && obj.get("$date").isTextual()) {
-                    return TextNode.valueOf(obj.get("$date").asText());
+                if (obj.has($_DATE) && obj.get($_DATE).isTextual()) {
+                    return TextNode.valueOf(obj.get($_DATE).asText());
                 }
 //                if (obj.has("$oid") && obj.get("$oid").isTextual()) {
 //                    return TextNode.valueOf(obj.get("$oid").asText());
@@ -32,11 +32,9 @@ public class ExtendedJsonNormalizer {
             }
 
             ObjectNode copy = obj.objectNode();
-            Iterator<Map.Entry<String, JsonNode>> it = obj.fields();
-            while (it.hasNext()) {
-                Map.Entry<String, JsonNode> e = it.next();
-                copy.set(e.getKey(), normalize(e.getValue()));
-            }
+            obj.fields().forEachRemaining(e ->
+                    copy.set(e.getKey(), normalize(e.getValue()))
+            );
             return copy;
         }
 

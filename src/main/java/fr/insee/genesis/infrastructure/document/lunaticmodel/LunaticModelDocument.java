@@ -16,8 +16,7 @@ I choose to keep the record here (this choice can be challenged)*/
 @Builder
 @Document(collection = "lunaticmodels")
 public record LunaticModelDocument (
-
-    @Deprecated
+    @Deprecated (since = "2026-01-01", forRemoval = true)
     @Indexed
     String questionnaireId,
     @Indexed

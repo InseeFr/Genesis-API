@@ -15,7 +15,7 @@ public class SurveyUnitSimplified {
 	/**
 	 * @deprecated We will not reveive this piece of information anymore
 	 */
-	@Deprecated(forRemoval = true)
+	@Deprecated(forRemoval = true, since =  "2026-01-01")
 	private String campaignId;
 	private String interrogationId;
 	private String usualSurveyUnitId;

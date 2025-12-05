@@ -22,7 +22,7 @@ public class ContextualExternalVariableDocument {
     /**
      * @deprecated it will be replaced by collectionInstrumentId
      */
-    @Deprecated(forRemoval = true)
+    @Deprecated(forRemoval = true, since = "2026-01-01")
     @Indexed
     String questionnaireId;
     @Indexed

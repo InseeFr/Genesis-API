@@ -36,6 +36,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -264,13 +265,10 @@ public class RawResponseService implements RawResponseApiPort {
         }
 
         for (String collectionInstrumentId : collectionInstrumentIds) {
-            Set<String> interrogationIds = new HashSet<>();
-            for (SurveyUnitModel surveyUnitModel :
-                    surveyUnitModels.stream().filter(
-                            surveyUnitModel -> surveyUnitModel.getCollectionInstrumentId().equals(collectionInstrumentId)
-                    ).toList()) {
-                interrogationIds.add(surveyUnitModel.getInterrogationId());
-            }
+            Set<String> interrogationIds = surveyUnitModels.stream()
+                    .filter(su -> su.getCollectionInstrumentId().equals(collectionInstrumentId))
+                    .map(SurveyUnitModel::getInterrogationId)
+                    .collect(Collectors.toSet());
             rawResponsePersistencePort.updateProcessDates(collectionInstrumentId, interrogationIds);
         }
     }
@@ -287,11 +285,12 @@ public class RawResponseService implements RawResponseApiPort {
 
     private void sendProcessedIdsToQualityTool(List<SurveyUnitModel> surveyUnitModels) {
         try {
+            Map<String, Set<String>> processedIdsMap = getProcessedIdsMap(surveyUnitModels);
             ResponseEntity<Object> response =
-                    surveyUnitQualityToolPort.sendProcessedIds(getProcessedIdsMap(surveyUnitModels));
+                    surveyUnitQualityToolPort.sendProcessedIds(processedIdsMap);
 
             if (response.getStatusCode().is2xxSuccessful()) {
-                log.info("Successfully sent {} ids to quality tool", getProcessedIdsMap(surveyUnitModels).size());
+                log.info("Successfully sent {} ids to quality tool", processedIdsMap.size());
             }else{
                 log.warn("Survey unit quality tool responded non-2xx code {} and body {}",
                         response.getStatusCode(), response.getBody());
@@ -306,7 +305,7 @@ public class RawResponseService implements RawResponseApiPort {
             return rawResponse.payload().get("isCapturedIndirectly") == null ? null :
                     Boolean.parseBoolean(rawResponse.payload().get("isCapturedIndirectly").toString());
         }catch(Exception e){
-            log.warn("Exception when parsing isCapturedIndirectly : {}}",e.toString());
+            log.warn("Exception when parsing isCapturedIndirectly : {}",e.toString());
             return Boolean.FALSE;
         }
     }
@@ -316,7 +315,7 @@ public class RawResponseService implements RawResponseApiPort {
             return rawResponse.payload().get("validationDate") == null ? null :
                     LocalDateTime.parse(rawResponse.payload().get("validationDate").toString());
         }catch(Exception e){
-            log.warn("Exception when parsing validation date : {}}",e.toString());
+            log.warn("Exception when parsing validation date : {}",e.toString());
             return null;
         }
     }
@@ -409,7 +408,7 @@ public class RawResponseService implements RawResponseApiPort {
 
     private static String getIdLoop(VariablesMap variablesMap, String variableName) {
         if (variablesMap.getVariable(variableName) == null) {
-            log.warn("Variable {} not present in metadatas, assigning to {}", variableName, Constants.ROOT_GROUP_NAME);
+            log.warn("Variable {} not present in metadata, assigning to {}", variableName, Constants.ROOT_GROUP_NAME);
             return Constants.ROOT_GROUP_NAME;
         }
         return variablesMap.getVariable(variableName).getGroupName();

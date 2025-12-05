@@ -24,7 +24,7 @@ public class SurveyUnitDocument {
 	/**
 	 * @deprecated This piece of information will not be available anymore in the raw responses
 	 */
-	@Deprecated(forRemoval = true)
+	@Deprecated(forRemoval = true, since ="2026-01-01")
 	private String campaignId;
 	@Indexed
 	private String interrogationId;
@@ -32,7 +32,7 @@ public class SurveyUnitDocument {
 	/**
 	 * @deprecated It will be replaced by usualSurveyUnitId
 	 */
-	@Deprecated(forRemoval = true)
+	@Deprecated(forRemoval = true, since ="2026-01-01")
 	private String idUE;
 
 	private String usualSurveyUnitId;
@@ -40,7 +40,7 @@ public class SurveyUnitDocument {
 	/**
 	 * @deprecated It will be replaced by collectionInstrumentId
 	 */
-	@Deprecated(forRemoval = true)
+	@Deprecated(forRemoval = true, since ="2026-01-01")
 	private String questionnaireId;
 
 	private String collectionInstrumentId;

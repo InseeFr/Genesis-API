@@ -46,14 +46,12 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Controller
 public class RawResponseController {
 
     private static final String SUCCESS_MESSAGE = "Interrogation %s saved";
-    private static final String PARTITION_ID = "partitionId";
     private static final String INTERROGATION_ID = "interrogationId";
     private final LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort;
     private final RawResponseApiPort rawResponseApiPort;
@@ -98,57 +96,6 @@ public class RawResponseController {
         return ResponseEntity.status(201).body(String.format(SUCCESS_MESSAGE, interrogationId));
     }
 
-/*    @Operation(summary = "Deprecated")
-    @PutMapping(path="/lunatic-json")
-    @PreAuthorize("hasRole('COLLECT_PLATFORM')")
-    // Check version when merging
-    @Deprecated(since="1.13.0", forRemoval=true)
-    public ResponseEntity<String> saveRawResponsesFromJsonBodyWithValidationDeprecated(
-            @RequestBody Map<String, Object> body
-    ) {
-
-        SchemaRegistry schemaRegistry = SchemaRegistry.withDialect(Dialects.getDraft202012(), SchemaRegistry.Builder::build);
-        Schema jsonSchema = schemaRegistry
-                .getSchema(RawResponseController.class.getResourceAsStream("/modele-filiere-spec/RawResponse.json")
-        );
-        try {
-            if (jsonSchema == null) {
-                throw new GenesisException(500, "No RawResponse json schema has been found");
-            }
-            List<Error> errors = jsonSchema.validate(
-                    new ObjectMapper().readTree(
-                            new ObjectMapper().writeValueAsString(body)
-                    )
-            );
-            // Throw Genesis exception if errors are present
-            validate(errors);
-            //Check required ids
-            checkRequiredIds(body);
-        } catch (JsonProcessingException jpe) {
-            return ResponseEntity.status(400).body(jpe.toString());
-        } catch (GenesisException ge) {
-            return ResponseEntity.status(ge.getStatus()).body(ge.getMessage());
-        }
-
-        LunaticJsonRawDataModel rawData = LunaticJsonRawDataModel.builder()
-                .campaignId(body.get(PARTITION_ID).toString())
-                .questionnaireId(body.get("questionnaireModelId").toString().toUpperCase())
-                .interrogationId(body.get(INTERROGATION_ID).toString())
-                .idUE(body.get("surveyUnitId").toString())
-                .mode(Mode.getEnumFromJsonName(body.get("mode").toString()))
-                .data(body)
-                .recordDate(LocalDateTime.now())
-                .build();
-        try {
-            lunaticJsonRawDataApiPort.save(rawData);
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body("Unexpected error");
-        }
-
-        log.info("Data saved for interrogationId {} and partition {}", body.get(INTERROGATION_ID).toString(),
-                body.get(PARTITION_ID).toString());
-        return ResponseEntity.status(201).body(String.format(SUCCESS_MESSAGE, body.get(INTERROGATION_ID).toString()));
-    }*/
 
     @Operation(summary = "Save lunatic json data from one interrogation in Genesis Database (with json " +
             "schema validation)")
@@ -249,7 +196,7 @@ public class RawResponseController {
     @Operation(summary = "Get campaign id and interrogationId from all unprocessed raw json data")
     @GetMapping(path = "/responses/raw/lunatic-json/get/unprocessed")
     @PreAuthorize("hasRole('SCHEDULER')")
-    public ResponseEntity<List<LunaticJsonRawDataUnprocessedDto>> getUnproccessedJsonRawData() {
+    public ResponseEntity<List<LunaticJsonRawDataUnprocessedDto>> getUnprocessedJsonRawData() {
         log.info("Try to get unprocessed raw JSON datas...");
         return ResponseEntity.ok(lunaticJsonRawDataApiPort.getUnprocessedDataIds());
     }
@@ -337,31 +284,5 @@ public class RawResponseController {
         return ResponseEntity.status(HttpStatus.OK).body(new PagedModel<>(rawResponses));
     }
 
-    private void validate(List<Error> errors) throws GenesisException {
-        if (!errors.isEmpty()) {
-            String errorMessage = errors.stream()
-                    .map(Error::getMessage)
-                    .collect(Collectors.joining(System.lineSeparator() + " - "));
-
-            throw new GenesisException(
-                    400,
-                    "Input data JSON is not valid: %n - %s".formatted(errorMessage)
-            );
-        }
-    }
-
-    private void checkRequiredIds(Map<String, Object> body) throws GenesisException {
-        for (String requiredKey : List.of(
-                PARTITION_ID,
-                "questionnaireModelId",
-                INTERROGATION_ID,
-                "surveyUnitId",
-                "mode"
-        )) {
-            if (body.get(requiredKey) == null) {
-                throw new GenesisException(400, "No %s found in body".formatted(requiredKey));
-            }
-        }
-    }
 
 }

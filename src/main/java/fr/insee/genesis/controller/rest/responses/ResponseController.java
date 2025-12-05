@@ -43,6 +43,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -67,7 +68,7 @@ import java.util.Set;
 
 @RequestMapping(path = "/responses" )
 @Controller
-@Tag(name = "Response services", description = "A **response** is considered the entire set of data associated with an interrogation (survey unit x questionnaireId). \n\n These data may have different state (collected, edited, external, ...) ")
+@Tag(name = "Response services", description = "A **response** is considered the entire set of data associated with an interrogation (survey unit x collecton Intrument Id [ex questionnaire]). \n\n These data may have different state (collected, edited, external, ...) ")
 @Slf4j
 public class ResponseController implements CommonApiResponse {
 
@@ -101,6 +102,7 @@ public class ResponseController implements CommonApiResponse {
     }
 
     //SAVE
+    @Deprecated(since = "2026-01-01")
     @Operation(summary = "Save one file of responses to Genesis Database, passing its path as a parameter")
     @PutMapping(path = "/lunatic-xml/save-one")
     @PreAuthorize("hasRole('ADMIN')")
@@ -108,7 +110,7 @@ public class ResponseController implements CommonApiResponse {
                                                            @RequestParam(value = "pathSpecFile") String metadataFilePath,
                                                            @RequestParam(value = "mode") Mode modeSpecified
     )throws Exception {
-        log.info("Try to read Xml file : {}", xmlFile);
+        log.info("Try to read one Xml file : {}", xmlFile);
         Path filepath = Paths.get(xmlFile);
 
         if (getFileSizeInMB(filepath) <= Constants.MAX_FILE_SIZE_UNTIL_SEQUENTIAL) {
@@ -117,6 +119,7 @@ public class ResponseController implements CommonApiResponse {
         return processXmlFileSequentially(filepath, modeSpecified, metadataFilePath);
     }
 
+    @Deprecated(since = "2026-01-01")
     @Operation(summary = "Save multiple files to Genesis Database from the campaign root folder")
     @PutMapping(path = "/lunatic-xml/save-folder")
     @PreAuthorize("hasRole('ADMIN')")
@@ -149,6 +152,7 @@ public class ResponseController implements CommonApiResponse {
     }
 
     //SAVE ALL
+    @Deprecated(since = "2026-01-01")
     @Operation(summary = "Save all files to Genesis Database (differential data folder only), regardless of the campaign")
     @PutMapping(path = "/lunatic-xml/save-all-campaigns")
     @PreAuthorize("hasRole('SCHEDULER')")
@@ -186,9 +190,9 @@ public class ResponseController implements CommonApiResponse {
     
     //DELETE
     @Operation(summary = "Delete all responses associated with a collection instrument (formerly questionnaire)")
-    @DeleteMapping(path = "/delete/by-collection-instrument")
+    @DeleteMapping(path = "/delete/{collectionInstrumentId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Object> deleteAllResponsesByCollectionInstrument(@RequestParam("collectionInstrumentId") String collectionInstrumentId) {
+    public ResponseEntity<Object> deleteAllResponsesByCollectionInstrument(@PathVariable("collectionInstrumentId") String collectionInstrumentId) {
         log.info("Try to delete all responses of collection instrument : {}", collectionInstrumentId);
         Long ndDocuments = surveyUnitService.deleteByCollectionInstrumentId(collectionInstrumentId);
         log.info("{} responses deleted", ndDocuments);
@@ -211,14 +215,13 @@ public class ResponseController implements CommonApiResponse {
      * @deprecated
      * This endpoint is deprecated because the parameter `questionnaireId` has been renamed
      * to `collectionInstrumentId` in the Information System (modeled in the modelefiliere library).
-     *
      * A new endpoint using the updated parameter names will be provided to remain compliant with
      * the current data model. This endpoint will be removed once all dependent APIs have adopted
      * the new naming convention.
      *
      * Use the new endpoint with `collectionInstrumentId` for future implementations.
      */
-    @Deprecated(forRemoval = true)
+    @Deprecated(forRemoval = true, since= "2026-01-01")
     @Operation(summary = "Retrieve responses for an interrogation, using interrogationId and questionnaireId from Genesis Database with the latest value for each available state of every variable",
                 description = "use /by-interrogation-and-collection-instrument/latest-states instead")
     @GetMapping(path = "/by-ue-and-questionnaire/latest-states",
@@ -248,8 +251,7 @@ public class ResponseController implements CommonApiResponse {
             @RequestParam("interrogationId") String interrogationId,
             @RequestParam("collectionInstrumentId") String collectionInstrumentId) throws GenesisException {
         //Check context
-        DataProcessingContextModel dataProcessingContextModel =
-                contextService.getContext(interrogationId);
+        DataProcessingContextModel dataProcessingContextModel = contextService.getContext(interrogationId);
 
         if(dataProcessingContextModel == null || !dataProcessingContextModel.isWithReview()){
             return ResponseEntity.status(403).body(new ApiError("Review is disabled for that partition"));
@@ -347,7 +349,7 @@ public class ResponseController implements CommonApiResponse {
         //!!!WARNING!!! : FOR PERFORMANCES PURPOSES, WE DONT'MAKE REQUESTS ON INDIVIDUAL ELEMENTS ANYMORE, BUT ON A SUBLIST OF THE INPUTLIST
         final int SUBBLOCK_SIZE = 100;
         int offset = 0;
-        List<InterrogationId> interrogationIdsSubList = null;
+        List<InterrogationId> interrogationIdsSubList;
 
         for(String mode : modes) {
 
