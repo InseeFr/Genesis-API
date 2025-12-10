@@ -24,7 +24,10 @@ public interface LunaticJsonMongoDBRepository extends MongoRepository<LunaticJso
     List<Mode> findModesByCampaignId(String campaignId);
 
     @Query(value = "{ 'campaignId' : ?0, 'mode' : ?1, 'interrogationId': {$in: ?2} }")
-    List<LunaticJsonRawDataDocument> findModesByCampaignIdAndByModeAndinterrogationIdIninterrogationIdList(String campaignName, Mode mode, List<String> interrogationIdList);
+    List<LunaticJsonRawDataDocument> findByCampaignModeAndInterrogations(String campaignName, Mode mode, List<String> interrogationIdList);
+
+    @Query(value = "{ 'questionnaireId' : ?0, 'mode' : ?1, 'interrogationId': {$in: ?2} }")
+    List<LunaticJsonRawDataDocument> findByQuestionnaireModeAndInterrogations(String questionnaireId, Mode mode, List<String> interrogationIdList);
 
     Page<LunaticJsonRawDataDocument> findByCampaignIdAndRecordDateBetween(String campagneId, Instant start, Instant  end, Pageable pageable);
     long countByQuestionnaireId(String questionnaireId);

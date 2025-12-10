@@ -100,6 +100,11 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     }
 
     @Override
+    public List<LunaticJsonRawDataModel> getRawDataByQuestionnaireId(String questionnaireId, Mode mode, List<String> interrogationIdList) {
+        return lunaticJsonRawDataPersistencePort.findRawDataByQuestionnaireId(questionnaireId, mode, interrogationIdList);
+    }
+
+    @Override
     @Deprecated(since = "1.13.0")
     public DataProcessResult processRawData(String campaignName, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException {
         int dataCount=0;
@@ -224,7 +229,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
 
     private List<SurveyUnitModel> getConvertedSurveyUnits(String questionnaireId, Mode mode, List<String> interrogationIdListForMode, int maxIndex, VariablesMap variablesMap) {
         List<String> interrogationIdToProcess = interrogationIdListForMode.subList(0, maxIndex);
-        List<LunaticJsonRawDataModel> rawData = getRawData(questionnaireId, mode, interrogationIdToProcess);
+        List<LunaticJsonRawDataModel> rawData = getRawDataByQuestionnaireId(questionnaireId, mode, interrogationIdToProcess);
         return convertRawData(
                 rawData,
                 variablesMap
