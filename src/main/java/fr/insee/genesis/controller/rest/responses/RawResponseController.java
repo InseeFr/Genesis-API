@@ -185,7 +185,7 @@ public class RawResponseController {
     }
 
     @Operation(summary = "Get the list of collection instruments containing unprocessed interrogations")
-    @GetMapping(path = "/raw-responses/unprocessed/collection-intrument-ids")
+    @GetMapping(path = "/raw-responses/unprocessed/collection-instrument-ids")
     @PreAuthorize("hasRole('SCHEDULER')")
     public ResponseEntity<List<String>> getUnprocessedCollectionInstrument(){
         log.info("Try to get collection instruments containing unprocessed interrogations...");
