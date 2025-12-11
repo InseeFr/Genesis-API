@@ -3,16 +3,7 @@ package fr.insee.genesis.controller.rest;
 import fr.insee.genesis.domain.ports.api.DataProcessingContextApiPort;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
-import fr.insee.genesis.infrastructure.repository.ContextualExternalVariableMongoDBRepository;
-import fr.insee.genesis.infrastructure.repository.ContextualPreviousVariableMongoDBRepository;
-import fr.insee.genesis.infrastructure.repository.DataProcessingContextMongoDBRepository;
-import fr.insee.genesis.infrastructure.repository.LastJsonExtractionMongoDBRepository;
-import fr.insee.genesis.infrastructure.repository.LunaticJsonMongoDBRepository;
-import fr.insee.genesis.infrastructure.repository.LunaticModelMongoDBRepository;
-import fr.insee.genesis.infrastructure.repository.QuestionnaireMetadataMongoDBRepository;
-import fr.insee.genesis.infrastructure.repository.RundeckExecutionDBRepository;
-import fr.insee.genesis.infrastructure.repository.SurveyUnitMongoDBRepository;
-import fr.insee.genesis.infrastructure.repository.VariableTypeMongoDBRepository;
+import fr.insee.genesis.infrastructure.repository.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,10 +13,10 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration;
-import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.data.mongodb.autoconfigure.DataMongoAutoConfiguration;
+import org.springframework.boot.mongodb.autoconfigure.MongoAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -50,11 +41,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@EnableAutoConfiguration(exclude = {MongoAutoConfiguration.class, MongoDataAutoConfiguration.class})
+@EnableAutoConfiguration(exclude = {MongoAutoConfiguration.class, DataMongoAutoConfiguration.class})
 class ControllerAccessTest {
 
     // Constants for user roles
