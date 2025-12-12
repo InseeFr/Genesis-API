@@ -9,7 +9,7 @@ import java.util.Map;
 @Data
 public class ContextualExternalVariableModel {
     String id;
-    String questionnaireId;
+    String collectionInstrumentId;
     String interrogationId;
     Map<String,Object> variables;
 }

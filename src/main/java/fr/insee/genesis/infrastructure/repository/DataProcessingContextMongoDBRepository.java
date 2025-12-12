@@ -9,9 +9,18 @@ import java.util.List;
 
 @Repository
 public interface DataProcessingContextMongoDBRepository extends MongoRepository<DataProcessingContextDocument,String> {
+    @Deprecated(forRemoval = true)
     @Query(value = "{ 'partitionId' : {$in: ?0} }")
     List<DataProcessingContextDocument> findByPartitionIdList(List<String> partitionIds);
 
+
+    @Query(value = "{ 'collectionInstrumentId' : {$in: ?0} }")
+    List<DataProcessingContextDocument> findByCollectionInstrumentIdList(List<String> collectionInstrumentIds);
+
+    @Deprecated(forRemoval = true)
     @Query(value = "{ 'partitionId' : ?0 }", delete = true)
     void deleteByPartitionId(String partitionId);
+
+    @Query(value = "{ 'collectionInstrumentId' : ?0 }", delete = true)
+    void deleteByCollectionInstrumentId(String partitionId);
 }

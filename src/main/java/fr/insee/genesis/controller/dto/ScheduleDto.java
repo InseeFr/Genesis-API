@@ -8,6 +8,7 @@ import java.util.List;
 
 @Builder
 public record ScheduleDto (String surveyName,
+						   String collectionInstrumentId,
 						   LocalDateTime lastExecution,
 						   List<KraftwerkExecutionSchedule> kraftwerkExecutionScheduleList
 ){}

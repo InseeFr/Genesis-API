@@ -52,12 +52,15 @@ public class ContextualPreviousVariablePersistancePortStub implements Contextual
     @Override
     public void delete(String questionnaireId) {
         mongoStub.get(Constants.MONGODB_CONTEXTUAL_PREVIOUS_COLLECTION_NAME).removeIf(
-                contextualPreviousVariableDocument -> contextualPreviousVariableDocument.getQuestionnaireId().equals(questionnaireId)
+                previousDoc ->
+                        (previousDoc.getQuestionnaireId()!=null && previousDoc.getQuestionnaireId().equals(questionnaireId)) ||
+                                (previousDoc.getCollectionInstrumentId() != null && previousDoc.getCollectionInstrumentId().equals(questionnaireId))
+
         );
     }
 
     @Override
-    public ContextualPreviousVariableModel findByQuestionnaireIdAndInterrogationId(String questionnaireId, String interrogationId) {
+    public ContextualPreviousVariableModel findByCollectionInstrumentIdAndInterrogationId(String questionnaireId, String interrogationId) {
         List<ContextualPreviousVariableDocument> contextualPreviousVariableDocumentList =
                 mongoStub.get(Constants.MONGODB_CONTEXTUAL_PREVIOUS_COLLECTION_NAME).stream().filter(
                 contextualPreviousVariableDocument ->

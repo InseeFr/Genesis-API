@@ -23,10 +23,10 @@ public class LunaticModelService implements LunaticModelApiPort {
     }
 
     @Override
-    public void save(String questionnaireId, Map<String, Object> lunaticModel) {
+    public void save(String collectionInstrumentId, Map<String, Object> lunaticModel) {
         lunaticModelPersistancePort.save(
                 LunaticModelModel.builder()
-                        .questionnaireId(questionnaireId)
+                        .collectionInstrumentId(collectionInstrumentId)
                         .lunaticModel(lunaticModel)
                         .recordDate(LocalDateTime.now())
                         .build()
@@ -34,10 +34,10 @@ public class LunaticModelService implements LunaticModelApiPort {
     }
 
     @Override
-    public LunaticModelModel get(String questionnaireId) throws GenesisException {
-        if(lunaticModelPersistancePort.find(questionnaireId).isEmpty()){
+    public LunaticModelModel get(String collectionInstrumentId) throws GenesisException {
+        if(lunaticModelPersistancePort.find(collectionInstrumentId).isEmpty()){
             throw new GenesisException(404,"Questionnaire not found");
         }
-        return LunaticModelMapper.INSTANCE.documentToModel(lunaticModelPersistancePort.find(questionnaireId).getFirst());
+        return LunaticModelMapper.INSTANCE.documentToModel(lunaticModelPersistancePort.find(collectionInstrumentId).getFirst());
     }
 }

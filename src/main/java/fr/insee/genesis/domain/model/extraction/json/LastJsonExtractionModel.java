@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 public class LastJsonExtractionModel {
         @Id
         private String id; //Used to remove warning
-        String questionnaireModelId;
+        String collectionInstrumentId;
         Mode mode;
         LocalDateTime lastExtractionDate;
 }

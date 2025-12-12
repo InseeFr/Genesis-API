@@ -10,7 +10,10 @@ import java.util.List;
 @Repository
 public interface ContextualPreviousVariableMongoDBRepository extends MongoRepository<ContextualPreviousVariableDocument,String> {
     void deleteByQuestionnaireId(String questionnaireId);
+    void deleteByCollectionInstrumentId(String collectionInstrumentId);
 
     @Query(value = "{ 'questionnaireId' : ?0, 'interrogationId' : ?1 }")
     List<ContextualPreviousVariableDocument> findByQuestionnaireIdAndInterrogationId(String questionnaireId, String interrogationId);
+    @Query(value = "{ 'collectionInstrumentId' : ?0, 'interrogationId' : ?1 }")
+    List<ContextualPreviousVariableDocument> findByCollectionInstrumentIdAndInterrogationId(String collectionInstrumentId, String interrogationId);
 }

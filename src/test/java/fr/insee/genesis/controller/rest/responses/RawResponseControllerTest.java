@@ -1,28 +1,37 @@
 package fr.insee.genesis.controller.rest.responses;
 
 
+import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.controller.dto.rawdata.LunaticJsonRawDataUnprocessedDto;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
+import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
+import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
+import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponse;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
+import fr.insee.genesis.domain.ports.api.RawResponseApiPort;
 import fr.insee.genesis.domain.service.context.DataProcessingContextService;
 import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.domain.utils.JsonUtils;
+import fr.insee.genesis.exceptions.GenesisError;
+import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.document.rawdata.LunaticJsonRawDataDocument;
 import fr.insee.genesis.infrastructure.mappers.DataProcessingContextMapper;
+import fr.insee.genesis.infrastructure.repository.RawResponseInputRepository;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
 import fr.insee.genesis.stubs.LunaticJsonRawDataPersistanceStub;
-import fr.insee.genesis.stubs.QuestionnaireMetadataPersistancePortStub;
+import fr.insee.genesis.stubs.QuestionnaireMetadataPersistencePortStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import fr.insee.genesis.stubs.SurveyUnitQualityToolPerretAdapterStub;
+import fr.insee.modelefiliere.RawResponseDto;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -44,14 +53,14 @@ class RawResponseControllerTest {
     private final SurveyUnitQualityToolPerretAdapterStub surveyUnitQualityToolPerretAdapterStub = new SurveyUnitQualityToolPerretAdapterStub();
     private final DataProcessingContextPersistancePortStub dataProcessingContextPersistancePortStub =
             new DataProcessingContextPersistancePortStub();
-    private static final QuestionnaireMetadataPersistancePortStub questionnaireMetadataPersistancePortStub =
-            new QuestionnaireMetadataPersistancePortStub();
+    private static final QuestionnaireMetadataPersistencePortStub questionnaireMetadataPersistencePortStub =
+            new QuestionnaireMetadataPersistencePortStub();
 
 
     private final LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort = new LunaticJsonRawDataService(lunaticJsonRawDataPersistanceStub,
             new ControllerUtils(fileUtils),
-            new QuestionnaireMetadataService(questionnaireMetadataPersistancePortStub),
-            new SurveyUnitService(surveyUnitPersistencePortStub, new QuestionnaireMetadataService(questionnaireMetadataPersistancePortStub), fileUtils),
+            new QuestionnaireMetadataService(questionnaireMetadataPersistencePortStub),
+            new SurveyUnitService(surveyUnitPersistencePortStub, new QuestionnaireMetadataService(questionnaireMetadataPersistencePortStub), fileUtils),
             new SurveyUnitQualityService(),
             fileUtils,
             new DataProcessingContextService(dataProcessingContextPersistancePortStub, surveyUnitPersistencePortStub),
@@ -60,7 +69,47 @@ class RawResponseControllerTest {
             new DataProcessingContextPersistancePortStub()
     );
 
-    private final RawResponseController rawResponseController = new RawResponseController(lunaticJsonRawDataApiPort);
+    // TODO: change this
+    RawResponseInputRepository rawResponseInputRepositoryStub = new RawResponseInputRepository(null, null) {
+        @Override
+        public void saveAsRawJson(RawResponseDto dto) {
+            // Ne rien faire — stub pour les tests
+        }
+    };
+
+    RawResponseApiPort rawResponseApiPortStub = new RawResponseApiPort() {
+        @Override
+        public List<RawResponse> getRawResponses(String questionnaireModelId, Mode mode, List<String> interrogationIdList) {
+            return List.of();
+        }
+
+        @Override
+        public DataProcessResult processRawResponses(String questionnaireId, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException {
+            return null;
+        }
+
+        @Override
+        public DataProcessResult processRawResponses(String collectionInstrumentId) throws GenesisException {
+            return null;
+        }
+
+        @Override
+        public List<SurveyUnitModel> convertRawResponse(List<RawResponse> rawResponses, VariablesMap variablesMap) {
+            return List.of();
+        }
+
+        @Override
+        public List<String> getUnprocessedCollectionInstrumentIds() {
+            return List.of();
+        }
+
+        @Override
+        public void updateProcessDates(List<SurveyUnitModel> surveyUnitModels) {
+
+        }
+    };
+
+    private final RawResponseController rawResponseController = new RawResponseController(lunaticJsonRawDataApiPort,  rawResponseApiPortStub, rawResponseInputRepositoryStub);
 
 
     @Test
@@ -113,7 +162,7 @@ class RawResponseControllerTest {
         addJsonRawDataDocumentToStub(campaignId, questionnaireId, interrogationId, null);
 
         //WHEN
-        List<LunaticJsonRawDataUnprocessedDto> dtos = rawResponseController.getUnproccessedJsonRawData().getBody();
+        List<LunaticJsonRawDataUnprocessedDto> dtos = rawResponseController.getUnprocessedJsonRawData().getBody();
 
         //THEN
         Assertions.assertThat(dtos).isNotNull().isNotEmpty().hasSize(1);
@@ -132,7 +181,7 @@ class RawResponseControllerTest {
         addJsonRawDataDocumentToStub(campaignId, questionnaireId, interrogationId, LocalDateTime.now());
 
         //WHEN
-        List<LunaticJsonRawDataUnprocessedDto> dtos = rawResponseController.getUnproccessedJsonRawData().getBody();
+        List<LunaticJsonRawDataUnprocessedDto> dtos = rawResponseController.getUnprocessedJsonRawData().getBody();
 
         //THEN
         Assertions.assertThat(dtos).isNotNull().isEmpty();
@@ -178,10 +227,10 @@ class RawResponseControllerTest {
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).isNotNull().isNotEmpty().hasSize(1);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst()).isNotNull();
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCampaignId()).isEqualTo(campaignId);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getQuestionnaireId()).isNotNull().isEqualTo(questionnaireId);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectionInstrumentId()).isNotNull().isEqualTo(questionnaireId);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getMode()).isNotNull().isEqualTo(Mode.WEB);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getInterrogationId()).isEqualTo(interrogationId);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getIdUE()).isEqualTo(idUE);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getUsualSurveyUnitId()).isEqualTo(idUE);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getFileDate()).isNotNull();
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getRecordDate()).isNotNull();
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables()).isNotNull().isNotEmpty().hasSize(1);
@@ -238,10 +287,10 @@ class RawResponseControllerTest {
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).isNotNull().isNotEmpty().hasSize(1);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst()).isNotNull();
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCampaignId()).isEqualTo(questionnaireId);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getQuestionnaireId()).isNotNull().isEqualTo(questionnaireId);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectionInstrumentId()).isNotNull().isEqualTo(questionnaireId);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getMode()).isNotNull().isEqualTo(Mode.WEB);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getInterrogationId()).isEqualTo(interrogationId);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getIdUE()).isEqualTo(idUE);
+        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getUsualSurveyUnitId()).isEqualTo(idUE);
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getFileDate()).isNotNull();
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getRecordDate()).isNotNull();
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables()).isNotNull().isNotEmpty().hasSize(1);

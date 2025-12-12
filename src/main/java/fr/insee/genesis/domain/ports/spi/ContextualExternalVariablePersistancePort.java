@@ -5,10 +5,10 @@ import fr.insee.genesis.domain.model.contextualvariable.ContextualExternalVariab
 import java.util.List;
 
 public interface ContextualExternalVariablePersistancePort {
-    void backup(String questionnaireId);
-    void deleteBackup(String questionnaireId);
-    void restoreBackup(String questionnaireId);
+    void backup(String collectionInstrumentId);
+    void deleteBackup(String collectionInstrumentId);
+    void restoreBackup(String collectionInstrumentId);
     void saveAll(List<ContextualExternalVariableModel> contextualPreviousVariableModelList);
-    void delete(String questionnaireId);
-    ContextualExternalVariableModel findByQuestionnaireIdAndInterrogationId(String questionnaireId, String interrogationId);
+    void delete(String collectionInstrumentId);
+    ContextualExternalVariableModel findByCollectionInstrumentIdAndInterrogationId(String collectionInstrumentId, String interrogationId);
 }
