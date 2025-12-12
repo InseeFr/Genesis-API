@@ -14,18 +14,12 @@ import java.util.List;
 @Data
 @Document(collection = Constants.MONGODB_CONTEXT_COLLECTION_NAME)
 public class DataProcessingContextDocument{
-        public DataProcessingContextDocument(String partitionId,
-                                             List<KraftwerkExecutionSchedule> kraftwerkExecutionScheduleList,
-                                             boolean withReview) {
-                this.partitionId = partitionId;
-                this.kraftwerkExecutionScheduleList = kraftwerkExecutionScheduleList;
-                this.withReview = withReview;
-        }
 
         @Id
         private ObjectId id;
         @Indexed
         private String partitionId; //ex Survey Name, campaignId
+        @Indexed
         private String collectionInstrumentId; // QuestionnaireId
         private LocalDateTime lastExecution;
         private List<KraftwerkExecutionSchedule> kraftwerkExecutionScheduleList;

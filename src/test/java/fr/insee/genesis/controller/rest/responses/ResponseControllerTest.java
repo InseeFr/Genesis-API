@@ -228,10 +228,11 @@ class ResponseControllerTest {
                 surveyUnitPersistencePortStub
         );
 
-        dataProcessingContextPersistancePortStub.getMongoStub().add(new DataProcessingContextDocument(
-                "TEST-TABLEAUX", new ArrayList<>(), true
-
-        ));
+        DataProcessingContextDocument doc = new DataProcessingContextDocument();
+        doc.setPartitionId("TEST-TABLEAUX");
+        doc.setKraftwerkExecutionScheduleList(new ArrayList<>());
+        doc.setWithReview(true);
+        dataProcessingContextPersistancePortStub.getMongoStub().add(doc);
 
 
         //WHEN
@@ -322,10 +323,11 @@ class ResponseControllerTest {
                 surveyUnitPersistencePortStub
         );
 
-        dataProcessingContextPersistancePortStub.getMongoStub().add(new DataProcessingContextDocument(
-                "TEST-TABLEAUX", new ArrayList<>(), true
-
-        ));
+        DataProcessingContextDocument doc = new DataProcessingContextDocument();
+        doc.setPartitionId("TEST-TABLEAUX");
+        doc.setKraftwerkExecutionScheduleList(new ArrayList<>());
+        doc.setWithReview(true);
+        dataProcessingContextPersistancePortStub.getMongoStub().add(doc);
 
 
         //WHEN

@@ -20,6 +20,7 @@ public class DataProcessingContextModel {
     @Id
     private ObjectId id; //Used to remove warning
 
+    @Deprecated(forRemoval = true)
     private String partitionId;
 
     private String collectionInstrumentId; //QuestionnaireId

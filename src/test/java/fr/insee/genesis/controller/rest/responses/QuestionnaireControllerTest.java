@@ -77,26 +77,22 @@ class QuestionnaireControllerTest {
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isEmpty();
 
-        dataProcessingContextPersistancePortStub.getMongoStub().add(
-                new DataProcessingContextDocument(
-                        DEFAULT_QUESTIONNAIRE_ID,
-                        new ArrayList<>(),
-                        true
-                )
-        );
+        DataProcessingContextDocument doc = new DataProcessingContextDocument();
+        doc.setPartitionId(DEFAULT_QUESTIONNAIRE_ID);
+        doc.setKraftwerkExecutionScheduleList(new ArrayList<>());
+        doc.setWithReview(true);
+        dataProcessingContextPersistancePortStub.getMongoStub().add(doc);
 
         response = questionnaireControllerStatic.getQuestionnairesWithReview(true);
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().containsOnly(
                 DEFAULT_QUESTIONNAIRE_ID);
 
-        dataProcessingContextPersistancePortStub.getMongoStub().add(
-                new DataProcessingContextDocument(
-                        questionnaireId,
-                        new ArrayList<>(),
-                        false
-                )
-        );
+        DataProcessingContextDocument doc2 = new DataProcessingContextDocument();
+        doc2.setPartitionId(questionnaireId);
+        doc2.setKraftwerkExecutionScheduleList(new ArrayList<>());
+        doc2.setWithReview(false);
+        dataProcessingContextPersistancePortStub.getMongoStub().add(doc2);
 
         response = questionnaireControllerStatic.getQuestionnairesWithReview(true);
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
@@ -114,26 +110,22 @@ class QuestionnaireControllerTest {
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isEmpty();
 
-        dataProcessingContextPersistancePortStub.getMongoStub().add(
-                new DataProcessingContextDocument(
-                        DEFAULT_QUESTIONNAIRE_ID,
-                        new ArrayList<>(),
-                        false
-                )
-        );
+        DataProcessingContextDocument doc = new DataProcessingContextDocument();
+        doc.setPartitionId(DEFAULT_QUESTIONNAIRE_ID);
+        doc.setKraftwerkExecutionScheduleList(new ArrayList<>());
+        doc.setWithReview(false);
+        dataProcessingContextPersistancePortStub.getMongoStub().add(doc);
 
         response = questionnaireControllerStatic.getQuestionnairesWithReview(false);
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().containsOnly(
                 DEFAULT_QUESTIONNAIRE_ID);
 
-        dataProcessingContextPersistancePortStub.getMongoStub().add(
-                new DataProcessingContextDocument(
-                        questionnaireId,
-                        new ArrayList<>(),
-                        true
-                )
-        );
+        DataProcessingContextDocument doc2 = new DataProcessingContextDocument();
+        doc2.setPartitionId(questionnaireId);
+        doc2.setKraftwerkExecutionScheduleList(new ArrayList<>());
+        doc2.setWithReview(true);
+        dataProcessingContextPersistancePortStub.getMongoStub().add(doc2);
         response = questionnaireControllerStatic.getQuestionnairesWithReview(false);
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().containsOnly(

@@ -39,14 +39,30 @@ public class DataProcessingContextPersistancePortStub implements DataProcessingC
     }
 
     @Override
+    public DataProcessingContextModel findByCollectionInstrumentId(String collectionInstrumentId) {
+        return DataProcessingContextMapper.INSTANCE.documentToModel(ContextDedupUtils.deduplicateContexts(collectionInstrumentId,
+                mongoStub.stream().filter(
+                        dataProcessingContextDocument -> dataProcessingContextDocument.getCollectionInstrumentId().equals(collectionInstrumentId)
+                ).toList())
+        );
+    }
+
+    @Override
     public List<DataProcessingContextModel> findByCollectionInstrumentIds(List<String> collectionInstrumentIds) {
-        return List.of();
+        return DataProcessingContextMapper.INSTANCE.listDocumentToListModel(
+                ContextDedupUtils.deduplicateContexts(
+                        mongoStub.stream().filter(
+                                dataProcessingContextDocument -> collectionInstrumentIds.contains(dataProcessingContextDocument.getCollectionInstrumentId())
+                        ).toList()
+                )
+        );
     }
 
     @Override
     public void save(DataProcessingContextDocument dataProcessingContextDocument) {
-        mongoStub.removeIf(existingDoc -> existingDoc.getPartitionId().equals(
-                dataProcessingContextDocument.getPartitionId())
+        mongoStub.removeIf(existingDoc -> (existingDoc.getCollectionInstrumentId() != null &&existingDoc.getCollectionInstrumentId().equals(
+                dataProcessingContextDocument.getCollectionInstrumentId())) ||(existingDoc.getPartitionId()!= null &&existingDoc.getPartitionId().equals(
+                dataProcessingContextDocument.getPartitionId()))
         );
         mongoStub.add(dataProcessingContextDocument);
     }
@@ -83,7 +99,7 @@ public class DataProcessingContextPersistancePortStub implements DataProcessingC
                     kraftwerkExecutionScheduleToRemove.getScheduleEndDate());
         }
         //Update mongo stub
-        mongoStub.removeIf(scheduleDocument -> scheduleDocument.getPartitionId().equals(dataProcessingContextModel.getPartitionId()));
+        mongoStub.removeIf(scheduleDocument -> (scheduleDocument.getCollectionInstrumentId()!=null && scheduleDocument.getCollectionInstrumentId().equals(dataProcessingContextModel.getCollectionInstrumentId())) ||(scheduleDocument.getPartitionId()!=null && scheduleDocument.getPartitionId().equals(dataProcessingContextModel.getPartitionId())));
         mongoStub.add(DataProcessingContextMapper.INSTANCE.modelToDocument(dataProcessingContextModel));
         return kraftwerkExecutionSchedulesToRemove;
     }

@@ -7,6 +7,7 @@ import fr.insee.genesis.domain.ports.spi.DataProcessingContextPersistancePort;
 import fr.insee.genesis.infrastructure.document.context.DataProcessingContextDocument;
 import fr.insee.genesis.infrastructure.mappers.DataProcessingContextMapper;
 import fr.insee.genesis.infrastructure.repository.DataProcessingContextMongoDBRepository;
+import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.infrastructure.utils.context.ContextDedupUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,11 +29,14 @@ import java.util.List;
 public class DataProcessingContextMongoAdapter implements DataProcessingContextPersistancePort {
     private final DataProcessingContextMongoDBRepository dataProcessingContextMongoDBRepository;
     private final MongoTemplate mongoTemplate;
+    private final FileUtils fileUtils;
+
 
     @Autowired
-    public DataProcessingContextMongoAdapter(DataProcessingContextMongoDBRepository dataProcessingContextMongoDBRepository, MongoTemplate mongoTemplate) {
+    public DataProcessingContextMongoAdapter(DataProcessingContextMongoDBRepository dataProcessingContextMongoDBRepository, MongoTemplate mongoTemplate, FileUtils fileUtils) {
         this.dataProcessingContextMongoDBRepository = dataProcessingContextMongoDBRepository;
         this.mongoTemplate = mongoTemplate;
+        this.fileUtils = fileUtils;
     }
 
 
@@ -50,10 +55,17 @@ public class DataProcessingContextMongoAdapter implements DataProcessingContextP
     }
 
     @Override
+    public DataProcessingContextModel findByCollectionInstrumentId(String collectionInstrumentId) {
+        List<DataProcessingContextDocument> existingDocuments =
+                dataProcessingContextMongoDBRepository.findByCollectionInstrumentIdList(List.of(collectionInstrumentId));
+        return DataProcessingContextMapper.INSTANCE.documentToModel(existingDocuments.isEmpty()?null:existingDocuments.getFirst());
+    }
+
+    @Override
     public List<DataProcessingContextModel> findByCollectionInstrumentIds(List<String> collectionInstrumentIds) {
         List<DataProcessingContextDocument> existingDocuments =
                 dataProcessingContextMongoDBRepository.findByCollectionInstrumentIdList(collectionInstrumentIds);
-        return DataProcessingContextMapper.INSTANCE.listDocumentToListModel(ContextDedupUtils.deduplicateContexts(existingDocuments));
+        return DataProcessingContextMapper.INSTANCE.listDocumentToListModel(existingDocuments);
     }
 
     @Override
@@ -73,7 +85,7 @@ public class DataProcessingContextMongoAdapter implements DataProcessingContextP
 
     @Override
     public List<DataProcessingContextDocument> findAll() {
-        return ContextDedupUtils.deduplicateContexts(dataProcessingContextMongoDBRepository.findAll());
+        return dataProcessingContextMongoDBRepository.findAll();
     }
 
     @Override
@@ -82,7 +94,7 @@ public class DataProcessingContextMongoAdapter implements DataProcessingContextP
     }
 
     @Override
-    public List<KraftwerkExecutionSchedule> removeExpiredSchedules(DataProcessingContextModel dataProcessingContextModel) {
+    public List<KraftwerkExecutionSchedule> removeExpiredSchedules(DataProcessingContextModel dataProcessingContextModel) throws IOException {
         List<KraftwerkExecutionSchedule> deletedKraftwerkExecutionSchedules = new ArrayList<>();
         for (KraftwerkExecutionSchedule kraftwerkExecutionScheduleToRemove :
                 dataProcessingContextModel.getKraftwerkExecutionScheduleList().stream().filter(
@@ -91,6 +103,13 @@ public class DataProcessingContextMongoAdapter implements DataProcessingContextP
             deletedKraftwerkExecutionSchedules.add(kraftwerkExecutionScheduleToRemove);
             Query query =
                     Query.query(Criteria.where("scheduleEndDate").is(kraftwerkExecutionScheduleToRemove.getScheduleEndDate()));
+            // If collectionInstrumentId is present we use it, if not we use partitionId
+            if (dataProcessingContextModel.getCollectionInstrumentId()!=null){
+                mongoTemplate.updateMulti(Query.query(Criteria.where("collectionInstrumentId").is(dataProcessingContextModel.getCollectionInstrumentId())), new Update().pull(
+                                "kraftwerkExecutionScheduleList", query),
+                        Constants.MONGODB_SCHEDULE_COLLECTION_NAME);
+                continue;
+            }
             mongoTemplate.updateMulti(Query.query(Criteria.where("surveyName").is(dataProcessingContextModel.getPartitionId())), new Update().pull(
                             "kraftwerkExecutionScheduleList", query),
                     Constants.MONGODB_SCHEDULE_COLLECTION_NAME);
@@ -102,7 +121,7 @@ public class DataProcessingContextMongoAdapter implements DataProcessingContextP
 
     @Override
     public List<DataProcessingContextDocument> findAllByReview(boolean withReview) {
-        return ContextDedupUtils.deduplicateContexts(dataProcessingContextMongoDBRepository.findAll())
+        return dataProcessingContextMongoDBRepository.findAll()
                 .stream().filter(doc ->
                         doc.isWithReview() == withReview
                 ).toList();

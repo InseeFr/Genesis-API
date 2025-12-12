@@ -6,6 +6,8 @@ import fr.insee.genesis.domain.model.context.schedule.ServiceToCall;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.document.context.DataProcessingContextDocument;
+import fr.insee.genesis.infrastructure.utils.FileUtils;
+import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import org.assertj.core.api.Assertions;
@@ -24,6 +26,7 @@ class DataProcessingContextServiceTest {
     static SurveyUnitPersistencePortStub surveyUnitPersistencePortStub;
     static DataProcessingContextService dataProcessingContextService;
     static DataProcessingContextPersistancePortStub dataProcessingContextPersistencePortStub;
+    FileUtils fileUtils = new FileUtils(new ConfigStub());
 
     @BeforeAll
     static void init(){
@@ -46,11 +49,11 @@ class DataProcessingContextServiceTest {
                 LocalDateTime.MAX,
                 null
         ));
-        dataProcessingContextPersistencePortStub.getMongoStub().add(new DataProcessingContextDocument(
-                "TEST",
-                kraftwerkExecutionScheduleList,
-                false
-        ));
+        DataProcessingContextDocument doc = new DataProcessingContextDocument();
+        doc.setPartitionId("TEST");
+        doc.setKraftwerkExecutionScheduleList(kraftwerkExecutionScheduleList);
+        doc.setWithReview(false);
+        dataProcessingContextPersistencePortStub.getMongoStub().add(doc);
     }
 
     @Test
@@ -146,7 +149,7 @@ class DataProcessingContextServiceTest {
         ));
 
         //When
-        dataProcessingContextService.deleteExpiredSchedules("TEST");
+        dataProcessingContextService.deleteExpiredSchedules(fileUtils.getLogFolder());
 
         //Then
         //Execution schedule deleted
@@ -167,14 +170,14 @@ class DataProcessingContextServiceTest {
                 LocalDateTime.of(2000,1,1,1,1,1),
                 null
         ));
-        dataProcessingContextPersistencePortStub.getMongoStub().add(new DataProcessingContextDocument(
-                "TEST2",
-                kraftwerkExecutionScheduleList,
-                false
-        ));
+        DataProcessingContextDocument doc = new DataProcessingContextDocument();
+        doc.setPartitionId("TEST2");
+        doc.setKraftwerkExecutionScheduleList(kraftwerkExecutionScheduleList);
+        doc.setWithReview(false);
+        dataProcessingContextPersistencePortStub.getMongoStub().add(doc);
 
         //When
-        dataProcessingContextService.deleteExpiredSchedules("TEST2");
+        dataProcessingContextService.deleteExpiredSchedules(fileUtils.getLogFolder());
 
         //Then
         //Survey schedule document deleted

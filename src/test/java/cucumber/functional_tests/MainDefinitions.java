@@ -122,24 +122,20 @@ public class MainDefinitions {
 
     @Given("We have a context in database for that data with review {string}")
     public void create_context(String withReviewString) {
-        dataProcessingContextPersistancePortStub.getMongoStub().add(
-                new DataProcessingContextDocument(
-                        directory,
-                        new ArrayList<>(),
-                        Boolean.parseBoolean(withReviewString)
-                )
-        );
+        DataProcessingContextDocument doc = new DataProcessingContextDocument();
+        doc.setPartitionId(directory);
+        doc.setKraftwerkExecutionScheduleList(new ArrayList<>());
+        doc.setWithReview(Boolean.parseBoolean(withReviewString));
+        dataProcessingContextPersistancePortStub.getMongoStub().add(doc);
     }
 
     @Given("We have a context in database for partitionId {string} with review {string}")
     public void create_context(String partitionId, String withReviewString) {
-        dataProcessingContextPersistancePortStub.getMongoStub().add(
-                new DataProcessingContextDocument(
-                        partitionId,
-                        new ArrayList<>(),
-                        Boolean.parseBoolean(withReviewString)
-                )
-        );
+        DataProcessingContextDocument doc = new DataProcessingContextDocument();
+        doc.setPartitionId(partitionId);
+        doc.setKraftwerkExecutionScheduleList(new ArrayList<>());
+        doc.setWithReview(Boolean.parseBoolean(withReviewString));
+        dataProcessingContextPersistancePortStub.getMongoStub().add(doc);
     }
 
     @Given("We have a survey unit with campaignId {string} and interrogationId {string}")

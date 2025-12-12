@@ -23,4 +23,13 @@ public class DataProcessingContextMapperDto {
         }
         return dtos;
     }
+
+    public DataProcessingContextModel scheduleDtoToDataProcessingContext (ScheduleDto schedule){
+        return DataProcessingContextModel.builder()
+                .partitionId(schedule.surveyName())
+                .collectionInstrumentId(schedule.collectionInstrumentId())
+                .lastExecution(schedule.lastExecution())
+                .kraftwerkExecutionScheduleList(schedule.kraftwerkExecutionScheduleList())
+                .build();
+    }
 }
