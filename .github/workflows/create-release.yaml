@@ -89,7 +89,7 @@ jobs:
           mvn package --no-transfer-progress
 
       - name: Upload app jar
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: app-jar
           path: target/*.jar
@@ -165,7 +165,7 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Download uploaded jar
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: app-jar
           path: target/
