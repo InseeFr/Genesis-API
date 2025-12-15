@@ -3,6 +3,7 @@ package fr.insee.genesis.controller.rest;
 import fr.insee.bpm.metadata.model.MetadataModel;
 import fr.insee.bpm.metadata.model.Variable;
 import fr.insee.bpm.metadata.model.VariableType;
+import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.infrastructure.document.metadata.QuestionnaireMetadataDocument;
@@ -79,6 +80,26 @@ class QuestionnaireMetadataControllerTest {
 
         //WHEN
         ResponseEntity<Object> response = questionnaireMetadataController.saveMetadata(questionnaireId, mode, metadataModel);
+
+        VariablesMap vars =
+                questionnaireMetadataPersistancePortStub
+                        .getMongoStub()
+                        .getFirst()
+                        .metadataModel()
+                        .getVariables();
+
+                Assertions.assertThat(vars.hasVariable(variableName)).isTrue();
+
+                boolean hasMissing = vars.getVariables().keySet().stream()
+                        .anyMatch(name -> name.endsWith("_MISSING"));
+                Assertions.assertThat(hasMissing).isTrue();
+
+                boolean hasFilter = vars.getVariables().keySet().stream()
+                        .anyMatch(name -> name.startsWith("FILTER_RESULT_"));
+                Assertions.assertThat(hasFilter).isTrue();
+
+        System.out.println("Variables dans le MetadataModel : " + vars.getVariables().keySet());
+
 
         //THEN
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();

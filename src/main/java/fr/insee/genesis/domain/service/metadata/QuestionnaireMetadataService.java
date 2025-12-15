@@ -4,7 +4,7 @@ import fr.insee.bpm.exceptions.MetadataParserException;
 import fr.insee.bpm.metadata.model.MetadataModel;
 import fr.insee.bpm.metadata.model.Variable;
 import fr.insee.bpm.metadata.model.VariableType;
-import fr.insee.bpm.metadata.model.VariablesMap;
+import fr.insee.bpm.metadata.reader.ReaderUtils;
 import fr.insee.bpm.metadata.reader.ddi.DDIReader;
 import fr.insee.bpm.metadata.reader.lunatic.LunaticReader;
 import fr.insee.genesis.Constants;
@@ -21,11 +21,8 @@ import org.springframework.stereotype.Service;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.List;
-
-import static fr.insee.bpm.metadata.reader.lunatic.LunaticUtils.addLunaticVariable;
 
 @Service
 @AllArgsConstructor
@@ -60,44 +57,11 @@ public class QuestionnaireMetadataService implements QuestionnaireMetadataApiPor
         } else {
             metadataModel = questionnaireMetadataModels.getFirst().metadataModel();
         }
-        String metadataFilePath = fileUtils.getSpecFolder(questionnaireId);
-        addMissingAndFilterVariables(metadataModel, metadataFilePath);
 
         saveMetadata(questionnaireId.toUpperCase(), mode, metadataModel);
 
         return metadataModel;
     }
-
-    private void addMissingAndFilterVariables(MetadataModel metadataModel, String metadataFilePath) {
-        VariablesMap variablesMap = metadataModel.getVariables();
-
-        try (InputStream lunaticStream = new FileInputStream(metadataFilePath);
-             InputStream lunaticStream2 = new FileInputStream(metadataFilePath)) {
-
-            List<String> missingVars = LunaticReader.getMissingVariablesFromLunatic(lunaticStream);
-            List<String> filterVars = LunaticReader.getFilterResultFromLunatic(lunaticStream2);
-
-            for (String var : missingVars) {
-                String missingVarName = var + Constants.MISSING_SUFFIX;
-                if (!variablesMap.hasVariable(missingVarName)) {
-                    addLunaticVariable(metadataModel, var, Constants.MISSING_SUFFIX, VariableType.STRING);
-                }
-            }
-
-            for (String var : filterVars) {
-                String filterVarName = Constants.FILTER_RESULT_PREFIX + var;
-                if (!variablesMap.hasVariable(filterVarName)) {
-                    addLunaticVariable(metadataModel, var, Constants.FILTER_RESULT_PREFIX, VariableType.BOOLEAN);
-                }
-            }
-
-        } catch (IOException e) {
-            log.error("Erreur lecture fichier Lunatic : {}", metadataFilePath, e);
-        }
-    }
-
-
-
 
     private void saveMetadata(String questionnaireId, Mode mode, MetadataModel metadataModel) {
         questionnaireMetadataPersistancePort.save(
@@ -162,9 +126,9 @@ public class QuestionnaireMetadataService implements QuestionnaireMetadataApiPor
         try {
             log.info("Try to read {} file: {}", withDDI ? "DDI" : "Lunatic", metadataFilePath);
             if (withDDI) {
-                MetadataModel metadataModel = DDIReader.getMetadataFromDDI(
+                MetadataModel metadataModel = ReaderUtils.getMetadataFromDDIAndLunatic(
                         Path.of(metadataFilePath).toFile().toURI().toURL().toString(),
-                        new FileInputStream(metadataFilePath));
+                        new FileInputStream(metadataFilePath),metadataFilePath);
                 // Temporary solution
                 // the logic of adding variables from lunatic to the ones present in the DDI needs to be implemented in BPM
                 // (only in Kraftwerk for the moment)
@@ -172,6 +136,7 @@ public class QuestionnaireMetadataService implements QuestionnaireMetadataApiPor
                     metadataModel.getVariables().putVariable(new Variable(enoVar, metadataModel.getRootGroup(), VariableType.STRING));
                 }
                 return metadataModel;
+
             } else {
                 return LunaticReader.getMetadataFromLunatic(
                         new FileInputStream(metadataFilePath));
