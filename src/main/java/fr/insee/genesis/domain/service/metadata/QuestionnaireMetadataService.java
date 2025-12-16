@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -125,9 +126,10 @@ public class QuestionnaireMetadataService implements QuestionnaireMetadataApiPor
         try {
             log.info("Try to read {} file: {}", withDDI ? "DDI" : "Lunatic", metadataFilePath);
             if (withDDI) {
+                InputStream metadataInputStream = new FileInputStream(metadataFilePath);
                 MetadataModel metadataModel = ReaderUtils.getMetadataFromDDIAndLunatic(
                         Path.of(metadataFilePath).toFile().toURI().toURL().toString(),
-                        new FileInputStream(metadataFilePath),metadataFilePath);
+                        metadataInputStream,metadataInputStream);
                 // Temporary solution
                 // the logic of adding variables from lunatic to the ones present in the DDI needs to be implemented in BPM
                 // (only in Kraftwerk for the moment)

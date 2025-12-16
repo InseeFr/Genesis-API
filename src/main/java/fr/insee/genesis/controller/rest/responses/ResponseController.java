@@ -594,8 +594,9 @@ public class ResponseController implements CommonApiResponse {
             //Parse DDI
             log.info("Try to read DDI file : {}", metadataFilePath);
             try {
+                InputStream metadataInputStream = new FileInputStream(metadataFilePath);
                 return ReaderUtils.getMetadataFromDDIAndLunatic(Path.of(metadataFilePath).toFile().toURI().toURL().toString(),
-                        new FileInputStream(metadataFilePath),metadataFilePath).getVariables();
+                        metadataInputStream,metadataInputStream).getVariables();
             } catch (MetadataParserException e) {
                 throw new GenesisException(500, e.getMessage());
             } catch (FileNotFoundException fnfe){
