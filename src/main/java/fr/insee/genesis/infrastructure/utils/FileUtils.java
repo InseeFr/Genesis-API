@@ -2,6 +2,7 @@ package fr.insee.genesis.infrastructure.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.insee.genesis.configuration.Config;
+import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -256,4 +257,15 @@ public class FileUtils {
 			.filter(File::isDirectory)
 			.toList();
 	}
+    public void ensureContextualFolderExists(String questionnaireId, Mode mode) throws IOException {
+        String contextualFolderPath = getDataFolder(questionnaireId, mode.getFolder(), null) + "/contextual";
+        if (!isFolderPresent(contextualFolderPath)) {
+            Files.createDirectories(Path.of(contextualFolderPath));
+            log.info("contextual folder created : {}", contextualFolderPath);
+        } else {
+            log.info("contextual folder already exists : {}", contextualFolderPath);
+        }
+    }
+
+
 }

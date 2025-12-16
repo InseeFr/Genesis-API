@@ -10,6 +10,7 @@ import fr.insee.genesis.infrastructure.utils.FileUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -50,12 +51,16 @@ public class ContextualVariableController {
     @PreAuthorize("hasAnyRole('USER_PLATINE','SCHEDULER')")
     public ResponseEntity<Object> saveContextualVariables(
             @RequestParam("questionnaireId") String questionnaireId
-    ){
+    ) {
         try {
             FileUtils fileUtils = new FileUtils(config);
-            int fileCount = contextualVariableApiPort.saveContextualVariableFiles(questionnaireId, fileUtils);
+
+            String contextualFolderPath = fileUtils.getDataFolder(questionnaireId, "WEB", null) + "/contextual";
+
+            int fileCount = contextualVariableApiPort.saveContextualVariableFiles(questionnaireId, fileUtils,contextualFolderPath);
+
             return ResponseEntity.ok("%d file(s) processed for questionnaire %s !".formatted(fileCount, questionnaireId));
-        }catch (GenesisException ge){
+        } catch (GenesisException ge) {
             return ResponseEntity.status(HttpStatusCode.valueOf(ge.getStatus())).body(ge.getMessage());
         }
     }
@@ -72,7 +77,9 @@ public class ContextualVariableController {
         try {
             FileUtils fileUtils = new FileUtils(config);
 
-            String filePath = "%s/%s".formatted(
+            fileUtils.ensureContextualFolderExists(questionnaireId, mode);
+
+            String filePath = "%s/contextual/%s".formatted(
                     fileUtils.getDataFolder(questionnaireId, mode.getFolder(), null),
                     jsonFileName
             );
@@ -84,7 +91,8 @@ public class ContextualVariableController {
             return ResponseEntity.ok("Contextual previous variable file %s saved !".formatted(filePath));
         }catch (GenesisException ge){
             return ResponseEntity.status(HttpStatusCode.valueOf(ge.getStatus())).body(ge.getMessage());
-        }
+        } catch (IOException ioe) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur IO : " + ioe.getMessage());        }
     }
 
     @Operation(summary = "Add contextual external json file")
@@ -98,7 +106,9 @@ public class ContextualVariableController {
         try {
             FileUtils fileUtils = new FileUtils(config);
 
-            String filePath = "%s/%s".formatted(
+            fileUtils.ensureContextualFolderExists(questionnaireId, mode);
+
+            String filePath = "%s/contextual/%s".formatted(
                     fileUtils.getDataFolder(questionnaireId, mode.getFolder(), null),
                     jsonFileName
             );
@@ -110,6 +120,8 @@ public class ContextualVariableController {
             return ResponseEntity.ok("Contextual external variable file %s saved !".formatted(filePath));
         }catch (GenesisException ge){
             return ResponseEntity.status(HttpStatusCode.valueOf(ge.getStatus())).body(ge.getMessage());
+        } catch (IOException ioe) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur IO : " + ioe.getMessage());
         }
     }
 
