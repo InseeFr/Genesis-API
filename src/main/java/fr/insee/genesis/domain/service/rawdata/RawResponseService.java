@@ -366,6 +366,10 @@ public class RawResponseService implements RawResponseApiPort {
             Map<String, Object> states = JsonUtils.asMap(collectedVariable.getValue());
 
             // nothing if no state
+            if (states == null || states.isEmpty()) {
+                continue;
+            }
+
             if (states.containsKey(stateKey)) {
                 Object value = states.get(stateKey);
 
