@@ -1,6 +1,7 @@
 package fr.insee.genesis.infrastructure.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.insee.genesis.Constants;
 import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
@@ -258,12 +259,12 @@ public class FileUtils {
 			.toList();
 	}
     public void ensureContextualFolderExists(String questionnaireId, Mode mode) throws IOException {
-        String contextualFolderPath = getDataFolder(questionnaireId, mode.getFolder(), null) + "/contextual";
+        String contextualFolderPath = getDataFolder(questionnaireId, mode.getFolder(), null) + Constants.CONTEXTUAL_FOLDER;
         if (!isFolderPresent(contextualFolderPath)) {
             Files.createDirectories(Path.of(contextualFolderPath));
-            log.info("contextual folder created : {}", contextualFolderPath);
+            log.debug("contextual folder created : {}", contextualFolderPath);
         } else {
-            log.info("contextual folder already exists : {}", contextualFolderPath);
+            log.debug("contextual folder already exists : {}", contextualFolderPath);
         }
     }
 

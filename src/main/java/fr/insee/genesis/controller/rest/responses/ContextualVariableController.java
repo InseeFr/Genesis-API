@@ -1,5 +1,6 @@
 package fr.insee.genesis.controller.rest.responses;
 
+import fr.insee.genesis.Constants;
 import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.ports.api.ContextualExternalVariableApiPort;
@@ -55,7 +56,7 @@ public class ContextualVariableController {
         try {
             FileUtils fileUtils = new FileUtils(config);
 
-            String contextualFolderPath = fileUtils.getDataFolder(questionnaireId, "WEB", null) + "/contextual";
+            String contextualFolderPath = fileUtils.getDataFolder(questionnaireId, "WEB", null) + Constants.CONTEXTUAL_FOLDER;
 
             int fileCount = contextualVariableApiPort.saveContextualVariableFiles(questionnaireId, fileUtils,contextualFolderPath);
 
@@ -79,8 +80,9 @@ public class ContextualVariableController {
 
             fileUtils.ensureContextualFolderExists(questionnaireId, mode);
 
-            String filePath = "%s/contextual/%s".formatted(
+            String filePath = "%s%s/%s".formatted(
                     fileUtils.getDataFolder(questionnaireId, mode.getFolder(), null),
+                    Constants.CONTEXTUAL_FOLDER,
                     jsonFileName
             );
             if (!jsonFileName.toLowerCase().endsWith(".json")) {
@@ -108,8 +110,9 @@ public class ContextualVariableController {
 
             fileUtils.ensureContextualFolderExists(questionnaireId, mode);
 
-            String filePath = "%s/contextual/%s".formatted(
+            String filePath = "%s%s/%s".formatted(
                     fileUtils.getDataFolder(questionnaireId, mode.getFolder(), null),
+                    Constants.CONTEXTUAL_FOLDER,
                     jsonFileName
             );
             if (!jsonFileName.toLowerCase().endsWith(".json")) {
