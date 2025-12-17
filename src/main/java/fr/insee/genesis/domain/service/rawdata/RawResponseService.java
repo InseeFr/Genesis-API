@@ -365,12 +365,7 @@ public class RawResponseService implements RawResponseApiPort {
             // Map for this variable (COLLECTED/EDITED -> value)
             Map<String, Object> states = JsonUtils.asMap(collectedVariable.getValue());
 
-            // nothing if no state
-            if (states == null || states.isEmpty()) {
-                continue;
-            }
-
-            if (states.containsKey(stateKey)) {
+            if (states != null && states.containsKey(stateKey)) {
                 Object value = states.get(stateKey);
 
                 // liste ?
