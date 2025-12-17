@@ -44,19 +44,24 @@ public class QuestionnaireMetadataService implements QuestionnaireMetadataApiPor
         return questionnaireMetadataModels.getFirst().metadataModel();
     }
 
-    public MetadataModel loadAndSaveIfNotExists(String campaignName, String questionnaireId, Mode mode, FileUtils fileUtils,
-                                                List<GenesisError> errors) throws GenesisException {
+    public MetadataModel loadAndSaveIfNotExists(
+            String campaignName,
+            String questionnaireId,
+            Mode mode,
+            FileUtils fileUtils,
+            List<GenesisError> errors
+    ) throws GenesisException {
 
-        List<QuestionnaireMetadataModel> questionnaireMetadataModels =
+        List<QuestionnaireMetadataModel> storedMetadatas =
                 questionnaireMetadataPersistancePort.find(questionnaireId.toUpperCase(), mode);
 
-        MetadataModel metadataModel;
-
-        if (questionnaireMetadataModels.isEmpty() || questionnaireMetadataModels.getFirst().metadataModel() == null) {
-            metadataModel = readMetadatas(campaignName, mode.getModeName(), fileUtils, errors);
-        } else {
-            metadataModel = questionnaireMetadataModels.getFirst().metadataModel();
+        if (!storedMetadatas.isEmpty()
+                && storedMetadatas.getFirst().metadataModel() != null) {
+            return storedMetadatas.getFirst().metadataModel();
         }
+
+        MetadataModel metadataModel =
+                readMetadatas(campaignName, mode.getModeName(), fileUtils, errors);
 
         saveMetadata(questionnaireId.toUpperCase(), mode, metadataModel);
 
