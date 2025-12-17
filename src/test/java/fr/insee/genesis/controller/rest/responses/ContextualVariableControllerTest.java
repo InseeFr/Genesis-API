@@ -186,12 +186,13 @@ class ContextualVariableControllerTest {
             Consumer<ContextualPreviousVariableDocument> assertionsForDoc
     ) {
         //GIVEN
-        Files.createDirectories(SOURCE_PATH_PREVIOUS);
+        Path contextualPath = SOURCE_PATH_PREVIOUS.resolve("contextual");
+        Files.createDirectories(contextualPath);
         Files.copy(
                 Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
                         .resolve("contextual_previous")
                         .resolve("ok.json"),
-                SOURCE_PATH_PREVIOUS.resolve("ok.json"),
+                contextualPath.resolve("ok.json"),
                 StandardCopyOption.REPLACE_EXISTING
         );
 
@@ -283,12 +284,13 @@ class ContextualVariableControllerTest {
                                                 int expectedVarCount,
                                                 Consumer<ContextualExternalVariableDocument> assertionsForDoc) {
         //GIVEN
-        Files.createDirectories(SOURCE_PATH_EXTERNAL);
+        Path contextualPath = SOURCE_PATH_EXTERNAL.resolve("contextual");
+        Files.createDirectories(contextualPath);
         Files.copy(
                 Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
                         .resolve("contextual_external")
                         .resolve("ok.json"),
-                SOURCE_PATH_EXTERNAL.resolve("ok.json"),
+                contextualPath.resolve("ok.json"),
                 StandardCopyOption.REPLACE_EXISTING
         );
 
@@ -400,10 +402,13 @@ class ContextualVariableControllerTest {
 
     private void testOKCase(String sourceState) throws IOException {
         //GIVEN
-        Files.createDirectories(SOURCE_PATH_PREVIOUS);
+        Path contextualPath = SOURCE_PATH_PREVIOUS.resolve("contextual");
+        Files.createDirectories(contextualPath);
         Files.copy(
-                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("contextual_previous").resolve("ok.json"),
-                SOURCE_PATH_PREVIOUS.resolve("ok.json"),
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
+                        .resolve("contextual_previous")
+                        .resolve("ok.json"),
+                contextualPath.resolve("ok.json"),
                 StandardCopyOption.REPLACE_EXISTING
         );
 
@@ -484,19 +489,22 @@ class ContextualVariableControllerTest {
                                                      int expectedVarCount,
                                                      Consumer<ContextualPreviousVariableDocument> assertionsForDoc){
         //GIVEN
-        Files.createDirectories(SOURCE_PATH_PREVIOUS);
+        Path contextualPath = SOURCE_PATH_PREVIOUS.resolve("contextual");
+        Files.createDirectories(contextualPath);
         Path path = Path.of(TestConstants.TEST_RESOURCES_DIRECTORY);
         Files.copy(
-
-                path.resolve("contextual_previous").resolve("ok.json"),
-                SOURCE_PATH_PREVIOUS.resolve("ok.json"),
+               path.resolve("contextual_previous")
+                        .resolve("ok.json"),
+                contextualPath.resolve("ok.json"),
                 StandardCopyOption.REPLACE_EXISTING
         );
         contextualVariableController.readContextualPreviousJson(QUESTIONNAIRE_ID_PREVIOUS, Mode.WEB, null, "ok.json");
         Files.createDirectories(SOURCE_PATH_PREVIOUS);
+
         Files.copy(
-                path.resolve("contextual_previous").resolve("ok2.json"),
-                SOURCE_PATH_PREVIOUS.resolve("ok2.json"),
+               path.resolve("contextual_previous")
+                        .resolve("ok2.json"),
+                contextualPath.resolve("ok2.json"),
                 StandardCopyOption.REPLACE_EXISTING
         );
 
@@ -587,10 +595,13 @@ class ContextualVariableControllerTest {
     void readPreviousJson_sourceState_too_long(String sourceState){
         //GIVEN
         String fileName = "ok.json";
-        Files.createDirectories(SOURCE_PATH_PREVIOUS);
+        Path contextualPath = SOURCE_PATH_PREVIOUS.resolve("contextual");
+        Files.createDirectories(contextualPath);
         Files.copy(
-                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("contextual_previous").resolve(fileName),
-                SOURCE_PATH_PREVIOUS.resolve(fileName),
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
+                        .resolve("contextual_previous")
+                        .resolve(fileName),
+                contextualPath.resolve(fileName),
                 StandardCopyOption.REPLACE_EXISTING
         );
 
@@ -605,10 +616,13 @@ class ContextualVariableControllerTest {
     void readPreviousJson_invalid_syntax(){
         String syntaxErrorFileName = "invalid_syntax.json";
         //GIVEN
-        Files.createDirectories(SOURCE_PATH_PREVIOUS);
+        Path contextualPath = SOURCE_PATH_PREVIOUS.resolve("contextual");
+        Files.createDirectories(contextualPath);
         Files.copy(
-                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("contextual_previous").resolve(syntaxErrorFileName),
-                SOURCE_PATH_PREVIOUS.resolve(syntaxErrorFileName),
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
+                        .resolve("contextual_previous")
+                        .resolve(syntaxErrorFileName),
+                contextualPath.resolve(syntaxErrorFileName),
                 StandardCopyOption.REPLACE_EXISTING
         );
 
@@ -622,10 +636,13 @@ class ContextualVariableControllerTest {
     void readPreviousJson_not_a_json(){
         String syntaxErrorFileName = "not_a_json.xml";
         //GIVEN
-        Files.createDirectories(SOURCE_PATH_PREVIOUS);
+        Path contextualPath = SOURCE_PATH_PREVIOUS.resolve("contextual");
+        Files.createDirectories(contextualPath);
         Files.copy(
-                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("contextual_previous").resolve(syntaxErrorFileName),
-                SOURCE_PATH_PREVIOUS.resolve(syntaxErrorFileName),
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
+                        .resolve("contextual_previous")
+                        .resolve(syntaxErrorFileName),
+                contextualPath.resolve(syntaxErrorFileName),
                 StandardCopyOption.REPLACE_EXISTING
         );
 
@@ -642,10 +659,13 @@ class ContextualVariableControllerTest {
     @DisplayName("Previous json return 400 if no interrogationId, only one interrogationId, or double interrogationId")
     void readPreviousJson_no_interrogation_id(String fileName){
         //GIVEN
-        Files.createDirectories(SOURCE_PATH_PREVIOUS);
+        Path contextualPath = SOURCE_PATH_PREVIOUS.resolve("contextual");
+        Files.createDirectories(contextualPath);
         Files.copy(
-                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("contextual_previous").resolve(fileName),
-                SOURCE_PATH_PREVIOUS.resolve(fileName),
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
+                        .resolve("contextual_previous")
+                        .resolve(fileName),
+                contextualPath.resolve(fileName),
                 StandardCopyOption.REPLACE_EXISTING
         );
 
@@ -662,10 +682,13 @@ class ContextualVariableControllerTest {
                                 int expectedVarCount,
                                 Consumer<ContextualExternalVariableDocument> assertionsForDoc){
         //GIVEN
-        Files.createDirectories(SOURCE_PATH_EXTERNAL);
+        Path contextualPath = SOURCE_PATH_EXTERNAL.resolve("contextual");
+        Files.createDirectories(contextualPath);
         Files.copy(
-                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("contextual_external").resolve("ok.json"),
-                SOURCE_PATH_EXTERNAL.resolve("ok.json"),
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
+                        .resolve("contextual_external")
+                        .resolve("ok.json"),
+                contextualPath.resolve("ok.json"),
                 StandardCopyOption.REPLACE_EXISTING
         );
 
@@ -742,18 +765,21 @@ class ContextualVariableControllerTest {
                                                        Consumer<ContextualExternalVariableDocument> assertionsForDoc
     ){
         //GIVEN
-        Files.createDirectories(SOURCE_PATH_EXTERNAL);
+        Path contextualPath = SOURCE_PATH_EXTERNAL.resolve("contextual");
         Path path = Path.of(TestConstants.TEST_RESOURCES_DIRECTORY);
+        Files.createDirectories(contextualPath);
         Files.copy(
-                path.resolve("contextual_external").resolve("ok.json"),
-                SOURCE_PATH_EXTERNAL.resolve("ok.json"),
+                path.resolve("contextual_external")
+                        .resolve("ok.json"),
+                contextualPath.resolve("ok.json"),
                 StandardCopyOption.REPLACE_EXISTING
         );
         contextualVariableController.readContextualExternalJson(QUESTIONNAIRE_ID_EXTERNAL, Mode.WEB, "ok.json");
         Files.createDirectories(SOURCE_PATH_EXTERNAL);
         Files.copy(
-                path.resolve("contextual_external").resolve("ok2.json"),
-                SOURCE_PATH_EXTERNAL.resolve("ok2.json"),
+                path.resolve("contextual_external")
+                        .resolve("ok2.json"),
+                contextualPath.resolve("ok2.json"),
                 StandardCopyOption.REPLACE_EXISTING
         );
 
@@ -839,10 +865,14 @@ class ContextualVariableControllerTest {
     @SneakyThrows
     void readExternalJson_error_400(String fileName){
         //GIVEN
-        Files.createDirectories(SOURCE_PATH_EXTERNAL);
+        Path contextualPath = SOURCE_PATH_EXTERNAL.resolve("contextual");
+        Files.createDirectories(contextualPath);
+
         Files.copy(
-                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("contextual_external").resolve(fileName),
-                SOURCE_PATH_EXTERNAL.resolve(fileName),
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
+                        .resolve("contextual_external")
+                        .resolve(fileName),
+                contextualPath.resolve(fileName),
                 StandardCopyOption.REPLACE_EXISTING
         );
 
