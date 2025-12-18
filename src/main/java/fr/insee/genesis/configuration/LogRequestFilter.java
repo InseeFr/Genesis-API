@@ -32,9 +32,10 @@ public class LogRequestFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
+        int cacheLimit = -1;//<0 means no limit
 
     	//Cache request to avoid calling twice the same inputStream
-        ContentCachingRequestWrapper req = new ContentCachingRequestWrapper(request);
+        ContentCachingRequestWrapper req = new ContentCachingRequestWrapper(request, cacheLimit);
         ContentCachingResponseWrapper resp = new ContentCachingResponseWrapper(response);
         
         log.info(REQUEST_MESSAGE_FORMAT, 
