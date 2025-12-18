@@ -6,5 +6,5 @@ import fr.insee.genesis.infrastructure.utils.FileUtils;
 
 public interface ContextualVariableApiPort {
     ContextualVariableModel getContextualVariable(String questionnaireId, String interrogationId);
-    int saveContextualVariableFiles(String questionnaireId, FileUtils fileUtils) throws GenesisException;
+    int saveContextualVariableFiles(String questionnaireId, FileUtils fileUtils,String contextualFolderPath) throws GenesisException;
 }
