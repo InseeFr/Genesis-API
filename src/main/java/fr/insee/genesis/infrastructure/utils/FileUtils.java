@@ -1,17 +1,15 @@
 package fr.insee.genesis.infrastructure.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.insee.genesis.Constants;
 import fr.insee.genesis.configuration.Config;
+import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.UncheckedIOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -256,4 +254,15 @@ public class FileUtils {
 			.filter(File::isDirectory)
 			.toList();
 	}
+    public void ensureContextualFolderExists(String questionnaireId, Mode mode) throws IOException {
+        String contextualFolderPath = getDataFolder(questionnaireId, mode.getFolder(), null) + Constants.CONTEXTUAL_FOLDER;
+        if (!isFolderPresent(contextualFolderPath)) {
+            Files.createDirectories(Path.of(contextualFolderPath));
+            log.debug("contextual folder created : {}", contextualFolderPath);
+        } else {
+            log.debug("contextual folder already exists : {}", contextualFolderPath);
+        }
+    }
+
+
 }
