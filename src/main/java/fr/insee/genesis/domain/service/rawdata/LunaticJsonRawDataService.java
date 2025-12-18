@@ -210,8 +210,8 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
         return new DataProcessResult(dataCount, formattedDataCount, errors);
     }
 
-    private VariablesMap getVariablesMap(String questionnaireId, Mode mode, List<GenesisError> errors) throws GenesisException {
-        VariablesMap variablesMap = metadataService.loadAndSaveIfNotExists(questionnaireId, questionnaireId, mode, fileUtils,
+    private VariablesMap getVariablesMap(String collectionInstrumentId, Mode mode, List<GenesisError> errors) throws GenesisException {
+        VariablesMap variablesMap = metadataService.loadAndSaveIfNotExists(collectionInstrumentId, collectionInstrumentId, mode, fileUtils,
                 errors).getVariables();
         if (variablesMap == null) {
             throw new GenesisException(400,

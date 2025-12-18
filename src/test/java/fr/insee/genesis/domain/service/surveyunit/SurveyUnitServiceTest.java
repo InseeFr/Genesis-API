@@ -23,6 +23,9 @@ import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
 
+import static fr.insee.genesis.TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID;
+import static fr.insee.genesis.TestConstants.DEFAULT_INTERROGATION_ID;
+
 class SurveyUnitServiceTest {
     
     //Given
@@ -30,8 +33,6 @@ class SurveyUnitServiceTest {
     static SurveyUnitPersistencePortStub surveyUnitPersistencePortStub;
 
     //Constants
-    static final String DEFAULT_INTERROGATION_ID = "TESTINTERROGATIONID";
-    static final String DEFAULT_COLLECTION_INSTRUMENT_ID = "TESTCOLLECTIONINSTRUMENTID";
 
     @BeforeAll
     static void init(){
