@@ -1,8 +1,9 @@
 {
     "partitionId": "RAWDATATESTCAMPAIGN",
-    "questionnaireModelId": "TESTQUEST",
-    "surveyUnitId": "TESTUE00001",
+    "collectionInstrumentId": "RAWDATATESTCAMPAIGN",
+    "usualSurveyUnitId": "TESTUE00001",
     "interrogationId": "TESTUE00001",
+    "questionnaireState": "FINISHED",
     "mode": "CAWI",
     "data": {
         "EXTERNAL": {

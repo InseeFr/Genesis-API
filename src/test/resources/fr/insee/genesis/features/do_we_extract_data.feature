@@ -34,7 +34,7 @@ Feature: Do we extract data ?
     Examples:
       | CampaignId                | QuestionnaireId             | InterrogationId  | ExpectedCollectedVariablesCount   | ExpectedExternalVariablesCount    | ExpectedVariableType | ExpectedVariableName | ExpectedValue |
       | TEST-TABLEAUX             | TEST-TABLEAUX               | AUTO11000        | 49                                | 4                                 | Integer              | TABLEAUTIC21         | 5             |
-      | SAMPLETEST-PARADATA-V2    | quest_model_famille_AD_ttp  | 0000007          | 96                                | 17                                | Boolean              | AVIS_SUPPORT1        | true          |
+      | SAMPLETEST-PARADATA-V2    | SAMPLETEST-PARADATA-V2      | 0000007          | 96                                | 17                                | Boolean              | AVIS_SUPPORT1        | true          |
 
   Scenario Outline: Multiple different Contexts for one partitionId
     Given We have data in directory "<CampaignId>"

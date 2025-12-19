@@ -54,6 +54,7 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPublicKey;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -112,7 +113,7 @@ public class RawDataDefinitions {
 
         @Override
         public DataProcessResult processRawResponses(String questionnaireId, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException {
-            return null;
+            return new DataProcessResult(0,0,new ArrayList<>());
         }
 
         @Override
@@ -241,6 +242,12 @@ public class RawDataDefinitions {
         response = rawResponseController.saveRawResponsesFromJsonBodyWithValidation(
                 JsonUtils.jsonToMap(Files.readString(rawDataFilePath))
         );
+
+        if(!response.getStatusCode().is2xxSuccessful()){
+            log.error(String.valueOf(response.getStatusCode().value()));
+            log.error(response.getBody());
+        }
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
     }
 
     @When("We process raw data for campaign {string}, questionnaire {string} and interrogation {string}")
@@ -254,6 +261,11 @@ public class RawDataDefinitions {
 
         response = rawResponseController.processJsonRawData(
                 campaignId,
+                questionnaireId,
+                interrogationIdList
+        );
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        response = rawResponseController.processRawResponses(
                 questionnaireId,
                 interrogationIdList
         );

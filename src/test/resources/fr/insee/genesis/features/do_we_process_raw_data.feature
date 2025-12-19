@@ -18,8 +18,8 @@ Feature: Raw data processing
     And For external variable "<ExternalVariableName>" in survey unit "<InterrogationId>" we should have "<ExpectedExternalValue>" for iteration 1
     And In surveyUnit "<InterrogationId>" of the campaign "<CampaignId>" we must have isCapturedIndirectly to "true" and validationDate null
     Examples:
-      | JsonFile                                            | CampaignId            | QuestionnaireId | InterrogationId | CollectedVariableName  | ExpectedCollectedValue | ExternalVariableName | ExpectedExternalValue |
-      | raw_data/rawdatasample_filieremodel_optionals.json  | RAWDATATESTCAMPAIGN   | TESTQUEST       | TESTUE00001     | PRENOM_PAR1            | Farid                  | RPPRENOM             | Robert                |
+      | JsonFile                                            | CampaignId            | QuestionnaireId           | InterrogationId | CollectedVariableName  | ExpectedCollectedValue | ExternalVariableName | ExpectedExternalValue |
+      | raw_data/rawdatasample_filieremodel_optionals.json  | RAWDATATESTCAMPAIGN   | RAWDATATESTCAMPAIGN       | TESTUE00001     | PRENOM_PAR1            | Farid                  | RPPRENOM             | Robert                |
 
 
   @NeedsLogPrepare

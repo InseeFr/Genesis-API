@@ -1,11 +1,11 @@
 {
     "partitionId": "RAWDATATESTCAMPAIGN",
-    "questionnaireModelId": "TESTQUEST",
-    "surveyUnitId": "TESTUE00001",
+    "collectionInstrumentId": "RAWDATATESTCAMPAIGN",
+    "usualSurveyUnitId": "TESTUE00001",
     "interrogationId": "TESTUE00001",
-    "contextualId": "TESTCONTEXT",
+    "questionnaireState": "FINISHED",
     "isCapturedIndirectly": true,
-    "validationDate": "2024-01-01 12:00:00",
+    "validationDate": "2024-01-01T12:00:00Z",
     "mode": "CAWI",
     "data": {
         "EXTERNAL": {
