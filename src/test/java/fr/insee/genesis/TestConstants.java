@@ -9,7 +9,7 @@ public class TestConstants {
 	public static final String UNIT_TESTS_DDI_DIRECTORY = TEST_RESOURCES_DIRECTORY + "/specs";
 
     public static final String DEFAULT_INTERROGATION_ID = "TESTINTERROGATIONID";
-    public static final String DEFAULT_COLLECTION_INSTRUMENT_ID = "SAMPLETEST-PARADATA-V1";
+    public static final String DEFAULT_COLLECTION_INSTRUMENT_ID = "SAMPLETEST-PARADATA-v1";
     public static final String DEFAULT_SURVEY_UNIT_ID = "TESTIDUE";
 
     //Functional tests
