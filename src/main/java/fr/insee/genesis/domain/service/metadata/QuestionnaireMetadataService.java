@@ -4,7 +4,7 @@ import fr.insee.bpm.exceptions.MetadataParserException;
 import fr.insee.bpm.metadata.model.MetadataModel;
 import fr.insee.bpm.metadata.model.Variable;
 import fr.insee.bpm.metadata.model.VariableType;
-import fr.insee.bpm.metadata.reader.ddi.DDIReader;
+import fr.insee.bpm.metadata.reader.ReaderUtils;
 import fr.insee.bpm.metadata.reader.lunatic.LunaticReader;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.domain.model.metadata.QuestionnaireMetadataModel;
@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -53,7 +54,13 @@ public class QuestionnaireMetadataService implements QuestionnaireMetadataApiPor
             saveMetadata(collectionInstrumentId.toUpperCase(), mode, metadataModel);
             return metadataModel;
         }
-        return questionnaireMetadataModels.getFirst().metadataModel();
+
+        MetadataModel metadataModel =
+                readMetadatas(campaignName, mode.getModeName(), fileUtils, errors);
+
+        saveMetadata(questionnaireId.toUpperCase(), mode, metadataModel);
+
+        return metadataModel;
     }
 
     private void saveMetadata(String collectionInstrumentId, Mode mode, MetadataModel metadataModel) {
@@ -119,9 +126,10 @@ public class QuestionnaireMetadataService implements QuestionnaireMetadataApiPor
         try {
             log.info("Try to read {} file: {}", withDDI ? "DDI" : "Lunatic", metadataFilePath);
             if (withDDI) {
-                MetadataModel metadataModel = DDIReader.getMetadataFromDDI(
+                InputStream metadataInputStream = new FileInputStream(metadataFilePath);
+                MetadataModel metadataModel = ReaderUtils.getMetadataFromDDIAndLunatic(
                         Path.of(metadataFilePath).toFile().toURI().toURL().toString(),
-                        new FileInputStream(metadataFilePath));
+                        metadataInputStream,metadataInputStream);
                 // Temporary solution
                 // the logic of adding variables from lunatic to the ones present in the DDI needs to be implemented in BPM
                 // (only in Kraftwerk for the moment)
@@ -129,6 +137,7 @@ public class QuestionnaireMetadataService implements QuestionnaireMetadataApiPor
                     metadataModel.getVariables().putVariable(new Variable(enoVar, metadataModel.getRootGroup(), VariableType.STRING));
                 }
                 return metadataModel;
+
             } else {
                 return LunaticReader.getMetadataFromLunatic(
                         new FileInputStream(metadataFilePath));

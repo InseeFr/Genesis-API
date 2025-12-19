@@ -81,6 +81,7 @@ class QuestionnaireMetadataControllerTest {
         //WHEN
         ResponseEntity<Object> response = questionnaireMetadataController.saveMetadata(questionnaireId, mode, metadataModel);
 
+
         //THEN
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(questionnaireMetadataPersistencePortStub.getMongoStub()).hasSize(1);
