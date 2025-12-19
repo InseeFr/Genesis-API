@@ -44,19 +44,19 @@ class Utils {
                     .forEach(File::delete);
 
         //Recreate data files
-        //SAMPLETEST-PARADATA-v1
+        //SAMPLETEST-PARADATA-V1
         //Root
         //Partial
         Path source = testResourcesPath
                 .resolve("IN")
                 .resolve("WEB")
-                .resolve("SAMPLETEST-PARADATA-v1")
+                .resolve("SAMPLETEST-PARADATA-V1")
                 .resolve("reponse-platine")
                 .resolve("data.complete.partial.STPDv1.20231122164209.xml");
         Path dest = testResourcesPath
                 .resolve("IN")
                 .resolve("WEB")
-                .resolve("SAMPLETEST-PARADATA-v1")
+                .resolve("SAMPLETEST-PARADATA-V1")
                 .resolve("data.complete.partial.STPDv1.20231122164209.xml");
         if (!dest.toFile().exists()) {
             Files.copy(source, dest);
@@ -66,13 +66,13 @@ class Utils {
         source = testResourcesPath
                 .resolve("IN")
                 .resolve("WEB")
-                .resolve("SAMPLETEST-PARADATA-v1")
+                .resolve("SAMPLETEST-PARADATA-V1")
                 .resolve("reponse-platine")
                 .resolve("data.complete.validated.STPDv1.20231122164209.xml");
         dest = testResourcesPath
                 .resolve("IN")
                 .resolve("WEB")
-                .resolve("SAMPLETEST-PARADATA-v1")
+                .resolve("SAMPLETEST-PARADATA-V1")
                 .resolve("data.complete.validated.STPDv1.20231122164209.xml");
         if (!dest.toFile().exists()) {
             Files.copy(source, dest);
@@ -83,13 +83,13 @@ class Utils {
         source = testResourcesPath
                 .resolve("IN")
                 .resolve("WEB")
-                .resolve("SAMPLETEST-PARADATA-v1")
+                .resolve("SAMPLETEST-PARADATA-V1")
                 .resolve("reponse-platine")
                 .resolve("data.complete.partial.STPDv1.20231122164209.xml");
         dest = testResourcesPath
                 .resolve("IN")
                 .resolve("WEB")
-                .resolve("SAMPLETEST-PARADATA-v1")
+                .resolve("SAMPLETEST-PARADATA-V1")
                 .resolve("differential")
                 .resolve("data")
                 .resolve("data.complete.partial.STPDv1.20231122164209.xml");
@@ -100,13 +100,13 @@ class Utils {
         source = testResourcesPath
                 .resolve("IN")
                 .resolve("WEB")
-                .resolve("SAMPLETEST-PARADATA-v1")
+                .resolve("SAMPLETEST-PARADATA-V1")
                 .resolve("reponse-platine")
                 .resolve("data.complete.validated.STPDv1.20231122164209.xml");
         dest = testResourcesPath
                 .resolve("IN")
                 .resolve("WEB")
-                .resolve("SAMPLETEST-PARADATA-v1")
+                .resolve("SAMPLETEST-PARADATA-V1")
                 .resolve("differential")
                 .resolve("data")
                 .resolve("data.complete.validated.STPDv1.20231122164209.xml");
@@ -114,18 +114,18 @@ class Utils {
             Files.copy(source, dest);
         }
 
-        //SAMPLETEST-PARADATA-v2
+        //SAMPLETEST-PARADATA-V2
         //Partial
         source = testResourcesPath
                 .resolve("IN")
                 .resolve("WEB")
-                .resolve("SAMPLETEST-PARADATA-v2")
+                .resolve("SAMPLETEST-PARADATA-V2")
                 .resolve("reponse-platine")
                 .resolve("data.complete.partial.STPDv2.20231122164209.xml");
         dest = testResourcesPath
                 .resolve("IN")
                 .resolve("WEB")
-                .resolve("SAMPLETEST-PARADATA-v2")
+                .resolve("SAMPLETEST-PARADATA-V2")
                 .resolve("data.complete.partial.STPDv2.20231122164209.xml");
         if (!dest.toFile().exists()) {
             Files.copy(source, dest);
@@ -135,13 +135,13 @@ class Utils {
         source = testResourcesPath
                 .resolve("IN")
                 .resolve("WEB")
-                .resolve("SAMPLETEST-PARADATA-v2")
+                .resolve("SAMPLETEST-PARADATA-V2")
                 .resolve("reponse-platine")
                 .resolve("data.complete.validated.STPDv2.20231122164209.xml");
         dest = testResourcesPath
                 .resolve("IN")
                 .resolve("WEB")
-                .resolve("SAMPLETEST-PARADATA-v2")
+                .resolve("SAMPLETEST-PARADATA-V2")
                 .resolve("data.complete.validated.STPDv2.20231122164209.xml");
         if (!dest.toFile().exists()) {
             Files.copy(source, dest);

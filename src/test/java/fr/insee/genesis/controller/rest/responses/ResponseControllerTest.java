@@ -99,8 +99,8 @@ class ResponseControllerTest {
     @Test
     void saveResponseFromXMLFileTest() throws Exception {
         responseControllerStatic.saveResponsesFromXmlFile(
-                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY, "IN/WEB/SAMPLETEST-PARADATA-v1/reponse-platine/data.complete.validated.STPDv1.20231122164209.xml").toString()
-                , Path.of(TestConstants.TEST_RESOURCES_DIRECTORY, "specs/SAMPLETEST-PARADATA-v1/ddi-SAMPLETEST-PARADATA-v1.xml").toString()
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY, "IN/WEB/SAMPLETEST-PARADATA-V1/reponse-platine/data.complete.validated.STPDv1.20231122164209.xml").toString()
+                , Path.of(TestConstants.TEST_RESOURCES_DIRECTORY, "specs/SAMPLETEST-PARADATA-V1/ddi-SAMPLETEST-PARADATA-V1.xml").toString()
                 , Mode.WEB
         );
 
@@ -120,7 +120,7 @@ class ResponseControllerTest {
     @Test
     void saveResponsesFromXmlCampaignFolderTest() throws Exception {
         responseControllerStatic.saveResponsesFromXmlCampaignFolder(
-                "SAMPLETEST-PARADATA-v1"
+                "SAMPLETEST-PARADATA-V1"
                 , Mode.WEB
         );
 
