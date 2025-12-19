@@ -16,7 +16,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -102,11 +104,13 @@ class SurveyUnitModelMongoAdapterTest {
 				"TEST2023X01", LocalDateTime.now().minusHours(1));
 		// Then
 		Assertions.assertThat(updates).isNotNull().hasSize(2);
+		Set<String> interrogationIds = new HashSet<>();
 		for(SurveyUnitModel update: updates){
-			Assertions.assertThat(update.getInterrogationId()).containsAnyOf("UE1100000001","UE1100000002");
+			interrogationIds.add(update.getInterrogationId());
 			Assertions.assertThat(update.getMode()).isEqualTo(Mode.WEB);
 			Assertions.assertThat(update.getCollectionInstrumentId()).isEqualTo("TEST2023X01");
 		}
+		Assertions.assertThat(interrogationIds).containsExactly("UE1100000001","UE1100000002");
 	}
 
 	@Test
