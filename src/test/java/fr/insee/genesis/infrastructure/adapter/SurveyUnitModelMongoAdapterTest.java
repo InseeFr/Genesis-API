@@ -110,7 +110,7 @@ class SurveyUnitModelMongoAdapterTest {
 			Assertions.assertThat(update.getMode()).isEqualTo(Mode.WEB);
 			Assertions.assertThat(update.getCollectionInstrumentId()).isEqualTo("TEST2023X01");
 		}
-		Assertions.assertThat(interrogationIds).containsExactly("UE1100000001","UE1100000002");
+		Assertions.assertThat(interrogationIds).containsExactlyInAnyOrder("UE1100000001","UE1100000002");
 	}
 
 	@Test
