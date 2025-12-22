@@ -73,10 +73,10 @@ public class DataVerifier {
     ) {
         SurveyUnitModel sampleSurveyUnitModel = surveyUnitModelsList.stream().filter(element -> element.getInterrogationId().equals(interrogationId)).toList().getFirst();
         SurveyUnitModel newFormattedSurveyUnitModel = SurveyUnitModel.builder()
-                .questionnaireId(sampleSurveyUnitModel.getQuestionnaireId())
+                .collectionInstrumentId(sampleSurveyUnitModel.getCollectionInstrumentId())
                 .campaignId(sampleSurveyUnitModel.getCampaignId())
                 .interrogationId(interrogationId)
-                .idUE(sampleSurveyUnitModel.getIdUE())
+                .usualSurveyUnitId(sampleSurveyUnitModel.getUsualSurveyUnitId())
                 .state(DataState.FORMATTED)
                 .mode(sampleSurveyUnitModel.getMode())
                 .recordDate(LocalDateTime.now().plusSeconds(1)) // Add 1 second to avoid same recordDate as COLLECTED

@@ -12,4 +12,7 @@ public interface LunaticModelMongoDBRepository extends CrudRepository<LunaticMod
 
     @Query("{'questionnaireId' : ?0}")
     List<LunaticModelDocument> findByQuestionnaireId(String questionnaireId);
+
+    @Query("{'collectionInstrumentId' : ?0}")
+    List<LunaticModelDocument> findByCollectionInstrumentId(String collectionInstrumentId);
 }

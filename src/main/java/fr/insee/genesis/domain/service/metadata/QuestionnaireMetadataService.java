@@ -10,7 +10,7 @@ import fr.insee.genesis.Constants;
 import fr.insee.genesis.domain.model.metadata.QuestionnaireMetadataModel;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.ports.api.QuestionnaireMetadataApiPort;
-import fr.insee.genesis.domain.ports.spi.QuestionnaireMetadataPersistancePort;
+import fr.insee.genesis.domain.ports.spi.QuestionnaireMetadataPersistencePort;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
@@ -31,33 +31,28 @@ public class QuestionnaireMetadataService implements QuestionnaireMetadataApiPor
     private static final String DDI_FILE_PATTERN = "ddi[\\w,\\s-]+\\.xml";
     private static final String LUNATIC_FILE_PATTERN = "lunatic[\\w,\\s-]+\\.json";
 
-    QuestionnaireMetadataPersistancePort questionnaireMetadataPersistancePort;
+    QuestionnaireMetadataPersistencePort questionnaireMetadataPersistencePort;
 
 
     @Override
-    public MetadataModel find(String questionnaireId, Mode mode) throws GenesisException {
+    public MetadataModel find(String collectionInstrumentId, Mode mode) throws GenesisException {
         List<QuestionnaireMetadataModel> questionnaireMetadataModels =
-                questionnaireMetadataPersistancePort.find(questionnaireId, mode);
+                questionnaireMetadataPersistencePort.find(collectionInstrumentId, mode);
         if(questionnaireMetadataModels.isEmpty()){
-            throw new GenesisException(404, "Questionnaire metadata not found");
+            throw new GenesisException(404, "Collection instrument metadata not found");
         }
         return questionnaireMetadataModels.getFirst().metadataModel();
     }
 
-    public MetadataModel loadAndSaveIfNotExists(
-            String campaignName,
-            String questionnaireId,
-            Mode mode,
-            FileUtils fileUtils,
-            List<GenesisError> errors
-    ) throws GenesisException {
-
-        List<QuestionnaireMetadataModel> storedMetadatas =
-                questionnaireMetadataPersistancePort.find(questionnaireId.toUpperCase(), mode);
-
-        if (!storedMetadatas.isEmpty()
-                && storedMetadatas.getFirst().metadataModel() != null) {
-            return storedMetadatas.getFirst().metadataModel();
+    @Override
+    public MetadataModel loadAndSaveIfNotExists(String campaignName, String collectionInstrumentId, Mode mode, FileUtils fileUtils,
+                                                List<GenesisError> errors) throws GenesisException {
+        List<QuestionnaireMetadataModel> questionnaireMetadataModels =
+                questionnaireMetadataPersistencePort.find(collectionInstrumentId.toUpperCase(), mode);
+        if(questionnaireMetadataModels.isEmpty() || questionnaireMetadataModels.getFirst().metadataModel() == null){
+            MetadataModel metadataModel = readMetadatas(campaignName, mode.getModeName(), fileUtils, errors);
+            saveMetadata(collectionInstrumentId.toUpperCase(), mode, metadataModel);
+            return metadataModel;
         }
 
         MetadataModel metadataModel =
@@ -68,10 +63,10 @@ public class QuestionnaireMetadataService implements QuestionnaireMetadataApiPor
         return metadataModel;
     }
 
-    private void saveMetadata(String questionnaireId, Mode mode, MetadataModel metadataModel) {
-        questionnaireMetadataPersistancePort.save(
+    private void saveMetadata(String collectionInstrumentId, Mode mode, MetadataModel metadataModel) {
+        questionnaireMetadataPersistencePort.save(
                 new QuestionnaireMetadataModel(
-                        questionnaireId,
+                        collectionInstrumentId,
                         mode,
                         metadataModel
                 )
@@ -154,14 +149,14 @@ public class QuestionnaireMetadataService implements QuestionnaireMetadataApiPor
     }
 
     @Override
-    public void remove(String questionnaireId, Mode mode) {
-        questionnaireMetadataPersistancePort.remove(questionnaireId, mode);
+    public void remove(String collectionInstrumentId, Mode mode) {
+        questionnaireMetadataPersistencePort.remove(collectionInstrumentId, mode);
     }
 
     @Override
-    public void save(String questionnaireId, Mode mode, MetadataModel metadataModel) {
-        questionnaireMetadataPersistancePort.save(new QuestionnaireMetadataModel(
-                questionnaireId,
+    public void save(String collectionInstrumentId, Mode mode, MetadataModel metadataModel) {
+        questionnaireMetadataPersistencePort.save(new QuestionnaireMetadataModel(
+                collectionInstrumentId,
                 mode,
                 metadataModel
         ));

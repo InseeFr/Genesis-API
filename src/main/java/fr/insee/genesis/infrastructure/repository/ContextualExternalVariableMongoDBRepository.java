@@ -10,7 +10,11 @@ import java.util.List;
 @Repository
 public interface ContextualExternalVariableMongoDBRepository extends MongoRepository<ContextualExternalVariableDocument,String> {
     void deleteByQuestionnaireId(String questionnaireId);
+    void deleteByCollectionInstrumentId(String collectionInstrumentId);
 
     @Query(value = "{ 'questionnaireId' : ?0, 'interrogationId' : ?1 }")
     List<ContextualExternalVariableDocument> findByQuestionnaireIdAndInterrogationId(String questionnaireId, String interrogationId);
+
+    @Query(value = "{ 'collectionInstrumentId' : ?0, 'interrogationId' : ?1 }")
+    List<ContextualExternalVariableDocument> findByCollectionInstrumentIdAndInterrogationId(String collectionInstrumentId, String interrogationId);
 }

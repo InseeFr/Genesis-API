@@ -1,6 +1,7 @@
 package cucumber.functional_tests;
 
 import cucumber.functional_tests.config.CucumberSpringConfiguration;
+import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.TestConstants;
 import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.controller.rest.responses.RawResponseController;
@@ -9,19 +10,26 @@ import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
+import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
+import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponse;
+import fr.insee.genesis.domain.ports.api.RawResponseApiPort;
 import fr.insee.genesis.domain.service.context.DataProcessingContextService;
 import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.domain.utils.JsonUtils;
+import fr.insee.genesis.exceptions.GenesisError;
+import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.infrastructure.repository.RawResponseInputRepository;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
 import fr.insee.genesis.stubs.LunaticJsonRawDataPersistanceStub;
-import fr.insee.genesis.stubs.QuestionnaireMetadataPersistancePortStub;
+import fr.insee.genesis.stubs.QuestionnaireMetadataPersistencePortStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import fr.insee.genesis.stubs.SurveyUnitQualityToolPerretAdapterStub;
+import fr.insee.modelefiliere.RawResponseDto;
 import io.cucumber.java.Before;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -62,12 +70,12 @@ public class RawDataDefinitions {
     private TestRestTemplate rest;
 
     LunaticJsonRawDataPersistanceStub lunaticJsonRawDataPersistanceStub = new LunaticJsonRawDataPersistanceStub();
-    static QuestionnaireMetadataPersistancePortStub questionnaireMetadataPersistancePortStub = new QuestionnaireMetadataPersistancePortStub();
+    static QuestionnaireMetadataPersistencePortStub questionnaireMetadataPersistencePortStub = new QuestionnaireMetadataPersistencePortStub();
     SurveyUnitPersistencePortStub surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
     DataProcessingContextPersistancePortStub contextStub = new DataProcessingContextPersistancePortStub();
     Config config = new ConfigStub();
     FileUtils fileUtils = new FileUtils(config);
-    SurveyUnitService surveyUnitService = new SurveyUnitService(surveyUnitPersistencePortStub, new QuestionnaireMetadataService(questionnaireMetadataPersistancePortStub), fileUtils);
+    SurveyUnitService surveyUnitService = new SurveyUnitService(surveyUnitPersistencePortStub, new QuestionnaireMetadataService(questionnaireMetadataPersistencePortStub), fileUtils);
     ControllerUtils controllerUtils = new ControllerUtils(fileUtils);
     SurveyUnitQualityService surveyUnitQualityService = new SurveyUnitQualityService();
     DataProcessingContextPersistancePortStub dataProcessingContextPersistancePortStub =
@@ -77,7 +85,7 @@ public class RawDataDefinitions {
             new LunaticJsonRawDataService(
                     lunaticJsonRawDataPersistanceStub,
                     controllerUtils,
-                    new QuestionnaireMetadataService(questionnaireMetadataPersistancePortStub),
+                    new QuestionnaireMetadataService(questionnaireMetadataPersistencePortStub),
                     surveyUnitService,
                     surveyUnitQualityService,
                     fileUtils,
@@ -88,8 +96,48 @@ public class RawDataDefinitions {
                     config,
                     dataProcessingContextPersistancePortStub);
 
+    // TODO : implements real stubs
+    RawResponseInputRepository rawResponseInputRepositoryStub = new RawResponseInputRepository(null, null) {
+        @Override
+        public void saveAsRawJson(RawResponseDto dto) {
+            // Do nothing - stub for test
+        }
+    };
+
+    RawResponseApiPort rawResponseApiPortStub = new RawResponseApiPort() {
+        @Override
+        public List<RawResponse> getRawResponses(String questionnaireModelId, Mode mode, List<String> interrogationIdList) {
+            return List.of();
+        }
+
+        @Override
+        public DataProcessResult processRawResponses(String questionnaireId, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException {
+            return null;
+        }
+
+        @Override
+        public DataProcessResult processRawResponses(String collectionInstrumentId) throws GenesisException {
+            return null;
+        }
+
+        @Override
+        public List<SurveyUnitModel> convertRawResponse(List<RawResponse> rawResponses, VariablesMap variablesMap) {
+            return List.of();
+        }
+
+        @Override
+        public List<String> getUnprocessedCollectionInstrumentIds() {
+            return List.of();
+        }
+
+        @Override
+        public void updateProcessDates(List<SurveyUnitModel> surveyUnitModels) {
+            // Do nothing - stub for test
+        }
+    };
+
     RawResponseController rawResponseController = new RawResponseController(
-            lunaticJsonRawDataService
+            lunaticJsonRawDataService, rawResponseApiPortStub, rawResponseInputRepositoryStub
     );
     Path rawDataFilePath;
     String rawJsonData;
@@ -286,9 +334,9 @@ public class RawDataDefinitions {
     }
 
 
-    @Then("In surveyUnit {string} of the campaign {string} we must have {string} as contextualId, " +
+    @Then("In surveyUnit {string} of the campaign {string} we must have " +
             "isCapturedIndirectly to {string} and validationDate null")
-    public void check_optional_values(String interrogationId, String campaignId, String expectedContextualId,
+    public void check_optional_values(String interrogationId, String campaignId,
                                        String expectedCapturedIndirectly) {
         //Get SurveyUnitModel
         List<SurveyUnitModel> concernedSurveyUnitModels = surveyUnitPersistencePortStub.getMongoStub().stream().filter(surveyUnitModel ->
@@ -298,7 +346,6 @@ public class RawDataDefinitions {
         ).toList();
         Assertions.assertThat(concernedSurveyUnitModels).hasSize(1);
 
-        Assertions.assertThat(concernedSurveyUnitModels.getFirst().getContextualId()).isEqualTo(expectedContextualId);
         Assertions.assertThat(concernedSurveyUnitModels.getFirst().getIsCapturedIndirectly()).isEqualTo(Boolean.parseBoolean(expectedCapturedIndirectly));
         Assertions.assertThat(concernedSurveyUnitModels.getFirst().getValidationDate()).isNull();
     }
