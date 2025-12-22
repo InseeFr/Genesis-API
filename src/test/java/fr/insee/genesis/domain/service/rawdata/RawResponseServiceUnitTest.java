@@ -281,8 +281,7 @@ class RawResponseServiceUnitTest {
         private List<SurveyUnitModel> whenProcessByCollectionInstrumentIdAndInterrogationIdList() throws GenesisException {
             rawResponseService.processRawResponses(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID);
             verify(surveyUnitService).saveSurveyUnits(surveyUnitModelsCaptor.capture());
-            List<SurveyUnitModel> createdModels = surveyUnitModelsCaptor.getValue();
-            return createdModels;
+            return surveyUnitModelsCaptor.getValue();
         }
         private List<SurveyUnitModel> whenProcessRawResponsesCollectionInstrumentId() throws GenesisException {
             rawResponseService.processRawResponses(
@@ -291,8 +290,7 @@ class RawResponseServiceUnitTest {
                     new ArrayList<>()
             );
             verify(surveyUnitService).saveSurveyUnits(surveyUnitModelsCaptor.capture());
-            List<SurveyUnitModel> createdModels = surveyUnitModelsCaptor.getValue();
-            return createdModels;
+            return surveyUnitModelsCaptor.getValue();
         }
 
         //THENS
