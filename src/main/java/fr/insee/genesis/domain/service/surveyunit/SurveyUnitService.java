@@ -20,6 +20,7 @@ import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
 import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.utils.GroupUtils;
 import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.exceptions.QuestionnaireNotFoundException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -336,9 +337,12 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     @Override
     public List<Mode> findModesByQuestionnaireId(String questionnaireId) {
         List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findInterrogationIdsByQuestionnaireId(questionnaireId);
-        List<Mode> sources = new ArrayList<>();
-        surveyUnitModels.forEach(surveyUnitModel -> sources.add(surveyUnitModel.getMode()));
-        return sources.stream().distinct().toList();
+        if (surveyUnitModels == null || surveyUnitModels.isEmpty()) {
+            log.warn("No questionnaire found with id: {}", questionnaireId);
+            throw new QuestionnaireNotFoundException(questionnaireId);
+        }
+        List<Mode> sources =  surveyUnitModels.stream().map(SurveyUnitModel::getMode).distinct().toList();
+        return sources;
     }
 
     @Override
