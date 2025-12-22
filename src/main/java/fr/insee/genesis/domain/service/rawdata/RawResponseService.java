@@ -72,6 +72,11 @@ public class RawResponseService implements RawResponseApiPort {
     }
 
     @Override
+    public List<RawResponse> getRawResponsesByInterrogationID(String interrogationId) {
+        return rawResponsePersistencePort.findRawResponsesByInterrogationID(interrogationId);
+    }
+
+    @Override
     public DataProcessResult processRawResponses(String collectionInstrumentId, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException {
         int dataCount=0;
         int formattedDataCount=0;

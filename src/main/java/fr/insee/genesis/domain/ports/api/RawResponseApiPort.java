@@ -13,6 +13,7 @@ import java.util.List;
 public interface RawResponseApiPort {
 
     List<RawResponse> getRawResponses(String collectionInstrumentId, Mode mode, List<String> interrogationIdList);
+    List<RawResponse> getRawResponsesByInterrogationID(String interrogationId);
     DataProcessResult processRawResponses(String collectionInstrumentId, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException;
     DataProcessResult processRawResponses(String collectionInstrumentId) throws GenesisException;
     List<SurveyUnitModel> convertRawResponse(List<RawResponse> rawResponses, VariablesMap variablesMap);

@@ -26,4 +26,6 @@ public interface RawResponseRepository extends MongoRepository<RawResponseDocume
     })
     List<String> findInterrogationIdByCollectionInstrumentIdAndProcessDateIsNull(String collectionInstrumentId);
 
+    @Query(value = "{ 'interrogationId': ?0}")
+    List<RawResponseDocument> findByInterrogationId(String interrogationId);
 }

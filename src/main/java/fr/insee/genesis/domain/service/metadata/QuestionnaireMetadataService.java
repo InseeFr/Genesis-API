@@ -58,7 +58,7 @@ public class QuestionnaireMetadataService implements QuestionnaireMetadataApiPor
         MetadataModel metadataModel =
                 readMetadatas(campaignName, mode.getModeName(), fileUtils, errors);
 
-        saveMetadata(questionnaireId.toUpperCase(), mode, metadataModel);
+        saveMetadata(collectionInstrumentId.toUpperCase(), mode, metadataModel);
 
         return metadataModel;
     }

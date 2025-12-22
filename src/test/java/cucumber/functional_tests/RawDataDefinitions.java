@@ -111,6 +111,11 @@ public class RawDataDefinitions {
         }
 
         @Override
+        public List<RawResponse> getRawResponsesByInterrogationID(String interrogationId) {
+            return List.of();
+        }
+
+        @Override
         public DataProcessResult processRawResponses(String questionnaireId, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException {
             return null;
         }
