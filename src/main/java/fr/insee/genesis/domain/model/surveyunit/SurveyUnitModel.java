@@ -1,6 +1,7 @@
 package fr.insee.genesis.domain.model.surveyunit;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import fr.insee.modelefiliere.RawResponseDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -38,6 +39,7 @@ public class SurveyUnitModel {
 	private DataState state;
 	private Mode mode;
 	private Boolean isCapturedIndirectly;
+	private RawResponseDto.QuestionnaireStateEnum questionnaireState;
 	private LocalDateTime validationDate;
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'hh:mm")
 	private LocalDateTime recordDate;

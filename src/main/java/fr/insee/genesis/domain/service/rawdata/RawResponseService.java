@@ -23,6 +23,7 @@ import fr.insee.genesis.domain.utils.JsonUtils;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
+import fr.insee.modelefiliere.RawResponseDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +31,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -40,7 +42,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-public class RawResponseService implements RawResponseApiPort {
+public class  RawResponseService implements RawResponseApiPort {
 
     private final ControllerUtils controllerUtils;
     private final QuestionnaireMetadataService metadataService;
@@ -210,6 +212,13 @@ public class RawResponseService implements RawResponseApiPort {
             for (RawResponse rawResponse : rawResponses) {
                 //Get optional fields
                 Boolean isCapturedIndirectly = getIsCapturedIndirectly(rawResponse);
+                String questionnaireStateString = getStringFieldInPayload(rawResponse, "questionnaireState");
+                RawResponseDto.QuestionnaireStateEnum questionnaireStateEnum = null;
+                try{
+                    questionnaireStateEnum = RawResponseDto.QuestionnaireStateEnum.valueOf(questionnaireStateString);
+                } catch (IllegalArgumentException iae){
+                    log.warn("'{}' is not a valid questionnaire state according to filiere model", questionnaireStateString);
+                }
                 LocalDateTime validationDate = getValidationDate(rawResponse);
                 String usualSurveyUnitId = getStringFieldInPayload(rawResponse,"usualSurveyUnitId");
                 String majorModelVersion = getStringFieldInPayload(rawResponse, "majorModelVersion");
@@ -220,6 +229,7 @@ public class RawResponseService implements RawResponseApiPort {
                         .mode(rawResponse.mode())
                         .interrogationId(rawResponse.interrogationId())
                         .usualSurveyUnitId(usualSurveyUnitId)
+                        .questionnaireState(questionnaireStateEnum)
                         .validationDate(validationDate)
                         .isCapturedIndirectly(isCapturedIndirectly)
                         .state(dataState)
@@ -313,7 +323,7 @@ public class RawResponseService implements RawResponseApiPort {
     private static LocalDateTime getValidationDate(RawResponse rawResponse) {
         try{
             return rawResponse.payload().get("validationDate") == null ? null :
-                    LocalDateTime.parse(rawResponse.payload().get("validationDate").toString());
+                    LocalDateTime.parse(rawResponse.payload().get("validationDate").toString(), DateTimeFormatter.ISO_OFFSET_DATE_TIME);
         }catch(Exception e){
             log.warn("Exception when parsing validation date : {}",e.toString());
             return null;
