@@ -19,6 +19,9 @@ import fr.insee.modelefiliere.RawResponseDto;
 import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
@@ -71,85 +74,166 @@ class RawResponseServiceUnitTest {
         surveyUnitModelsCaptor = ArgumentCaptor.forClass(List.class);
     }
 
-    //Non regression tests of #22875
-    @ParameterizedTest
-    @EnumSource(RawResponseDto.QuestionnaireStateEnum.class)
-    @SneakyThrows
-    void processRawResponses_byCollectionInstrumentId_validation_date_questionnaire_state_test(
-            RawResponseDto.QuestionnaireStateEnum questionnaireState
-    ) {
-        //GIVEN
-        processRawResponses_given(questionnaireState);
+    //
+    @Nested
+    @DisplayName("Non regression tests of #22875 : validation date and questionnaire state in processed responses")
+    class ValidationDateAndQuestionnaireStateTests{
+        @ParameterizedTest
+        @EnumSource(RawResponseDto.QuestionnaireStateEnum.class)
+        @SneakyThrows
+        void processRawResponses_byCollectionInstrumentId_validation_date_questionnaire_state_test(
+                RawResponseDto.QuestionnaireStateEnum questionnaireState
+        ) {
+            //GIVEN
+            processRawResponses_given(questionnaireState);
 
-        //WHEN
-        rawResponseService.processRawResponses(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID);
-        verify(surveyUnitService).saveSurveyUnits(surveyUnitModelsCaptor.capture());
-        List<SurveyUnitModel> createdModels = surveyUnitModelsCaptor.getValue();
+            //WHEN
+            rawResponseService.processRawResponses(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID);
+            verify(surveyUnitService).saveSurveyUnits(surveyUnitModelsCaptor.capture());
+            List<SurveyUnitModel> createdModels = surveyUnitModelsCaptor.getValue();
 
-        //THEN
-        processRawResponses_then(questionnaireState, createdModels);
-    }
+            //THEN
+            processRawResponses_then(questionnaireState, createdModels);
+        }
 
-    @ParameterizedTest
-    @EnumSource(RawResponseDto.QuestionnaireStateEnum.class)
-    @SneakyThrows
-    void processRawResponses_byCollectionInstrumentIdAndInterrogationList_validation_date_questionnaire_state_test(
-            RawResponseDto.QuestionnaireStateEnum questionnaireState
-    ) {
-        //GIVEN
-        processRawResponses_given(questionnaireState);
+        @ParameterizedTest
+        @EnumSource(RawResponseDto.QuestionnaireStateEnum.class)
+        @SneakyThrows
+        void processRawResponses_byCollectionInstrumentIdAndInterrogationList_validation_date_questionnaire_state_test(
+                RawResponseDto.QuestionnaireStateEnum questionnaireState
+        ) {
+            //GIVEN
+            processRawResponses_given(questionnaireState);
 
-        //WHEN
-        rawResponseService.processRawResponses(
-                TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
-                Collections.singletonList(TestConstants.DEFAULT_INTERROGATION_ID),
-                new ArrayList<>()
-        );
-        verify(surveyUnitService).saveSurveyUnits(surveyUnitModelsCaptor.capture());
-        List<SurveyUnitModel> createdModels = surveyUnitModelsCaptor.getValue();
+            //WHEN
+            rawResponseService.processRawResponses(
+                    TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
+                    Collections.singletonList(TestConstants.DEFAULT_INTERROGATION_ID),
+                    new ArrayList<>()
+            );
+            verify(surveyUnitService).saveSurveyUnits(surveyUnitModelsCaptor.capture());
+            List<SurveyUnitModel> createdModels = surveyUnitModelsCaptor.getValue();
 
-        //THEN
-        processRawResponses_then(questionnaireState, createdModels);
-    }
-    @SneakyThrows
-    private void processRawResponses_given(RawResponseDto.QuestionnaireStateEnum questionnaireState){
-        VariablesMap variablesMap = new VariablesMap();
-        //TODO if the bug is caused by BPM, put variables into it to emulate fix
-        MetadataModel metadataModel = new MetadataModel();
-        metadataModel.setVariables(variablesMap);
-        validationDate = questionnaireState.equals(RawResponseDto.QuestionnaireStateEnum.FINISHED) ?
-                LocalDateTime.now() : null;
+            //THEN
+            processRawResponses_then(questionnaireState, createdModels);
+        }
+        @SneakyThrows
+        private void processRawResponses_given(RawResponseDto.QuestionnaireStateEnum questionnaireState){
+            VariablesMap variablesMap = new VariablesMap();
+            //TODO if the bug is caused by BPM, put variables into it to emulate fix
+            MetadataModel metadataModel = new MetadataModel();
+            metadataModel.setVariables(variablesMap);
+            validationDate = questionnaireState.equals(RawResponseDto.QuestionnaireStateEnum.FINISHED) ?
+                    LocalDateTime.now() : null;
 
+            List<RawResponse> rawResponses = new ArrayList<>();
+            RawResponse rawResponse = new RawResponse(
+                    null,
+                    TestConstants.DEFAULT_INTERROGATION_ID,
+                    TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
+                    Mode.WEB,
+                    new HashMap<>(),
+                    LocalDateTime.now(),
+                    null
+            );
+            rawResponse.payload().put("validationDate", validationDate);
+            rawResponse.payload().put("questionnaireState", questionnaireState);
+            rawResponse.payload().put("usualSurveyUnitId", TestConstants.DEFAULT_SURVEY_UNIT_ID);
+            rawResponse.payload().put("majorModelVersion", 2);
+            Map<String, Map<String, Map<String, String>>> dataMap = new HashMap<>();
+            dataMap.put("COLLECTED", new HashMap<>());
+            dataMap.get("COLLECTED").put("VAR1", new HashMap<>());
+            dataMap.get("COLLECTED").get("VAR1").put("COLLECTED", "value");
+            rawResponse.payload().put("data", dataMap);
+            rawResponses.add(rawResponse);
 
-        List<RawResponse> rawResponses = new ArrayList<>();
-        RawResponse rawResponse = new RawResponse(
-                null,
-                TestConstants.DEFAULT_INTERROGATION_ID,
-                TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
-                Mode.WEB,
-                new HashMap<>(),
-                LocalDateTime.now(),
-                null
-        );
-        rawResponse.payload().put("validationDate", validationDate);
-        rawResponse.payload().put("questionnaireState", questionnaireState);
-        Map<String, Map<String, Map<String, String>>> dataMap = new HashMap<>();
-        dataMap.put("COLLECTED", new HashMap<>());
-        dataMap.get("COLLECTED").put("VAR1", new HashMap<>());
-        dataMap.get("COLLECTED").get("VAR1").put("COLLECTED", "value");
-        rawResponse.payload().put("data", dataMap);
-        rawResponses.add(rawResponse);
+            //Mocks behaviour
+            doReturn(Collections.singletonList(Mode.WEB)).when(controllerUtils).getModesList(any(),any());
+            doReturn(Set.of(TestConstants.DEFAULT_INTERROGATION_ID)).when(rawResponsePersistencePort).findUnprocessedInterrogationIdsByCollectionInstrumentId(any());
+            doReturn(metadataModel).when(metadataService).loadAndSaveIfNotExists(any(), any(), any(), any(), any());
+            doReturn(rawResponses).when(rawResponsePersistencePort).findRawResponses(any(), any(), any());
+        }
+        private void processRawResponses_then(RawResponseDto.QuestionnaireStateEnum questionnaireState,
+                                              List<SurveyUnitModel> createdModels) {
+            Assertions.assertThat(createdModels).hasSize(1);
+            Assertions.assertThat(createdModels.getFirst().getValidationDate()).isEqualTo(validationDate);
+            Assertions.assertThat(createdModels.getFirst().getQuestionnaireState()).isEqualTo(questionnaireState);
+        }
 
-        //Mocks behaviour
-        doReturn(Collections.singletonList(Mode.WEB)).when(controllerUtils).getModesList(any(),any());
-        doReturn(Set.of(TestConstants.DEFAULT_INTERROGATION_ID)).when(rawResponsePersistencePort).findUnprocessedInterrogationIdsByCollectionInstrumentId(any());
-        doReturn(metadataModel).when(metadataService).loadAndSaveIfNotExists(any(), any(), any(), any(), any());
-        doReturn(rawResponses).when(rawResponsePersistencePort).findRawResponses(any(), any(), any());
-    }
-    private void processRawResponses_then(RawResponseDto.QuestionnaireStateEnum questionnaireState,
-                                          List<SurveyUnitModel> createdModels) {
-        Assertions.assertThat(createdModels).hasSize(1);
-        Assertions.assertThat(createdModels.getFirst().getValidationDate()).isEqualTo(validationDate);
-        Assertions.assertThat(createdModels.getFirst().getQuestionnaireState()).isEqualTo(questionnaireState);
+        //Non blocking exception tests
+        @Test
+        @SneakyThrows
+        void processRawResponses_byCollectionInstrumentId_invalid_questionnaire_state_test() {
+            //GIVEN
+            processRawResponses_given_invalid_questionnaire_state();
+
+            //WHEN
+            rawResponseService.processRawResponses(
+                    TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
+                    Collections.singletonList(TestConstants.DEFAULT_INTERROGATION_ID),
+                    new ArrayList<>()
+            );
+            verify(surveyUnitService).saveSurveyUnits(surveyUnitModelsCaptor.capture());
+            List<SurveyUnitModel> createdModels = surveyUnitModelsCaptor.getValue();
+
+            //THEN
+            processRawResponses_then_validation_date_null(createdModels);
+        }
+        @Test
+        @SneakyThrows
+        void processRawResponses_byCollectionInstrumentIdAndInterrogationList_invalid_questionnaire_state_test() {
+            //GIVEN
+            processRawResponses_given_invalid_questionnaire_state();
+
+            //WHEN
+            rawResponseService.processRawResponses(
+                    TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID
+            );
+            verify(surveyUnitService).saveSurveyUnits(surveyUnitModelsCaptor.capture());
+            List<SurveyUnitModel> createdModels = surveyUnitModelsCaptor.getValue();
+
+            //THEN
+            processRawResponses_then_validation_date_null(createdModels);
+        }
+
+        @SneakyThrows
+        private void processRawResponses_given_invalid_questionnaire_state(){
+            VariablesMap variablesMap = new VariablesMap();
+            MetadataModel metadataModel = new MetadataModel();
+            metadataModel.setVariables(variablesMap);
+            validationDate = LocalDateTime.now();
+
+            List<RawResponse> rawResponses = new ArrayList<>();
+            RawResponse rawResponse = new RawResponse(
+                    null,
+                    TestConstants.DEFAULT_INTERROGATION_ID,
+                    TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
+                    Mode.WEB,
+                    new HashMap<>(),
+                    LocalDateTime.now(),
+                    null
+            );
+            rawResponse.payload().put("validationDate", validationDate);
+            rawResponse.payload().put("questionnaireState", "not a questionnaire state");
+            rawResponse.payload().put("usualSurveyUnitId", TestConstants.DEFAULT_SURVEY_UNIT_ID);
+            rawResponse.payload().put("majorModelVersion", 2);
+            Map<String, Map<String, Map<String, String>>> dataMap = new HashMap<>();
+            dataMap.put("COLLECTED", new HashMap<>());
+            dataMap.get("COLLECTED").put("VAR1", new HashMap<>());
+            dataMap.get("COLLECTED").get("VAR1").put("COLLECTED", "value");
+            rawResponse.payload().put("data", dataMap);
+            rawResponses.add(rawResponse);
+
+            //Mocks behaviour
+            doReturn(Collections.singletonList(Mode.WEB)).when(controllerUtils).getModesList(any(),any());
+            doReturn(Set.of(TestConstants.DEFAULT_INTERROGATION_ID)).when(rawResponsePersistencePort).findUnprocessedInterrogationIdsByCollectionInstrumentId(any());
+            doReturn(metadataModel).when(metadataService).loadAndSaveIfNotExists(any(), any(), any(), any(), any());
+            doReturn(rawResponses).when(rawResponsePersistencePort).findRawResponses(any(), any(), any());
+        }
+        private void processRawResponses_then_validation_date_null(List<SurveyUnitModel> createdModels){
+            Assertions.assertThat(createdModels).hasSize(1);
+            Assertions.assertThat(createdModels.getFirst().getValidationDate()).isEqualTo(validationDate);
+            Assertions.assertThat(createdModels.getFirst().getQuestionnaireState()).isNull();
+        }
     }
 }
