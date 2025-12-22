@@ -9,12 +9,16 @@ import fr.insee.genesis.infrastructure.mappers.RawResponseDocumentMapper;
 import fr.insee.genesis.infrastructure.repository.RawResponseRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
@@ -57,5 +61,12 @@ public class RawResponseMongoAdapter implements RawResponsePersistencePort {
     public Set<String> findUnprocessedInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId) {
         // We remove duplicate ids
         return new HashSet<>(repository.findInterrogationIdByCollectionInstrumentIdAndProcessDateIsNull(collectionInstrumentId));
+    }
+
+    @Override
+    public Page<RawResponse> findByCampaignIdAndDate(String campaignId, Instant startDate, Instant endDate, Pageable pageable) {
+        Page<RawResponseDocument> rawDataDocs = repository.findByCampaignIdAndDate(campaignId, startDate, endDate, pageable);
+        List<RawResponse> modelList = RawResponseDocumentMapper.INSTANCE.listDocumentToListModel(rawDataDocs.getContent());
+        return new PageImpl<>(modelList, rawDataDocs.getPageable(), rawDataDocs.getTotalElements());
     }
 }

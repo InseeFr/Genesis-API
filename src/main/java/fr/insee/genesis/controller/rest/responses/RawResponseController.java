@@ -12,6 +12,7 @@ import fr.insee.genesis.controller.utils.SchemaType;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
+import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponse;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.RawResponseApiPort;
 import fr.insee.genesis.exceptions.GenesisError;
@@ -270,7 +271,7 @@ public class RawResponseController {
     @Operation(summary = "Get lunatic JSON data from one campaign in Genesis Database, filtered by start and end dates")
     @GetMapping(path = "/responses/raw/lunatic-json/{campaignId}")
     @PreAuthorize("hasRole('USER_BATCH_GENERIC')")
-    public ResponseEntity<PagedModel<LunaticJsonRawDataModel>> getRawResponsesFromJsonBody(
+    public ResponseEntity<PagedModel<LunaticJsonRawDataModel>> getLunaticJsonRawDataModelFromJsonBody(
             @PathVariable String campaignId,
             @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant startDate,
             @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant endDate,
@@ -284,5 +285,20 @@ public class RawResponseController {
         return ResponseEntity.status(HttpStatus.OK).body(new PagedModel<>(rawResponses));
     }
 
-
+    @Operation(summary = "Get rawResponse JSON data from one campaign in Genesis Database, filtered by start and end dates")
+    @GetMapping(path = "/raw-responses/{campaignId}")
+    @PreAuthorize("hasRole('USER_BATCH_GENERIC')")
+    public ResponseEntity<PagedModel<RawResponse>> getRawResponsesFromJsonBody(
+            @PathVariable String campaignId,
+            @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant startDate,
+            @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant endDate,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "1000") int size
+    ) {
+        log.info("Try to read raw JSONs for campaign {}, with startDate={} and endDate={} - page={} - size={}", campaignId, startDate, endDate,page,size);
+        Pageable pageable = PageRequest.of(page, size);
+        Page<RawResponse> rawResponses = rawResponseApiPort.findRawResponseDataByCampaignIdAndDate(campaignId, startDate, endDate, pageable);
+        log.info("rawResponses={}", rawResponses.getContent().size());
+        return ResponseEntity.status(HttpStatus.OK).body(new PagedModel<>(rawResponses));
+    }
 }
