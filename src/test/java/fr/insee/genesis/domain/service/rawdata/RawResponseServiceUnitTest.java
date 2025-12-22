@@ -88,13 +88,13 @@ class RawResponseServiceUnitTest {
                 RawResponseDto.QuestionnaireStateEnum questionnaireState
         ) {
             //GIVEN
-            processRawResponses_given(questionnaireState);
+            givenOkCase(questionnaireState);
 
             //WHEN
             List<SurveyUnitModel> createdModels = whenProcessByCollectionInstrumentIdAndInterrogationIdList();
 
             //THEN
-            processRawResponses_then(questionnaireState, createdModels);
+            processRawResponsesThen(questionnaireState, createdModels);
         }
 
         @ParameterizedTest
@@ -105,13 +105,13 @@ class RawResponseServiceUnitTest {
                 RawResponseDto.QuestionnaireStateEnum questionnaireState
         ) {
             //GIVEN
-            processRawResponses_given(questionnaireState);
+            givenOkCase(questionnaireState);
 
             //WHEN
             List<SurveyUnitModel> createdModels = whenProcessRawResponsesCollectionInstrumentId();
 
             //THEN
-            processRawResponses_then(questionnaireState, createdModels);
+            processRawResponsesThen(questionnaireState, createdModels);
         }
 
         //Non-blocking exception tests
@@ -121,26 +121,26 @@ class RawResponseServiceUnitTest {
         @SneakyThrows
         void processRawResponses_byCollectionInstrumentId_invalid_questionnaire_state_test() {
             //GIVEN
-            processRawResponses_given_invalid_questionnaire_state();
+            givenInvalidQuestionnaireState();
 
             //WHEN
             List<SurveyUnitModel> createdModels = whenProcessRawResponsesCollectionInstrumentId();
 
             //THEN
-            processRawResponses_then_questionnaire_state_null(createdModels);
+            processRawResponsesThenQuestionnaireStateNull(createdModels);
         }
         @Test
         @DisplayName("Invalid questionnaireState test (process by collection id and interrogation id list)")
         @SneakyThrows
         void processRawResponses_byCollectionInstrumentIdAndInterrogationList_invalid_questionnaire_state_test() {
             //GIVEN
-            processRawResponses_given_invalid_questionnaire_state();
+            givenInvalidQuestionnaireState();
 
             //WHEN
             List<SurveyUnitModel> createdModels = whenProcessByCollectionInstrumentIdAndInterrogationIdList();
 
             //THEN
-            processRawResponses_then_questionnaire_state_null(createdModels);
+            processRawResponsesThenQuestionnaireStateNull(createdModels);
         }
 
         //Invalid validationDate
@@ -149,31 +149,31 @@ class RawResponseServiceUnitTest {
         @SneakyThrows
         void processRawResponses_byCollectionId_invalid_validation_date_test(){
             //GIVEN
-            processRawResponses_given_invalid_validation_date();
+            givenInvalidValidationDate();
 
             //WHEN
             List<SurveyUnitModel> createdModels = whenProcessByCollectionInstrumentIdAndInterrogationIdList();
 
             //THEN
-            processRawResponses_then_validation_date_null(createdModels);
+            processRawResponsesThenValidationDateNull(createdModels);
         }
         @Test
         @DisplayName("Invalid validationDate test (process by collection id and interrogation id list)")
         @SneakyThrows
         void processRawResponses_byCollectionIdAndInterrogationIds_invalid_validation_date_test(){
             //GIVEN
-            processRawResponses_given_invalid_validation_date();
+            givenInvalidValidationDate();
 
             //WHEN
             List<SurveyUnitModel> createdModels = whenProcessRawResponsesCollectionInstrumentId();
 
             //THEN
-            processRawResponses_then_validation_date_null(createdModels);
+            processRawResponsesThenValidationDateNull(createdModels);
         }
 
         //GIVENS
         @SneakyThrows
-        private void processRawResponses_given(RawResponseDto.QuestionnaireStateEnum questionnaireState){
+        private void givenOkCase(RawResponseDto.QuestionnaireStateEnum questionnaireState){
             VariablesMap variablesMap = new VariablesMap();
             MetadataModel metadataModel = new MetadataModel();
             metadataModel.setVariables(variablesMap);
@@ -209,7 +209,7 @@ class RawResponseServiceUnitTest {
             doReturn(rawResponses).when(rawResponsePersistencePort).findRawResponses(any(), any(), any());
         }
         @SneakyThrows
-        private void processRawResponses_given_invalid_questionnaire_state(){
+        private void givenInvalidQuestionnaireState(){
             VariablesMap variablesMap = new VariablesMap();
             MetadataModel metadataModel = new MetadataModel();
             metadataModel.setVariables(variablesMap);
@@ -243,7 +243,7 @@ class RawResponseServiceUnitTest {
             doReturn(rawResponses).when(rawResponsePersistencePort).findRawResponses(any(), any(), any());
         }
         @SneakyThrows
-        private void processRawResponses_given_invalid_validation_date(){
+        private void givenInvalidValidationDate(){
             VariablesMap variablesMap = new VariablesMap();
             MetadataModel metadataModel = new MetadataModel();
             metadataModel.setVariables(variablesMap);
@@ -294,21 +294,21 @@ class RawResponseServiceUnitTest {
         }
 
         //THENS
-        private void processRawResponses_then(RawResponseDto.QuestionnaireStateEnum questionnaireState,
-                                              List<SurveyUnitModel> createdModels) {
+        private void processRawResponsesThen(RawResponseDto.QuestionnaireStateEnum questionnaireState,
+                                             List<SurveyUnitModel> createdModels) {
             Assertions.assertThat(createdModels).hasSize(1);
             Assertions.assertThat(createdModels.getFirst().getValidationDate()).isEqualTo(
                     LocalDateTime.parse(TEST_VALIDATION_DATE, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
             );
             Assertions.assertThat(createdModels.getFirst().getQuestionnaireState()).isEqualTo(questionnaireState);
         }
-        private void processRawResponses_then_validation_date_null(
+        private void processRawResponsesThenValidationDateNull(
                 List<SurveyUnitModel> createdModels
         ){
             Assertions.assertThat(createdModels).hasSize(1);
             Assertions.assertThat(createdModels.getFirst().getValidationDate()).isNull();
         }
-        private void processRawResponses_then_questionnaire_state_null(List<SurveyUnitModel> createdModels){
+        private void processRawResponsesThenQuestionnaireStateNull(List<SurveyUnitModel> createdModels){
             Assertions.assertThat(createdModels).hasSize(1);
             Assertions.assertThat(createdModels.getFirst().getQuestionnaireState()).isNull();
         }
