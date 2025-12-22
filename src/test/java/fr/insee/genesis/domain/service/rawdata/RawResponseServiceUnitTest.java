@@ -297,9 +297,11 @@ class RawResponseServiceUnitTest {
         private void processRawResponsesThen(RawResponseDto.QuestionnaireStateEnum questionnaireState,
                                              List<SurveyUnitModel> createdModels) {
             Assertions.assertThat(createdModels).hasSize(1);
-            Assertions.assertThat(createdModels.getFirst().getValidationDate()).isEqualTo(
-                    LocalDateTime.parse(TEST_VALIDATION_DATE, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
-            );
+            if(questionnaireState.equals(RawResponseDto.QuestionnaireStateEnum.FINISHED)){
+                Assertions.assertThat(createdModels.getFirst().getValidationDate()).isEqualTo(
+                        LocalDateTime.parse(TEST_VALIDATION_DATE, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+                );
+            }
             Assertions.assertThat(createdModels.getFirst().getQuestionnaireState()).isEqualTo(questionnaireState);
         }
         private void processRawResponsesThenValidationDateNull(

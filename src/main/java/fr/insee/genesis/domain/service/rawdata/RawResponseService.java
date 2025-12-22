@@ -31,6 +31,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -322,7 +323,7 @@ public class  RawResponseService implements RawResponseApiPort {
     private static LocalDateTime getValidationDate(RawResponse rawResponse) {
         try{
             return rawResponse.payload().get("validationDate") == null ? null :
-                    LocalDateTime.parse(rawResponse.payload().get("validationDate").toString());
+                    LocalDateTime.parse(rawResponse.payload().get("validationDate").toString(), DateTimeFormatter.ISO_OFFSET_DATE_TIME);
         }catch(Exception e){
             log.warn("Exception when parsing validation date : {}",e.toString());
             return null;
