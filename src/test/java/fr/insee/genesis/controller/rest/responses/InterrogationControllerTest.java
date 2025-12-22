@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.util.List;
 
 import static fr.insee.genesis.TestConstants.DEFAULT_INTERROGATION_ID;
-import static fr.insee.genesis.TestConstants.DEFAULT_QUESTIONNAIRE_ID;
+import static fr.insee.genesis.TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID;
 
 class InterrogationControllerTest {
     //Given
@@ -47,7 +47,7 @@ class InterrogationControllerTest {
     //When + Then
     @Test
     void getAllInterrogationIdsByQuestionnaireTest() {
-        ResponseEntity<List<InterrogationId>> response = interrogationControllerStatic.getAllInterrogationIdsByQuestionnaire(DEFAULT_QUESTIONNAIRE_ID);
+        ResponseEntity<List<InterrogationId>> response = interrogationControllerStatic.getAllInterrogationIdsByQuestionnaire(DEFAULT_COLLECTION_INSTRUMENT_ID);
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
@@ -56,7 +56,7 @@ class InterrogationControllerTest {
 
     @Test
     void countAllInterrogationIdsByQuestionnaireTest() {
-        ResponseEntity<Long> response = interrogationControllerStatic.countAllInterrogationIdsByQuestionnaire(DEFAULT_QUESTIONNAIRE_ID);
+        ResponseEntity<Long> response = interrogationControllerStatic.countAllInterrogationIdsByQuestionnaire(DEFAULT_COLLECTION_INSTRUMENT_ID);
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull();

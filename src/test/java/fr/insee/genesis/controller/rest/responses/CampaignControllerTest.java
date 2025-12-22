@@ -18,14 +18,12 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
+import static fr.insee.genesis.TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID;
+
 class CampaignControllerTest {
     //Given
     static CampaignController campaignControllerStatic;
     static SurveyUnitPersistencePortStub surveyUnitPersistencePortStub;
-
-    //Constants
-    static final String DEFAULT_INTERROGATION_ID = "TESTINTERROGATIONID";
-    static final String DEFAULT_QUESTIONNAIRE_ID = "TESTQUESTIONNAIREID";
 
     @BeforeAll
     static void init() {
@@ -75,7 +73,7 @@ class CampaignControllerTest {
 
         Assertions.assertThat(response.getBody().stream().filter(
                 campaignWithQuestionnaire -> campaignWithQuestionnaire.getCampaignId().equals("TEST-TABLEAUX")
-        ).findFirst().get().getQuestionnaires()).containsOnly(DEFAULT_QUESTIONNAIRE_ID, "TESTQUESTIONNAIRE2");
+        ).findFirst().get().getQuestionnaires()).containsOnly(DEFAULT_COLLECTION_INSTRUMENT_ID, "TESTQUESTIONNAIRE2");
 
         Assertions.assertThat(response.getBody().stream().filter(
                 campaignWithQuestionnaire -> campaignWithQuestionnaire.getCampaignId().equals("TESTCAMPAIGN2")

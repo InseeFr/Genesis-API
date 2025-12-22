@@ -237,15 +237,15 @@ public class RawResponseController {
         }
     }
 
-    @Operation(summary = "Process raw data of a questionnaire")
-    @PostMapping(path = "/responses/raw/lunatic-json/{collectionInstrumentId}/process")
+    @Operation(summary = "Process raw data of a questionnaire (old raw model)")
+    @PostMapping(path = "/responses/raw/lunatic-json/{questionnaireId}/process")
     @PreAuthorize("hasRole('SCHEDULER')")
     public ResponseEntity<String> processJsonRawData(
-            @PathVariable String collectionInstrumentId
+            @PathVariable String questionnaireId
     ) {
-        log.info("Try to process raw JSON datas for questionnaire {}",collectionInstrumentId);
+        log.info("Try to process raw JSON datas for questionnaire {}",questionnaireId);
         try {
-            DataProcessResult result = lunaticJsonRawDataApiPort.processRawData(collectionInstrumentId);
+            DataProcessResult result = lunaticJsonRawDataApiPort.processRawData(questionnaireId);
             return result.formattedDataCount() == 0 ?
                     ResponseEntity.ok("%d document(s) processed".formatted(result.dataCount()))
                     : ResponseEntity.ok("%d document(s) processed, including %d FORMATTED after data verification"

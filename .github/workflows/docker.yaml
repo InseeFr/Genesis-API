@@ -26,6 +26,9 @@ jobs:
           distribution: "temurin"
           java-version: "21"
 
+      - name: install model filiere
+        run: mvn install:install-file -Dfile="$(pwd)/libs/modelefiliere-2.1.0.jar" -DgroupId=fr.insee -DartifactId=modelefiliere -Dversion=2.1.0 -Dpackaging=jar -DgeneratePom=true
+
       - name: Clone BPM
         uses: actions/checkout@master
         with:

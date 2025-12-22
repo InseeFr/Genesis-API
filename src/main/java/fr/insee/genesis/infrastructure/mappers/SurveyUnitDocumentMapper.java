@@ -22,7 +22,8 @@ public interface SurveyUnitDocumentMapper {
 	List<SurveyUnitDocument> listModelToListDocument(List<SurveyUnitModel> surveyUnitModels);
 
 	@AfterMapping
-	default void fillModelAfterRead(SurveyUnitDocument doc,
+	@SuppressWarnings("deprecation")
+	default void handleDeprecatedFields(SurveyUnitDocument doc,
 									@MappingTarget SurveyUnitModel model) {
 
 		if (model.getUsualSurveyUnitId() == null) {
@@ -34,5 +35,4 @@ public interface SurveyUnitDocumentMapper {
 		}
 
 	}
-
 }

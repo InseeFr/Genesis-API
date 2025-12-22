@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Campaign>
-  <Id>SAMPLETEST-PARADATA-v1</Id>
+  <Id>SAMPLETEST-PARADATA-V2</Id>
   <Label />
   <SurveyUnits>
     <SurveyUnit>
@@ -661,7 +661,10 @@
             <EDITED type="null" />
             <INPUTED type="null" />
             <FORCED type="null" />
-            <PREVIOUS type="null" />
+            <PREVIOUS>
+              <PREVIOUS type="string">1</PREVIOUS>
+              <PREVIOUS type="string">2</PREVIOUS>
+            </PREVIOUS>
           </AVIS_FILTRE>
           <NATIO_PAR1>
             <COLLECTED>
@@ -733,7 +736,10 @@
               <COLLECTED type="string">1</COLLECTED>
               <COLLECTED type="null" />
             </COLLECTED>
-            <EDITED type="null" />
+            <EDITED>
+              <EDITED type="string">1</EDITED>
+              <EDITED type="string">2</EDITED>
+            </EDITED>
             <INPUTED type="null" />
             <FORCED type="null" />
             <PREVIOUS type="null" />
@@ -1097,7 +1103,9 @@
             <COLLECTED>
               <COLLECTED type="null" />
             </COLLECTED>
-            <EDITED type="null" />
+            <EDITED>
+              <EDITED type="string">TESTSANTE7E</EDITED>
+            </EDITED>
             <INPUTED type="null" />
             <FORCED type="null" />
             <PREVIOUS type="null" />
@@ -1163,7 +1171,10 @@
               <COLLECTED type="null" />
             </COLLECTED>
             <EDITED type="null" />
-            <INPUTED type="null" />
+            <INPUTED>
+              <INPUTED type="string">TESTPETITENF7I</INPUTED>
+              <INPUTED type="null" />
+            </INPUTED>
             <FORCED type="null" />
             <PREVIOUS type="null" />
           </PETIT_ENF>
@@ -1210,7 +1221,10 @@
             </COLLECTED>
             <EDITED type="null" />
             <INPUTED type="null" />
-            <FORCED type="null" />
+            <FORCED>
+              <FORCED type="string">FR</FORCED>
+              <FORCED type="null" />
+            </FORCED>
             <PREVIOUS type="null" />
           </LANGUE2_ENTOU>
           <QUI_AID_REC_34>

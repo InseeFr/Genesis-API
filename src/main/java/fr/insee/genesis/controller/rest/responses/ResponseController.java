@@ -53,7 +53,11 @@ import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLStreamException;
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -296,6 +300,7 @@ public class ResponseController implements CommonApiResponse {
                     "For a given id, the endpoint returns a document by collection mode (if there is more than one).")
     @PostMapping(path = "/simplified/by-list-interrogation-and-collection-instrument/latest")
     @PreAuthorize("hasRole('USER_KRAFTWERK')")
+    //TODO move logic and unit test to surveyUnitService (also extract some methods instead of multiple lambdas)
     public ResponseEntity<List<SurveyUnitSimplified>> getLatestForInterrogationListAndCollectionInstrument(
             @RequestParam("collectionInstrumentId") String collectionInstrumentId,
             @RequestBody List<InterrogationId> interrogationIds)
@@ -307,16 +312,20 @@ public class ResponseController implements CommonApiResponse {
             modes.forEach(mode -> {
                 List<VariableModel> outputVariables = new ArrayList<>();
                 List<VariableModel> outputExternalVariables = new ArrayList<>();
+                List<String> usualSurveyUnitIds = new ArrayList<>();
                 responses.stream().filter(rep -> rep.getMode().equals(mode)).forEach(response -> {
                     outputVariables.addAll(response.getCollectedVariables());
                     outputExternalVariables.addAll(response.getExternalVariables());
+                    if(response.getUsualSurveyUnitId() != null){
+                        usualSurveyUnitIds.add(response.getUsualSurveyUnitId());
+                    }
                 });
                 if (!outputVariables.isEmpty() || !outputExternalVariables.isEmpty()) {
                     results.add(SurveyUnitSimplified.builder()
                             .collectionInstrumentId(responses.getFirst().getCollectionInstrumentId())
                             .campaignId(responses.getFirst().getCampaignId())
-                            .interrogationId(responses.getFirst().getInterrogationId())
-                            .usualSurveyUnitId(responses.getFirst().getUsualSurveyUnitId())
+                            .interrogationId(interrogationId.getInterrogationId())
+                            .usualSurveyUnitId(!usualSurveyUnitIds.isEmpty() ? usualSurveyUnitIds.getFirst() : null)
                             .mode(mode)
                             .variablesUpdate(outputVariables)
                             .externalVariables(outputExternalVariables)

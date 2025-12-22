@@ -8,8 +8,9 @@ public class TestConstants {
 	public static final String TEST_RESOURCES_DIRECTORY = "src/test/resources";
 	public static final String UNIT_TESTS_DDI_DIRECTORY = TEST_RESOURCES_DIRECTORY + "/specs";
 
-	public static final String DEFAULT_INTERROGATION_ID = "TESTINTERROGATIONID";
-	public static final String DEFAULT_QUESTIONNAIRE_ID = "TESTQUESTIONNAIREID";
+    public static final String DEFAULT_INTERROGATION_ID = "TESTINTERROGATIONID";
+    public static final String DEFAULT_COLLECTION_INSTRUMENT_ID = "SAMPLETEST-PARADATA-V1";
+    public static final String DEFAULT_SURVEY_UNIT_ID = "TESTIDUE";
 
     //Functional tests
     public static final String FUNCTIONAL_TESTS_INPUT_DIRECTORY = TEST_RESOURCES_DIRECTORY + "/IN";

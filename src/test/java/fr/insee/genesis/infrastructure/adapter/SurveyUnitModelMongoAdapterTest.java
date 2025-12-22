@@ -15,7 +15,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -30,6 +33,7 @@ class SurveyUnitModelMongoAdapterTest {
 	static SurveyUnitDocument suDoc;
 	static SurveyUnitDocument suDoc2;
 	static SurveyUnitDocument suDoc3;
+	static SurveyUnitDocument suDocFiliere;
 
 	@BeforeAll
 	static void setUp() {
@@ -63,6 +67,15 @@ class SurveyUnitModelMongoAdapterTest {
 		suDoc3.setRecordDate(LocalDateTime.now());
 		suDoc3.setCollectedVariables(List.of(new VariableDocument()));
 		suDoc3.setExternalVariables(List.of(new VariableDocument()));
+
+		suDocFiliere= new SurveyUnitDocument();
+		suDocFiliere.setInterrogationId("UE1100000002");
+		suDocFiliere.setCollectionInstrumentId("TEST2023X01");
+		suDocFiliere.setState("COLLECTED");
+		suDocFiliere.setMode("WEB");
+		suDocFiliere.setRecordDate(LocalDateTime.now());
+		suDocFiliere.setCollectedVariables(List.of(new VariableDocument()));
+		suDocFiliere.setExternalVariables(List.of(new VariableDocument()));
 	}
 
 	@Test
@@ -77,6 +90,27 @@ class SurveyUnitModelMongoAdapterTest {
 		// Then
 		Assertions.assertThat(updates).isNotNull().hasSize(2);
 		Assertions.assertThat(updates.getFirst().getMode()).isEqualTo(Mode.WEB);
+	}
+
+	@Test
+	void shouldReturnListOfSurveyUnitModelsDateAfter_IfDifferentDataModels() {
+		//Given
+		when(mongoRepository.findInterrogationIdsByQuestionnaireIdAndDateAfter(any(String.class), any(LocalDateTime.class)))
+				.thenReturn(Collections.singletonList(suDoc));
+		when(mongoRepository.findInterrogationIdsByCollectionInstrumentIdAndDateAfter(any(String.class), any(LocalDateTime.class)))
+				.thenReturn(Collections.singletonList(suDocFiliere));
+		// When
+		List<SurveyUnitModel> updates = surveyUnitMongoAdapter.findInterrogationIdsByQuestionnaireIdAndDateAfter(
+				"TEST2023X01", LocalDateTime.now().minusHours(1));
+		// Then
+		Assertions.assertThat(updates).isNotNull().hasSize(2);
+		Set<String> interrogationIds = new HashSet<>();
+		for(SurveyUnitModel update: updates){
+			interrogationIds.add(update.getInterrogationId());
+			Assertions.assertThat(update.getMode()).isEqualTo(Mode.WEB);
+			Assertions.assertThat(update.getCollectionInstrumentId()).isEqualTo("TEST2023X01");
+		}
+		Assertions.assertThat(interrogationIds).containsExactlyInAnyOrder("UE1100000001","UE1100000002");
 	}
 
 	@Test
