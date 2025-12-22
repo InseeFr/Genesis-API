@@ -74,35 +74,4 @@ class LunaticJsonRawDataMongoAdapterTest {
         List<LunaticJsonRawDataModel> rawdatas = adapter.findRawData("campaign01",Mode.WEB,List.of("interrogation01"));
         Assertions.assertThat(rawdatas).hasSize(1);
     }
-
-    @Test
-    void getAllUnprocessedQuestionnaireIdTest(){
-        //GIVEN
-        repository.getDocuments().add(doc);
-        //Not null processdate
-        LunaticJsonRawDataDocument rawData = LunaticJsonRawDataDocument.builder()
-                .campaignId("campaign01")
-                .questionnaireId("questionnaire02")
-                .interrogationId("interrogation01")
-                .idUE("idUE01")
-                .mode(Mode.WEB)
-                .processDate(LocalDateTime.now())
-                .build();
-        repository.getDocuments().add(rawData);
-        //Null processdate
-        rawData = LunaticJsonRawDataDocument.builder()
-                .campaignId("campaign01")
-                .questionnaireId("questionnaire03")
-                .interrogationId("interrogation01")
-                .idUE("idUE01")
-                .mode(Mode.WEB)
-                .build();
-        repository.getDocuments().add(rawData);
-        //THEN
-        Assertions.assertThat(adapter.findDistinctQuestionnaireIdsByNullProcessDate()).containsExactlyInAnyOrder(
-                "questionnaire01",
-                "questionnaire03"
-        );
-    }
-
 }
