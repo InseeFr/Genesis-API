@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-public class RawResponseService implements RawResponseApiPort {
+public class  RawResponseService implements RawResponseApiPort {
 
     private final ControllerUtils controllerUtils;
     private final QuestionnaireMetadataService metadataService;
