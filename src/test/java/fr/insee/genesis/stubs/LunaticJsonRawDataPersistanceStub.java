@@ -43,6 +43,19 @@ public class LunaticJsonRawDataPersistanceStub implements LunaticJsonRawDataPers
     }
 
     @Override
+    public Set<String> findDistinctQuestionnaireIdsByNullProcessDate() {
+        Set<String> questionnaireIds = new HashSet<>();
+        mongoStub.stream().filter(
+                lunaticJsonDataDocument -> lunaticJsonDataDocument.processDate() == null
+        ).forEach(doc -> {
+            if(doc.questionnaireId() != null){
+                questionnaireIds.add(doc.questionnaireId());
+            }
+        });
+        return questionnaireIds;
+    }
+
+    @Override
     public List<LunaticJsonRawDataModel> findRawData(String campaignName, Mode mode, List<String> interrogationIdList) {
         List<LunaticJsonRawDataDocument> docs = mongoStub.stream().filter(lunaticJsonRawDataDocument ->
                 lunaticJsonRawDataDocument.campaignId().equals(campaignName)

@@ -6,7 +6,6 @@ import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
 import fr.insee.genesis.domain.ports.spi.LunaticJsonRawDataPersistencePort;
 import fr.insee.genesis.infrastructure.document.rawdata.LunaticJsonRawDataDocument;
-import fr.insee.genesis.infrastructure.document.surveyunit.GroupedInterrogationDocument;
 import fr.insee.genesis.infrastructure.mappers.GroupedInterrogationDocumentMapper;
 import fr.insee.genesis.infrastructure.mappers.LunaticJsonRawDataDocumentMapper;
 import fr.insee.genesis.infrastructure.repository.LunaticJsonMongoDBRepository;
@@ -48,6 +47,11 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
     @Override
     public List<LunaticJsonRawDataModel> getAllUnprocessedData() {
         return LunaticJsonRawDataDocumentMapper.INSTANCE.listDocumentToListModel(repository.findByNullProcessDate());
+    }
+
+    @Override
+    public Set<String> findDistinctQuestionnaireIdsByNullProcessDate(){
+        return new HashSet<>(repository.findQuestionnaireIdsByNullProcessDate());
     }
 
     @Override

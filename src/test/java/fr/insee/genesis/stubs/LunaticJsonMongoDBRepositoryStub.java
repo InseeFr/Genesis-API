@@ -148,6 +148,19 @@ public class LunaticJsonMongoDBRepositoryStub implements LunaticJsonMongoDBRepos
         return Collections.singletonList(groupedInterrogationDocument);
     }
 
+    @Override
+    public List<String> findQuestionnaireIdsByNullProcessDate() {
+        List<String> questionnaireIds = new ArrayList<>();
+        documents.stream().filter(
+                lunaticJsonDataDocument -> lunaticJsonDataDocument.processDate() == null
+        ).forEach(doc -> {
+            if(doc.questionnaireId() != null){
+                questionnaireIds.add(doc.questionnaireId());
+            }
+        });
+        return questionnaireIds;
+    }
+
     // Implémentations vides requises par MongoRepository
     @Override public <S extends LunaticJsonRawDataDocument> S save(S entity) { return null; }
     @Override public Optional<LunaticJsonRawDataDocument> findById(String s) { return Optional.empty(); }

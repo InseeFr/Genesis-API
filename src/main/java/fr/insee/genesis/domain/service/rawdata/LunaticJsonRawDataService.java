@@ -353,6 +353,11 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
         return dtos;
     }
 
+    @Override
+    public Set<String> getUnprocessedDataQuestionnaireIds() {
+        return lunaticJsonRawDataPersistencePort.findDistinctQuestionnaireIdsByNullProcessDate();
+    }
+
     @SuppressWarnings("unchecked")
     private static void convertRawDataExternalVariables(
             LunaticJsonRawDataModel srcRawData,
