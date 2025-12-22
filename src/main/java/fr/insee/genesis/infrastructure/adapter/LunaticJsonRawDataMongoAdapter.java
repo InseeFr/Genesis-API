@@ -6,7 +6,6 @@ import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
 import fr.insee.genesis.domain.ports.spi.LunaticJsonRawDataPersistencePort;
 import fr.insee.genesis.infrastructure.document.rawdata.LunaticJsonRawDataDocument;
-import fr.insee.genesis.infrastructure.document.surveyunit.GroupedInterrogationDocument;
 import fr.insee.genesis.infrastructure.mappers.GroupedInterrogationDocumentMapper;
 import fr.insee.genesis.infrastructure.mappers.LunaticJsonRawDataDocumentMapper;
 import fr.insee.genesis.infrastructure.repository.LunaticJsonMongoDBRepository;
@@ -51,6 +50,11 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
     }
 
     @Override
+    public Set<String> findDistinctQuestionnaireIdsByNullProcessDate(){
+        return getDistinctQuestionnaireIdsInCollection(Constants.MONGODB_LUNATIC_RAWDATA_COLLECTION_NAME);
+    }
+
+    @Override
     public List<LunaticJsonRawDataModel> findRawData(String campaignName, Mode mode, List<String> interrogationIdList) {
         List<LunaticJsonRawDataDocument> rawDataDocs = repository.findModesByCampaignIdAndByModeAndinterrogationIdIninterrogationIdList(campaignName, mode, interrogationIdList);return LunaticJsonRawDataDocumentMapper.INSTANCE.listDocumentToListModel(rawDataDocs);
     }
@@ -66,13 +70,7 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
 
     @Override
     public Set<String> findDistinctQuestionnaireIds() {
-        Set<String> questionnaireIds = new HashSet<>();
-        for(String questionnaireId : mongoTemplate.getCollection(Constants.MONGODB_RAW_RESPONSES_COLLECTION_NAME).distinct(
-                "questionnaireId",
-                String.class)){
-            questionnaireIds.add(questionnaireId);
-        }
-        return questionnaireIds;
+        return getDistinctQuestionnaireIdsInCollection(Constants.MONGODB_RAW_RESPONSES_COLLECTION_NAME);
     }
 
     @Override
@@ -106,5 +104,15 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
         );
 
         return interrogationIds;
+    }
+
+    private Set<String> getDistinctQuestionnaireIdsInCollection(String collectionName) {
+        Set<String> questionnaireIds = new HashSet<>();
+        for (String questionnaireId : mongoTemplate.getCollection(collectionName).distinct(
+                "questionnaireId",
+                String.class)) {
+            questionnaireIds.add(questionnaireId);
+        }
+        return questionnaireIds;
     }
 }
