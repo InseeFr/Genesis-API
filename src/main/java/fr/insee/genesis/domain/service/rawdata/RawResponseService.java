@@ -23,6 +23,7 @@ import fr.insee.genesis.domain.utils.JsonUtils;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
+import fr.insee.modelefiliere.RawResponseDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
@@ -210,6 +211,13 @@ public class  RawResponseService implements RawResponseApiPort {
             for (RawResponse rawResponse : rawResponses) {
                 //Get optional fields
                 Boolean isCapturedIndirectly = getIsCapturedIndirectly(rawResponse);
+                String questionnaireStateString = getStringFieldInPayload(rawResponse, "questionnaireState");
+                RawResponseDto.QuestionnaireStateEnum questionnaireStateEnum = null;
+                try{
+                    questionnaireStateEnum = RawResponseDto.QuestionnaireStateEnum.valueOf(questionnaireStateString);
+                } catch (IllegalArgumentException iae){
+                    log.warn("'{}' is not a valid questionnaire state according to filiere model", questionnaireStateString);
+                }
                 LocalDateTime validationDate = getValidationDate(rawResponse);
                 String usualSurveyUnitId = getStringFieldInPayload(rawResponse,"usualSurveyUnitId");
                 String majorModelVersion = getStringFieldInPayload(rawResponse, "majorModelVersion");
@@ -220,6 +228,7 @@ public class  RawResponseService implements RawResponseApiPort {
                         .mode(rawResponse.mode())
                         .interrogationId(rawResponse.interrogationId())
                         .usualSurveyUnitId(usualSurveyUnitId)
+                        .questionnaireState(questionnaireStateEnum)
                         .validationDate(validationDate)
                         .isCapturedIndirectly(isCapturedIndirectly)
                         .state(dataState)
