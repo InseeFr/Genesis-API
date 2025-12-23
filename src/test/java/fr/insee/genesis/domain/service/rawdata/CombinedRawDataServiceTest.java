@@ -1,9 +1,9 @@
 package fr.insee.genesis.domain.service.rawdata;
 
+import fr.insee.genesis.controller.dto.rawdata.CombinedRawDataDto;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
-import fr.insee.genesis.domain.model.surveyunit.rawdata.CombinedRawData;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
-import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponse;
+import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponseModel;
 import fr.insee.genesis.domain.ports.spi.LunaticJsonRawDataPersistencePort;
 import fr.insee.genesis.domain.ports.spi.RawResponsePersistencePort;
 import org.assertj.core.api.Assertions;
@@ -37,7 +37,7 @@ class CombinedRawDataServiceTest {
         String interrogationId = "INTERROGATION_1";
 
         // Mock des RawResponses
-        RawResponse response1 = new RawResponse(
+        RawResponseModel response1 = new RawResponseModel(
                 new ObjectId(),
                 interrogationId,
                 "COLLECTION_1",
@@ -47,7 +47,7 @@ class CombinedRawDataServiceTest {
                 null
         );
 
-        RawResponse response2 = new RawResponse(
+        RawResponseModel response2 = new RawResponseModel(
                 new ObjectId(),
                 interrogationId,
                 "COLLECTION_1",
@@ -57,7 +57,7 @@ class CombinedRawDataServiceTest {
                 null
         );
 
-        List<RawResponse> rawResponses = List.of(response1, response2);
+        List<RawResponseModel> rawResponseModels = List.of(response1, response2);
 
         // Mock des LunaticJsonRawData
         LunaticJsonRawDataModel lunatic1 = LunaticJsonRawDataModel.builder()
@@ -71,16 +71,16 @@ class CombinedRawDataServiceTest {
 
         // WHEN
         Mockito.when(rawResponsePersistencePort.findRawResponsesByInterrogationID(interrogationId))
-                .thenReturn(rawResponses);
+                .thenReturn(rawResponseModels);
 
         Mockito.when(lunaticJsonRawDataPersistencePort.findRawDataByInterrogationID(interrogationId))
                 .thenReturn(lunaticRawData);
 
-        CombinedRawData result = combinedRawDataService.getCombinedRawDataByInterrogationId(interrogationId);
+        CombinedRawDataDto result = combinedRawDataService.getCombinedRawDataByInterrogationId(interrogationId);
 
         // THEN - assertions
-        Assertions.assertThat(result.rawResponses()).hasSize(2).containsExactlyInAnyOrderElementsOf(rawResponses);
-        Assertions.assertThat(result.lunaticRawData()).hasSize(1).containsExactlyInAnyOrderElementsOf(lunaticRawData);
+        Assertions.assertThat(result.rawResponseModels()).hasSize(2).containsExactlyInAnyOrderElementsOf(rawResponseModels);
+        Assertions.assertThat(result.lunaticRawDataModels()).hasSize(1).containsExactlyInAnyOrderElementsOf(lunaticRawData);
     }
 
     @Test
@@ -91,10 +91,10 @@ class CombinedRawDataServiceTest {
                 .thenReturn(List.of());
         Mockito.when(lunaticJsonRawDataPersistencePort.findRawDataByInterrogationID(interrogationId))
                 .thenReturn(List.of());
-        CombinedRawData result = combinedRawDataService.getCombinedRawDataByInterrogationId(interrogationId);
+        CombinedRawDataDto result = combinedRawDataService.getCombinedRawDataByInterrogationId(interrogationId);
 
-        Assertions.assertThat(result.rawResponses()).isEmpty();
-        Assertions.assertThat(result.lunaticRawData()).isEmpty();
+        Assertions.assertThat(result.rawResponseModels()).isEmpty();
+        Assertions.assertThat(result.lunaticRawDataModels()).isEmpty();
     }
 
 }

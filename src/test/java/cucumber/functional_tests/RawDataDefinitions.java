@@ -11,7 +11,7 @@ import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
-import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponse;
+import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponseModel;
 import fr.insee.genesis.domain.ports.api.RawResponseApiPort;
 import fr.insee.genesis.domain.service.context.DataProcessingContextService;
 import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
@@ -106,12 +106,12 @@ public class RawDataDefinitions {
 
     RawResponseApiPort rawResponseApiPortStub = new RawResponseApiPort() {
         @Override
-        public List<RawResponse> getRawResponses(String questionnaireModelId, Mode mode, List<String> interrogationIdList) {
+        public List<RawResponseModel> getRawResponses(String questionnaireModelId, Mode mode, List<String> interrogationIdList) {
             return List.of();
         }
 
         @Override
-        public List<RawResponse> getRawResponsesByInterrogationID(String interrogationId) {
+        public List<RawResponseModel> getRawResponsesByInterrogationID(String interrogationId) {
             return List.of();
         }
 
@@ -126,7 +126,7 @@ public class RawDataDefinitions {
         }
 
         @Override
-        public List<SurveyUnitModel> convertRawResponse(List<RawResponse> rawResponses, VariablesMap variablesMap) {
+        public List<SurveyUnitModel> convertRawResponse(List<RawResponseModel> rawResponsModels, VariablesMap variablesMap) {
             return List.of();
         }
 

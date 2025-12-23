@@ -1,8 +1,8 @@
 package fr.insee.genesis.domain.service.rawdata;
 
-import fr.insee.genesis.domain.model.surveyunit.rawdata.CombinedRawData;
+import fr.insee.genesis.controller.dto.rawdata.CombinedRawDataDto;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
-import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponse;
+import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponseModel;
 import fr.insee.genesis.domain.ports.spi.LunaticJsonRawDataPersistencePort;
 import fr.insee.genesis.domain.ports.spi.RawResponsePersistencePort;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +15,7 @@ import java.util.List;
 @Slf4j
 public class CombinedRawDataService {
 
-    @Qualifier("lunaticJsonMongoAdapterNew")
+    @Qualifier("lunaticJsonMongoAdapter")
     private final LunaticJsonRawDataPersistencePort lunaticJsonRawDataPersistencePort;
     @Qualifier("rawResponseMongoAdapter")
     private final RawResponsePersistencePort rawResponsePersistencePort;
@@ -25,11 +25,19 @@ public class CombinedRawDataService {
         this.rawResponsePersistencePort = rawResponsePersistencePort;
     }
 
-    public CombinedRawData getCombinedRawDataByInterrogationId(String interrogationId) {
-        List<RawResponse> rawResponses = rawResponsePersistencePort.findRawResponsesByInterrogationID(interrogationId);
-        List<LunaticJsonRawDataModel> lunaticRawData = lunaticJsonRawDataPersistencePort.findRawDataByInterrogationID(interrogationId);
+    public CombinedRawDataDto getCombinedRawDataByInterrogationId(String interrogationId) {
 
-        return new CombinedRawData(rawResponses, lunaticRawData);
+        List<RawResponseModel> rawResponseModels =
+                rawResponsePersistencePort.findRawResponsesByInterrogationID(interrogationId);
+
+        List<LunaticJsonRawDataModel> lunaticRawDataModels =
+                lunaticJsonRawDataPersistencePort.findRawDataByInterrogationID(interrogationId);
+
+        return new CombinedRawDataDto(
+                rawResponseModels,
+                lunaticRawDataModels
+        );
     }
+
 
 }

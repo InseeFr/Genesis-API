@@ -1,8 +1,7 @@
 package fr.insee.genesis.controller.rest;
 
-import fr.insee.genesis.domain.model.surveyunit.rawdata.CombinedRawData;
+import fr.insee.genesis.controller.dto.rawdata.CombinedRawDataDto;
 import fr.insee.genesis.domain.service.rawdata.CombinedRawDataService;
-import fr.insee.genesis.exceptions.GenesisException;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -27,11 +26,12 @@ public class CombinedRawDataController {
     @Operation(summary = "Retrieve combined raw responses and Lunatic raw data for a given interrogationId")
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'USER_PLATINE')")
-    public ResponseEntity<CombinedRawData> getCombinetRawData(
+    public ResponseEntity<CombinedRawDataDto> getCombinetRawData(
             @RequestParam(INTERROGATION_ID) String interrogationId
-    ){CombinedRawData data = combinedRawDataService.getCombinedRawDataByInterrogationId(interrogationId);
+    ){
+        CombinedRawDataDto data = combinedRawDataService.getCombinedRawDataByInterrogationId(interrogationId);
 
-        if (data.rawResponses().isEmpty()) {
+        if (data.rawResponseModels().isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 

@@ -1,7 +1,7 @@
 package fr.insee.genesis.infrastructure.mappers;
 
 import fr.insee.genesis.domain.model.surveyunit.Mode;
-import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponse;
+import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponseModel;
 import fr.insee.genesis.infrastructure.document.rawdata.RawResponseDocument;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
@@ -13,10 +13,10 @@ public interface RawResponseDocumentMapper {
 
     RawResponseDocumentMapper INSTANCE = Mappers.getMapper(RawResponseDocumentMapper.class);
 
-    RawResponse documentToModel(RawResponseDocument document);
-    RawResponseDocument modelToDocument(RawResponse model);
-    List<RawResponse> listDocumentToListModel(List<RawResponseDocument> documentList);
-    List<RawResponseDocument> listModelToListDocument(List<RawResponse> modelList);
+    RawResponseModel documentToModel(RawResponseDocument document);
+    RawResponseDocument modelToDocument(RawResponseModel model);
+    List<RawResponseModel> listDocumentToListModel(List<RawResponseDocument> documentList);
+    List<RawResponseDocument> listModelToListDocument(List<RawResponseModel> modelList);
 
     // --- Custom mapping: String -> Mode
     default Mode stringToMode(String value) {

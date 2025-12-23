@@ -2,7 +2,7 @@ package fr.insee.genesis.infrastructure.adapter;
 
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
-import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponse;
+import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponseModel;
 import fr.insee.genesis.domain.ports.spi.RawResponsePersistencePort;
 import fr.insee.genesis.infrastructure.document.rawdata.RawResponseDocument;
 import fr.insee.genesis.infrastructure.mappers.RawResponseDocumentMapper;
@@ -34,13 +34,13 @@ public class RawResponseMongoAdapter implements RawResponsePersistencePort {
     }
 
     @Override
-    public List<RawResponse> findRawResponses(String collectionInstrumentId, Mode mode, List<String> interrogationIdList) {
+    public List<RawResponseModel> findRawResponses(String collectionInstrumentId, Mode mode, List<String> interrogationIdList) {
         List<RawResponseDocument> rawDataDocs = repository.findByCollectionInstrumentIdAndModeAndInterrogationIdList(collectionInstrumentId, mode.getJsonName(), interrogationIdList);
         return RawResponseDocumentMapper.INSTANCE.listDocumentToListModel(rawDataDocs);
     }
 
     @Override
-    public List<RawResponse> findRawResponsesByInterrogationID(String interrogationId) {
+    public List<RawResponseModel> findRawResponsesByInterrogationID(String interrogationId) {
         List<RawResponseDocument> rawResponseDocumentList = repository.findByInterrogationId(interrogationId);
         return RawResponseDocumentMapper.INSTANCE.listDocumentToListModel(rawResponseDocumentList);
     }
