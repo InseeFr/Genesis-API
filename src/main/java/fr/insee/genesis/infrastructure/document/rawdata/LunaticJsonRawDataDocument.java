@@ -19,6 +19,7 @@ public record LunaticJsonRawDataDocument(
         String campaignId,
         @Indexed
         String questionnaireId,
+        @Indexed
         String interrogationId,
         String idUE,
         Mode mode,

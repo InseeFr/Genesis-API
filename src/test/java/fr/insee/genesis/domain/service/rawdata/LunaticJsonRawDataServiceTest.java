@@ -379,6 +379,47 @@ class LunaticJsonRawDataServiceTest {
         Assertions.assertThat(suModels.getFirst().getExternalVariables()).isEmpty();
     }
 
+
+    @Test
+    void getRawDataByInterrogationId_shouldReturnOnlyMatchingData() {
+        // GIVEN
+        lunaticJsonRawDataPersistanceStub.getMongoStub().clear();
+
+        String InterrogationId = "INTERROGATION_1";
+        String secondInterrogationId = "INTERROGATION_2";
+
+        LunaticJsonRawDataModel rawData1 = LunaticJsonRawDataModel.builder()
+                .campaignId("CAMPAIGN")
+                .questionnaireId("QUESTIONNAIRE")
+                .interrogationId(InterrogationId)
+                .data(Map.of("key", "value1"))
+                .mode(Mode.WEB)
+                .build();
+
+        LunaticJsonRawDataModel rawData2 = LunaticJsonRawDataModel.builder()
+                .campaignId("CAMPAIGN")
+                .questionnaireId("QUESTIONNAIRE")
+                .interrogationId(secondInterrogationId)
+                .data(Map.of("key", "value2"))
+                .mode(Mode.WEB)
+                .build();
+
+        lunaticJsonRawDataService.save(rawData1);
+        lunaticJsonRawDataService.save(rawData2);
+
+        // WHEN
+        List<LunaticJsonRawDataModel> result =
+                lunaticJsonRawDataService.getRawDataByInterrogationId(InterrogationId);
+
+        // THEN
+        Assertions.assertThat(result)
+                .hasSize(1)
+                .allMatch(data -> InterrogationId.equals(data.interrogationId()));
+
+        Assertions.assertThat(result.getFirst().data())
+                .containsEntry("key", "value1");
+    }
+
     @Test
     void convertRawData_should_not_throw_exception_if_collected_not_present() throws Exception {
         //GIVEN

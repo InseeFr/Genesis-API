@@ -15,6 +15,7 @@ import java.util.Map;
 public record RawResponseDocument (
         @Id
         ObjectId id,
+        @Indexed
         String interrogationId,
         String collectionInstrumentId,
         String mode,

@@ -6,7 +6,7 @@ import org.bson.types.ObjectId;
 import java.time.LocalDateTime;
 import java.util.Map;
 
-public record RawResponse(
+public record RawResponseModel(
         ObjectId id,
         String interrogationId,
         String collectionInstrumentId,
