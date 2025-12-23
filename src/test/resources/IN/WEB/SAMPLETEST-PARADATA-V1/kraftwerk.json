@@ -1,11 +1,11 @@
 {
-  "campaign": "SAMPLETEST-PARADATA-v2",
+  "campaign": "SAMPLETEST-PARADATA-V1",
   
   "survey_data": [
     {
       "data_mode": "WEB",
 	  "data_file": "reponse-platine",
-	  "DDI_file": "ddi-SAMPLETEST-PARADATA-v2.xml",
+	  "DDI_file": "ddi-SAMPLETEST-PARADATA-V1.xml",
 	  "lunatic_file": "questionnaire_web.json",
 	  "data_format": "LUNATIC_XML",
 	  "paradata_folder": "paradata-platine",

@@ -17,19 +17,18 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+import static fr.insee.genesis.TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID;
+import static fr.insee.genesis.TestConstants.DEFAULT_INTERROGATION_ID;
+import static fr.insee.genesis.TestConstants.DEFAULT_SURVEY_UNIT_ID;
+
 
 class Utils {
-
-    //Constants
-    static final String DEFAULT_INTERROGATION_ID = "TESTINTERROGATIONID";
-    static final String DEFAULT_QUESTIONNAIRE_ID = "TESTQUESTIONNAIREID";
-    static final String DEFAULT_ID_UE = "TESTIDUE";
 
     static void reset(SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) throws IOException {
         //MongoDB stub management
         surveyUnitPersistencePortStub.getMongoStub().clear();
 
-        addAdditionalSurveyUnitModelToMongoStub("TEST-TABLEAUX", DEFAULT_QUESTIONNAIRE_ID, DEFAULT_ID_UE,
+        addAdditionalSurveyUnitModelToMongoStub("TEST-TABLEAUX", DEFAULT_COLLECTION_INSTRUMENT_ID, DEFAULT_SURVEY_UNIT_ID,
                 LocalDateTime.of(2023, 1, 1, 0, 0, 0),
                 LocalDateTime.of(2024, 1, 1, 0, 0, 0),
                 surveyUnitPersistencePortStub);
@@ -45,19 +44,19 @@ class Utils {
                     .forEach(File::delete);
 
         //Recreate data files
-        //SAMPLETEST-PARADATA-v1
+        //SAMPLETEST-PARADATA-V1
         //Root
         //Partial
         Path source = testResourcesPath
                 .resolve("IN")
                 .resolve("WEB")
-                .resolve("SAMPLETEST-PARADATA-v1")
+                .resolve("SAMPLETEST-PARADATA-V1")
                 .resolve("reponse-platine")
                 .resolve("data.complete.partial.STPDv1.20231122164209.xml");
         Path dest = testResourcesPath
                 .resolve("IN")
                 .resolve("WEB")
-                .resolve("SAMPLETEST-PARADATA-v1")
+                .resolve("SAMPLETEST-PARADATA-V1")
                 .resolve("data.complete.partial.STPDv1.20231122164209.xml");
         if (!dest.toFile().exists()) {
             Files.copy(source, dest);
@@ -67,13 +66,13 @@ class Utils {
         source = testResourcesPath
                 .resolve("IN")
                 .resolve("WEB")
-                .resolve("SAMPLETEST-PARADATA-v1")
+                .resolve("SAMPLETEST-PARADATA-V1")
                 .resolve("reponse-platine")
                 .resolve("data.complete.validated.STPDv1.20231122164209.xml");
         dest = testResourcesPath
                 .resolve("IN")
                 .resolve("WEB")
-                .resolve("SAMPLETEST-PARADATA-v1")
+                .resolve("SAMPLETEST-PARADATA-V1")
                 .resolve("data.complete.validated.STPDv1.20231122164209.xml");
         if (!dest.toFile().exists()) {
             Files.copy(source, dest);
@@ -84,13 +83,13 @@ class Utils {
         source = testResourcesPath
                 .resolve("IN")
                 .resolve("WEB")
-                .resolve("SAMPLETEST-PARADATA-v1")
+                .resolve("SAMPLETEST-PARADATA-V1")
                 .resolve("reponse-platine")
                 .resolve("data.complete.partial.STPDv1.20231122164209.xml");
         dest = testResourcesPath
                 .resolve("IN")
                 .resolve("WEB")
-                .resolve("SAMPLETEST-PARADATA-v1")
+                .resolve("SAMPLETEST-PARADATA-V1")
                 .resolve("differential")
                 .resolve("data")
                 .resolve("data.complete.partial.STPDv1.20231122164209.xml");
@@ -101,13 +100,13 @@ class Utils {
         source = testResourcesPath
                 .resolve("IN")
                 .resolve("WEB")
-                .resolve("SAMPLETEST-PARADATA-v1")
+                .resolve("SAMPLETEST-PARADATA-V1")
                 .resolve("reponse-platine")
                 .resolve("data.complete.validated.STPDv1.20231122164209.xml");
         dest = testResourcesPath
                 .resolve("IN")
                 .resolve("WEB")
-                .resolve("SAMPLETEST-PARADATA-v1")
+                .resolve("SAMPLETEST-PARADATA-V1")
                 .resolve("differential")
                 .resolve("data")
                 .resolve("data.complete.validated.STPDv1.20231122164209.xml");
@@ -115,18 +114,18 @@ class Utils {
             Files.copy(source, dest);
         }
 
-        //SAMPLETEST-PARADATA-v2
+        //SAMPLETEST-PARADATA-V2
         //Partial
         source = testResourcesPath
                 .resolve("IN")
                 .resolve("WEB")
-                .resolve("SAMPLETEST-PARADATA-v2")
+                .resolve("SAMPLETEST-PARADATA-V2")
                 .resolve("reponse-platine")
                 .resolve("data.complete.partial.STPDv2.20231122164209.xml");
         dest = testResourcesPath
                 .resolve("IN")
                 .resolve("WEB")
-                .resolve("SAMPLETEST-PARADATA-v2")
+                .resolve("SAMPLETEST-PARADATA-V2")
                 .resolve("data.complete.partial.STPDv2.20231122164209.xml");
         if (!dest.toFile().exists()) {
             Files.copy(source, dest);
@@ -136,13 +135,13 @@ class Utils {
         source = testResourcesPath
                 .resolve("IN")
                 .resolve("WEB")
-                .resolve("SAMPLETEST-PARADATA-v2")
+                .resolve("SAMPLETEST-PARADATA-V2")
                 .resolve("reponse-platine")
                 .resolve("data.complete.validated.STPDv2.20231122164209.xml");
         dest = testResourcesPath
                 .resolve("IN")
                 .resolve("WEB")
-                .resolve("SAMPLETEST-PARADATA-v2")
+                .resolve("SAMPLETEST-PARADATA-V2")
                 .resolve("data.complete.validated.STPDv2.20231122164209.xml");
         if (!dest.toFile().exists()) {
             Files.copy(source, dest);
@@ -168,7 +167,7 @@ class Utils {
     }
 
     static void addAdditionalSurveyUnitModelToMongoStub(SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) {
-        addAdditionalSurveyUnitModelToMongoStub(DEFAULT_QUESTIONNAIRE_ID, surveyUnitPersistencePortStub);
+        addAdditionalSurveyUnitModelToMongoStub(DEFAULT_COLLECTION_INSTRUMENT_ID, surveyUnitPersistencePortStub);
     }
 
     static void addAdditionalSurveyUnitModelToMongoStub(String questionnaireId, SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) {
@@ -176,7 +175,7 @@ class Utils {
     }
 
     static void addAdditionalSurveyUnitModelToMongoStub(String campaignId, String questionnaireId, SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) {
-        addAdditionalSurveyUnitModelToMongoStub(campaignId,questionnaireId, DEFAULT_ID_UE,
+        addAdditionalSurveyUnitModelToMongoStub(campaignId,questionnaireId, DEFAULT_SURVEY_UNIT_ID,
                 LocalDateTime.of(2023, 2, 2, 0, 0, 0),
                 LocalDateTime.of(2024, 2, 2, 0, 0, 0),
                 surveyUnitPersistencePortStub);
@@ -263,7 +262,7 @@ class Utils {
                 .campaignId("TEST-TABLEAUX")
                 .mode(Mode.WEB)
                 .interrogationId(DEFAULT_INTERROGATION_ID)
-                .collectionInstrumentId(DEFAULT_QUESTIONNAIRE_ID)
+                .collectionInstrumentId(DEFAULT_COLLECTION_INSTRUMENT_ID)
                 .state(state)
                 .fileDate(fileDate)
                 .recordDate(recordDate)
@@ -303,7 +302,7 @@ class Utils {
                 .campaignId("TEST-TABLEAUX")
                 .mode(Mode.WEB)
                 .interrogationId(DEFAULT_INTERROGATION_ID)
-                .collectionInstrumentId(DEFAULT_QUESTIONNAIRE_ID)
+                .collectionInstrumentId(DEFAULT_COLLECTION_INSTRUMENT_ID)
                 .state(state)
                 .fileDate(fileDate)
                 .recordDate(recordDate)

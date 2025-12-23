@@ -121,7 +121,7 @@ class RawResponseControllerTest {
     void saveJsonRawDataFromStringTest() throws Exception {
         //GIVEN
         lunaticJsonRawDataPersistanceStub.getMongoStub().clear();
-        String campaignId = "SAMPLETEST-PARADATA-v1";
+        String campaignId = "SAMPLETEST-PARADATA-V1";
         String questionnaireId = "testIdQuest".toUpperCase();
         String interrogationId = "testinterrogationId";
         String idUE = "testIdUE";
@@ -200,7 +200,7 @@ class RawResponseControllerTest {
         lunaticJsonRawDataPersistanceStub.getMongoStub().clear();
         surveyUnitPersistencePortStub.getMongoStub().clear();
         surveyUnitQualityToolPerretAdapterStub.getReceivedMaps().clear();
-        String campaignId = "SAMPLETEST-PARADATA-v2";
+        String campaignId = "SAMPLETEST-PARADATA-V2";
         String questionnaireId = campaignId + "_quest";
         String interrogationId = "testinterrogationId1";
         String idUE = "testIdUE1";
@@ -260,7 +260,7 @@ class RawResponseControllerTest {
         lunaticJsonRawDataPersistanceStub.getMongoStub().clear();
         surveyUnitPersistencePortStub.getMongoStub().clear();
         surveyUnitQualityToolPerretAdapterStub.getReceivedMaps().clear();
-        String questionnaireId = "SAMPLETEST-PARADATA-v2";
+        String questionnaireId = "SAMPLETEST-PARADATA-V2";
         String interrogationId = "testinterrogationId1";
         String idUE = "testIdUE1";
         String varName = "AVIS_MAIL";

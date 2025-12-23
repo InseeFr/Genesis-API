@@ -2,16 +2,16 @@ Feature: Do we save data ?
   Everybody wants to know if we save data correctly
 
   Scenario Outline: Collected data saving (COLLECTED only)
-    Given We have data in directory "SAMPLETEST-PARADATA-v1"
-    When We create survey unit models from file "reponse-platine/data.complete.validated.STPDv1.20231122164209.xml" with DDI "ddi-SAMPLETEST-PARADATA-v1.xml"
+    Given We have data in directory "SAMPLETEST-PARADATA-V1"
+    When We create survey unit models from file "reponse-platine/data.complete.validated.STPDv1.20231122164209.xml" with DDI "ddi-SAMPLETEST-PARADATA-V1.xml"
     Then For SurveyUnit "<InterrogationId>" there should be at least one "<ExpectedStatus>" SurveyUnit Model
     Examples:
       | InterrogationId | ExpectedStatus |
       | 0000007      | COLLECTED      |
 
   Scenario Outline: Collected data saving (COLLECTED only)
-    Given We have data in directory "SAMPLETEST-PARADATA-v1"
-    When We create survey unit models from file "reponse-platine/data.complete.validated.STPDv1.20231122164209.xml" with DDI "ddi-SAMPLETEST-PARADATA-v1.xml"
+    Given We have data in directory "SAMPLETEST-PARADATA-V1"
+    When We create survey unit models from file "reponse-platine/data.complete.validated.STPDv1.20231122164209.xml" with DDI "ddi-SAMPLETEST-PARADATA-V1.xml"
     Then For SurveyUnit "<InterrogationId>" there shouldn't be a "<UnexpectedStatus>" SurveyUnit Model
     Examples:
       | InterrogationId | UnexpectedStatus |
@@ -23,8 +23,8 @@ Feature: Do we save data ?
 
 
   Scenario Outline: Collected data saving (all states)
-    Given We have data in directory "SAMPLETEST-PARADATA-v2"
-    When We create survey unit models from file "reponse-platine/data.complete.validated.STPDv2.20231122164209.xml" with DDI "ddi-SAMPLETEST-PARADATA-v2.xml"
+    Given We have data in directory "SAMPLETEST-PARADATA-V2"
+    When We create survey unit models from file "reponse-platine/data.complete.validated.STPDv2.20231122164209.xml" with DDI "ddi-SAMPLETEST-PARADATA-V2.xml"
     Then For SurveyUnit "<InterrogationId>" there should be at least one "<ExpectedStatus>" SurveyUnit Model
     Examples:
       | InterrogationId | ExpectedStatus |
@@ -40,12 +40,12 @@ Feature: Do we save data ?
     Then We should have a "<ExpectedDataState>" Survey Unit model for survey unit "<interrogationId>" with "<VariableName>" filled with "<ExpectedValue>" for iteration <Iteration>
     Examples:
       | Directory              | FileName                                                          | DDIFileName                   |  ExpectedDataState | interrogationId | VariableName   | ExpectedValue  | Iteration     |
-      | SAMPLETEST-PARADATA-v1 | reponse-platine/data.complete.validated.STPDv1.20231122164209.xml |ddi-SAMPLETEST-PARADATA-v1.xml | COLLECTED          | 0000007      | PRENOM_C       | TESTPRENOM7    | 1             |
-      | SAMPLETEST-PARADATA-v2 | reponse-platine/data.complete.validated.STPDv2.20231122164209.xml |ddi-SAMPLETEST-PARADATA-v2.xml | COLLECTED          | 0000007      | PRENOM_C       | TESTPRENOM7    | 1             |
-      | SAMPLETEST-PARADATA-v2 | reponse-platine/data.complete.validated.STPDv2.20231122164209.xml |ddi-SAMPLETEST-PARADATA-v2.xml | EDITED             | 0000007      | SANTE_ENFLOG71 | TESTSANTE7E    | 1             |
-      | SAMPLETEST-PARADATA-v2 | reponse-platine/data.complete.validated.STPDv2.20231122164209.xml |ddi-SAMPLETEST-PARADATA-v2.xml | INPUTED            | 0000007      | PETIT_ENF      | TESTPETITENF7I | 1             |
-      | SAMPLETEST-PARADATA-v2 | reponse-platine/data.complete.validated.STPDv2.20231122164209.xml |ddi-SAMPLETEST-PARADATA-v2.xml | FORCED             | 0000007      | LANGUE2_ENTOU  | FR             | 1             |
-      | SAMPLETEST-PARADATA-v2 | reponse-platine/data.complete.validated.STPDv2.20231122164209.xml |ddi-SAMPLETEST-PARADATA-v2.xml | PREVIOUS           | 0000007      | AVIS_FILTRE    | 1              | 1             |
+      | SAMPLETEST-PARADATA-V1 | reponse-platine/data.complete.validated.STPDv1.20231122164209.xml |ddi-SAMPLETEST-PARADATA-V1.xml | COLLECTED          | 0000007      | PRENOM_C       | TESTPRENOM7    | 1             |
+      | SAMPLETEST-PARADATA-V2 | reponse-platine/data.complete.validated.STPDv2.20231122164209.xml |ddi-SAMPLETEST-PARADATA-V2.xml | COLLECTED          | 0000007      | PRENOM_C       | TESTPRENOM7    | 1             |
+      | SAMPLETEST-PARADATA-V2 | reponse-platine/data.complete.validated.STPDv2.20231122164209.xml |ddi-SAMPLETEST-PARADATA-V2.xml | EDITED             | 0000007      | SANTE_ENFLOG71 | TESTSANTE7E    | 1             |
+      | SAMPLETEST-PARADATA-V2 | reponse-platine/data.complete.validated.STPDv2.20231122164209.xml |ddi-SAMPLETEST-PARADATA-V2.xml | INPUTED            | 0000007      | PETIT_ENF      | TESTPETITENF7I | 1             |
+      | SAMPLETEST-PARADATA-V2 | reponse-platine/data.complete.validated.STPDv2.20231122164209.xml |ddi-SAMPLETEST-PARADATA-V2.xml | FORCED             | 0000007      | LANGUE2_ENTOU  | FR             | 1             |
+      | SAMPLETEST-PARADATA-V2 | reponse-platine/data.complete.validated.STPDv2.20231122164209.xml |ddi-SAMPLETEST-PARADATA-V2.xml | PREVIOUS           | 0000007      | AVIS_FILTRE    | 1              | 1             |
 
 
   Scenario Outline: External data saving
