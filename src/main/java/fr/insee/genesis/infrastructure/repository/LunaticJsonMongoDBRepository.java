@@ -1,7 +1,6 @@
 package fr.insee.genesis.infrastructure.repository;
 
 import fr.insee.genesis.domain.model.surveyunit.Mode;
-import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
 import fr.insee.genesis.infrastructure.document.rawdata.LunaticJsonRawDataDocument;
 import fr.insee.genesis.infrastructure.document.surveyunit.GroupedInterrogationDocument;
 import org.springframework.data.mongodb.repository.Aggregation;
@@ -28,7 +27,7 @@ public interface LunaticJsonMongoDBRepository extends MongoRepository<LunaticJso
     List<LunaticJsonRawDataDocument> findModesByCampaignIdAndByModeAndinterrogationIdIninterrogationIdList(String campaignName, Mode mode, List<String> interrogationIdList);
 
     @Query(value = "{ 'interrogationId': ?0}")
-    List<LunaticJsonRawDataModel> findByInterrogationId(String interrogationId);
+    List<LunaticJsonRawDataDocument> findByInterrogationId(String interrogationId);
 
     Page<LunaticJsonRawDataDocument> findByCampaignIdAndRecordDateBetween(String campagneId, Instant start, Instant  end, Pageable pageable);
     long countByQuestionnaireId(String questionnaireId);

@@ -1,10 +1,8 @@
 package fr.insee.genesis.stubs;
 
 import fr.insee.genesis.domain.model.surveyunit.Mode;
-import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
 import fr.insee.genesis.infrastructure.document.rawdata.LunaticJsonRawDataDocument;
 import fr.insee.genesis.infrastructure.document.surveyunit.GroupedInterrogationDocument;
-import fr.insee.genesis.infrastructure.mappers.LunaticJsonRawDataDocumentMapper;
 import fr.insee.genesis.infrastructure.repository.LunaticJsonMongoDBRepository;
 import lombok.Getter;
 import org.springframework.data.domain.Example;
@@ -59,12 +57,11 @@ public class LunaticJsonMongoDBRepositoryStub implements LunaticJsonMongoDBRepos
     }
 
     @Override
-    public List<LunaticJsonRawDataModel> findByInterrogationId(String interrogationId) {
-        return LunaticJsonRawDataDocumentMapper.INSTANCE.listDocumentToListModel(
-                documents.stream()
+    public List<LunaticJsonRawDataDocument> findByInterrogationId(String interrogationId) {
+        return documents.stream()
                         .filter(doc -> Objects.equals(doc.interrogationId(), interrogationId))
                         .toList()
-        );
+        ;
     }
 
     @Override
