@@ -66,6 +66,14 @@ public class LunaticJsonMongoDBRepositoryStub implements LunaticJsonMongoDBRepos
     }
 
     @Override
+    public List<LunaticJsonRawDataDocument> findByInterrogationId(String interrogationId) {
+        return documents.stream()
+                        .filter(doc -> Objects.equals(doc.interrogationId(), interrogationId))
+                        .toList()
+        ;
+    }
+
+    @Override
     public Page<LunaticJsonRawDataDocument> findByCampaignIdAndRecordDateBetween(String campagneId, Instant  start, Instant end, Pageable pageable){
         return Page.empty(pageable);
     }

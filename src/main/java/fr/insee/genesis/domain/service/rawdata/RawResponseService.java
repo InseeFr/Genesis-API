@@ -11,7 +11,7 @@ import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
-import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponse;
+import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponseModel;
 import fr.insee.genesis.domain.ports.api.RawResponseApiPort;
 import fr.insee.genesis.domain.ports.spi.RawResponsePersistencePort;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitQualityToolPort;
@@ -24,13 +24,18 @@ import fr.insee.genesis.domain.utils.JsonUtils;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
+import fr.insee.modelefiliere.RawResponseDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -41,7 +46,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-public class RawResponseService implements RawResponseApiPort {
+public class  RawResponseService implements RawResponseApiPort {
 
     private final ControllerUtils controllerUtils;
     private final QuestionnaireMetadataService metadataService;
@@ -68,8 +73,13 @@ public class RawResponseService implements RawResponseApiPort {
     }
 
     @Override
-    public List<RawResponse> getRawResponses(String collectionInstrumentId, Mode mode, List<String> interrogationIdList) {
+    public List<RawResponseModel> getRawResponses(String collectionInstrumentId, Mode mode, List<String> interrogationIdList) {
         return rawResponsePersistencePort.findRawResponses(collectionInstrumentId,mode,interrogationIdList);
+    }
+
+    @Override
+    public List<RawResponseModel> getRawResponsesByInterrogationID(String interrogationId) {
+        return rawResponsePersistencePort.findRawResponsesByInterrogationID(interrogationId);
     }
 
     @Override
@@ -90,10 +100,10 @@ public class RawResponseService implements RawResponseApiPort {
                 int maxIndex = Math.min(interrogationIdListForMode.size(), config.getRawDataProcessingBatchSize());
                 List<String> interrogationIdToProcess = interrogationIdListForMode.subList(0, maxIndex);
 
-                List<RawResponse> rawResponses = getRawResponses(collectionInstrumentId, mode, interrogationIdToProcess);
+                List<RawResponseModel> rawResponseModels = getRawResponses(collectionInstrumentId, mode, interrogationIdToProcess);
 
                 List<SurveyUnitModel> surveyUnitModels = convertRawResponse(
-                        rawResponses,
+                        rawResponseModels,
                         variablesMap
                 );
 
@@ -183,9 +193,9 @@ public class RawResponseService implements RawResponseApiPort {
 
     private List<SurveyUnitModel> getConvertedSurveyUnits(String collectionInstrumentId, Mode mode, List<String> interrogationIdListForMode, int maxIndex, VariablesMap variablesMap) {
         List<String> interrogationIdToProcess = interrogationIdListForMode.subList(0, maxIndex);
-        List<RawResponse> rawResponses = getRawResponses(collectionInstrumentId, mode, interrogationIdToProcess);
+        List<RawResponseModel> rawResponseModels = getRawResponses(collectionInstrumentId, mode, interrogationIdToProcess);
         return convertRawResponse(
-                rawResponses,
+                rawResponseModels,
                 variablesMap
         );
     }
@@ -203,39 +213,47 @@ public class RawResponseService implements RawResponseApiPort {
     }
 
     @Override
-    public List<SurveyUnitModel> convertRawResponse(List<RawResponse> rawResponses, VariablesMap variablesMap) {
+    public List<SurveyUnitModel> convertRawResponse(List<RawResponseModel> rawResponseModels, VariablesMap variablesMap) {
         //Convert to genesis model
         List<SurveyUnitModel> surveyUnitModels = new ArrayList<>();
         //For each possible data state (we receive COLLECTED or EDITED)
         for(DataState dataState : List.of(DataState.COLLECTED,DataState.EDITED)){
-            for (RawResponse rawResponse : rawResponses) {
+            for (RawResponseModel rawResponseModel : rawResponseModels) {
                 //Get optional fields
-                Boolean isCapturedIndirectly = getIsCapturedIndirectly(rawResponse);
-                LocalDateTime validationDate = getValidationDate(rawResponse);
-                String usualSurveyUnitId = getStringFieldInPayload(rawResponse,"usualSurveyUnitId");
-                String majorModelVersion = getStringFieldInPayload(rawResponse, "majorModelVersion");
+                Boolean isCapturedIndirectly = getIsCapturedIndirectly(rawResponseModel);
+                String questionnaireStateString = getStringFieldInPayload(rawResponseModel, "questionnaireState");
+                RawResponseDto.QuestionnaireStateEnum questionnaireStateEnum = null;
+                try{
+                    questionnaireStateEnum = RawResponseDto.QuestionnaireStateEnum.valueOf(questionnaireStateString);
+                } catch (IllegalArgumentException iae){
+                    log.warn("'{}' is not a valid questionnaire state according to filiere model", questionnaireStateString);
+                }
+                LocalDateTime validationDate = getValidationDate(rawResponseModel);
+                String usualSurveyUnitId = getStringFieldInPayload(rawResponseModel,"usualSurveyUnitId");
+                String majorModelVersion = getStringFieldInPayload(rawResponseModel, "majorModelVersion");
 
                 SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
-                        .collectionInstrumentId(rawResponse.collectionInstrumentId())
+                        .collectionInstrumentId(rawResponseModel.collectionInstrumentId())
                         .majorModelVersion(majorModelVersion)
-                        .mode(rawResponse.mode())
-                        .interrogationId(rawResponse.interrogationId())
+                        .mode(rawResponseModel.mode())
+                        .interrogationId(rawResponseModel.interrogationId())
                         .usualSurveyUnitId(usualSurveyUnitId)
+                        .questionnaireState(questionnaireStateEnum)
                         .validationDate(validationDate)
                         .isCapturedIndirectly(isCapturedIndirectly)
                         .state(dataState)
-                        .fileDate(rawResponse.recordDate())
+                        .fileDate(rawResponseModel.recordDate())
                         .recordDate(LocalDateTime.now())
                         .collectedVariables(new ArrayList<>())
                         .externalVariables(new ArrayList<>())
                         .build();
 
                 //Data collected variables conversion
-                convertRawDataCollectedVariables(rawResponse, surveyUnitModel, dataState, variablesMap);
+                convertRawDataCollectedVariables(rawResponseModel, surveyUnitModel, dataState, variablesMap);
 
                 //External variables conversion into COLLECTED document
                 if(dataState == DataState.COLLECTED){
-                    convertRawDataExternalVariables(rawResponse, surveyUnitModel, variablesMap);
+                    convertRawDataExternalVariables(rawResponseModel, surveyUnitModel, variablesMap);
                 }
 
                 boolean hasNoVariable = surveyUnitModel.getCollectedVariables().isEmpty()
@@ -243,7 +261,7 @@ public class RawResponseService implements RawResponseApiPort {
 
                 if(hasNoVariable){
                     if(surveyUnitModel.getState() == DataState.COLLECTED){
-                        log.warn("No collected or external variable for interrogation {}, raw data is ignored.", rawResponse.interrogationId());
+                        log.warn("No collected or external variable for interrogation {}, raw data is ignored.", rawResponseModel.interrogationId());
                     }
                     continue;// don't add suModel
                 }
@@ -339,29 +357,29 @@ public class RawResponseService implements RawResponseApiPort {
         }
     }
 
-    private static Boolean getIsCapturedIndirectly(RawResponse rawResponse) {
+    private static Boolean getIsCapturedIndirectly(RawResponseModel rawResponseModel) {
         try{
-            return rawResponse.payload().get("isCapturedIndirectly") == null ? null :
-                    Boolean.parseBoolean(rawResponse.payload().get("isCapturedIndirectly").toString());
+            return rawResponseModel.payload().get("isCapturedIndirectly") == null ? null :
+                    Boolean.parseBoolean(rawResponseModel.payload().get("isCapturedIndirectly").toString());
         }catch(Exception e){
             log.warn("Exception when parsing isCapturedIndirectly : {}",e.toString());
             return Boolean.FALSE;
         }
     }
 
-    private static LocalDateTime getValidationDate(RawResponse rawResponse) {
+    private static LocalDateTime getValidationDate(RawResponseModel rawResponseModel) {
         try{
-            return rawResponse.payload().get("validationDate") == null ? null :
-                    LocalDateTime.parse(rawResponse.payload().get("validationDate").toString());
+            return rawResponseModel.payload().get("validationDate") == null ? null :
+                    LocalDateTime.parse(rawResponseModel.payload().get("validationDate").toString(), DateTimeFormatter.ISO_OFFSET_DATE_TIME);
         }catch(Exception e){
             log.warn("Exception when parsing validation date : {}",e.toString());
             return null;
         }
     }
 
-    private static String getStringFieldInPayload(RawResponse rawResponse, String field) {
+    private static String getStringFieldInPayload(RawResponseModel rawResponseModel, String field) {
         try{
-            return rawResponse.payload().get(field).toString();
+            return rawResponseModel.payload().get(field).toString();
         }catch(Exception e){
             log.warn("Exception when parsing {} : {}",field, e.toString());
             return null;
@@ -370,12 +388,12 @@ public class RawResponseService implements RawResponseApiPort {
 
     @SuppressWarnings("unchecked")
     private void convertRawDataCollectedVariables(
-            RawResponse rawResponse,
+            RawResponseModel rawResponseModel,
             SurveyUnitModel dstSurveyUnitModel,
             DataState dataState,
             VariablesMap variablesMap
     ) {
-        Map<String, Object> dataMap = rawResponse.payload();
+        Map<String, Object> dataMap = rawResponseModel.payload();
         dataMap = (Map<String, Object>) dataMap.get("data");
 
         dataMap = (Map<String, Object>)dataMap.get("COLLECTED");
@@ -384,7 +402,7 @@ public class RawResponseService implements RawResponseApiPort {
         Map<String,Object> collectedMap = JsonUtils.asMap(dataMap);
         if (collectedMap == null || collectedMap.isEmpty()){
             if(dataState.equals(DataState.COLLECTED)) {
-                log.warn("No collected data for interrogation {}", rawResponse.interrogationId());
+                log.warn("No collected data for interrogation {}", rawResponseModel.interrogationId());
             }
             return;
         }
@@ -454,11 +472,11 @@ public class RawResponseService implements RawResponseApiPort {
 
     @SuppressWarnings("unchecked")
     private static void convertRawDataExternalVariables(
-            RawResponse rawResponse,
+            RawResponseModel rawResponseModel,
             SurveyUnitModel dstSurveyUnitModel,
             VariablesMap variablesMap
     ) {
-        Map<String, Object> dataMap = rawResponse.payload();
+        Map<String, Object> dataMap = rawResponseModel.payload();
         dataMap = (Map<String, Object>) dataMap.get("data");
 
 
@@ -482,5 +500,10 @@ public class RawResponseService implements RawResponseApiPort {
                 convertOneVar(externalVariableEntry, valueObject.toString(), variablesMap, 1, dstSurveyUnitModel.getExternalVariables());
             }
         }
+    }
+
+    @Override
+    public Page<RawResponseModel> findRawResponseDataByCampaignIdAndDate(String campaignId, Instant startDate, Instant endDate, Pageable pageable) {
+        return rawResponsePersistencePort.findByCampaignIdAndDate(campaignId,startDate, endDate,pageable);
     }
 }

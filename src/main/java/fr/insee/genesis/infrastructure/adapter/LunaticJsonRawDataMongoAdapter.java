@@ -65,6 +65,12 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
     }
 
     @Override
+    public List<LunaticJsonRawDataModel> findRawDataByInterrogationID(String interrogationId) {
+        List<LunaticJsonRawDataDocument> rawDataDocs = repository.findByInterrogationId(interrogationId);
+        return LunaticJsonRawDataDocumentMapper.INSTANCE.listDocumentToListModel(rawDataDocs);
+    }
+
+    @Override
     public void updateProcessDates(String campaignId, Set<String> interrogationIds) {
         mongoTemplate.updateMulti(
                 Query.query(Criteria.where("campaignId").is(campaignId).and("interrogationId").in(interrogationIds))
