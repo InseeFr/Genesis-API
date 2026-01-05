@@ -27,6 +27,9 @@ public interface RawResponseRepository extends MongoRepository<RawResponseDocume
     })
     List<String> findInterrogationIdByCollectionInstrumentIdAndProcessDateIsNull(String collectionInstrumentId);
 
-    @Query(value = "{ 'questionnaireId' : ?0 }", fields = "{ 'mode' :  1 }")
+    @Aggregation(pipeline = {
+            "{ '$match': { 'collectionInstrumentId': ?0 } }",
+            "{ '$project': { '_id': 0, 'mode': 1 } }"
+    })
     List<Mode> findModesByCollectionInstrumentId(String collectionInstrumentId);
 }
