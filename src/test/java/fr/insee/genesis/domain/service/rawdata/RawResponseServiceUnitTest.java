@@ -6,7 +6,7 @@ import fr.insee.genesis.TestConstants;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
-import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponse;
+import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponseModel;
 import fr.insee.genesis.domain.ports.spi.RawResponsePersistencePort;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitQualityToolPort;
 import fr.insee.genesis.domain.service.context.DataProcessingContextService;
@@ -180,8 +180,8 @@ class RawResponseServiceUnitTest {
             String validationDate = questionnaireState.equals(RawResponseDto.QuestionnaireStateEnum.FINISHED) ?
                     TEST_VALIDATION_DATE : null;
 
-            List<RawResponse> rawResponses = new ArrayList<>();
-            RawResponse rawResponse = new RawResponse(
+            List<RawResponseModel> rawResponses = new ArrayList<>();
+            RawResponseModel rawResponse = new RawResponseModel(
                     null,
                     TestConstants.DEFAULT_INTERROGATION_ID,
                     TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
@@ -214,8 +214,8 @@ class RawResponseServiceUnitTest {
             MetadataModel metadataModel = new MetadataModel();
             metadataModel.setVariables(variablesMap);
 
-            List<RawResponse> rawResponses = new ArrayList<>();
-            RawResponse rawResponse = new RawResponse(
+            List<RawResponseModel> rawResponses = new ArrayList<>();
+            RawResponseModel rawResponse = new RawResponseModel(
                     null,
                     TestConstants.DEFAULT_INTERROGATION_ID,
                     TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
@@ -248,8 +248,8 @@ class RawResponseServiceUnitTest {
             MetadataModel metadataModel = new MetadataModel();
             metadataModel.setVariables(variablesMap);
 
-            List<RawResponse> rawResponses = new ArrayList<>();
-            RawResponse rawResponse = new RawResponse(
+            List<RawResponseModel> rawResponses = new ArrayList<>();
+            RawResponseModel rawResponse = new RawResponseModel(
                     null,
                     TestConstants.DEFAULT_INTERROGATION_ID,
                     TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
