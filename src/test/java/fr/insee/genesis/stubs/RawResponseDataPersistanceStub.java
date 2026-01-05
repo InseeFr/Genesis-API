@@ -51,6 +51,17 @@ public class RawResponseDataPersistanceStub implements RawResponsePersistencePor
     }
 
     @Override
+    public List<Mode> findModesByCollectionInstrument(String collectionInstrumentId) {
+        List<Mode> modes = new ArrayList<>();
+        mongoStub.stream().filter(
+                doc -> doc.collectionInstrumentId().equals(collectionInstrumentId)
+        ).forEach(
+                rawResponseDocument -> modes.add(Mode.valueOf(rawResponseDocument.mode()))
+        );
+        return modes;
+    }
+
+    @Override
     public Page<RawResponseModel> findByCampaignIdAndDate(String campaignId, Instant startDate, Instant endDate, Pageable pageable) {
         List<RawResponseDocument> foundRaws = mongoStub.stream()
                 .filter(rawData -> rawData.campaignId().equals(campaignId))
