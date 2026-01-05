@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 @Getter
@@ -53,6 +54,15 @@ public class LunaticJsonRawDataPersistanceStub implements LunaticJsonRawDataPers
             }
         });
         return questionnaireIds;
+    }
+
+    @Override
+    public Set<Mode> findModesByQuestionnaire(String questionnaireId) {
+        return new HashSet<>(mongoStub.stream()
+                .filter(doc -> Objects.equals(doc.questionnaireId(), questionnaireId))
+                .map(LunaticJsonRawDataDocument::mode)
+                .distinct()
+                .toList());
     }
 
     @Override
