@@ -51,7 +51,11 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
 
     @Override
     public Set<String> findDistinctQuestionnaireIdsByNullProcessDate(){
-        return getDistinctQuestionnaireIdsInCollection(Constants.MONGODB_LUNATIC_RAWDATA_COLLECTION_NAME);
+        Set<String> questionnaireIds = new HashSet<>();
+        for(LunaticJsonRawDataDocument lunaticJsonRawDataDocument : repository.findByNullProcessDate()){
+            questionnaireIds.add(lunaticJsonRawDataDocument.questionnaireId());
+        }
+        return questionnaireIds;
     }
 
     @Override
@@ -81,7 +85,13 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
 
     @Override
     public Set<String> findDistinctQuestionnaireIds() {
-        return getDistinctQuestionnaireIdsInCollection(Constants.MONGODB_RAW_RESPONSES_COLLECTION_NAME);
+        Set<String> questionnaireIds = new HashSet<>();
+        for (String questionnaireId : mongoTemplate.getCollection(Constants.MONGODB_RAW_RESPONSES_COLLECTION_NAME).distinct(
+                "questionnaireId",
+                String.class)) {
+            questionnaireIds.add(questionnaireId);
+        }
+        return questionnaireIds;
     }
 
     @Override
@@ -115,15 +125,5 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
         );
 
         return interrogationIds;
-    }
-
-    private Set<String> getDistinctQuestionnaireIdsInCollection(String collectionName) {
-        Set<String> questionnaireIds = new HashSet<>();
-        for (String questionnaireId : mongoTemplate.getCollection(collectionName).distinct(
-                "questionnaireId",
-                String.class)) {
-            questionnaireIds.add(questionnaireId);
-        }
-        return questionnaireIds;
     }
 }
