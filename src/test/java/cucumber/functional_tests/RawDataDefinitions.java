@@ -39,6 +39,8 @@ import org.assertj.core.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -54,6 +56,7 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPublicKey;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 
@@ -138,6 +141,11 @@ public class RawDataDefinitions {
         @Override
         public void updateProcessDates(List<SurveyUnitModel> surveyUnitModels) {
             // Do nothing - stub for test
+        }
+
+        @Override
+        public Page<RawResponseModel> findRawResponseDataByCampaignIdAndDate(String campaignId, Instant startDate, Instant endDate, Pageable pageable) {
+            return null;
         }
     };
 

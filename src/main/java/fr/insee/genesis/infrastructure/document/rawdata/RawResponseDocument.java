@@ -22,5 +22,7 @@ public record RawResponseDocument (
         Map<String,Object> payload,
         LocalDateTime recordDate,
         @Indexed(direction = IndexDirection.DESCENDING)
-        LocalDateTime processDate
+        LocalDateTime processDate,
+        @Indexed
+        String campaignId
 ){}
