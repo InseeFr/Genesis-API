@@ -23,6 +23,7 @@ import fr.insee.genesis.domain.utils.JsonUtils;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
+import fr.insee.modelefiliere.RawResponseDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +31,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -40,7 +42,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-public class RawResponseService implements RawResponseApiPort {
+public class  RawResponseService implements RawResponseApiPort {
 
     private final ControllerUtils controllerUtils;
     private final QuestionnaireMetadataService metadataService;
@@ -215,6 +217,13 @@ public class RawResponseService implements RawResponseApiPort {
             for (RawResponseModel rawResponseModel : rawResponseModels) {
                 //Get optional fields
                 Boolean isCapturedIndirectly = getIsCapturedIndirectly(rawResponseModel);
+                String questionnaireStateString = getStringFieldInPayload(rawResponseModel, "questionnaireState");
+                RawResponseDto.QuestionnaireStateEnum questionnaireStateEnum = null;
+                try{
+                    questionnaireStateEnum = RawResponseDto.QuestionnaireStateEnum.valueOf(questionnaireStateString);
+                } catch (IllegalArgumentException iae){
+                    log.warn("'{}' is not a valid questionnaire state according to filiere model", questionnaireStateString);
+                }
                 LocalDateTime validationDate = getValidationDate(rawResponseModel);
                 String usualSurveyUnitId = getStringFieldInPayload(rawResponseModel,"usualSurveyUnitId");
                 String majorModelVersion = getStringFieldInPayload(rawResponseModel, "majorModelVersion");
@@ -225,6 +234,7 @@ public class RawResponseService implements RawResponseApiPort {
                         .mode(rawResponseModel.mode())
                         .interrogationId(rawResponseModel.interrogationId())
                         .usualSurveyUnitId(usualSurveyUnitId)
+                        .questionnaireState(questionnaireStateEnum)
                         .validationDate(validationDate)
                         .isCapturedIndirectly(isCapturedIndirectly)
                         .state(dataState)
@@ -318,7 +328,7 @@ public class RawResponseService implements RawResponseApiPort {
     private static LocalDateTime getValidationDate(RawResponseModel rawResponseModel) {
         try{
             return rawResponseModel.payload().get("validationDate") == null ? null :
-                    LocalDateTime.parse(rawResponseModel.payload().get("validationDate").toString());
+                    LocalDateTime.parse(rawResponseModel.payload().get("validationDate").toString(), DateTimeFormatter.ISO_OFFSET_DATE_TIME);
         }catch(Exception e){
             log.warn("Exception when parsing validation date : {}",e.toString());
             return null;
