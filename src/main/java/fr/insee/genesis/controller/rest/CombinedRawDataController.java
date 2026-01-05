@@ -3,6 +3,7 @@ package fr.insee.genesis.controller.rest;
 import fr.insee.genesis.controller.dto.rawdata.CombinedRawDataDto;
 import fr.insee.genesis.domain.service.rawdata.CombinedRawDataService;
 import io.swagger.v3.oas.annotations.Operation;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -14,14 +15,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Slf4j
 @Controller
 @RequestMapping(path = "/combined-raw-data" )
+@RequiredArgsConstructor
 public class CombinedRawDataController {
 
     private static final String INTERROGATION_ID = "interrogationId";
     private final CombinedRawDataService combinedRawDataService;
 
-    public CombinedRawDataController(CombinedRawDataService combinedRawDataService) {
-        this.combinedRawDataService = combinedRawDataService;
-    }
 
     @Operation(summary = "Retrieve combined raw responses and Lunatic raw data for a given interrogationId")
     @GetMapping
