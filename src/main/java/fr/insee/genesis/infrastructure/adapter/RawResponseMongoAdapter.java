@@ -70,9 +70,9 @@ public class RawResponseMongoAdapter implements RawResponsePersistencePort {
     }
 
     @Override
-    public Page<RawResponse> findByCampaignIdAndDate(String campaignId, Instant startDate, Instant endDate, Pageable pageable) {
+    public Page<RawResponseModel> findByCampaignIdAndDate(String campaignId, Instant startDate, Instant endDate, Pageable pageable) {
         Page<RawResponseDocument> rawDataDocs = repository.findByCampaignIdAndDate(campaignId, startDate, endDate, pageable);
-        List<RawResponse> modelList = RawResponseDocumentMapper.INSTANCE.listDocumentToListModel(rawDataDocs.getContent());
+        List<RawResponseModel> modelList = RawResponseDocumentMapper.INSTANCE.listDocumentToListModel(rawDataDocs.getContent());
         return new PageImpl<>(modelList, rawDataDocs.getPageable(), rawDataDocs.getTotalElements());
     }
 }

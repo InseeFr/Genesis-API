@@ -16,5 +16,5 @@ public interface RawResponsePersistencePort {
     void updateProcessDates(String collectionInstrumentId, Set<String> interrogationIds);
     List<String> getUnprocessedCollectionIds();
     Set<String> findUnprocessedInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId);
-    Page<RawResponse> findByCampaignIdAndDate(String campaignId, Instant startDate, Instant endDate, Pageable pageable);
+    Page<RawResponseModel> findByCampaignIdAndDate(String campaignId, Instant startDate, Instant endDate, Pageable pageable);
 }

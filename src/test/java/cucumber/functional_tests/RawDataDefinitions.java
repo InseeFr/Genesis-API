@@ -144,7 +144,7 @@ public class RawDataDefinitions {
         }
 
         @Override
-        public Page<RawResponse> findRawResponseDataByCampaignIdAndDate(String campaignId, Instant startDate, Instant endDate, Pageable pageable) {
+        public Page<RawResponseModel> findRawResponseDataByCampaignIdAndDate(String campaignId, Instant startDate, Instant endDate, Pageable pageable) {
             return null;
         }
     };

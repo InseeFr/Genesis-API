@@ -22,5 +22,5 @@ public interface RawResponseApiPort {
     List<SurveyUnitModel> convertRawResponse(List<RawResponseModel> rawResponses, VariablesMap variablesMap);
     List<String> getUnprocessedCollectionInstrumentIds();
     void updateProcessDates(List<SurveyUnitModel> surveyUnitModels);
-    Page<RawResponse> findRawResponseDataByCampaignIdAndDate(String campaignId, Instant startDate, Instant endDate, Pageable pageable);
+    Page<RawResponseModel> findRawResponseDataByCampaignIdAndDate(String campaignId, Instant startDate, Instant endDate, Pageable pageable);
 }

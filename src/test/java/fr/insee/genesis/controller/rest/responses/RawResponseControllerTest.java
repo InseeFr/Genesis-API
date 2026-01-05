@@ -118,7 +118,7 @@ class RawResponseControllerTest {
 
         }
         @Override
-        public Page<RawResponse> findRawResponseDataByCampaignIdAndDate(String campaignId, Instant startDate, Instant endDate, Pageable pageable) {
+        public Page<RawResponseModel> findRawResponseDataByCampaignIdAndDate(String campaignId, Instant startDate, Instant endDate, Pageable pageable) {
             return rawResponseDataPersistanceStub.findByCampaignIdAndDate(campaignId, startDate, endDate, pageable);
         }
     };
@@ -365,7 +365,7 @@ class RawResponseControllerTest {
         int page=0, size= 10;
 
         //WHEN
-        ResponseEntity<PagedModel<RawResponse>> response = rawResponseController.getRawResponsesFromJsonBody(campaignId, starDate, endDate, page, size);
+        ResponseEntity<PagedModel<RawResponseModel>> response = rawResponseController.getRawResponsesFromJsonBody(campaignId, starDate, endDate, page, size);
 
         //THEN
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();

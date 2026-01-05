@@ -1,7 +1,7 @@
 package fr.insee.genesis.stubs;
 
 import fr.insee.genesis.domain.model.surveyunit.Mode;
-import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponse;
+import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponseModel;
 import fr.insee.genesis.domain.ports.spi.RawResponsePersistencePort;
 import fr.insee.genesis.infrastructure.document.rawdata.RawResponseDocument;
 import fr.insee.genesis.infrastructure.mappers.RawResponseDocumentMapper;
@@ -20,8 +20,19 @@ public class RawResponseDataPersistanceStub implements RawResponsePersistencePor
     List<RawResponseDocument> mongoStub = new ArrayList<>();
 
     @Override
-    public List<RawResponse> findRawResponses(String collectionInstrumentId, Mode mode, List<String> interrogationIdList) {
-        return List.of();
+    public List<RawResponseModel> findRawResponses(String collectionInstrumentId, Mode mode, List<String> interrogationIdList) {
+        return RawResponseDocumentMapper.INSTANCE.listDocumentToListModel(mongoStub.stream().filter(
+                doc -> doc.collectionInstrumentId().equals(collectionInstrumentId)
+                        && Mode.valueOf(doc.mode()).equals(mode)
+                        && interrogationIdList.contains(doc.interrogationId())
+        ).toList());
+    }
+
+    @Override
+    public List<RawResponseModel> findRawResponsesByInterrogationID(String interrogationId) {
+        return RawResponseDocumentMapper.INSTANCE.listDocumentToListModel(mongoStub.stream().filter(
+                doc -> doc.interrogationId().equals(interrogationId)
+        ).toList());
     }
 
     @Override
@@ -40,7 +51,7 @@ public class RawResponseDataPersistanceStub implements RawResponsePersistencePor
     }
 
     @Override
-    public Page<RawResponse> findByCampaignIdAndDate(String campaignId, Instant startDate, Instant endDate, Pageable pageable) {
+    public Page<RawResponseModel> findByCampaignIdAndDate(String campaignId, Instant startDate, Instant endDate, Pageable pageable) {
         List<RawResponseDocument> foundRaws = mongoStub.stream()
                 .filter(rawData -> rawData.campaignId().equals(campaignId))
                 .toList();
