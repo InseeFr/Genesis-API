@@ -10,7 +10,7 @@ import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
-import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponse;
+import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponseModel;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.RawResponseApiPort;
 import fr.insee.genesis.domain.service.context.DataProcessingContextService;
@@ -22,6 +22,7 @@ import fr.insee.genesis.domain.utils.JsonUtils;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.document.rawdata.LunaticJsonRawDataDocument;
+import fr.insee.genesis.infrastructure.document.rawdata.RawResponseDocument;
 import fr.insee.genesis.infrastructure.mappers.DataProcessingContextMapper;
 import fr.insee.genesis.infrastructure.repository.RawResponseInputRepository;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
@@ -29,12 +30,15 @@ import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
 import fr.insee.genesis.stubs.LunaticJsonRawDataPersistanceStub;
 import fr.insee.genesis.stubs.QuestionnaireMetadataPersistencePortStub;
+import fr.insee.genesis.stubs.RawResponseDataPersistanceStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import fr.insee.genesis.stubs.SurveyUnitQualityToolPerretAdapterStub;
 import fr.insee.modelefiliere.RawResponseDto;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
 
@@ -49,6 +53,7 @@ import java.util.Map;
 class RawResponseControllerTest {
     private final FileUtils fileUtils = new FileUtils(new ConfigStub());
     private final LunaticJsonRawDataPersistanceStub lunaticJsonRawDataPersistanceStub = new LunaticJsonRawDataPersistanceStub();
+    private final RawResponseDataPersistanceStub rawResponseDataPersistanceStub = new RawResponseDataPersistanceStub();
     private final SurveyUnitPersistencePortStub surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
     private final SurveyUnitQualityToolPerretAdapterStub surveyUnitQualityToolPerretAdapterStub = new SurveyUnitQualityToolPerretAdapterStub();
     private final DataProcessingContextPersistancePortStub dataProcessingContextPersistancePortStub =
@@ -79,7 +84,12 @@ class RawResponseControllerTest {
 
     RawResponseApiPort rawResponseApiPortStub = new RawResponseApiPort() {
         @Override
-        public List<RawResponse> getRawResponses(String questionnaireModelId, Mode mode, List<String> interrogationIdList) {
+        public List<RawResponseModel> getRawResponses(String questionnaireModelId, Mode mode, List<String> interrogationIdList) {
+            return List.of();
+        }
+
+        @Override
+        public List<RawResponseModel> getRawResponsesByInterrogationID(String interrogationId) {
             return List.of();
         }
 
@@ -94,7 +104,7 @@ class RawResponseControllerTest {
         }
 
         @Override
-        public List<SurveyUnitModel> convertRawResponse(List<RawResponse> rawResponses, VariablesMap variablesMap) {
+        public List<SurveyUnitModel> convertRawResponse(List<RawResponseModel> rawResponsModels, VariablesMap variablesMap) {
             return List.of();
         }
 
@@ -107,6 +117,10 @@ class RawResponseControllerTest {
         public void updateProcessDates(List<SurveyUnitModel> surveyUnitModels) {
 
         }
+        @Override
+        public Page<RawResponseModel> findRawResponseDataByCampaignIdAndDate(String campaignId, Instant startDate, Instant endDate, Pageable pageable) {
+            return rawResponseDataPersistanceStub.findByCampaignIdAndDate(campaignId, startDate, endDate, pageable);
+        }
     };
 
     private final RawResponseController rawResponseController = new RawResponseController(lunaticJsonRawDataApiPort,  rawResponseApiPortStub, rawResponseInputRepositoryStub);
@@ -116,7 +130,7 @@ class RawResponseControllerTest {
     void saveJsonRawDataFromStringTest() throws Exception {
         //GIVEN
         lunaticJsonRawDataPersistanceStub.getMongoStub().clear();
-        String campaignId = "SAMPLETEST-PARADATA-v1";
+        String campaignId = "SAMPLETEST-PARADATA-V1";
         String questionnaireId = "testIdQuest".toUpperCase();
         String interrogationId = "testinterrogationId";
         String idUE = "testIdUE";
@@ -195,7 +209,7 @@ class RawResponseControllerTest {
         lunaticJsonRawDataPersistanceStub.getMongoStub().clear();
         surveyUnitPersistencePortStub.getMongoStub().clear();
         surveyUnitQualityToolPerretAdapterStub.getReceivedMaps().clear();
-        String campaignId = "SAMPLETEST-PARADATA-v2";
+        String campaignId = "SAMPLETEST-PARADATA-V2";
         String questionnaireId = campaignId + "_quest";
         String interrogationId = "testinterrogationId1";
         String idUE = "testIdUE1";
@@ -255,7 +269,7 @@ class RawResponseControllerTest {
         lunaticJsonRawDataPersistanceStub.getMongoStub().clear();
         surveyUnitPersistencePortStub.getMongoStub().clear();
         surveyUnitQualityToolPerretAdapterStub.getReceivedMaps().clear();
-        String questionnaireId = "SAMPLETEST-PARADATA-v2";
+        String questionnaireId = "SAMPLETEST-PARADATA-V2";
         String interrogationId = "testinterrogationId1";
         String idUE = "testIdUE1";
         String varName = "AVIS_MAIL";
@@ -309,11 +323,10 @@ class RawResponseControllerTest {
                 .contains(interrogationId);
     }
 
-
     @Test
-    void getRawResponsesFromJsonBody() {
+    void getLunaticJsonRawDataModelFromJsonBody() {
         //GIVEN
-        String campaignId = "getRawResponsesFromJsonBody";
+        String campaignId = "getLunaticJsonRawDataModelFromJsonBody";
         String questionnaireId = campaignId + "_quest";
         String interrogationId = "getRawResponsesFromJsonBody_id1";
         String varName = "VARName1";
@@ -330,7 +343,29 @@ class RawResponseControllerTest {
         int page=0, size= 10;
 
         //WHEN
-        ResponseEntity<PagedModel<LunaticJsonRawDataModel>> response = rawResponseController.getRawResponsesFromJsonBody(campaignId, starDate, endDate, page, size);
+        ResponseEntity<PagedModel<LunaticJsonRawDataModel>> response = rawResponseController.getLunaticJsonRawDataModelFromJsonBody(campaignId, starDate, endDate, page, size);
+
+        //THEN
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        Assertions.assertThat(response.getBody()).isNotNull();
+        Assertions.assertThat(response.getBody().getContent()).hasSize(1);
+    }
+
+    @Test
+    void getRawResponsesFromJsonBody() {
+        //GIVEN
+        String campaignId = "getRawResponsesFromJsonBody";
+        String questionnaireId = campaignId + "_quest";
+        String interrogationId = "getRawResponsesFromJsonBody_id1";
+        Instant recordDate = Instant.parse("2025-01-01T01:00:00.000Z");
+
+        addJsonRawResponseDataDocumentToStub(campaignId, questionnaireId, interrogationId);
+
+        Instant starDate= recordDate.minusSeconds(86400),endDate = recordDate.plusSeconds(86400);
+        int page=0, size= 10;
+
+        //WHEN
+        ResponseEntity<PagedModel<RawResponseModel>> response = rawResponseController.getRawResponsesFromJsonBody(campaignId, starDate, endDate, page, size);
 
         //THEN
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
@@ -379,5 +414,16 @@ class RawResponseControllerTest {
                 .build();
 
         lunaticJsonRawDataPersistanceStub.getMongoStub().add(lunaticJsonDataDocument);
+    }
+
+    private void addJsonRawResponseDataDocumentToStub(String campaignId, String questionnaireId, String interrogationId) {
+        RawResponseDocument rawResponseDocument = RawResponseDocument.builder()
+                .campaignId(campaignId)
+                .collectionInstrumentId(questionnaireId)
+                .interrogationId(interrogationId)
+                .recordDate(LocalDateTime.now())
+                .build();
+
+        rawResponseDataPersistanceStub.getMongoStub().add(rawResponseDocument);
     }
 }

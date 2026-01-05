@@ -12,6 +12,7 @@ import fr.insee.genesis.controller.utils.SchemaType;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
+import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponseModel;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.RawResponseApiPort;
 import fr.insee.genesis.exceptions.GenesisError;
@@ -46,6 +47,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Slf4j
 @Controller
@@ -201,6 +203,14 @@ public class RawResponseController {
         return ResponseEntity.ok(lunaticJsonRawDataApiPort.getUnprocessedDataIds());
     }
 
+    @Operation(summary = "Get campaign id and interrogationId from all unprocessed raw json data")
+    @GetMapping(path = "/responses/raw/lunatic-json/get/unprocessed/questionnaireIds")
+    @PreAuthorize("hasRole('SCHEDULER')")
+    public ResponseEntity<Set<String>> getUnprocessedJsonRawDataQuestionnairesIds() {
+        log.info("Try to get unprocessed raw JSON datas questionniares...");
+        return ResponseEntity.ok(lunaticJsonRawDataApiPort.getUnprocessedDataQuestionnaireIds());
+    }
+
     @Hidden
     @GetMapping(path = "/responses/raw/lunatic-json/get/by-interrogation-mode-and-campaign")
     @PreAuthorize("hasRole('ADMIN')")
@@ -237,15 +247,15 @@ public class RawResponseController {
         }
     }
 
-    @Operation(summary = "Process raw data of a questionnaire")
-    @PostMapping(path = "/responses/raw/lunatic-json/{collectionInstrumentId}/process")
+    @Operation(summary = "Process raw data of a questionnaire (old raw model)")
+    @PostMapping(path = "/responses/raw/lunatic-json/{questionnaireId}/process")
     @PreAuthorize("hasRole('SCHEDULER')")
     public ResponseEntity<String> processJsonRawData(
-            @PathVariable String collectionInstrumentId
+            @PathVariable String questionnaireId
     ) {
-        log.info("Try to process raw JSON datas for questionnaire {}",collectionInstrumentId);
+        log.info("Try to process raw JSON datas for questionnaire {}",questionnaireId);
         try {
-            DataProcessResult result = lunaticJsonRawDataApiPort.processRawData(collectionInstrumentId);
+            DataProcessResult result = lunaticJsonRawDataApiPort.processRawData(questionnaireId);
             return result.formattedDataCount() == 0 ?
                     ResponseEntity.ok("%d document(s) processed".formatted(result.dataCount()))
                     : ResponseEntity.ok("%d document(s) processed, including %d FORMATTED after data verification"
@@ -270,7 +280,7 @@ public class RawResponseController {
     @Operation(summary = "Get lunatic JSON data from one campaign in Genesis Database, filtered by start and end dates")
     @GetMapping(path = "/responses/raw/lunatic-json/{campaignId}")
     @PreAuthorize("hasRole('USER_BATCH_GENERIC')")
-    public ResponseEntity<PagedModel<LunaticJsonRawDataModel>> getRawResponsesFromJsonBody(
+    public ResponseEntity<PagedModel<LunaticJsonRawDataModel>> getLunaticJsonRawDataModelFromJsonBody(
             @PathVariable String campaignId,
             @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant startDate,
             @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant endDate,
@@ -284,5 +294,20 @@ public class RawResponseController {
         return ResponseEntity.status(HttpStatus.OK).body(new PagedModel<>(rawResponses));
     }
 
-
+    @Operation(summary = "Get rawResponse JSON data from one campaign in Genesis Database, filtered by start and end dates")
+    @GetMapping(path = "/raw-responses/{campaignId}")
+    @PreAuthorize("hasRole('USER_BATCH_GENERIC')")
+    public ResponseEntity<PagedModel<RawResponseModel>> getRawResponsesFromJsonBody(
+            @PathVariable String campaignId,
+            @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant startDate,
+            @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant endDate,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "1000") int size
+    ) {
+        log.info("Try to read raw JSONs for campaign {}, with startDate={} and endDate={} - page={} - size={}", campaignId, startDate, endDate,page,size);
+        Pageable pageable = PageRequest.of(page, size);
+        Page<RawResponseModel> rawResponses = rawResponseApiPort.findRawResponseDataByCampaignIdAndDate(campaignId, startDate, endDate, pageable);
+        log.info("rawResponses={}", rawResponses.getContent().size());
+        return ResponseEntity.status(HttpStatus.OK).body(new PagedModel<>(rawResponses));
+    }
 }

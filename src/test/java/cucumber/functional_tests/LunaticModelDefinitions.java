@@ -125,6 +125,7 @@ public class LunaticModelDefinitions {
                 JsonUtils.jsonToMap(lunaticModelSaveBody)
         );
     }
+
     @When("We try to save that lunatic model json file with questionnaire id {string} with Spring context")
     public void save_lunatic_model_spring(String questionnaireId) throws IOException {
         lunaticModelSaveBody = Files.readString(lunaticModelJsonPath);

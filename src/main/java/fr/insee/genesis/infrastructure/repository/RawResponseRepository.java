@@ -1,11 +1,15 @@
 package fr.insee.genesis.infrastructure.repository;
 
+import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.infrastructure.document.rawdata.RawResponseDocument;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.util.List;
 
 @Repository
@@ -26,4 +30,15 @@ public interface RawResponseRepository extends MongoRepository<RawResponseDocume
     })
     List<String> findInterrogationIdByCollectionInstrumentIdAndProcessDateIsNull(String collectionInstrumentId);
 
+    @Aggregation(pipeline = {
+            "{ '$match': { 'collectionInstrumentId': ?0 } }",
+            "{ '$project': { '_id': 0, 'mode': 1 } }"
+    })
+    List<Mode> findModesByCollectionInstrumentId(String collectionInstrumentId);
+
+    @Query(value = "{ 'payload.campaignId' : ?0, 'recordDate' : { $gte: ?1, $lte: ?2 } }")
+    Page<RawResponseDocument> findByCampaignIdAndDate(String campaignId, Instant startDate, Instant endDate, Pageable pageable);
+    
+    @Query(value = "{ 'interrogationId': ?0}")
+    List<RawResponseDocument> findByInterrogationId(String interrogationId);
 }

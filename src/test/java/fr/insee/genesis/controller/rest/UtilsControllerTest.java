@@ -44,6 +44,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static fr.insee.genesis.TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID;
+import static fr.insee.genesis.TestConstants.DEFAULT_INTERROGATION_ID;
+
 class UtilsControllerTest {
     //Given
     static UtilsController utilsControllerStatic;
@@ -57,9 +60,6 @@ class UtilsControllerTest {
     static QuestionnaireMetadataService metadataService = new QuestionnaireMetadataService(new QuestionnaireMetadataPersistencePortStub());
     static SurveyUnitService surveyUnitService = new SurveyUnitService(new SurveyUnitPersistencePortStub(), metadataService, fileUtils);
     static SurveyUnitQualityService surveyUnitQualityService = new SurveyUnitQualityService();
-    //Constants
-    static final String DEFAULT_INTERROGATION_ID = "TESTINTERROGATIONID";
-    static final String DEFAULT_QUESTIONNAIRE_ID = "TESTQUESTIONNAIREID";
 
     @BeforeAll
     static void init() {
@@ -132,7 +132,7 @@ class UtilsControllerTest {
                 .campaignId("TEST-TABLEAUX")
                 .mode(Mode.WEB)
                 .interrogationId(DEFAULT_INTERROGATION_ID)
-                .collectionInstrumentId(DEFAULT_QUESTIONNAIRE_ID)
+                .collectionInstrumentId(DEFAULT_COLLECTION_INSTRUMENT_ID)
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2023, 1, 1, 0, 0, 0))
                 .recordDate(LocalDateTime.of(2024, 1, 1, 0, 0, 0))
@@ -150,12 +150,12 @@ class UtilsControllerTest {
                     .forEach(File::delete);
 
         //Recreate data files
-        //SAMPLETEST-PARADATA-v1
+        //SAMPLETEST-PARADATA-V1
         //Root
         if (!testResourcesPath
                 .resolve("IN")
                 .resolve("WEB")
-                .resolve("SAMPLETEST-PARADATA-v1")
+                .resolve("SAMPLETEST-PARADATA-V1")
                 .resolve("data.complete.validated.STPDv1.20231122164209.xml")
                 .toFile().exists()
         ){
@@ -163,26 +163,26 @@ class UtilsControllerTest {
                     testResourcesPath
                             .resolve("IN")
                             .resolve("WEB")
-                            .resolve("SAMPLETEST-PARADATA-v1")
+                            .resolve("SAMPLETEST-PARADATA-V1")
                             .resolve("reponse-platine")
                             .resolve("data.complete.partial.STPDv1.20231122164209.xml")
                     , testResourcesPath
                             .resolve("IN")
                             .resolve("WEB")
-                            .resolve("SAMPLETEST-PARADATA-v1")
+                            .resolve("SAMPLETEST-PARADATA-V1")
                             .resolve("data.complete.partial.STPDv1.20231122164209.xml")
             );
             Files.copy(
                     testResourcesPath
                             .resolve("IN")
                             .resolve("WEB")
-                            .resolve("SAMPLETEST-PARADATA-v1")
+                            .resolve("SAMPLETEST-PARADATA-V1")
                             .resolve("reponse-platine")
                             .resolve("data.complete.validated.STPDv1.20231122164209.xml")
                     , testResourcesPath
                             .resolve("IN")
                             .resolve("WEB")
-                            .resolve("SAMPLETEST-PARADATA-v1")
+                            .resolve("SAMPLETEST-PARADATA-V1")
                             .resolve("data.complete.validated.STPDv1.20231122164209.xml")
             );
         }
@@ -190,7 +190,7 @@ class UtilsControllerTest {
         if (!testResourcesPath
                 .resolve("IN")
                 .resolve("WEB")
-                .resolve("SAMPLETEST-PARADATA-v1")
+                .resolve("SAMPLETEST-PARADATA-V1")
                 .resolve("differential")
                 .resolve("data")
                 .resolve("data.complete.validated.STPDv1.20231122164209.xml")
@@ -200,13 +200,13 @@ class UtilsControllerTest {
                     testResourcesPath
                             .resolve("IN")
                             .resolve("WEB")
-                            .resolve("SAMPLETEST-PARADATA-v1")
+                            .resolve("SAMPLETEST-PARADATA-V1")
                             .resolve("reponse-platine")
                             .resolve("data.complete.partial.STPDv1.20231122164209.xml")
                     , testResourcesPath
                             .resolve("IN")
                             .resolve("WEB")
-                            .resolve("SAMPLETEST-PARADATA-v1")
+                            .resolve("SAMPLETEST-PARADATA-V1")
                             .resolve("differential")
                             .resolve("data")
                             .resolve("data.complete.partial.STPDv1.20231122164209.xml")
@@ -215,23 +215,23 @@ class UtilsControllerTest {
                     testResourcesPath
                             .resolve("IN")
                             .resolve("WEB")
-                            .resolve("SAMPLETEST-PARADATA-v1")
+                            .resolve("SAMPLETEST-PARADATA-V1")
                             .resolve("reponse-platine")
                             .resolve("data.complete.validated.STPDv1.20231122164209.xml")
                     , testResourcesPath
                             .resolve("IN")
                             .resolve("WEB")
-                            .resolve("SAMPLETEST-PARADATA-v1")
+                            .resolve("SAMPLETEST-PARADATA-V1")
                             .resolve("differential")
                             .resolve("data")
                             .resolve("data.complete.validated.STPDv1.20231122164209.xml")
             );
         }
-        //SAMPLETEST-PARADATA-v2
+        //SAMPLETEST-PARADATA-V2
         if (!testResourcesPath
                 .resolve("IN")
                 .resolve("WEB")
-                .resolve("SAMPLETEST-PARADATA-v2")
+                .resolve("SAMPLETEST-PARADATA-V2")
                 .resolve("data.complete.validated.STPDv2.20231122164209.xml")
                 .toFile().exists()
         ){
@@ -239,26 +239,26 @@ class UtilsControllerTest {
                     testResourcesPath
                             .resolve("IN")
                             .resolve("WEB")
-                            .resolve("SAMPLETEST-PARADATA-v2")
+                            .resolve("SAMPLETEST-PARADATA-V2")
                             .resolve("reponse-platine")
                             .resolve("data.complete.partial.STPDv2.20231122164209.xml")
                     , testResourcesPath
                             .resolve("IN")
                             .resolve("WEB")
-                            .resolve("SAMPLETEST-PARADATA-v2")
+                            .resolve("SAMPLETEST-PARADATA-V2")
                             .resolve("data.complete.partial.STPDv2.20231122164209.xml")
             );
             Files.copy(
                     testResourcesPath
                             .resolve("IN")
                             .resolve("WEB")
-                            .resolve("SAMPLETEST-PARADATA-v2")
+                            .resolve("SAMPLETEST-PARADATA-V2")
                             .resolve("reponse-platine")
                             .resolve("data.complete.validated.STPDv2.20231122164209.xml")
                     , testResourcesPath
                             .resolve("IN")
                             .resolve("WEB")
-                            .resolve("SAMPLETEST-PARADATA-v2")
+                            .resolve("SAMPLETEST-PARADATA-V2")
                             .resolve("data.complete.validated.STPDv2.20231122164209.xml")
             );
         }

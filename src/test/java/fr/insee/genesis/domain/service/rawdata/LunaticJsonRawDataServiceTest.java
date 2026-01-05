@@ -66,7 +66,7 @@ class LunaticJsonRawDataServiceTest {
     void saveDataTest_valid_only_collected_array() throws Exception {
         //GIVEN
         lunaticJsonRawDataPersistanceStub.getMongoStub().clear();
-        String campaignId = "SAMPLETEST-PARADATA-v1";
+        String campaignId = "SAMPLETEST-PARADATA-V1";
         String questionnaireId = "TESTIDQUEST";
         String interrogationId = "TESTinterrogationId";
         String json = "{\"COLLECTED\": {\"TESTVAR\": {\"COLLECTED\": [\"test\"]}}}";
@@ -111,7 +111,7 @@ class LunaticJsonRawDataServiceTest {
     void saveDataTest_valid_only_collected_value() throws Exception {
         //GIVEN
         lunaticJsonRawDataPersistanceStub.getMongoStub().clear();
-        String campaignId = "SAMPLETEST-PARADATA-v1";
+        String campaignId = "SAMPLETEST-PARADATA-V1";
         String questionnaireId = "TESTIDQUEST";
         String interrogationId = "TESTinterrogationId";
         String json = "{\"COLLECTED\": {\"TESTVAR\": {\"COLLECTED\": \"test\"}}}";
@@ -151,7 +151,7 @@ class LunaticJsonRawDataServiceTest {
     void saveDataTest_valid_only_external_array() throws Exception {
         //GIVEN
         lunaticJsonRawDataPersistanceStub.getMongoStub().clear();
-        String campaignId = "SAMPLETEST-PARADATA-v1";
+        String campaignId = "SAMPLETEST-PARADATA-V1";
         String questionnaireId = "TESTIDQUEST";
         String interrogationId = "TESTinterrogationId";
         String json = "{\"EXTERNAL\": {\"TESTVAR_EXT\": [\"test\"]}}";
@@ -191,7 +191,7 @@ class LunaticJsonRawDataServiceTest {
     void saveDataTest_valid_only_external_value() throws Exception {
         //GIVEN
         lunaticJsonRawDataPersistanceStub.getMongoStub().clear();
-        String campaignId = "SAMPLETEST-PARADATA-v1";
+        String campaignId = "SAMPLETEST-PARADATA-V1";
         String questionnaireId = "TESTIDQUEST";
         String interrogationId = "TESTinterrogationId";
         String json = "{\"EXTERNAL\": {\"TESTVAR_EXT\": \"test\"}}";
@@ -231,7 +231,7 @@ class LunaticJsonRawDataServiceTest {
     void saveDataTest_valid_both_only_collected_datastate() throws Exception {
         //GIVEN
         lunaticJsonRawDataPersistanceStub.getMongoStub().clear();
-        String campaignId = "SAMPLETEST-PARADATA-v1";
+        String campaignId = "SAMPLETEST-PARADATA-V1";
         String questionnaireId = "TESTIDQUEST";
         String interrogationId = "TESTinterrogationId";
         String json = "{\"EXTERNAL\": {\"TESTVAR_EXT\": \"test_ext\"}, " +
@@ -284,7 +284,7 @@ class LunaticJsonRawDataServiceTest {
     void saveDataTest_valid_both_multiple_datastate() throws Exception {
         //GIVEN
         lunaticJsonRawDataPersistanceStub.getMongoStub().clear();
-        String campaignId = "SAMPLETEST-PARADATA-v1";
+        String campaignId = "SAMPLETEST-PARADATA-V1";
         String questionnaireId = "TESTIDQUEST";
         String interrogationId = "TESTinterrogationId";
         String json = "{\"EXTERNAL\": {\"TESTVAR_EXT\": \"test_ext\"}, " +
@@ -341,7 +341,7 @@ class LunaticJsonRawDataServiceTest {
     @Test
     void convertRawData_should_not_throw_exception_if_external_not_present() throws Exception {
         //GIVEN
-        String campaignId = "SAMPLETEST-PARADATA-v1";
+        String campaignId = "SAMPLETEST-PARADATA-V1";
         String questionnaireId = "TESTIDQUEST";
         String interrogationId = "TESTinterrogationId";
         String json = "{\"COLLECTED\": {\"TESTVAR\": {\"COLLECTED\": [\"test\"]}}}";
@@ -360,7 +360,7 @@ class LunaticJsonRawDataServiceTest {
     @Test
     void convertRawData_if_external_not_present_test() throws Exception {
         //GIVEN
-        String campaignId = "SAMPLETEST-PARADATA-v1";
+        String campaignId = "SAMPLETEST-PARADATA-V1";
         String questionnaireId = "TESTIDQUEST";
         String interrogationId = "TESTinterrogationId";
         String json = "{\"COLLECTED\": {\"TESTVAR\": {\"COLLECTED\": [\"test\"]}}}";
@@ -379,10 +379,51 @@ class LunaticJsonRawDataServiceTest {
         Assertions.assertThat(suModels.getFirst().getExternalVariables()).isEmpty();
     }
 
+
+    @Test
+    void getRawDataByInterrogationId_shouldReturnOnlyMatchingData() {
+        // GIVEN
+        lunaticJsonRawDataPersistanceStub.getMongoStub().clear();
+
+        String InterrogationId = "INTERROGATION_1";
+        String secondInterrogationId = "INTERROGATION_2";
+
+        LunaticJsonRawDataModel rawData1 = LunaticJsonRawDataModel.builder()
+                .campaignId("CAMPAIGN")
+                .questionnaireId("QUESTIONNAIRE")
+                .interrogationId(InterrogationId)
+                .data(Map.of("key", "value1"))
+                .mode(Mode.WEB)
+                .build();
+
+        LunaticJsonRawDataModel rawData2 = LunaticJsonRawDataModel.builder()
+                .campaignId("CAMPAIGN")
+                .questionnaireId("QUESTIONNAIRE")
+                .interrogationId(secondInterrogationId)
+                .data(Map.of("key", "value2"))
+                .mode(Mode.WEB)
+                .build();
+
+        lunaticJsonRawDataService.save(rawData1);
+        lunaticJsonRawDataService.save(rawData2);
+
+        // WHEN
+        List<LunaticJsonRawDataModel> result =
+                lunaticJsonRawDataService.getRawDataByInterrogationId(InterrogationId);
+
+        // THEN
+        Assertions.assertThat(result)
+                .hasSize(1)
+                .allMatch(data -> InterrogationId.equals(data.interrogationId()));
+
+        Assertions.assertThat(result.getFirst().data())
+                .containsEntry("key", "value1");
+    }
+
     @Test
     void convertRawData_should_not_throw_exception_if_collected_not_present() throws Exception {
         //GIVEN
-        String campaignId = "SAMPLETEST-PARADATA-v1";
+        String campaignId = "SAMPLETEST-PARADATA-V1";
         String questionnaireId = "TESTIDQUEST";
         String interrogationId = "TESTinterrogationId";
         String json = "{\"EXTERNAL\": {\"TESTVAR_EXT\": \"test\"}}";
@@ -401,7 +442,7 @@ class LunaticJsonRawDataServiceTest {
     @Test
     void convertRawData_if_collected_not_present_test() throws Exception {
         //GIVEN
-        String campaignId = "SAMPLETEST-PARADATA-v1";
+        String campaignId = "SAMPLETEST-PARADATA-V1";
         String questionnaireId = "TESTIDQUEST";
         String interrogationId = "TESTinterrogationId";
         String json = "{\"EXTERNAL\": {\"TESTVAR_EXT\": \"test\"}}";
@@ -425,7 +466,7 @@ class LunaticJsonRawDataServiceTest {
     @ValueSource(ints = {5,500,5000,10000})
     void convertRawData_multipleBatchs(int rawDataSize) throws Exception {
         //GIVEN
-        String campaignId = "SAMPLETEST-PARADATA-v1";
+        String campaignId = "SAMPLETEST-PARADATA-V1";
         String questionnaireId = "TESTIDQUEST";
         List<String> interrogationIdList = prepareConvertTest(rawDataSize, campaignId, questionnaireId);
         //Activate review
@@ -456,7 +497,7 @@ class LunaticJsonRawDataServiceTest {
     @Test
     void convertRawData_review_desactivated() throws Exception {
         //GIVEN
-        String campaignId = "SAMPLETEST-PARADATA-v1";
+        String campaignId = "SAMPLETEST-PARADATA-V1";
         String questionnaireId = "TESTIDQUEST";
         List<String> interrogationIdList = prepareConvertTest(1, campaignId, questionnaireId);
 
@@ -484,7 +525,7 @@ class LunaticJsonRawDataServiceTest {
     @Test
     void getUnprocessedDataIdsTest_only_processed_data() throws JsonProcessingException {
         surveyUnitPersistencePortStub.getMongoStub().clear();
-        String campaignId = "SAMPLETEST-PARADATA-v1";
+        String campaignId = "SAMPLETEST-PARADATA-V1";
         String questionnaireId = "TESTIDQUEST";
         String interrogationId = "TESTinterrogationId";
         String json = "{\"EXTERNAL\": {\"TESTVAR_EXT\": \"test_ext\"}, " +
@@ -507,7 +548,7 @@ class LunaticJsonRawDataServiceTest {
     @Test
     void getUnprocessedDataIdsTest_unprocessed_data() throws JsonProcessingException {
         surveyUnitPersistencePortStub.getMongoStub().clear();
-        String campaignId = "SAMPLETEST-PARADATA-v1";
+        String campaignId = "SAMPLETEST-PARADATA-V1";
         String questionnaireId = "TESTIDQUEST";
         String interrogationId = "TESTinterrogationId";
         String json = "{\"EXTERNAL\": {\"TESTVAR_EXT\": \"test_ext\"}, " +

@@ -248,7 +248,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             for (SurveyUnitModel surveyUnitModel : suByMode) {
                 if (variablesMap == null) {
                     variablesMap = metadataService.loadAndSaveIfNotExists(
-                            surveyUnitModel.getCampaignId(),
+                            surveyUnitModel.getCollectionInstrumentId(),
                             surveyUnitModel.getCollectionInstrumentId(),
                             surveyUnitModel.getMode(),
                             fileUtils,

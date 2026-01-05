@@ -161,8 +161,10 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 
 	@Override
 	public List<SurveyUnitModel> findInterrogationIdsByQuestionnaireIdAndDateAfter(String questionnaireId, LocalDateTime since) {
-		List<SurveyUnitDocument> surveyUnits = mongoRepository.findInterrogationIdsByQuestionnaireIdAndDateAfter(questionnaireId, since);
-		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnits);
+		List<SurveyUnitDocument> results =  new ArrayList<>();
+		results.addAll(mongoRepository.findInterrogationIdsByQuestionnaireIdAndDateAfter(questionnaireId, since));
+		results.addAll(mongoRepository.findInterrogationIdsByCollectionInstrumentIdAndDateAfter(questionnaireId, since));
+		return results.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(results);
 	}
 
 	//========== OPTIMISATIONS PERFS (START) ===========
