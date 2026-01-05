@@ -58,4 +58,9 @@ public class RawResponseMongoAdapter implements RawResponsePersistencePort {
         // We remove duplicate ids
         return new HashSet<>(repository.findInterrogationIdByCollectionInstrumentIdAndProcessDateIsNull(collectionInstrumentId));
     }
+
+    @Override
+    public List<Mode> findModesByCollectionInstrument(String collectionInstrumentId) {
+        return repository.findModesByCollectionInstrumentId(collectionInstrumentId);
+    }
 }

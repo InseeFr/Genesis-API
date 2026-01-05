@@ -365,7 +365,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
             }
 
             boolean areAllSpecsOK = true;
-            for(Mode mode : lunaticJsonRawDataPersistencePort.findModesByQuestionnaire(unprocessedQuestionnaireId)){
+            for(Mode mode : modes){
                 if(!isSpecsPresentForQuestionnaireAndMode(unprocessedQuestionnaireId, mode)){
                     areAllSpecsOK = false;
                 }

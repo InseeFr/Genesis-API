@@ -1,5 +1,6 @@
 package fr.insee.genesis.infrastructure.repository;
 
+import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.infrastructure.document.rawdata.RawResponseDocument;
 import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -26,4 +27,6 @@ public interface RawResponseRepository extends MongoRepository<RawResponseDocume
     })
     List<String> findInterrogationIdByCollectionInstrumentIdAndProcessDateIsNull(String collectionInstrumentId);
 
+    @Query(value = "{ 'questionnaireId' : ?0 }", fields = "{ 'mode' :  1 }")
+    List<Mode> findModesByCollectionInstrumentId(String collectionInstrumentId);
 }
