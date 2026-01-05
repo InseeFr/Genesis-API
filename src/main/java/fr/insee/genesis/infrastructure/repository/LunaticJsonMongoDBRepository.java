@@ -23,6 +23,12 @@ public interface LunaticJsonMongoDBRepository extends MongoRepository<LunaticJso
     @Query(value = "{ 'campaignId' : ?0 }", fields = "{ 'mode' :  1 }")
     List<Mode> findModesByCampaignId(String campaignId);
 
+    @Aggregation(pipeline = {
+            "{ '$match': { 'questionnaireId': ?0 } }",
+            "{ '$project': { '_id': 0, 'mode': 1 } }"
+    })
+    List<Mode> findModesByQuestionnaireId(String questionnaireId);
+
     @Query(value = "{ 'campaignId' : ?0, 'mode' : ?1, 'interrogationId': {$in: ?2} }")
     List<LunaticJsonRawDataDocument> findModesByCampaignIdAndByModeAndinterrogationIdIninterrogationIdList(String campaignName, Mode mode, List<String> interrogationIdList);
 

@@ -1,5 +1,6 @@
 package fr.insee.genesis.domain.service.rawdata;
 
+import fr.insee.bpm.metadata.model.MetadataModel;
 import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.configuration.Config;
@@ -272,7 +273,45 @@ public class  RawResponseService implements RawResponseApiPort {
 
     @Override
     public List<String> getUnprocessedCollectionInstrumentIds() {
-        return rawResponsePersistencePort.getUnprocessedCollectionIds();
+        List<String> unprocessedCollectionInstrumentIds = rawResponsePersistencePort.getUnprocessedCollectionIds();
+        List<String> unprocessedCollectionInstrumentIdsWithSpecs = new ArrayList<>();
+        for (String unprocessedCollectionInstrumentId : unprocessedCollectionInstrumentIds){
+            Set<Mode> modes = new HashSet<>(rawResponsePersistencePort.findModesByCollectionInstrument(unprocessedCollectionInstrumentId));
+            if (modes.isEmpty()){
+                continue;
+            }
+
+            boolean areAllSpecsOK = true;
+            for(Mode mode : modes){
+                if(!isSpecsPresentForCollectionInstrumentAndMode(unprocessedCollectionInstrumentId, mode)){
+                    areAllSpecsOK = false;
+                }
+            }
+            if(areAllSpecsOK){
+                unprocessedCollectionInstrumentIdsWithSpecs.add(unprocessedCollectionInstrumentId);
+            }
+        }
+
+        return unprocessedCollectionInstrumentIdsWithSpecs;
+    }
+
+    private boolean isSpecsPresentForCollectionInstrumentAndMode(String unprocessedCollectionInstrumentId, Mode mode) {
+        List<GenesisError> genesisErrors = new ArrayList<>();
+        MetadataModel metadataModel;
+        try {
+            metadataModel = metadataService.loadAndSaveIfNotExists(
+                    unprocessedCollectionInstrumentId,
+                    unprocessedCollectionInstrumentId,
+                    mode,
+                    fileUtils,
+                    genesisErrors
+            );
+        } catch (GenesisException ge) {
+            log.warn("Genesis exception thrown for collection instrument %s and mode %s, excluding from get collection instrument ids..."
+                    .formatted(unprocessedCollectionInstrumentId, mode));
+            return false;
+        }
+        return metadataModel != null && genesisErrors.isEmpty();
     }
 
     @Override

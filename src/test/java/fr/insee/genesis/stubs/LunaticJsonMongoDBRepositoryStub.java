@@ -47,6 +47,15 @@ public class LunaticJsonMongoDBRepositoryStub implements LunaticJsonMongoDBRepos
     }
 
     @Override
+    public List<Mode> findModesByQuestionnaireId(String questionnaireId) {
+        return documents.stream()
+                .filter(doc -> Objects.equals(doc.questionnaireId(), questionnaireId))
+                .map(LunaticJsonRawDataDocument::mode)
+                .distinct()
+                .toList();
+    }
+
+    @Override
     public List<LunaticJsonRawDataDocument> findModesByCampaignIdAndByModeAndinterrogationIdIninterrogationIdList(
             String campaignName, Mode mode, List<String> interrogationIdList) {
         return documents.stream()

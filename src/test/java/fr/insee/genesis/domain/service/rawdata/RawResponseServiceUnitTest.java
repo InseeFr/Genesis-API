@@ -7,6 +7,7 @@ import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponseModel;
+import fr.insee.genesis.domain.ports.spi.QuestionnaireMetadataPersistencePort;
 import fr.insee.genesis.domain.ports.spi.RawResponsePersistencePort;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitQualityToolPort;
 import fr.insee.genesis.domain.service.context.DataProcessingContextService;
@@ -74,6 +75,54 @@ class RawResponseServiceUnitTest {
         );
 
         surveyUnitModelsCaptor = ArgumentCaptor.forClass(List.class);
+    }
+
+    @Test
+    @SneakyThrows
+    void getUnprocessedCollectionInstrumentIds_test() {
+        //GIVEN
+        List<String> collectionInstrumentIds = new ArrayList<>();
+        collectionInstrumentIds.add("QUEST1");
+        collectionInstrumentIds.add("QUEST2");
+        doReturn(collectionInstrumentIds).when(rawResponsePersistencePort).getUnprocessedCollectionIds();
+        doReturn(List.of(Mode.WEB)).when(rawResponsePersistencePort).findModesByCollectionInstrument(any());
+        doReturn(new MetadataModel()).when(metadataService).loadAndSaveIfNotExists(any(), any(), any(), any(), any());
+
+
+        //WHEN + THEN
+        Assertions.assertThat(rawResponseService.getUnprocessedCollectionInstrumentIds())
+                .containsExactlyInAnyOrder("QUEST1","QUEST2");
+    }
+
+    @Test
+    @SneakyThrows
+    void getUnprocessedCollectionInstrumentIds_shouldnt_return_if_no_spec() {
+        //GIVEN
+        List<String> questionnaireIds = new ArrayList<>();
+        questionnaireIds.add("QUEST1"); //No spec
+        questionnaireIds.add("TEST-TABLEAUX");
+        doReturn(questionnaireIds).when(rawResponsePersistencePort).getUnprocessedCollectionIds();
+        doReturn(List.of(Mode.WEB)).when(rawResponsePersistencePort).findModesByCollectionInstrument(any());
+        //No mock for metadataservice this time
+        metadataService = new QuestionnaireMetadataService(
+                mock(QuestionnaireMetadataPersistencePort.class)
+        );
+        rawResponseService = new RawResponseService(
+                new ControllerUtils(new FileUtils(new ConfigStub())),
+                metadataService,
+                mock(SurveyUnitService.class),
+                mock(SurveyUnitQualityService.class),
+                mock(SurveyUnitQualityToolPort.class),
+                mock(DataProcessingContextService.class),
+                new FileUtils(new ConfigStub()),
+                new ConfigStub(),
+                rawResponsePersistencePort
+        );
+
+
+        //WHEN + THEN
+        Assertions.assertThat(rawResponseService.getUnprocessedCollectionInstrumentIds())
+                .containsExactly("TEST-TABLEAUX");
     }
 
     @Nested

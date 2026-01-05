@@ -1,5 +1,6 @@
 package fr.insee.genesis.domain.service.rawdata;
 
+import fr.insee.bpm.metadata.model.MetadataModel;
 import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.configuration.Config;
@@ -356,6 +357,48 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
             }
         }
         return dtos;
+    }
+
+    @Override
+    public Set<String> getUnprocessedDataQuestionnaireIds() {
+        Set<String> unprocessedQuestionnaireIds = lunaticJsonRawDataPersistencePort.findDistinctQuestionnaireIdsByNullProcessDate();
+        Set<String> unprocessedQuestionnaireIdsWithSpecs = new HashSet<>();
+        for (String unprocessedQuestionnaireId : unprocessedQuestionnaireIds){
+            Set<Mode> modes = lunaticJsonRawDataPersistencePort.findModesByQuestionnaire(unprocessedQuestionnaireId);
+            if (modes.isEmpty()){
+                continue;
+            }
+
+            boolean areAllSpecsOK = true;
+            for(Mode mode : modes){
+                if(!isSpecsPresentForQuestionnaireAndMode(unprocessedQuestionnaireId, mode)){
+                    areAllSpecsOK = false;
+                }
+            }
+            if(areAllSpecsOK){
+                unprocessedQuestionnaireIdsWithSpecs.add(unprocessedQuestionnaireId);
+            }
+        }
+
+        return unprocessedQuestionnaireIdsWithSpecs;
+    }
+
+    private boolean isSpecsPresentForQuestionnaireAndMode(String unprocessedQuestionnaireId, Mode mode) {
+        List<GenesisError> genesisErrors = new ArrayList<>();
+        MetadataModel metadataModel;
+        try {
+            metadataModel = metadataService.loadAndSaveIfNotExists(
+                    unprocessedQuestionnaireId,
+                    unprocessedQuestionnaireId,
+                    mode,
+                    fileUtils,
+                    genesisErrors
+            );
+        } catch (GenesisException ge) {
+            log.warn("Genesis exception thrown for questionnaire %s and mode %s, excluding from get questionnaire ids...".formatted(unprocessedQuestionnaireId, mode));
+            return false;
+        }
+        return metadataModel != null && genesisErrors.isEmpty();
     }
 
     @SuppressWarnings("unchecked")
