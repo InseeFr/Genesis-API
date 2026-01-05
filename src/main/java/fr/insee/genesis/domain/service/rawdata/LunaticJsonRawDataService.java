@@ -100,6 +100,11 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     }
 
     @Override
+    public List<LunaticJsonRawDataModel> getRawDataByInterrogationId(String interrogationId) {
+        return lunaticJsonRawDataPersistencePort.findRawDataByInterrogationID(interrogationId);
+    }
+
+    @Override
     @Deprecated(since = "1.13.0")
     public DataProcessResult processRawData(String campaignName, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException {
         int dataCount=0;

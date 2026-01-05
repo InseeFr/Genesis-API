@@ -26,6 +26,9 @@ public interface LunaticJsonMongoDBRepository extends MongoRepository<LunaticJso
     @Query(value = "{ 'campaignId' : ?0, 'mode' : ?1, 'interrogationId': {$in: ?2} }")
     List<LunaticJsonRawDataDocument> findModesByCampaignIdAndByModeAndinterrogationIdIninterrogationIdList(String campaignName, Mode mode, List<String> interrogationIdList);
 
+    @Query(value = "{ 'interrogationId': ?0}")
+    List<LunaticJsonRawDataDocument> findByInterrogationId(String interrogationId);
+
     Page<LunaticJsonRawDataDocument> findByCampaignIdAndRecordDateBetween(String campagneId, Instant start, Instant  end, Pageable pageable);
     long countByQuestionnaireId(String questionnaireId);
     @Aggregation(pipeline = {

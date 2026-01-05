@@ -31,4 +31,6 @@ public interface RawResponseRepository extends MongoRepository<RawResponseDocume
 
     @Query(value = "{ 'payload.campaignId' : ?0, 'recordDate' : { $gte: ?1, $lte: ?2 } }")
     Page<RawResponseDocument> findByCampaignIdAndDate(String campaignId, Instant startDate, Instant endDate, Pageable pageable);
+    @Query(value = "{ 'interrogationId': ?0}")
+    List<RawResponseDocument> findByInterrogationId(String interrogationId);
 }
