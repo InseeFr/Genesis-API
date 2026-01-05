@@ -26,7 +26,13 @@ import fr.insee.genesis.infrastructure.document.rawdata.RawResponseDocument;
 import fr.insee.genesis.infrastructure.mappers.DataProcessingContextMapper;
 import fr.insee.genesis.infrastructure.repository.RawResponseInputRepository;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
-import fr.insee.genesis.stubs.*;
+import fr.insee.genesis.stubs.ConfigStub;
+import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
+import fr.insee.genesis.stubs.LunaticJsonRawDataPersistanceStub;
+import fr.insee.genesis.stubs.QuestionnaireMetadataPersistencePortStub;
+import fr.insee.genesis.stubs.RawResponseDataPersistanceStub;
+import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
+import fr.insee.genesis.stubs.SurveyUnitQualityToolPerretAdapterStub;
 import fr.insee.modelefiliere.RawResponseDto;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
@@ -336,7 +342,7 @@ class RawResponseControllerTest {
 
         //THEN
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        org.junit.jupiter.api.Assertions.assertNotNull(response.getBody());
+        Assertions.assertThat(response.getBody()).isNotNull();
         Assertions.assertThat(response.getBody().getContent()).hasSize(1);
     }
 
