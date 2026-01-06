@@ -7,6 +7,7 @@ import fr.insee.genesis.domain.ports.spi.RawResponsePersistencePort;
 import fr.insee.genesis.infrastructure.document.rawdata.RawResponseDocument;
 import fr.insee.genesis.infrastructure.mappers.RawResponseDocumentMapper;
 import fr.insee.genesis.infrastructure.repository.RawResponseRepository;
+import fr.insee.modelefiliere.ModeDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
@@ -70,7 +71,7 @@ public class RawResponseMongoAdapter implements RawResponsePersistencePort {
     }
 
     @Override
-    public List<Mode> findModesByCollectionInstrument(String collectionInstrumentId) {
+    public List<ModeDto> findModesByCollectionInstrument(String collectionInstrumentId) {
         return repository.findModesByCollectionInstrumentId(collectionInstrumentId);
     }
 

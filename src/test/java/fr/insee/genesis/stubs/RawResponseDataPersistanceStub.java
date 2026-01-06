@@ -5,6 +5,7 @@ import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponseModel;
 import fr.insee.genesis.domain.ports.spi.RawResponsePersistencePort;
 import fr.insee.genesis.infrastructure.document.rawdata.RawResponseDocument;
 import fr.insee.genesis.infrastructure.mappers.RawResponseDocumentMapper;
+import fr.insee.modelefiliere.ModeDto;
 import lombok.Getter;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -37,7 +38,7 @@ public class RawResponseDataPersistanceStub implements RawResponsePersistencePor
 
     @Override
     public void updateProcessDates(String collectionInstrumentId, Set<String> interrogationIds) {
-
+        return;
     }
 
     @Override
@@ -51,12 +52,12 @@ public class RawResponseDataPersistanceStub implements RawResponsePersistencePor
     }
 
     @Override
-    public List<Mode> findModesByCollectionInstrument(String collectionInstrumentId) {
-        List<Mode> modes = new ArrayList<>();
+    public List<ModeDto> findModesByCollectionInstrument(String collectionInstrumentId) {
+        List<ModeDto> modes = new ArrayList<>();
         mongoStub.stream().filter(
                 doc -> doc.collectionInstrumentId().equals(collectionInstrumentId)
         ).forEach(
-                rawResponseDocument -> modes.add(Mode.valueOf(rawResponseDocument.mode()))
+                rawResponseDocument -> modes.add(ModeDto.valueOf(rawResponseDocument.mode()))
         );
         return modes;
     }
