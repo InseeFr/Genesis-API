@@ -217,6 +217,7 @@ public class  RawResponseService implements RawResponseApiPort {
     public List<SurveyUnitModel> convertRawResponse(List<RawResponseModel> rawResponseModels, VariablesMap variablesMap) {
         //Convert to genesis model
         List<SurveyUnitModel> surveyUnitModels = new ArrayList<>();
+        List<SurveyUnitModel> emptySurveyUnitModels = new ArrayList<>();
         //For each possible data state (we receive COLLECTED or EDITED)
         for(DataState dataState : List.of(DataState.COLLECTED,DataState.EDITED)){
             for (RawResponseModel rawResponseModel : rawResponseModels) {
@@ -264,10 +265,14 @@ public class  RawResponseService implements RawResponseApiPort {
                     if(surveyUnitModel.getState() == DataState.COLLECTED){
                         log.warn("No collected or external variable for interrogation {}, raw data is ignored.", rawResponseModel.interrogationId());
                     }
+                    emptySurveyUnitModels.add(surveyUnitModel);
                     continue;// don't add suModel
                 }
                 surveyUnitModels.add(surveyUnitModel);
             }
+        }
+        if(!emptySurveyUnitModels.isEmpty()){
+            updateProcessDates(emptySurveyUnitModels);
         }
         return surveyUnitModels;
     }

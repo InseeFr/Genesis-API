@@ -267,6 +267,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     public List<SurveyUnitModel> convertRawData(List<LunaticJsonRawDataModel> rawDataList, VariablesMap variablesMap) {
         //Convert to genesis model
         List<SurveyUnitModel> surveyUnitModels = new ArrayList<>();
+        List<SurveyUnitModel> emptySurveyUnitModels = new ArrayList<>();
         //For each possible data state (we receive COLLECTED or EDITED)
         for(DataState dataState : List.of(DataState.COLLECTED,DataState.EDITED)){
             for (LunaticJsonRawDataModel rawData : rawDataList) {
@@ -306,12 +307,15 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
                     if(surveyUnitModel.getState() == DataState.COLLECTED){
                         log.warn("No collected or external variable for interrogation {}, raw data is ignored.", rawData.interrogationId());
                     }
-                    continue;// don't add suModel
+                    emptySurveyUnitModels.add(surveyUnitModel);
+                    continue;// don't add suModel but update processDate
                 }
                 surveyUnitModels.add(surveyUnitModel);
             }
         }
-
+        if(!emptySurveyUnitModels.isEmpty()){
+            updateProcessDates(emptySurveyUnitModels);
+        }
         return surveyUnitModels;
     }
 
