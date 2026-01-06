@@ -445,7 +445,9 @@ public class  RawResponseService implements RawResponseApiPort {
         if (!values.isEmpty()) {
             int iteration = 1;
             for (String value : values) {
-                convertOneVar(collectedVariable, value, variablesMap, iteration, dstSurveyUnitModel);
+                if (value != null && !value.isEmpty()) {
+                    convertOneVar(collectedVariable, value, variablesMap, iteration, dstSurveyUnitModel);
+                }
                 iteration++;
             }
         }
