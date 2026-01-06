@@ -16,9 +16,9 @@ import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
+import fr.insee.modelefiliere.RawResponseDto;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +32,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
-public class ResponseControllerUnitTest {
+class ResponseControllerUnitTest {
     static ResponseController responseController;
 
     static SurveyUnitApiPort surveyUnitApiPort;
@@ -61,13 +61,16 @@ public class ResponseControllerUnitTest {
         );
     }
 
-    //Non regression test of #22876
+    //Non regression test of #22876 and #22875
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
-    void shouldReturnUsualSurveyUnitIdInSimplifiedResponsesWhereInAnyOrder(boolean isReversed){
+    void shouldReturnNewVariablesInSimplifiedResponsesWhereInAnyOrder(boolean isReversed){
         //GIVEN
         String usId = "IDUE";
         String varId = "varid";
+        LocalDateTime validationDate = LocalDateTime.now();
+        RawResponseDto.QuestionnaireStateEnum questionnaireState = RawResponseDto.QuestionnaireStateEnum.FINISHED;
+
         //Mock behaviour
         doReturn(Collections.singletonList(Mode.WEB)).when(surveyUnitApiPort).findModesByCollectionInstrumentId(any());
         List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
@@ -83,6 +86,8 @@ public class ResponseControllerUnitTest {
         surveyUnitModelList.add(
                 SurveyUnitModel.builder()
                         .mode(Mode.WEB)
+                        .questionnaireState(questionnaireState)
+                        .validationDate(validationDate)
                         .state(DataState.COLLECTED)
                         .usualSurveyUnitId(usId)
                         .collectionInstrumentId(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID)
@@ -126,5 +131,7 @@ public class ResponseControllerUnitTest {
         Assertions.assertThat(returnedResponse.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(returnedResponse.getBody()).hasSize(1);
         Assertions.assertThat(returnedResponse.getBody().getFirst().getUsualSurveyUnitId()).isEqualTo(usId);
+        Assertions.assertThat(returnedResponse.getBody().getFirst().getValidationDate()).isEqualTo(validationDate);
+        Assertions.assertThat(returnedResponse.getBody().getFirst().getQuestionnaireState()).isEqualTo(questionnaireState);
     }
 }
