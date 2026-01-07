@@ -51,11 +51,7 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
 
     @Override
     public Set<String> findDistinctQuestionnaireIdsByNullProcessDate(){
-        Set<String> questionnaireIds = new HashSet<>();
-        for(LunaticJsonRawDataDocument lunaticJsonRawDataDocument : repository.findByNullProcessDate()){
-            questionnaireIds.add(lunaticJsonRawDataDocument.questionnaireId());
-        }
-        return questionnaireIds;
+        return new HashSet<>(repository.findDistinctQuestionnaireIdByProcessDateIsNull());
     }
 
     @Override
