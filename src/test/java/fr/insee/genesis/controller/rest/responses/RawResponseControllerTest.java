@@ -421,7 +421,7 @@ class RawResponseControllerTest {
                 .collectionInstrumentId(questionnaireId)
                 .interrogationId(interrogationId)
                 .recordDate(LocalDateTime.now())
-                .payload(Map.of("campaignId", "VPPI2024M05"))
+                .payload(Map.of("campaignId", campaignId))
                 .build();
 
         rawResponseDataPersistanceStub.getMongoStub().add(rawResponseDocument);
