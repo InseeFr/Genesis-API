@@ -63,12 +63,23 @@ public class RawResponseDataPersistanceStub implements RawResponsePersistencePor
     }
 
     @Override
-    public Page<RawResponseModel> findByCampaignIdAndDate(String campaignId, Instant startDate, Instant endDate, Pageable pageable) {
+    public Page<RawResponseModel> findByCampaignIdAndDate(
+            String campaignId,
+            Instant startDate,
+            Instant endDate,
+            Pageable pageable
+    ) {
         List<RawResponseDocument> foundRaws = mongoStub.stream()
-                .filter(rawData -> rawData.campaignId().equals(campaignId))
+                .filter(rawData -> {
+                    Object payloadCampaignId = rawData.payload().get("campaignId");
+                    return campaignId.equals(payloadCampaignId);
+                })
                 .toList();
-        return new PageImpl<>(RawResponseDocumentMapper.INSTANCE.listDocumentToListModel(foundRaws),
+
+        return new PageImpl<>(
+                RawResponseDocumentMapper.INSTANCE.listDocumentToListModel(foundRaws),
                 pageable,
-                foundRaws.size());
+                foundRaws.size()
+        );
     }
 }
