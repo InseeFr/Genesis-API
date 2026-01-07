@@ -1,5 +1,5 @@
 # Changelog
-## 2.0.1 [TODO]
+## 2.0.1 [2026-01-07]
 ### Fixed
 - Crash when get questionnaireIds by null processDate with too much raw datas in lunaticjsondata
  
