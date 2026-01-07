@@ -1,4 +1,8 @@
 # Changelog
+## 2.0.0 [TODO]
+### Changed
+- Use filière model
+
 ## 1.13.0 [2025-12-04]
 ### Changed
 - New raw data process endpoint

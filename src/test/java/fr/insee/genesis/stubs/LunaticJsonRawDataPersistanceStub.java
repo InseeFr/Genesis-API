@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 @Getter
@@ -43,6 +44,28 @@ public class LunaticJsonRawDataPersistanceStub implements LunaticJsonRawDataPers
     }
 
     @Override
+    public Set<String> findDistinctQuestionnaireIdsByNullProcessDate() {
+        Set<String> questionnaireIds = new HashSet<>();
+        mongoStub.stream().filter(
+                lunaticJsonDataDocument -> lunaticJsonDataDocument.processDate() == null
+        ).forEach(doc -> {
+            if(doc.questionnaireId() != null){
+                questionnaireIds.add(doc.questionnaireId());
+            }
+        });
+        return questionnaireIds;
+    }
+
+    @Override
+    public Set<Mode> findModesByQuestionnaire(String questionnaireId) {
+        return new HashSet<>(mongoStub.stream()
+                .filter(doc -> Objects.equals(doc.questionnaireId(), questionnaireId))
+                .map(LunaticJsonRawDataDocument::mode)
+                .distinct()
+                .toList());
+    }
+
+    @Override
     public List<LunaticJsonRawDataModel> findRawData(String campaignName, Mode mode, List<String> interrogationIdList) {
         List<LunaticJsonRawDataDocument> docs = mongoStub.stream().filter(lunaticJsonRawDataDocument ->
                 lunaticJsonRawDataDocument.campaignId().equals(campaignName)
@@ -52,6 +75,14 @@ public class LunaticJsonRawDataPersistanceStub implements LunaticJsonRawDataPers
         return LunaticJsonRawDataDocumentMapper.INSTANCE.listDocumentToListModel(docs);
     }
 
+    @Override
+    public List<LunaticJsonRawDataModel> findRawDataByInterrogationID(String interrogationId) {
+        List<LunaticJsonRawDataDocument> docs = mongoStub.stream()
+                .filter(doc -> interrogationId.equals(doc.interrogationId()))
+                .toList();
+
+        return LunaticJsonRawDataDocumentMapper.INSTANCE.listDocumentToListModel(docs);
+    }
 
     @Override
     public void updateProcessDates(String campaignId, Set<String> interrogationIds) {

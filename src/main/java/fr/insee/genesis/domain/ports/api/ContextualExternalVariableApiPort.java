@@ -4,7 +4,7 @@ import fr.insee.genesis.domain.model.contextualvariable.ContextualExternalVariab
 import fr.insee.genesis.exceptions.GenesisException;
 
 public interface ContextualExternalVariableApiPort {
-    boolean readContextualExternalFile(String questionnaireId, String filePath) throws GenesisException;
+    boolean readContextualExternalFile(String collectionInstrumentId, String filePath) throws GenesisException;
 
-    ContextualExternalVariableModel findByQuestionnaireIdAndInterrogationId(String questionnaireId, String interrogationId);
+    ContextualExternalVariableModel findByCollectionInstrumentIdAndInterrogationId(String collectionInstrumentId, String interrogationId);
 }

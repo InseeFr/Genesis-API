@@ -9,7 +9,7 @@ import java.util.Map;
 @Data
 public class ContextualPreviousVariableModel {
     String id;
-    String questionnaireId;
+    String collectionInstrumentId;
     String interrogationId;
     Map<String,Object> variables;
     String sourceState;
