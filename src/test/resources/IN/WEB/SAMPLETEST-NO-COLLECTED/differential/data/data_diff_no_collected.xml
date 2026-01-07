@@ -5,7 +5,7 @@
 	<SurveyUnits>
 		<SurveyUnit>
 			<Id>00000001</Id>
-			<QuestionnaireModelId>NOCOLLECTED</QuestionnaireModelId>
+			<QuestionnaireModelId>SAMPLETEST-NO-COLLECTED</QuestionnaireModelId>
 			<Data>
 				<CALCULATED/>
 				<EXTERNAL/>

@@ -1,4 +1,12 @@
 # Changelog
+## 2.0.1 [2026-01-07]
+### Fixed
+- Crash when get questionnaireIds by null processDate with too much raw datas in lunaticjsondata
+ 
+## 2.0.0 [2026-01-07]
+### Changed
+- Use filière model
+
 ## 1.13.0 [2025-12-04]
 ### Changed
 - New raw data process endpoint

@@ -6,7 +6,7 @@ import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
-import fr.insee.genesis.stubs.QuestionnaireMetadataPersistancePortStub;
+import fr.insee.genesis.stubs.QuestionnaireMetadataPersistencePortStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -17,7 +17,7 @@ import org.springframework.http.ResponseEntity;
 import java.io.IOException;
 import java.util.List;
 
-import static fr.insee.genesis.TestConstants.DEFAULT_QUESTIONNAIRE_ID;
+import static fr.insee.genesis.TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID;
 
 class ModeControllerTest {
     public static final String CAMPAIGN_ID = "TEST-TABLEAUX";
@@ -30,7 +30,7 @@ class ModeControllerTest {
         surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
         SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(
                 surveyUnitPersistencePortStub,
-                new QuestionnaireMetadataService(new QuestionnaireMetadataPersistancePortStub()),
+                new QuestionnaireMetadataService(new QuestionnaireMetadataPersistencePortStub()),
                 new FileUtils(new ConfigStub())
         );
 
@@ -47,7 +47,7 @@ class ModeControllerTest {
     //When + Then
     @Test
     void getModesByQuestionnaireTest() {
-        ResponseEntity<List<Mode>> response = modeControllerStatic.getModesByQuestionnaire(DEFAULT_QUESTIONNAIRE_ID);
+        ResponseEntity<List<Mode>> response = modeControllerStatic.getModesByQuestionnaire(DEFAULT_COLLECTION_INSTRUMENT_ID);
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().hasSize(1);
@@ -66,7 +66,7 @@ class ModeControllerTest {
     //========= OPTIMISATIONS PERFS (START) ==========
     @Test
     void getModesByQuestionnaireV2Test() {
-        ResponseEntity<List<Mode>> response = modeControllerStatic.getModesByQuestionnaireV2(DEFAULT_QUESTIONNAIRE_ID);
+        ResponseEntity<List<Mode>> response = modeControllerStatic.getModesByQuestionnaireV2(DEFAULT_COLLECTION_INSTRUMENT_ID);
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().hasSize(1);

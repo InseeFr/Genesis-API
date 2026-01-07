@@ -6,7 +6,7 @@ import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
-import fr.insee.genesis.stubs.QuestionnaireMetadataPersistancePortStub;
+import fr.insee.genesis.stubs.QuestionnaireMetadataPersistencePortStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.util.List;
 
 import static fr.insee.genesis.TestConstants.DEFAULT_INTERROGATION_ID;
-import static fr.insee.genesis.TestConstants.DEFAULT_QUESTIONNAIRE_ID;
+import static fr.insee.genesis.TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID;
 
 class InterrogationControllerTest {
     //Given
@@ -30,7 +30,7 @@ class InterrogationControllerTest {
         surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
         SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(
                 surveyUnitPersistencePortStub,
-                new QuestionnaireMetadataService(new QuestionnaireMetadataPersistancePortStub()),
+                new QuestionnaireMetadataService(new QuestionnaireMetadataPersistencePortStub()),
                 new FileUtils(new ConfigStub())
         );
 
@@ -47,7 +47,7 @@ class InterrogationControllerTest {
     //When + Then
     @Test
     void getAllInterrogationIdsByQuestionnaireTest() {
-        ResponseEntity<List<InterrogationId>> response = interrogationControllerStatic.getAllInterrogationIdsByQuestionnaire(DEFAULT_QUESTIONNAIRE_ID);
+        ResponseEntity<List<InterrogationId>> response = interrogationControllerStatic.getAllInterrogationIdsByQuestionnaire(DEFAULT_COLLECTION_INSTRUMENT_ID);
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
@@ -56,7 +56,7 @@ class InterrogationControllerTest {
 
     @Test
     void countAllInterrogationIdsByQuestionnaireTest() {
-        ResponseEntity<Long> response = interrogationControllerStatic.countAllInterrogationIdsByQuestionnaire(DEFAULT_QUESTIONNAIRE_ID);
+        ResponseEntity<Long> response = interrogationControllerStatic.countAllInterrogationIdsByQuestionnaire(DEFAULT_COLLECTION_INSTRUMENT_ID);
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull();

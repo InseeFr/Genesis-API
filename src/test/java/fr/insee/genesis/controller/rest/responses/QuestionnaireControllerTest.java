@@ -9,7 +9,7 @@ import fr.insee.genesis.infrastructure.document.context.DataProcessingContextDoc
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
-import fr.insee.genesis.stubs.QuestionnaireMetadataPersistancePortStub;
+import fr.insee.genesis.stubs.QuestionnaireMetadataPersistencePortStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import static fr.insee.genesis.TestConstants.DEFAULT_QUESTIONNAIRE_ID;
+import static fr.insee.genesis.TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID;
 
 class QuestionnaireControllerTest {
     //Given
@@ -36,7 +36,7 @@ class QuestionnaireControllerTest {
         dataProcessingContextPersistancePortStub = new DataProcessingContextPersistancePortStub();
         SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(
                 surveyUnitPersistencePortStub,
-                new QuestionnaireMetadataService(new QuestionnaireMetadataPersistancePortStub()),
+                new QuestionnaireMetadataService(new QuestionnaireMetadataPersistencePortStub()),
                 new FileUtils(new ConfigStub())
         );
 
@@ -64,7 +64,7 @@ class QuestionnaireControllerTest {
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().containsOnly(
-                DEFAULT_QUESTIONNAIRE_ID,"TESTQUESTIONNAIRE2");
+                DEFAULT_COLLECTION_INSTRUMENT_ID,"TESTQUESTIONNAIRE2");
     }
 
     @Test
@@ -77,31 +77,27 @@ class QuestionnaireControllerTest {
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isEmpty();
 
-        dataProcessingContextPersistancePortStub.getMongoStub().add(
-                new DataProcessingContextDocument(
-                        DEFAULT_QUESTIONNAIRE_ID,
-                        new ArrayList<>(),
-                        true
-                )
-        );
+        DataProcessingContextDocument doc = new DataProcessingContextDocument();
+        doc.setPartitionId(DEFAULT_COLLECTION_INSTRUMENT_ID);
+        doc.setKraftwerkExecutionScheduleList(new ArrayList<>());
+        doc.setWithReview(true);
+        dataProcessingContextPersistancePortStub.getMongoStub().add(doc);
 
         response = questionnaireControllerStatic.getQuestionnairesWithReview(true);
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().containsOnly(
-                DEFAULT_QUESTIONNAIRE_ID);
+                DEFAULT_COLLECTION_INSTRUMENT_ID);
 
-        dataProcessingContextPersistancePortStub.getMongoStub().add(
-                new DataProcessingContextDocument(
-                        questionnaireId,
-                        new ArrayList<>(),
-                        false
-                )
-        );
+        DataProcessingContextDocument doc2 = new DataProcessingContextDocument();
+        doc2.setPartitionId(questionnaireId);
+        doc2.setKraftwerkExecutionScheduleList(new ArrayList<>());
+        doc2.setWithReview(false);
+        dataProcessingContextPersistancePortStub.getMongoStub().add(doc2);
 
         response = questionnaireControllerStatic.getQuestionnairesWithReview(true);
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().containsOnly(
-                DEFAULT_QUESTIONNAIRE_ID);
+                DEFAULT_COLLECTION_INSTRUMENT_ID);
     }
 
     @Test
@@ -114,30 +110,26 @@ class QuestionnaireControllerTest {
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isEmpty();
 
-        dataProcessingContextPersistancePortStub.getMongoStub().add(
-                new DataProcessingContextDocument(
-                        DEFAULT_QUESTIONNAIRE_ID,
-                        new ArrayList<>(),
-                        false
-                )
-        );
+        DataProcessingContextDocument doc = new DataProcessingContextDocument();
+        doc.setPartitionId(DEFAULT_COLLECTION_INSTRUMENT_ID);
+        doc.setKraftwerkExecutionScheduleList(new ArrayList<>());
+        doc.setWithReview(false);
+        dataProcessingContextPersistancePortStub.getMongoStub().add(doc);
 
         response = questionnaireControllerStatic.getQuestionnairesWithReview(false);
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().containsOnly(
-                DEFAULT_QUESTIONNAIRE_ID);
+                DEFAULT_COLLECTION_INSTRUMENT_ID);
 
-        dataProcessingContextPersistancePortStub.getMongoStub().add(
-                new DataProcessingContextDocument(
-                        questionnaireId,
-                        new ArrayList<>(),
-                        true
-                )
-        );
+        DataProcessingContextDocument doc2 = new DataProcessingContextDocument();
+        doc2.setPartitionId(questionnaireId);
+        doc2.setKraftwerkExecutionScheduleList(new ArrayList<>());
+        doc2.setWithReview(true);
+        dataProcessingContextPersistancePortStub.getMongoStub().add(doc2);
         response = questionnaireControllerStatic.getQuestionnairesWithReview(false);
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().containsOnly(
-                DEFAULT_QUESTIONNAIRE_ID);
+                DEFAULT_COLLECTION_INSTRUMENT_ID);
     }
 
     @Test
@@ -148,7 +140,7 @@ class QuestionnaireControllerTest {
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().containsOnly(
-                DEFAULT_QUESTIONNAIRE_ID,"TESTQUESTIONNAIRE2");
+                DEFAULT_COLLECTION_INSTRUMENT_ID,"TESTQUESTIONNAIRE2");
     }
 
 
@@ -164,12 +156,12 @@ class QuestionnaireControllerTest {
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
         Assertions.assertThat(response.getBody().stream().filter(questionnaireWithCampaign ->
-                questionnaireWithCampaign.getQuestionnaireId().equals(DEFAULT_QUESTIONNAIRE_ID)
+                questionnaireWithCampaign.getQuestionnaireId().equals(DEFAULT_COLLECTION_INSTRUMENT_ID)
                         || questionnaireWithCampaign.getQuestionnaireId().equals("TESTQUESTIONNAIRE2")
         )).isNotNull().isNotEmpty().hasSize(2);
 
         Assertions.assertThat(response.getBody().stream().filter(
-                questionnaireWithCampaign -> questionnaireWithCampaign.getQuestionnaireId().equals(DEFAULT_QUESTIONNAIRE_ID)
+                questionnaireWithCampaign -> questionnaireWithCampaign.getQuestionnaireId().equals(DEFAULT_COLLECTION_INSTRUMENT_ID)
         ).findFirst().get().getCampaigns()).containsExactly("TEST-TABLEAUX");
 
         Assertions.assertThat(response.getBody().stream().filter(
