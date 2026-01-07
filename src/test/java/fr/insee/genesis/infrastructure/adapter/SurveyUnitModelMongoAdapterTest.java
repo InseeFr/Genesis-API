@@ -5,6 +5,7 @@ import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.infrastructure.document.surveyunit.SurveyUnitDocument;
 import fr.insee.genesis.infrastructure.document.surveyunit.VariableDocument;
 import fr.insee.genesis.infrastructure.repository.SurveyUnitMongoDBRepository;
+import fr.insee.modelefiliere.RawResponseDto;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -219,7 +220,4 @@ class SurveyUnitModelMongoAdapterTest {
 		long count = surveyUnitMongoAdapter.countByCampaignId("CAMP999");
 		Assertions.assertThat(count).isZero();
 	}
-
-
-
 }

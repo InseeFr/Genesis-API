@@ -17,6 +17,7 @@ import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
+import fr.insee.modelefiliere.ModeDto;
 import fr.insee.modelefiliere.RawResponseDto;
 import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
@@ -85,7 +86,7 @@ class RawResponseServiceUnitTest {
         collectionInstrumentIds.add("QUEST1");
         collectionInstrumentIds.add("QUEST2");
         doReturn(collectionInstrumentIds).when(rawResponsePersistencePort).getUnprocessedCollectionIds();
-        doReturn(List.of(Mode.WEB)).when(rawResponsePersistencePort).findModesByCollectionInstrument(any());
+        doReturn(List.of(ModeDto.CAWI)).when(rawResponsePersistencePort).findModesByCollectionInstrument(any());
         doReturn(new MetadataModel()).when(metadataService).loadAndSaveIfNotExists(any(), any(), any(), any(), any());
 
 
@@ -102,7 +103,7 @@ class RawResponseServiceUnitTest {
         questionnaireIds.add("QUEST1"); //No spec
         questionnaireIds.add("TEST-TABLEAUX");
         doReturn(questionnaireIds).when(rawResponsePersistencePort).getUnprocessedCollectionIds();
-        doReturn(List.of(Mode.WEB)).when(rawResponsePersistencePort).findModesByCollectionInstrument(any());
+        doReturn(List.of(ModeDto.CAWI)).when(rawResponsePersistencePort).findModesByCollectionInstrument(any());
         //No mock for metadataservice this time
         metadataService = new QuestionnaireMetadataService(
                 mock(QuestionnaireMetadataPersistencePort.class)

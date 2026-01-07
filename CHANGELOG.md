@@ -1,5 +1,5 @@
 # Changelog
-## 2.0.0 [TODO]
+## 2.0.0 [2026-01-07]
 ### Changed
 - Use filière model
 

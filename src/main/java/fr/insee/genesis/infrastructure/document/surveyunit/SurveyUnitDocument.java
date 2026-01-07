@@ -2,6 +2,7 @@ package fr.insee.genesis.infrastructure.document.surveyunit;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import fr.insee.genesis.Constants;
+import fr.insee.modelefiliere.RawResponseDto;
 import lombok.Data;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.Indexed;
@@ -54,4 +55,7 @@ public class SurveyUnitDocument {
 	private List<VariableDocument> collectedVariables;
 	private List<VariableDocument> externalVariables;
 	private String modifiedBy;
+
+	private LocalDateTime validationDate;
+	private RawResponseDto.QuestionnaireStateEnum questionnaireState;
 }

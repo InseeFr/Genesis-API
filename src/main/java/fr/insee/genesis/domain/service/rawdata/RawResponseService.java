@@ -24,6 +24,7 @@ import fr.insee.genesis.domain.utils.JsonUtils;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
+import fr.insee.modelefiliere.ModeDto;
 import fr.insee.modelefiliere.RawResponseDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -216,6 +217,7 @@ public class  RawResponseService implements RawResponseApiPort {
     public List<SurveyUnitModel> convertRawResponse(List<RawResponseModel> rawResponseModels, VariablesMap variablesMap) {
         //Convert to genesis model
         List<SurveyUnitModel> surveyUnitModels = new ArrayList<>();
+        List<SurveyUnitModel> emptySurveyUnitModels = new ArrayList<>();
         //For each possible data state (we receive COLLECTED or EDITED)
         for(DataState dataState : List.of(DataState.COLLECTED,DataState.EDITED)){
             for (RawResponseModel rawResponseModel : rawResponseModels) {
@@ -263,10 +265,14 @@ public class  RawResponseService implements RawResponseApiPort {
                     if(surveyUnitModel.getState() == DataState.COLLECTED){
                         log.warn("No collected or external variable for interrogation {}, raw data is ignored.", rawResponseModel.interrogationId());
                     }
+                    emptySurveyUnitModels.add(surveyUnitModel);
                     continue;// don't add suModel
                 }
                 surveyUnitModels.add(surveyUnitModel);
             }
+        }
+        if(!emptySurveyUnitModels.isEmpty()){
+            updateProcessDates(emptySurveyUnitModels);
         }
         return surveyUnitModels;
     }
@@ -276,13 +282,20 @@ public class  RawResponseService implements RawResponseApiPort {
         List<String> unprocessedCollectionInstrumentIds = rawResponsePersistencePort.getUnprocessedCollectionIds();
         List<String> unprocessedCollectionInstrumentIdsWithSpecs = new ArrayList<>();
         for (String unprocessedCollectionInstrumentId : unprocessedCollectionInstrumentIds){
-            Set<Mode> modes = new HashSet<>(rawResponsePersistencePort.findModesByCollectionInstrument(unprocessedCollectionInstrumentId));
+            Set<ModeDto> modes = new HashSet<>(rawResponsePersistencePort.findModesByCollectionInstrument(unprocessedCollectionInstrumentId));
             if (modes.isEmpty()){
                 continue;
             }
 
             boolean areAllSpecsOK = true;
-            for(Mode mode : modes){
+            if(modes.contains(null) && modes.size() == 1){
+                areAllSpecsOK = false;
+            }
+            for(ModeDto modeDto : modes){
+                if(modeDto == null){
+                    continue;
+                }
+                Mode mode = Mode.getEnumFromJsonName(modeDto.toString());
                 if(!isSpecsPresentForCollectionInstrumentAndMode(unprocessedCollectionInstrumentId, mode)){
                     areAllSpecsOK = false;
                 }

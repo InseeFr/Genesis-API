@@ -1,14 +1,6 @@
 package fr.insee.genesis.controller.rest.responses;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import fr.insee.genesis.controller.dto.rawdata.LunaticJsonRawDataUnprocessedDto;
-import fr.insee.genesis.controller.utils.ExtendedJsonNormalizer;
-import fr.insee.genesis.controller.utils.JsonSchemaValidator;
-import fr.insee.genesis.controller.utils.SchemaType;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
@@ -17,7 +9,6 @@ import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.RawResponseApiPort;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
-import fr.insee.genesis.exceptions.SchemaValidationException;
 import fr.insee.genesis.infrastructure.repository.RawResponseInputRepository;
 import fr.insee.modelefiliere.RawResponseDto;
 import io.swagger.v3.oas.annotations.Hidden;
@@ -41,7 +32,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -96,36 +86,6 @@ public class RawResponseController {
         log.info("Data saved for interrogationId {} and campaign {}", interrogationId, campaignName);
         // Collect platform prefer code 201 in case of success
         return ResponseEntity.status(201).body(String.format(SUCCESS_MESSAGE, interrogationId));
-    }
-
-
-    @Operation(summary = "Save lunatic json data from one interrogation in Genesis Database (with json " +
-            "schema validation)")
-    @PostMapping(path="/raw-responses/debug")
-    @PreAuthorize("hasRole('COLLECT_PLATFORM')")
-    public ResponseEntity<String> saveRawResponsesFromJsonBodyWithValidation(
-            @RequestBody Map<String, Object> body
-    ) throws JsonProcessingException {
-
-        ObjectMapper objectMapperLocal = new ObjectMapper();
-        objectMapperLocal.registerModule(new JavaTimeModule());
-        objectMapperLocal.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);   // ISO-8601
-        objectMapperLocal.disable(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE);
-
-        log.info(objectMapperLocal.writeValueAsString(body));
-        try {
-            RawResponseDto rawResponseDto = JsonSchemaValidator.readAndValidateFromClasspath(
-                    ExtendedJsonNormalizer.normalize(objectMapperLocal.readTree(
-                            objectMapperLocal.writeValueAsString(body))),
-                    SchemaType.RAW_RESPONSE.getSchemaFileName(),
-                    RawResponseDto.class,
-                    objectMapperLocal
-            );
-            rawRepository.saveAsRawJson(rawResponseDto);
-        } catch (SchemaValidationException | IOException e) {
-            return ResponseEntity.status(400).body(e.toString());
-        }
-        return ResponseEntity.status(201).body(String.format(SUCCESS_MESSAGE, body.get(INTERROGATION_ID).toString()));
     }
 
     @Operation(summary = "Save lunatic json data from one interrogation in Genesis Database (with json " +

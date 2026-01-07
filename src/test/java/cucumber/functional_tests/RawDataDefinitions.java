@@ -245,17 +245,6 @@ public class RawDataDefinitions {
         );
     }
 
-    @When("We save that raw data with validation")
-    public void save_raw_data_with_validation() throws IOException {
-        if(rawDataFilePath == null){
-            throw new RuntimeException("Raw data file path is null !");
-        }
-
-        response = rawResponseController.saveRawResponsesFromJsonBodyWithValidation(
-                JsonUtils.jsonToMap(Files.readString(rawDataFilePath))
-        );
-    }
-
     @When("We process raw data for campaign {string}, questionnaire {string} and interrogation {string}")
     public void process_raw_data(
             String campaignId,

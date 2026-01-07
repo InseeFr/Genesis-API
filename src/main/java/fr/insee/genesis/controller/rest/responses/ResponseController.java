@@ -32,6 +32,7 @@ import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.exceptions.NoDataException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
+import fr.insee.modelefiliere.RawResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -62,6 +63,7 @@ import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -280,15 +282,27 @@ public class ResponseController implements CommonApiResponse {
         List<SurveyUnitModel> responses = surveyUnitService.findLatestByIdAndByCollectionInstrumentId(interrogationId, collectionInstrumentId);
         List<VariableModel> outputVariables = new ArrayList<>();
         List<VariableModel> outputExternalVariables = new ArrayList<>();
-        responses.stream().filter(rep -> rep.getMode().equals(mode)).forEach(response -> {
+        RawResponseDto.QuestionnaireStateEnum questionnaireState = null;
+        LocalDateTime validationDate = null;
+        for (SurveyUnitModel response :
+                responses.stream().filter(rep -> rep.getMode().equals(mode)).toList()){
+            questionnaireState = response.getQuestionnaireState() != null ?
+                    response.getQuestionnaireState()
+                    : questionnaireState;
+            validationDate = response.getValidationDate() != null ?
+                    response.getValidationDate()
+                    : validationDate;
+
             outputVariables.addAll(response.getCollectedVariables());
             outputExternalVariables.addAll(response.getExternalVariables());
-        });
+        }
         return ResponseEntity.ok(SurveyUnitSimplified.builder()
                 .collectionInstrumentId(responses.getFirst().getCollectionInstrumentId())
                 .campaignId(responses.getFirst().getCampaignId())
                 .interrogationId(responses.getFirst().getInterrogationId())
                 .usualSurveyUnitId(responses.getFirst().getUsualSurveyUnitId())
+                .validationDate(validationDate)
+                .questionnaireState(questionnaireState)
                 .variablesUpdate(outputVariables)
                 .externalVariables(outputExternalVariables)
                 .build());
@@ -313,13 +327,23 @@ public class ResponseController implements CommonApiResponse {
                 List<VariableModel> outputVariables = new ArrayList<>();
                 List<VariableModel> outputExternalVariables = new ArrayList<>();
                 List<String> usualSurveyUnitIds = new ArrayList<>();
-                responses.stream().filter(rep -> rep.getMode().equals(mode)).forEach(response -> {
+                RawResponseDto.QuestionnaireStateEnum questionnaireState = null;
+                LocalDateTime validationDate = null;
+                for (SurveyUnitModel response :
+                        responses.stream().filter(rep -> rep.getMode().equals(mode)).toList()){
+                    questionnaireState = response.getQuestionnaireState() != null ?
+                            response.getQuestionnaireState()
+                            : questionnaireState;
+                    validationDate = response.getValidationDate() != null ?
+                            response.getValidationDate()
+                            : validationDate;
+
                     outputVariables.addAll(response.getCollectedVariables());
                     outputExternalVariables.addAll(response.getExternalVariables());
                     if(response.getUsualSurveyUnitId() != null){
                         usualSurveyUnitIds.add(response.getUsualSurveyUnitId());
                     }
-                });
+                }
                 if (!outputVariables.isEmpty() || !outputExternalVariables.isEmpty()) {
                     results.add(SurveyUnitSimplified.builder()
                             .collectionInstrumentId(responses.getFirst().getCollectionInstrumentId())
@@ -327,6 +351,8 @@ public class ResponseController implements CommonApiResponse {
                             .interrogationId(interrogationId.getInterrogationId())
                             .usualSurveyUnitId(!usualSurveyUnitIds.isEmpty() ? usualSurveyUnitIds.getFirst() : null)
                             .mode(mode)
+                            .validationDate(validationDate)
+                            .questionnaireState(questionnaireState)
                             .variablesUpdate(outputVariables)
                             .externalVariables(outputExternalVariables)
                             .build());
@@ -341,6 +367,7 @@ public class ResponseController implements CommonApiResponse {
     /**
      * @author Adrien Marchal
      */
+    //TODO Unused for now, reuse code for optimizations, also move it to service
     @Operation(summary = "Retrieve all responses for a questionnaire and a list of UE",
             description = "Return the latest state for each variable for the given ids and a given questionnaire.<br>" +
                     "For a given id, the endpoint returns a document by collection mode (if there is more than one).")
@@ -406,6 +433,8 @@ public class ResponseController implements CommonApiResponse {
                     .campaignId(responsesForSingleInterrId.getFirst().getCampaignId())
                     .interrogationId(responsesForSingleInterrId.getFirst().getInterrogationId())
                     .mode(modeWrapped)
+                    .validationDate(responsesForSingleInterrId.getFirst().getValidationDate())
+                    .questionnaireState(responsesForSingleInterrId.getFirst().getQuestionnaireState())
                     .variablesUpdate(outputVariables)
                     .externalVariables(outputExternalVariables)
                     .build();
