@@ -26,10 +26,10 @@ public class ModeController implements CommonApiResponse {
     }
 
 
-    @Operation(summary = "List sources/modes used for a given questionnaire")
+    @Operation(summary = "List sources/modes used for a given collection instrument (ex questionnaire)")
     @GetMapping(path = "/by-questionnaire")
-    public ResponseEntity<List<Mode>> getModesByQuestionnaire(@RequestParam("questionnaireId") String questionnaireId) {
-        List<Mode> modes = surveyUnitService.findModesByQuestionnaireId(questionnaireId);
+    public ResponseEntity<List<Mode>> getModesByQuestionnaire(@RequestParam("questionnaireId") String collectionInstrumentId) {
+        List<Mode> modes = surveyUnitService.findModesByCollectionInstrumentId(collectionInstrumentId);
         return ResponseEntity.ok(modes);
     }
 

@@ -34,10 +34,10 @@ public class ContextualExternalVariableJsonService implements ContextualExternal
     }
 
     @Override
-    public boolean readContextualExternalFile(String questionnaireId, String filePath) throws GenesisException {
+    public boolean readContextualExternalFile(String collectionInstrumentId, String filePath) throws GenesisException {
         try(FileInputStream inputStream = new FileInputStream(filePath)){
             JsonFactory jsonFactory = new JsonFactory();
-            moveCollectionToBackup(questionnaireId);
+            moveCollectionToBackup(collectionInstrumentId);
             try(JsonParser jsonParser = jsonFactory.createParser(inputStream)){
                 List<ContextualExternalVariableModel> toSave = new ArrayList<>();
                 goToContextualExternalToken(jsonParser);
@@ -51,7 +51,7 @@ public class ContextualExternalVariableJsonService implements ContextualExternal
                 while (jsonParser.currentToken() != JsonToken.END_ARRAY) {
                     ContextualExternalVariableModel contextualExternalVariableModel = readNextContextualExternal(
                             jsonParser,
-                            questionnaireId
+                            collectionInstrumentId
                     );
 
                     checkModel(contextualExternalVariableModel, jsonParser, savedInterrogationIds);
@@ -67,21 +67,21 @@ public class ContextualExternalVariableJsonService implements ContextualExternal
                 contextualExternalVariablePersistancePort.saveAll(toSave);
                 savedCount += toSave.size();
                 log.info("Reached end of contextual external file, saved %d interrogations".formatted(savedCount));
-                contextualExternalVariablePersistancePort.deleteBackup(questionnaireId);
+                contextualExternalVariablePersistancePort.deleteBackup(collectionInstrumentId);
                 return true;
             }
         }catch (JsonParseException jpe){
-            contextualExternalVariablePersistancePort.restoreBackup(questionnaireId);
+            contextualExternalVariablePersistancePort.restoreBackup(collectionInstrumentId);
             throw new GenesisException(400, "JSON Parsing exception : %s".formatted(jpe.toString()));
         }catch (IOException ioe){
-            contextualExternalVariablePersistancePort.restoreBackup(questionnaireId);
+            contextualExternalVariablePersistancePort.restoreBackup(collectionInstrumentId);
             throw new GenesisException(500, ioe.toString());
         }
     }
 
     @Override
-    public ContextualExternalVariableModel findByQuestionnaireIdAndInterrogationId(String questionnaireId, String interrogationId) {
-        return contextualExternalVariablePersistancePort.findByQuestionnaireIdAndInterrogationId(questionnaireId, interrogationId);
+    public ContextualExternalVariableModel findByCollectionInstrumentIdAndInterrogationId(String collectionInstrumentId, String interrogationId) {
+        return contextualExternalVariablePersistancePort.findByCollectionInstrumentIdAndInterrogationId(collectionInstrumentId, interrogationId);
     }
 
     private static void goToContextualExternalToken(JsonParser jsonParser) throws IOException{
@@ -99,9 +99,9 @@ public class ContextualExternalVariableJsonService implements ContextualExternal
         }
     }
 
-    private void moveCollectionToBackup(String questionnaireId) {
-        contextualExternalVariablePersistancePort.backup(questionnaireId);
-        contextualExternalVariablePersistancePort.delete(questionnaireId);
+    private void moveCollectionToBackup(String collectionInstrumentId) {
+        contextualExternalVariablePersistancePort.backup(collectionInstrumentId);
+        contextualExternalVariablePersistancePort.delete(collectionInstrumentId);
     }
 
     private long saveBlock(List<ContextualExternalVariableModel> toSave, long savedCount) {
@@ -125,13 +125,13 @@ public class ContextualExternalVariableJsonService implements ContextualExternal
     }
 
     private ContextualExternalVariableModel readNextContextualExternal(JsonParser jsonParser,
-                                                               String questionnaireId
+                                                               String collectionInstrumentId
                                                                ) throws IOException {
         if(jsonParser.currentToken() != JsonToken.START_OBJECT){
             throw new JsonParseException("Expected { on line %d, got token %s".formatted(jsonParser.currentLocation().getLineNr(), jsonParser.currentToken()));
         }
         ContextualExternalVariableModel contextualExternalVariableModel = ContextualExternalVariableModel.builder()
-                .questionnaireId(questionnaireId)
+                .collectionInstrumentId(collectionInstrumentId)
                 .variables(new HashMap<>())
                 .build();
         jsonParser.nextToken();

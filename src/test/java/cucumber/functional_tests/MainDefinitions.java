@@ -31,7 +31,7 @@ import fr.insee.genesis.infrastructure.document.context.DataProcessingContextDoc
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
-import fr.insee.genesis.stubs.QuestionnaireMetadataPersistancePortStub;
+import fr.insee.genesis.stubs.QuestionnaireMetadataPersistencePortStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
@@ -65,10 +65,10 @@ public class MainDefinitions {
 
     SurveyUnitQualityService surveyUnitQualityService = new SurveyUnitQualityService();
     SurveyUnitPersistencePortStub surveyUnitPersistence = new SurveyUnitPersistencePortStub();
-    static QuestionnaireMetadataPersistancePortStub questionnaireMetadataPersistancePortStub =
-            new QuestionnaireMetadataPersistancePortStub();
+    static QuestionnaireMetadataPersistencePortStub questionnaireMetadataPersistencePortStub =
+            new QuestionnaireMetadataPersistencePortStub();
     static QuestionnaireMetadataService questionnaireMetadataService =
-            new QuestionnaireMetadataService(questionnaireMetadataPersistancePortStub);
+            new QuestionnaireMetadataService(questionnaireMetadataPersistencePortStub);
     DataProcessingContextPersistancePortStub dataProcessingContextPersistancePortStub =
             new DataProcessingContextPersistancePortStub();
     DataProcessingContextApiPort dataProcessingContextApiPort = new DataProcessingContextService(
@@ -81,7 +81,7 @@ public class MainDefinitions {
     ResponseEntity<Object> surveyUnitLatestStatesResponse;
 
     ResponseController responseController = new ResponseController(
-            new SurveyUnitService(surveyUnitPersistence, new QuestionnaireMetadataService(questionnaireMetadataPersistancePortStub), new FileUtils(config)),
+            new SurveyUnitService(surveyUnitPersistence, new QuestionnaireMetadataService(questionnaireMetadataPersistencePortStub), new FileUtils(config)),
             surveyUnitQualityService,
             new FileUtils(config),
             new ControllerUtils(new FileUtils(config)),
@@ -122,24 +122,20 @@ public class MainDefinitions {
 
     @Given("We have a context in database for that data with review {string}")
     public void create_context(String withReviewString) {
-        dataProcessingContextPersistancePortStub.getMongoStub().add(
-                new DataProcessingContextDocument(
-                        directory,
-                        new ArrayList<>(),
-                        Boolean.parseBoolean(withReviewString)
-                )
-        );
+        DataProcessingContextDocument doc = new DataProcessingContextDocument();
+        doc.setPartitionId(directory);
+        doc.setKraftwerkExecutionScheduleList(new ArrayList<>());
+        doc.setWithReview(Boolean.parseBoolean(withReviewString));
+        dataProcessingContextPersistancePortStub.getMongoStub().add(doc);
     }
 
     @Given("We have a context in database for partitionId {string} with review {string}")
     public void create_context(String partitionId, String withReviewString) {
-        dataProcessingContextPersistancePortStub.getMongoStub().add(
-                new DataProcessingContextDocument(
-                        partitionId,
-                        new ArrayList<>(),
-                        Boolean.parseBoolean(withReviewString)
-                )
-        );
+        DataProcessingContextDocument doc = new DataProcessingContextDocument();
+        doc.setPartitionId(partitionId);
+        doc.setKraftwerkExecutionScheduleList(new ArrayList<>());
+        doc.setWithReview(Boolean.parseBoolean(withReviewString));
+        dataProcessingContextPersistancePortStub.getMongoStub().add(doc);
     }
 
     @Given("We have a survey unit with campaignId {string} and interrogationId {string}")
@@ -163,18 +159,18 @@ public class MainDefinitions {
             LunaticXmlCampaign campaign;
             campaign = parser.parseDataFile(filePath);
             List<QuestionnaireMetadataModel> questionnaireMetadataModels =
-                    questionnaireMetadataPersistancePortStub.find(directory, Mode.WEB);
+                    questionnaireMetadataPersistencePortStub.find(directory, Mode.WEB);
             if(questionnaireMetadataModels.isEmpty()){
                 MetadataModel metadataModel = DDIReader.getMetadataFromDDI(
                         ddiFilePath.toFile().toURI().toURL().toString(),
                         new FileInputStream(ddiFilePath.toFile())
                 );
-                questionnaireMetadataPersistancePortStub.save(new QuestionnaireMetadataModel(
+                questionnaireMetadataPersistencePortStub.save(new QuestionnaireMetadataModel(
                         directory,
                         Mode.WEB,
                         metadataModel
                 ));
-                questionnaireMetadataModels = questionnaireMetadataPersistancePortStub.find(directory, Mode.WEB);
+                questionnaireMetadataModels = questionnaireMetadataPersistencePortStub.find(directory, Mode.WEB);
             }
             List<SurveyUnitModel> surveyUnitModels1 = new ArrayList<>();
             for (LunaticXmlSurveyUnit su : campaign.getSurveyUnits()) {
@@ -210,7 +206,7 @@ public class MainDefinitions {
 
     @When("We extract survey unit data with questionnaireId {string} and interrogationId {string}")
     public void extract_survey_data(String questionnaireId, String interrogationId) {
-        this.surveyUnitModelResponse = responseController.getLatestByInterrogation(interrogationId, questionnaireId.toUpperCase());
+        this.surveyUnitModelResponse = responseController.getLatestByInterrogationAndCollectionInstrument(interrogationId, questionnaireId.toUpperCase());
     }
 
     @When("We extract survey unit latest states with questionnaireId {string} and interrogationId {string}")

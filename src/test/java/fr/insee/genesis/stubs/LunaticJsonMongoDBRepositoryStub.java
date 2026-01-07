@@ -38,9 +38,23 @@ public class LunaticJsonMongoDBRepositoryStub implements LunaticJsonMongoDBRepos
     }
 
     @Override
+    public List<String> findDistinctQuestionnaireIdByProcessDateIsNull() {
+        return List.of();
+    }
+
+    @Override
     public List<Mode> findModesByCampaignId(String campaignId) {
         return documents.stream()
                 .filter(doc -> Objects.equals(doc.campaignId(), campaignId))
+                .map(LunaticJsonRawDataDocument::mode)
+                .distinct()
+                .toList();
+    }
+
+    @Override
+    public List<Mode> findModesByQuestionnaireId(String questionnaireId) {
+        return documents.stream()
+                .filter(doc -> Objects.equals(doc.questionnaireId(), questionnaireId))
                 .map(LunaticJsonRawDataDocument::mode)
                 .distinct()
                 .toList();
@@ -54,6 +68,14 @@ public class LunaticJsonMongoDBRepositoryStub implements LunaticJsonMongoDBRepos
                         && Objects.equals(doc.mode(), mode)
                         && interrogationIdList.contains(doc.interrogationId()))
                 .toList();
+    }
+
+    @Override
+    public List<LunaticJsonRawDataDocument> findByInterrogationId(String interrogationId) {
+        return documents.stream()
+                        .filter(doc -> Objects.equals(doc.interrogationId(), interrogationId))
+                        .toList()
+        ;
     }
 
     @Override

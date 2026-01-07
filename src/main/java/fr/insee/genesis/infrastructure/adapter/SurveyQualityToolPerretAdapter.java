@@ -32,7 +32,7 @@ public class SurveyQualityToolPerretAdapter implements SurveyUnitQualityToolPort
 
     @Override
     public ResponseEntity<Object> sendProcessedIds(Map<String, Set<String>> processedIdsMap) throws IOException {
-        return HttpUtils.makeApiCall(config.getSurveyQualityToolUrl(), "/interrogations/",HttpMethod.POST, processedIdsMap,
+        return HttpUtils.makeApiCall(config.getSurveyQualityToolUrl(), "/interrogations",HttpMethod.POST, processedIdsMap,
                 Object.class, oidcService);
     }
 }

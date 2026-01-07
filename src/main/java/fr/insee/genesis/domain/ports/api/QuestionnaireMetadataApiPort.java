@@ -9,10 +9,10 @@ import fr.insee.genesis.infrastructure.utils.FileUtils;
 import java.util.List;
 
 public interface QuestionnaireMetadataApiPort {
-    MetadataModel find(String questionnaireId, Mode mode) throws GenesisException;
-    MetadataModel loadAndSaveIfNotExists(String campaignName, String questionnaireId, Mode mode, FileUtils fileUtils,
+    MetadataModel find(String collectionInstrumentId, Mode mode) throws GenesisException;
+    MetadataModel loadAndSaveIfNotExists(String campaignName, String collectionInstrumentId, Mode mode, FileUtils fileUtils,
                                          List<GenesisError> errors) throws GenesisException;
-    void remove(String questionnaireId, Mode mode);
+    void remove(String collectionInstrumentId, Mode mode);
 
-    void save(String questionnaireId, Mode mode, MetadataModel metadataModel);
+    void save(String collectionInstrumentId, Mode mode, MetadataModel metadataModel);
 }
