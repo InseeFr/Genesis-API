@@ -46,27 +46,29 @@ public class DataProcessingContextDefinitions {
 
     @Given("We have a context in database with partition {string}")
     public void add_context_to_database(String partitionId) {
-        dataProcessingContextPersistancePortStub.getMongoStub().add(
-                new DataProcessingContextDocument(partitionId, new ArrayList<>(), false)
-        );
+        DataProcessingContextDocument doc = new DataProcessingContextDocument();
+        doc.setPartitionId(partitionId);
+        doc.setKraftwerkExecutionScheduleList(new ArrayList<>());
+        doc.setWithReview(false);
+        dataProcessingContextPersistancePortStub.getMongoStub().add(doc);
     }
 
 
     @Given("We have a context in database with partition {string} and review indicator to {string}")
     public void add_context_with_review_indicator(String partitionId, String withReviewString) {
-        boolean withReview = Boolean.parseBoolean(withReviewString);
-        dataProcessingContextPersistancePortStub.getMongoStub().add(
-                new DataProcessingContextDocument(partitionId, new ArrayList<>(), withReview)
-        );
+        DataProcessingContextDocument doc = new DataProcessingContextDocument();
+        doc.setPartitionId(partitionId);
+        doc.setKraftwerkExecutionScheduleList(new ArrayList<>());
+        doc.setWithReview(Boolean.parseBoolean(withReviewString));
+        dataProcessingContextPersistancePortStub.getMongoStub().add(doc);
     }
 
     @Given("We have a context in database with partition {string} and {int} valid schedule\\(s)")
     public void add_context_with_schedule(String partitionId, int expectedScheduleNumber) {
-        DataProcessingContextDocument dataProcessingContextDocument = new DataProcessingContextDocument(
-                partitionId,
-                new ArrayList<>(),
-                false
-        );
+        DataProcessingContextDocument dataProcessingContextDocument = new DataProcessingContextDocument();
+        dataProcessingContextDocument.setPartitionId(partitionId);
+        dataProcessingContextDocument.setKraftwerkExecutionScheduleList(new ArrayList<>());
+        dataProcessingContextDocument.setWithReview(false);
 
         for(int i = 0; i < expectedScheduleNumber; i++){
             dataProcessingContextDocument.getKraftwerkExecutionScheduleList().add(
@@ -85,11 +87,10 @@ public class DataProcessingContextDefinitions {
 
     @Given("We have a context in database with partition {string} and {int} expired schedule\\(s)")
     public void add_context_with_expired_schedule(String partitionId, int expectedScheduleNumber) {
-        DataProcessingContextDocument dataProcessingContextDocument = new DataProcessingContextDocument(
-                partitionId,
-                new ArrayList<>(),
-                false
-        );
+        DataProcessingContextDocument dataProcessingContextDocument = new DataProcessingContextDocument();
+        dataProcessingContextDocument.setPartitionId(partitionId);
+        dataProcessingContextDocument.setKraftwerkExecutionScheduleList(new ArrayList<>());
+        dataProcessingContextDocument.setWithReview(false);
 
         for(int i = 0; i < expectedScheduleNumber; i++){
             dataProcessingContextDocument.getKraftwerkExecutionScheduleList().add(

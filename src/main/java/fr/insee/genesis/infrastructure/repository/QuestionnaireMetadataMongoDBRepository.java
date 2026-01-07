@@ -11,6 +11,12 @@ public interface QuestionnaireMetadataMongoDBRepository extends CrudRepository<Q
     @Query("{'questionnaireId' : ?0, 'mode' : ?1}")
     List<QuestionnaireMetadataDocument> findByQuestionnaireIdAndMode(String questionnaireId, Mode mode);
 
+    @Query("{'collectionInstrumentId' : ?0, 'mode' : ?1}")
+    List<QuestionnaireMetadataDocument> findByCollectionInstrumentIdAndMode(String collectionInstrumentId, Mode mode);
+
     @Query(value = "{'questionnaireId' : ?0, 'mode' : ?1}", delete = true)
     void deleteByQuestionnaireIdAndMode(String questionnaireId, Mode mode);
+
+    @Query(value = "{'collectionInstrumentId' : ?0, 'mode' : ?1}", delete = true)
+    void deleteByCollectionInstrumentIdIdAndMode(String collectionInstrumentId, Mode mode);
 }

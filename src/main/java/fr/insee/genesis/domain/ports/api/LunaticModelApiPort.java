@@ -6,7 +6,6 @@ import fr.insee.genesis.exceptions.GenesisException;
 import java.util.Map;
 
 public interface LunaticModelApiPort {
-    void save(String questionnaireId, Map<String, Object> lunaticModel);
-
-    LunaticModelModel get(String questionnaireId) throws GenesisException;
+    void save(String collectionInstrumentId, Map<String, Object> lunaticModel);
+    LunaticModelModel get(String collectionInstrumentId) throws GenesisException;
 }

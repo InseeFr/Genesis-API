@@ -16,14 +16,15 @@ public class LunaticModelPersistanceStub implements LunaticModelPersistancePort 
     @Override
     public void save(LunaticModelModel lunaticModelModel) {
         //Replace
-        mongoStub.removeIf(document -> document.questionnaireId().equals(lunaticModelModel.questionnaireId()));
+        mongoStub.removeIf(document -> document.questionnaireId().equals(lunaticModelModel.collectionInstrumentId()));
+        mongoStub.removeIf(document -> document.collectionInstrumentId().equals(lunaticModelModel.collectionInstrumentId()));
         mongoStub.add(LunaticModelMapper.INSTANCE.modelToDocument(lunaticModelModel));
     }
 
     @Override
-    public List<LunaticModelDocument> find(String questionnaireId) {
+    public List<LunaticModelDocument> find(String collectionInstrumentId) {
         return mongoStub.stream().filter(
-                document -> document.questionnaireId().equals(questionnaireId)
+                document -> (document.questionnaireId().equals(collectionInstrumentId) || document.collectionInstrumentId().equals(collectionInstrumentId))
         ).toList();
     }
 }

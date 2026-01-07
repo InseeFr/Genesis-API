@@ -41,7 +41,7 @@ jobs:
       - name: Print source version
         run: echo ${{ steps.version-step.outputs.newTag }}
 
-      - uses: mukunku/tag-exists-action@v1.6.0
+      - uses: mukunku/tag-exists-action@v1.7.0
         name: Check tag existence
         id: check-tag-exists
         with:
@@ -63,11 +63,15 @@ jobs:
     needs: check-version
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v6
       - name: Set up JDK 21
         uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '21'
+
+      - name: install model filiere
+        run: mvn install:install-file -Dfile="$(pwd)/libs/modelefiliere-2.1.0.jar" -DgroupId=fr.insee -DartifactId=modelefiliere -Dversion=2.1.0 -Dpackaging=jar -DgeneratePom=true
 
       - name: Clone BPM
         uses: actions/checkout@v6
@@ -89,7 +93,7 @@ jobs:
           mvn package --no-transfer-progress
 
       - name: Upload app jar
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: app-jar
           path: target/*.jar
@@ -165,7 +169,7 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Download uploaded jar
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: app-jar
           path: target/

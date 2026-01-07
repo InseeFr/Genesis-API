@@ -8,5 +8,5 @@ import java.util.List;
 public interface LunaticModelPersistancePort {
     void save(LunaticModelModel lunaticModelModel);
 
-    List<LunaticModelDocument> find(String questionnaireId);
+    List<LunaticModelDocument> find(String collectionInstrumentId);
 }

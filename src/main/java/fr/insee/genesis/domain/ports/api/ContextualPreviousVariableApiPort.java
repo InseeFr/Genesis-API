@@ -4,7 +4,7 @@ import fr.insee.genesis.domain.model.contextualvariable.ContextualPreviousVariab
 import fr.insee.genesis.exceptions.GenesisException;
 
 public interface ContextualPreviousVariableApiPort {
-    boolean readContextualPreviousFile(String questionnaireId, String sourceState, String filePath) throws GenesisException;
+    boolean readContextualPreviousFile(String collectionInstrumentId, String sourceState, String filePath) throws GenesisException;
 
-    ContextualPreviousVariableModel findByQuestionnaireIdAndInterrogationId(String questionnaireId, String interrogationId);
+    ContextualPreviousVariableModel findByCollectionInstrumentIdAndInterrogationId(String collectionInstrumentId, String interrogationId);
 }

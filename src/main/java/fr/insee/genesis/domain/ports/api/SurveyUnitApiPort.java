@@ -2,10 +2,10 @@ package fr.insee.genesis.domain.ports.api;
 
 import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.controller.dto.CampaignWithQuestionnaire;
-import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
 import fr.insee.genesis.controller.dto.QuestionnaireWithCampaign;
 import fr.insee.genesis.controller.dto.SurveyUnitDto;
 import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
+import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.exceptions.GenesisException;
@@ -13,26 +13,23 @@ import fr.insee.genesis.exceptions.GenesisException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Stream;
 
 
 public interface SurveyUnitApiPort {
 
     void saveSurveyUnits(List<SurveyUnitModel> suList);
 
-    List<SurveyUnitModel> findByIdsInterrogationAndQuestionnaire(String interrogationId, String questionnaireId);
+    List<SurveyUnitModel> findByIdsInterrogationAndCollectionInstrument(String interrogationId, String questionnaireId);
 
     List<SurveyUnitModel> findByInterrogationId(String interrogationId);
 
-    Stream<SurveyUnitModel> findByQuestionnaireId(String questionnaireId);
-
-    List<SurveyUnitModel> findLatestByIdAndByQuestionnaireId(String interrogationId, String questionnaireId);
+    List<SurveyUnitModel> findLatestByIdAndByCollectionInstrumentId(String interrogationId, String collectionInstrumentId);
 
     //========= OPTIMISATIONS PERFS (START) ==========
     List<List<SurveyUnitModel>> findLatestByIdAndByQuestionnaireIdAndModeOrdered(String questionnaireId, String mode, List<InterrogationId> interrogationIds);
     //========= OPTIMISATIONS PERFS (END) ==========
 
-    SurveyUnitDto findLatestValuesByStateByIdAndByQuestionnaireId(String interrogationId, String questionnaireId) throws GenesisException;
+    SurveyUnitDto findLatestValuesByStateByIdAndByCollectionInstrumentId(String interrogationId, String collectionInstrumentId) throws GenesisException;
 
     List<SurveyUnitModel> findInterrogationIdsAndModesByQuestionnaireId(String questionnaireId);
 
@@ -49,7 +46,7 @@ public interface SurveyUnitApiPort {
     List<Mode> findModesByQuestionnaireIdV2(String questionnaireId);
     //========= OPTIMISATIONS PERFS (END) ==========
 
-    List<Mode> findModesByQuestionnaireId(String questionnaireId);
+    List<Mode> findModesByCollectionInstrumentId(String collectionInstrumentId);
 
     List<Mode> findModesByCampaignId(String campaignId);
 
@@ -57,7 +54,7 @@ public interface SurveyUnitApiPort {
     List<Mode> findModesByCampaignIdV2(String campaignId);
     //========= OPTIMISATIONS PERFS (END) ==========
 
-    Long deleteByQuestionnaireId(String questionnaireId);
+    Long deleteByCollectionInstrumentId(String collectionInstrumentId);
 
     long countResponses();
 

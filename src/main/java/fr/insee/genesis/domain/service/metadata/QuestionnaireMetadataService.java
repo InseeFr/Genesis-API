@@ -4,13 +4,13 @@ import fr.insee.bpm.exceptions.MetadataParserException;
 import fr.insee.bpm.metadata.model.MetadataModel;
 import fr.insee.bpm.metadata.model.Variable;
 import fr.insee.bpm.metadata.model.VariableType;
-import fr.insee.bpm.metadata.reader.ddi.DDIReader;
+import fr.insee.bpm.metadata.reader.ReaderUtils;
 import fr.insee.bpm.metadata.reader.lunatic.LunaticReader;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.domain.model.metadata.QuestionnaireMetadataModel;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.ports.api.QuestionnaireMetadataApiPort;
-import fr.insee.genesis.domain.ports.spi.QuestionnaireMetadataPersistancePort;
+import fr.insee.genesis.domain.ports.spi.QuestionnaireMetadataPersistencePort;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -30,36 +31,38 @@ public class QuestionnaireMetadataService implements QuestionnaireMetadataApiPor
     private static final String DDI_FILE_PATTERN = "ddi[\\w,\\s-]+\\.xml";
     private static final String LUNATIC_FILE_PATTERN = "lunatic[\\w,\\s-]+\\.json";
 
-    QuestionnaireMetadataPersistancePort questionnaireMetadataPersistancePort;
+    QuestionnaireMetadataPersistencePort questionnaireMetadataPersistencePort;
 
 
     @Override
-    public MetadataModel find(String questionnaireId, Mode mode) throws GenesisException {
+    public MetadataModel find(String collectionInstrumentId, Mode mode) throws GenesisException {
         List<QuestionnaireMetadataModel> questionnaireMetadataModels =
-                questionnaireMetadataPersistancePort.find(questionnaireId, mode);
+                questionnaireMetadataPersistencePort.find(collectionInstrumentId, mode);
         if(questionnaireMetadataModels.isEmpty()){
-            throw new GenesisException(404, "Questionnaire metadata not found");
+            throw new GenesisException(404, "Collection instrument metadata not found");
         }
         return questionnaireMetadataModels.getFirst().metadataModel();
     }
 
     @Override
-    public MetadataModel loadAndSaveIfNotExists(String campaignName, String questionnaireId, Mode mode, FileUtils fileUtils,
+    public MetadataModel loadAndSaveIfNotExists(String campaignName, String collectionInstrumentId, Mode mode, FileUtils fileUtils,
                                                 List<GenesisError> errors) throws GenesisException {
         List<QuestionnaireMetadataModel> questionnaireMetadataModels =
-                questionnaireMetadataPersistancePort.find(questionnaireId.toUpperCase(), mode);
+                questionnaireMetadataPersistencePort.find(collectionInstrumentId.toUpperCase(), mode);
         if(questionnaireMetadataModels.isEmpty() || questionnaireMetadataModels.getFirst().metadataModel() == null){
-            MetadataModel metadataModel = readMetadatas(campaignName, mode.getModeName(), fileUtils, errors);
-            saveMetadata(questionnaireId.toUpperCase(), mode, metadataModel);
+            MetadataModel metadataModel = readMetadatas(collectionInstrumentId, mode.getModeName(), fileUtils, errors);
+            saveMetadata(collectionInstrumentId.toUpperCase(), mode, metadataModel);
             return metadataModel;
         }
+
+ 
         return questionnaireMetadataModels.getFirst().metadataModel();
     }
 
-    private void saveMetadata(String questionnaireId, Mode mode, MetadataModel metadataModel) {
-        questionnaireMetadataPersistancePort.save(
+    private void saveMetadata(String collectionInstrumentId, Mode mode, MetadataModel metadataModel) {
+        questionnaireMetadataPersistencePort.save(
                 new QuestionnaireMetadataModel(
-                        questionnaireId,
+                        collectionInstrumentId,
                         mode,
                         metadataModel
                 )
@@ -80,11 +83,12 @@ public class QuestionnaireMetadataService implements QuestionnaireMetadataApiPor
                                   List<GenesisError> errors) throws GenesisException{
 
         Path ddiFilePath;
+        Path lunaticFilePath;
         MetadataModel metadataModel = null;
         try {
             ddiFilePath = fileUtils.findFile(String.format("%s/%s", fileUtils.getSpecFolder(campaignName), modeName), DDI_FILE_PATTERN);
-            metadataModel = parseMetadata(ddiFilePath.toString(), true);
-
+            lunaticFilePath = fileUtils.findFile(String.format("%s/%s", fileUtils.getSpecFolder(campaignName), modeName), LUNATIC_FILE_PATTERN);
+            metadataModel = parseMetadata(lunaticFilePath, ddiFilePath);
         } catch (RuntimeException e) {
             //DDI file not found and already log - Go to next step
         } catch (IOException e) {
@@ -93,8 +97,8 @@ public class QuestionnaireMetadataService implements QuestionnaireMetadataApiPor
         if(metadataModel == null ){
             log.warn("DDI not found or error occurred. Trying Lunatic metadata...for {}, {} mode", campaignName, modeName);
             try {
-                Path lunaticFilePath = fileUtils.findFile(String.format("%s/%s", fileUtils.getSpecFolder(campaignName), modeName), LUNATIC_FILE_PATTERN);
-                return parseMetadata(lunaticFilePath.toString(), false);
+                lunaticFilePath = fileUtils.findFile(String.format("%s/%s", fileUtils.getSpecFolder(campaignName), modeName), LUNATIC_FILE_PATTERN);
+                return parseMetadata(lunaticFilePath, null);
             } catch (Exception ex) {
                 log.error("Error reading Lunatic metadata file", ex);
                 errors.add(new GenesisError(ex.toString()));
@@ -109,19 +113,24 @@ public class QuestionnaireMetadataService implements QuestionnaireMetadataApiPor
     }
 
     /**
-     * Parse metadata file, either DDI or Lunatic, depending on the withDDI flag.
+     * Parse metadata file
      *
-     * @param metadataFilePath path to the metadata file
-     * @param withDDI          true for DDI parsing, false for Lunatic parsing
+     * @param lunaticFilePath path to the DDI metadata file
+     * @param ddiFilePath path to the DDI metadata file, will parse only lunatic if null
      * @return VariablesMap or null if an error occurs
      */
-    private MetadataModel parseMetadata(String metadataFilePath, boolean withDDI) {
+    private MetadataModel parseMetadata(Path lunaticFilePath, Path ddiFilePath) {
         try {
-            log.info("Try to read {} file: {}", withDDI ? "DDI" : "Lunatic", metadataFilePath);
-            if (withDDI) {
-                MetadataModel metadataModel = DDIReader.getMetadataFromDDI(
-                        Path.of(metadataFilePath).toFile().toURI().toURL().toString(),
-                        new FileInputStream(metadataFilePath));
+            log.info("Try to read {} file: {}", ddiFilePath != null ? "DDI" : "Lunatic", ddiFilePath);
+
+            if (ddiFilePath != null) {
+                InputStream metadataInputStream = new FileInputStream(ddiFilePath.toFile());
+                InputStream lunaticInputStream = new FileInputStream(lunaticFilePath.toFile());
+                MetadataModel metadataModel = ReaderUtils.getMetadataFromDDIAndLunatic(
+                        ddiFilePath.toFile().toURI().toURL().toString(),
+                        metadataInputStream,
+                        lunaticInputStream
+                );
                 // Temporary solution
                 // the logic of adding variables from lunatic to the ones present in the DDI needs to be implemented in BPM
                 // (only in Kraftwerk for the moment)
@@ -129,10 +138,8 @@ public class QuestionnaireMetadataService implements QuestionnaireMetadataApiPor
                     metadataModel.getVariables().putVariable(new Variable(enoVar, metadataModel.getRootGroup(), VariableType.STRING));
                 }
                 return metadataModel;
-            } else {
-                return LunaticReader.getMetadataFromLunatic(
-                        new FileInputStream(metadataFilePath));
             }
+            return LunaticReader.getMetadataFromLunatic(new FileInputStream(lunaticFilePath.toFile()));
         } catch (MetadataParserException | IOException e) {
             log.error("Error reading metadata file", e);
             return null;
@@ -140,14 +147,14 @@ public class QuestionnaireMetadataService implements QuestionnaireMetadataApiPor
     }
 
     @Override
-    public void remove(String questionnaireId, Mode mode) {
-        questionnaireMetadataPersistancePort.remove(questionnaireId, mode);
+    public void remove(String collectionInstrumentId, Mode mode) {
+        questionnaireMetadataPersistencePort.remove(collectionInstrumentId, mode);
     }
 
     @Override
-    public void save(String questionnaireId, Mode mode, MetadataModel metadataModel) {
-        questionnaireMetadataPersistancePort.save(new QuestionnaireMetadataModel(
-                questionnaireId,
+    public void save(String collectionInstrumentId, Mode mode, MetadataModel metadataModel) {
+        questionnaireMetadataPersistencePort.save(new QuestionnaireMetadataModel(
+                collectionInstrumentId,
                 mode,
                 metadataModel
         ));

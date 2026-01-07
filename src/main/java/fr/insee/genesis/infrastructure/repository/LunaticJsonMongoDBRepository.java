@@ -20,14 +20,30 @@ public interface LunaticJsonMongoDBRepository extends MongoRepository<LunaticJso
     @Query("{\"processDate\" : null}")
     List<LunaticJsonRawDataDocument> findByNullProcessDate();
 
+    @Aggregation(pipeline = {
+            "{ $match: { processDate: null } }",
+            "{ $group: { _id: 'questionnaireId' } }",
+            "{ $project: { _id: 0, questionnaireId: '$_id' } }"
+    })
+    List<String> findDistinctQuestionnaireIdByProcessDateIsNull();
+
     @Query(value = "{ 'campaignId' : ?0 }", fields = "{ 'mode' :  1 }")
     List<Mode> findModesByCampaignId(String campaignId);
+
+    @Aggregation(pipeline = {
+            "{ '$match': { 'questionnaireId': ?0 } }",
+            "{ '$project': { '_id': 0, 'mode': 1 } }"
+    })
+    List<Mode> findModesByQuestionnaireId(String questionnaireId);
 
     @Query(value = "{ 'campaignId' : ?0, 'mode' : ?1, 'interrogationId': {$in: ?2} }")
     List<LunaticJsonRawDataDocument> findByCampaignModeAndInterrogations(String campaignName, Mode mode, List<String> interrogationIdList);
 
     @Query(value = "{ 'questionnaireId' : ?0, 'mode' : ?1, 'interrogationId': {$in: ?2} }")
     List<LunaticJsonRawDataDocument> findByQuestionnaireModeAndInterrogations(String questionnaireId, Mode mode, List<String> interrogationIdList);
+
+    @Query(value = "{ 'interrogationId': ?0}")
+    List<LunaticJsonRawDataDocument> findByInterrogationId(String interrogationId);
 
     Page<LunaticJsonRawDataDocument> findByCampaignIdAndRecordDateBetween(String campagneId, Instant start, Instant  end, Pageable pageable);
     long countByQuestionnaireId(String questionnaireId);
