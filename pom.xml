@@ -103,11 +103,6 @@
             <artifactId>modelefiliere</artifactId>
             <version>2.1.0</version>
         </dependency>
-        <dependency>
-            <groupId>com.networknt</groupId>
-            <artifactId>json-schema-validator</artifactId>
-            <version>1.5.9</version>
-        </dependency>
         <!-- XML libraries -->
         <!-- XML-XSLT with Saxon -->
         <dependency>
