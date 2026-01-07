@@ -38,6 +38,11 @@ public class LunaticJsonMongoDBRepositoryStub implements LunaticJsonMongoDBRepos
     }
 
     @Override
+    public List<String> findDistinctQuestionnaireIdByProcessDateIsNull() {
+        return List.of();
+    }
+
+    @Override
     public List<Mode> findModesByCampaignId(String campaignId) {
         return documents.stream()
                 .filter(doc -> Objects.equals(doc.campaignId(), campaignId))

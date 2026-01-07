@@ -20,6 +20,13 @@ public interface LunaticJsonMongoDBRepository extends MongoRepository<LunaticJso
     @Query("{\"processDate\" : null}")
     List<LunaticJsonRawDataDocument> findByNullProcessDate();
 
+    @Aggregation(pipeline = {
+            "{ $match: { processDate: null } }",
+            "{ $group: { _id: 'questionnaireId' } }",
+            "{ $project: { _id: 0, questionnaireId: '$_id' } }"
+    })
+    List<String> findDistinctQuestionnaireIdByProcessDateIsNull();
+
     @Query(value = "{ 'campaignId' : ?0 }", fields = "{ 'mode' :  1 }")
     List<Mode> findModesByCampaignId(String campaignId);
 
