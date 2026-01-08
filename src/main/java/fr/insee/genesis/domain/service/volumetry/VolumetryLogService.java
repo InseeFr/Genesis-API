@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -122,12 +123,17 @@ public class VolumetryLogService {
                 String datePart = logFilePath.getFileName().toString()
                         .split(Constants.VOLUMETRY_FILE_SUFFIX + "\\.csv")[0] // Delete common suffix
                         .replace("_RAW", ""); // Delete "_RAW" if present
-                if (LocalDateTime.parse(datePart, DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
-                        .isBefore(LocalDateTime.now().minusDays(Constants.VOLUMETRY_FILE_EXPIRATION_DAYS))
-                ) {
-                    Files.deleteIfExists(logFilePath);
-                    log.info("Deleted {}", logFilePath);
+                try{
+                    if (LocalDateTime.parse(datePart, DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
+                            .isBefore(LocalDateTime.now().minusDays(Constants.VOLUMETRY_FILE_EXPIRATION_DAYS))
+                    ) {
+                        Files.deleteIfExists(logFilePath);
+                        log.info("Deleted {}", logFilePath);
+                    }
+                }catch (DateTimeParseException dtpe){
+                    log.warn(dtpe.toString());
                 }
+
             }
         }
     }
