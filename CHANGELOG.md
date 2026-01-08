@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.0.2 [TODO]
+## 2.0.2 [2026-01-07]
 ### Fixed
 - Revert change url for quality tool, waiting for its update
 
