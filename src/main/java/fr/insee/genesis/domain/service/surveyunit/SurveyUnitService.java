@@ -293,7 +293,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                                                                                        long blockSize, long page) {
         long calculatedTotalSize;
         if(totalSize == 0) {
-            calculatedTotalSize = countInterrogationIdsByQuestionnaireId(questionnaireId);
+            calculatedTotalSize = this.countResponsesByCollectionInstrumentId(questionnaireId);
         } else {
             calculatedTotalSize = totalSize;
         }
@@ -317,8 +317,8 @@ public class SurveyUnitService implements SurveyUnitApiPort {
      * @author Adrien Marchal
      */
     @Override
-    public long countInterrogationIdsByQuestionnaireId(String questionnaireId) {
-        return surveyUnitPersistencePort.countInterrogationIdsByQuestionnaireId(questionnaireId);
+    public long countResponsesByCollectionInstrumentId(String collectionInstrumentId) {
+        return surveyUnitPersistencePort.countByCollectionInstrumentId(collectionInstrumentId);
     }
     //=========== OPTIMISATIONS PERFS (END) =============
 
@@ -409,14 +409,14 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     }
 
     @Override
-    public Set<String> findDistinctQuestionnaireIds() {
-        return surveyUnitPersistencePort.findDistinctQuestionnaireIds();
+    public Set<String> findDistinctCollectionInstrumentIds() {
+        return surveyUnitPersistencePort.findDistinctCollectionInstrumentIds();
     }
 
     @Override
     public List<QuestionnaireWithCampaign> findQuestionnairesWithCampaigns() {
         List<QuestionnaireWithCampaign> questionnaireWithCampaignList = new ArrayList<>();
-        for(String questionnaireId : findDistinctQuestionnaireIds()){
+        for(String questionnaireId : findDistinctCollectionInstrumentIds()){
             Set<String> campaigns = surveyUnitPersistencePort.findCampaignIdsByQuestionnaireId(questionnaireId);
             questionnaireWithCampaignList.add(new QuestionnaireWithCampaign(
                     questionnaireId,

@@ -15,6 +15,7 @@ import fr.insee.genesis.domain.ports.spi.DataProcessingContextPersistancePort;
 import fr.insee.genesis.domain.service.context.DataProcessingContextService;
 import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService;
+import fr.insee.genesis.domain.service.rawdata.RawResponseService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.domain.service.volumetry.VolumetryLogService;
@@ -23,20 +24,22 @@ import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
 import fr.insee.genesis.stubs.LunaticJsonRawDataPersistanceStub;
 import fr.insee.genesis.stubs.QuestionnaireMetadataPersistencePortStub;
+import fr.insee.genesis.stubs.RawResponseDataPersistanceStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import fr.insee.genesis.stubs.SurveyUnitQualityToolPerretAdapterStub;
+import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.FileSystemUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -44,7 +47,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static fr.insee.genesis.TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID;
 import static fr.insee.genesis.TestConstants.DEFAULT_INTERROGATION_ID;
 
 class UtilsControllerTest {
@@ -52,19 +54,23 @@ class UtilsControllerTest {
     static UtilsController utilsControllerStatic;
     static SurveyUnitPersistencePortStub surveyUnitPersistencePortStub;
     static LunaticJsonRawDataPersistanceStub lunaticJsonRawDataPersistencePort;
+    static RawResponseDataPersistanceStub rawResponseDataPersistanceStub;
     static DataProcessingContextPersistancePort contextStub = new DataProcessingContextPersistancePortStub();
     static SurveyUnitQualityToolPerretAdapterStub surveyUnitQualityToolPerretAdapterStub;
     static List<InterrogationId> interrogationIdList;
     static FileUtils fileUtils = new FileUtils(new ConfigStub());
     static ControllerUtils controllerUtils = new ControllerUtils(fileUtils);
     static QuestionnaireMetadataService metadataService = new QuestionnaireMetadataService(new QuestionnaireMetadataPersistencePortStub());
-    static SurveyUnitService surveyUnitService = new SurveyUnitService(new SurveyUnitPersistencePortStub(), metadataService, fileUtils);
+    static SurveyUnitService surveyUnitService = new SurveyUnitService(surveyUnitPersistencePortStub, metadataService, fileUtils);
     static SurveyUnitQualityService surveyUnitQualityService = new SurveyUnitQualityService();
+
+    static Path logFileFolder = Path.of(new ConfigStub().getLogFolder()).resolve(Constants.VOLUMETRY_FOLDER_NAME);
 
     @BeforeAll
     static void init() {
         surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
         lunaticJsonRawDataPersistencePort = new LunaticJsonRawDataPersistanceStub();
+        rawResponseDataPersistanceStub = new RawResponseDataPersistanceStub();
         SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(surveyUnitPersistencePortStub, metadataService, fileUtils);
         LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort = new LunaticJsonRawDataService(
                         lunaticJsonRawDataPersistencePort,
@@ -80,11 +86,26 @@ class UtilsControllerTest {
                         new ConfigStub(),
                         contextStub);
 
+        RawResponseService rawResponseApiPort = new RawResponseService(
+                controllerUtils,
+                metadataService,
+                surveyUnitService,
+                surveyUnitQualityService,
+                surveyUnitQualityToolPerretAdapterStub,
+                new DataProcessingContextService(
+                        new DataProcessingContextPersistancePortStub(),
+                        surveyUnitPersistencePortStub),
+                fileUtils,
+                new ConfigStub(),
+                rawResponseDataPersistanceStub
+        );
+
 
         utilsControllerStatic = new UtilsController(
-                surveyUnitApiPort
-                , new VolumetryLogService(new ConfigStub())
+                new VolumetryLogService(new ConfigStub())
+                , surveyUnitApiPort
                 , lunaticJsonRawDataApiPort
+                , rawResponseApiPort
         );
 
         interrogationIdList = new ArrayList<>();
@@ -132,7 +153,7 @@ class UtilsControllerTest {
                 .campaignId("TEST-TABLEAUX")
                 .mode(Mode.WEB)
                 .interrogationId(DEFAULT_INTERROGATION_ID)
-                .collectionInstrumentId(DEFAULT_COLLECTION_INSTRUMENT_ID)
+                .collectionInstrumentId("TEST-TABLEAUX")
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2023, 1, 1, 0, 0, 0))
                 .recordDate(LocalDateTime.of(2024, 1, 1, 0, 0, 0))
@@ -289,32 +310,23 @@ class UtilsControllerTest {
         }
     }
 
-    @AfterAll
-    static void cleanRewFiles() throws IOException {
-        Path logFilePathRaw = Path.of(
-                        new ConfigStub().getLogFolder())
-                .resolve(Constants.VOLUMETRY_FOLDER_NAME)
-                .resolve(LocalDate.now().format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
-                        + Constants.VOLUMETRY_RAW_FILE_SUFFIX + ".csv");
-        Files.deleteIfExists(logFilePathRaw);
-    }
-
     @Test
     void saveVolumetryTest() throws IOException {
         //WHEN
         ResponseEntity<Object> response = utilsControllerStatic.saveVolumetry();
 
         //THEN
-        Path logFilePath = Path.of(
-                        new ConfigStub().getLogFolder())
-                        .resolve(Constants.VOLUMETRY_FOLDER_NAME)
-                        .resolve(LocalDate.now().format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
-                                + Constants.VOLUMETRY_FILE_SUFFIX + ".csv");
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TEST-TABLEAUX;1");
-
-        //CLEAN
-        Files.deleteIfExists(logFilePath);
+        try(Stream<Path> pathStream = Files.list(logFileFolder).filter(logFilePath ->
+                logFilePath.getFileName().toString().contains(Constants.VOLUMETRY_FILE_SUFFIX)
+                        && !logFilePath.getFileName().toString().contains(Constants.VOLUMETRY_RAW_FILE_SUFFIX)
+        )) {
+            List<Path> pathList = pathStream.toList();
+            Assertions.assertThat(pathList).hasSize(1);
+            Assertions.assertThat(pathList.getFirst())
+                    .exists().content().isNotEmpty()
+                    .contains("TEST-TABLEAUX;1");
+        }
     }
 
     @Test
@@ -324,67 +336,67 @@ class UtilsControllerTest {
         ResponseEntity<Object> response = utilsControllerStatic.saveVolumetry();
 
         //THEN
-        Path logFilePath = Path.of(
-                        new ConfigStub().getLogFolder())
-                .resolve(Constants.VOLUMETRY_FOLDER_NAME)
-                .resolve(LocalDate.now().format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
-                        + Constants.VOLUMETRY_FILE_SUFFIX + ".csv");
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TEST-TABLEAUX;1").doesNotContain("TEST-TABLEAUX;1\nTEST-TABLEAUX;1");
-
-        //CLEAN
-        Files.deleteIfExists(logFilePath);
+        try(Stream<Path> pathStream = Files.list(logFileFolder).filter(logFilePath ->
+                logFilePath.getFileName().toString().contains(Constants.VOLUMETRY_FILE_SUFFIX)
+                        && !logFilePath.getFileName().toString().contains(Constants.VOLUMETRY_RAW_FILE_SUFFIX)
+        )) {
+            List<Path> pathList = pathStream.toList();
+            Assertions.assertThat(pathList).hasSize(1);
+            Assertions.assertThat(pathList.getFirst())
+                    .exists().content().isNotEmpty()
+                    .contains("TEST-TABLEAUX;1")
+                    .doesNotContain("TEST-TABLEAUX;1\nTEST-TABLEAUX;1");
+        }
     }
 
     @Test
     void saveVolumetryTest_additionnal_campaign() throws IOException {
         //Given
-        addAdditionalSurveyUnitModelToMongoStub("TEST-TABLEAUX2","TESTQUEST2");
+        addAdditionalSurveyUnitModelToMongoStub("TEST-TABLEAUX2","TEST-TABLEAUX2");
 
         //WHEN
         ResponseEntity<Object> response = utilsControllerStatic.saveVolumetry();
 
         //THEN
-        Path logFilePath = Path.of(
-                        new ConfigStub().getLogFolder())
-                .resolve(Constants.VOLUMETRY_FOLDER_NAME)
-                .resolve(LocalDate.now().format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
-                        + Constants.VOLUMETRY_FILE_SUFFIX + ".csv");
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TEST-TABLEAUX;1").contains("TEST-TABLEAUX2;1");
-
-        //CLEAN
-        Files.deleteIfExists(logFilePath);
+        try(Stream<Path> pathStream = Files.list(logFileFolder).filter(logFilePath ->
+                logFilePath.getFileName().toString().contains(Constants.VOLUMETRY_FILE_SUFFIX)
+                && !logFilePath.getFileName().toString().contains(Constants.VOLUMETRY_RAW_FILE_SUFFIX)
+        )){
+            List<Path> pathList = pathStream.toList();
+            Assertions.assertThat(pathList).hasSize(1);
+            Assertions.assertThat(pathList.getFirst())
+                    .isNotNull().exists().content().isNotEmpty().contains("TEST-TABLEAUX;1").contains("TEST-TABLEAUX2;1");
+        }
     }
     @Test
     void saveVolumetryTest_additionnal_campaign_and_document() throws IOException {
         //Given
-        addAdditionalSurveyUnitModelToMongoStub("TESTQUEST");
-        addAdditionalSurveyUnitModelToMongoStub("TEST-TABLEAUX2","TESTQUEST2");
+        addAdditionalSurveyUnitModelToMongoStub("TEST-TABLEAUX");
+        addAdditionalSurveyUnitModelToMongoStub("TEST-TABLEAUX2","TEST-TABLEAUX2");
 
         //WHEN
         ResponseEntity<Object> response = utilsControllerStatic.saveVolumetry();
 
         //THEN
-        Path logFilePath = Path.of(
-                        new ConfigStub().getLogFolder())
-                .resolve(Constants.VOLUMETRY_FOLDER_NAME)
-                .resolve(LocalDate.now().format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
-                        + Constants.VOLUMETRY_FILE_SUFFIX + ".csv");
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(logFilePath).exists().content().isNotEmpty().contains("TEST-TABLEAUX;2").contains("TEST-TABLEAUX2;1");
-
-        //CLEAN
-        Files.deleteIfExists(logFilePath);
+        try(Stream<Path> pathStream = Files.list(logFileFolder).filter(logFilePath ->
+                logFilePath.getFileName().toString().contains(Constants.VOLUMETRY_FILE_SUFFIX)
+                        && !logFilePath.getFileName().toString().contains(Constants.VOLUMETRY_RAW_FILE_SUFFIX)
+        )){
+            List<Path> pathList = pathStream.toList();
+            Assertions.assertThat(pathList).hasSize(1);
+            Assertions.assertThat(pathList.getFirst())
+                    .isNotNull().exists().content().isNotEmpty().contains("TEST-TABLEAUX;2").contains("TEST-TABLEAUX2;1");
+        }
     }
 
     @Test
     void cleanOldVolumetryLogFiles() throws IOException {
         //GIVEN
-        Path oldLogFilePath = Path.of(
-                        new ConfigStub().getLogFolder())
-                .resolve(Constants.VOLUMETRY_FOLDER_NAME)
-                .resolve(LocalDate.of(2000,1,1).format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
+        Path oldLogFilePath = logFileFolder
+                .resolve(LocalDateTime.of(2000,1,1,0,0,0).format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
                         + Constants.VOLUMETRY_FILE_SUFFIX + ".csv");
 
         Files.createDirectories(oldLogFilePath.getParent());
@@ -396,13 +408,6 @@ class UtilsControllerTest {
         //THEN
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(oldLogFilePath).doesNotExist();
-
-        //CLEAN
-        try(Stream<Path> stream = Files.walk(oldLogFilePath.getParent())){
-            for(Path filePath : stream.filter(path -> path.getFileName().toString().endsWith(".csv")).toList()){
-                Files.deleteIfExists(filePath);
-            }
-        }
     }
 
 
@@ -410,11 +415,11 @@ class UtilsControllerTest {
 
     // Utilities
 
-    private void addAdditionalSurveyUnitModelToMongoStub(String questionnaireId) {
-        addAdditionalSurveyUnitModelToMongoStub("TEST-TABLEAUX",questionnaireId);
+    private void addAdditionalSurveyUnitModelToMongoStub(String collectionInstrumentId) {
+        addAdditionalSurveyUnitModelToMongoStub("TEST-TABLEAUX",collectionInstrumentId);
     }
 
-    private void addAdditionalSurveyUnitModelToMongoStub(String campaignId, String questionnaireId) {
+    private void addAdditionalSurveyUnitModelToMongoStub(String campaignId, String collectionInstrumentId) {
         List<VariableModel> externalVariableList = new ArrayList<>();
         VariableModel variable = VariableModel.builder()
                 .varId("TESTVARID")
@@ -451,7 +456,7 @@ class UtilsControllerTest {
                 .campaignId(campaignId)
                 .mode(Mode.WEB)
                 .interrogationId(DEFAULT_INTERROGATION_ID)
-                .collectionInstrumentId(questionnaireId)
+                .collectionInstrumentId(collectionInstrumentId)
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2023, 2, 2, 0, 0, 0))
                 .recordDate(LocalDateTime.of(2024, 2, 2, 0, 0, 0))
@@ -461,4 +466,9 @@ class UtilsControllerTest {
         surveyUnitPersistencePortStub.getMongoStub().add(recentSurveyUnitModel);
     }
 
+    @AfterEach
+    @SneakyThrows
+    void tearDown() {
+        FileSystemUtils.deleteRecursively(logFileFolder);
+    }
 }

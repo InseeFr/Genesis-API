@@ -19,4 +19,6 @@ public interface RawResponsePersistencePort {
     Set<String> findUnprocessedInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId);
     List<ModeDto> findModesByCollectionInstrument(String collectionInstrumentId);
     Page<RawResponseModel> findByCampaignIdAndDate(String campaignId, Instant startDate, Instant endDate, Pageable pageable);
+    long countByCollectionInstrumentId(String collectionInstrumentId);
+    Set<String> findDistinctCollectionInstrumentIds();
 }

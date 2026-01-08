@@ -59,6 +59,7 @@ import java.security.interfaces.RSAPublicKey;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 @Slf4j
 @ContextConfiguration(classes = CucumberSpringConfiguration.class)
@@ -146,6 +147,16 @@ public class RawDataDefinitions {
         @Override
         public Page<RawResponseModel> findRawResponseDataByCampaignIdAndDate(String campaignId, Instant startDate, Instant endDate, Pageable pageable) {
             return null;
+        }
+
+        @Override
+        public long countByCollectionInstrumentId(String collectionInstrumentId) {
+            return 0;
+        }
+
+        @Override
+        public Set<String> getDistinctCollectionInstrumentIds() {
+            return Set.of();
         }
     };
 

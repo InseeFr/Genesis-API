@@ -22,7 +22,7 @@ public interface LunaticJsonRawDataPersistencePort {
     Set<String> findDistinctQuestionnaireIdsByNullProcessDate();
     Set<Mode> findModesByQuestionnaire(String questionnaireId);
     Page<LunaticJsonRawDataModel> findByCampaignIdAndDate(String campaignId, Instant startDt, Instant endDt, Pageable pageable);
-    long countResponsesByQuestionnaireId(String questionnaireId);
+    long countRawResponsesByQuestionnaireId(String questionnaireId);
     List<GroupedInterrogation> findProcessedIdsGroupedByQuestionnaireSince(LocalDateTime since);
     List<GroupedInterrogation> findUnprocessedIds();
     Set<String> findUnprocessedInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId);

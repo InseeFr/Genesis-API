@@ -2,6 +2,7 @@ package fr.insee.genesis.domain.service.volumetry;
 
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.configuration.Config;
+import fr.insee.genesis.domain.ports.api.RawResponseApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import lombok.extern.slf4j.Slf4j;
@@ -12,8 +13,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -27,10 +31,12 @@ public class VolumetryLogService {
         this.config = config;
     }
 
-    public void writeVolumetries(SurveyUnitApiPort surveyUnitApiPort) throws IOException {
+    public Map<String, Long> writeVolumetries(SurveyUnitApiPort surveyUnitApiPort) throws IOException {
+        Map<String, Long> responseVolumetricsByQuestionnaireMap = new HashMap<>();
+
         Path logFilePath = Path.of(config.getLogFolder()).resolve(Constants.VOLUMETRY_FOLDER_NAME)
                 .resolve(
-                        LocalDate.now().format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
+                        LocalDateTime.now().format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
                                 + Constants.VOLUMETRY_FILE_SUFFIX + ".csv");
         Files.createDirectories(logFilePath.getParent());
         //Overwrite log file with header if exists
@@ -40,37 +46,72 @@ public class VolumetryLogService {
         Files.writeString(logFilePath, "campaign;volumetry\n");
 
         //Write lines
-        Set<String> campaigns = surveyUnitApiPort.findDistinctCampaignIds();
-        for (String campaignId : campaigns) {
-            long countResult = surveyUnitApiPort.countResponsesByCampaignId(campaignId);
+        Set<String> collectionInstrumentIds = surveyUnitApiPort.findDistinctCollectionInstrumentIds();
+        for (String collectionInstrumentId : collectionInstrumentIds) {
+            long countResult = surveyUnitApiPort.countResponsesByCollectionInstrumentId(collectionInstrumentId);
 
-            String line = campaignId + ";" + countResult + "\n";
+            String line = collectionInstrumentId + ";" + countResult + "\n";
 
             Files.writeString(logFilePath, line, StandardOpenOption.APPEND);
+            responseVolumetricsByQuestionnaireMap.put(collectionInstrumentId, countResult);
         }
+
+        return responseVolumetricsByQuestionnaireMap;
     }
 
-    public void writeRawDataVolumetries(LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort) throws IOException {
+    public Map<String, Map<String, Long>> writeRawDataVolumetries(
+            LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort,
+            RawResponseApiPort rawResponseApiPort
+    ) throws IOException {
+        Map<String, Map<String, Long>> rawDataVolumetricsMap = new HashMap<>();
+        rawDataVolumetricsMap.put(Constants.MONGODB_LUNATIC_RAWDATA_COLLECTION_NAME, new HashMap<>());
+        rawDataVolumetricsMap.put(Constants.MONGODB_RAW_RESPONSES_COLLECTION_NAME, new HashMap<>());
+        rawDataVolumetricsMap.put(Constants.VOLUMETRY_RAW_TOTAL, new HashMap<>());
+
         Path logFilePath = Path.of(config.getLogFolder()).resolve(Constants.VOLUMETRY_FOLDER_NAME)
                 .resolve(
-                        LocalDate.now().format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
+                        LocalDateTime.now().format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
                                 + Constants.VOLUMETRY_RAW_FILE_SUFFIX + ".csv");
         Files.createDirectories(logFilePath.getParent());
         //Overwrite log file with header if exists
         if (Files.exists(logFilePath)){
             Files.delete(logFilePath);
         }
-        Files.writeString(logFilePath, "questionnaire;volumetry\n");
+
+        //Write header
+        Files.writeString(logFilePath, "questionnaireId;%s;%s;%s\n"
+                .formatted(
+                        Constants.MONGODB_LUNATIC_RAWDATA_COLLECTION_NAME,
+                        Constants.MONGODB_RAW_RESPONSES_COLLECTION_NAME,
+                        Constants.VOLUMETRY_RAW_TOTAL
+                )
+        );
 
         //Write lines
-        Set<String> questionnaires = lunaticJsonRawDataApiPort.findDistinctQuestionnaireIds();
-        for (String questionnaireId : questionnaires) {
-            long countResult = lunaticJsonRawDataApiPort.countResponsesByQuestionnaireId(questionnaireId);
+        Set<String> oldRawDataQuestionnaires = lunaticJsonRawDataApiPort.findDistinctQuestionnaireIds();
+        Set<String> rawDataQuestionnaires = new HashSet<>(rawResponseApiPort.getDistinctCollectionInstrumentIds());
+        rawDataQuestionnaires.addAll(oldRawDataQuestionnaires);
+        for (String questionnaireId : rawDataQuestionnaires) {
+            long oldRawDataCountResult = lunaticJsonRawDataApiPort.countRawResponsesByQuestionnaireId(questionnaireId);
+            long rawDataCountResult = rawResponseApiPort.countByCollectionInstrumentId(questionnaireId);
+            long total = oldRawDataCountResult + rawDataCountResult;
 
-            String line = questionnaireId + ";" + countResult + "\n";
+            String delimiter = ";";
+            String line = questionnaireId + delimiter
+                    + oldRawDataCountResult + delimiter
+                    + rawDataCountResult + delimiter
+                    + total
+                    +"\n";
 
             Files.writeString(logFilePath, line, StandardOpenOption.APPEND);
+            rawDataVolumetricsMap.get(Constants.MONGODB_LUNATIC_RAWDATA_COLLECTION_NAME)
+                    .put(questionnaireId, oldRawDataCountResult);
+            rawDataVolumetricsMap.get(Constants.MONGODB_RAW_RESPONSES_COLLECTION_NAME)
+                    .put(questionnaireId, rawDataCountResult);
+            rawDataVolumetricsMap.get(Constants.VOLUMETRY_RAW_TOTAL)
+                    .put(questionnaireId, total);
         }
+        return rawDataVolumetricsMap;
     }
 
     public void cleanOldFiles() throws IOException {
@@ -78,10 +119,11 @@ public class VolumetryLogService {
             for (Path logFilePath : pathStream.filter(path -> path.getFileName().toString().endsWith(".csv")).toList()){
                 //If older than x months
                 //Extract date
-                String datePart = logFilePath.getFileName().toString().split("_VOLUMETRY\\.csv")[0] // Delete common suffix
+                String datePart = logFilePath.getFileName().toString()
+                        .split(Constants.VOLUMETRY_FILE_SUFFIX + "\\.csv")[0] // Delete common suffix
                         .replace("_RAW", ""); // Delete "_RAW" if present
-                if (LocalDate.parse(datePart, DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
-                        .isBefore(LocalDate.now().minusDays(Constants.VOLUMETRY_FILE_EXPIRATION_DAYS))
+                if (LocalDateTime.parse(datePart, DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
+                        .isBefore(LocalDateTime.now().minusDays(Constants.VOLUMETRY_FILE_EXPIRATION_DAYS))
                 ) {
                     Files.deleteIfExists(logFilePath);
                     log.info("Deleted {}", logFilePath);
