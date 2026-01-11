@@ -422,6 +422,61 @@ public class  RawResponseService implements RawResponseApiPort {
         convertToCollectedVar(dstSurveyUnitModel, dataState, variablesMap, collectedMap);
     }
 
+    @SuppressWarnings("unchecked")
+    static void handleLiensCollectedVariable(
+            Map.Entry<String, Object> collectedVariable,
+            DataState dataState,
+            VariablesMap variablesMap,
+            SurveyUnitModel dstSurveyUnitModel
+    ) {
+        Map<String, Object> states = JsonUtils.asMap(collectedVariable.getValue());
+        if (states == null || !states.containsKey(dataState.toString())) {
+            return;
+        }
+
+        Object value = states.get(dataState.toString());
+        if (!(value instanceof List<?>)) {
+            return;
+        }
+
+        List<List<String>> individus = (List<List<String>>) value;
+
+        if (!variablesMap.hasVariable(Constants.LIEN + 1)) {
+            return;
+        }
+        String groupName = variablesMap.getVariable(Constants.LIEN + 1).getGroupName();
+
+        for (int individuIndex = 0; individuIndex < individus.size(); individuIndex++) {
+
+            List<String> liensIndividu = individus.get(individuIndex);
+
+            for (int k = 1; k <= Constants.MAX_LINKS_ALLOWED; k++) {
+
+                String lienValue = Constants.NO_PAIRWISE_VALUE;
+
+                if (k <= liensIndividu.size()) {
+                    lienValue = Constants.SAME_AXIS_VALUE;
+                    String v = liensIndividu.get(k - 1);
+                    if (v != null && !v.isBlank()) {
+                        lienValue = v;
+                    }
+                }
+
+                VariableModel lienVar = VariableModel.builder()
+                        .varId(Constants.LIEN + k)
+                        .value(lienValue)
+                        .scope(groupName)
+                        .iteration(individuIndex)
+                        .parentId(groupName)
+                        .build();
+
+                dstSurveyUnitModel.getCollectedVariables().add(lienVar);
+            }
+        }
+    }
+
+
+
     private static void convertToCollectedVar(
             SurveyUnitModel dstSurveyUnitModel,
             DataState dataState,
@@ -433,6 +488,17 @@ public class  RawResponseService implements RawResponseApiPort {
 
         for (Map.Entry<String, Object> collectedVariable : collectedMap.entrySet()) {
             // Map for this variable (COLLECTED/EDITED -> value)
+            String variableName = collectedVariable.getKey();
+
+            if (Constants.LIENS.equals(variableName)) {
+                handleLiensCollectedVariable(
+                        collectedVariable,
+                        dataState,
+                        variablesMap,
+                        dstSurveyUnitModel
+                );
+                continue;
+            }
             Map<String, Object> states = JsonUtils.asMap(collectedVariable.getValue());
 
             if (states != null && states.containsKey(stateKey)) {
