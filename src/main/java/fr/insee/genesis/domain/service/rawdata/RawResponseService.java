@@ -582,7 +582,7 @@ public class  RawResponseService implements RawResponseApiPort {
                 .value(value)
                 .scope(groupName)
                 .iteration(iteration)
-                .parentId(groupName)
+                .parentId(Constants.ROOT_GROUP_NAME)
                 .build();
     }
 
