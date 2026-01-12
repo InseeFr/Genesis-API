@@ -117,7 +117,7 @@ class DataProcessingContextServiceUnitTest {
         String interrogationId = TestConstants.DEFAULT_INTERROGATION_ID;
         SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
                 .interrogationId(interrogationId)
-                .collectionInstrumentId(null)c
+                .collectionInstrumentId(null)
                 .build();
         doReturn(Collections.singletonList(surveyUnitModel))
                 .when(surveyUnitPersistencePort)
