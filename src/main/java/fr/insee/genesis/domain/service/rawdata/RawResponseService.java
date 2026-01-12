@@ -422,60 +422,6 @@ public class  RawResponseService implements RawResponseApiPort {
         convertToCollectedVar(dstSurveyUnitModel, dataState, variablesMap, collectedMap);
     }
 
-    @SuppressWarnings("unchecked")
-    static void handleLiensCollectedVariable(
-            Map.Entry<String, Object> collectedVariable,
-            DataState dataState,
-            VariablesMap variablesMap,
-            SurveyUnitModel dstSurveyUnitModel
-    ) {
-        Map<String, Object> states = JsonUtils.asMap(collectedVariable.getValue());
-        if (states == null || !states.containsKey(dataState.toString())) {
-            return;
-        }
-
-        Object value = states.get(dataState.toString());
-        if (!(value instanceof List<?>)) {
-            return;
-        }
-
-        List<List<String>> individus = (List<List<String>>) value;
-
-        if (!variablesMap.hasVariable(Constants.LIEN + 1)) {
-            return;
-        }
-        String groupName = variablesMap.getVariable(Constants.LIEN + 1).getGroupName();
-
-        for (int individuIndex = 0; individuIndex < individus.size(); individuIndex++) {
-
-            List<String> liensIndividu = individus.get(individuIndex);
-
-            for (int k = 1; k <= Constants.MAX_LINKS_ALLOWED; k++) {
-
-                String lienValue = Constants.NO_PAIRWISE_VALUE;
-
-                if (k <= liensIndividu.size()) {
-                    lienValue = Constants.SAME_AXIS_VALUE;
-                    String v = liensIndividu.get(k - 1);
-                    if (v != null && !v.isBlank()) {
-                        lienValue = v;
-                    }
-                }
-
-                VariableModel lienVar = VariableModel.builder()
-                        .varId(Constants.LIEN + k)
-                        .value(lienValue)
-                        .scope(groupName)
-                        .iteration(individuIndex)
-                        .parentId(groupName)
-                        .build();
-
-                dstSurveyUnitModel.getCollectedVariables().add(lienVar);
-            }
-        }
-    }
-
-
 
     private static void convertToCollectedVar(
             SurveyUnitModel dstSurveyUnitModel,
@@ -585,4 +531,66 @@ public class  RawResponseService implements RawResponseApiPort {
     public Page<RawResponseModel> findRawResponseDataByCampaignIdAndDate(String campaignId, Instant startDate, Instant endDate, Pageable pageable) {
         return rawResponsePersistencePort.findByCampaignIdAndDate(campaignId,startDate, endDate,pageable);
     }
+
+    @SuppressWarnings("unchecked")
+    static void handleLiensCollectedVariable(
+            Map.Entry<String, Object> collectedVariable,
+            DataState dataState,
+            VariablesMap variablesMap,
+            SurveyUnitModel dstSurveyUnitModel
+    ) {
+        Object value = getValueForState(collectedVariable, dataState.toString());
+
+        if (!(value instanceof List<?> individus)
+                || !variablesMap.hasVariable(Constants.LIEN + 1)) {
+            return;
+        }
+
+        String groupName = variablesMap
+                .getVariable(Constants.LIEN + 1)
+                .getGroupName();
+
+        for (int i = 0; i < individus.size(); i++) {
+            List<String> liensIndividu = (List<String>) individus.get(i);
+
+            for (int k = 1; k <= Constants.MAX_LINKS_ALLOWED; k++) {
+                dstSurveyUnitModel.getCollectedVariables().add(
+                        buildLienVariable(liensIndividu, k, i, groupName)
+                );
+            }
+        }
+    }
+    private static VariableModel buildLienVariable(
+            List<String> liensIndividu,
+            int k,
+            int iteration,
+            String groupName
+    ) {
+        String value = Constants.NO_PAIRWISE_VALUE;
+
+        if (k <= liensIndividu.size()) {
+            String v = liensIndividu.get(k - 1);
+            value = (v == null || v.isBlank())
+                    ? Constants.SAME_AXIS_VALUE
+                    : v;
+        }
+
+        return VariableModel.builder()
+                .varId(Constants.LIEN + k)
+                .value(value)
+                .scope(groupName)
+                .iteration(iteration)
+                .parentId(groupName)
+                .build();
+    }
+
+
+    private static Object getValueForState(
+            Map.Entry<String, Object> collectedVariable,
+            String stateKey
+    ) {
+        Map<String, Object> states = JsonUtils.asMap(collectedVariable.getValue());
+        return states != null ? states.get(stateKey) : null;
+    }
+
 }
