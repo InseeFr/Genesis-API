@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -70,5 +71,14 @@ public class RawResponseDataPersistanceStub implements RawResponsePersistencePor
         return new PageImpl<>(RawResponseDocumentMapper.INSTANCE.listDocumentToListModel(foundRaws),
                 pageable,
                 foundRaws.size());
+    }
+
+    @Override
+    public long countByCollectionInstrumentId(String collectionInstrumentId) {
+        return 0;
+    }
+    @Override
+    public Set<String> findDistinctCollectionInstrumentIds() {
+        return new HashSet<>();
     }
 }

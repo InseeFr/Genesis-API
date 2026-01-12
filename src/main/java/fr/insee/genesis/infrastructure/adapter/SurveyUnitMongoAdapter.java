@@ -169,8 +169,8 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 
 	//========== OPTIMISATIONS PERFS (START) ===========
 	@Override
-	public long countInterrogationIdsByQuestionnaireId(String questionnaireId) {
-		return mongoRepository.countInterrogationIdsByQuestionnaireId(questionnaireId);
+	public long countByCollectionInstrumentId(String collectionInstrumentId) {
+		return mongoRepository.countByQuestionnaireId(collectionInstrumentId);
 	}
 
 	@Override
@@ -205,7 +205,7 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 	}
 
 	@Override
-	public Set<String> findDistinctQuestionnaireIds() {
+	public Set<String> findDistinctCollectionInstrumentIds() {
 		Set<String> questionnaireIds = new HashSet<>();
 		// Id selection is executed by mongoDB
 		MongoCollection<Document> collection = mongoTemplate.getCollection(Constants.MONGODB_RESPONSE_COLLECTION_NAME);

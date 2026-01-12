@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 
 public interface RawResponseApiPort {
 
@@ -23,4 +24,8 @@ public interface RawResponseApiPort {
     List<String> getUnprocessedCollectionInstrumentIds();
     void updateProcessDates(List<SurveyUnitModel> surveyUnitModels);
     Page<RawResponseModel> findRawResponseDataByCampaignIdAndDate(String campaignId, Instant startDate, Instant endDate, Pageable pageable);
+
+    long countByCollectionInstrumentId(String collectionInstrumentId);
+
+    Set<String> getDistinctCollectionInstrumentIds();
 }

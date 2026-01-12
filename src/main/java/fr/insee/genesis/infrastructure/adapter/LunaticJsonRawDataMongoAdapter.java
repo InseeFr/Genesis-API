@@ -105,7 +105,7 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
     }
 
     @Override
-    public long countResponsesByQuestionnaireId(String questionnaireId) {
+    public long countRawResponsesByQuestionnaireId(String questionnaireId) {
         return repository.countByQuestionnaireId(questionnaireId);
     }
 

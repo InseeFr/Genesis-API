@@ -519,4 +519,14 @@ public class  RawResponseService implements RawResponseApiPort {
     public Page<RawResponseModel> findRawResponseDataByCampaignIdAndDate(String campaignId, Instant startDate, Instant endDate, Pageable pageable) {
         return rawResponsePersistencePort.findByCampaignIdAndDate(campaignId,startDate, endDate,pageable);
     }
+
+    @Override
+    public long countByCollectionInstrumentId(String collectionInstrumentId) {
+        return rawResponsePersistencePort.countByCollectionInstrumentId(collectionInstrumentId);
+    }
+
+    @Override
+    public Set<String> getDistinctCollectionInstrumentIds() {
+        return new HashSet<>(rawResponsePersistencePort.findDistinctCollectionInstrumentIds());
+    }
 }

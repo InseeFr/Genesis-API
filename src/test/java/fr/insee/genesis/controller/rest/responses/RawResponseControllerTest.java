@@ -48,6 +48,7 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Slf4j
 class RawResponseControllerTest {
@@ -120,6 +121,16 @@ class RawResponseControllerTest {
         @Override
         public Page<RawResponseModel> findRawResponseDataByCampaignIdAndDate(String campaignId, Instant startDate, Instant endDate, Pageable pageable) {
             return rawResponseDataPersistanceStub.findByCampaignIdAndDate(campaignId, startDate, endDate, pageable);
+        }
+
+        @Override
+        public long countByCollectionInstrumentId(String collectionInstrumentId) {
+            return 0;
+        }
+
+        @Override
+        public Set<String> getDistinctCollectionInstrumentIds() {
+            return Set.of();
         }
     };
 
