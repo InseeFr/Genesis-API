@@ -47,7 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import static fr.insee.genesis.domain.service.rawdata.RawResponseService.handleLiensCollectedVariable;
+import static fr.insee.genesis.domain.service.rawdata.RawResponseService.processCollectedVariable;
 
 @Service
 @Slf4j
@@ -488,33 +488,10 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
         final var dest = dstSurveyUnitModel.getCollectedVariables();
 
         for (Map.Entry<String, Object> collectedVariable : collectedMap.entrySet()) {
-
-            String variableName = collectedVariable.getKey();
-
-            if (Constants.LIENS.equals(variableName)) {
-                handleLiensCollectedVariable(
-                        collectedVariable,
-                        dataState,
-                        variablesMap,
-                        dstSurveyUnitModel
-                );
-                continue;
-            }
-
-            Map<String, Object> states = JsonUtils.asMap(collectedVariable.getValue());
-            if (states != null && states.containsKey(stateKey)) {
-                Object value = states.get(stateKey);
-
-                if (value instanceof List<?>) {
-                    convertListVar(value, collectedVariable, variablesMap, dest);
-                }
-
-                if (value != null && !(value instanceof List<?>)) {
-                    convertOneVar(collectedVariable, getValueString(value), variablesMap, 1, dest);
-                }
-            }
+            processCollectedVariable(collectedVariable, stateKey, variablesMap, dstSurveyUnitModel, dest);
         }
     }
+
 
     private static void convertListVar(Object valuesForState, Map.Entry<String, Object> collectedVariable, VariablesMap variablesMap, List<VariableModel> dstSurveyUnitModel) {
         List<String> values = JsonUtils.asStringList(valuesForState);

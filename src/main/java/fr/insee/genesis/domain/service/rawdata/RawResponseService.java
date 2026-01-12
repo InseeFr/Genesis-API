@@ -45,6 +45,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService.getValueString;
+
 @Service
 @Slf4j
 public class  RawResponseService implements RawResponseApiPort {
@@ -422,7 +424,6 @@ public class  RawResponseService implements RawResponseApiPort {
         convertToCollectedVar(dstSurveyUnitModel, dataState, variablesMap, collectedMap);
     }
 
-
     private static void convertToCollectedVar(
             SurveyUnitModel dstSurveyUnitModel,
             DataState dataState,
@@ -430,40 +431,39 @@ public class  RawResponseService implements RawResponseApiPort {
             Map<String, Object> collectedMap
     ) {
         final String stateKey = dataState.toString();
-        final var dest = dstSurveyUnitModel.getCollectedVariables();
+        final var collectedVariables = dstSurveyUnitModel.getCollectedVariables();
 
         for (Map.Entry<String, Object> collectedVariable : collectedMap.entrySet()) {
-            // Map for this variable (COLLECTED/EDITED -> value)
-            String variableName = collectedVariable.getKey();
-
-            if (Constants.LIENS.equals(variableName)) {
-                handleLiensCollectedVariable(
-                        collectedVariable,
-                        dataState,
-                        variablesMap,
-                        dstSurveyUnitModel
-                );
-                continue;
-            }
-            Map<String, Object> states = JsonUtils.asMap(collectedVariable.getValue());
-
-            if (states != null && states.containsKey(stateKey)) {
-                Object value = states.get(stateKey);
-
-                // liste ?
-                if (value instanceof List<?>) {
-                    // on garde exactement ta signature existante
-                    convertListVar(value, collectedVariable, variablesMap, dest);
-                }
-
-                // scalaire non null ?
-                if (value != null && !(value instanceof List<?>)) {
-                    // idem: on garde convertOneVar(entry, String, ...)
-                    convertOneVar(collectedVariable, String.valueOf(value), variablesMap, 1, dest);
-                }
-            }
+            processCollectedVariable(collectedVariable, stateKey, variablesMap, dstSurveyUnitModel, collectedVariables);
         }
     }
+
+
+    static void processCollectedVariable(
+            Map.Entry<String, Object> entry,
+            String stateKey,
+            VariablesMap variablesMap,
+            SurveyUnitModel dstSurveyUnitModel,
+            List<VariableModel> variableModelList
+    ) {
+        if (Constants.PAIRWISES.equals(entry.getKey())) {
+            handlePairwiseCollectedVariable(entry, DataState.valueOf(stateKey), variablesMap, dstSurveyUnitModel);
+            return;
+        }
+
+        Map<String, Object> states = JsonUtils.asMap(entry.getValue());
+        if (states == null) return;
+
+        Object value = states.get(stateKey);
+        if (value == null) return;
+
+        if (value instanceof List<?> list) {
+            convertListVar(list, entry, variablesMap, variableModelList);
+        } else {
+            convertOneVar(entry, getValueString(value), variablesMap, 1, variableModelList);
+        }
+    }
+
 
     private static void convertListVar(Object valuesForState, Map.Entry<String, Object> collectedVariable, VariablesMap variablesMap, List<VariableModel> dstSurveyUnitModel) {
         List<String> values = JsonUtils.asStringList(valuesForState);
@@ -533,7 +533,7 @@ public class  RawResponseService implements RawResponseApiPort {
     }
 
     @SuppressWarnings("unchecked")
-    static void handleLiensCollectedVariable(
+    static void handlePairwiseCollectedVariable(
             Map.Entry<String, Object> collectedVariable,
             DataState dataState,
             VariablesMap variablesMap,
@@ -541,43 +541,44 @@ public class  RawResponseService implements RawResponseApiPort {
     ) {
         Object value = getValueForState(collectedVariable, dataState.toString());
 
-        if (!(value instanceof List<?> individus)
-                || !variablesMap.hasVariable(Constants.LIEN + 1)) {
+        if (isInvalidPairwiseVariable(value, variablesMap)) {
             return;
         }
 
+        List<?> individuals = (List<?>) value;
+
         String groupName = variablesMap
-                .getVariable(Constants.LIEN + 1)
+                .getVariable(Constants.PAIRWISE_PREFIX + 1)
                 .getGroupName();
 
-        for (int individualIndex = 0; individualIndex < individus.size(); individualIndex++) {
-            List<String> individualLinks = (List<String>) individus.get(individualIndex);
+        for (int individualIndex = 0; individualIndex < individuals.size(); individualIndex++) {
+            List<String> individualLinks = (List<String>) individuals.get(individualIndex);
 
             for (int linkIndex = 1; linkIndex <= Constants.MAX_LINKS_ALLOWED; linkIndex++) {
                 dstSurveyUnitModel.getCollectedVariables().add(
-                        buildLienVariable(individualLinks, linkIndex, individualIndex, groupName)
+                        buildPairwiseVariable(individualLinks, linkIndex, individualIndex, groupName)
                 );
             }
         }
     }
 
-    private static VariableModel buildLienVariable(
-            List<String> liensIndividu,
+    private static VariableModel buildPairwiseVariable(
+            List<String> individualLinks,
             int linkIndex,
             int iteration,
             String groupName
     ) {
         String value = Constants.NO_PAIRWISE_VALUE;
 
-        if (linkIndex  <= liensIndividu.size()) {
-            String v = liensIndividu.get(linkIndex - 1);
+        if (linkIndex  <= individualLinks.size()) {
+            String v = individualLinks.get(linkIndex - 1);
             value = (v == null || v.isBlank())
                     ? Constants.SAME_AXIS_VALUE
                     : v;
         }
 
         return VariableModel.builder()
-                .varId(Constants.LIEN + linkIndex)
+                .varId(Constants.PAIRWISE_PREFIX + linkIndex)
                 .value(value)
                 .scope(groupName)
                 .iteration(iteration)
@@ -592,6 +593,10 @@ public class  RawResponseService implements RawResponseApiPort {
     ) {
         Map<String, Object> states = JsonUtils.asMap(collectedVariable.getValue());
         return states != null ? states.get(stateKey) : null;
+    }
+
+    private static boolean isInvalidPairwiseVariable(Object value, VariablesMap variablesMap) {
+        return !(value instanceof List<?>) || !variablesMap.hasVariable(Constants.PAIRWISE_PREFIX + 1);
     }
 
 }
