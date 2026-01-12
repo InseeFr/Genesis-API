@@ -502,18 +502,16 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
             }
 
             Map<String, Object> states = JsonUtils.asMap(collectedVariable.getValue());
-            if (states == null || !states.containsKey(stateKey)) {
-                continue;
-            }
+            if (states != null && states.containsKey(stateKey)) {
+                Object value = states.get(stateKey);
 
-            Object value = states.get(stateKey);
+                if (value instanceof List<?>) {
+                    convertListVar(value, collectedVariable, variablesMap, dest);
+                }
 
-            if (value instanceof List<?>) {
-                convertListVar(value, collectedVariable, variablesMap, dest);
-            }
-
-            if (value != null && !(value instanceof List<?>)) {
-                convertOneVar(collectedVariable, getValueString(value), variablesMap, 1, dest);
+                if (value != null && !(value instanceof List<?>)) {
+                    convertOneVar(collectedVariable, getValueString(value), variablesMap, 1, dest);
+                }
             }
         }
     }

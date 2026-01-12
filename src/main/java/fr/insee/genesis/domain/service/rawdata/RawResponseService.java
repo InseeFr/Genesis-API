@@ -550,33 +550,34 @@ public class  RawResponseService implements RawResponseApiPort {
                 .getVariable(Constants.LIEN + 1)
                 .getGroupName();
 
-        for (int i = 0; i < individus.size(); i++) {
-            List<String> liensIndividu = (List<String>) individus.get(i);
+        for (int individualIndex = 0; individualIndex < individus.size(); individualIndex++) {
+            List<String> individualLinks = (List<String>) individus.get(individualIndex);
 
-            for (int k = 1; k <= Constants.MAX_LINKS_ALLOWED; k++) {
+            for (int linkIndex = 1; linkIndex <= Constants.MAX_LINKS_ALLOWED; linkIndex++) {
                 dstSurveyUnitModel.getCollectedVariables().add(
-                        buildLienVariable(liensIndividu, k, i, groupName)
+                        buildLienVariable(individualLinks, linkIndex, individualIndex, groupName)
                 );
             }
         }
     }
+
     private static VariableModel buildLienVariable(
             List<String> liensIndividu,
-            int k,
+            int linkIndex,
             int iteration,
             String groupName
     ) {
         String value = Constants.NO_PAIRWISE_VALUE;
 
-        if (k <= liensIndividu.size()) {
-            String v = liensIndividu.get(k - 1);
+        if (linkIndex  <= liensIndividu.size()) {
+            String v = liensIndividu.get(linkIndex - 1);
             value = (v == null || v.isBlank())
                     ? Constants.SAME_AXIS_VALUE
                     : v;
         }
 
         return VariableModel.builder()
-                .varId(Constants.LIEN + k)
+                .varId(Constants.LIEN + linkIndex)
                 .value(value)
                 .scope(groupName)
                 .iteration(iteration)
