@@ -57,7 +57,7 @@ public class JsonExtractionController {
         }
     }
 
-    @Operation(summary = "Get the date of the latest JSON data extraction in Kraftwerk")
+    @Operation(summary = "Reset latest JSON data extraction")
     @DeleteMapping(path = "/json")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Object> deleteJsonExtractionDate(
