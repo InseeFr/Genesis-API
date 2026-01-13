@@ -1,4 +1,15 @@
 # Changelog
+
+
+## 2.0.3 [2026-01-08]
+### Fixed
+- Quality tool is ready without final backslash
+
+
+## 2.0.2 [2026-01-07]
+### Fixed
+- Revert change url for quality tool, waiting for its update
+
 ## 2.0.1 [2026-01-07]
 ### Fixed
 - Crash when get questionnaireIds by null processDate with too much raw datas in lunaticjsondata

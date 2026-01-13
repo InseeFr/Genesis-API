@@ -76,6 +76,16 @@ public class LunaticJsonRawDataPersistanceStub implements LunaticJsonRawDataPers
     }
 
     @Override
+    public List<LunaticJsonRawDataModel> findRawDataByQuestionnaireId(String questionnaireId, Mode mode, List<String> interrogationIdList) {
+        List<LunaticJsonRawDataDocument> docs = mongoStub.stream().filter(lunaticJsonRawDataDocument ->
+                lunaticJsonRawDataDocument.questionnaireId().equals(questionnaireId)
+                        && lunaticJsonRawDataDocument.mode().equals(mode)
+                        && interrogationIdList.contains(lunaticJsonRawDataDocument.interrogationId())
+        ).toList();
+        return LunaticJsonRawDataDocumentMapper.INSTANCE.listDocumentToListModel(docs);    }
+
+    
+    @Override
     public List<LunaticJsonRawDataModel> findRawDataByInterrogationID(String interrogationId) {
         List<LunaticJsonRawDataDocument> docs = mongoStub.stream()
                 .filter(doc -> interrogationId.equals(doc.interrogationId()))
