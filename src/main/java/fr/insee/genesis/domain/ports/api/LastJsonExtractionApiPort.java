@@ -8,4 +8,6 @@ public interface LastJsonExtractionApiPort {
     void recordDate(LastJsonExtractionModel extraction);
 
     LastJsonExtractionModel getLastExtractionDate(String collectionInstrumentId, Mode mode) throws GenesisException;
+
+    void delete(String collectionInstrumentId, Mode mode) throws GenesisException;
 }
