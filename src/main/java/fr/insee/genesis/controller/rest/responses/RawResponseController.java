@@ -254,6 +254,21 @@ public class RawResponseController {
         return ResponseEntity.status(HttpStatus.OK).body(new PagedModel<>(rawResponses));
     }
 
+    @Operation(summary = "Get lunatic JSON data from one questionnaire in Genesis Database")
+    @GetMapping(path = "/responses/raw/lunatic-json/by-questionnaire/{questionnaireId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<PagedModel<LunaticJsonRawDataModel>> getLunaticJsonRawDataModelFromQuestionnaire(
+            @PathVariable String questionnaireId,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "1000") int size
+    ) {
+        log.info("Try to read raw lunatic JSONs for questionnaire {} - page={} - size={}", questionnaireId, page, size);
+        Pageable pageable = PageRequest.of(page, size);
+        Page<LunaticJsonRawDataModel> rawResponses = lunaticJsonRawDataApiPort.findRawDataByQuestionnaireId(questionnaireId, pageable);
+        log.info("rawResponses={}", rawResponses.getContent().size());
+        return ResponseEntity.status(HttpStatus.OK).body(new PagedModel<>(rawResponses));
+    }
+
     @Operation(summary = "Get rawResponse JSON data from one campaign in Genesis Database, filtered by start and end dates")
     @GetMapping(path = "/raw-responses/{campaignId}")
     @PreAuthorize("hasRole('USER_BATCH_GENERIC')")
@@ -264,9 +279,24 @@ public class RawResponseController {
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "1000") int size
     ) {
-        log.info("Try to read raw JSONs for campaign {}, with startDate={} and endDate={} - page={} - size={}", campaignId, startDate, endDate,page,size);
+        log.info("Try to read raw lunatic JSONs for campaign {}, with startDate={} and endDate={} - page={} - size={}", campaignId, startDate, endDate,page,size);
         Pageable pageable = PageRequest.of(page, size);
         Page<RawResponseModel> rawResponses = rawResponseApiPort.findRawResponseDataByCampaignIdAndDate(campaignId, startDate, endDate, pageable);
+        log.info("rawResponses={}", rawResponses.getContent().size());
+        return ResponseEntity.status(HttpStatus.OK).body(new PagedModel<>(rawResponses));
+    }
+
+    @Operation(summary = "Get rawResponse JSON data from one collection instrument in Genesis Database")
+    @GetMapping(path = "/raw-responses/by-collection-instrument/{collectionInstrumentId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<PagedModel<RawResponseModel>> getRawResponsesFromCollectionInstrumentId(
+            @PathVariable String collectionInstrumentId,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "1000") int size
+    ) {
+        log.info("Try to read raw JSONs for collectionInstrument {} - page={} - size={}", collectionInstrumentId, page, size);
+        Pageable pageable = PageRequest.of(page, size);
+        Page<RawResponseModel> rawResponses = rawResponseApiPort.findRawResponseDataByCollectionInstrumentId(collectionInstrumentId, pageable);
         log.info("rawResponses={}", rawResponses.getContent().size());
         return ResponseEntity.status(HttpStatus.OK).body(new PagedModel<>(rawResponses));
     }

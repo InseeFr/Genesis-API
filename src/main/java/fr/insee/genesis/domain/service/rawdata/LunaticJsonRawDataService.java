@@ -562,6 +562,11 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     }
 
     @Override
+    public Page<LunaticJsonRawDataModel> findRawDataByQuestionnaireId(String questionnaireId, Pageable pageable) {
+        return lunaticJsonRawDataPersistencePort.findRawDataByQuestionnaireId(questionnaireId, pageable);
+    }
+
+    @Override
     public Page<LunaticJsonRawDataModel> findRawDataByCampaignIdAndDate(String campaignId, Instant startDt, Instant endDt, Pageable pageable){
         return lunaticJsonRawDataPersistencePort.findByCampaignIdAndDate(campaignId,startDt, endDt,pageable);
 

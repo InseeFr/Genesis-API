@@ -84,7 +84,12 @@ public class LunaticJsonRawDataPersistanceStub implements LunaticJsonRawDataPers
         ).toList();
         return LunaticJsonRawDataDocumentMapper.INSTANCE.listDocumentToListModel(docs);    }
 
-    
+    @Override
+    public Page<LunaticJsonRawDataModel> findRawDataByQuestionnaireId(String questionnaireId, Pageable pageable) {
+        return null;
+    }
+
+
     @Override
     public List<LunaticJsonRawDataModel> findRawDataByInterrogationID(String interrogationId) {
         List<LunaticJsonRawDataDocument> docs = mongoStub.stream()

@@ -534,6 +534,11 @@ public class  RawResponseService implements RawResponseApiPort {
         return rawResponsePersistencePort.findByCampaignIdAndDate(campaignId,startDate, endDate,pageable);
     }
 
+    @Override
+    public Page<RawResponseModel> findRawResponseDataByCollectionInstrumentId(String collectionInstrumentId, Pageable pageable) {
+        return rawResponsePersistencePort.findByCollectionInstrumentId(collectionInstrumentId, pageable);
+    }
+
     @SuppressWarnings("unchecked")
     static void handlePairwiseCollectedVariable(
             Map.Entry<String, Object> collectedVariable,

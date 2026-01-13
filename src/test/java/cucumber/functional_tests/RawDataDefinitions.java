@@ -147,6 +147,11 @@ public class RawDataDefinitions {
         public Page<RawResponseModel> findRawResponseDataByCampaignIdAndDate(String campaignId, Instant startDate, Instant endDate, Pageable pageable) {
             return null;
         }
+
+        @Override
+        public Page<RawResponseModel> findRawResponseDataByCollectionInstrumentId(String collectionInstrumentId, Pageable pageable) {
+            return null;
+        }
     };
 
     RawResponseController rawResponseController = new RawResponseController(
