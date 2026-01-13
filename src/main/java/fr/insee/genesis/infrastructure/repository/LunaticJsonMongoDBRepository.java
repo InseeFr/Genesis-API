@@ -100,4 +100,6 @@ public interface LunaticJsonMongoDBRepository extends MongoRepository<LunaticJso
                     "} }"
     })
     List<GroupedInterrogationDocument> aggregateRawGroupedWithNullProcessDate(String questionnaireId);
+
+    Page<LunaticJsonRawDataDocument> findByQuestionnaireId(String questionnaireId, Pageable pageable);
 }

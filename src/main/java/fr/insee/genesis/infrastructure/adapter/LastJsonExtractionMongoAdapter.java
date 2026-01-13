@@ -43,4 +43,10 @@ public class LastJsonExtractionMongoAdapter implements LastJsonExtractionPersist
         }
     }
 
+    @Override
+    public void delete(String collectionInstrumentId, Mode mode){
+        String id = String.format("%s_%s",collectionInstrumentId, mode);
+        extractionRepository.deleteById(id);
+    }
+
 }
