@@ -65,7 +65,7 @@ class JsonUtilsTest {
         log.info("test");
         List<String> result = JsonUtils.asStringList(obj);
 
-        Assertions.assertThat(result).containsExactly("1", "text", "");
+        Assertions.assertThat(result).containsExactly("1", "text", null);
     }
 
     @Test
