@@ -1,5 +1,5 @@
 # Changelog
-## 2.0.4 [TODO]
+## 2.0.4 [2026-01-13]
 ### Added
 - Debug endpoints (Get raw data by collectionInstrumentId, delete last execution)
 ### Fixed
