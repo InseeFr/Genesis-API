@@ -179,6 +179,11 @@ public class LunaticJsonMongoDBRepositoryStub implements LunaticJsonMongoDBRepos
         return Collections.singletonList(groupedInterrogationDocument);
     }
 
+    @Override
+    public Page<LunaticJsonRawDataDocument> findByQuestionnaireId(String questionnaireId, Pageable pageable) {
+        return null;
+    }
+
     // Implémentations vides requises par MongoRepository
     @Override public <S extends LunaticJsonRawDataDocument> S save(S entity) { return null; }
     @Override public Optional<LunaticJsonRawDataDocument> findById(String s) { return Optional.empty(); }
