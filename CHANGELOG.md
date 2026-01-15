@@ -1,5 +1,9 @@
 # Changelog
 ## 2.1.0 [TODO]
+### Added
+- rawResponses payload.campaignId indexing
+### Removed
+- campaignId at root level in rawResponses
 ### Fixed
 - Fixed withReview still based on campaignId
 
