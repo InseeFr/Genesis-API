@@ -121,6 +121,11 @@ class RawResponseControllerTest {
         public Page<RawResponseModel> findRawResponseDataByCampaignIdAndDate(String campaignId, Instant startDate, Instant endDate, Pageable pageable) {
             return rawResponseDataPersistanceStub.findByCampaignIdAndDate(campaignId, startDate, endDate, pageable);
         }
+
+        @Override
+        public Page<RawResponseModel> findRawResponseDataByCollectionInstrumentId(String collectionInstrumentId, Pageable pageable) {
+            return null;
+        }
     };
 
     private final RawResponseController rawResponseController = new RawResponseController(lunaticJsonRawDataApiPort,  rawResponseApiPortStub, rawResponseInputRepositoryStub);

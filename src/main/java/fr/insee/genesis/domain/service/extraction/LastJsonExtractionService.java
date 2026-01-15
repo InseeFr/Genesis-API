@@ -36,5 +36,13 @@ public class LastJsonExtractionService implements LastJsonExtractionApiPort {
         return extractionPersistencePort.getLastExecutionDate(collectionInstrumentId,mode);
     }
 
+    @Override
+    public void delete(String collectionInstrumentId, Mode mode) throws GenesisException {
+        if(mode != null){
+            extractionPersistencePort.getLastExecutionDate(collectionInstrumentId, mode);
+        }
+        extractionPersistencePort.delete(collectionInstrumentId, mode);
+    }
+
 
 }

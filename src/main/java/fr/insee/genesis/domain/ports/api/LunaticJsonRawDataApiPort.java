@@ -38,4 +38,6 @@ public interface LunaticJsonRawDataApiPort {
     DataProcessResult processRawData(String collectionInstrumentId) throws GenesisException;
 
     Map<String, List<String>> findProcessedIdsgroupedByQuestionnaireSince(LocalDateTime since);
+
+    Page<LunaticJsonRawDataModel> findRawDataByQuestionnaireId(String questionnaireId, Pageable pageable);
 }
