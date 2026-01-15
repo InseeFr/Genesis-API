@@ -6,6 +6,8 @@ import fr.insee.genesis.domain.model.context.schedule.ServiceToCall;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.document.context.DataProcessingContextDocument;
+import fr.insee.genesis.infrastructure.utils.FileUtils;
+import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import org.assertj.core.api.Assertions;
@@ -24,6 +26,7 @@ class DataProcessingContextServiceTest {
     static SurveyUnitPersistencePortStub surveyUnitPersistencePortStub;
     static DataProcessingContextService dataProcessingContextService;
     static DataProcessingContextPersistancePortStub dataProcessingContextPersistencePortStub;
+    FileUtils fileUtils = new FileUtils(new ConfigStub());
 
     @BeforeAll
     static void init(){
@@ -46,11 +49,12 @@ class DataProcessingContextServiceTest {
                 LocalDateTime.MAX,
                 null
         ));
-        dataProcessingContextPersistencePortStub.getMongoStub().add(new DataProcessingContextDocument(
-                "TEST",
-                kraftwerkExecutionScheduleList,
-                false
-        ));
+        DataProcessingContextDocument doc = new DataProcessingContextDocument();
+        doc.setPartitionId("TEST");
+        doc.setCollectionInstrumentId("TEST");
+        doc.setKraftwerkExecutionScheduleList(kraftwerkExecutionScheduleList);
+        doc.setWithReview(false);
+        dataProcessingContextPersistencePortStub.getMongoStub().add(doc);
     }
 
     @Test
@@ -126,7 +130,7 @@ class DataProcessingContextServiceTest {
         LocalDateTime localDateTime = LocalDateTime.now();
 
         //When
-        dataProcessingContextService.updateLastExecutionDate("TEST", localDateTime);
+        dataProcessingContextService.updateLastExecutionDateByCollectionInstrumentId("TEST", localDateTime);
 
         //Then
         Assertions.assertThat(dataProcessingContextPersistencePortStub.getMongoStub()).hasSize(1);
@@ -146,7 +150,7 @@ class DataProcessingContextServiceTest {
         ));
 
         //When
-        dataProcessingContextService.deleteExpiredSchedules("TEST");
+        dataProcessingContextService.deleteExpiredSchedules(fileUtils.getLogFolder());
 
         //Then
         //Execution schedule deleted
@@ -167,36 +171,36 @@ class DataProcessingContextServiceTest {
                 LocalDateTime.of(2000,1,1,1,1,1),
                 null
         ));
-        dataProcessingContextPersistencePortStub.getMongoStub().add(new DataProcessingContextDocument(
-                "TEST2",
-                kraftwerkExecutionScheduleList,
-                false
-        ));
+        DataProcessingContextDocument doc = new DataProcessingContextDocument();
+        doc.setCollectionInstrumentId("TEST2");
+        doc.setKraftwerkExecutionScheduleList(kraftwerkExecutionScheduleList);
+        doc.setWithReview(false);
+        dataProcessingContextPersistencePortStub.getMongoStub().add(doc);
 
         //When
-        dataProcessingContextService.deleteExpiredSchedules("TEST2");
+        dataProcessingContextService.deleteExpiredSchedules(fileUtils.getLogFolder());
 
         //Then
         //Survey schedule document deleted
         Assertions.assertThat(dataProcessingContextPersistencePortStub.getMongoStub()).hasSize(2);
         Assertions.assertThat(dataProcessingContextPersistencePortStub.getMongoStub().stream().filter(
-                scheduleDocument -> scheduleDocument.getPartitionId().equals("TEST2")
+                scheduleDocument -> scheduleDocument.getCollectionInstrumentId().equals("TEST2")
         ).toList()).hasSize(1);
         Assertions.assertThat(dataProcessingContextPersistencePortStub.getMongoStub().stream().filter(
-                scheduleDocument -> scheduleDocument.getPartitionId().equals("TEST2")
+                scheduleDocument -> scheduleDocument.getCollectionInstrumentId().equals("TEST2")
         ).toList().getFirst().getKraftwerkExecutionScheduleList()).isEmpty();
 
     }
 
     @Test
-    void getContext_shouldThrow500IfMultiplePartitions() {
+    void getContext_shouldThrow500IfMultipleCollectionInstruments() {
         // Given
         SurveyUnitModel su1 = SurveyUnitModel.builder()
-                .campaignId("CAMPAIGN1")
+                .collectionInstrumentId("CAMPAIGN1")
                 .interrogationId("00001")
                 .build();
         SurveyUnitModel su2 = SurveyUnitModel.builder()
-                .campaignId("CAMPAIGN2")
+                .collectionInstrumentId("CAMPAIGN2")
                 .interrogationId("00001")
                 .build();
         List<SurveyUnitModel> sus = new ArrayList<>();
@@ -209,7 +213,7 @@ class DataProcessingContextServiceTest {
         //To ensure test is portable on Unix/Linux/macOS and windows systems
         String normalizedMessage = ex.getMessage().replaceAll("\\r?\\n", "");
         Assertions.assertThat(ex.getStatus()).isEqualTo(500);
-        Assertions.assertThat(normalizedMessage).isEqualTo("Multiple partitions for interrogation 00001 [CAMPAIGN2, CAMPAIGN1]");
+        Assertions.assertThat(normalizedMessage).isEqualTo("Multiple collection instruments for interrogation 00001");
     }
 
     @Test
@@ -221,10 +225,10 @@ class DataProcessingContextServiceTest {
     }
 
     @Test
-    void getContext_shouldReturnContextIfOnePartition() throws GenesisException {
+    void getContext_shouldReturnContextIfOneCollectionInstrument() throws GenesisException {
         // Given
         SurveyUnitModel su1 = SurveyUnitModel.builder()
-                .campaignId("TEST")
+                .collectionInstrumentId("TEST")
                 .interrogationId("00001")
                 .build();
         List<SurveyUnitModel> sus = new ArrayList<>();
@@ -234,7 +238,7 @@ class DataProcessingContextServiceTest {
 
         // When & Then
         Assertions.assertThat(result).isNotNull();
-        Assertions.assertThat(result.getPartitionId()).isEqualTo("TEST");
+        Assertions.assertThat(result.getCollectionInstrumentId()).isEqualTo("TEST");
         Assertions.assertThat(result.isWithReview()).isFalse();
     }
 

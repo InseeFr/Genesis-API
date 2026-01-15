@@ -40,7 +40,7 @@ public class ContextualVariableJsonService implements ContextualVariableApiPort 
     }
 
     @Override
-    public ContextualVariableModel getContextualVariable(String questionnaireId, String interrogationId) {
+    public ContextualVariableModel getContextualVariable(String collectionInstrumentId, String interrogationId) {
         ContextualVariableModel contextualVariableModel = ContextualVariableModel.builder()
                 .interrogationId(interrogationId)
                 .contextualPrevious(new ArrayList<>())
@@ -48,8 +48,8 @@ public class ContextualVariableJsonService implements ContextualVariableApiPort 
                 .build();
 
         ContextualPreviousVariableModel contextualPreviousVariableModel =
-                        contextualPreviousVariableApiPort.findByQuestionnaireIdAndInterrogationId(
-                                questionnaireId,
+                        contextualPreviousVariableApiPort.findByCollectionInstrumentIdAndInterrogationId(
+                                collectionInstrumentId,
                                 interrogationId
                         );
 
@@ -60,8 +60,8 @@ public class ContextualVariableJsonService implements ContextualVariableApiPort 
         }
 
         ContextualExternalVariableModel contextualExternalVariableModel =
-                        contextualExternalVariableApiPort.findByQuestionnaireIdAndInterrogationId(
-                                questionnaireId,
+                        contextualExternalVariableApiPort.findByCollectionInstrumentIdAndInterrogationId(
+                                collectionInstrumentId,
                                 interrogationId
                         );
 
@@ -75,21 +75,19 @@ public class ContextualVariableJsonService implements ContextualVariableApiPort 
     }
 
     @Override
-    public int saveContextualVariableFiles(String questionnaireId, FileUtils fileUtils) throws GenesisException {
+    public int saveContextualVariableFiles(String collectionInstrumentId, FileUtils fileUtils, String contextualFolderPath) throws GenesisException {
         int fileCount = 0;
 
         for (Mode mode : Mode.values()) {
-            try (Stream<Path> filePaths = Files.list(Path.of(fileUtils.getDataFolder(questionnaireId,
-                    mode.getFolder()
-                    , null)))) {
+            try (Stream<Path> filePaths = Files.list(Path.of(contextualFolderPath))) {
                 Iterator<Path> it = filePaths
                         .filter(path -> path.toString().endsWith(".json"))
                         .iterator();
                 while (it.hasNext()) {
                     Path jsonFilePath = it.next();
-                    if (processContextualVariableFile(questionnaireId, jsonFilePath)) {
+                    if (processContextualVariableFile(collectionInstrumentId, jsonFilePath)) {
                         //If the file is indeed a contextual variables file and had been processed
-                        moveFile(questionnaireId, mode, fileUtils, jsonFilePath.toString());
+                        moveFile(collectionInstrumentId, mode, fileUtils, jsonFilePath.toString());
                         fileCount++;
                     }
                 }
@@ -102,9 +100,9 @@ public class ContextualVariableJsonService implements ContextualVariableApiPort 
         return fileCount;
     }
 
-    private static void moveFile(String questionnaireId, Mode mode, FileUtils fileUtils, String filePath) throws GenesisException {
+    private static void moveFile(String collectionInstrumentId, Mode mode, FileUtils fileUtils, String filePath) throws GenesisException {
         try {
-            fileUtils.moveFiles(Path.of(filePath), fileUtils.getDoneFolder(questionnaireId, mode.getFolder()));
+            fileUtils.moveFiles(Path.of(filePath), fileUtils.getDoneFolder(collectionInstrumentId, mode.getFolder()));
         } catch (IOException e) {
             throw new GenesisException(500, "Error while moving file to done : %s".formatted(e.toString()));
         }
@@ -147,13 +145,13 @@ public class ContextualVariableJsonService implements ContextualVariableApiPort 
     /**
      * @return true if any contextual variable part found in file, false otherwise
      */
-    private boolean processContextualVariableFile(String questionnaireId, Path jsonFilePath) throws GenesisException {
+    private boolean processContextualVariableFile(String collectionInstrumentId, Path jsonFilePath) throws GenesisException {
         return contextualPreviousVariableApiPort.readContextualPreviousFile(
-                questionnaireId.toUpperCase(),
+                collectionInstrumentId.toUpperCase(),
                 null,
                 jsonFilePath.toString()
         ) || contextualExternalVariableApiPort.readContextualExternalFile(
-                questionnaireId.toUpperCase(),
+                collectionInstrumentId.toUpperCase(),
                 jsonFilePath.toString()
         );
     }

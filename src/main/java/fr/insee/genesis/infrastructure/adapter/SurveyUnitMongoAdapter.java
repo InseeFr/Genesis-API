@@ -3,6 +3,7 @@ package fr.insee.genesis.infrastructure.adapter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mongodb.client.MongoCollection;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
@@ -11,6 +12,7 @@ import fr.insee.genesis.infrastructure.mappers.SurveyUnitDocumentMapper;
 import fr.insee.genesis.infrastructure.repository.SurveyUnitMongoDBRepository;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -46,9 +48,12 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 	}
 
 	@Override
-	public List<SurveyUnitModel> findByIds(String interrogationId, String questionnaireId) {
-		List<SurveyUnitDocument> surveyUnits = mongoRepository.findByInterrogationIdAndQuestionnaireId(interrogationId, questionnaireId);
-		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnits);
+	public List<SurveyUnitModel> findByIds(String interrogationId, String collectionInstrumentId) {
+		List<SurveyUnitDocument> results = new ArrayList<>();
+		results.addAll(mongoRepository.findByInterrogationIdAndCollectionInstrumentId(interrogationId, collectionInstrumentId));
+		// To ensure compatibility with older documents (with questionnaireId instead of collectionInstrumentId)
+		results.addAll(mongoRepository.findByInterrogationIdAndQuestionnaireId(interrogationId, collectionInstrumentId));
+		return results.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(results);
 	}
 
 
@@ -87,8 +92,11 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 	}
 
 	@Override
-	public Long deleteByQuestionnaireId(String questionnaireId) {
-		return mongoRepository.deleteByQuestionnaireId(questionnaireId);
+	public Long deleteByCollectionInstrumentId(String collectionInstrumentId) {
+		Long countDeleted = mongoRepository.deleteByCollectionInstrumentId(collectionInstrumentId);
+		// If the responses are in the old format (previous to modele filiere)
+		countDeleted += mongoRepository.deleteByQuestionnaireId(collectionInstrumentId);
+		return countDeleted;
 	}
 
 	@Override
@@ -144,15 +152,19 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 	}
 
 	@Override
-	public List<SurveyUnitModel> findInterrogationIdsByQuestionnaireId(String questionnaireId) {
-		List<SurveyUnitDocument> surveyUnits = mongoRepository.findInterrogationIdsByQuestionnaireId(questionnaireId);
-		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnits);
+	public List<SurveyUnitModel> findInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId) {
+		List<SurveyUnitDocument> results =  new ArrayList<>();
+		results.addAll(mongoRepository.findInterrogationIdsByCollectionInstrumentId(collectionInstrumentId));
+		results.addAll(mongoRepository.findInterrogationIdsByQuestionnaireId(collectionInstrumentId));
+		return results.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(results);
 	}
 
 	@Override
 	public List<SurveyUnitModel> findInterrogationIdsByQuestionnaireIdAndDateAfter(String questionnaireId, LocalDateTime since) {
-		List<SurveyUnitDocument> surveyUnits = mongoRepository.findInterrogationIdsByQuestionnaireIdAndDateAfter(questionnaireId, since);
-		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnits);
+		List<SurveyUnitDocument> results =  new ArrayList<>();
+		results.addAll(mongoRepository.findInterrogationIdsByQuestionnaireIdAndDateAfter(questionnaireId, since));
+		results.addAll(mongoRepository.findInterrogationIdsByCollectionInstrumentIdAndDateAfter(questionnaireId, since));
+		return results.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(results);
 	}
 
 	//========== OPTIMISATIONS PERFS (START) ===========
@@ -195,11 +207,11 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 	@Override
 	public Set<String> findDistinctQuestionnaireIds() {
 		Set<String> questionnaireIds = new HashSet<>();
-		for(String questionnaireId : mongoTemplate.getCollection(Constants.MONGODB_RESPONSE_COLLECTION_NAME).distinct(
-                QUESTIONNAIRE_ID,
-				String.class)){
-			questionnaireIds.add(questionnaireId);
-		}
+		// Id selection is executed by mongoDB
+		MongoCollection<Document> collection = mongoTemplate.getCollection(Constants.MONGODB_RESPONSE_COLLECTION_NAME);
+		collection.distinct(QUESTIONNAIRE_ID, String.class).into(questionnaireIds);
+		collection.distinct("collectionInstrumentId", String.class).into(questionnaireIds);
+		questionnaireIds.remove(null);
 		return questionnaireIds;
 	}
 

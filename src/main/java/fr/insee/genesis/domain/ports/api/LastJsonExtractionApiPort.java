@@ -7,5 +7,7 @@ import fr.insee.genesis.exceptions.GenesisException;
 public interface LastJsonExtractionApiPort {
     void recordDate(LastJsonExtractionModel extraction);
 
-    LastJsonExtractionModel getLastExtractionDate(String questionnaireModelId, Mode mode) throws GenesisException;
+    LastJsonExtractionModel getLastExtractionDate(String collectionInstrumentId, Mode mode) throws GenesisException;
+
+    void delete(String collectionInstrumentId, Mode mode) throws GenesisException;
 }

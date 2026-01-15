@@ -1,4 +1,41 @@
 # Changelog
+## 2.1.0 [TODO]
+### Added
+- rawResponses payload.campaignId indexing
+### Removed
+- campaignId at root level in rawResponses
+### Fixed
+- Fixed withReview still based on campaignId
+
+## 2.0.4 [2026-01-13]
+### Added
+- Debug endpoints (Get raw data by collectionInstrumentId, delete last execution)
+### Fixed
+- Process lunatic json raw responses still using campaignId
+- Link variables
+- Null values in arrays were wrongly persisted as empty strings
+
+## 2.0.3 [2026-01-08]
+### Fixed
+- Quality tool is ready without final backslash
+
+
+## 2.0.2 [2026-01-07]
+### Fixed
+- Revert change url for quality tool, waiting for its update
+
+## 2.0.1 [2026-01-07]
+### Fixed
+- Crash when get questionnaireIds by null processDate with too much raw datas in lunaticjsondata
+ 
+## 2.0.0 [2026-01-07]
+### Changed
+- Use filière model
+
+## 1.13.0 [2025-12-04]
+### Changed
+- New raw data process endpoint
+
 ## 1.12.2 [2025-11-06]
 ### Fixed
 - Scientific notation for Doubles during raw data processing

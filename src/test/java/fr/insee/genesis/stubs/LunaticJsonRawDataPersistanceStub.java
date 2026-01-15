@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 @Getter
@@ -43,6 +44,28 @@ public class LunaticJsonRawDataPersistanceStub implements LunaticJsonRawDataPers
     }
 
     @Override
+    public Set<String> findDistinctQuestionnaireIdsByNullProcessDate() {
+        Set<String> questionnaireIds = new HashSet<>();
+        mongoStub.stream().filter(
+                lunaticJsonDataDocument -> lunaticJsonDataDocument.processDate() == null
+        ).forEach(doc -> {
+            if(doc.questionnaireId() != null){
+                questionnaireIds.add(doc.questionnaireId());
+            }
+        });
+        return questionnaireIds;
+    }
+
+    @Override
+    public Set<Mode> findModesByQuestionnaire(String questionnaireId) {
+        return new HashSet<>(mongoStub.stream()
+                .filter(doc -> Objects.equals(doc.questionnaireId(), questionnaireId))
+                .map(LunaticJsonRawDataDocument::mode)
+                .distinct()
+                .toList());
+    }
+
+    @Override
     public List<LunaticJsonRawDataModel> findRawData(String campaignName, Mode mode, List<String> interrogationIdList) {
         List<LunaticJsonRawDataDocument> docs = mongoStub.stream().filter(lunaticJsonRawDataDocument ->
                 lunaticJsonRawDataDocument.campaignId().equals(campaignName)
@@ -52,6 +75,29 @@ public class LunaticJsonRawDataPersistanceStub implements LunaticJsonRawDataPers
         return LunaticJsonRawDataDocumentMapper.INSTANCE.listDocumentToListModel(docs);
     }
 
+    @Override
+    public List<LunaticJsonRawDataModel> findRawDataByQuestionnaireId(String questionnaireId, Mode mode, List<String> interrogationIdList) {
+        List<LunaticJsonRawDataDocument> docs = mongoStub.stream().filter(lunaticJsonRawDataDocument ->
+                lunaticJsonRawDataDocument.questionnaireId().equals(questionnaireId)
+                        && lunaticJsonRawDataDocument.mode().equals(mode)
+                        && interrogationIdList.contains(lunaticJsonRawDataDocument.interrogationId())
+        ).toList();
+        return LunaticJsonRawDataDocumentMapper.INSTANCE.listDocumentToListModel(docs);    }
+
+    @Override
+    public Page<LunaticJsonRawDataModel> findRawDataByQuestionnaireId(String questionnaireId, Pageable pageable) {
+        return null;
+    }
+
+
+    @Override
+    public List<LunaticJsonRawDataModel> findRawDataByInterrogationID(String interrogationId) {
+        List<LunaticJsonRawDataDocument> docs = mongoStub.stream()
+                .filter(doc -> interrogationId.equals(doc.interrogationId()))
+                .toList();
+
+        return LunaticJsonRawDataDocumentMapper.INSTANCE.listDocumentToListModel(docs);
+    }
 
     @Override
     public void updateProcessDates(String campaignId, Set<String> interrogationIds) {
@@ -176,4 +222,15 @@ public class LunaticJsonRawDataPersistanceStub implements LunaticJsonRawDataPers
         return GroupedInterrogationDocumentMapper.INSTANCE.listDocumentToListModel(result);
     }
 
+    @Override
+    public Set<String> findUnprocessedInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId) {
+       List<LunaticJsonRawDataDocument> unprocessedDocuments =
+               mongoStub.stream().filter(
+                       lunaticJsonDataDocument -> lunaticJsonDataDocument.processDate() == null
+                       && lunaticJsonDataDocument.questionnaireId().equals(collectionInstrumentId)
+               ).toList();
+       Set<String> interrogationIds = new HashSet<>();
+       unprocessedDocuments.forEach(doc -> interrogationIds.add(doc.interrogationId()));
+       return interrogationIds;
+    }
 }

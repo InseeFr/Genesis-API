@@ -14,6 +14,7 @@ import org.springframework.data.repository.query.FluentQuery;
 import java.time.LocalDateTime;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -37,6 +38,11 @@ public class LunaticJsonMongoDBRepositoryStub implements LunaticJsonMongoDBRepos
     }
 
     @Override
+    public List<String> findDistinctQuestionnaireIdByProcessDateIsNull() {
+        return List.of();
+    }
+
+    @Override
     public List<Mode> findModesByCampaignId(String campaignId) {
         return documents.stream()
                 .filter(doc -> Objects.equals(doc.campaignId(), campaignId))
@@ -46,13 +52,39 @@ public class LunaticJsonMongoDBRepositoryStub implements LunaticJsonMongoDBRepos
     }
 
     @Override
-    public List<LunaticJsonRawDataDocument> findModesByCampaignIdAndByModeAndinterrogationIdIninterrogationIdList(
+    public List<Mode> findModesByQuestionnaireId(String questionnaireId) {
+        return documents.stream()
+                .filter(doc -> Objects.equals(doc.questionnaireId(), questionnaireId))
+                .map(LunaticJsonRawDataDocument::mode)
+                .distinct()
+                .toList();
+    }
+
+    @Override
+    public List<LunaticJsonRawDataDocument> findByCampaignModeAndInterrogations(
             String campaignName, Mode mode, List<String> interrogationIdList) {
         return documents.stream()
                 .filter(doc -> Objects.equals(doc.campaignId(), campaignName)
                         && Objects.equals(doc.mode(), mode)
                         && interrogationIdList.contains(doc.interrogationId()))
                 .toList();
+    }
+
+    @Override
+    public List<LunaticJsonRawDataDocument> findByQuestionnaireModeAndInterrogations(String questionnaireId, Mode mode, List<String> interrogationIdList) {
+        return documents.stream()
+                .filter(doc -> Objects.equals(doc.questionnaireId(), questionnaireId)
+                        && Objects.equals(doc.mode(), mode)
+                        && interrogationIdList.contains(doc.interrogationId()))
+                .toList();
+    }
+
+    @Override
+    public List<LunaticJsonRawDataDocument> findByInterrogationId(String interrogationId) {
+        return documents.stream()
+                        .filter(doc -> Objects.equals(doc.interrogationId(), interrogationId))
+                        .toList()
+        ;
     }
 
     @Override
@@ -134,6 +166,22 @@ public class LunaticJsonMongoDBRepositoryStub implements LunaticJsonMongoDBRepos
             }
         }
         return result;
+    }
+
+    @Override
+    public List<GroupedInterrogationDocument> aggregateRawGroupedWithNullProcessDate(String questionnaireId) {
+        GroupedInterrogationDocument groupedInterrogationDocument = new GroupedInterrogationDocument();
+        groupedInterrogationDocument.setQuestionnaireId(questionnaireId);
+        groupedInterrogationDocument.setPartitionOrCampaignId(questionnaireId);
+        groupedInterrogationDocument.setInterrogationIds(new ArrayList<>());
+        documents.stream().filter(doc -> doc.questionnaireId().equals(questionnaireId) && doc.processDate() == null).toList()
+                .forEach(doc -> groupedInterrogationDocument.getInterrogationIds().add(doc.interrogationId()));
+        return Collections.singletonList(groupedInterrogationDocument);
+    }
+
+    @Override
+    public Page<LunaticJsonRawDataDocument> findByQuestionnaireId(String questionnaireId, Pageable pageable) {
+        return null;
     }
 
     // Implémentations vides requises par MongoRepository

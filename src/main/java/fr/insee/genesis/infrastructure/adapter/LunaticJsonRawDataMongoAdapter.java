@@ -50,8 +50,38 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
     }
 
     @Override
+    public Set<String> findDistinctQuestionnaireIdsByNullProcessDate(){
+        return new HashSet<>(repository.findDistinctQuestionnaireIdByProcessDateIsNull());
+    }
+
+    @Override
+    public Set<Mode> findModesByQuestionnaire(String questionnaireId) {
+        return new HashSet<>(repository.findModesByQuestionnaireId(questionnaireId));
+    }
+
+    @Override
     public List<LunaticJsonRawDataModel> findRawData(String campaignName, Mode mode, List<String> interrogationIdList) {
-        List<LunaticJsonRawDataDocument> rawDataDocs = repository.findModesByCampaignIdAndByModeAndinterrogationIdIninterrogationIdList(campaignName, mode, interrogationIdList);return LunaticJsonRawDataDocumentMapper.INSTANCE.listDocumentToListModel(rawDataDocs);
+        List<LunaticJsonRawDataDocument> rawDataDocs = repository.findByCampaignModeAndInterrogations(campaignName, mode, interrogationIdList);
+        return LunaticJsonRawDataDocumentMapper.INSTANCE.listDocumentToListModel(rawDataDocs);
+    }
+
+    @Override
+    public List<LunaticJsonRawDataModel> findRawDataByQuestionnaireId(String questionnaireId, Mode mode, List<String> interrogationIdList) {
+        List<LunaticJsonRawDataDocument> rawDataDocs = repository.findByQuestionnaireModeAndInterrogations(questionnaireId, mode, interrogationIdList);
+        return LunaticJsonRawDataDocumentMapper.INSTANCE.listDocumentToListModel(rawDataDocs);
+    }
+
+    @Override
+    public Page<LunaticJsonRawDataModel> findRawDataByQuestionnaireId(String questionnaireId, Pageable pageable) {
+        Page<LunaticJsonRawDataDocument> rawDataDocsPage =  repository.findByQuestionnaireId(questionnaireId, pageable);
+        List<LunaticJsonRawDataModel> modelList = LunaticJsonRawDataDocumentMapper.INSTANCE.listDocumentToListModel(rawDataDocsPage.getContent());
+        return new PageImpl<>(modelList, rawDataDocsPage.getPageable(), rawDataDocsPage.getTotalElements());
+    }
+
+    @Override
+    public List<LunaticJsonRawDataModel> findRawDataByInterrogationID(String interrogationId) {
+        List<LunaticJsonRawDataDocument> rawDataDocs = repository.findByInterrogationId(interrogationId);
+        return LunaticJsonRawDataDocumentMapper.INSTANCE.listDocumentToListModel(rawDataDocs);
     }
 
     @Override
@@ -66,9 +96,9 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
     @Override
     public Set<String> findDistinctQuestionnaireIds() {
         Set<String> questionnaireIds = new HashSet<>();
-        for(String questionnaireId : mongoTemplate.getCollection(Constants.MONGODB_RESPONSE_RAW_COLLECTION_NAME).distinct(
+        for (String questionnaireId : mongoTemplate.getCollection(Constants.MONGODB_RAW_RESPONSES_COLLECTION_NAME).distinct(
                 "questionnaireId",
-                String.class)){
+                String.class)) {
             questionnaireIds.add(questionnaireId);
         }
         return questionnaireIds;
@@ -96,4 +126,14 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
         return GroupedInterrogationDocumentMapper.INSTANCE.listDocumentToListModel(repository.aggregateRawGroupedWithNullProcessDate());
     }
 
+    @Override
+    public Set<String> findUnprocessedInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId) {
+        Set<String> interrogationIds = new HashSet<>();
+
+        repository.aggregateRawGroupedWithNullProcessDate(collectionInstrumentId).forEach(
+                groupedInterrogationDocument -> interrogationIds.addAll(groupedInterrogationDocument.getInterrogationIds())
+        );
+
+        return interrogationIds;
+    }
 }

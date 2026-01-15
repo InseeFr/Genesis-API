@@ -20,11 +20,30 @@ public interface LunaticJsonMongoDBRepository extends MongoRepository<LunaticJso
     @Query("{\"processDate\" : null}")
     List<LunaticJsonRawDataDocument> findByNullProcessDate();
 
+    @Aggregation(pipeline = {
+            "{ $match: { processDate: null } }",
+            "{ $group: { _id: 'questionnaireId' } }",
+            "{ $project: { _id: 0, questionnaireId: '$_id' } }"
+    })
+    List<String> findDistinctQuestionnaireIdByProcessDateIsNull();
+
     @Query(value = "{ 'campaignId' : ?0 }", fields = "{ 'mode' :  1 }")
     List<Mode> findModesByCampaignId(String campaignId);
 
+    @Aggregation(pipeline = {
+            "{ '$match': { 'questionnaireId': ?0 } }",
+            "{ '$project': { '_id': 0, 'mode': 1 } }"
+    })
+    List<Mode> findModesByQuestionnaireId(String questionnaireId);
+
     @Query(value = "{ 'campaignId' : ?0, 'mode' : ?1, 'interrogationId': {$in: ?2} }")
-    List<LunaticJsonRawDataDocument> findModesByCampaignIdAndByModeAndinterrogationIdIninterrogationIdList(String campaignName, Mode mode, List<String> interrogationIdList);
+    List<LunaticJsonRawDataDocument> findByCampaignModeAndInterrogations(String campaignName, Mode mode, List<String> interrogationIdList);
+
+    @Query(value = "{ 'questionnaireId' : ?0, 'mode' : ?1, 'interrogationId': {$in: ?2} }")
+    List<LunaticJsonRawDataDocument> findByQuestionnaireModeAndInterrogations(String questionnaireId, Mode mode, List<String> interrogationIdList);
+
+    @Query(value = "{ 'interrogationId': ?0}")
+    List<LunaticJsonRawDataDocument> findByInterrogationId(String interrogationId);
 
     Page<LunaticJsonRawDataDocument> findByCampaignIdAndRecordDateBetween(String campagneId, Instant start, Instant  end, Pageable pageable);
     long countByQuestionnaireId(String questionnaireId);
@@ -63,4 +82,24 @@ public interface LunaticJsonMongoDBRepository extends MongoRepository<LunaticJso
                     "} }"
     })
     List<GroupedInterrogationDocument> aggregateRawGroupedWithNullProcessDate();
+
+    @Aggregation(pipeline = {
+            "{ '$match': {'questionnaireId': ?0 ,'processDate': null } }",
+            "{ '$group': { " +
+                    "'_id': { " +
+                    "'questionnaireId': '$questionnaireId', " +
+                    "'partitionOrCampaignId': { '$ifNull': ['$partitionId', '$campaignId'] } " +
+                    "}, " +
+                    "'interrogationIds': { '$addToSet': '$interrogationId' } " +
+                    "} }",
+            "{ '$project': { " +
+                    "'questionnaireId': '$_id.questionnaireId', " +
+                    "'partitionOrCampaignId': '$_id.partitionOrCampaignId', " +
+                    "'interrogationIds': 1, " +
+                    "'_id': 0 " +
+                    "} }"
+    })
+    List<GroupedInterrogationDocument> aggregateRawGroupedWithNullProcessDate(String questionnaireId);
+
+    Page<LunaticJsonRawDataDocument> findByQuestionnaireId(String questionnaireId, Pageable pageable);
 }

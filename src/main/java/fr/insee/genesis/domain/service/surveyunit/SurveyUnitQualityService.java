@@ -25,6 +25,7 @@ public class SurveyUnitQualityService {
      * @return A list of variables that are <strong>absent</strong> in metadata
      */
     public List<String> checkVariablesPresentInMetadata(List<VariableInputDto> variableInputDtos, VariablesMap variablesMap) {
+
         List<String> absentVariableNames = new ArrayList<>();
 
         for(VariableInputDto variableInputDto : variableInputDtos){
