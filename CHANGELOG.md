@@ -1,5 +1,5 @@
 # Changelog
-## 2.1.0 [TODO]
+## 2.1.0 [2026-01-15]
 ### Added
 - rawResponses payload.campaignId indexing
 ### Removed
