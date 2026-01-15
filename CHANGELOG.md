@@ -13,6 +13,7 @@
 ### Fixed
 - Process lunatic json raw responses still using campaignId
 - Link variables
+- Null values in arrays were wrongly persisted as empty strings
 
 ## 2.0.3 [2026-01-08]
 ### Fixed
