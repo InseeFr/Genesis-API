@@ -28,4 +28,9 @@ public class LastJsonExtractionPersistencePortStub implements LastJsonExtraction
                 .orElseThrow();
         return LastJsonExtractionDocumentMapper.INSTANCE.documentToModel(extraction);
     }
+
+    @Override
+    public void delete(String collectionInstrumentId, Mode mode) {
+
+    }
 }

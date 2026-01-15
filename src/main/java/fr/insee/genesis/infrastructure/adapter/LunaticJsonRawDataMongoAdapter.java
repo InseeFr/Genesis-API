@@ -72,6 +72,13 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
     }
 
     @Override
+    public Page<LunaticJsonRawDataModel> findRawDataByQuestionnaireId(String questionnaireId, Pageable pageable) {
+        Page<LunaticJsonRawDataDocument> rawDataDocsPage =  repository.findByQuestionnaireId(questionnaireId, pageable);
+        List<LunaticJsonRawDataModel> modelList = LunaticJsonRawDataDocumentMapper.INSTANCE.listDocumentToListModel(rawDataDocsPage.getContent());
+        return new PageImpl<>(modelList, rawDataDocsPage.getPageable(), rawDataDocsPage.getTotalElements());
+    }
+
+    @Override
     public List<LunaticJsonRawDataModel> findRawDataByInterrogationID(String interrogationId) {
         List<LunaticJsonRawDataDocument> rawDataDocs = repository.findByInterrogationId(interrogationId);
         return LunaticJsonRawDataDocumentMapper.INSTANCE.listDocumentToListModel(rawDataDocs);

@@ -82,4 +82,9 @@ public class RawResponseDataPersistanceStub implements RawResponsePersistencePor
                 foundRaws.size()
         );
     }
+
+    @Override
+    public Page<RawResponseModel> findByCollectionInstrumentId(String collectionInstrumentId, Pageable pageable) {
+        return null;
+    }
 }
