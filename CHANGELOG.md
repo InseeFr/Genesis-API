@@ -1,4 +1,8 @@
 # Changelog
+## 2.1.0 [TODO]
+### Fixed
+- Fixed withReview still based on campaignId
+
 ## 2.0.4 [2026-01-13]
 ### Added
 - Debug endpoints (Get raw data by collectionInstrumentId, delete last execution)

@@ -51,6 +51,7 @@ class DataProcessingContextServiceTest {
         ));
         DataProcessingContextDocument doc = new DataProcessingContextDocument();
         doc.setPartitionId("TEST");
+        doc.setCollectionInstrumentId("TEST");
         doc.setKraftwerkExecutionScheduleList(kraftwerkExecutionScheduleList);
         doc.setWithReview(false);
         dataProcessingContextPersistencePortStub.getMongoStub().add(doc);
@@ -129,7 +130,7 @@ class DataProcessingContextServiceTest {
         LocalDateTime localDateTime = LocalDateTime.now();
 
         //When
-        dataProcessingContextService.updateLastExecutionDate("TEST", localDateTime);
+        dataProcessingContextService.updateLastExecutionDateByCollectionInstrumentId("TEST", localDateTime);
 
         //Then
         Assertions.assertThat(dataProcessingContextPersistencePortStub.getMongoStub()).hasSize(1);
@@ -171,7 +172,7 @@ class DataProcessingContextServiceTest {
                 null
         ));
         DataProcessingContextDocument doc = new DataProcessingContextDocument();
-        doc.setPartitionId("TEST2");
+        doc.setCollectionInstrumentId("TEST2");
         doc.setKraftwerkExecutionScheduleList(kraftwerkExecutionScheduleList);
         doc.setWithReview(false);
         dataProcessingContextPersistencePortStub.getMongoStub().add(doc);
@@ -183,23 +184,23 @@ class DataProcessingContextServiceTest {
         //Survey schedule document deleted
         Assertions.assertThat(dataProcessingContextPersistencePortStub.getMongoStub()).hasSize(2);
         Assertions.assertThat(dataProcessingContextPersistencePortStub.getMongoStub().stream().filter(
-                scheduleDocument -> scheduleDocument.getPartitionId().equals("TEST2")
+                scheduleDocument -> scheduleDocument.getCollectionInstrumentId().equals("TEST2")
         ).toList()).hasSize(1);
         Assertions.assertThat(dataProcessingContextPersistencePortStub.getMongoStub().stream().filter(
-                scheduleDocument -> scheduleDocument.getPartitionId().equals("TEST2")
+                scheduleDocument -> scheduleDocument.getCollectionInstrumentId().equals("TEST2")
         ).toList().getFirst().getKraftwerkExecutionScheduleList()).isEmpty();
 
     }
 
     @Test
-    void getContext_shouldThrow500IfMultiplePartitions() {
+    void getContext_shouldThrow500IfMultipleCollectionInstruments() {
         // Given
         SurveyUnitModel su1 = SurveyUnitModel.builder()
-                .campaignId("CAMPAIGN1")
+                .collectionInstrumentId("CAMPAIGN1")
                 .interrogationId("00001")
                 .build();
         SurveyUnitModel su2 = SurveyUnitModel.builder()
-                .campaignId("CAMPAIGN2")
+                .collectionInstrumentId("CAMPAIGN2")
                 .interrogationId("00001")
                 .build();
         List<SurveyUnitModel> sus = new ArrayList<>();
@@ -212,7 +213,7 @@ class DataProcessingContextServiceTest {
         //To ensure test is portable on Unix/Linux/macOS and windows systems
         String normalizedMessage = ex.getMessage().replaceAll("\\r?\\n", "");
         Assertions.assertThat(ex.getStatus()).isEqualTo(500);
-        Assertions.assertThat(normalizedMessage).isEqualTo("Multiple partitions for interrogation 00001");
+        Assertions.assertThat(normalizedMessage).isEqualTo("Multiple collection instruments for interrogation 00001");
     }
 
     @Test
@@ -224,10 +225,10 @@ class DataProcessingContextServiceTest {
     }
 
     @Test
-    void getContext_shouldReturnContextIfOnePartition() throws GenesisException {
+    void getContext_shouldReturnContextIfOneCollectionInstrument() throws GenesisException {
         // Given
         SurveyUnitModel su1 = SurveyUnitModel.builder()
-                .campaignId("TEST")
+                .collectionInstrumentId("TEST")
                 .interrogationId("00001")
                 .build();
         List<SurveyUnitModel> sus = new ArrayList<>();
@@ -237,7 +238,7 @@ class DataProcessingContextServiceTest {
 
         // When & Then
         Assertions.assertThat(result).isNotNull();
-        Assertions.assertThat(result.getPartitionId()).isEqualTo("TEST");
+        Assertions.assertThat(result.getCollectionInstrumentId()).isEqualTo("TEST");
         Assertions.assertThat(result.isWithReview()).isFalse();
     }
 
