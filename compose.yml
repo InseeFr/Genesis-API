@@ -1,0 +1,167 @@
+x-mongo-volumes-setup-rs-1: &mongo-volumes-setup-rs-1
+  - mongo_vol_1:/data/db
+  - ./container/mongodb/mongodb_rs1_init.sh:/scripts/mongodb_rs_init.sh
+
+x-mongo-volumes-1: &mongo-volumes-1
+  - mongo_vol_1:/data
+
+services:
+  #----------------------------------------------------------------------------
+  #  /) /)
+  #  (^.^) platine (collecte WEB)
+  # (")_(")
+  #----------------------------------------------------------------------------
+  platine-pilotage-db:
+    image: ${IMAGES_REGISTRY_DOCKER_IO}/${IMAGE_BDD_POSTGRES}
+    profiles:
+      - platine-pilotage-db
+      - all
+    environment:
+      - POSTGRES_USER=${PLATINE_PILOTAGE_DB_USER}
+      - POSTGRES_PASSWORD=${PLATINE_PILOTAGE_DB_PASSWORD}
+      - POSTGRES_DB=${PLATINE_PILOTAGE_DB_NAME}
+    command: ["postgres"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PLATINE_PILOTAGE_DB_USER} -d ${PLATINE_PILOTAGE_DB_NAME} -h localhost"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+    #    volumes:
+    #      - ./container/pilotage/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - ${PLATINE_PILOTAGE_DB_PORT}:5432
+  #----------------------------------------------------------------------------
+  platine-pilotage-api:
+    image: ${IMAGES_REGISTRY_DOCKER_IO}/${IMAGE_PLATINE_PILOTAGE_API}
+    profiles:
+      - platine-pilotage-api
+      - all
+    depends_on:
+      platine-pilotage-db:
+        condition: service_healthy
+    environment:
+      - SPRING_DATASOURCE_DRIVERCLASSNAME=org.postgresql.Driver
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://platine-pilotage-db:5432/${PLATINE_PILOTAGE_DB_NAME}
+      - SPRING_DATASOURCE_USERNAME=${PLATINE_PILOTAGE_DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${PLATINE_PILOTAGE_DB_PASSWORD}
+      - SPRING_LIQUIBASE_ENABLED=TRUE
+      # use initdb,prod if database does not already exist in specific profile environment
+      - SPRING_LIQUIBASE_CONTEXTS=init-db,demo,prod
+      - SPRING_LIQUIBASE_DEFAULTSCHEMA=public
+      #- SPRING_LIQUIBASE_CHANGE-LOG=classpath:db/master.xml
+      - SPRING_LIQUIBASE_CHANGE-LOG=classpath:db/integration-demo.xml
+      - SPRINGDOC_SWAGGER_UI_OAUTH_ADDITIONALQUERYSTRINGPARAMS_KC_IDP_HINT=${IDP_HINT}
+      # issuer-uri is used to auto discover keycloak configuration endpoints and to validate the iss in the token (spring boot check that issuer-uri and iss are identical)
+      # When using jwk-set-uri, issuer-uri is not used anymore to auto discover configuration.
+      # That's what we want here. By authenticating with swagger, host machine is used and the iss generated in the token is equals to issuer-uri
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUERURI=${AUTH_SERVER_URL}/realms/${AUTH_REALM}
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWKSETURI=http://keycloak:8080/realms/${AUTH_REALM}/protocol/openid-connect/certs
+      - FR_INSEE_DATACOLLECTIONMANAGEMENT_ROLES_RESPONDENT_ROLE=${RESPONDENT_ROLE}
+      - FR_INSEE_DATACOLLECTIONMANAGEMENT_ROLES_INTERNAL_USER_ROLE=${INTERNAL_USER_ROLE}
+      - FR_INSEE_DATACOLLECTIONMANAGEMENT_ROLES_ADMIN_ROLE=${ADMIN_ROLE}
+      - FR_INSEE_DATACOLLECTIONMANAGEMENT_ROLES_WEBCLIENT_ROLE=${WEBCLIENT_ROLE}
+      - FR_INSEE_DATACOLLECTIONMANAGEMENT_AUTH_MODE=OIDC
+      - FR_INSEE_DATACOLLECTIONMANAGEMENT_AUTH_SERVERURL=${AUTH_SERVER_URL}
+      - FR_INSEE_DATACOLLECTIONMANAGEMENT_AUTH_REALM=${AUTH_REALM}
+      - FR_INSEE_DATACOLLECTIONMANAGEMENT_API_QUESTIONING_API_URL=
+      - FR_INSEE_DATACOLLECTIONMANAGEMENT_API_QUESTIONING_SENSITIVE_API_URL=
+      - FR_INSEE_DATACOLLECTIONMANAGEMENT_API_LUNATIC_NORMAL_URL=
+      - FR_INSEE_DATACOLLECTIONMANAGEMENT_API_LUNATIC_SENSITIVE_URL=
+      - FR_INSEE_DATACOLLECTIONMANAGEMENT_API_XFORM1_URL=
+      - FR_INSEE_DATACOLLECTIONMANAGEMENT_API_XFORM2_URL=
+      - FR_INSEE_DATACOLLECTIONMANAGEMENT_LDAP_API_ACCREDITATION_ID=id
+      - JWT_ROLE_CLAIM=${JWT_ROLE_CLAIM}
+      - SPRINGDOC_SWAGGER_UI_OAUTH_CLIENT_ID=${AUTH_CLIENT_ID}
+    ports:
+      - ${PLATINE_PILOTAGE_API_PORT}:8080
+
+  #----------------------------------------------------------------------------
+  #   0"""0
+  #  ( �.�,) Genesis (traiter)
+  #  (")_(")
+  #----------------------------------------------------------------------------
+  mongo-init:
+    container_name: mongo-init
+    image: ${IMAGES_REGISTRY_DOCKER_IO}/${IMAGE_BDD_MONGO}
+    profiles:
+      - mongodb
+      - all
+    volumes: *mongo-volumes-1
+    restart: on-failure
+    command:
+      - /bin/bash
+      - -c
+      - |
+        openssl rand -base64 756 > /data/replica.key
+        chmod 400 /data/replica.key
+        chown mongodb:mongodb /data/replica.key
+        ls -ltrah /data
+        cat /data/replica.key
+  #----------------------------------------------------------------------------
+  mongod1:
+    container_name: mongod1
+    image: ${IMAGES_REGISTRY_DOCKER_IO}/${IMAGE_BDD_MONGO}
+    profiles:
+      - mongodb
+      - all
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${GENESIS_DB_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${GENESIS_DB_PASSWORD}
+      MONGO_INITDB_DATABASE: ${GENESIS_DB_NAME}
+    depends_on:
+      - mongo-init
+    ports:
+      - ${GENESIS_DB_PORT}:27017
+    volumes: *mongo-volumes-1
+    restart: always
+    healthcheck:
+      test: ["CMD","mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 120s
+    command: "mongod --bind_ip_all --replSet dbrs --keyFile /data/replica.key"
+  #----------------------------------------------------------------------------
+  mongo-setup-rs-1:
+    container_name: mongo-setup
+    image: ${IMAGES_REGISTRY_DOCKER_IO}/${IMAGE_BDD_MONGO}
+    profiles:
+      - mongodb
+      - all
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${GENESIS_DB_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${GENESIS_DB_PASSWORD}
+    depends_on:
+      - mongod1
+    volumes: *mongo-volumes-setup-rs-1
+    restart: on-failure
+    entrypoint: ["/bin/bash", "/scripts/mongodb_rs_init.sh"]
+
+  #----------------------------------------------------------------------------
+  #  (•_•)
+  #  /(   )> Authentification et habilitation
+  #  ^^ ^^
+  #----------------------------------------------------------------------------
+  keycloak:
+    image: ${IMAGES_REGISTRY_QUAY_IO}/${IMAGE_KEYCLOAK}
+    profiles:
+      - keycloak
+      - all
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_HEALTH_ENABLED: "true"
+      KC_LOG_LEVEL: info
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://keycloak:8080/health/ready"]
+      interval: 15s
+      timeout: 2s
+      retries: 15
+    command: ["start-dev", "--import-realm"]
+    ports:
+      - "${KEYCLOAK_PORT}:8080"
+    volumes:
+      - ./container/keycloak/realms:/opt/keycloak/data/import
+#----------------------------------------------------------------------------
+volumes:
+  mongo_vol_1:
