@@ -86,4 +86,6 @@ public interface SurveyUnitApiPort {
     String findQuestionnaireIdByInterrogationId(String interrogationId) throws GenesisException;
 
     Set<String> findCampaignIdsFrom(SurveyUnitInputDto dto);
+
+    long countResponsesByQuestionnaireId(String questionnaireId);
 }

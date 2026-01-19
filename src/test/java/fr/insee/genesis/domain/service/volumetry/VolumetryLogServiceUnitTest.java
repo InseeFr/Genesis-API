@@ -68,6 +68,29 @@ class VolumetryLogServiceUnitTest {
                 .isEqualTo(exampleResponseCount);
     }
 
+    @Test
+    @SneakyThrows
+    void writeVolumetries_questionnaireId_test() {
+        //GIVEN
+        SurveyUnitApiPort surveyUnitApiPort = mock(SurveyUnitApiPort.class);
+        long exampleResponseCount = 5;
+        long exampleResponseWithQuestionnaireIdCount = 3;
+        doReturn(Set.of(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID))
+                .when(surveyUnitApiPort).findDistinctCollectionInstrumentIds();
+        doReturn(exampleResponseCount).when(surveyUnitApiPort).countResponsesByCollectionInstrumentId(any());
+        doReturn(exampleResponseWithQuestionnaireIdCount).when(surveyUnitApiPort).countResponsesByQuestionnaireId(any());
+
+        //WHEN
+        Map<String, Long> responseVolumetricsMap = volumetryLogService.writeVolumetries(surveyUnitApiPort);
+
+        //THEN
+        Assertions.assertThat(Files.list(logFilePath)).hasSize(1);
+        Assertions.assertThat(responseVolumetricsMap)
+                .containsOnlyKeys(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID);
+        Assertions.assertThat(responseVolumetricsMap.get(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID))
+                .isEqualTo(exampleResponseCount + exampleResponseWithQuestionnaireIdCount);
+    }
+
     @ParameterizedTest
     @CsvSource({"false, true", "true, false", "true, true", "false, false"})
     @SneakyThrows

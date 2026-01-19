@@ -234,4 +234,9 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 
 		return campaignIds;
 	}
+
+	@Override
+	public long countByQuestionnaireId(String questionnaireId) {
+		return 0;
+	}
 }

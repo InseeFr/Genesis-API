@@ -208,4 +208,9 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
 
         return campaignIdSet;
     }
+
+    @Override
+    public long countByQuestionnaireId(String questionnaireId) {
+        return 0;
+    }
 }

@@ -50,6 +50,8 @@ public class VolumetryLogService {
         Set<String> collectionInstrumentIds = surveyUnitApiPort.findDistinctCollectionInstrumentIds();
         for (String collectionInstrumentId : collectionInstrumentIds) {
             long countResult = surveyUnitApiPort.countResponsesByCollectionInstrumentId(collectionInstrumentId);
+            countResult += surveyUnitApiPort.countResponsesByQuestionnaireId(collectionInstrumentId);
+
 
             String line = collectionInstrumentId + ";" + countResult + "\n";
 
