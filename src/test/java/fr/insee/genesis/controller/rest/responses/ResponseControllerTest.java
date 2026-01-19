@@ -229,6 +229,7 @@ class ResponseControllerTest {
 
         DataProcessingContextDocument doc = new DataProcessingContextDocument();
         doc.setPartitionId("TEST-TABLEAUX");
+        doc.setCollectionInstrumentId(DEFAULT_COLLECTION_INSTRUMENT_ID);
         doc.setKraftwerkExecutionScheduleList(new ArrayList<>());
         doc.setWithReview(true);
         dataProcessingContextPersistancePortStub.getMongoStub().add(doc);
@@ -324,6 +325,7 @@ class ResponseControllerTest {
 
         DataProcessingContextDocument doc = new DataProcessingContextDocument();
         doc.setPartitionId("TEST-TABLEAUX");
+        doc.setCollectionInstrumentId(DEFAULT_COLLECTION_INSTRUMENT_ID);
         doc.setKraftwerkExecutionScheduleList(new ArrayList<>());
         doc.setWithReview(true);
         dataProcessingContextPersistancePortStub.getMongoStub().add(doc);

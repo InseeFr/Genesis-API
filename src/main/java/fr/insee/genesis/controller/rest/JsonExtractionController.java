@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -53,6 +54,20 @@ public class JsonExtractionController {
             return ResponseEntity.ok(new LastExtractionResponseDto(lastJsonExtraction.getLastExtractionDate()));
         } catch (GenesisException e){
             return ResponseEntity.notFound().build();
+        }
+    }
+
+    @Operation(summary = "Reset latest JSON data extraction")
+    @DeleteMapping(path = "/json")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Object> deleteJsonExtractionDate(
+            @RequestParam("collectionInstrumentId") String collectionInstrumentId,
+            @RequestParam(value = "mode", required = false) Mode mode){
+        try {
+            lastJsonExtractionApiPort.delete(collectionInstrumentId, mode);
+            return ResponseEntity.ok().build();
+        } catch (GenesisException e){
+            return ResponseEntity.status(e.getStatus()).build();
         }
     }
 

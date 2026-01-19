@@ -21,4 +21,6 @@ public interface RawResponsePersistencePort {
     Page<RawResponseModel> findByCampaignIdAndDate(String campaignId, Instant startDate, Instant endDate, Pageable pageable);
     long countByCollectionInstrumentId(String collectionInstrumentId);
     Set<String> findDistinctCollectionInstrumentIds();
+
+    Page<RawResponseModel> findByCollectionInstrumentId(String collectionInstrumentId, Pageable pageable);
 }

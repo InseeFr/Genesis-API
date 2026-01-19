@@ -300,6 +300,7 @@ public class ResponseController implements CommonApiResponse {
                 .collectionInstrumentId(responses.getFirst().getCollectionInstrumentId())
                 .campaignId(responses.getFirst().getCampaignId())
                 .interrogationId(responses.getFirst().getInterrogationId())
+                .mode(mode)
                 .usualSurveyUnitId(responses.getFirst().getUsualSurveyUnitId())
                 .validationDate(validationDate)
                 .questionnaireState(questionnaireState)

@@ -233,42 +233,25 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
     public DataProcessingContextModel getContext(String interrogationId) throws GenesisException {
         List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findByInterrogationId(interrogationId);
         if(surveyUnitModels.isEmpty()){
-            throw new GenesisException(404,"No interrogation in database with id %s".formatted(interrogationId));
+            throw new GenesisException(404, "No interrogation in database with id %s".formatted(interrogationId));
         }
-        Set<String> partitionIds = new HashSet<>();
-        Set<String> campaignIds = new HashSet<>();
         Set<String> collectionInstrumentIds = new HashSet<>();
 
         for (SurveyUnitModel su : surveyUnitModels){
-            if (su.getCampaignId()!=null){
-                campaignIds.add(su.getCampaignId());
-            }
-            if (su.getCollectionInstrumentId()!=null){
+            if (su.getCollectionInstrumentId() != null){
                 collectionInstrumentIds.add(su.getCollectionInstrumentId());
             }
         }
-        if(campaignIds.size() > 1 || collectionInstrumentIds.size()>1){
-            throw new GenesisException(500,"Multiple partitions for interrogation %s".formatted(interrogationId));
+
+        if(collectionInstrumentIds.size() > 1){
+            throw new GenesisException(500,"Multiple collection instruments for interrogation %s".formatted(interrogationId));
         }
 
-        if(campaignIds.isEmpty() && collectionInstrumentIds.isEmpty()){
-            return null;
+        if(collectionInstrumentIds.isEmpty()){
+            throw new GenesisException(404,"No collection instrument found for interrogation %s".formatted(interrogationId));
         }
 
-
-        DataProcessingContextModel contextModel = new DataProcessingContextModel();
-        if (!campaignIds.isEmpty()){
-            contextModel = DataProcessingContextMapper.INSTANCE.documentToModel(
-                    dataProcessingContextPersistancePort.findByPartitionId(campaignIds.stream().toList().getFirst())
-            );
-        }
-
-        if (contextModel.getPartitionId()==null && !collectionInstrumentIds.isEmpty()) {
-            contextModel = DataProcessingContextMapper.INSTANCE.documentToModel(
-                    dataProcessingContextPersistancePort.findByPartitionId(collectionInstrumentIds.stream().toList().getFirst()));
-        }
-
-        return contextModel;
+        return dataProcessingContextPersistancePort.findByCollectionInstrumentId(collectionInstrumentIds.stream().toList().getFirst());
     }
 
     @Override

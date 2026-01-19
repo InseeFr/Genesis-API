@@ -7,6 +7,7 @@ import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
+import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
 import fr.insee.genesis.domain.service.context.DataProcessingContextService;
@@ -612,6 +613,53 @@ class LunaticJsonRawDataServiceTest {
         }
         return interrogationIdList;
     }
+
+    @Test
+    void convertRawData_collected_array_with_null_and_empty_values_should_ignore_them() throws Exception {
+        // GIVEN
+        String campaignId = "SAMPLETEST-PARADATA-v1";
+        String questionnaireId = "TESTIDQUEST";
+        String interrogationId = "TESTinterrogationId";
+
+        String json = """
+        {
+          "COLLECTED": {
+            "TESTVAR": {
+              "COLLECTED": [null, "", null, "12", ""]
+            }
+          }
+        }
+        """;
+
+        LunaticJsonRawDataModel rawDataModel = LunaticJsonRawDataModel.builder()
+                .campaignId(campaignId)
+                .questionnaireId(questionnaireId)
+                .interrogationId(interrogationId)
+                .data(JsonUtils.jsonToMap(json))
+                .mode(Mode.WEB)
+                .build();
+
+        // WHEN
+        List<SurveyUnitModel> suModels =
+                lunaticJsonRawDataService.convertRawData(List.of(rawDataModel), new VariablesMap());
+
+        // THEN
+        Assertions.assertThat(suModels).hasSize(1);
+
+        SurveyUnitModel suModel = suModels.getFirst();
+        List<VariableModel> collectedVars = suModel.getCollectedVariables();
+
+        // Only the non-empty values should be persisted
+        Assertions.assertThat(collectedVars).hasSize(1);
+        System.out.println(suModel);
+
+        VariableModel variableModel = collectedVars.getFirst();
+        Assertions.assertThat(variableModel.varId()).isEqualTo("TESTVAR");
+        Assertions.assertThat(variableModel.value()).isEqualTo("12");
+
+        Assertions.assertThat(variableModel.iteration()).isEqualTo(4);
+    }
+
 
     @Test
     void getValueString_null_test(){

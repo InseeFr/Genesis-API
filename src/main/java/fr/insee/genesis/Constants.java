@@ -30,8 +30,12 @@ public class Constants {
     public static final String VOLUMETRY_RAW_TOTAL = "rawResponsesTotal";
     public static final String VOLUMETRY_FILE_DATE_FORMAT = "yyyy_MM_dd_HH_mm_ss";
     public static final int VOLUMETRY_FILE_EXPIRATION_DAYS = 30;
-
+    public static final int MAX_LINKS_ALLOWED = 21;
+    public static final String PAIRWISE_PREFIX = "LIEN_";
+    public static final String PAIRWISES = "LIENS";
+    public static final String NO_PAIRWISE_VALUE = "99";
     public static final String SCHEDULE_ARCHIVE_FOLDER_NAME = "genesis_deleted_schedules";
+    public static final String SAME_AXIS_VALUE = "0";
 
 
    // XML sequential reading parameters

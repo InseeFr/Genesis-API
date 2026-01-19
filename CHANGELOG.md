@@ -1,5 +1,19 @@
 # Changelog
+## 2.1.0 [2026-01-15]
+### Added
+- rawResponses payload.campaignId indexing
+### Removed
+- campaignId at root level in rawResponses
+### Fixed
+- Fixed withReview still based on campaignId
 
+## 2.0.4 [2026-01-13]
+### Added
+- Debug endpoints (Get raw data by collectionInstrumentId, delete last execution)
+### Fixed
+- Process lunatic json raw responses still using campaignId
+- Link variables
+- Null values in arrays were wrongly persisted as empty strings
 
 ## 2.0.3 [2026-01-08]
 ### Fixed

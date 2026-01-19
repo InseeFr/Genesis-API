@@ -132,6 +132,11 @@ class RawResponseControllerTest {
         public Set<String> getDistinctCollectionInstrumentIds() {
             return Set.of();
         }
+        
+        @Override
+        public Page<RawResponseModel> findRawResponseDataByCollectionInstrumentId(String collectionInstrumentId, Pageable pageable) {
+            return null;
+        }
     };
 
     private final RawResponseController rawResponseController = new RawResponseController(lunaticJsonRawDataApiPort,  rawResponseApiPortStub, rawResponseInputRepositoryStub);
@@ -365,7 +370,7 @@ class RawResponseControllerTest {
     @Test
     void getRawResponsesFromJsonBody() {
         //GIVEN
-        String campaignId = "getRawResponsesFromJsonBody";
+        String campaignId = "VPPI2024M05";
         String questionnaireId = campaignId + "_quest";
         String interrogationId = "getRawResponsesFromJsonBody_id1";
         Instant recordDate = Instant.parse("2025-01-01T01:00:00.000Z");
@@ -429,12 +434,64 @@ class RawResponseControllerTest {
 
     private void addJsonRawResponseDataDocumentToStub(String campaignId, String questionnaireId, String interrogationId) {
         RawResponseDocument rawResponseDocument = RawResponseDocument.builder()
-                .campaignId(campaignId)
                 .collectionInstrumentId(questionnaireId)
                 .interrogationId(interrogationId)
                 .recordDate(LocalDateTime.now())
+                .payload(Map.of("campaignId", campaignId))
                 .build();
 
         rawResponseDataPersistanceStub.getMongoStub().add(rawResponseDocument);
     }
+
+    @Test
+    void getRawResponsesFromJsonBody_filterByCampaignId() {
+        // GIVEN
+        rawResponseDataPersistanceStub.getMongoStub().clear();
+
+        String campaignId = "CAMPAIGN_OK";
+        String questionnaireId = campaignId + "_QUEST";
+        String interrogationId1 = "INT_1";
+        String interrogationId2 = "INT_2";
+
+        // document with the wanted campaignId
+        RawResponseDocument rawResponseDocument = RawResponseDocument.builder()
+                .collectionInstrumentId(questionnaireId)
+                .interrogationId(interrogationId1)
+                .recordDate(LocalDateTime.now())
+                .payload(Map.of("campaignId", campaignId))
+                .build();
+
+        // document with another campaignId
+        RawResponseDocument rawResponseDocument1 = RawResponseDocument.builder()
+                .collectionInstrumentId("OTHER_QUEST")
+                .interrogationId(interrogationId2)
+                .recordDate(LocalDateTime.now())
+                .payload(Map.of("campaignId", "OTHER_CAMPAIGN"))
+                .build();
+
+        rawResponseDataPersistanceStub.getMongoStub().addAll(List.of(rawResponseDocument, rawResponseDocument1));
+
+        Instant startDate = Instant.now().minusSeconds(3600);
+        Instant endDate = Instant.now().plusSeconds(3600);
+
+        // WHEN
+        ResponseEntity<PagedModel<RawResponseModel>> response =
+                rawResponseController.getRawResponsesFromJsonBody(
+                        campaignId,
+                        startDate,
+                        endDate,
+                        0,
+                        10
+                );
+
+        // THEN
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        Assertions.assertThat(response.getBody()).isNotNull();
+        Assertions.assertThat(response.getBody().getContent()).hasSize(1);
+
+        RawResponseModel result = response.getBody().getContent().getFirst();
+        Assertions.assertThat(result.interrogationId()).isEqualTo(interrogationId1);
+        Assertions.assertThat(result.payload().get("campaignId")).isEqualTo(campaignId);
+    }
+
 }

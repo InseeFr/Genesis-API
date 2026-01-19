@@ -1,5 +1,6 @@
 package fr.insee.genesis.infrastructure.repository;
 
+import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponseModel;
 import fr.insee.genesis.infrastructure.document.rawdata.RawResponseDocument;
 import fr.insee.modelefiliere.ModeDto;
 import org.springframework.data.domain.Page;
@@ -50,4 +51,5 @@ public interface RawResponseRepository extends MongoRepository<RawResponseDocume
             "{ $project: { _id: 0, collectionInstrumentId: '$_id' } }"
     })
     List<String> findDistinctCollectionInstrumentId();
+    Page<RawResponseDocument> findByCollectionInstrumentId(String collectionInstrumentId, Pageable pageable);
 }

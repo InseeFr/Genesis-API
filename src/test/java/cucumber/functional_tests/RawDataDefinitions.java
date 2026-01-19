@@ -158,6 +158,11 @@ public class RawDataDefinitions {
         public Set<String> getDistinctCollectionInstrumentIds() {
             return Set.of();
         }
+
+        @Override
+        public Page<RawResponseModel> findRawResponseDataByCollectionInstrumentId(String collectionInstrumentId, Pageable pageable) {
+            return null;
+        }
     };
 
     RawResponseController rawResponseController = new RawResponseController(

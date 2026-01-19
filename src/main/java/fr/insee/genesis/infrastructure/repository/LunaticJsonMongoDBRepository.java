@@ -37,7 +37,10 @@ public interface LunaticJsonMongoDBRepository extends MongoRepository<LunaticJso
     List<Mode> findModesByQuestionnaireId(String questionnaireId);
 
     @Query(value = "{ 'campaignId' : ?0, 'mode' : ?1, 'interrogationId': {$in: ?2} }")
-    List<LunaticJsonRawDataDocument> findModesByCampaignIdAndByModeAndinterrogationIdIninterrogationIdList(String campaignName, Mode mode, List<String> interrogationIdList);
+    List<LunaticJsonRawDataDocument> findByCampaignModeAndInterrogations(String campaignName, Mode mode, List<String> interrogationIdList);
+
+    @Query(value = "{ 'questionnaireId' : ?0, 'mode' : ?1, 'interrogationId': {$in: ?2} }")
+    List<LunaticJsonRawDataDocument> findByQuestionnaireModeAndInterrogations(String questionnaireId, Mode mode, List<String> interrogationIdList);
 
     @Query(value = "{ 'interrogationId': ?0}")
     List<LunaticJsonRawDataDocument> findByInterrogationId(String interrogationId);
@@ -97,4 +100,6 @@ public interface LunaticJsonMongoDBRepository extends MongoRepository<LunaticJso
                     "} }"
     })
     List<GroupedInterrogationDocument> aggregateRawGroupedWithNullProcessDate(String questionnaireId);
+
+    Page<LunaticJsonRawDataDocument> findByQuestionnaireId(String questionnaireId, Pageable pageable);
 }

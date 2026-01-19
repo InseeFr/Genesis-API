@@ -28,4 +28,6 @@ public interface RawResponseApiPort {
     long countByCollectionInstrumentId(String collectionInstrumentId);
 
     Set<String> getDistinctCollectionInstrumentIds();
+    Page<RawResponseModel> findRawResponseDataByCollectionInstrumentId(String collectionInstrumentId, Pageable pageable);
+
 }

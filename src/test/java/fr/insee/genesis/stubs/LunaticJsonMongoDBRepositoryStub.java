@@ -61,10 +61,19 @@ public class LunaticJsonMongoDBRepositoryStub implements LunaticJsonMongoDBRepos
     }
 
     @Override
-    public List<LunaticJsonRawDataDocument> findModesByCampaignIdAndByModeAndinterrogationIdIninterrogationIdList(
+    public List<LunaticJsonRawDataDocument> findByCampaignModeAndInterrogations(
             String campaignName, Mode mode, List<String> interrogationIdList) {
         return documents.stream()
                 .filter(doc -> Objects.equals(doc.campaignId(), campaignName)
+                        && Objects.equals(doc.mode(), mode)
+                        && interrogationIdList.contains(doc.interrogationId()))
+                .toList();
+    }
+
+    @Override
+    public List<LunaticJsonRawDataDocument> findByQuestionnaireModeAndInterrogations(String questionnaireId, Mode mode, List<String> interrogationIdList) {
+        return documents.stream()
+                .filter(doc -> Objects.equals(doc.questionnaireId(), questionnaireId)
                         && Objects.equals(doc.mode(), mode)
                         && interrogationIdList.contains(doc.interrogationId()))
                 .toList();
@@ -168,6 +177,11 @@ public class LunaticJsonMongoDBRepositoryStub implements LunaticJsonMongoDBRepos
         documents.stream().filter(doc -> doc.questionnaireId().equals(questionnaireId) && doc.processDate() == null).toList()
                 .forEach(doc -> groupedInterrogationDocument.getInterrogationIds().add(doc.interrogationId()));
         return Collections.singletonList(groupedInterrogationDocument);
+    }
+
+    @Override
+    public Page<LunaticJsonRawDataDocument> findByQuestionnaireId(String questionnaireId, Pageable pageable) {
+        return null;
     }
 
     // Implémentations vides requises par MongoRepository

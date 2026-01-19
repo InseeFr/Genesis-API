@@ -3,14 +3,17 @@ package fr.insee.genesis.controller.rest.responses;
 import fr.insee.genesis.controller.rest.CommonApiResponse;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
+import fr.insee.genesis.exceptions.QuestionnaireNotFoundException;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.Collections;
 import java.util.List;
 
 @RequestMapping(path = "/modes" )
@@ -29,8 +32,13 @@ public class ModeController implements CommonApiResponse {
     @Operation(summary = "List sources/modes used for a given collection instrument (ex questionnaire)")
     @GetMapping(path = "/by-questionnaire")
     public ResponseEntity<List<Mode>> getModesByQuestionnaire(@RequestParam("questionnaireId") String collectionInstrumentId) {
-        List<Mode> modes = surveyUnitService.findModesByCollectionInstrumentId(collectionInstrumentId);
-        return ResponseEntity.ok(modes);
+        try {
+            List<Mode> modes = surveyUnitService.findModesByCollectionInstrumentId(collectionInstrumentId);
+            return ResponseEntity.ok(modes);
+        } catch (QuestionnaireNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Collections.emptyList());
+        }
     }
 
     @Operation(summary = "List sources/modes used for a given campaign")
