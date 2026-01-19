@@ -44,8 +44,8 @@ public interface SurveyUnitMongoDBRepository extends MongoRepository<SurveyUnitD
 	/**
 	 * @author Adrien Marchal
 	 */
-	@Query(value = "{ 'questionnaireId' : ?0}", count = true)
-	long countInterrogationIdsByQuestionnaireId(String questionnaireId);
+	@Query(value = "{ 'questionnaireId' : ?0 }", count = true)
+	long countByQuestionnaireId(String questionnaireId);
 
 
 	/**

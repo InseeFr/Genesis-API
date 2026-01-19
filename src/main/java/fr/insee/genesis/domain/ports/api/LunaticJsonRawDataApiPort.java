@@ -27,7 +27,7 @@ public interface LunaticJsonRawDataApiPort {
     Set<String> getUnprocessedDataQuestionnaireIds();
     void updateProcessDates(List<SurveyUnitModel> surveyUnitModels);
     Set<String> findDistinctQuestionnaireIds();
-    long countResponsesByQuestionnaireId(String campaignId);
+    long countRawResponsesByQuestionnaireId(String campaignId);
     Page<LunaticJsonRawDataModel> findRawDataByCampaignIdAndDate(String campaignId, Instant  startDt, Instant endDt, Pageable pageable);
 
     List<LunaticJsonRawDataModel> getRawDataByInterrogationId(String interrogationId);
