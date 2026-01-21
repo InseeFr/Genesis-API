@@ -115,7 +115,7 @@
         <dependency>
             <groupId>com.networknt</groupId>
             <artifactId>json-schema-validator</artifactId>
-            <version>2.0.1</version>
+            <version>3.0.0</version>
         </dependency>
 
         <!-- generate implementation auto -->
