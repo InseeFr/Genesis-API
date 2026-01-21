@@ -25,15 +25,23 @@ public class LastJsonExtractionService implements LastJsonExtractionApiPort {
     @Override
     public void recordDate(LastJsonExtractionModel extraction) {
         // Create a unique ID based on the questionnaire and the mode.
-        extraction.setId(String.format("%s_%s",extraction.getQuestionnaireModelId(),extraction.getMode()));
+        extraction.setId(String.format("%s_%s",extraction.getCollectionInstrumentId(),extraction.getMode()));
 
         // save() does an insert if the id doesn't exist, otherwise an update
         extractionPersistencePort.save(extraction);
     }
 
     @Override
-    public LastJsonExtractionModel getLastExtractionDate(String questionnaireModelId, Mode mode) throws GenesisException {
-        return extractionPersistencePort.getLastExecutionDate(questionnaireModelId,mode);
+    public LastJsonExtractionModel getLastExtractionDate(String collectionInstrumentId, Mode mode) throws GenesisException {
+        return extractionPersistencePort.getLastExecutionDate(collectionInstrumentId,mode);
+    }
+
+    @Override
+    public void delete(String collectionInstrumentId, Mode mode) throws GenesisException {
+        if(mode != null){
+            extractionPersistencePort.getLastExecutionDate(collectionInstrumentId, mode);
+        }
+        extractionPersistencePort.delete(collectionInstrumentId, mode);
     }
 
 

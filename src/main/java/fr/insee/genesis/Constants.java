@@ -23,15 +23,18 @@ public class Constants {
     public static final String MONGODB_CONTEXTUAL_EXTERNAL_COLLECTION_NAME = "editedExternal";
     public static final String LOOP_NAME_PREFIX = "BOUCLE";
     public static final String MONGODB_RESPONSE_COLLECTION_NAME = "responses";
-    public static final String MONGODB_RESPONSE_RAW_COLLECTION_NAME = "lunaticjsondata";
-    public static final String MONGODB_VARIABLETYPE_COLLECTION_NAME = "variabletypes";
+    public static final String MONGODB_RAW_RESPONSES_COLLECTION_NAME = "rawResponses";
     public static final String VOLUMETRY_FOLDER_NAME = "genesis_volumetries";
     public static final String VOLUMETRY_FILE_SUFFIX = "_VOLUMETRY";
     public static final String VOLUMETRY_RAW_FILE_SUFFIX = "_RAW_VOLUMETRY";
     public static final String VOLUMETRY_FILE_DATE_FORMAT = "yyyy_MM_dd";
     public static final int VOLUMETRY_FILE_EXPIRATION_DAYS = 30;
-
+    public static final int MAX_LINKS_ALLOWED = 21;
+    public static final String PAIRWISE_PREFIX = "LIEN_";
+    public static final String PAIRWISES = "LIENS";
+    public static final String NO_PAIRWISE_VALUE = "99";
     public static final String SCHEDULE_ARCHIVE_FOLDER_NAME = "genesis_deleted_schedules";
+    public static final String SAME_AXIS_VALUE = "0";
 
 
    // XML sequential reading parameters
@@ -60,6 +63,7 @@ public class Constants {
     // Data extraction parameters
     public static final int BATCH_SIZE = 100; //Adapt to avoid OutOfMemoryException
     public static final String DIFFERENTIAL_DATA_FOLDER_NAME = "differential/data";
+    public static final String CONTEXTUAL_FOLDER = "/contextual";
 
     // Kraftwerk service path parameters
     public static final String KRAFTWERK_MAIN_ENDPOINT = "";

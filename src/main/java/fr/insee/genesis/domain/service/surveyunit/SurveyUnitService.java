@@ -20,6 +20,7 @@ import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
 import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.utils.GroupUtils;
 import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.exceptions.QuestionnaireNotFoundException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +35,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 @Slf4j
@@ -60,8 +60,8 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     }
 
     @Override
-    public List<SurveyUnitModel> findByIdsInterrogationAndQuestionnaire(String interrogationId, String questionnaireId) {
-        return surveyUnitPersistencePort.findByIds(interrogationId, questionnaireId);
+    public List<SurveyUnitModel> findByIdsInterrogationAndCollectionInstrument(String interrogationId, String collectionInstrumentId) {
+        return surveyUnitPersistencePort.findByIds(interrogationId, collectionInstrumentId);
     }
 
     @Override
@@ -69,23 +69,18 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         return surveyUnitPersistencePort.findByInterrogationId(interrogationId);
     }
 
-    @Override
-    public Stream<SurveyUnitModel> findByQuestionnaireId(String questionnaireId) {
-        return surveyUnitPersistencePort.findByQuestionnaireId(questionnaireId);
-    }
-
     /**
      * In this method we want to get the latest update for each variable of a survey unit
      * But we need to separate the updates by mode
      * So we will calculate the latest state for a given collection mode
-     * @param interrogationId : Survey unit id
-     * @param questionnaireId : Questionnaire id
+     * @param interrogationId : Interrogation id
+     * @param collectionInstrumentId : Collection instrument id
      * @return the latest update for each variable of a survey unit
      */
     @Override
-    public List<SurveyUnitModel> findLatestByIdAndByQuestionnaireId(String interrogationId, String questionnaireId) {
+    public List<SurveyUnitModel> findLatestByIdAndByCollectionInstrumentId(String interrogationId, String collectionInstrumentId) {
         List<SurveyUnitModel> latestUpdatesbyVariables = new ArrayList<>();
-        List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findByIds(interrogationId, questionnaireId);
+        List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findByIds(interrogationId, collectionInstrumentId);
         List<Mode> modes = getDistinctsModes(surveyUnitModels);
         modes.forEach(mode ->{
             List<SurveyUnitModel> suByMode = surveyUnitModels.stream()
@@ -229,8 +224,10 @@ public class SurveyUnitService implements SurveyUnitApiPort {
 
 
     @Override
-    public SurveyUnitDto findLatestValuesByStateByIdAndByQuestionnaireId(String interrogationId,
-                                                                         String questionnaireId) throws GenesisException {
+    public SurveyUnitDto findLatestValuesByStateByIdAndByCollectionInstrumentId(
+            String interrogationId,
+            String collectionInstrumentId) throws GenesisException
+    {
         SurveyUnitDto surveyUnitDto = SurveyUnitDto.builder()
                 .interrogationId(interrogationId)
                 .collectedVariables(new ArrayList<>())
@@ -240,7 +237,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         //Extract variables
         Map<VarIdScopeTuple, VariableDto> collectedVariableMap = new HashMap<>();
         Map<VarIdScopeTuple, VariableDto> externalVariableMap = new HashMap<>();
-        List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findByIds(interrogationId, questionnaireId);
+        List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findByIds(interrogationId, collectionInstrumentId);
         List<Mode> modes = getDistinctsModes(surveyUnitModels);
         for (Mode mode : modes) {
             List<SurveyUnitModel> suByMode = surveyUnitModels.stream()
@@ -252,8 +249,8 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             for (SurveyUnitModel surveyUnitModel : suByMode) {
                 if (variablesMap == null) {
                     variablesMap = metadataService.loadAndSaveIfNotExists(
-                            surveyUnitModel.getCampaignId(),
-                            surveyUnitModel.getQuestionnaireId(),
+                            surveyUnitModel.getCollectionInstrumentId(),
+                            surveyUnitModel.getCollectionInstrumentId(),
                             surveyUnitModel.getMode(),
                             fileUtils,
                             new ArrayList<>()).getVariables();
@@ -269,7 +266,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
 
     @Override
     public List<InterrogationId> findDistinctInterrogationIdsByQuestionnaireId(String questionnaireId) {
-        List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findInterrogationIdsByQuestionnaireId(questionnaireId);
+        List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findInterrogationIdsByCollectionInstrumentId(questionnaireId);
         List<InterrogationId> suIds = new ArrayList<>();
         surveyUnitModels.forEach(surveyUnitModel -> suIds.add(new InterrogationId(surveyUnitModel.getInterrogationId())));
         return suIds.stream().distinct().toList();
@@ -329,16 +326,19 @@ public class SurveyUnitService implements SurveyUnitApiPort {
 
     @Override
     public List<SurveyUnitModel> findInterrogationIdsAndModesByQuestionnaireId(String questionnaireId) {
-        List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findInterrogationIdsByQuestionnaireId(questionnaireId);
+        List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findInterrogationIdsByCollectionInstrumentId(questionnaireId);
         return surveyUnitModels.stream().distinct().toList();
     }
 
     @Override
-    public List<Mode> findModesByQuestionnaireId(String questionnaireId) {
-        List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findInterrogationIdsByQuestionnaireId(questionnaireId);
-        List<Mode> sources = new ArrayList<>();
-        surveyUnitModels.forEach(surveyUnitModel -> sources.add(surveyUnitModel.getMode()));
-        return sources.stream().distinct().toList();
+    public List<Mode> findModesByCollectionInstrumentId(String collectionInstrumentId) {
+        List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findInterrogationIdsByCollectionInstrumentId(collectionInstrumentId);
+        if (surveyUnitModels == null || surveyUnitModels.isEmpty()) {
+            log.warn("No collectionInstrument found with id: {}", collectionInstrumentId);
+            throw new QuestionnaireNotFoundException(collectionInstrumentId);
+        }
+        List<Mode> sources =  surveyUnitModels.stream().map(SurveyUnitModel::getMode).distinct().toList();
+        return sources;
     }
 
     @Override
@@ -368,8 +368,8 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     //========= OPTIMISATIONS PERFS (END) ==========
 
     @Override
-    public Long deleteByQuestionnaireId(String questionnaireId) {
-        return surveyUnitPersistencePort.deleteByQuestionnaireId(questionnaireId);
+    public Long deleteByCollectionInstrumentId(String collectionInstrumentId) {
+        return surveyUnitPersistencePort.deleteByCollectionInstrumentId(collectionInstrumentId);
     }
 
     @Override
@@ -453,7 +453,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
                     .campaignId(surveyUnitInputDto.getCampaignId())
                     .mode(surveyUnitInputDto.getMode())
-                    .questionnaireId(surveyUnitInputDto.getQuestionnaireId().toUpperCase())
+                    .collectionInstrumentId(surveyUnitInputDto.getQuestionnaireId().toUpperCase())
                     .interrogationId(surveyUnitInputDto.getInterrogationId())
                     .state(state)
                     .recordDate(LocalDateTime.now())
@@ -496,7 +496,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         }
         Set<String> questionnaireIds = new HashSet<>();
         for(SurveyUnitModel surveyUnitModel : surveyUnitModels){
-            questionnaireIds.add(surveyUnitModel.getQuestionnaireId());
+            questionnaireIds.add(surveyUnitModel.getCollectionInstrumentId());
         }
         if(questionnaireIds.size() > 1){
             throw new GenesisException(207,String.format("Multiple questionnaires for %s :%n%s",
@@ -510,7 +510,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
 
     @Override
     public Set<String> findCampaignIdsFrom(SurveyUnitInputDto dto) {
-        List<SurveyUnitModel> responses = findByIdsInterrogationAndQuestionnaire(
+        List<SurveyUnitModel> responses = findByIdsInterrogationAndCollectionInstrument(
                 dto.getInterrogationId(),
                 dto.getQuestionnaireId()
         );

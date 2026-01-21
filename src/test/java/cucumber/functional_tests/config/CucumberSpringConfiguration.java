@@ -1,7 +1,15 @@
 package cucumber.functional_tests.config;
 
 import fr.insee.genesis.GenesisApi;
-import fr.insee.genesis.infrastructure.repository.*;
+import fr.insee.genesis.infrastructure.repository.ContextualExternalVariableMongoDBRepository;
+import fr.insee.genesis.infrastructure.repository.ContextualPreviousVariableMongoDBRepository;
+import fr.insee.genesis.infrastructure.repository.DataProcessingContextMongoDBRepository;
+import fr.insee.genesis.infrastructure.repository.LastJsonExtractionMongoDBRepository;
+import fr.insee.genesis.infrastructure.repository.LunaticJsonMongoDBRepository;
+import fr.insee.genesis.infrastructure.repository.LunaticModelMongoDBRepository;
+import fr.insee.genesis.infrastructure.repository.QuestionnaireMetadataMongoDBRepository;
+import fr.insee.genesis.infrastructure.repository.RundeckExecutionDBRepository;
+import fr.insee.genesis.infrastructure.repository.SurveyUnitMongoDBRepository;
 import io.cucumber.spring.CucumberContextConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.data.mongodb.autoconfigure.DataMongoAutoConfiguration;
@@ -26,8 +34,6 @@ public class CucumberSpringConfiguration {
     private LunaticJsonMongoDBRepository lunaticJsonMongoDBRepository;
     @MockitoBean
     private RundeckExecutionDBRepository rundeckExecutionDBRepository;
-    @MockitoBean
-    private VariableTypeMongoDBRepository variableTypeMongoDBRepository;
     @MockitoBean
     private LunaticModelMongoDBRepository lunaticModelMongoDBRepository;
     @MockitoBean

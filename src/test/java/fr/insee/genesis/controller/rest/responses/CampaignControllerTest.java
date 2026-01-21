@@ -6,7 +6,7 @@ import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
-import fr.insee.genesis.stubs.QuestionnaireMetadataPersistancePortStub;
+import fr.insee.genesis.stubs.QuestionnaireMetadataPersistencePortStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -18,21 +18,19 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
+import static fr.insee.genesis.TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID;
+
 class CampaignControllerTest {
     //Given
     static CampaignController campaignControllerStatic;
     static SurveyUnitPersistencePortStub surveyUnitPersistencePortStub;
-
-    //Constants
-    static final String DEFAULT_INTERROGATION_ID = "TESTINTERROGATIONID";
-    static final String DEFAULT_QUESTIONNAIRE_ID = "TESTQUESTIONNAIREID";
 
     @BeforeAll
     static void init() {
         surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
         SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(
                 surveyUnitPersistencePortStub,
-                new QuestionnaireMetadataService(new QuestionnaireMetadataPersistancePortStub()),
+                new QuestionnaireMetadataService(new QuestionnaireMetadataPersistencePortStub()),
                 new FileUtils(new ConfigStub())
         );
 
@@ -75,7 +73,7 @@ class CampaignControllerTest {
 
         Assertions.assertThat(response.getBody().stream().filter(
                 campaignWithQuestionnaire -> campaignWithQuestionnaire.getCampaignId().equals("TEST-TABLEAUX")
-        ).findFirst().get().getQuestionnaires()).containsOnly(DEFAULT_QUESTIONNAIRE_ID, "TESTQUESTIONNAIRE2");
+        ).findFirst().get().getQuestionnaires()).containsOnly(DEFAULT_COLLECTION_INSTRUMENT_ID, "TESTQUESTIONNAIRE2");
 
         Assertions.assertThat(response.getBody().stream().filter(
                 campaignWithQuestionnaire -> campaignWithQuestionnaire.getCampaignId().equals("TESTCAMPAIGN2")

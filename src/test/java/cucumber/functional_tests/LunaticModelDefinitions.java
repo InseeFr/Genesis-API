@@ -17,7 +17,7 @@ import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
 import fr.insee.genesis.stubs.LunaticModelPersistanceStub;
-import fr.insee.genesis.stubs.QuestionnaireMetadataPersistancePortStub;
+import fr.insee.genesis.stubs.QuestionnaireMetadataPersistencePortStub;
 import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import io.cucumber.java.Before;
 import io.cucumber.java.en.Given;
@@ -49,11 +49,11 @@ public class LunaticModelDefinitions {
     LunaticModelController lunaticModelController = new LunaticModelController(new LunaticModelService(lunaticModelPersistanceStub));
 
     SurveyUnitPersistencePortStub surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
-    static QuestionnaireMetadataPersistancePortStub questionnaireMetadataPersistancePortStub = new QuestionnaireMetadataPersistancePortStub();
+    static QuestionnaireMetadataPersistencePortStub questionnaireMetadataPersistencePortStub = new QuestionnaireMetadataPersistencePortStub();
     QuestionnaireController questionnaireController = new QuestionnaireController(
             new SurveyUnitService(
                     surveyUnitPersistencePortStub,
-                    new QuestionnaireMetadataService(questionnaireMetadataPersistancePortStub),
+                    new QuestionnaireMetadataService(questionnaireMetadataPersistencePortStub),
                     new FileUtils(new ConfigStub())
             ),
             new DataProcessingContextService(
@@ -108,7 +108,7 @@ public class LunaticModelDefinitions {
         surveyUnitPersistencePortStub.getMongoStub().add(
                 SurveyUnitModel.builder()
                         .campaignId(campaignId)
-                        .questionnaireId(questionnaireId)
+                        .collectionInstrumentId(questionnaireId)
                         .interrogationId(interrogationId)
                         .build()
         );
@@ -125,6 +125,7 @@ public class LunaticModelDefinitions {
                 JsonUtils.jsonToMap(lunaticModelSaveBody)
         );
     }
+
     @When("We try to save that lunatic model json file with questionnaire id {string} with Spring context")
     public void save_lunatic_model_spring(String questionnaireId) throws IOException {
         lunaticModelSaveBody = Files.readString(lunaticModelJsonPath);

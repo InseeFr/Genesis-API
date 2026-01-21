@@ -6,11 +6,7 @@ import fr.insee.bpm.metadata.model.MetadataModel;
 import fr.insee.bpm.metadata.model.Variable;
 import fr.insee.bpm.metadata.model.VariableType;
 import fr.insee.genesis.Constants;
-import fr.insee.genesis.controller.sources.xml.LunaticXmlCollectedData;
-import fr.insee.genesis.controller.sources.xml.LunaticXmlData;
-import fr.insee.genesis.controller.sources.xml.LunaticXmlOtherData;
-import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
-import fr.insee.genesis.controller.sources.xml.ValueType;
+import fr.insee.genesis.controller.sources.xml.*;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
@@ -234,7 +230,7 @@ class LunaticXmlAdapterTest {
         // When
         List<SurveyUnitModel> surveyUnitModels = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit1, metadataModel.getVariables(), CAMPAIGN_ID, Mode.WEB);
         // Then
-        Assertions.assertThat(surveyUnitModels.getFirst().getQuestionnaireId()).isEqualTo("questionnaireId1".toUpperCase());
+        Assertions.assertThat(surveyUnitModels.getFirst().getCollectionInstrumentId()).isEqualTo("questionnaireId1".toUpperCase());
     }
 
     @Test

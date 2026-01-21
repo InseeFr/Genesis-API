@@ -32,15 +32,21 @@ public class LastJsonExtractionMongoAdapter implements LastJsonExtractionPersist
     }
 
     @Override
-    public LastJsonExtractionModel getLastExecutionDate(String questionnaireModelId, Mode mode) throws GenesisException {
-        String id = String.format("%s_%s",questionnaireModelId, mode);
+    public LastJsonExtractionModel getLastExecutionDate(String collectionInstrumentId, Mode mode) throws GenesisException {
+        String id = String.format("%s_%s",collectionInstrumentId, mode);
         Optional<LastJsonExtractionDocument> extraction = extractionRepository.findById(id);
         if (extraction.isPresent()) {
             return LastJsonExtractionDocumentMapper.INSTANCE.documentToModel(extraction.get());
         } else {
-            String message = String.format("No extraction date found for questionnaire %s and mode %s",questionnaireModelId,mode==null?null:mode.getModeName());
+            String message = String.format("No extraction date found for collection instrument %s and mode %s",collectionInstrumentId,mode==null?null:mode.getModeName());
             throw new GenesisException(404,message);
         }
+    }
+
+    @Override
+    public void delete(String collectionInstrumentId, Mode mode){
+        String id = String.format("%s_%s",collectionInstrumentId, mode);
+        extractionRepository.deleteById(id);
     }
 
 }

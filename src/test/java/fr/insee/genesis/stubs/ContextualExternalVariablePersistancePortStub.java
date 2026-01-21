@@ -52,12 +52,13 @@ public class ContextualExternalVariablePersistancePortStub implements Contextual
     @Override
     public void delete(String questionnaireId) {
         mongoStub.get(Constants.MONGODB_CONTEXTUAL_EXTERNAL_COLLECTION_NAME).removeIf(
-                contextualExternalVariableDocument -> contextualExternalVariableDocument.getQuestionnaireId().equals(questionnaireId)
+                extDoc -> (extDoc.getQuestionnaireId() != null && extDoc.getQuestionnaireId().equals(questionnaireId)) ||
+                            (extDoc.getCollectionInstrumentId() != null && extDoc.getCollectionInstrumentId().equals(questionnaireId))
         );
     }
 
     @Override
-    public ContextualExternalVariableModel findByQuestionnaireIdAndInterrogationId(String questionnaireId, String interrogationId) {
+    public ContextualExternalVariableModel findByCollectionInstrumentIdAndInterrogationId(String questionnaireId, String interrogationId) {
         List<ContextualExternalVariableDocument> contextualExternalVariableDocumentList = mongoStub.get(Constants.MONGODB_CONTEXTUAL_EXTERNAL_COLLECTION_NAME).stream().filter(
                 contextualExternalVariableDocument ->
                         contextualExternalVariableDocument.getQuestionnaireId().equals(questionnaireId)

@@ -31,11 +31,11 @@ class ContextDedupUtilsTest {
     void oneElementListTest() {
         //Given
         List<DataProcessingContextDocument> dataProcessingContextDocuments = new ArrayList<>();
-        DataProcessingContextDocument existingDocument = new DataProcessingContextDocument(
-                partitionId,
-                new ArrayList<>(),
-                false
-        );
+        DataProcessingContextDocument existingDocument = new DataProcessingContextDocument();
+        existingDocument.setPartitionId(partitionId);
+        existingDocument.setKraftwerkExecutionScheduleList(new ArrayList<>());
+        existingDocument.setWithReview(false);
+
         dataProcessingContextDocuments.add(existingDocument);
         existingDocument.getKraftwerkExecutionScheduleList().add(
                 new KraftwerkExecutionSchedule(
@@ -61,11 +61,11 @@ class ContextDedupUtilsTest {
     void multipleElementsListTest_both() {
         //Given
         List<DataProcessingContextDocument> dataProcessingContextDocuments = new ArrayList<>();
-        DataProcessingContextDocument existingDocument = new DataProcessingContextDocument(
-                partitionId,
-                new ArrayList<>(),
-                false
-        );
+        DataProcessingContextDocument existingDocument = new DataProcessingContextDocument();
+        existingDocument.setPartitionId(partitionId);
+        existingDocument.setKraftwerkExecutionScheduleList(new ArrayList<>());
+        existingDocument.setWithReview(false);
+
         existingDocument.getKraftwerkExecutionScheduleList().add(
                 new KraftwerkExecutionSchedule(
                         "0 0 0 * * *",
@@ -77,11 +77,11 @@ class ContextDedupUtilsTest {
         );
         dataProcessingContextDocuments.add(existingDocument);
 
-        existingDocument = new DataProcessingContextDocument(
-                partitionId,
-                new ArrayList<>(),
-                true
-        );
+        existingDocument = new DataProcessingContextDocument();
+        existingDocument.setPartitionId(partitionId);
+        existingDocument.setKraftwerkExecutionScheduleList(new ArrayList<>());
+        existingDocument.setWithReview(true);
+
         existingDocument.getKraftwerkExecutionScheduleList().add(
                 new KraftwerkExecutionSchedule(
                         "0 0 6 * * *",
@@ -109,11 +109,11 @@ class ContextDedupUtilsTest {
     void multipleElementsListTest_true() {
         //Given
         List<DataProcessingContextDocument> dataProcessingContextDocuments = new ArrayList<>();
-        DataProcessingContextDocument existingDocument = new DataProcessingContextDocument(
-                partitionId,
-                new ArrayList<>(),
-                true
-        );
+        DataProcessingContextDocument existingDocument = new DataProcessingContextDocument();
+        existingDocument.setPartitionId(partitionId);
+        existingDocument.setKraftwerkExecutionScheduleList(new ArrayList<>());
+        existingDocument.setWithReview(true);
+
         existingDocument.getKraftwerkExecutionScheduleList().add(
                 new KraftwerkExecutionSchedule(
                         "0 0 0 * * *",
@@ -125,11 +125,11 @@ class ContextDedupUtilsTest {
         );
         dataProcessingContextDocuments.add(existingDocument);
 
-        existingDocument = new DataProcessingContextDocument(
-                partitionId,
-                new ArrayList<>(),
-                true
-        );
+        existingDocument = new DataProcessingContextDocument();
+        existingDocument.setPartitionId(partitionId);
+        existingDocument.setKraftwerkExecutionScheduleList(new ArrayList<>());
+        existingDocument.setWithReview(true);
+
         existingDocument.getKraftwerkExecutionScheduleList().add(
                 new KraftwerkExecutionSchedule(
                         "0 0 6 * * *",
@@ -157,11 +157,11 @@ class ContextDedupUtilsTest {
     void duplicateScheduleListTest() {
         //Given
         List<DataProcessingContextDocument> dataProcessingContextDocuments = new ArrayList<>();
-        DataProcessingContextDocument existingDocument = new DataProcessingContextDocument(
-                partitionId,
-                new ArrayList<>(),
-                false
-        );
+        DataProcessingContextDocument existingDocument = new DataProcessingContextDocument();
+        existingDocument.setPartitionId(partitionId);
+        existingDocument.setKraftwerkExecutionScheduleList(new ArrayList<>());
+        existingDocument.setWithReview(false);
+
         existingDocument.getKraftwerkExecutionScheduleList().add(
                 new KraftwerkExecutionSchedule(
                         "0 0 0 * * *",
@@ -182,11 +182,11 @@ class ContextDedupUtilsTest {
         );
         dataProcessingContextDocuments.add(existingDocument);
 
-        existingDocument = new DataProcessingContextDocument(
-                partitionId,
-                new ArrayList<>(),
-                false
-        );
+        existingDocument = new DataProcessingContextDocument();
+        existingDocument.setPartitionId(partitionId);
+        existingDocument.setKraftwerkExecutionScheduleList(new ArrayList<>());
+        existingDocument.setWithReview(false);
+
         existingDocument.getKraftwerkExecutionScheduleList().add(
                 new KraftwerkExecutionSchedule(
                         "0 0 0 * * *",
@@ -212,11 +212,11 @@ class ContextDedupUtilsTest {
     void duplicateAllContextsTest() {
         //Given
         List<DataProcessingContextDocument> dataProcessingContextDocuments = new ArrayList<>();
-        DataProcessingContextDocument existingDocument = new DataProcessingContextDocument(
-                partitionId,
-                new ArrayList<>(),
-                false
-        );
+        DataProcessingContextDocument existingDocument = new DataProcessingContextDocument();
+        existingDocument.setPartitionId(partitionId);
+        existingDocument.setKraftwerkExecutionScheduleList(new ArrayList<>());
+        existingDocument.setWithReview(false);
+
         existingDocument.getKraftwerkExecutionScheduleList().add(
                 new KraftwerkExecutionSchedule(
                         "0 0 0 * * *",
@@ -246,11 +246,11 @@ class ContextDedupUtilsTest {
         );
         dataProcessingContextDocuments.add(existingDocument);
 
-        existingDocument = new DataProcessingContextDocument(
-                partitionId,
-                new ArrayList<>(),
-                false
-        );
+        existingDocument = new DataProcessingContextDocument();
+        existingDocument.setPartitionId(partitionId);
+        existingDocument.setKraftwerkExecutionScheduleList(new ArrayList<>());
+        existingDocument.setWithReview(false);
+
         existingDocument.getKraftwerkExecutionScheduleList().add(
                 new KraftwerkExecutionSchedule(
                         "0 0 0 * * *",
@@ -262,11 +262,11 @@ class ContextDedupUtilsTest {
         );
         dataProcessingContextDocuments.add(existingDocument);
 
-        existingDocument = new DataProcessingContextDocument(
-                partitionId + "_2",
-                new ArrayList<>(),
-                false
-        );
+        existingDocument = new DataProcessingContextDocument();
+        existingDocument.setPartitionId(partitionId + "_2");
+        existingDocument.setKraftwerkExecutionScheduleList(new ArrayList<>());
+        existingDocument.setWithReview(false);
+
         existingDocument.getKraftwerkExecutionScheduleList().add(
                 new KraftwerkExecutionSchedule(
                         "0 0 0 * * *",
@@ -286,11 +286,11 @@ class ContextDedupUtilsTest {
                 )
         );
         dataProcessingContextDocuments.add(existingDocument);
-        existingDocument = new DataProcessingContextDocument(
-                partitionId + "_3",
-                new ArrayList<>(),
-                false
-        );
+        existingDocument = new DataProcessingContextDocument();
+        existingDocument.setPartitionId(partitionId + "_3");
+        existingDocument.setKraftwerkExecutionScheduleList(new ArrayList<>());
+        existingDocument.setWithReview(false);
+
         existingDocument.getKraftwerkExecutionScheduleList().add(
                 new KraftwerkExecutionSchedule(
                         "0 0 6 * * *",
@@ -301,11 +301,11 @@ class ContextDedupUtilsTest {
                 )
         );
         dataProcessingContextDocuments.add(existingDocument);
-        existingDocument = new DataProcessingContextDocument(
-                partitionId + "_4",
-                new ArrayList<>(),
-                false
-        );
+        existingDocument = new DataProcessingContextDocument();
+        existingDocument.setPartitionId(partitionId + "_4");
+        existingDocument.setKraftwerkExecutionScheduleList(new ArrayList<>());
+        existingDocument.setWithReview(false);
+
         dataProcessingContextDocuments.add(existingDocument);
 
 

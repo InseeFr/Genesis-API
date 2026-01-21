@@ -21,11 +21,16 @@ public class LastJsonExtractionPersistencePortStub implements LastJsonExtraction
     }
 
     @Override
-    public LastJsonExtractionModel getLastExecutionDate(String questionnaireModelId, Mode mode) throws GenesisException {
+    public LastJsonExtractionModel getLastExecutionDate(String collectionInstrumentId, Mode mode) throws GenesisException {
         LastJsonExtractionDocument extraction = mongoStub.stream()
-                .filter(doc -> doc.getId().equals(String.format("%s_%s",questionnaireModelId,mode)))
+                .filter(doc -> doc.getId().equals(String.format("%s_%s",collectionInstrumentId,mode)))
                 .findFirst()
                 .orElseThrow();
         return LastJsonExtractionDocumentMapper.INSTANCE.documentToModel(extraction);
+    }
+
+    @Override
+    public void delete(String collectionInstrumentId, Mode mode) {
+
     }
 }
