@@ -561,9 +561,9 @@ public class  RawResponseService implements RawResponseApiPort {
         for (int individualIndex = 0; individualIndex < individuals.size(); individualIndex++) {
             List<String> individualLinks = (List<String>) individuals.get(individualIndex);
 
-            for (int linkIndex = 1; linkIndex <= Constants.MAX_LINKS_ALLOWED; linkIndex++) {
+            for (int linkIndex = 1; linkIndex < Constants.MAX_LINKS_ALLOWED; linkIndex++) {
                 dstSurveyUnitModel.getCollectedVariables().add(
-                        buildPairwiseVariable(individualLinks, linkIndex, individualIndex, groupName)
+                        buildPairwiseVariable(individualLinks, linkIndex, individualIndex+ 1, groupName)
                 );
             }
         }
