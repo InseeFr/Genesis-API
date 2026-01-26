@@ -1,14 +1,14 @@
 package fr.insee.genesis.configuration.auth.security;
 
 import jakarta.annotation.PostConstruct;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
-import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 @Configuration
+@EnableMethodSecurity
 @Slf4j
 public class RoleConfiguration {
 
@@ -41,10 +42,7 @@ public class RoleConfiguration {
     private List<String> batchGenericClaims;
 
 
-    public Map<String, List<String>> getRolesByClaim() {
-        return rolesByClaim;
-    }
-
+    @Getter
     private Map<String, List<String>> rolesByClaim;
 
     //Defines a role hierarchy
@@ -65,14 +63,6 @@ public class RoleConfiguration {
                 .role(ApplicationRole.USER_PLATINE.toString()).implies(ApplicationRole.READER.toString())
                 .role(ApplicationRole.USER_BACK_OFFICE.toString()).implies(ApplicationRole.READER.toString())
                 .build();
-    }
-
-    // and, if using pre-post method security also add
-    @Bean
-    static MethodSecurityExpressionHandler methodSecurityExpressionHandler(RoleHierarchy roleHierarchy) {
-        DefaultMethodSecurityExpressionHandler expressionHandler = new DefaultMethodSecurityExpressionHandler();
-        expressionHandler.setRoleHierarchy(roleHierarchy);
-        return expressionHandler;
     }
 
     @PostConstruct
