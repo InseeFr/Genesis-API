@@ -32,7 +32,7 @@ public class ExtendedJsonNormalizer {
             }
 
             ObjectNode copy = obj.objectNode();
-            obj.fields().forEachRemaining(e ->
+            obj.properties().forEach(e ->
                     copy.set(e.getKey(), normalize(e.getValue()))
             );
             return copy;
