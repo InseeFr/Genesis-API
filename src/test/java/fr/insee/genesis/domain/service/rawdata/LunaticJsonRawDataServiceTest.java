@@ -468,13 +468,13 @@ class LunaticJsonRawDataServiceTest {
     void convertRawData_multipleBatchs(int rawDataSize) throws Exception {
         //GIVEN
         String campaignId = "SAMPLETEST-PARADATA-V1";
-        String questionnaireId = "TESTIDQUEST";
+        String questionnaireId = "SAMPLETEST-PARADATA-V1";
         List<String> interrogationIdList = prepareConvertTest(rawDataSize, campaignId, questionnaireId);
         //Activate review
         dataProcessingContextPersistancePortStub.getMongoStub().add(
                 DataProcessingContextMapper.INSTANCE.modelToDocument(
                         DataProcessingContextModel.builder()
-                                .partitionId(campaignId)
+                                .collectionInstrumentId(questionnaireId)
                                 .withReview(true)
                                 .kraftwerkExecutionScheduleList(new ArrayList<>())
                                 .build()
@@ -482,8 +482,7 @@ class LunaticJsonRawDataServiceTest {
         );
 
         //WHEN
-        DataProcessResult dataProcessResult = lunaticJsonRawDataService.processRawData(campaignId, interrogationIdList,
-                new ArrayList<>());
+        DataProcessResult dataProcessResult = lunaticJsonRawDataService.processRawData(questionnaireId);
 
         //THEN
         Assertions.assertThat(dataProcessResult.dataCount()).isEqualTo(rawDataSize * 2/*EDITED*/);
@@ -499,14 +498,14 @@ class LunaticJsonRawDataServiceTest {
     void convertRawData_review_desactivated() throws Exception {
         //GIVEN
         String campaignId = "SAMPLETEST-PARADATA-V1";
-        String questionnaireId = "TESTIDQUEST";
+        String questionnaireId = "SAMPLETEST-PARADATA-V1";
         List<String> interrogationIdList = prepareConvertTest(1, campaignId, questionnaireId);
 
         //Desactivate review
         dataProcessingContextPersistancePortStub.getMongoStub().add(
                 DataProcessingContextMapper.INSTANCE.modelToDocument(
                         DataProcessingContextModel.builder()
-                                .partitionId(campaignId)
+                                .collectionInstrumentId(questionnaireId)
                                 .withReview(false)
                                 .kraftwerkExecutionScheduleList(new ArrayList<>())
                                 .build()
@@ -514,8 +513,7 @@ class LunaticJsonRawDataServiceTest {
         );
 
         //WHEN
-        DataProcessResult dataProcessResult = lunaticJsonRawDataService.processRawData(campaignId, interrogationIdList,
-                new ArrayList<>());
+        DataProcessResult dataProcessResult = lunaticJsonRawDataService.processRawData(questionnaireId);
 
         //THEN
         Assertions.assertThat(dataProcessResult.dataCount()).isEqualTo(2);
