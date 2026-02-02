@@ -1,4 +1,9 @@
 # Changelog
+
+## 2.1.3 [2026-02-02]
+### Fixed
+- Fixed the way we retrieve the data processing context when we process raw responses
+
 ## 2.1.2 [2026-01-26]
 ### Fixed
 - Fixed numbers for pairwise
