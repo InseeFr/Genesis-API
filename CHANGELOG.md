@@ -1,8 +1,9 @@
 # Changelog
 
-## 2.1.3 [2026-02-02]
+## 2.1.3 [2026-02-03]
 ### Fixed
 - Fixed the way we retrieve the data processing context when we process raw responses
+- Change variable reading type from int to long
 
 ## 2.1.2 [2026-01-26]
 ### Fixed
