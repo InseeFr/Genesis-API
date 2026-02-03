@@ -127,6 +127,8 @@ public class  RawResponseService implements RawResponseApiPort {
                 //Send processed ids grouped by questionnaire (if review activated)
                 if(dataProcessingContext != null && dataProcessingContext.isWithReview()) {
                     sendProcessedIdsToQualityTool(surveyUnitModels);
+                } else {
+                    log.warn("Data processing context not found for collection instrument {}. Ids processed not send to quality tool.",collectionInstrumentId);
                 }
 
                 //Remove processed ids from list
