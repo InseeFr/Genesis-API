@@ -19,6 +19,7 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -229,7 +230,7 @@ public class LunaticJsonRawDataPersistanceStub implements LunaticJsonRawDataPers
                        lunaticJsonDataDocument -> lunaticJsonDataDocument.processDate() == null
                        && lunaticJsonDataDocument.questionnaireId().equals(collectionInstrumentId)
                ).toList();
-       Set<String> interrogationIds = new HashSet<>();
+       Set<String> interrogationIds = new LinkedHashSet<>();
        unprocessedDocuments.forEach(doc -> interrogationIds.add(doc.interrogationId()));
        return interrogationIds;
     }
