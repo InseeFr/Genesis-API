@@ -50,7 +50,7 @@ public class QuestionnaireController implements CommonApiResponse {
     public ResponseEntity<List<String>> getQuestionnairesWithReview(
             @RequestParam(value = "withReview") boolean withReview
     ) {
-        List<String> questionnaires = dataProcessingContextService.getPartitionIds(withReview);
+        List<String> questionnaires = dataProcessingContextService.getCollectionInstrumentIds(withReview);
         return ResponseEntity.ok(questionnaires);
     }
 

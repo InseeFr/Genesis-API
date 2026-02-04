@@ -256,11 +256,11 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
 
     @Override
     public DataProcessingContextModel getContextByCollectionInstrumentId(String collectionInstrumentId){
-        return dataProcessingContextPersistancePort.findByCollectionInstrumentId(collectionInstrumentId)
-        ;
+        return dataProcessingContextPersistancePort.findByCollectionInstrumentId(collectionInstrumentId);
     }
 
     @Override
+    @Deprecated(forRemoval = true)
     public List<String> getPartitionIds(boolean withReview){
         List<String> partitionIds = new ArrayList<>();
         for(DataProcessingContextModel dataProcessingContextModel
@@ -270,6 +270,18 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
             partitionIds.add(dataProcessingContextModel.getPartitionId());
         }
         return partitionIds;
+    }
+
+    @Override
+    public List<String> getCollectionInstrumentIds(boolean withReview) {
+        List<String> collectionInstrumentIds = new ArrayList<>();
+        for(DataProcessingContextModel dataProcessingContextModel
+                : DataProcessingContextMapper.INSTANCE.listDocumentToListModel(
+                dataProcessingContextPersistancePort.findAllByReview(withReview)
+        )){
+            collectionInstrumentIds.add(dataProcessingContextModel.getCollectionInstrumentId());
+        }
+        return collectionInstrumentIds;
     }
 
     @Deprecated(forRemoval = true)
