@@ -215,7 +215,7 @@ public class ResponseController implements CommonApiResponse {
 
     //GET
     @Operation(summary = "Retrieve responses for an interrogation, using usualSurveyUnitId and collectionInstrumentId (formerly questionnaireId) from Genesis Database")
-    @GetMapping(path = "/by-usual-SurveyUnit-and-collection-instrument")
+    @GetMapping(path = "/by-usual-survey-unit-and-collection-instrument")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<SurveyUnitModel>> findResponsesByUsualSurveyUnitAndCollectionInstrument(
             @RequestParam("usualSurveyUnitId") String usualSurveyUnitId,
