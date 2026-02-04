@@ -11,7 +11,9 @@ public interface SurveyUnitPersistencePort {
 
     void saveAll(List<SurveyUnitModel> suList);
 
-    List<SurveyUnitModel> findByIds(String interrogationId, String questionnaireId);
+    List<SurveyUnitModel> findByIds(String interrogationId, String collectionInstrumentId);
+
+    List<SurveyUnitModel> findByUsualSurveyUnitAndCollectionInstrumentIds(String usualSurveyUnitId, String collectionInstrumentId);
 
     //========= OPTIMISATIONS PERFS (START) ==========
     /**

@@ -161,6 +161,17 @@ class ResponseControllerTest {
     }
 
     @Test
+    void findResponsesByUsualSurveyUnitAndQuestionnaireTest() {
+        ResponseEntity<List<SurveyUnitModel>> response = responseControllerStatic.findResponsesByUsualSurveyUnitAndCollectionInstrument(DEFAULT_SURVEY_UNIT_ID, DEFAULT_COLLECTION_INSTRUMENT_ID);
+
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
+        Assertions.assertThat(response.getBody().getFirst().getInterrogationId()).isEqualTo(DEFAULT_INTERROGATION_ID);
+        Assertions.assertThat(response.getBody().getFirst().getUsualSurveyUnitId()).isEqualTo(DEFAULT_SURVEY_UNIT_ID);
+        Assertions.assertThat(response.getBody().getFirst().getCollectionInstrumentId()).isEqualTo(DEFAULT_COLLECTION_INSTRUMENT_ID);
+    }
+
+    @Test
     void getLatestByUETest() {
         Utils.addAdditionalSurveyUnitModelToMongoStub(surveyUnitPersistencePortStub);
 
