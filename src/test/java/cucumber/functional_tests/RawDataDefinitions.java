@@ -37,7 +37,8 @@ import io.cucumber.java.en.When;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.resttestclient.TestRestTemplate;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -62,6 +63,7 @@ import java.util.List;
 
 @Slf4j
 @ContextConfiguration(classes = CucumberSpringConfiguration.class)
+@AutoConfigureTestRestTemplate
 public class RawDataDefinitions {
 
 
