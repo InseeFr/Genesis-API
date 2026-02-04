@@ -56,8 +56,16 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 		return results.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(results);
 	}
 
+    @Override
+    public List<SurveyUnitModel> findByUsualSurveyUnitAndCollectionInstrumentIds(String usualSurveyUnitId, String collectionInstrumentId) {
+        List<SurveyUnitDocument> results = new ArrayList<>();
+        results.addAll(mongoRepository.findByUsualSurveyUnitIdAndCollectionInstrumentId(usualSurveyUnitId, collectionInstrumentId));
+        // To ensure compatibility with older documents (with questionnaireId instead of collectionInstrumentId)
+        results.addAll(mongoRepository.findByUsualSurveyUnitIdAndQuestionnaireId(usualSurveyUnitId, collectionInstrumentId));
+        return results.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(results);    }
 
-	//========= OPTIMISATIONS PERFS (START) ==========
+
+    //========= OPTIMISATIONS PERFS (START) ==========
 	/**
 	 * @author Adrien Marchal
 	 */

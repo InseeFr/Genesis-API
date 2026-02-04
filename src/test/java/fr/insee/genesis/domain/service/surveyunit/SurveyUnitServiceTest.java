@@ -25,6 +25,7 @@ import java.util.List;
 
 import static fr.insee.genesis.TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID;
 import static fr.insee.genesis.TestConstants.DEFAULT_INTERROGATION_ID;
+import static fr.insee.genesis.TestConstants.DEFAULT_SURVEY_UNIT_ID;
 
 class SurveyUnitServiceTest {
     
@@ -80,6 +81,7 @@ class SurveyUnitServiceTest {
         surveyUnitPersistencePortStub.getMongoStub().add(SurveyUnitModel.builder()
                 .campaignId("TEST-TABLEAUX")
                 .mode(Mode.WEB)
+                .usualSurveyUnitId(DEFAULT_SURVEY_UNIT_ID)
                 .interrogationId(DEFAULT_INTERROGATION_ID)
                 .collectionInstrumentId(DEFAULT_COLLECTION_INSTRUMENT_ID)
                 .state(DataState.COLLECTED)
@@ -133,6 +135,7 @@ class SurveyUnitServiceTest {
                 SurveyUnitModel.builder()
                         .campaignId("TEST-TABLEAUX")
                         .mode(Mode.WEB)
+                        .usualSurveyUnitId(DEFAULT_SURVEY_UNIT_ID)
                         .interrogationId("TESTINTERROGATIONID2")
                         .collectionInstrumentId(DEFAULT_COLLECTION_INSTRUMENT_ID)
                         .state(DataState.COLLECTED)
@@ -171,6 +174,15 @@ class SurveyUnitServiceTest {
         Assertions.assertThat(surveyUnitServiceStatic.findByIdsInterrogationAndCollectionInstrument(DEFAULT_INTERROGATION_ID, DEFAULT_COLLECTION_INSTRUMENT_ID)).filteredOn(
                 surveyUnitModel ->
                         surveyUnitModel.getInterrogationId().equals(DEFAULT_INTERROGATION_ID)
+                        && surveyUnitModel.getCollectionInstrumentId().equals(DEFAULT_COLLECTION_INSTRUMENT_ID)
+        ).isNotEmpty();
+    }
+
+   @Test
+    void findByIdsUsualSurveyUnitAndCollectionInstrumentTest(){
+        Assertions.assertThat(surveyUnitServiceStatic.findByIdsUsualSurveyUnitAndCollectionInstrument(DEFAULT_SURVEY_UNIT_ID, DEFAULT_COLLECTION_INSTRUMENT_ID)).filteredOn(
+                surveyUnitModel ->
+                        surveyUnitModel.getUsualSurveyUnitId().equals(DEFAULT_SURVEY_UNIT_ID)
                         && surveyUnitModel.getCollectionInstrumentId().equals(DEFAULT_COLLECTION_INSTRUMENT_ID)
         ).isNotEmpty();
     }

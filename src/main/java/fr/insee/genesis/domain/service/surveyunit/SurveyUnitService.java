@@ -65,6 +65,11 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     }
 
     @Override
+    public List<SurveyUnitModel> findByIdsUsualSurveyUnitAndCollectionInstrument(String usualSurveyUnitId, String collectionInstrumentId) {
+        return surveyUnitPersistencePort.findByUsualSurveyUnitAndCollectionInstrumentIds(usualSurveyUnitId, collectionInstrumentId);
+    }
+
+    @Override
     public List<SurveyUnitModel> findByInterrogationId(String interrogationId) {
         return surveyUnitPersistencePort.findByInterrogationId(interrogationId);
     }
