@@ -213,6 +213,18 @@ public class ResponseController implements CommonApiResponse {
         return ResponseEntity.ok(responses);
     }
 
+    //GET
+    @Operation(summary = "Retrieve responses for an interrogation, using usualSurveyUnitId and collectionInstrumentId (formerly questionnaireId) from Genesis Database")
+    @GetMapping(path = "/by-usual-SurveyUnit-and-collection-instrument")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<SurveyUnitModel>> findResponsesByUsualSurveyUnitAndCollectionInstrument(
+            @RequestParam("usualSurveyUnitId") String usualSurveyUnitId,
+            @RequestParam("collectionInstrumentId") String collectionInstrumentId)
+    {
+        List<SurveyUnitModel> responses = surveyUnitService.findByIdsUsualSurveyUnitAndCollectionInstrument(usualSurveyUnitId, collectionInstrumentId);
+        return ResponseEntity.ok(responses);
+    }
+
     /**
      * @deprecated
      * This endpoint is deprecated because the parameter `questionnaireId` has been renamed
