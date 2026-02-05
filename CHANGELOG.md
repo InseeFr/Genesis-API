@@ -1,5 +1,5 @@
 # Changelog
-## 2.2.2 [TODO]
+## 2.2.2 [2026-02-05]
 ### Fixed
 - Volumetry don't count responses with collectionInstrumentId
 
