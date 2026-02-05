@@ -145,11 +145,11 @@ class DataProcessingContextServiceUnitTest {
         DataProcessingContextDocument dataProcessingContextDocumentNull = new DataProcessingContextDocument();
         dataProcessingContextDocument.setCollectionInstrumentId(null);
         dataProcessingContextDocument.setWithReview(true);
-        List<DataProcessingContextDocument> models = List.of(
+        List<DataProcessingContextDocument> documents = List.of(
                 dataProcessingContextDocument,
                 dataProcessingContextDocumentNull
         );
-        doReturn(models).when(dataProcessingContextPersistancePort).findAllByReview(anyBoolean());
+        doReturn(documents).when(dataProcessingContextPersistancePort).findAllByReview(anyBoolean());
 
         //WHEN
         List<String> collectionInstrumentIds = dataProcessingContextService.getCollectionInstrumentIds(true);
