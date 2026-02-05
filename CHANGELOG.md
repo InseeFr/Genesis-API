@@ -1,4 +1,25 @@
 # Changelog
+
+## 2.2.0 [2026-02-05]
+### Added
+- add isCapturedIndirectly variable to responses
+### Changed
+- Volumetrics endpoint returns content of file after saving
+- Count responses now includes collection instrument id
+### Fixed
+- Raw data volumetrics with modele filiere
+
+### Updated
+- BPM 1.0.25
+## 2.1.3 [2026-02-03]
+### Fixed
+- Fixed the way we retrieve the data processing context when we process raw responses
+- Change variable reading type from int to long
+
+## 2.1.2 [2026-01-26]
+### Fixed
+- Fixed numbers for pairwise
+
 ## 2.1.0 [2026-01-15]
 ### Added
 - rawResponses payload.campaignId indexing

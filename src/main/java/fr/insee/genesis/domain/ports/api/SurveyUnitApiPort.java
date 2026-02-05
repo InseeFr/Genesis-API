@@ -38,7 +38,7 @@ public interface SurveyUnitApiPort {
     List<InterrogationId> findDistinctInterrogationIdsByQuestionnaireIdAndDateAfter(String questionnaireId, LocalDateTime since);
 
     //========= OPTIMISATIONS PERFS (START) ==========
-    long countInterrogationIdsByQuestionnaireId(String questionnaireId);
+    long countResponsesByCollectionInstrumentId(String questionnaireId);
 
     List<InterrogationId> findDistinctPageableInterrogationIdsByQuestionnaireId(String questionnaireId,
                                                                                 long totalSize, long blockSize, long page);
@@ -67,11 +67,13 @@ public interface SurveyUnitApiPort {
     Set<String> findQuestionnaireIdsByCampaignIdV2(String campaignId);
     //========= OPTIMISATIONS PERFS (END) ==========
 
+    @Deprecated
     Set<String> findDistinctCampaignIds();
 
+    @Deprecated
     long countResponsesByCampaignId(String campaignId);
 
-    Set<String> findDistinctQuestionnaireIds();
+    Set<String> findDistinctQuestionnairesAndCollectionInstrumentIds();
 
     List<CampaignWithQuestionnaire> findCampaignsWithQuestionnaires();
 
@@ -84,4 +86,6 @@ public interface SurveyUnitApiPort {
     String findQuestionnaireIdByInterrogationId(String interrogationId) throws GenesisException;
 
     Set<String> findCampaignIdsFrom(SurveyUnitInputDto dto);
+
+    long countResponsesByQuestionnaireId(String questionnaireId);
 }

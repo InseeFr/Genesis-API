@@ -127,6 +127,8 @@ public class  RawResponseService implements RawResponseApiPort {
                 //Send processed ids grouped by questionnaire (if review activated)
                 if(dataProcessingContext != null && dataProcessingContext.isWithReview()) {
                     sendProcessedIdsToQualityTool(surveyUnitModels);
+                } else {
+                    log.warn("Data processing context not found for collection instrument {}. Ids processed not send to quality tool.",collectionInstrumentId);
                 }
 
                 //Remove processed ids from list
@@ -535,6 +537,16 @@ public class  RawResponseService implements RawResponseApiPort {
     }
 
     @Override
+    public long countByCollectionInstrumentId(String collectionInstrumentId) {
+        return rawResponsePersistencePort.countByCollectionInstrumentId(collectionInstrumentId);
+    }
+
+    @Override
+    public Set<String> getDistinctCollectionInstrumentIds() {
+        return new HashSet<>(rawResponsePersistencePort.findDistinctCollectionInstrumentIds());
+    }
+
+    @Override
     public Page<RawResponseModel> findRawResponseDataByCollectionInstrumentId(String collectionInstrumentId, Pageable pageable) {
         return rawResponsePersistencePort.findByCollectionInstrumentId(collectionInstrumentId, pageable);
     }
@@ -561,9 +573,9 @@ public class  RawResponseService implements RawResponseApiPort {
         for (int individualIndex = 0; individualIndex < individuals.size(); individualIndex++) {
             List<String> individualLinks = (List<String>) individuals.get(individualIndex);
 
-            for (int linkIndex = 1; linkIndex <= Constants.MAX_LINKS_ALLOWED; linkIndex++) {
+            for (int linkIndex = 1; linkIndex < Constants.MAX_LINKS_ALLOWED; linkIndex++) {
                 dstSurveyUnitModel.getCollectedVariables().add(
-                        buildPairwiseVariable(individualLinks, linkIndex, individualIndex, groupName)
+                        buildPairwiseVariable(individualLinks, linkIndex, individualIndex+ 1, groupName)
                 );
             }
         }

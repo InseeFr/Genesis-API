@@ -37,10 +37,10 @@ public class QuestionnaireController implements CommonApiResponse {
 
 
 
-    @Operation(summary = "List questionnaires from responses database")
+    @Operation(summary = "List questionnaires/collection instruments from responses database")
     @GetMapping(path = "/")
     public ResponseEntity<Set<String>> getQuestionnaires() {
-        Set<String> questionnaires = surveyUnitService.findDistinctQuestionnaireIds();
+        Set<String> questionnaires = surveyUnitService.findDistinctQuestionnairesAndCollectionInstrumentIds();
         return ResponseEntity.ok(questionnaires);
     }
 

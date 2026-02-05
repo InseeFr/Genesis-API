@@ -294,7 +294,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                                                                                        long blockSize, long page) {
         long calculatedTotalSize;
         if(totalSize == 0) {
-            calculatedTotalSize = countInterrogationIdsByQuestionnaireId(questionnaireId);
+            calculatedTotalSize = this.countResponsesByCollectionInstrumentId(questionnaireId);
         } else {
             calculatedTotalSize = totalSize;
         }
@@ -318,8 +318,8 @@ public class SurveyUnitService implements SurveyUnitApiPort {
      * @author Adrien Marchal
      */
     @Override
-    public long countInterrogationIdsByQuestionnaireId(String questionnaireId) {
-        return surveyUnitPersistencePort.countInterrogationIdsByQuestionnaireId(questionnaireId);
+    public long countResponsesByCollectionInstrumentId(String collectionInstrumentId) {
+        return surveyUnitPersistencePort.countByCollectionInstrumentId(collectionInstrumentId);
     }
     //=========== OPTIMISATIONS PERFS (END) =============
 
@@ -413,14 +413,14 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     }
 
     @Override
-    public Set<String> findDistinctQuestionnaireIds() {
-        return surveyUnitPersistencePort.findDistinctQuestionnaireIds();
+    public Set<String> findDistinctQuestionnairesAndCollectionInstrumentIds() {
+        return surveyUnitPersistencePort.findDistinctQuestionnairesAndCollectionInstrumentIds();
     }
 
     @Override
     public List<QuestionnaireWithCampaign> findQuestionnairesWithCampaigns() {
         List<QuestionnaireWithCampaign> questionnaireWithCampaignList = new ArrayList<>();
-        for(String questionnaireId : findDistinctQuestionnaireIds()){
+        for(String questionnaireId : findDistinctQuestionnairesAndCollectionInstrumentIds()){
             Set<String> campaigns = surveyUnitPersistencePort.findCampaignIdsByQuestionnaireId(questionnaireId);
             questionnaireWithCampaignList.add(new QuestionnaireWithCampaign(
                     questionnaireId,
@@ -517,6 +517,11 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         return responses.stream()
                 .map(SurveyUnitModel::getCampaignId)
                 .collect(Collectors.toSet());
+    }
+
+    @Override
+    public long countResponsesByQuestionnaireId(String questionnaireId) {
+        return surveyUnitPersistencePort.countByQuestionnaireId(questionnaireId);
     }
 
     //Utils

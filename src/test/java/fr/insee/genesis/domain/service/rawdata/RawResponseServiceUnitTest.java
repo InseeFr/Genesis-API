@@ -365,4 +365,26 @@ class RawResponseServiceUnitTest {
             Assertions.assertThat(createdModels.getFirst().getQuestionnaireState()).isNull();
         }
     }
+
+    @Test
+    void countByCollectionInstrumentId_test(){
+        //GIVEN
+        String collectionInstrumentId = TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID;
+        long exampleCount = 100;
+        doReturn(exampleCount).when(rawResponsePersistencePort).countByCollectionInstrumentId(any());
+
+        //WHEN + THEN
+        Assertions.assertThat(rawResponseService.countByCollectionInstrumentId(collectionInstrumentId))
+                .isEqualTo(exampleCount);
+    }
+
+    @Test
+    void getDistinctCollectionInstrumentIds_test(){
+        //GIVEN
+        String collectionInstrumentId = TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID;
+        doReturn(Set.of(collectionInstrumentId)).when(rawResponsePersistencePort).findDistinctCollectionInstrumentIds();
+
+        //WHEN + THEN
+        Assertions.assertThat(rawResponseService.getDistinctCollectionInstrumentIds()).containsExactly(collectionInstrumentId);
+    }
 }

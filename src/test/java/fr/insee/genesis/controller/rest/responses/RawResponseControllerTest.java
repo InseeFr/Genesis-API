@@ -48,6 +48,7 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Slf4j
 class RawResponseControllerTest {
@@ -122,6 +123,16 @@ class RawResponseControllerTest {
             return rawResponseDataPersistanceStub.findByCampaignIdAndDate(campaignId, startDate, endDate, pageable);
         }
 
+        @Override
+        public long countByCollectionInstrumentId(String collectionInstrumentId) {
+            return 0;
+        }
+
+        @Override
+        public Set<String> getDistinctCollectionInstrumentIds() {
+            return Set.of();
+        }
+        
         @Override
         public Page<RawResponseModel> findRawResponseDataByCollectionInstrumentId(String collectionInstrumentId, Pageable pageable) {
             return null;
@@ -214,66 +225,6 @@ class RawResponseControllerTest {
         lunaticJsonRawDataPersistanceStub.getMongoStub().clear();
         surveyUnitPersistencePortStub.getMongoStub().clear();
         surveyUnitQualityToolPerretAdapterStub.getReceivedMaps().clear();
-        String campaignId = "SAMPLETEST-PARADATA-V2";
-        String questionnaireId = campaignId + "_quest";
-        String interrogationId = "testinterrogationId1";
-        String idUE = "testIdUE1";
-        String varName = "AVIS_MAIL";
-        String varValue = "TEST";
-        addJsonRawDataDocumentToStub(campaignId, questionnaireId, interrogationId, idUE, null, LocalDateTime.now(),varName
-                , varValue);
-
-        dataProcessingContextPersistancePortStub.getMongoStub().add(
-                DataProcessingContextMapper.INSTANCE.modelToDocument(
-                  DataProcessingContextModel.builder()
-                          .partitionId(campaignId)
-                          .kraftwerkExecutionScheduleList(new ArrayList<>())
-                          .withReview(true)
-                          .build()
-                )
-        );
-
-
-        List<String> interrogationIdList = new ArrayList<>();
-        interrogationIdList.add(interrogationId);
-
-        //WHEN
-        rawResponseController.processJsonRawData(campaignId, questionnaireId, interrogationIdList);
-
-
-        //THEN
-        //Genesis model survey unit created successfully
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).isNotNull().isNotEmpty().hasSize(1);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst()).isNotNull();
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCampaignId()).isEqualTo(campaignId);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectionInstrumentId()).isNotNull().isEqualTo(questionnaireId);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getMode()).isNotNull().isEqualTo(Mode.WEB);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getInterrogationId()).isEqualTo(interrogationId);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getUsualSurveyUnitId()).isEqualTo(idUE);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getFileDate()).isNotNull();
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getRecordDate()).isNotNull();
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables()).isNotNull().isNotEmpty().hasSize(1);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst()).isNotNull();
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst().varId()).isNotNull().isEqualTo(varName);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst().value()).isNotNull().isEqualTo(varValue);
-
-        //Process date check
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().processDate()).isNotNull();
-
-        //Perret call check
-        Assertions.assertThat(surveyUnitQualityToolPerretAdapterStub.getReceivedMaps())
-                .hasSize(1);
-        Assertions.assertThat(surveyUnitQualityToolPerretAdapterStub.getReceivedMaps().getFirst()).containsKey(questionnaireId);
-        Assertions.assertThat(surveyUnitQualityToolPerretAdapterStub.getReceivedMaps().getFirst().get(questionnaireId))
-                .contains(interrogationId);
-    }
-
-    @Test
-    void processJsonRawDataV2Test(){
-        //GIVEN
-        lunaticJsonRawDataPersistanceStub.getMongoStub().clear();
-        surveyUnitPersistencePortStub.getMongoStub().clear();
-        surveyUnitQualityToolPerretAdapterStub.getReceivedMaps().clear();
         String questionnaireId = "SAMPLETEST-PARADATA-V2";
         String interrogationId = "testinterrogationId1";
         String idUE = "testIdUE1";
@@ -286,6 +237,7 @@ class RawResponseControllerTest {
                 DataProcessingContextMapper.INSTANCE.modelToDocument(
                         DataProcessingContextModel.builder()
                                 .partitionId(questionnaireId)
+                                .collectionInstrumentId(questionnaireId)
                                 .kraftwerkExecutionScheduleList(new ArrayList<>())
                                 .withReview(true)
                                 .build()

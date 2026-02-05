@@ -544,8 +544,8 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     }
 
     @Override
-    public long countResponsesByQuestionnaireId(String campaignId) {
-        return lunaticJsonRawDataPersistencePort.countResponsesByQuestionnaireId(campaignId);
+    public long countRawResponsesByQuestionnaireId(String campaignId) {
+        return lunaticJsonRawDataPersistencePort.countRawResponsesByQuestionnaireId(campaignId);
     }
 
     @Override

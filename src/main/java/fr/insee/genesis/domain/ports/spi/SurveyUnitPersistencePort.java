@@ -31,7 +31,7 @@ public interface SurveyUnitPersistencePort {
     List<SurveyUnitModel> findInterrogationIdsByQuestionnaireIdAndDateAfter(String questionnaireId, LocalDateTime since);
 
     //======== OPTIMISATIONS PERFS (START) ========
-    long countInterrogationIdsByQuestionnaireId(String questionnaireId);
+    long countByCollectionInstrumentId(String collectionInstrumentId);
 
     List<SurveyUnitModel> findPageableInterrogationIdsByQuestionnaireId(String questionnaireId, Long skip, Long limit);
 
@@ -59,7 +59,9 @@ public interface SurveyUnitPersistencePort {
 
     long countByCampaignId(String campaignId);
 
-    Set<String> findDistinctQuestionnaireIds();
+    Set<String> findDistinctQuestionnairesAndCollectionInstrumentIds();
 
     Set<String> findCampaignIdsByQuestionnaireId(String questionnaireId);
+
+    long countByQuestionnaireId(String questionnaireId);
 }
