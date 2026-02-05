@@ -40,13 +40,14 @@ public interface SurveyUnitMongoDBRepository extends MongoRepository<SurveyUnitD
 	@Query(value = "{ 'collectionInstrumentId' : ?0, 'recordDate': { $gte: ?1 } }", fields = "{ 'interrogationId' : 1, 'mode' :  1 }")
 	List<SurveyUnitDocument> findInterrogationIdsByCollectionInstrumentIdAndDateAfter(String collectionInstrumentId, LocalDateTime since);
 
-	//========= OPTIMISATIONS PERFS (START) ==========
 	/**
 	 * @author Adrien Marchal
 	 */
 	@Query(value = "{ 'questionnaireId' : ?0 }", count = true)
 	long countByQuestionnaireId(String questionnaireId);
 
+	@Query(value = "{ 'collectionInstrumentId' : ?0 }", count = true)
+	long countByCollectionInstrumentId(String collectionInstrumentId);
 
 	/**
 	 * @author Adrien Marchal
@@ -72,7 +73,6 @@ public interface SurveyUnitMongoDBRepository extends MongoRepository<SurveyUnitD
 			"{ '$set': { 'mode': '$_id', '_id': '$$REMOVE' } }"
 	})
 	List<SurveyUnitDocument> findModesByQuestionnaireIdV2(String campaignId);
-	//========= OPTIMISATIONS PERFS (END) ==========
 
 	@Query(value = "{ 'campaignId' : ?0 }", fields = "{ 'interrogationId' : 1, 'mode' :  1 }")
 	List<SurveyUnitDocument> findInterrogationIdsByCampaignId(String campaignId);

@@ -170,7 +170,7 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 	//========== OPTIMISATIONS PERFS (START) ===========
 	@Override
 	public long countByCollectionInstrumentId(String collectionInstrumentId) {
-		return mongoRepository.countByQuestionnaireId(collectionInstrumentId);
+		return mongoRepository.countByCollectionInstrumentId(collectionInstrumentId);
 	}
 
 	@Override
