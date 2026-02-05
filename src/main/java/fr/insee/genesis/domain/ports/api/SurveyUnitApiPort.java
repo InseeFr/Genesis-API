@@ -73,7 +73,7 @@ public interface SurveyUnitApiPort {
     @Deprecated
     long countResponsesByCampaignId(String campaignId);
 
-    Set<String> findDistinctCollectionInstrumentIds();
+    Set<String> findDistinctQuestionnairesAndCollectionInstrumentIds();
 
     List<CampaignWithQuestionnaire> findCampaignsWithQuestionnaires();
 

@@ -413,14 +413,14 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     }
 
     @Override
-    public Set<String> findDistinctCollectionInstrumentIds() {
-        return surveyUnitPersistencePort.findDistinctCollectionInstrumentIds();
+    public Set<String> findDistinctQuestionnairesAndCollectionInstrumentIds() {
+        return surveyUnitPersistencePort.findDistinctQuestionnairesAndCollectionInstrumentIds();
     }
 
     @Override
     public List<QuestionnaireWithCampaign> findQuestionnairesWithCampaigns() {
         List<QuestionnaireWithCampaign> questionnaireWithCampaignList = new ArrayList<>();
-        for(String questionnaireId : findDistinctCollectionInstrumentIds()){
+        for(String questionnaireId : findDistinctQuestionnairesAndCollectionInstrumentIds()){
             Set<String> campaigns = surveyUnitPersistencePort.findCampaignIdsByQuestionnaireId(questionnaireId);
             questionnaireWithCampaignList.add(new QuestionnaireWithCampaign(
                     questionnaireId,

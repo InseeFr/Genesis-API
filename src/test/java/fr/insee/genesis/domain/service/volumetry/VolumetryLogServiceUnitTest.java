@@ -54,7 +54,7 @@ class VolumetryLogServiceUnitTest {
         SurveyUnitApiPort surveyUnitApiPort = mock(SurveyUnitApiPort.class);
         long exampleResponseCount = 5;
         doReturn(Set.of(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID))
-                .when(surveyUnitApiPort).findDistinctCollectionInstrumentIds();
+                .when(surveyUnitApiPort).findDistinctQuestionnairesAndCollectionInstrumentIds();
         doReturn(exampleResponseCount).when(surveyUnitApiPort).countResponsesByCollectionInstrumentId(any());
 
         //WHEN
@@ -76,7 +76,7 @@ class VolumetryLogServiceUnitTest {
         long exampleResponseCount = 5;
         long exampleResponseWithQuestionnaireIdCount = 3;
         doReturn(Set.of(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID))
-                .when(surveyUnitApiPort).findDistinctCollectionInstrumentIds();
+                .when(surveyUnitApiPort).findDistinctQuestionnairesAndCollectionInstrumentIds();
         doReturn(exampleResponseCount).when(surveyUnitApiPort).countResponsesByCollectionInstrumentId(any());
         doReturn(exampleResponseWithQuestionnaireIdCount).when(surveyUnitApiPort).countResponsesByQuestionnaireId(any());
 

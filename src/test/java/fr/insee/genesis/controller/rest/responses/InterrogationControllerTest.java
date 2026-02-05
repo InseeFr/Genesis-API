@@ -55,8 +55,8 @@ class InterrogationControllerTest {
     }
 
     @Test
-    void countAllInterrogationIdsByQuestionnaireTest() {
-        ResponseEntity<Long> response = interrogationControllerStatic.countAllInterrogationIdsByQuestionnaire(DEFAULT_COLLECTION_INSTRUMENT_ID);
+    void countAllInterrogationIdsByQuestionnaireOrCollectionInstrumentTest() {
+        ResponseEntity<Long> response = interrogationControllerStatic.countAllInterrogationIdsByQuestionnaireOrCollectionInstrument(DEFAULT_COLLECTION_INSTRUMENT_ID);
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull();

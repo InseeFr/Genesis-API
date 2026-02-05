@@ -190,7 +190,7 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     }
 
     @Override
-    public Set<String> findDistinctCollectionInstrumentIds() {
+    public Set<String> findDistinctQuestionnairesAndCollectionInstrumentIds() {
         Set<String> questionnaireIds = new HashSet<>();
         for(SurveyUnitModel SurveyUnitModel : mongoStub){
             questionnaireIds.add(SurveyUnitModel.getCollectionInstrumentId());
