@@ -279,7 +279,9 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
                 : DataProcessingContextMapper.INSTANCE.listDocumentToListModel(
                 dataProcessingContextPersistancePort.findAllByReview(withReview)
         )){
-            collectionInstrumentIds.add(dataProcessingContextModel.getCollectionInstrumentId());
+            if(dataProcessingContextModel.getCollectionInstrumentId() != null) {
+                collectionInstrumentIds.add(dataProcessingContextModel.getCollectionInstrumentId());
+            }
         }
         return collectionInstrumentIds;
     }
