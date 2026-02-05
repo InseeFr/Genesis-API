@@ -143,8 +143,8 @@ class DataProcessingContextServiceUnitTest {
         dataProcessingContextDocument.setWithReview(true);
         //null collectionInstrumentId
         DataProcessingContextDocument dataProcessingContextDocumentNull = new DataProcessingContextDocument();
-        dataProcessingContextDocument.setCollectionInstrumentId(null);
-        dataProcessingContextDocument.setWithReview(true);
+        dataProcessingContextDocumentNull.setCollectionInstrumentId(null);
+        dataProcessingContextDocumentNull.setWithReview(true);
         List<DataProcessingContextDocument> documents = List.of(
                 dataProcessingContextDocument,
                 dataProcessingContextDocumentNull
