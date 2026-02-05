@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.2.0 [TODO]
+## 2.2.0 [2026-02-05]
 ### Added
 - add isCapturedIndirectly variable to responses
 ### Changed
@@ -9,6 +9,8 @@
 ### Fixed
 - Raw data volumetrics with modele filiere
 
+### Updated
+- BPM 1.0.25
 ## 2.1.3 [2026-02-03]
 ### Fixed
 - Fixed the way we retrieve the data processing context when we process raw responses
