@@ -10,8 +10,7 @@ import fr.insee.genesis.infrastructure.document.surveyunit.SurveyUnitDocument;
 import fr.insee.genesis.infrastructure.document.surveyunit.VariableDocument;
 import fr.insee.genesis.infrastructure.mappers.SurveyUnitDocumentMapper;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
-import fr.insee.genesis.stubs.ConfigStub;
-import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
+import integration_tests.stubs.SurveyUnitPersistencePortStub;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,7 +42,7 @@ class SurveyUnitServiceUnitTest {
         surveyUnitService = new SurveyUnitService(
                 surveyUnitPersistencePortStub,
                 questionnaireMetadataServiceStub,
-                new FileUtils(new ConfigStub())
+                new FileUtils(TestConstants.getConfigStub())
         );
     }
 

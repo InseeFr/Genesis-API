@@ -16,7 +16,6 @@ import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
-import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.modelefiliere.ModeDto;
 import fr.insee.modelefiliere.RawResponseDto;
 import lombok.SneakyThrows;
@@ -70,8 +69,8 @@ class RawResponseServiceUnitTest {
                 mock(SurveyUnitQualityService.class),
                 mock(SurveyUnitQualityToolPort.class),
                 mock(DataProcessingContextService.class),
-                new FileUtils(new ConfigStub()),
-                new ConfigStub(),
+                new FileUtils(TestConstants.getConfigStub()),
+                TestConstants.getConfigStub(),
                 rawResponsePersistencePort
         );
 
@@ -109,14 +108,14 @@ class RawResponseServiceUnitTest {
                 mock(QuestionnaireMetadataPersistencePort.class)
         );
         rawResponseService = new RawResponseService(
-                new ControllerUtils(new FileUtils(new ConfigStub())),
+                new ControllerUtils(new FileUtils(TestConstants.getConfigStub())),
                 metadataService,
                 mock(SurveyUnitService.class),
                 mock(SurveyUnitQualityService.class),
                 mock(SurveyUnitQualityToolPort.class),
                 mock(DataProcessingContextService.class),
-                new FileUtils(new ConfigStub()),
-                new ConfigStub(),
+                new FileUtils(TestConstants.getConfigStub()),
+                TestConstants.getConfigStub(),
                 rawResponsePersistencePort
         );
 

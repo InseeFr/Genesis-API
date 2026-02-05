@@ -3,7 +3,6 @@ package fr.insee.genesis.infrastructure.utils;
 
 import fr.insee.genesis.TestConstants;
 import fr.insee.genesis.configuration.Config;
-import fr.insee.genesis.stubs.ConfigStub;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -17,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @Slf4j
 class FileUtilsTest {
 
-	private final Config config = new ConfigStub();
+	private final Config config = TestConstants.getConfigStub();
 	private final FileUtils fileUtils= new FileUtils(config);
 
 	@Test

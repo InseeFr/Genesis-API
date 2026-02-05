@@ -15,7 +15,6 @@ import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
-import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.modelefiliere.RawResponseDto;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,7 +39,7 @@ class ResponseControllerUnitTest {
     static QuestionnaireMetadataService questionnaireMetadataService;
     static DataProcessingContextApiPort dataProcessingContextApiPort;
 
-    static FileUtils fileUtils = new FileUtils(new ConfigStub());
+    static FileUtils fileUtils = new FileUtils(TestConstants.getConfigStub());
 
     @BeforeEach
     void init(){
@@ -53,9 +52,9 @@ class ResponseControllerUnitTest {
         responseController = new ResponseController(
                 surveyUnitApiPort,
                 surveyUnitQualityService,
-                new FileUtils(new ConfigStub()),
+                new FileUtils(TestConstants.getConfigStub()),
                 new ControllerUtils(fileUtils),
-                new AuthUtils(new ConfigStub()),
+                new AuthUtils(TestConstants.getConfigStub()),
                 questionnaireMetadataService,
                 dataProcessingContextApiPort
         );

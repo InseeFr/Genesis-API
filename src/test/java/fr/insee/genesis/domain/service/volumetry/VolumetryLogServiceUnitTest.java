@@ -6,7 +6,6 @@ import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.RawResponseApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
-import fr.insee.genesis.stubs.ConfigStub;
 import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
@@ -33,7 +32,7 @@ import static org.mockito.Mockito.mock;
 class VolumetryLogServiceUnitTest {
 
     private static VolumetryLogService volumetryLogService;
-    private static final Config config = new ConfigStub();
+    private static final Config config = TestConstants.getConfigStub();
     private static final Path logFilePath = Path.of(config.getLogFolder()).resolve(Constants.VOLUMETRY_FOLDER_NAME);
 
     @BeforeEach

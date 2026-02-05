@@ -99,7 +99,8 @@ public class QuestionnaireMetadataService implements QuestionnaireMetadataApiPor
             try {
                 lunaticFilePath = fileUtils.findFile(String.format("%s/%s", fileUtils.getSpecFolder(campaignName), modeName), LUNATIC_FILE_PATTERN);
                 return parseMetadata(lunaticFilePath, null);
-            } catch (Exception ex) {
+            } //TODO remove error if java.nio.file.NoSuchFileException to avoid log spam
+            catch (Exception ex) {
                 log.error("Error reading Lunatic metadata file", ex);
                 errors.add(new GenesisError(ex.toString()));
                 return null;

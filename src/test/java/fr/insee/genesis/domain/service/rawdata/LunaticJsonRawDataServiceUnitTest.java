@@ -1,6 +1,7 @@
 package fr.insee.genesis.domain.service.rawdata;
 
 import fr.insee.bpm.metadata.model.MetadataModel;
+import fr.insee.genesis.TestConstants;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.ports.spi.DataProcessingContextPersistancePort;
@@ -12,7 +13,6 @@ import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
-import fr.insee.genesis.stubs.ConfigStub;
 import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import java.util.HashSet;
 import java.util.Set;
 
+import static fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService.getValueString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -40,14 +41,14 @@ class LunaticJsonRawDataServiceUnitTest {
         metadataService = mock(QuestionnaireMetadataService.class);
         lunaticJsonRawDataService = new LunaticJsonRawDataService(
                 lunaticJsonRawDataPersistencePort,
-                new ControllerUtils(new FileUtils(new ConfigStub())),
+                new ControllerUtils(new FileUtils(TestConstants.getConfigStub())),
                 metadataService,
                 mock(SurveyUnitService.class),
                 mock(SurveyUnitQualityService.class),
-                new FileUtils(new ConfigStub()),
+                new FileUtils(TestConstants.getConfigStub()),
                 mock(DataProcessingContextService.class),
                 mock(SurveyUnitQualityToolPort.class),
-                new ConfigStub(),
+                TestConstants.getConfigStub(),
                 mock(DataProcessingContextPersistancePort.class)
         );
     }
@@ -84,14 +85,14 @@ class LunaticJsonRawDataServiceUnitTest {
         );
         lunaticJsonRawDataService = new LunaticJsonRawDataService(
                 lunaticJsonRawDataPersistencePort,
-                new ControllerUtils(new FileUtils(new ConfigStub())),
+                new ControllerUtils(new FileUtils(TestConstants.getConfigStub())),
                 metadataService,
                 mock(SurveyUnitService.class),
                 mock(SurveyUnitQualityService.class),
-                new FileUtils(new ConfigStub()),
+                new FileUtils(TestConstants.getConfigStub()),
                 mock(DataProcessingContextService.class),
                 mock(SurveyUnitQualityToolPort.class),
-                new ConfigStub(),
+                TestConstants.getConfigStub(),
                 mock(DataProcessingContextPersistancePort.class)
         );
 
@@ -99,5 +100,39 @@ class LunaticJsonRawDataServiceUnitTest {
         //WHEN + THEN
         Assertions.assertThat(lunaticJsonRawDataService.getUnprocessedDataQuestionnaireIds())
                 .containsExactly("TEST-TABLEAUX");
+    }
+
+    @Test
+    void getValueString_null_test(){
+        Object stringObject = null;
+
+        Assertions.assertThat(getValueString(stringObject)).isEqualTo("null");
+    }
+
+    @Test
+    void getValueString_string_test(){
+        Object stringObject = "test";
+
+        Assertions.assertThat(getValueString(stringObject)).isEqualTo("test");
+    }
+    @Test
+    void getValueString_int_test(){
+        Object intObject = 10;
+
+        Assertions.assertThat(getValueString(intObject)).isEqualTo("10");
+    }
+
+    @Test
+    void getValueString_float_test(){
+        Object floatObject = 10.111f;
+
+        Assertions.assertThat(getValueString(floatObject)).isEqualTo("10.111");
+    }
+
+    @Test
+    void getValueString_double_test(){
+        Object doubleObject = 101010101010.111d;
+
+        Assertions.assertThat(getValueString(doubleObject)).isEqualTo("101010101010.111");
     }
 }

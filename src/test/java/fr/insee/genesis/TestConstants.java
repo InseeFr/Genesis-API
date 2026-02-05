@@ -1,8 +1,15 @@
 package fr.insee.genesis;
 
+import fr.insee.genesis.configuration.Config;
+import lombok.experimental.UtilityClass;
+
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+
 /**
  * Class to create static variables giving path for test resources.
  */
+@UtilityClass
 public class TestConstants {
 
 	public static final String TEST_RESOURCES_DIRECTORY = "src/test/resources";
@@ -19,4 +26,16 @@ public class TestConstants {
     public static final String FUNCTIONAL_TESTS_TEMP_DIRECTORY = TEST_RESOURCES_DIRECTORY + "/functional_tests/temp";
     public static final String FUNCTIONAL_TESTS_OUTPUT_DIRECTORY = TEST_RESOURCES_DIRECTORY + "/functional_tests/out";
     public static final String FUNCTIONAL_TESTS_API_URL = "http://localhost:8080";
+
+    public static Config getConfigStub(){
+        Config configStub = mock(Config.class);
+
+        doReturn(TEST_RESOURCES_DIRECTORY).when(configStub).getDataFolderSource();
+        doReturn(TEST_RESOURCES_DIRECTORY).when(configStub).getSpecFolderSource();
+        doReturn(TEST_RESOURCES_DIRECTORY).when(configStub).getLogFolder();
+        doReturn("NONE").when(configStub).getAuthType();
+        doReturn(1000).when(configStub).getRawDataProcessingBatchSize();
+
+        return configStub;
+    }
 }

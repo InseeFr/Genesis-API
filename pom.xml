@@ -269,9 +269,27 @@
                 <configuration>
                     <printSummary>true</printSummary>
                     <includes>
-                        <include>**/*FT.java</include>
                         <include>**/*Test.java</include>
                         <include>**/*Tests.java</include>
+                    </includes>
+                    <parallel>methods</parallel>
+                    <threadCount>4</threadCount>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <includes>
+                        <include>**/*IT.java</include>
                     </includes>
                 </configuration>
             </plugin>
