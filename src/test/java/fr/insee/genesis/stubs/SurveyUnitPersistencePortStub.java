@@ -128,13 +128,17 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     /**
      * @author Adrien Marchal
      */
-    public long countInterrogationIdsByQuestionnaireId(String questionnaireId) {
-        return mongoStub.size();
+    @Override
+    public long countByCollectionInstrumentId(String collectionInstrumentId) {
+        return mongoStub.stream().filter(
+                surveyUnitModel -> surveyUnitModel.getCollectionInstrumentId().equals(collectionInstrumentId)
+        ).count();
     }
 
     /**
      * @author Adrien Marchal
      */
+    @Override
     public List<SurveyUnitModel> findPageableInterrogationIdsByQuestionnaireId(String questionnaireId, Long skip, Long limit) {
         return List.of();
     }
@@ -186,7 +190,7 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     }
 
     @Override
-    public Set<String> findDistinctQuestionnaireIds() {
+    public Set<String> findDistinctQuestionnairesAndCollectionInstrumentIds() {
         Set<String> questionnaireIds = new HashSet<>();
         for(SurveyUnitModel SurveyUnitModel : mongoStub){
             questionnaireIds.add(SurveyUnitModel.getCollectionInstrumentId());
@@ -203,5 +207,10 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
         }
 
         return campaignIdSet;
+    }
+
+    @Override
+    public long countByQuestionnaireId(String questionnaireId) {
+        return 0;
     }
 }

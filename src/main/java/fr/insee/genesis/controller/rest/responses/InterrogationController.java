@@ -50,13 +50,15 @@ public class InterrogationController implements CommonApiResponse {
     //========= OPTIMISATIONS PERFS (START) ==========
     /**
      * @author Adrien Marchal
+     * @author Alexis Szmundy
      */
-    @Operation(summary = "Retrieve number of interrogations for a given questionnaire")
+    @Operation(summary = "Retrieve number of interrogations for a given questionnaire/collection instrument")
     @GetMapping(path = "/by-questionnaire/{questionnaireId}/count")
-    public ResponseEntity<Long> countAllInterrogationIdsByQuestionnaire(
-            @Parameter(description = "questionnaireId", required = true) @PathVariable("questionnaireId") String questionnaireId
+    public ResponseEntity<Long> countAllInterrogationIdsByQuestionnaireOrCollectionInstrument(
+            @Parameter(description = "questionnaireId/collectionInstrumentId", required = true) @PathVariable("questionnaireId") String questionnaireId
     ) {
-        Long response = surveyUnitService.countInterrogationIdsByQuestionnaireId(questionnaireId);
+        long response = surveyUnitService.countResponsesByQuestionnaireId(questionnaireId);
+        response += surveyUnitService.countResponsesByCollectionInstrumentId(questionnaireId);
         return ResponseEntity.ok(response);
     }
 
