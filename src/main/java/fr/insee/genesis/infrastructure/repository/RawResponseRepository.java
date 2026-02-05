@@ -43,5 +43,13 @@ public interface RawResponseRepository extends MongoRepository<RawResponseDocume
     @Query(value = "{ 'interrogationId': ?0}")
     List<RawResponseDocument> findByInterrogationId(String interrogationId);
 
+
+    long countByCollectionInstrumentId(String collectionInstrumentId);
+
+    @Aggregation(pipeline = {
+            "{ $group: { _id: '$collectionInstrumentId' } }",
+            "{ $project: { _id: 0, collectionInstrumentId: '$_id' } }"
+    })
+    List<String> findDistinctCollectionInstrumentId();
     Page<RawResponseDocument> findByCollectionInstrumentId(String collectionInstrumentId, Pageable pageable);
 }

@@ -148,7 +148,7 @@ public class LunaticJsonRawDataPersistanceStub implements LunaticJsonRawDataPers
     }
 
     @Override
-    public long countResponsesByQuestionnaireId(String questionnaireId) {
+    public long countRawResponsesByQuestionnaireId(String questionnaireId) {
         return mongoStub.size();
     }
 

@@ -3,6 +3,11 @@
 ## 2.2.0 [TODO]
 ### Added
 - add isCapturedIndirectly variable to responses
+### Changed
+- Volumetrics endpoint returns content of file after saving
+- Count responses now includes collection instrument id
+### Fixed
+- Raw data volumetrics with modele filiere
 
 ## 2.1.3 [2026-02-03]
 ### Fixed

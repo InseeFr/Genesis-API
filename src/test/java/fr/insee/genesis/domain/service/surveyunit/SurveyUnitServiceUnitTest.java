@@ -141,4 +141,15 @@ class SurveyUnitServiceUnitTest {
         //THEN
         Assertions.assertThat(surveyUnitModels).isNotNull().hasSize(2);
     }
+
+    @Test
+    void countResponsesByCollectionInstrumentId_test() {
+        //GIVEN
+        long exampleCount = 200;
+        doReturn(exampleCount).when(surveyUnitPersistencePortStub).countByCollectionInstrumentId(any());
+
+        //WHEN + THEN
+        Assertions.assertThat(surveyUnitService.countResponsesByCollectionInstrumentId(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID))
+                .isEqualTo(exampleCount);
+    }
 }
