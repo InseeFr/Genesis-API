@@ -1,5 +1,9 @@
 # Changelog
 
+ ## 2.2.1 [TODO]
+### Fixed
+- Get contexts with review uses collectionInstrumentId
+
 ## 2.2.0 [2026-02-05]
 ### Added
 - add isCapturedIndirectly variable to responses
