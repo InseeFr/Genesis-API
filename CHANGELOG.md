@@ -1,6 +1,6 @@
 # Changelog
 
- ## 2.2.1 [TODO]
+ ## 2.2.1 [2026-02-05]
 ### Fixed
 - Get contexts with review uses collectionInstrumentId
 
