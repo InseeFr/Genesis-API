@@ -1,4 +1,18 @@
 # Changelog
+
+## 2.2.0 [TODO]
+### Added
+- add isCapturedIndirectly variable to responses
+
+## 2.1.3 [2026-02-03]
+### Fixed
+- Fixed the way we retrieve the data processing context when we process raw responses
+- Change variable reading type from int to long
+
+## 2.1.2 [2026-01-26]
+### Fixed
+- Fixed numbers for pairwise
+
 ## 2.1.0 [2026-01-15]
 ### Added
 - rawResponses payload.campaignId indexing

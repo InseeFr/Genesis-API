@@ -256,9 +256,8 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
 
     @Override
     public DataProcessingContextModel getContextByCollectionInstrumentId(String collectionInstrumentId){
-        return DataProcessingContextMapper.INSTANCE.documentToModel(
-                dataProcessingContextPersistancePort.findByPartitionId(collectionInstrumentId)
-        );
+        return dataProcessingContextPersistancePort.findByCollectionInstrumentId(collectionInstrumentId)
+        ;
     }
 
     @Override
