@@ -276,6 +276,7 @@ public class ResponseController implements CommonApiResponse {
     @Operation(summary = "Retrieve responses for an interrogation, using interrogationId and collectionInstrumentId from Genesis Database. For a given mode, it returns only the latest value of each variable regardless of the state. The result is one object by mode in the output")
     @GetMapping(path = "/simplified/by-interrogation-collection-instrument-and-mode/latest")
     @PreAuthorize("hasRole('USER_KRAFTWERK')")
+    //TODO Move logic to service
     public ResponseEntity<SurveyUnitSimplified> getLatestByInterrogationOneObject(@RequestParam("interrogationId") String interrogationId,
                                                                              @RequestParam("collectionInstrumentId") String collectionInstrumentId,
                                                                              @RequestParam("mode") Mode mode) {
@@ -286,6 +287,7 @@ public class ResponseController implements CommonApiResponse {
         LocalDateTime validationDate = null;
         for (SurveyUnitModel response :
                 responses.stream().filter(rep -> rep.getMode().equals(mode)).toList()){
+            //Keep last not null questionnaireState/validationDate
             questionnaireState = response.getQuestionnaireState() != null ?
                     response.getQuestionnaireState()
                     : questionnaireState;
@@ -455,10 +457,11 @@ public class ResponseController implements CommonApiResponse {
     ) {
         try {
             log.debug("Received in save edited : {}", surveyUnitInputDto.toString());
-            //Code quality : we need to put all that logic out of this controller
+            //TODO Code quality : we need to put all that logic out of this controller
             //Parse metadata
             //Try to look for DDI first, if no DDI found looks for lunatic components
             List<GenesisError> errors = new ArrayList<>();
+            //TODO remove everything related to campaignId here as it was used to get DDI in old BPM versions
             //We need to retrieve campaignId
             Set<String> campaignIds = surveyUnitService.findCampaignIdsFrom(surveyUnitInputDto);
             if (campaignIds.size() != 1) {
@@ -469,7 +472,7 @@ public class ResponseController implements CommonApiResponse {
             surveyUnitInputDto.setCampaignId(campaignId);
 
             MetadataModel metadataModel = metadataService.loadAndSaveIfNotExists(
-                    surveyUnitInputDto.getCampaignId(),
+                    surveyUnitInputDto.getCampaignId(), //TODO remove unused,
                     surveyUnitInputDto.getQuestionnaireId(),
                     surveyUnitInputDto.getMode(),
                     fileUtils,

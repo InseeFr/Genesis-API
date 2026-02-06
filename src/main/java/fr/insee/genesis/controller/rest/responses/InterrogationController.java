@@ -57,6 +57,7 @@ public class InterrogationController implements CommonApiResponse {
     public ResponseEntity<Long> countAllInterrogationIdsByQuestionnaireOrCollectionInstrument(
             @Parameter(description = "questionnaireId/collectionInstrumentId", required = true) @PathVariable("questionnaireId") String questionnaireId
     ) {
+        //TODO move logic to service
         long response = surveyUnitService.countResponsesByQuestionnaireId(questionnaireId);
         response += surveyUnitService.countResponsesByCollectionInstrumentId(questionnaireId);
         return ResponseEntity.ok(response);

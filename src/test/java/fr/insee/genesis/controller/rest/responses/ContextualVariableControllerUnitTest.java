@@ -2,6 +2,7 @@ package fr.insee.genesis.controller.rest.responses;
 
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.TestConstants;
+import fr.insee.genesis.domain.model.contextualvariable.ContextualVariableModel;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.ports.api.ContextualExternalVariableApiPort;
 import fr.insee.genesis.domain.ports.api.ContextualPreviousVariableApiPort;
@@ -13,10 +14,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
 
-import java.nio.file.Path;
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -46,8 +46,14 @@ class ContextualVariableControllerUnitTest {
 
     @Test
     void getContextualVariables() {
+        //GIVEN
+        ContextualVariableModel contextualVariableModel = ContextualVariableModel.builder().build();
+        doReturn(contextualVariableModel).when(contextualVariableApiPort).getContextualVariable(
+            any(), any()
+        );
+
         //WHEN
-        contextualVariableController.getContextualVariables(
+        ResponseEntity<Object> response = contextualVariableController.getContextualVariables(
                 TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
                 TestConstants.DEFAULT_INTERROGATION_ID
         );
@@ -57,6 +63,9 @@ class ContextualVariableControllerUnitTest {
                 TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
                 TestConstants.DEFAULT_INTERROGATION_ID
         );
+        Assertions.assertThat(response.getBody())
+                .isInstanceOf(ContextualVariableModel.class)
+                .isEqualTo(contextualVariableModel);
     }
 
     @Test

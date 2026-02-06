@@ -15,6 +15,7 @@ import java.util.List;
 @Service
 @Slf4j
 @RequiredArgsConstructor
+//TODO create API port interface
 public class CombinedRawDataService {
 
     @Qualifier("lunaticJsonMongoAdapter")
