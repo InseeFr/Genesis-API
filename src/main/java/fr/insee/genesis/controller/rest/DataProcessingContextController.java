@@ -181,7 +181,9 @@ public class DataProcessingContextController {
                     collectionInstrumentId,
                     serviceToCall == null ? ServiceToCall.MAIN : serviceToCall,
                     frequency,
-                    scheduleBeginDate, scheduleEndDate, trustParameters
+                    scheduleBeginDate,
+                    scheduleEndDate,
+                    trustParameters
             );
         }catch (GenesisException e){
             return new ResponseEntity<>(e.getMessage(), HttpStatusCode.valueOf(e.getStatus()));
