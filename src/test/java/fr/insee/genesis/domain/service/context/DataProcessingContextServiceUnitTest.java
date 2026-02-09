@@ -11,6 +11,8 @@ import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,12 +22,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 class DataProcessingContextServiceUnitTest {
 
-    static DataProcessingContextService dataProcessingContextService;
-    static DataProcessingContextPersistancePort dataProcessingContextPersistancePort;
-    static SurveyUnitPersistencePort surveyUnitPersistencePort;
+    private static DataProcessingContextService dataProcessingContextService;
+    private static DataProcessingContextPersistancePort dataProcessingContextPersistancePort;
+    private static SurveyUnitPersistencePort surveyUnitPersistencePort;
 
     @BeforeEach
     void setUp() {
@@ -35,6 +39,41 @@ class DataProcessingContextServiceUnitTest {
                 dataProcessingContextPersistancePort,
                 surveyUnitPersistencePort
         );
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    @SneakyThrows
+    void saveContextByCollectionInstrumentId_test(boolean isNull) {
+        //GIVEN
+        if(!isNull){
+            DataProcessingContextModel dataProcessingContextModel = new DataProcessingContextModel();
+            doReturn(dataProcessingContextModel).when(dataProcessingContextPersistancePort)
+                    .findByCollectionInstrumentId(any());
+        }
+        String collectionInstrumentId = "collectionInstrumentId";
+        Boolean withReview = true;
+
+        //WHEN
+        dataProcessingContextService.saveContextByCollectionInstrumentId(collectionInstrumentId, withReview);
+
+        //THEN
+        verify(dataProcessingContextPersistancePort, times(1)).save(
+                any(DataProcessingContextDocument.class)
+        );
+    }
+
+    @Test
+    void countContext_test(){
+        //GIVEN
+        long expected = 5;
+        doReturn(expected).when(dataProcessingContextPersistancePort).count();
+
+        //WHEN
+        long actual = dataProcessingContextService.countContexts();
+
+        //THEN
+        Assertions.assertThat(actual).isEqualTo(expected);
     }
 
     @Test
@@ -80,7 +119,7 @@ class DataProcessingContextServiceUnitTest {
 
     @Test
     @SneakyThrows
-    void getContext_multiple_CollectionInstruementIds_test() {
+    void getContext_multiple_CollectionInstrumentIds_test() {
         //GIVEN
         String collectionInstrumentId = TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID;
         String interrogationId = TestConstants.DEFAULT_INTERROGATION_ID;
@@ -112,7 +151,7 @@ class DataProcessingContextServiceUnitTest {
 
     @Test
     @SneakyThrows
-    void getContext_no_CollectionInstruementIds_test() {
+    void getContext_no_CollectionInstrumentIds_test() {
         //GIVEN
         String collectionInstrumentId = TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID;
         String interrogationId = TestConstants.DEFAULT_INTERROGATION_ID;
@@ -136,6 +175,22 @@ class DataProcessingContextServiceUnitTest {
     }
 
     @Test
+    void getContextByCollectionInstrumentId_test() {
+        //GIVEN
+        String collectionInstrumentId = "test";
+        DataProcessingContextModel expected = new DataProcessingContextModel();
+        doReturn(expected).when(dataProcessingContextPersistancePort).findByCollectionInstrumentId(any());
+
+        //WHEN
+        DataProcessingContextModel actual = dataProcessingContextService.getContextByCollectionInstrumentId(collectionInstrumentId);
+
+        //THEN
+        verify(dataProcessingContextPersistancePort, times(1))
+                .findByCollectionInstrumentId(collectionInstrumentId);
+        Assertions.assertThat(actual).isEqualTo(expected);
+    }
+
+    @Test
     void getCollectionInstrumentIdsWithReview_test() {
         //GIVEN
         DataProcessingContextDocument dataProcessingContextDocument = new DataProcessingContextDocument();
@@ -156,5 +211,36 @@ class DataProcessingContextServiceUnitTest {
 
         //THEN
         Assertions.assertThat(collectionInstrumentIds).containsExactly(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID);
+    }
+
+    @Test
+    @SneakyThrows
+    void getReviewByCollectionInstrumentId_test() {
+        //GIVEN
+        String collectionInstrumentId = "test";
+        boolean withReview = true;
+        DataProcessingContextModel dataProcessingContextModel = DataProcessingContextModel.builder()
+                .collectionInstrumentId(collectionInstrumentId)
+                .withReview(withReview)
+                .build();
+        doReturn(dataProcessingContextModel).when(dataProcessingContextPersistancePort).findByCollectionInstrumentId(any());
+
+        //WHEN
+        boolean actual = dataProcessingContextService.getReviewByCollectionInstrumentId(collectionInstrumentId);
+
+        //THEN
+        verify(dataProcessingContextPersistancePort, times(1)).findByCollectionInstrumentId(collectionInstrumentId);
+        Assertions.assertThat(actual).isEqualTo(withReview);
+    }
+
+    @Test
+    void getReviewByCollectionInstrumentId_not_found_test() {
+        //WHEN + THEN
+        try{
+            dataProcessingContextService.getReviewByCollectionInstrumentId("collectionInstrumentId");
+            Assertions.fail();
+        }catch (GenesisException ge){
+            Assertions.assertThat(ge.getStatus()).isEqualTo(404);
+        }
     }
 }

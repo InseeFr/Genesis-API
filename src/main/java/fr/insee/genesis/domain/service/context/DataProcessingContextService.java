@@ -43,7 +43,11 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
         this.surveyUnitPersistencePort = surveyUnitPersistencePort;
     }
 
+    /**
+     * @Deprecated Use collectionInstrumentId instead
+     */
     @Override
+    @Deprecated(forRemoval = true)
     public void saveContext(String partitionId, Boolean withReview) throws GenesisException {
 
         DataProcessingContextModel dataProcessingContextModel =
@@ -104,7 +108,11 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
         dataProcessingContextPersistancePort.save(DataProcessingContextMapper.INSTANCE.modelToDocument(dataProcessingContextModel));
     }
 
+    /**
+     * @Deprecated Will be replaced by Bangles V1
+     */
     @Override
+    @Deprecated
     public void saveKraftwerkExecutionScheduleByCollectionInstrumentId(String collectionInstrumentId, ServiceToCall serviceToCall, String frequency, LocalDateTime startDate, LocalDateTime endDate, TrustParameters trustParameters) throws GenesisException {
         DataProcessingContextModel dataProcessingContextModel = dataProcessingContextPersistancePort.findByCollectionInstrumentId(collectionInstrumentId);
         if(dataProcessingContextModel == null){
@@ -141,7 +149,11 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
         dataProcessingContextPersistancePort.save(DataProcessingContextMapper.INSTANCE.modelToDocument(dataProcessingContextModel));
     }
 
+    /**
+     * @Deprecated Will be replaced by Bangles V1
+     */
     @Override
+    @Deprecated
     public void updateLastExecutionDateByCollectionInstrumentId(String collectionInstrumentId, LocalDateTime newDate) throws GenesisException {
         DataProcessingContextModel dataProcessingContextModel = dataProcessingContextPersistancePort.findByCollectionInstrumentId(collectionInstrumentId);
         if (dataProcessingContextModel == null) {
@@ -151,7 +163,11 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
         dataProcessingContextPersistancePort.save(DataProcessingContextMapper.INSTANCE.modelToDocument(dataProcessingContextModel));
     }
 
+    /**
+     * @Deprecated Will be replaced by Bangles V1 + partitionId is obsolete
+     */
     @Override
+    @Deprecated(forRemoval = true)
     public void deleteSchedules(String partitionId) throws GenesisException {
         DataProcessingContextModel dataProcessingContextModel =
                 DataProcessingContextMapper.INSTANCE.documentToModel(
@@ -164,7 +180,11 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
         dataProcessingContextPersistancePort.save(DataProcessingContextMapper.INSTANCE.modelToDocument(dataProcessingContextModel));
     }
 
+    /**
+     * @Deprecated Will be replaced by Bangles V1
+     */
     @Override
+    @Deprecated
     public void deleteSchedulesByCollectionInstrumentId(String collectionInstrumentId) throws GenesisException {
         DataProcessingContextModel dataProcessingContextModel =
                         dataProcessingContextPersistancePort.findByCollectionInstrumentId(collectionInstrumentId);
@@ -175,7 +195,11 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
         dataProcessingContextPersistancePort.save(DataProcessingContextMapper.INSTANCE.modelToDocument(dataProcessingContextModel));
     }
 
+    /**
+     * @Deprecated Will be replaced by Bangles V1
+     */
     @Override
+    @Deprecated
     public List<ScheduleDto> getAllSchedules() {
         List<ScheduleDto> scheduleDtos = new ArrayList<>();
 
@@ -189,7 +213,11 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
         return scheduleDtos;
     }
 
+    /**
+     * @Deprecated Will be replaced by Bangles V1
+     */
     @Override
+    @Deprecated
     public void deleteExpiredSchedules(String logFolder) throws GenesisException {
         List<DataProcessingContextModel> dataProcessingContextModels =
                 DataProcessingContextMapper.INSTANCE.listDocumentToListModel(dataProcessingContextPersistancePort.findAll());
@@ -225,7 +253,7 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
     }
 
     @Override
-    public long countSchedules() {
+    public long countContexts() {
         return dataProcessingContextPersistancePort.count();
     }
 
@@ -259,6 +287,9 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
         return dataProcessingContextPersistancePort.findByCollectionInstrumentId(collectionInstrumentId);
     }
 
+    /**
+     * @deprecated PartitionId is obsolete since modele filiere
+     */
     @Override
     @Deprecated(forRemoval = true)
     public List<String> getPartitionIds(boolean withReview){
@@ -286,6 +317,9 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
         return collectionInstrumentIds;
     }
 
+    /**
+     * @deprecated PartitionId is obsolete since modele filiere
+     */
     @Deprecated(forRemoval = true)
     @Override
     public boolean getReviewByPartitionId(String partitionId) throws GenesisException {

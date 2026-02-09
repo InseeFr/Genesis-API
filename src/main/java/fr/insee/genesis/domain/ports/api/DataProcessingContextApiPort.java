@@ -38,7 +38,7 @@ public interface DataProcessingContextApiPort {
 
     void deleteExpiredSchedules(String logFolder) throws GenesisException;
 
-    long countSchedules();
+    long countContexts();
 
     DataProcessingContextModel getContext(String interrogationId) throws GenesisException;
 
