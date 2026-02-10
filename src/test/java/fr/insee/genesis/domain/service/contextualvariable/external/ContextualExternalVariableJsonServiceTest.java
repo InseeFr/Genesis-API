@@ -1,39 +1,34 @@
 package fr.insee.genesis.domain.service.contextualvariable.external;
 
-import com.fasterxml.jackson.core.JsonParseException;
 import fr.insee.genesis.TestConstants;
 import fr.insee.genesis.domain.model.contextualvariable.ContextualExternalVariableModel;
 import fr.insee.genesis.domain.ports.spi.ContextualExternalVariablePersistancePort;
 import fr.insee.genesis.exceptions.GenesisException;
 import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.io.IOException;
 import java.nio.file.Path;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 
+@ExtendWith(MockitoExtension.class)
 class ContextualExternalVariableJsonServiceTest {
-    ContextualExternalVariablePersistancePort contextualExternalVariablePersistancePort;
-    ContextualExternalVariableJsonService contextualExternalVariableJsonService;
 
-    @BeforeEach
-    void setUp() {
-        contextualExternalVariablePersistancePort = mock(ContextualExternalVariablePersistancePort.class);
-        contextualExternalVariableJsonService = new ContextualExternalVariableJsonService(
-            contextualExternalVariablePersistancePort
-        );
-    }
+    @Mock
+    ContextualExternalVariablePersistancePort contextualExternalVariablePersistancePort;
+
+    @InjectMocks
+    ContextualExternalVariableJsonService contextualExternalVariableJsonService;
 
     @Test
     @SneakyThrows

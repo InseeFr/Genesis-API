@@ -8,8 +8,11 @@ import fr.insee.genesis.infrastructure.repository.RawResponseInputRepository;
 import fr.insee.modelefiliere.RawResponseDto;
 import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 
 import java.util.ArrayList;
@@ -22,30 +25,21 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+@ExtendWith(MockitoExtension.class)
 class RawResponseControllerUnitTest {
 
-    private static RawResponseController rawResponseController;
+    @Mock
+    private LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort;
+    @Mock
+    private RawResponseApiPort rawResponseApiPort;
+    @Mock
+    private RawResponseInputRepository rawResponseInputRepository;
 
-    private static LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort;
-    private static RawResponseApiPort rawResponseApiPort;
-    private static RawResponseInputRepository rawResponseInputRepository;
-
-    @BeforeEach
-    void init(){
-        lunaticJsonRawDataApiPort = mock(LunaticJsonRawDataApiPort.class);
-        rawResponseApiPort = mock(RawResponseApiPort.class);
-        rawResponseInputRepository = mock(RawResponseInputRepository.class);
-
-        rawResponseController = new RawResponseController(
-                lunaticJsonRawDataApiPort,
-                rawResponseApiPort,
-                rawResponseInputRepository
-        );
-    }
+    @InjectMocks
+    private RawResponseController rawResponseController;
 
     @Test
     void saveRawResponsesFromJsonBody_test() {

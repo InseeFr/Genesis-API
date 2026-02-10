@@ -2,25 +2,23 @@ package fr.insee.genesis.controller.rest;
 
 import fr.insee.genesis.domain.model.rundeck.RundeckExecution;
 import fr.insee.genesis.domain.ports.api.RundeckExecutionApiPort;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+@ExtendWith(MockitoExtension.class)
 class RundeckExecutionControllerTest {
-    RundeckExecutionApiPort rundeckExecutionApiPort;
-    RundeckExecutionController rundeckExecutionController;
 
-    @BeforeEach
-    void setUp() {
-        rundeckExecutionApiPort = mock(RundeckExecutionApiPort.class);
-        rundeckExecutionController = new RundeckExecutionController(
-                rundeckExecutionApiPort
-        );
-    }
+    @Mock
+    RundeckExecutionApiPort rundeckExecutionApiPort;
+
+    @InjectMocks
+    RundeckExecutionController rundeckExecutionController;
 
     @Test
     void addRundeckExecution() {

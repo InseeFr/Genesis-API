@@ -8,6 +8,11 @@ import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -16,19 +21,20 @@ import java.time.LocalDateTime;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class DataProcessingContextControllerTest {
 
+    @Mock
     DataProcessingContextApiPort dataProcessingContextApiPort;
 
     DataProcessingContextController dataProcessingContextController;
 
     @BeforeEach
     void setUp() {
-        dataProcessingContextApiPort = mock(DataProcessingContextApiPort.class);
         dataProcessingContextController = new DataProcessingContextController(
                 dataProcessingContextApiPort,
                 new FileUtils(TestConstants.getConfigStub())

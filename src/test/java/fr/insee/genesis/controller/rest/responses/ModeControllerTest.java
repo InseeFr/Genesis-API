@@ -5,8 +5,11 @@ import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.exceptions.QuestionnaireNotFoundException;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -15,21 +18,16 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+@ExtendWith(MockitoExtension.class)
 class ModeControllerTest {
+    @Mock
     private SurveyUnitApiPort surveyUnitApiPort;
-    private ModeController modeController;
 
-    @BeforeEach
-    void setUp() {
-        surveyUnitApiPort = mock(SurveyUnitApiPort.class);
-        modeController = new ModeController(
-                surveyUnitApiPort
-        );
-    }
+    @InjectMocks
+    private ModeController modeController;
 
     @Test
     void getModesByQuestionnaire() {

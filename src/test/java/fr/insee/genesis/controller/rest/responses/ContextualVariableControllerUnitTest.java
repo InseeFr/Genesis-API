@@ -12,6 +12,11 @@ import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.http.ResponseEntity;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -22,20 +27,21 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class ContextualVariableControllerUnitTest {
 
-    private ContextualVariableController contextualVariableController;
+    @Mock
     private ContextualPreviousVariableApiPort contextualPreviousVariableApiPort;
+    @Mock
     private ContextualExternalVariableApiPort contextualExternalVariableApiPort;
+    @Mock
     private ContextualVariableApiPort contextualVariableApiPort;
+
+    private ContextualVariableController contextualVariableController;
 
     @BeforeEach
     void setUp() {
-        contextualPreviousVariableApiPort = mock(ContextualPreviousVariableApiPort.class);
-        contextualExternalVariableApiPort = mock(ContextualExternalVariableApiPort.class);
-        contextualVariableApiPort = mock(ContextualVariableApiPort.class);
-
-
         contextualVariableController = new ContextualVariableController(
             contextualPreviousVariableApiPort,
             contextualExternalVariableApiPort,

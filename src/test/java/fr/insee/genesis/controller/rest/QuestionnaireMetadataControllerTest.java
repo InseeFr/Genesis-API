@@ -7,6 +7,10 @@ import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -15,17 +19,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+@ExtendWith(MockitoExtension.class)
 class QuestionnaireMetadataControllerTest {
-    QuestionnaireMetadataApiPort questionnaireMetadataApiPort;
-    QuestionnaireMetadataController questionnaireMetadataController;
 
-    @BeforeEach
-    void setUp() {
-        questionnaireMetadataApiPort = mock(QuestionnaireMetadataApiPort.class);
-        questionnaireMetadataController = new QuestionnaireMetadataController(
-                questionnaireMetadataApiPort
-        );
-    }
+    @Mock
+    QuestionnaireMetadataApiPort questionnaireMetadataApiPort;
+
+    @InjectMocks
+    QuestionnaireMetadataController questionnaireMetadataController;
 
     @Test
     @SneakyThrows

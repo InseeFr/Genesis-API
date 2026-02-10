@@ -17,6 +17,12 @@ import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -27,18 +33,20 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
 
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class LunaticJsonRawDataServiceUnitTest {
+
+    @Mock
+    static LunaticJsonRawDataPersistencePort lunaticJsonRawDataPersistencePort;
+
+    @Mock
+    static QuestionnaireMetadataService metadataService;
 
     static LunaticJsonRawDataService lunaticJsonRawDataService;
 
-    static LunaticJsonRawDataPersistencePort lunaticJsonRawDataPersistencePort;
-
-    static QuestionnaireMetadataService metadataService;
-
     @BeforeEach
     void init() {
-        lunaticJsonRawDataPersistencePort = mock(LunaticJsonRawDataPersistencePort.class);
-        metadataService = mock(QuestionnaireMetadataService.class);
         lunaticJsonRawDataService = new LunaticJsonRawDataService(
                 lunaticJsonRawDataPersistencePort,
                 new ControllerUtils(new FileUtils(TestConstants.getConfigStub())),

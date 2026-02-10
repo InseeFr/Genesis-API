@@ -26,8 +26,13 @@ import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -42,30 +47,31 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class ResponseControllerUnitTest {
-    private static ResponseController responseController;
 
-    private static SurveyUnitApiPort surveyUnitApiPort;
-    private static SurveyUnitQualityService surveyUnitQualityService;
-    private static QuestionnaireMetadataService questionnaireMetadataService;
-    private static DataProcessingContextApiPort dataProcessingContextApiPort;
-    private static AuthUtils authUtils;
+    @Mock
+    private SurveyUnitApiPort surveyUnitApiPort;
+    @Mock
+    private SurveyUnitQualityService surveyUnitQualityService;
+    @Mock
+    private QuestionnaireMetadataService questionnaireMetadataService;
+    @Mock
+    private DataProcessingContextApiPort dataProcessingContextApiPort;
+    @Mock
+    private AuthUtils authUtils;
 
-    static FileUtils fileUtils = new FileUtils(TestConstants.getConfigStub());
+    private ResponseController responseController;
+
+    private final FileUtils fileUtils = new FileUtils(TestConstants.getConfigStub());
 
     @BeforeEach
     void init(){
         //Mocks
-        surveyUnitApiPort = mock(SurveyUnitApiPort.class);
-        surveyUnitQualityService = mock(SurveyUnitQualityService.class);
-        questionnaireMetadataService = mock(QuestionnaireMetadataService.class);
-        dataProcessingContextApiPort = mock(DataProcessingContextApiPort.class);
-        authUtils = mock(AuthUtils.class);
-
         responseController = new ResponseController(
                 surveyUnitApiPort,
                 surveyUnitQualityService,

@@ -5,8 +5,11 @@ import fr.insee.genesis.domain.ports.api.DataProcessingContextApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
@@ -15,27 +18,19 @@ import java.util.Set;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+@ExtendWith(MockitoExtension.class)
 class QuestionnaireControllerUnitTest {
-
-    private QuestionnaireController questionnaireController;
-
+    @Mock
     private DataProcessingContextApiPort dataProcessingContextApiPort;
+
+    @Mock
     private SurveyUnitApiPort surveyUnitApiPort;
 
-    @BeforeEach
-    void setUp() {
-        dataProcessingContextApiPort = mock(DataProcessingContextApiPort.class);
-        surveyUnitApiPort = mock(SurveyUnitApiPort.class);
-
-        questionnaireController = new QuestionnaireController(
-                surveyUnitApiPort,
-                dataProcessingContextApiPort
-        );
-    }
+    @InjectMocks
+    private QuestionnaireController questionnaireController;
 
     @Test
     void getQuestionnaires_test() {

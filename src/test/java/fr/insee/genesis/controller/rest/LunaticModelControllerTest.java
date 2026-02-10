@@ -5,8 +5,11 @@ import fr.insee.genesis.domain.model.lunaticmodel.LunaticModelModel;
 import fr.insee.genesis.domain.ports.api.LunaticModelApiPort;
 import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
@@ -15,24 +18,16 @@ import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+@ExtendWith(MockitoExtension.class)
 class LunaticModelControllerTest {
 
+    @Mock
     private LunaticModelApiPort lunaticModelApiPort;
-
+    @InjectMocks
     private LunaticModelController lunaticModelController;
-
-    @BeforeEach
-    void setUp() {
-        lunaticModelApiPort = mock(LunaticModelApiPort.class);
-
-        lunaticModelController = new LunaticModelController(
-                lunaticModelApiPort
-        );
-    }
 
     @Test
     void saveRawResponsesFromJsonBody() {

@@ -6,10 +6,13 @@ import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.document.lunaticmodel.LunaticModelDocument;
 import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -19,25 +22,20 @@ import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+@ExtendWith(MockitoExtension.class)
 class LunaticModelServiceTest {
+
+    @Mock
     LunaticModelPersistancePort lunaticModelPersistancePort;
+
+    @InjectMocks
     LunaticModelService lunaticModelService;
 
     @Captor
     ArgumentCaptor<LunaticModelModel> lunaticModelModelArgumentCaptor;
-
-    @BeforeEach
-    void setUp() {
-        lunaticModelPersistancePort = mock(LunaticModelPersistancePort.class);
-        lunaticModelService = new LunaticModelService(
-                lunaticModelPersistancePort
-        );
-        lunaticModelModelArgumentCaptor = ArgumentCaptor.forClass(LunaticModelModel.class);
-    }
 
     @Test
     void save_test() {

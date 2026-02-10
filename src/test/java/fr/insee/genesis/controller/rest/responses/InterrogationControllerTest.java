@@ -4,8 +4,11 @@ import fr.insee.genesis.TestConstants;
 import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
@@ -14,23 +17,16 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+@ExtendWith(MockitoExtension.class)
 class InterrogationControllerTest {
+    @Mock
     private SurveyUnitApiPort surveyUnitApiPort;
 
+    @InjectMocks
     private InterrogationController interrogationController;
-
-    @BeforeEach
-    void setUp() {
-        surveyUnitApiPort = mock(SurveyUnitApiPort.class);
-
-        interrogationController = new InterrogationController(
-                surveyUnitApiPort
-        );
-    }
 
     @Test
     void getAllInterrogationIdsByQuestionnaire_test() {

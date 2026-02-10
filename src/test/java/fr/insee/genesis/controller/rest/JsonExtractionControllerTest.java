@@ -8,34 +8,32 @@ import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+@ExtendWith(MockitoExtension.class)
 class JsonExtractionControllerTest {
-    LastJsonExtractionApiPort lastJsonExtractionApiPort;
 
-    JsonExtractionController jsonExtractionController;
+    @Mock
+    private LastJsonExtractionApiPort lastJsonExtractionApiPort;
+
+    @InjectMocks
+    private JsonExtractionController jsonExtractionController;
 
     @Captor
-    ArgumentCaptor<LastJsonExtractionModel> lastJsonExtractionModelArgumentCaptor;
-
-    @BeforeEach
-    void setUp() {
-        lastJsonExtractionApiPort = mock(LastJsonExtractionApiPort.class);
-        jsonExtractionController = new JsonExtractionController(
-                lastJsonExtractionApiPort
-        );
-        lastJsonExtractionModelArgumentCaptor = ArgumentCaptor.forClass(LastJsonExtractionModel.class);
-    }
+    private ArgumentCaptor<LastJsonExtractionModel> lastJsonExtractionModelArgumentCaptor;
 
     @Test
     void saveLastJsonExtractionDate_test() {

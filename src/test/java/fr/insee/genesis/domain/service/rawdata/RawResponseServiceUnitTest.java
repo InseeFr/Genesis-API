@@ -24,9 +24,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -42,14 +48,22 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class RawResponseServiceUnitTest {
 
     static RawResponseService rawResponseService;
+
+    @Mock
     static RawResponsePersistencePort rawResponsePersistencePort;
+    @Mock
     static ControllerUtils controllerUtils;
+    @Mock
     static QuestionnaireMetadataService metadataService;
+    @Mock
     static SurveyUnitService surveyUnitService;
 
+    @Captor
     private ArgumentCaptor<List<SurveyUnitModel>> surveyUnitModelsCaptor;
 
     private static final String TEST_VALIDATION_DATE = "2025-11-11T06:00:00Z";
@@ -57,11 +71,6 @@ class RawResponseServiceUnitTest {
     @BeforeEach
     @SuppressWarnings("unchecked")
     void init() {
-        rawResponsePersistencePort = mock(RawResponsePersistencePort.class);
-        controllerUtils = mock(ControllerUtils.class);
-        metadataService = mock(QuestionnaireMetadataService.class);
-        surveyUnitService = mock(SurveyUnitService.class);
-
         rawResponseService = new RawResponseService(
                 controllerUtils,
                 metadataService,
@@ -73,8 +82,6 @@ class RawResponseServiceUnitTest {
                 TestConstants.getConfigStub(),
                 rawResponsePersistencePort
         );
-
-        surveyUnitModelsCaptor = ArgumentCaptor.forClass(List.class);
     }
 
     @Test

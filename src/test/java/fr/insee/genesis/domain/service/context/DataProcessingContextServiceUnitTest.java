@@ -9,10 +9,13 @@ import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.document.context.DataProcessingContextDocument;
 import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,25 +24,19 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+@ExtendWith(MockitoExtension.class)
 class DataProcessingContextServiceUnitTest {
+    @Mock
+    private DataProcessingContextPersistancePort dataProcessingContextPersistancePort;
 
-    private static DataProcessingContextService dataProcessingContextService;
-    private static DataProcessingContextPersistancePort dataProcessingContextPersistancePort;
-    private static SurveyUnitPersistencePort surveyUnitPersistencePort;
+    @Mock
+    private SurveyUnitPersistencePort surveyUnitPersistencePort;
 
-    @BeforeEach
-    void setUp() {
-        dataProcessingContextPersistancePort = mock(DataProcessingContextPersistancePort.class);
-        surveyUnitPersistencePort = mock(SurveyUnitPersistencePort.class);
-        dataProcessingContextService = new DataProcessingContextService(
-                dataProcessingContextPersistancePort,
-                surveyUnitPersistencePort
-        );
-    }
+    @InjectMocks
+    private DataProcessingContextService dataProcessingContextService;
 
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
@@ -137,11 +134,6 @@ class DataProcessingContextServiceUnitTest {
         doReturn(surveyUnitModelList)
                 .when(surveyUnitPersistencePort)
                 .findByInterrogationId(any());
-        DataProcessingContextModel dataProcessingContextModel = DataProcessingContextModel.builder()
-                .collectionInstrumentId(collectionInstrumentId)
-                .withReview(true)
-                .build();
-        doReturn(dataProcessingContextModel).when(dataProcessingContextPersistancePort).findByCollectionInstrumentId(any());
 
         //WHEN + THEN
         Assertions.assertThatThrownBy(() ->
@@ -153,7 +145,6 @@ class DataProcessingContextServiceUnitTest {
     @SneakyThrows
     void getContext_no_CollectionInstrumentIds_test() {
         //GIVEN
-        String collectionInstrumentId = TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID;
         String interrogationId = TestConstants.DEFAULT_INTERROGATION_ID;
         SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
                 .interrogationId(interrogationId)
@@ -162,11 +153,6 @@ class DataProcessingContextServiceUnitTest {
         doReturn(Collections.singletonList(surveyUnitModel))
                 .when(surveyUnitPersistencePort)
                 .findByInterrogationId(any());
-        DataProcessingContextModel dataProcessingContextModel = DataProcessingContextModel.builder()
-                .collectionInstrumentId(collectionInstrumentId)
-                .withReview(true)
-                .build();
-        doReturn(dataProcessingContextModel).when(dataProcessingContextPersistancePort).findByCollectionInstrumentId(any());
 
         //WHEN + THEN
         Assertions.assertThatThrownBy(() ->

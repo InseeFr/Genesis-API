@@ -12,10 +12,15 @@ import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,22 +32,18 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class QuestionnaireMetadataServiceTest {
+
+    @Mock
     QuestionnaireMetadataPersistencePort questionnaireMetadataPersistencePort;
+
+    @InjectMocks
     QuestionnaireMetadataService questionnaireMetadataService;
 
     @Captor
     ArgumentCaptor<QuestionnaireMetadataModel> questionnaireMetadataModelArgumentCaptor;
-
-    @BeforeEach
-    void setUp() {
-        questionnaireMetadataPersistencePort = mock(QuestionnaireMetadataPersistencePort.class);
-        questionnaireMetadataService = new QuestionnaireMetadataService(
-                questionnaireMetadataPersistencePort
-        );
-
-        questionnaireMetadataModelArgumentCaptor = ArgumentCaptor.forClass(QuestionnaireMetadataModel.class);
-    }
 
     @Test
     @SneakyThrows
