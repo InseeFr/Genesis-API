@@ -25,7 +25,7 @@ import java.nio.file.Path;
 import java.util.List;
 
 @Service
-@AllArgsConstructor
+ @AllArgsConstructor
 @Slf4j
 public class QuestionnaireMetadataService implements QuestionnaireMetadataApiPort {
     private static final String DDI_FILE_PATTERN = "ddi[\\w,\\s-]+\\.xml";

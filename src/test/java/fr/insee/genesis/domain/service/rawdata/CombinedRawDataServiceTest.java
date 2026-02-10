@@ -35,8 +35,6 @@ class CombinedRawDataServiceTest {
     void getCombinedRawDataByInterrogationId_shouldReturnCombinedData() {
         // GIVEN
         String interrogationId = "INTERROGATION_1";
-
-        // Mock des RawResponses
         RawResponseModel response1 = new RawResponseModel(
                 new ObjectId(),
                 interrogationId,
@@ -46,7 +44,6 @@ class CombinedRawDataServiceTest {
                 LocalDateTime.now(),
                 null
         );
-
         RawResponseModel response2 = new RawResponseModel(
                 new ObjectId(),
                 interrogationId,
@@ -56,10 +53,10 @@ class CombinedRawDataServiceTest {
                 LocalDateTime.now(),
                 null
         );
-
         List<RawResponseModel> rawResponseModels = List.of(response1, response2);
+        Mockito.when(rawResponsePersistencePort.findRawResponsesByInterrogationID(interrogationId))
+                .thenReturn(rawResponseModels);
 
-        // Mock des LunaticJsonRawData
         LunaticJsonRawDataModel lunatic1 = LunaticJsonRawDataModel.builder()
                 .campaignId("CAMPAIGN")
                 .questionnaireId("QUESTIONNAIRE")
@@ -68,14 +65,10 @@ class CombinedRawDataServiceTest {
                 .mode(Mode.WEB)
                 .build();
         List<LunaticJsonRawDataModel> lunaticRawData = List.of(lunatic1);
-
-        // WHEN
-        Mockito.when(rawResponsePersistencePort.findRawResponsesByInterrogationID(interrogationId))
-                .thenReturn(rawResponseModels);
-
         Mockito.when(lunaticJsonRawDataPersistencePort.findRawDataByInterrogationID(interrogationId))
                 .thenReturn(lunaticRawData);
 
+        // WHEN
         CombinedRawDataDto result = combinedRawDataService.getCombinedRawDataByInterrogationId(interrogationId);
 
         // THEN - assertions
@@ -85,14 +78,17 @@ class CombinedRawDataServiceTest {
 
     @Test
     void getCombinedRawData_shouldHandleEmptyLists() {
+        //GIVEN
         String interrogationId = "INTERROGATION_EMPTY";
-
         Mockito.when(rawResponsePersistencePort.findRawResponsesByInterrogationID(interrogationId))
                 .thenReturn(List.of());
         Mockito.when(lunaticJsonRawDataPersistencePort.findRawDataByInterrogationID(interrogationId))
                 .thenReturn(List.of());
+
+        //WHEN
         CombinedRawDataDto result = combinedRawDataService.getCombinedRawDataByInterrogationId(interrogationId);
 
+        //THEN
         Assertions.assertThat(result.rawResponseModels()).isEmpty();
         Assertions.assertThat(result.lunaticRawDataModels()).isEmpty();
     }
