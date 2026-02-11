@@ -30,6 +30,12 @@ public interface SurveyUnitPersistencePort {
 
     List<SurveyUnitModel> findInterrogationIdsByQuestionnaireIdAndDateAfter(String questionnaireId, LocalDateTime since);
 
+    List<SurveyUnitModel> findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
+            String collectionInstrumentId,
+            LocalDateTime start,
+            LocalDateTime end
+    );
+
     //======== OPTIMISATIONS PERFS (START) ========
     long countByCollectionInstrumentId(String collectionInstrumentId);
 
