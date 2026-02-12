@@ -1,4 +1,11 @@
 # Changelog
+## 2.2.2 [2026-02-05]
+### Fixed
+- Volumetry don't count responses with collectionInstrumentId
+
+## 2.2.1 [2026-02-05]
+### Fixed
+- Get contexts with review uses collectionInstrumentId
 
 ## 2.2.0 [2026-02-05]
 ### Added

@@ -44,7 +44,10 @@ public interface DataProcessingContextApiPort {
 
     DataProcessingContextModel getContextByCollectionInstrumentId(String collectionInstrumentId);
 
+    @Deprecated(forRemoval = true)
     List<String> getPartitionIds(boolean withReview);
+
+    List<String> getCollectionInstrumentIds(boolean withReview);
 
     /**
      * Gets the review indicator for a partition

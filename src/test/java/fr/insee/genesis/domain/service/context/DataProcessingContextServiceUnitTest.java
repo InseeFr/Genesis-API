@@ -6,6 +6,7 @@ import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.ports.spi.DataProcessingContextPersistancePort;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
 import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.infrastructure.document.context.DataProcessingContextDocument;
 import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,6 +17,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
@@ -112,7 +114,6 @@ class DataProcessingContextServiceUnitTest {
     @SneakyThrows
     void getContext_no_CollectionInstruementIds_test() {
         //GIVEN
-        //GIVEN
         String collectionInstrumentId = TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID;
         String interrogationId = TestConstants.DEFAULT_INTERROGATION_ID;
         SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
@@ -132,5 +133,28 @@ class DataProcessingContextServiceUnitTest {
         Assertions.assertThatThrownBy(() ->
                         dataProcessingContextService.getContext(TestConstants.DEFAULT_INTERROGATION_ID))
                 .isInstanceOf(GenesisException.class);
+    }
+
+    @Test
+    void getCollectionInstrumentIdsWithReview_test() {
+        //GIVEN
+        DataProcessingContextDocument dataProcessingContextDocument = new DataProcessingContextDocument();
+        dataProcessingContextDocument.setCollectionInstrumentId(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID);
+        dataProcessingContextDocument.setWithReview(true);
+        //null collectionInstrumentId
+        DataProcessingContextDocument dataProcessingContextDocumentNull = new DataProcessingContextDocument();
+        dataProcessingContextDocumentNull.setCollectionInstrumentId(null);
+        dataProcessingContextDocumentNull.setWithReview(true);
+        List<DataProcessingContextDocument> documents = List.of(
+                dataProcessingContextDocument,
+                dataProcessingContextDocumentNull
+        );
+        doReturn(documents).when(dataProcessingContextPersistancePort).findAllByReview(anyBoolean());
+
+        //WHEN
+        List<String> collectionInstrumentIds = dataProcessingContextService.getCollectionInstrumentIds(true);
+
+        //THEN
+        Assertions.assertThat(collectionInstrumentIds).containsExactly(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID);
     }
 }

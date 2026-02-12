@@ -78,7 +78,7 @@ class QuestionnaireControllerTest {
         Assertions.assertThat(response.getBody()).isNotNull().isEmpty();
 
         DataProcessingContextDocument doc = new DataProcessingContextDocument();
-        doc.setPartitionId(DEFAULT_COLLECTION_INSTRUMENT_ID);
+        doc.setCollectionInstrumentId(DEFAULT_COLLECTION_INSTRUMENT_ID);
         doc.setKraftwerkExecutionScheduleList(new ArrayList<>());
         doc.setWithReview(true);
         dataProcessingContextPersistancePortStub.getMongoStub().add(doc);
@@ -89,7 +89,7 @@ class QuestionnaireControllerTest {
                 DEFAULT_COLLECTION_INSTRUMENT_ID);
 
         DataProcessingContextDocument doc2 = new DataProcessingContextDocument();
-        doc2.setPartitionId(questionnaireId);
+        doc2.setCollectionInstrumentId(questionnaireId);
         doc2.setKraftwerkExecutionScheduleList(new ArrayList<>());
         doc2.setWithReview(false);
         dataProcessingContextPersistancePortStub.getMongoStub().add(doc2);
@@ -111,7 +111,7 @@ class QuestionnaireControllerTest {
         Assertions.assertThat(response.getBody()).isNotNull().isEmpty();
 
         DataProcessingContextDocument doc = new DataProcessingContextDocument();
-        doc.setPartitionId(DEFAULT_COLLECTION_INSTRUMENT_ID);
+        doc.setCollectionInstrumentId(DEFAULT_COLLECTION_INSTRUMENT_ID);
         doc.setKraftwerkExecutionScheduleList(new ArrayList<>());
         doc.setWithReview(false);
         dataProcessingContextPersistancePortStub.getMongoStub().add(doc);
@@ -122,7 +122,7 @@ class QuestionnaireControllerTest {
                 DEFAULT_COLLECTION_INSTRUMENT_ID);
 
         DataProcessingContextDocument doc2 = new DataProcessingContextDocument();
-        doc2.setPartitionId(questionnaireId);
+        doc2.setCollectionInstrumentId(questionnaireId);
         doc2.setKraftwerkExecutionScheduleList(new ArrayList<>());
         doc2.setWithReview(true);
         dataProcessingContextPersistancePortStub.getMongoStub().add(doc2);
