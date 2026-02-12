@@ -1,4 +1,9 @@
 # Changelog
+
+## 2.2.3 [2026-02-12]
+### Fixed
+- Fixed INTEGER parsing to use Long instead of int to support large values
+
 ## 2.2.2 [2026-02-05]
 ### Fixed
 - Volumetry don't count responses with collectionInstrumentId
