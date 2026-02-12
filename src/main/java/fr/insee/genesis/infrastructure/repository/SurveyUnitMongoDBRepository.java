@@ -40,7 +40,17 @@ public interface SurveyUnitMongoDBRepository extends MongoRepository<SurveyUnitD
 	@Query(value = "{ 'collectionInstrumentId' : ?0, 'recordDate': { $gte: ?1 } }", fields = "{ 'interrogationId' : 1, 'mode' :  1 }")
 	List<SurveyUnitDocument> findInterrogationIdsByCollectionInstrumentIdAndDateAfter(String collectionInstrumentId, LocalDateTime since);
 
-	/**
+    @Query(
+            value = "{ 'collectionInstrumentId' : ?0, 'recordDate': { $gte: ?1, $lt: ?2 } }",
+            fields = "{ 'interrogationId' : 1, 'mode' : 1 }"
+    )
+    List<SurveyUnitDocument> findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
+            String collectionInstrumentId,
+            LocalDateTime start,
+            LocalDateTime end
+    );
+
+    /**
 	 * @author Adrien Marchal
 	 */
 	@Query(value = "{ 'questionnaireId' : ?0 }", count = true)

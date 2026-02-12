@@ -37,6 +37,8 @@ public interface SurveyUnitApiPort {
 
     List<InterrogationId> findDistinctInterrogationIdsByQuestionnaireIdAndDateAfter(String questionnaireId, LocalDateTime since);
 
+    List<InterrogationId> findDistinctInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(String collectionInstrumentId, LocalDateTime start, LocalDateTime end);
+
     //========= OPTIMISATIONS PERFS (START) ==========
     long countResponsesByCollectionInstrumentId(String questionnaireId);
 

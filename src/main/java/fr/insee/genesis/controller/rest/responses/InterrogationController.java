@@ -46,6 +46,19 @@ public class InterrogationController implements CommonApiResponse {
         return ResponseEntity.ok(responses);
     }
 
+    @Operation(summary = "Retrieve interrogations recorded between two dates for a given collection instrument")
+    @GetMapping(path = "/by-collection-instrument-and-between-datetime")
+    public ResponseEntity<List<InterrogationId>> getAllInterrogationIdsByCollectionInstrumentIdAndDate(
+            @RequestParam("collectionInstrumentId") String collectionInstrumentId,
+            @RequestParam("start")
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @RequestParam("end")
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
+        List<InterrogationId> responses = surveyUnitService.findDistinctInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(collectionInstrumentId, start,end);
+        return ResponseEntity.ok(responses);
+    }
+
+
 
     //========= OPTIMISATIONS PERFS (START) ==========
     /**
