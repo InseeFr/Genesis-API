@@ -29,7 +29,7 @@ public class CombinedRawDataService {
                 rawResponsePersistencePort.findRawResponsesByInterrogationID(interrogationId);
 
         List<LunaticJsonRawDataModel> lunaticRawDataModels =
-                lunaticJsonRawDataPersistencePort.findRawDataByInterrogationID(interrogationId);
+                lunaticJsonRawDataPersistencePort.findRawDataByInterrogationId(interrogationId);
 
         return new CombinedRawDataDto(
                 rawResponseModels,

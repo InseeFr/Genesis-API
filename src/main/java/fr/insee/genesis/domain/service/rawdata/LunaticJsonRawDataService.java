@@ -97,6 +97,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     }
 
     @Override
+    @Deprecated
     public List<LunaticJsonRawDataModel> getRawData(String campaignName, Mode mode, List<String> interrogationIdList) {
         return lunaticJsonRawDataPersistencePort.findRawData(campaignName, mode, interrogationIdList);
     }
@@ -108,7 +109,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
 
     @Override    
     public List<LunaticJsonRawDataModel> getRawDataByInterrogationId(String interrogationId) {
-        return lunaticJsonRawDataPersistencePort.findRawDataByInterrogationID(interrogationId);
+        return lunaticJsonRawDataPersistencePort.findRawDataByInterrogationId(interrogationId);
     }
 
     @Override
@@ -567,6 +568,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     }
 
     @Override
+    @Deprecated
     public Page<LunaticJsonRawDataModel> findRawDataByCampaignIdAndDate(String campaignId, Instant startDt, Instant endDt, Pageable pageable){
         return lunaticJsonRawDataPersistencePort.findByCampaignIdAndDate(campaignId,startDt, endDt,pageable);
 

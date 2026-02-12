@@ -65,7 +65,7 @@ class CombinedRawDataServiceTest {
                 .mode(Mode.WEB)
                 .build();
         List<LunaticJsonRawDataModel> lunaticRawData = List.of(lunatic1);
-        Mockito.when(lunaticJsonRawDataPersistencePort.findRawDataByInterrogationID(interrogationId))
+        Mockito.when(lunaticJsonRawDataPersistencePort.findRawDataByInterrogationId(interrogationId))
                 .thenReturn(lunaticRawData);
 
         // WHEN
@@ -82,7 +82,7 @@ class CombinedRawDataServiceTest {
         String interrogationId = "INTERROGATION_EMPTY";
         Mockito.when(rawResponsePersistencePort.findRawResponsesByInterrogationID(interrogationId))
                 .thenReturn(List.of());
-        Mockito.when(lunaticJsonRawDataPersistencePort.findRawDataByInterrogationID(interrogationId))
+        Mockito.when(lunaticJsonRawDataPersistencePort.findRawDataByInterrogationId(interrogationId))
                 .thenReturn(List.of());
 
         //WHEN

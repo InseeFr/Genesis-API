@@ -92,7 +92,7 @@ public class LunaticJsonRawDataPersistanceStub implements LunaticJsonRawDataPers
 
 
     @Override
-    public List<LunaticJsonRawDataModel> findRawDataByInterrogationID(String interrogationId) {
+    public List<LunaticJsonRawDataModel> findRawDataByInterrogationId(String interrogationId) {
         List<LunaticJsonRawDataDocument> docs = mongoStub.stream()
                 .filter(doc -> interrogationId.equals(doc.interrogationId()))
                 .toList();

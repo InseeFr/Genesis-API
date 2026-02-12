@@ -3,7 +3,10 @@ package fr.insee.genesis.domain.service.rawdata;
 import fr.insee.bpm.metadata.model.MetadataModel;
 import fr.insee.genesis.TestConstants;
 import fr.insee.genesis.controller.utils.ControllerUtils;
+import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
+import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
+import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
 import fr.insee.genesis.domain.ports.spi.DataProcessingContextPersistancePort;
 import fr.insee.genesis.domain.ports.spi.LunaticJsonRawDataPersistencePort;
 import fr.insee.genesis.domain.ports.spi.QuestionnaireMetadataPersistencePort;
@@ -18,18 +21,29 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService.getValueString;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -37,12 +51,25 @@ import static org.mockito.Mockito.mock;
 class LunaticJsonRawDataServiceUnitTest {
 
     @Mock
-    static LunaticJsonRawDataPersistencePort lunaticJsonRawDataPersistencePort;
+    private LunaticJsonRawDataPersistencePort lunaticJsonRawDataPersistencePort;
 
     @Mock
-    static QuestionnaireMetadataService metadataService;
+    private QuestionnaireMetadataService metadataService;
 
-    static LunaticJsonRawDataService lunaticJsonRawDataService;
+    @Mock
+    private DataProcessingContextService dataProcessingContextService;
+
+    @Mock
+    private ControllerUtils controllerUtils;
+
+    @Mock
+    private SurveyUnitQualityService surveyUnitQualityService;
+
+
+    @Captor
+    ArgumentCaptor<List<SurveyUnitModel>> listArgumentCaptor;
+
+    private LunaticJsonRawDataService lunaticJsonRawDataService;
 
     @BeforeEach
     void init() {
@@ -51,13 +78,86 @@ class LunaticJsonRawDataServiceUnitTest {
                 new ControllerUtils(new FileUtils(TestConstants.getConfigStub())),
                 metadataService,
                 mock(SurveyUnitService.class),
-                mock(SurveyUnitQualityService.class),
+                surveyUnitQualityService,
                 new FileUtils(TestConstants.getConfigStub()),
-                mock(DataProcessingContextService.class),
+                dataProcessingContextService,
                 mock(SurveyUnitQualityToolPort.class),
                 TestConstants.getConfigStub(),
                 mock(DataProcessingContextPersistancePort.class)
         );
+    }
+
+    @Test
+    @SneakyThrows
+    void save_test() {
+        //GIVEN
+        LunaticJsonRawDataModel lunaticJsonRawDataModel = LunaticJsonRawDataModel.builder().build();
+
+        //WHEN
+        lunaticJsonRawDataService.save(lunaticJsonRawDataModel);
+
+        //THEN
+        verify(lunaticJsonRawDataPersistencePort, times(1))
+                .save(lunaticJsonRawDataModel);
+    }
+
+    @Test
+    @SneakyThrows
+    void getRawDataByInterrogationId_test() {
+        //GIVEN
+        String interrogationId = "test";
+        LunaticJsonRawDataModel lunaticJsonRawDataModel = LunaticJsonRawDataModel.builder().build();
+
+        doReturn(List.of(lunaticJsonRawDataModel))
+                .when(lunaticJsonRawDataPersistencePort)
+                .findRawDataByInterrogationId(any());
+
+        //WHEN
+        List<LunaticJsonRawDataModel> lunaticJsonRawDataModelList = lunaticJsonRawDataService
+                .getRawDataByInterrogationId(interrogationId);
+
+        //THEN
+        verify(lunaticJsonRawDataPersistencePort, times(1))
+                .findRawDataByInterrogationId(interrogationId);
+        Assertions.assertThat(lunaticJsonRawDataModelList).containsExactly(lunaticJsonRawDataModel);
+    }
+    @Test
+    @SneakyThrows
+    void processRawData_test(){
+        //GIVEN
+        String questionnaireId = "test";
+        String interrogationId = "testInterrogation";
+        DataProcessingContextModel dataProcessingContextModel = DataProcessingContextModel.builder()
+                .withReview(true)
+                .build();
+        doReturn(dataProcessingContextModel).when(dataProcessingContextService)
+                .getContextByCollectionInstrumentId(any());
+        doReturn(List.of(Mode.WEB)).when(controllerUtils).getModesList(anyString(), any());
+        Set<String> interrogationIds = Set.of(interrogationId);
+        doReturn(interrogationIds).when(lunaticJsonRawDataPersistencePort)
+                .findUnprocessedInterrogationIdsByCollectionInstrumentId(any());
+
+        //TODO
+        doReturn(List.of(lunaticJsonRawDataModel)).when(lunaticJsonRawDataPersistencePort).findRawDataByQuestionnaireId(any(), any(),
+                any());
+
+        //WHEN
+        lunaticJsonRawDataService.processRawData(questionnaireId);
+
+        //THEN
+        verify(surveyUnitQualityService, times(1))
+                .verifySurveyUnits(listArgumentCaptor.capture(), any());
+        Assertions.assertThat(listArgumentCaptor.getValue()).isNotNull().hasSize(1);
+
+        List<SurveyUnitModel> surveyUnitModels = listArgumentCaptor.getValue();
+        Assertions.assertThat(surveyUnitModels).hasSize(1);
+
+        SurveyUnitModel surveyUnitModel = surveyUnitModels.getFirst();
+        Assertions.assertThat(surveyUnitModel.getCollectionInstrumentId()).isEqualTo(questionnaireId);
+        Assertions.assertThat(surveyUnitModel.getInterrogationId()).isEqualTo(interrogationId);
+        Assertions.assertThat(surveyUnitModel.getMode()).isEqualTo(Mode.WEB);
+        Assertions.assertThat(surveyUnitModel.getMode()).isEqualTo(Mode.WEB);
+
     }
 
     @Test
@@ -141,5 +241,29 @@ class LunaticJsonRawDataServiceUnitTest {
         Object doubleObject = 101010101010.111d;
 
         Assertions.assertThat(getValueString(doubleObject)).isEqualTo("101010101010.111");
+    }
+
+    @Test
+    @SneakyThrows
+    void findRawDataByQuestionnaireId_test() {
+        //GIVEN
+        String questionnaireId = "test";
+        LunaticJsonRawDataModel lunaticJsonRawDataModel = LunaticJsonRawDataModel.builder().build();
+        Pageable pageable = PageRequest.of(0, 10);
+
+        doReturn(new PageImpl<>(List.of(lunaticJsonRawDataModel), pageable, 1))
+                .when(lunaticJsonRawDataPersistencePort)
+                .findRawDataByQuestionnaireId(any(), any());
+
+        //WHEN
+        Page<LunaticJsonRawDataModel> page = lunaticJsonRawDataService
+                .findRawDataByQuestionnaireId(questionnaireId, pageable);
+
+        //THEN
+        verify(lunaticJsonRawDataPersistencePort, times(1))
+                .findRawDataByQuestionnaireId(questionnaireId, pageable);
+        Assertions.assertThat(page.getTotalElements()).isEqualTo(1);
+        Optional<LunaticJsonRawDataModel> lunaticJsonRawDataModelOptional = page.get().findFirst();
+        Assertions.assertThat(lunaticJsonRawDataModelOptional).isPresent().contains(lunaticJsonRawDataModel);
     }
 }
