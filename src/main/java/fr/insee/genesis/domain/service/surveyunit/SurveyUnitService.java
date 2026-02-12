@@ -619,7 +619,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         try {
             switch (variableType) {
                 case INTEGER -> {
-                    return Integer.parseInt(value);
+                    return Long.parseLong(value);
                 }
                 case BOOLEAN -> {
                     return Boolean.parseBoolean(value);
