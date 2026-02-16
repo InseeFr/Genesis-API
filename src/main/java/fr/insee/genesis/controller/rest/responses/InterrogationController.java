@@ -5,6 +5,7 @@ import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -51,9 +52,20 @@ public class InterrogationController implements CommonApiResponse {
     public ResponseEntity<List<InterrogationId>> getAllInterrogationIdsByCollectionInstrumentIdAndDate(
             @RequestParam("collectionInstrumentId") String collectionInstrumentId,
             @RequestParam("start")
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            @Parameter(
+                    description = "Date de début",
+                    schema = @Schema(type = "string", format = "date-time", example = "2026-01-01T00:00:00")
+            )
+            LocalDateTime start,
+
             @RequestParam("end")
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            @Parameter(
+                    description = "Date de fin",
+                    schema = @Schema(type = "string", format = "date-time", example = "2026-01-31T23:59:59")
+            )
+            LocalDateTime end) {
         List<InterrogationId> responses = surveyUnitService.findDistinctInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(collectionInstrumentId, start,end);
         return ResponseEntity.ok(responses);
     }
