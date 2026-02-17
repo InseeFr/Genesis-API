@@ -54,7 +54,7 @@ public class InterrogationController implements CommonApiResponse {
             @RequestParam("start")
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
             @Parameter(
-                    description = "Date de début",
+                    description = "Start date",
                     schema = @Schema(type = "string", format = "date-time", example = "2026-01-01T00:00:00")
             )
             LocalDateTime start,
@@ -62,7 +62,7 @@ public class InterrogationController implements CommonApiResponse {
             @RequestParam("end")
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
             @Parameter(
-                    description = "Date de fin",
+                    description = "End date",
                     schema = @Schema(type = "string", format = "date-time", example = "2026-01-31T23:59:59")
             )
             LocalDateTime end) {
