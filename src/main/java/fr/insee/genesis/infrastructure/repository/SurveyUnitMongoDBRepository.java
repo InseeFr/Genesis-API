@@ -50,6 +50,16 @@ public interface SurveyUnitMongoDBRepository extends MongoRepository<SurveyUnitD
             LocalDateTime end
     );
 
+    @Query(
+            value = "{ 'questionnaireId' : ?0, 'recordDate': { $gte: ?1, $lt: ?2 } }",
+            fields = "{ 'interrogationId' : 1, 'mode' : 1 }"
+    )
+    List<SurveyUnitDocument> findInterrogationIdsQuestionnaireIdAndRecordDateBetween(
+            String questionnaireId,
+            LocalDateTime start,
+            LocalDateTime end
+    );
+
     /**
 	 * @author Adrien Marchal
 	 */
