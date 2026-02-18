@@ -66,4 +66,9 @@ public class ContextualExternalVariablePersistancePortStub implements Contextual
         ).toList();
         return contextualExternalVariableDocumentList.isEmpty() ? null : ContextualExternalVariableDocumentMapper.INSTANCE.documentToModel(contextualExternalVariableDocumentList.getFirst());
     }
+
+    @Override
+    public Map<String, ContextualExternalVariableModel> findByCollectionInstrumentIdAndInterrogationIdList(String collectionInstrumentId, List<String> interrogationIds) {
+        return Map.of();
+    }
 }

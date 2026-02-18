@@ -12,7 +12,7 @@ public interface ContextualExternalVariableApiPort {
 
     ContextualExternalVariableModel findByCollectionInstrumentIdAndInterrogationId(String collectionInstrumentId, String interrogationId);
 
-    Map<String, ContextualPreviousVariableModel> findByCollectionInstrumentIdAndInterrogationIdList(
+    Map<String, ContextualExternalVariableModel> findByCollectionInstrumentIdAndInterrogationIdList(
             String collectionInstrumentId, List<String> interrogationIds
     );
 }

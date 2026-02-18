@@ -15,7 +15,9 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -104,5 +106,29 @@ public class ContextualExternalVariableMongoAdapter implements ContextualExterna
             log.warn("More than 1 contextual external response document for collection instrument {}, interrogation {}", collectionInstrumentId, interrogationId);
         }
         return ContextualExternalVariableDocumentMapper.INSTANCE.documentToModel(results.getFirst());
+    }
+
+    @Override
+    public Map<String, ContextualExternalVariableModel> findByCollectionInstrumentIdAndInterrogationIdList(String collectionInstrumentId, List<String> interrogationIds) {
+        Map<String, ContextualExternalVariableModel> contextualExternalVariableModelMap = new HashMap<>();
+
+        List<ContextualExternalVariableDocument> results = new ArrayList<>();
+        results.addAll(repository.findByQuestionnaireIdAndInterrogationIdList(collectionInstrumentId, interrogationIds));
+        // For older documents
+        results.addAll(repository.findByCollectionInstrumentIdAndInterrogationIdList(collectionInstrumentId, interrogationIds));
+
+        for(ContextualExternalVariableDocument contextualExternalVariableDocument : results){
+            String docInterrogationId = contextualExternalVariableDocument.getInterrogationId();
+            if(docInterrogationId == null || docInterrogationId.isEmpty())
+            {
+                continue;
+            }
+            contextualExternalVariableModelMap.put(
+                    docInterrogationId,
+                    ContextualExternalVariableDocumentMapper.INSTANCE.documentToModel(contextualExternalVariableDocument)
+            );
+        }
+
+        return contextualExternalVariableModelMap;
     }
 }

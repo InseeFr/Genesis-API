@@ -93,8 +93,14 @@ public class ContextualPreviousVariableJsonService implements ContextualPrevious
     }
 
     @Override
-    public Map<String, ContextualPreviousVariableModel> findByCollectionInstrumentIdAndInterrogationIdList(String collectionInstrumentId, List<String> interrogationId) {
-        return Map.of(); //TODO
+    public Map<String, ContextualPreviousVariableModel> findByCollectionInstrumentIdAndInterrogationIdList( //TODO test
+            String collectionInstrumentId,
+            List<String> interrogationIds
+    ) {
+        return contextualPreviousVariablePersistancePort.findByCollectionInstrumentIdAndInterrogationIdList(
+                collectionInstrumentId,
+                interrogationIds
+        );
     }
 
     private long saveBlock(List<ContextualPreviousVariableModel> toSave, long savedCount) {

@@ -72,7 +72,9 @@ class ContextualVariableJsonServiceTest {
         for (int i = 1; i <= 3; i++) {
             contextualPreviousVariableModelMap.put(
                     interrogationPrefix + i,
-                    ContextualPreviousVariableModel.builder().build()
+                    ContextualPreviousVariableModel.builder()
+                            .variables(new HashMap<>())
+                            .build()
             );
         }
         doReturn(contextualPreviousVariableModelMap)
@@ -84,7 +86,9 @@ class ContextualVariableJsonServiceTest {
         for (int i = 1; i <= 3; i++) {
             contextualExternalVariableModelMap.put(
                     interrogationPrefix + i,
-                    ContextualExternalVariableModel.builder().build()
+                    ContextualExternalVariableModel.builder()
+                            .variables(new HashMap<>())
+                            .build()
             );
         }
         doReturn(contextualExternalVariableModelMap)

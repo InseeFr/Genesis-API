@@ -78,7 +78,42 @@ public class ContextualVariableJsonService implements ContextualVariableApiPort 
     @Override
     public Map<String, ContextualVariableModel> getContextualVariablesByList(String collectionInstrumentId, List<String> interrogationIds) {
         Map<String, ContextualVariableModel> contextualVariableModelMap = new HashMap<>();
-        //TODO
+        Map<String, ContextualPreviousVariableModel> contextualPreviousVariableModelMap =
+                contextualPreviousVariableApiPort.findByCollectionInstrumentIdAndInterrogationIdList(
+                        collectionInstrumentId, interrogationIds
+                );
+        Map<String, ContextualExternalVariableModel> contextualExternalVariableModelMap =
+            contextualExternalVariableApiPort.findByCollectionInstrumentIdAndInterrogationIdList(
+                collectionInstrumentId, interrogationIds
+        );
+
+        for (String interrogationId : interrogationIds) {
+            ContextualVariableModel contextualVariableModel = ContextualVariableModel.builder()
+                    .interrogationId(interrogationId)
+                    .contextualPrevious(new ArrayList<>())
+                    .contextualExternal(new ArrayList<>())
+                    .build();
+            //Previous
+            if(contextualPreviousVariableModelMap.containsKey(interrogationId)) {
+                for (Map.Entry<String, Object> variable :
+                        contextualPreviousVariableModelMap.get(interrogationId).getVariables().entrySet()) {
+                    contextualVariableModel.contextualPrevious().addAll(
+                            extractVariables(variable.getValue(), variable.getKey())
+                    );
+                }
+            }
+            //External
+            if(contextualExternalVariableModelMap.containsKey(interrogationId)) {
+                for (Map.Entry<String, Object> variable :
+                        contextualExternalVariableModelMap.get(interrogationId).getVariables().entrySet()) {
+                    contextualVariableModel.contextualExternal().addAll(
+                            extractVariables(variable.getValue(), variable.getKey())
+                    );
+                }
+            }
+            contextualVariableModelMap.put(interrogationId, contextualVariableModel);
+        }
+
         return contextualVariableModelMap;
     }
 

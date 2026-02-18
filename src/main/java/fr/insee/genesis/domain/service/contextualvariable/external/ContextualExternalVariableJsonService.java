@@ -87,8 +87,15 @@ public class ContextualExternalVariableJsonService implements ContextualExternal
     }
 
     @Override
-    public Map<String, ContextualPreviousVariableModel> findByCollectionInstrumentIdAndInterrogationIdList(String collectionInstrumentId, List<String> interrogationIds) {
-        return Map.of(); //TODO
+    public Map<String, ContextualExternalVariableModel> findByCollectionInstrumentIdAndInterrogationIdList( //TODO test
+            String collectionInstrumentId,
+            List<String> interrogationIds
+    ) {
+        return contextualExternalVariablePersistancePort
+                .findByCollectionInstrumentIdAndInterrogationIdList(
+                        collectionInstrumentId,
+                        interrogationIds
+                );
     }
 
     private static void goToContextualExternalToken(JsonParser jsonParser) throws IOException{

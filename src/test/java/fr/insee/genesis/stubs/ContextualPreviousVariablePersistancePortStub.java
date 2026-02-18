@@ -70,4 +70,9 @@ public class ContextualPreviousVariablePersistancePortStub implements Contextual
 
         return contextualPreviousVariableDocumentList.isEmpty() ? null : ContextualPreviousVariableDocumentMapper.INSTANCE.documentToModel(contextualPreviousVariableDocumentList.getFirst());
     }
+
+    @Override
+    public Map<String, ContextualPreviousVariableModel> findByCollectionInstrumentIdAndInterrogationIdList(String collectionInstrumentId, List<String> interrogationIds) {
+        return Map.of();
+    }
 }

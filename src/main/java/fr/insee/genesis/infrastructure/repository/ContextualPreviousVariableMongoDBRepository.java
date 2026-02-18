@@ -14,6 +14,11 @@ public interface ContextualPreviousVariableMongoDBRepository extends MongoReposi
 
     @Query(value = "{ 'questionnaireId' : ?0, 'interrogationId' : ?1 }")
     List<ContextualPreviousVariableDocument> findByQuestionnaireIdAndInterrogationId(String questionnaireId, String interrogationId);
+    @Query(value = "{ 'questionnaireId' : ?0, 'interrogationId' : {$in: ?1} }")
+    List<ContextualPreviousVariableDocument> findByQuestionnaireIdAndInterrogationIdList(String collectionInstrumentId, List<String> interrogationIds);
+
     @Query(value = "{ 'collectionInstrumentId' : ?0, 'interrogationId' : ?1 }")
     List<ContextualPreviousVariableDocument> findByCollectionInstrumentIdAndInterrogationId(String collectionInstrumentId, String interrogationId);
+    @Query(value = "{ 'collectionInstrumentId' : ?0, 'interrogationId' : {$in: ?1} }")
+    List<ContextualPreviousVariableDocument> findByCollectionInstrumentIdAndInterrogationIdList(String collectionInstrumentId, List<String> interrogationIds);
 }
