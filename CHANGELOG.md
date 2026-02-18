@@ -1,4 +1,9 @@
 # Changelog
+## 2.3.0 [TODO]
+### Added
+- Get response by-collection-instrument-and-between-datetime endpoint
+### Fixed
+- Get modes by question collectionInstrumentId parameter
 
 ## 2.2.3 [2026-02-12]
 ### Fixed
