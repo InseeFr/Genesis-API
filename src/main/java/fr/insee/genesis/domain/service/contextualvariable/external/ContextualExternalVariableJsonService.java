@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import fr.insee.genesis.domain.model.contextualvariable.ContextualExternalVariableModel;
+import fr.insee.genesis.domain.model.contextualvariable.ContextualPreviousVariableModel;
 import fr.insee.genesis.domain.ports.api.ContextualExternalVariableApiPort;
 import fr.insee.genesis.domain.ports.spi.ContextualExternalVariablePersistancePort;
 import fr.insee.genesis.domain.utils.JsonUtils;
@@ -19,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Service
@@ -82,6 +84,11 @@ public class ContextualExternalVariableJsonService implements ContextualExternal
     @Override
     public ContextualExternalVariableModel findByCollectionInstrumentIdAndInterrogationId(String collectionInstrumentId, String interrogationId) {
         return contextualExternalVariablePersistancePort.findByCollectionInstrumentIdAndInterrogationId(collectionInstrumentId, interrogationId);
+    }
+
+    @Override
+    public Map<String, ContextualPreviousVariableModel> findByCollectionInstrumentIdAndInterrogationIdList(String collectionInstrumentId, List<String> interrogationIds) {
+        return Map.of(); //TODO
     }
 
     private static void goToContextualExternalToken(JsonParser jsonParser) throws IOException{

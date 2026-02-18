@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Service
@@ -89,6 +90,11 @@ public class ContextualPreviousVariableJsonService implements ContextualPrevious
                 collectionInstrumentId,
                 interrogationId
         );
+    }
+
+    @Override
+    public Map<String, ContextualPreviousVariableModel> findByCollectionInstrumentIdAndInterrogationIdList(String collectionInstrumentId, List<String> interrogationId) {
+        return Map.of(); //TODO
     }
 
     private long saveBlock(List<ContextualPreviousVariableModel> toSave, long savedCount) {

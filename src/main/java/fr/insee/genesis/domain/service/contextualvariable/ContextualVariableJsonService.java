@@ -22,6 +22,7 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -72,6 +73,13 @@ public class ContextualVariableJsonService implements ContextualVariableApiPort 
         }
 
         return contextualVariableModel;
+    }
+
+    @Override
+    public Map<String, ContextualVariableModel> getContextualVariablesByList(String collectionInstrumentId, List<String> interrogationIds) {
+        Map<String, ContextualVariableModel> contextualVariableModelMap = new HashMap<>();
+        //TODO
+        return contextualVariableModelMap;
     }
 
     @Override
