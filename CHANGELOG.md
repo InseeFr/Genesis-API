@@ -1,4 +1,8 @@
 # Changelog
+## 2.4.0 [TODO]
+### Added
+- Get responses latest states and contextual variables by interrogation id list
+
 ## 2.3.0 [TODO]
 ### Added
 - Get response by-collection-instrument-and-between-datetime endpoint
