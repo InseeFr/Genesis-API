@@ -19,7 +19,9 @@ public interface SurveyUnitApiPort {
 
     void saveSurveyUnits(List<SurveyUnitModel> suList);
 
-    List<SurveyUnitModel> findByIdsInterrogationAndCollectionInstrument(String interrogationId, String questionnaireId);
+    List<SurveyUnitModel> findByIdsInterrogationAndCollectionInstrument(String interrogationId, String collectionInstrumentId);
+
+    List<SurveyUnitModel> findByIdsUsualSurveyUnitAndCollectionInstrument(String usualSurveyUnitId, String collectionInstrumentId);
 
     List<SurveyUnitModel> findByInterrogationId(String interrogationId);
 

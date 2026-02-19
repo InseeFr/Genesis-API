@@ -152,4 +152,39 @@ class SurveyUnitServiceUnitTest {
         Assertions.assertThat(surveyUnitService.countResponsesByCollectionInstrumentId(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID))
                 .isEqualTo(exampleCount);
     }
+
+    @Test
+    void findByIdsUsualSurveyUnitAndCollectionInstrument_should_return_survey_units_from_persistence_port() {
+        //GIVEN
+        List<SurveyUnitDocument> surveyUnitDocuments = new ArrayList<>();
+
+        SurveyUnitDocument surveyUnitDocument = new SurveyUnitDocument();
+        surveyUnitDocument.setMode(String.valueOf(Mode.WEB));
+        surveyUnitDocument.setUsualSurveyUnitId(TestConstants.DEFAULT_SURVEY_UNIT_ID);
+        surveyUnitDocument.setState(DataState.COLLECTED.toString());
+        surveyUnitDocument.setRecordDate(LocalDateTime.now().minusMinutes(1));
+        surveyUnitDocument.setCollectedVariables(new ArrayList<>());
+        surveyUnitDocument.getCollectedVariables().add(new VariableDocument());
+        surveyUnitDocument.getCollectedVariables().getFirst().setVarId("VAR1");
+        surveyUnitDocument.getCollectedVariables().getFirst().setIteration(1);
+        surveyUnitDocument.getCollectedVariables().getFirst().setValue("VAR1");
+        surveyUnitDocuments.add(surveyUnitDocument);
+
+
+        doReturn(SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnitDocuments))
+                .when(surveyUnitPersistencePortStub).findByUsualSurveyUnitAndCollectionInstrumentIds(
+                TestConstants.DEFAULT_SURVEY_UNIT_ID,
+                TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID
+        );
+
+        //WHEN
+        List<SurveyUnitModel> surveyUnitModels = surveyUnitService.findByIdsUsualSurveyUnitAndCollectionInstrument(
+                TestConstants.DEFAULT_SURVEY_UNIT_ID,
+                TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID
+        );
+
+        //THEN
+        Assertions.assertThat(surveyUnitModels).isNotNull().hasSize(1);
+        Assertions.assertThat(surveyUnitModels.getFirst().getUsualSurveyUnitId()).isEqualTo(TestConstants.DEFAULT_SURVEY_UNIT_ID);
+    }
 }
