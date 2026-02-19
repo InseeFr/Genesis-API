@@ -149,8 +149,7 @@ public class OIDCSecurityConfig {
                                     .map(s -> (GrantedAuthority) () -> ROLE_PREFIX + s)
                                     .toList();
 
-                    //TODO put on debug once genesis bug is corrected
-                    log.info("Authorities extracted from JWT: {}",
+                    log.debug("Authorities extracted from JWT: {}",
                             authorities.stream()
                                     .map(GrantedAuthority::getAuthority)
                                     .toList());

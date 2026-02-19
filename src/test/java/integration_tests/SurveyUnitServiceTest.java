@@ -256,6 +256,37 @@ class SurveyUnitServiceTest {
     }
 
     @Test
+    void findDistinctInterrogationIdsByCollectionInstrumentIdAndRecordDateBetweenTest_no_doc_in_period() {
+        addAdditionnalSurveyUnitModelToMongoStub();
+
+        LocalDateTime start = LocalDateTime.of(2025, 9, 1, 0, 0, 0);
+        LocalDateTime end   = LocalDateTime.of(2025, 9, 2, 0, 0, 0);
+
+        Assertions.assertThat(
+                        surveyUnitServiceStatic.findDistinctInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
+                                DEFAULT_COLLECTION_INSTRUMENT_ID, start, end
+                        )
+                ).filteredOn(interrogationId -> interrogationId.getInterrogationId().equals(DEFAULT_INTERROGATION_ID))
+                .isEmpty();
+    }
+
+    @Test
+    void findDistinctInterrogationIdsByCollectionInstrumentIdAndRecordDateBetweenTest_doc_in_period() {
+        addAdditionnalSurveyUnitModelToMongoStub();
+
+        LocalDateTime start = LocalDateTime.of(2022, 1, 1, 0, 0, 0);
+        LocalDateTime end   = LocalDateTime.of(2026, 1, 1, 0, 0, 0);
+
+        Assertions.assertThat(
+                        surveyUnitServiceStatic.findDistinctInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
+                                DEFAULT_COLLECTION_INSTRUMENT_ID, start, end
+                        )
+                ).filteredOn(interrogationId -> interrogationId.getInterrogationId().equals(DEFAULT_INTERROGATION_ID))
+                .isNotEmpty()
+                .hasSize(1);
+    }
+
+    @Test
     void findInterrogationIdsByQuestionnaireIdTest(){
         Assertions.assertThat(surveyUnitServiceStatic.findModesByCollectionInstrumentId(DEFAULT_COLLECTION_INSTRUMENT_ID)).filteredOn(
                 mode -> mode.equals(Mode.WEB)

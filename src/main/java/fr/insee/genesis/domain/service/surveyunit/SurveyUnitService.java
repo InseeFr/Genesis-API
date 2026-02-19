@@ -282,6 +282,16 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                 .toList();
     }
 
+    @Override
+    public List<InterrogationId> findDistinctInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(String collectionInstrumentId, LocalDateTime start, LocalDateTime end) {
+        return surveyUnitPersistencePort
+                .findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(collectionInstrumentId,start,end)
+                .stream()
+                .map(su -> new InterrogationId(su.getInterrogationId()))
+                .distinct()
+                .toList();
+    }
+
     //============ OPTIMISATIONS PERFS (START) ============
 
     /**
@@ -619,7 +629,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         try {
             switch (variableType) {
                 case INTEGER -> {
-                    return Integer.parseInt(value);
+                    return Long.parseLong(value);
                 }
                 case BOOLEAN -> {
                     return Boolean.parseBoolean(value);

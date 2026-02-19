@@ -123,6 +123,20 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
         return surveyUnitModelList;
     }
 
+    @Override
+    public List<SurveyUnitModel> findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(String collectionInstrumentId, LocalDateTime start, LocalDateTime end) {
+        List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
+        for(SurveyUnitModel surveyUnitModel : mongoStub){
+            if(surveyUnitModel.getCollectionInstrumentId().equals(collectionInstrumentId)
+                    && !surveyUnitModel.getRecordDate().isBefore(start)
+                    && surveyUnitModel.getRecordDate().isBefore(end))
+                surveyUnitModelList.add(
+                        new SurveyUnitModel(surveyUnitModel.getInterrogationId(), surveyUnitModel.getMode())
+                );
+        }
+
+        return surveyUnitModelList;    }
+
 
     //======== OPTIMISATIONS PERFS (START) ========
     /**
