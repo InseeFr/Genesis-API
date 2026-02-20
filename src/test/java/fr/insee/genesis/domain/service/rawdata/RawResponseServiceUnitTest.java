@@ -4,6 +4,7 @@ import fr.insee.bpm.metadata.model.MetadataModel;
 import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.TestConstants;
 import fr.insee.genesis.controller.utils.ControllerUtils;
+import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponseModel;
@@ -69,7 +70,6 @@ class RawResponseServiceUnitTest {
     private static final String TEST_VALIDATION_DATE = "2025-11-11T06:00:00Z";
 
     @BeforeEach
-    @SuppressWarnings("unchecked")
     void init() {
         rawResponseService = new RawResponseService(
                 controllerUtils,
@@ -392,5 +392,303 @@ class RawResponseServiceUnitTest {
 
         //WHEN + THEN
         Assertions.assertThat(rawResponseService.getDistinctCollectionInstrumentIds()).containsExactly(collectionInstrumentId);
+    }
+
+    @Nested
+    @DisplayName("convertRawResponse tests")
+    class ConvertRawResponseTests {
+
+        private VariablesMap variablesMap;
+
+        @BeforeEach
+        void setup() {
+            variablesMap = new VariablesMap();
+        }
+
+        @Test
+        @DisplayName("Simple COLLECTED raw response conversion")
+        void convertRawResponse_shouldConvertCollectedVariable() {
+            // GIVEN
+            RawResponseModel rawResponse = buildRawResponseWithVar("VAR1", "COLLECTED", "value1");
+            List<RawResponseModel> rawResponses = List.of(rawResponse);
+
+            // WHEN
+            List<SurveyUnitModel> result = rawResponseService.convertRawResponse(rawResponses, variablesMap);
+
+            // THEN
+            Assertions.assertThat(result).hasSize(1); // only COLLECTED state (EDITED has no data)
+            Assertions.assertThat(result.getFirst().getCollectedVariables()).hasSize(1);
+            Assertions.assertThat(result.getFirst().getCollectedVariables().getFirst().varId()).isEqualTo("VAR1");
+            Assertions.assertThat(result.getFirst().getCollectedVariables().getFirst().value()).isEqualTo("value1");
+        }
+
+        @Test
+        @DisplayName("Simple EDITED conversion")
+        void convertRawResponse_shouldConvertEditedVariable() {
+            // GIVEN
+            RawResponseModel rawResponse = buildRawResponseWithVar("VAR1", "EDITED", "editedValue");
+            List<RawResponseModel> rawResponses = List.of(rawResponse);
+
+            // WHEN
+            List<SurveyUnitModel> result = rawResponseService.convertRawResponse(rawResponses, variablesMap);
+
+            // THEN
+            // On attend 1 modèle EDITED avec des variables
+            List<SurveyUnitModel> editedModels = result.stream()
+                    .filter(m -> m.getState() == DataState.EDITED)
+                    .toList();
+            Assertions.assertThat(editedModels).hasSize(1);
+            Assertions.assertThat(editedModels.getFirst().getCollectedVariables()).hasSize(1);
+            Assertions.assertThat(editedModels.getFirst().getCollectedVariables().getFirst().value()).isEqualTo("editedValue");
+        }
+
+        @Test
+        @DisplayName("Must convert external variables in COLLECTED")
+        void convertRawResponse_shouldConvertExternalVariables() {
+            // GIVEN
+            RawResponseModel rawResponse = buildRawResponseWithCollectedAndExternal("VAR1", "val1", "EXT1", "extVal");
+            List<RawResponseModel> rawResponses = List.of(rawResponse);
+
+            // WHEN
+            List<SurveyUnitModel> result = rawResponseService.convertRawResponse(rawResponses, variablesMap);
+
+            // THEN
+            List<SurveyUnitModel> collectedModels = result.stream()
+                    .filter(m -> m.getState() == DataState.COLLECTED)
+                    .toList();
+            Assertions.assertThat(collectedModels).hasSize(1);
+            Assertions.assertThat(collectedModels.getFirst().getExternalVariables()).hasSize(1);
+            Assertions.assertThat(collectedModels.getFirst().getExternalVariables().getFirst().varId()).isEqualTo("EXT1");
+        }
+
+        @Test
+        @DisplayName("Ignore empty models")
+        void convertRawResponse_shouldIgnoreEmptyResponse() {
+            // GIVEN
+            RawResponseModel rawResponse = buildEmptyRawResponse();
+            List<RawResponseModel> rawResponses = List.of(rawResponse);
+
+            // WHEN
+            List<SurveyUnitModel> result = rawResponseService.convertRawResponse(rawResponses, variablesMap);
+
+            // THEN
+            Assertions.assertThat(result).isEmpty();
+        }
+
+        @Test
+        @DisplayName("COLLECTED list management")
+        void convertRawResponse_shouldHandleListValues() {
+            // GIVEN
+            RawResponseModel rawResponse = buildRawResponseWithListVar("VAR_LIST", "COLLECTED", List.of("v1", "v2", "v3"));
+            List<RawResponseModel> rawResponses = List.of(rawResponse);
+
+            // WHEN
+            List<SurveyUnitModel> result = rawResponseService.convertRawResponse(rawResponses, variablesMap);
+
+            // THEN
+            List<SurveyUnitModel> collectedModels = result.stream()
+                    .filter(m -> m.getState() == DataState.COLLECTED)
+                    .toList();
+            Assertions.assertThat(collectedModels).hasSize(1);
+            // 3 valeurs non nulles => 3 VariableModel avec iterations 1,2,3
+            Assertions.assertThat(collectedModels.getFirst().getCollectedVariables()).hasSize(3);
+            Assertions.assertThat(collectedModels.getFirst().getCollectedVariables().get(0).iteration()).isEqualTo(1);
+            Assertions.assertThat(collectedModels.getFirst().getCollectedVariables().get(1).iteration()).isEqualTo(2);
+            Assertions.assertThat(collectedModels.getFirst().getCollectedVariables().get(2).iteration()).isEqualTo(3);
+        }
+
+        @Test
+        @DisplayName("Ignore null and empty values")
+        void convertRawResponse_shouldSkipNullOrEmptyListValues() {
+            // GIVEN
+            RawResponseModel rawResponse = buildRawResponseWithListVar("VAR_LIST", "COLLECTED", List.of("v1", "", "v3"));
+            List<RawResponseModel> rawResponses = List.of(rawResponse);
+
+            // WHEN
+            List<SurveyUnitModel> result = rawResponseService.convertRawResponse(rawResponses, variablesMap);
+
+            // THEN
+            List<SurveyUnitModel> collectedModels = result.stream()
+                    .filter(m -> m.getState() == DataState.COLLECTED)
+                    .toList();
+            Assertions.assertThat(collectedModels).hasSize(1);
+            Assertions.assertThat(collectedModels.getFirst().getCollectedVariables()).hasSize(2);
+        }
+
+        //UTILS
+
+        private RawResponseModel buildRawResponseWithVar(String varName, String stateKey, String value) {
+            RawResponseModel model = new RawResponseModel(
+                    null,
+                    TestConstants.DEFAULT_INTERROGATION_ID,
+                    TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
+                    Mode.WEB,
+                    new HashMap<>(),
+                    LocalDateTime.now(),
+                    null
+            );
+            Map<String, Object> dataMap = new HashMap<>();
+            Map<String, Object> collectedMap = new HashMap<>();
+            Map<String, Object> varStates = new HashMap<>();
+            varStates.put(stateKey, value);
+            collectedMap.put(varName, varStates);
+            dataMap.put("COLLECTED", collectedMap);
+            dataMap.put("EXTERNAL", new HashMap<>());
+            model.payload().put("data", dataMap);
+            return model;
+        }
+
+        private RawResponseModel buildRawResponseWithListVar(String varName, String stateKey, List<String> values) {
+            RawResponseModel model = new RawResponseModel(
+                    null,
+                    TestConstants.DEFAULT_INTERROGATION_ID,
+                    TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
+                    Mode.WEB,
+                    new HashMap<>(),
+                    LocalDateTime.now(),
+                    null
+            );
+            Map<String, Object> dataMap = new HashMap<>();
+            Map<String, Object> collectedMap = new HashMap<>();
+            Map<String, Object> varStates = new HashMap<>();
+            varStates.put(stateKey, values);
+            collectedMap.put(varName, varStates);
+            dataMap.put("COLLECTED", collectedMap);
+            dataMap.put("EXTERNAL", new HashMap<>());
+            model.payload().put("data", dataMap);
+            return model;
+        }
+
+        private RawResponseModel buildRawResponseWithCollectedAndExternal(
+                String collectedVarName, String collectedValue,
+                String externalVarName, String externalValue) {
+            RawResponseModel model = new RawResponseModel(
+                    null,
+                    TestConstants.DEFAULT_INTERROGATION_ID,
+                    TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
+                    Mode.WEB,
+                    new HashMap<>(),
+                    LocalDateTime.now(),
+                    null
+            );
+            Map<String, Object> dataMap = new HashMap<>();
+
+            Map<String, Object> collectedMap = new HashMap<>();
+            Map<String, Object> varStates = new HashMap<>();
+            varStates.put("COLLECTED", collectedValue);
+            collectedMap.put(collectedVarName, varStates);
+            dataMap.put("COLLECTED", collectedMap);
+
+            Map<String, Object> externalMap = new HashMap<>();
+            externalMap.put(externalVarName, externalValue);
+            dataMap.put("EXTERNAL", externalMap);
+
+            model.payload().put("data", dataMap);
+            return model;
+        }
+
+        private RawResponseModel buildEmptyRawResponse() {
+            RawResponseModel model = new RawResponseModel(
+                    null,
+                    TestConstants.DEFAULT_INTERROGATION_ID,
+                    TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
+                    Mode.WEB,
+                    new HashMap<>(),
+                    LocalDateTime.now(),
+                    null
+            );
+            Map<String, Object> dataMap = new HashMap<>();
+            dataMap.put("COLLECTED", new HashMap<>());
+            dataMap.put("EXTERNAL", new HashMap<>());
+            model.payload().put("data", dataMap);
+            return model;
+        }
+    }
+
+    @Test
+    @DisplayName("getRawResponses must call persistence port")
+    void getRawResponses_shouldDelegateToPersistencePort() {
+        // GIVEN
+        String collectionInstrumentId = TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID;
+        Mode mode = Mode.WEB;
+        List<String> interrogationIds = List.of(TestConstants.DEFAULT_INTERROGATION_ID);
+        List<RawResponseModel> expected = List.of(mock(RawResponseModel.class));
+        doReturn(expected).when(rawResponsePersistencePort).findRawResponses(collectionInstrumentId, mode, interrogationIds);
+
+        // WHEN
+        List<RawResponseModel> result = rawResponseService.getRawResponses(collectionInstrumentId, mode, interrogationIds);
+
+        // THEN
+        Assertions.assertThat(result).isEqualTo(expected);
+    }
+
+    @Test
+    @DisplayName("getRawResponsesByInterrogationID must call persistence port")
+    void getRawResponsesByInterrogationID_shouldDelegateToPersistencePort() {
+        // GIVEN
+        String interrogationId = TestConstants.DEFAULT_INTERROGATION_ID;
+        List<RawResponseModel> expected = List.of(mock(RawResponseModel.class));
+        doReturn(expected).when(rawResponsePersistencePort).findRawResponsesByInterrogationID(interrogationId);
+
+        // WHEN
+        List<RawResponseModel> result = rawResponseService.getRawResponsesByInterrogationID(interrogationId);
+
+        // THEN
+        Assertions.assertThat(result).isEqualTo(expected);
+    }
+
+    @Test
+    @DisplayName("updateProcessDates must call persistence port for each collectionInstrumentId")
+    void updateProcessDates_shouldCallPersistencePortForEachCollectionInstrument() {
+        // GIVEN
+        SurveyUnitModel su1 = SurveyUnitModel.builder()
+                .collectionInstrumentId("QUEST1")
+                .interrogationId("INTERRO1")
+                .build();
+        SurveyUnitModel su2 = SurveyUnitModel.builder()
+                .collectionInstrumentId("QUEST1")
+                .interrogationId("INTERRO2")
+                .build();
+        SurveyUnitModel su3 = SurveyUnitModel.builder()
+                .collectionInstrumentId("QUEST2")
+                .interrogationId("INTERRO3")
+                .build();
+
+        // WHEN
+        rawResponseService.updateProcessDates(List.of(su1, su2, su3));
+
+        // THEN
+        ArgumentCaptor<String> collectionIdCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<Set> interrogationIdsCaptor = ArgumentCaptor.forClass(Set.class);
+        verify(rawResponsePersistencePort, org.mockito.Mockito.times(2))
+                .updateProcessDates(collectionIdCaptor.capture(), interrogationIdsCaptor.capture());
+
+        Assertions.assertThat(collectionIdCaptor.getAllValues()).containsExactlyInAnyOrder("QUEST1", "QUEST2");
+    }
+
+    @Test
+    @DisplayName("getUnprocessedCollectionInstrumentIds should exclude no mode raw datas")
+    @SneakyThrows
+    void getUnprocessedCollectionInstrumentIds_shouldExclude_whenNoMode() {
+        // GIVEN
+        doReturn(List.of("QUEST_NO_MODE")).when(rawResponsePersistencePort).getUnprocessedCollectionIds();
+        doReturn(Collections.emptyList()).when(rawResponsePersistencePort).findModesByCollectionInstrument("QUEST_NO_MODE");
+
+        // WHEN + THEN
+        Assertions.assertThat(rawResponseService.getUnprocessedCollectionInstrumentIds()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("getUnprocessedCollectionInstrumentIds should exclude raw datas with only null")
+    @SneakyThrows
+    void getUnprocessedCollectionInstrumentIds_shouldExclude_whenOnlyNullMode() {
+        // GIVEN
+        doReturn(List.of("QUEST_NULL_MODE")).when(rawResponsePersistencePort).getUnprocessedCollectionIds();
+        List<ModeDto> modesWithNull = new ArrayList<>();
+        modesWithNull.add(null);
+        doReturn(modesWithNull).when(rawResponsePersistencePort).findModesByCollectionInstrument("QUEST_NULL_MODE");
+
+        // WHEN + THEN
+        Assertions.assertThat(rawResponseService.getUnprocessedCollectionInstrumentIds()).isEmpty();
     }
 }
