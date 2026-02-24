@@ -461,18 +461,9 @@ public class ResponseController implements CommonApiResponse {
             //Parse metadata
             //Try to look for DDI first, if no DDI found looks for lunatic components
             List<GenesisError> errors = new ArrayList<>();
-            //TODO remove everything related to campaignId here as it was used to get DDI in old BPM versions
-            //We need to retrieve campaignId
-            Set<String> campaignIds = surveyUnitService.findCampaignIdsFrom(surveyUnitInputDto);
-            if (campaignIds.size() != 1) {
-                return ResponseEntity.status(500).body("Impossible to assign one campaignId to that response");
-            }
-            // If the size is equal to 1 we get this campaignId
-            String campaignId = campaignIds.iterator().next();
-            surveyUnitInputDto.setCampaignId(campaignId);
 
             MetadataModel metadataModel = metadataService.loadAndSaveIfNotExists(
-                    surveyUnitInputDto.getCampaignId(), //TODO remove unused,
+                    null,
                     surveyUnitInputDto.getQuestionnaireId(),
                     surveyUnitInputDto.getMode(),
                     fileUtils,

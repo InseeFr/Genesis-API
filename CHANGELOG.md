@@ -1,5 +1,9 @@
 # Changelog
-## 2.3.0 [TODO]
+## 2.3.1 [TODO]
+### Fixed
+- 500 when save edited without campaignId
+
+## 2.3.0 [2026-02-19]
 ### Added
 - Get response by-collection-instrument-and-between-datetime endpoint
 ### Fixed
