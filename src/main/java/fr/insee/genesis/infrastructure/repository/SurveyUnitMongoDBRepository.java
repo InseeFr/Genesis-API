@@ -20,6 +20,9 @@ public interface SurveyUnitMongoDBRepository extends MongoRepository<SurveyUnitD
 	List<SurveyUnitDocument> findByInterrogationIdAndQuestionnaireId(String interrogationId, String questionnaireId);
 	List<SurveyUnitDocument> findByInterrogationIdAndCollectionInstrumentId(String interrogationId, String collectionInstrumentId);
 
+	List<SurveyUnitDocument> findByUsualSurveyUnitIdAndCollectionInstrumentId(String usualSurveyUnitId, String collectionInstrumentId);
+	List<SurveyUnitDocument> findByUsualSurveyUnitIdAndQuestionnaireId(String usualSurveyUnitId, String questionnaireId);
+
 	//========= OPTIMISATIONS PERFS (START) ==========
 	/**
 	 * @author Adrien Marchal
