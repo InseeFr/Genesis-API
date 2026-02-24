@@ -1,5 +1,5 @@
 # Changelog
-## 2.3.1 [TODO]
+## 2.3.1 [2026-02-24]
 ### Fixed
 - 500 when save edited without campaignId
 
