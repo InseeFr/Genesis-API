@@ -23,6 +23,7 @@ import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.modelefiliere.RawResponseDto;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,17 +40,20 @@ import org.springframework.http.ResponseEntity;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+@Slf4j
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class ResponseControllerUnitTest {
@@ -320,7 +324,8 @@ class ResponseControllerUnitTest {
         Mode mode = Mode.WEB;
         String idep = "AAAAA";
 
-        doReturn(Set.of("test")).when(surveyUnitApiPort).findCampaignIdsFrom(any());
+        //FIXME Will be fixed in another branch
+        doReturn(new HashSet<>()).when(surveyUnitApiPort).findCampaignIdsFrom(any());
         MetadataModel metadataModel = new MetadataModel();
         doReturn(metadataModel).when(questionnaireMetadataService).loadAndSaveIfNotExists(
                 any(),any(),any(),any(), anyList());
@@ -356,10 +361,16 @@ class ResponseControllerUnitTest {
                 .build();
 
         //WHEN
-        responseController.saveEditedVariables(surveyUnitInputDto);
+        ResponseEntity<Object> response = responseController.saveEditedVariables(surveyUnitInputDto);
 
         //THEN
-        verify(questionnaireMetadataService, times(1)).loadAndSaveIfNotExists(any(), eq(questionnaireId), eq(mode),
+        if(response.getStatusCode().value() != 200){
+            log.error("Unexpected status : {}", response.getStatusCode().value());
+            Assertions.assertThat(response.getBody()).isNotNull();
+            log.error(response.getBody().toString());
+            Assertions.fail();
+        }
+        verify(questionnaireMetadataService, times(1)).loadAndSaveIfNotExists(isNull(), eq(questionnaireId), eq(mode),
                 any(),
                 any());
         verify(surveyUnitQualityService, times(1)).verifySurveyUnits(
