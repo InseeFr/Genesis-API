@@ -10,6 +10,7 @@ import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.service.contextualvariable.ContextualVariableJsonService;
 import fr.insee.genesis.domain.service.contextualvariable.external.ContextualExternalVariableJsonService;
 import fr.insee.genesis.domain.service.contextualvariable.previous.ContextualPreviousVariableJsonService;
+import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.document.contextualexternal.ContextualExternalVariableDocument;
 import fr.insee.genesis.infrastructure.document.contextualprevious.ContextualPreviousVariableDocument;
 import fr.insee.genesis.stubs.ConfigStub;
@@ -400,7 +401,7 @@ class ContextualVariableControllerTest {
         testOKCase(sourceState);
     }
 
-    private void testOKCase(String sourceState) throws IOException {
+    private void testOKCase(String sourceState) throws IOException, GenesisException {
         //GIVEN
         Path contextualPath = SOURCE_PATH_PREVIOUS.resolve("contextual");
         Files.createDirectories(contextualPath);

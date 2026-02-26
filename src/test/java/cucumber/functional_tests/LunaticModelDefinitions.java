@@ -12,6 +12,7 @@ import fr.insee.genesis.domain.service.lunaticmodel.LunaticModelService;
 import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.domain.utils.JsonUtils;
+import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.document.lunaticmodel.LunaticModelDocument;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
@@ -148,7 +149,7 @@ public class LunaticModelDefinitions {
     }
 
     @When("We get questionnaire id for interrogation {string}")
-    public void get_questionnaire_id(String interrogationId) {
+    public void get_questionnaire_id(String interrogationId) throws GenesisException {
         lastResponse = questionnaireController.getQuestionnaireByInterrogation(interrogationId);
     }
 

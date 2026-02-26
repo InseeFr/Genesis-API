@@ -13,9 +13,11 @@ import fr.insee.genesis.domain.ports.api.QuestionnaireMetadataApiPort;
 import fr.insee.genesis.domain.ports.spi.QuestionnaireMetadataPersistencePort;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.exceptions.QuestionnaireNotFoundException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.io.FileInputStream;
@@ -35,11 +37,11 @@ public class QuestionnaireMetadataService implements QuestionnaireMetadataApiPor
 
 
     @Override
-    public MetadataModel find(String collectionInstrumentId, Mode mode) throws GenesisException {
+    public MetadataModel find(String collectionInstrumentId, Mode mode) {
         List<QuestionnaireMetadataModel> questionnaireMetadataModels =
                 questionnaireMetadataPersistencePort.find(collectionInstrumentId, mode);
         if(questionnaireMetadataModels.isEmpty()){
-            throw new GenesisException(404, "Collection instrument metadata not found");
+            throw new QuestionnaireNotFoundException(collectionInstrumentId);
         }
         return questionnaireMetadataModels.getFirst().metadataModel();
     }
@@ -107,7 +109,7 @@ public class QuestionnaireMetadataService implements QuestionnaireMetadataApiPor
         }
 
         if(!errors.isEmpty()){
-            throw new GenesisException(404, errors.getLast().getMessage());
+            throw new GenesisException(HttpStatus.NOT_FOUND, errors.getLast().getMessage());
         }
         return metadataModel;
     }

@@ -10,6 +10,7 @@ import fr.insee.genesis.infrastructure.repository.LastJsonExtractionMongoDBRepos
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -39,7 +40,7 @@ public class LastJsonExtractionMongoAdapter implements LastJsonExtractionPersist
             return LastJsonExtractionDocumentMapper.INSTANCE.documentToModel(extraction.get());
         } else {
             String message = String.format("No extraction date found for collection instrument %s and mode %s",collectionInstrumentId,mode==null?null:mode.getModeName());
-            throw new GenesisException(404,message);
+            throw new GenesisException(HttpStatus.NOT_FOUND,message);
         }
     }
 

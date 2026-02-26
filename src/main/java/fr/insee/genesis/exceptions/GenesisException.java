@@ -2,21 +2,20 @@ package fr.insee.genesis.exceptions;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.springframework.http.HttpStatus;
 
 import java.io.Serial;
 
 @Getter
-@AllArgsConstructor
-public class GenesisException extends Exception{
+public class GenesisException extends Exception {
 
-    /**
-	 * 
-	 */
-	@Serial
-	private static final long serialVersionUID = 3356078796351491095L;
+    @Serial
+    private static final long serialVersionUID = 3356078796351491095L;
 
-	private final int status;
+    private final HttpStatus status;
 
-    private final String message;
-
+    public GenesisException(HttpStatus status, String message) {
+        super(message);
+        this.status = status;
+    }
 }

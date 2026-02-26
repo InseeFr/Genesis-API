@@ -372,7 +372,7 @@ class ResponseControllerTest {
     }
 
     @Test
-    void saveEditedTest() {
+    void saveEditedTest() throws GenesisException {
         //GIVEN
         surveyUnitPersistencePortStub.getMongoStub().clear();
         String questionnaireId = DEFAULT_COLLECTION_INSTRUMENT_ID;
@@ -433,7 +433,7 @@ class ResponseControllerTest {
     }
 
     @Test
-    void saveEditedTest_DocumentEdited() {
+    void saveEditedTest_DocumentEdited() throws GenesisException {
         //GIVEN
         surveyUnitPersistencePortStub.getMongoStub().clear();
         String questionnaireId = DEFAULT_COLLECTION_INSTRUMENT_ID;
@@ -503,7 +503,7 @@ class ResponseControllerTest {
     }
 
     @Test
-    void saveEditedTest_DocumentFormatted() {
+    void saveEditedTest_DocumentFormatted() throws GenesisException {
         //GIVEN
         surveyUnitPersistencePortStub.getMongoStub().clear();
         String questionnaireId = DEFAULT_COLLECTION_INSTRUMENT_ID;
@@ -574,7 +574,7 @@ class ResponseControllerTest {
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getModifiedBy()).isNull();
     }
     @Test
-    void saveEditedTest_No_Metadata_Error() {
+    void saveEditedTest_No_Metadata_Error() throws GenesisException {
         //GIVEN
         surveyUnitPersistencePortStub.getMongoStub().clear();
         String campaignId = "TEST";
@@ -619,7 +619,7 @@ class ResponseControllerTest {
     }
 
     @Test
-    void saveTest_With_Collected_State_Error(){
+    void saveTest_With_Collected_State_Error() throws GenesisException {
         //GIVEN
         surveyUnitPersistencePortStub.getMongoStub().clear();
         String varId = "PRENOM_C";
@@ -658,7 +658,7 @@ class ResponseControllerTest {
     }
 
     @Test
-    void saveEditedTest_int() {
+    void saveEditedTest_int() throws GenesisException {
         //GIVEN
         surveyUnitPersistencePortStub.getMongoStub().clear();
         String questionnaireId = DEFAULT_COLLECTION_INSTRUMENT_ID;
@@ -719,7 +719,7 @@ class ResponseControllerTest {
     }
 
     @Test
-    void saveEditedTest_null() {
+    void saveEditedTest_null() throws GenesisException {
         //GIVEN
         surveyUnitPersistencePortStub.getMongoStub().clear();
         String questionnaireId = DEFAULT_COLLECTION_INSTRUMENT_ID;

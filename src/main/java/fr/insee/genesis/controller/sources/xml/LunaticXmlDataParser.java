@@ -3,6 +3,7 @@ package fr.insee.genesis.controller.sources.xml;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.exceptions.GenesisException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -41,7 +42,7 @@ public class LunaticXmlDataParser {
         DocumentBuilder builder = factory.newDocumentBuilder();
         Document document = builder.parse(file);
         if (document == null){
-            throw new GenesisException(500,"Can't read file {}");
+            throw new GenesisException(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to read XML file: " + filePath.getFileName());
         }
         return document;
     }
@@ -246,7 +247,7 @@ public class LunaticXmlDataParser {
                 varData.setPrevious(valueTypes);
                 break;
             default:
-                throw new GenesisException(421, String.format("Tag %s not recognized", valueElement.getTagName()));
+                throw new GenesisException(HttpStatus.DESTINATION_LOCKED, "Tag not recognized: " + valueElement.getTagName());
         }
     }
 

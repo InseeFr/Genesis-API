@@ -4,9 +4,11 @@ import fr.insee.genesis.domain.model.lunaticmodel.LunaticModelModel;
 import fr.insee.genesis.domain.ports.api.LunaticModelApiPort;
 import fr.insee.genesis.domain.ports.spi.LunaticModelPersistancePort;
 import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.exceptions.QuestionnaireNotFoundException;
 import fr.insee.genesis.infrastructure.mappers.LunaticModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -34,9 +36,9 @@ public class LunaticModelService implements LunaticModelApiPort {
     }
 
     @Override
-    public LunaticModelModel get(String collectionInstrumentId) throws GenesisException {
+    public LunaticModelModel get(String collectionInstrumentId) {
         if(lunaticModelPersistancePort.find(collectionInstrumentId).isEmpty()){
-            throw new GenesisException(404,"Questionnaire not found");
+            throw new QuestionnaireNotFoundException(collectionInstrumentId);
         }
         return LunaticModelMapper.INSTANCE.documentToModel(lunaticModelPersistancePort.find(collectionInstrumentId).getFirst());
     }
