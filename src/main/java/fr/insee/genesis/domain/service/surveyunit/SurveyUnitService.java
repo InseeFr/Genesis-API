@@ -238,15 +238,15 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     ) {
         List<SurveyUnitSimplifiedDto> results = new ArrayList<>();
         List<Mode> modes = findModesByCollectionInstrumentId(collectionInstrumentId);
-        interrogationIds.forEach(interrogationId -> {
+        interrogationIds.forEach(interrogationId ->
             modes.forEach(mode ->
                     results.add(
                             findSimplifiedByCollectionInstrumentIdAndInterrogationId(
                                     collectionInstrumentId, interrogationId.getInterrogationId(), mode
                             )
                     )
-            );
-        });
+            )
+        );
         return results;
     }
 
