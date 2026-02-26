@@ -108,9 +108,12 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                 latestUpdate.setExternalVariables(new ArrayList<>());
             }
 
-            latestUpdate.getCollectedVariables().forEach(colVar -> addedVariables.add(new VarIdScopeTuple(colVar.varId(),
-                    colVar.scope(), colVar.iteration())));
-            latestUpdate.getExternalVariables().forEach(extVar -> addedVariables.add(new VarIdScopeTuple(extVar.varId(), extVar.scope(), extVar.iteration())));
+            latestUpdate.getCollectedVariables().forEach(colVar ->
+                    addedVariables.add(new VarIdScopeTuple(colVar.varId(), colVar.scope(), colVar.iteration()))
+            );
+            latestUpdate.getExternalVariables().forEach(extVar ->
+                    addedVariables.add(new VarIdScopeTuple(extVar.varId(), extVar.scope(), extVar.iteration())))
+            ;
 
             suByMode.forEach(surveyUnitModel -> {
                 List<VariableModel> collectedVariablesToKeep = new ArrayList<>();
@@ -147,7 +150,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     }
 
     @Override
-    public SurveyUnitSimplifiedDto findLatestByCollectionInstrumentIdAndInterrogationId(String collectionInstrumentId, String interrogationId, Mode mode) throws GenesisException {
+    public SurveyUnitSimplifiedDto findSimplifiedByCollectionInstrumentIdAndInterrogationId(String collectionInstrumentId, String interrogationId, Mode mode) throws GenesisException {
         List<SurveyUnitModel> responses = findLatestByIdAndByCollectionInstrumentId(interrogationId, collectionInstrumentId);
         List<VariableModel> outputVariables = new ArrayList<>();
         List<VariableModel> outputExternalVariables = new ArrayList<>();
@@ -179,7 +182,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     }
 
     @Override
-    public List<SurveyUnitSimplifiedDto> findLatestByCollectionInstrumentIdAndInterrogationIdList(String collectionInstrumentId, List<InterrogationId> interrogationIds) throws GenesisException {
+    public List<SurveyUnitSimplifiedDto> findSimplifiedByCollectionInstrumentIdAndInterrogationIdList(String collectionInstrumentId, List<InterrogationId> interrogationIds) throws GenesisException {
         List<SurveyUnitSimplifiedDto> results = new ArrayList<>();
         List<Mode> modes = findModesByCollectionInstrumentId(collectionInstrumentId);
         interrogationIds.forEach(interrogationId -> {

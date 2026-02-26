@@ -28,13 +28,13 @@ public interface SurveyUnitApiPort {
 
     List<SurveyUnitModel> findLatestByIdAndByCollectionInstrumentId(String interrogationId, String collectionInstrumentId);
 
-    SurveyUnitSimplifiedDto findLatestByCollectionInstrumentIdAndInterrogationId(
+    SurveyUnitSimplifiedDto findSimplifiedByCollectionInstrumentIdAndInterrogationId(
             String collectionInstrumentId,
             String interrogationId,
             Mode mode
     ) throws GenesisException;
 
-    List<SurveyUnitSimplifiedDto> findLatestByCollectionInstrumentIdAndInterrogationIdList(
+    List<SurveyUnitSimplifiedDto> findSimplifiedByCollectionInstrumentIdAndInterrogationIdList(
             String collectionInstrumentId,
             List<InterrogationId> interrogationIds
     ) throws GenesisException;

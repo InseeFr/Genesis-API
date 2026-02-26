@@ -73,7 +73,7 @@ class ResponseControllerUnitTest {
         String interrogationId = "interrogationTest";
         Mode mode = Mode.WEB;
         SurveyUnitSimplifiedDto surveyUnitSimplifiedDto = SurveyUnitSimplifiedDto.builder().build();
-        doReturn(surveyUnitSimplifiedDto).when(surveyUnitApiPort).findLatestByCollectionInstrumentIdAndInterrogationId(
+        doReturn(surveyUnitSimplifiedDto).when(surveyUnitApiPort).findSimplifiedByCollectionInstrumentIdAndInterrogationId(
                 collectionInstrumentId,
                 interrogationId,
                 mode
@@ -88,7 +88,7 @@ class ResponseControllerUnitTest {
 
         //THEN
         Assertions.assertThat(response.getStatusCode().value()).isEqualTo(200);
-        verify(surveyUnitApiPort, times(1)).findLatestByCollectionInstrumentIdAndInterrogationId(
+        verify(surveyUnitApiPort, times(1)).findSimplifiedByCollectionInstrumentIdAndInterrogationId(
                 collectionInstrumentId,
                 interrogationId,
                 mode
@@ -115,7 +115,7 @@ class ResponseControllerUnitTest {
                 surveyUnitSimplifiedDto1,
                 surveyUnitSimplifiedDto2
         );
-        doReturn(surveyUnitSimplifiedDtos).when(surveyUnitApiPort).findLatestByCollectionInstrumentIdAndInterrogationIdList(
+        doReturn(surveyUnitSimplifiedDtos).when(surveyUnitApiPort).findSimplifiedByCollectionInstrumentIdAndInterrogationIdList(
                 collectionInstrumentId,
                 interrogationIds
         );
@@ -128,7 +128,7 @@ class ResponseControllerUnitTest {
 
         //THEN
         Assertions.assertThat(response.getStatusCode().value()).isEqualTo(200);
-        verify(surveyUnitApiPort, times(1)).findLatestByCollectionInstrumentIdAndInterrogationIdList(
+        verify(surveyUnitApiPort, times(1)).findSimplifiedByCollectionInstrumentIdAndInterrogationIdList(
                 collectionInstrumentId,
                 interrogationIds
         );

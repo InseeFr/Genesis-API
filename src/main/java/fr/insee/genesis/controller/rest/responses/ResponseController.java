@@ -334,7 +334,7 @@ public class ResponseController implements CommonApiResponse {
             @RequestParam("mode") Mode mode) {
         try{
             return ResponseEntity.ok(
-                    surveyUnitService.findLatestByCollectionInstrumentIdAndInterrogationId(
+                    surveyUnitService.findSimplifiedByCollectionInstrumentIdAndInterrogationId(
                             collectionInstrumentId,
                             interrogationId,
                             mode
@@ -415,7 +415,7 @@ public class ResponseController implements CommonApiResponse {
     {
         try{
             return ResponseEntity.ok(
-                    surveyUnitService.findLatestByCollectionInstrumentIdAndInterrogationIdList(
+                    surveyUnitService.findSimplifiedByCollectionInstrumentIdAndInterrogationIdList(
                             collectionInstrumentId,
                             interrogationIds
                     )
