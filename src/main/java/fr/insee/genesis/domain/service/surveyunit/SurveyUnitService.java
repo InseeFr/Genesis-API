@@ -6,6 +6,7 @@ import fr.insee.genesis.controller.dto.CampaignWithQuestionnaire;
 import fr.insee.genesis.controller.dto.QuestionnaireWithCampaign;
 import fr.insee.genesis.controller.dto.SurveyUnitDto;
 import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
+import fr.insee.genesis.controller.dto.SurveyUnitSimplifiedDto;
 import fr.insee.genesis.controller.dto.VariableDto;
 import fr.insee.genesis.controller.dto.VariableInputDto;
 import fr.insee.genesis.controller.dto.VariableStateDto;
@@ -22,6 +23,7 @@ import fr.insee.genesis.domain.utils.GroupUtils;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.exceptions.QuestionnaireNotFoundException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
+import fr.insee.modelefiliere.RawResponseDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -76,6 +78,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
 
     /**
      * In this method we want to get the latest update for each variable of a survey unit
+     * 1 SurveyUnitModel / Document
      * But we need to separate the updates by mode
      * So we will calculate the latest state for a given collection mode
      * @param interrogationId : Interrogation id
@@ -106,15 +109,19 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                 latestUpdate.setExternalVariables(new ArrayList<>());
             }
 
-            latestUpdate.getCollectedVariables().forEach(colVar -> addedVariables.add(new VarIdScopeTuple(colVar.varId(),
-                    colVar.scope(), colVar.iteration())));
-            latestUpdate.getExternalVariables().forEach(extVar -> addedVariables.add(new VarIdScopeTuple(extVar.varId(), extVar.scope(), extVar.iteration())));
+            latestUpdate.getCollectedVariables().forEach(colVar ->
+                    addedVariables.add(new VarIdScopeTuple(colVar.varId(), colVar.scope(), colVar.iteration()))
+            );
+            latestUpdate.getExternalVariables().forEach(extVar ->
+                    addedVariables.add(new VarIdScopeTuple(extVar.varId(), extVar.scope(), extVar.iteration())))
+            ;
 
             suByMode.forEach(surveyUnitModel -> {
                 List<VariableModel> collectedVariablesToKeep = new ArrayList<>();
                 List<VariableModel> externalVariablesToKeep = new ArrayList<>();
                 // We iterate over the variables of the update and add them to the list if they are not already added
                 if (surveyUnitModel.getCollectedVariables() != null) {
+                    addDataStateIntoCollectedVariables(surveyUnitModel);
                     surveyUnitModel.getCollectedVariables().stream()
                             .filter(colVar -> !addedVariables.contains(new VarIdScopeTuple(colVar.varId(), colVar.scope()
                                     , colVar.iteration())))
@@ -124,6 +131,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                             });
                 }
                 if (surveyUnitModel.getExternalVariables() != null){
+                    addDataStateIntoExternalVariables(surveyUnitModel);
                     surveyUnitModel.getExternalVariables().stream()
                          .filter(extVar -> !addedVariables.contains(new VarIdScopeTuple(extVar.varId(), extVar.scope(),
                                  extVar.iteration())))
@@ -142,6 +150,129 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             });
         });
         return latestUpdatesbyVariables;
+    }
+
+    /**
+     * This method adds the SurveyUnitModel dataState into its variables, as the variable Document doesn't have it
+     */
+    private void addDataStateIntoCollectedVariables(SurveyUnitModel surveyUnitModel) {
+        surveyUnitModel.getCollectedVariables().replaceAll(
+                variableModel -> variableModel.state() == null ?
+                        VariableModel.builder()
+                                .varId(variableModel.varId())
+                                .value(variableModel.value())
+                                .state(surveyUnitModel.getState())
+                                .scope(variableModel.scope())
+                                .iteration(variableModel.iteration())
+                                .parentId(variableModel.parentId())
+                                .build()
+                        : variableModel
+        );
+    }
+
+    /**
+     * This method adds the SurveyUnitModel dataState into its variables, as the variable Document doesn't have it
+     */
+    private void addDataStateIntoExternalVariables(SurveyUnitModel surveyUnitModel) {
+        surveyUnitModel.getExternalVariables().replaceAll(
+                variableModel -> variableModel.state() == null ?
+                        VariableModel.builder()
+                                .varId(variableModel.varId())
+                                .value(variableModel.value())
+                                .state(surveyUnitModel.getState())
+                                .scope(variableModel.scope())
+                                .iteration(variableModel.iteration())
+                                .parentId(variableModel.parentId())
+                                .build()
+                        : variableModel
+        );
+    }
+
+    /**
+     * Gets all documents of an interrogation and merges them into a single DTO
+     * @return a SurveyUnitSimplifiedDto of the interrogation
+     */
+    @Override
+    public SurveyUnitSimplifiedDto findSimplifiedByCollectionInstrumentIdAndInterrogationId(String collectionInstrumentId, String interrogationId, Mode mode) throws GenesisException {
+        List<SurveyUnitModel> responses = findLatestByIdAndByCollectionInstrumentId(interrogationId, collectionInstrumentId);
+        List<VariableModel> outputVariables = new ArrayList<>();
+        List<VariableModel> outputExternalVariables = new ArrayList<>();
+        RawResponseDto.QuestionnaireStateEnum questionnaireState = null;
+        LocalDateTime validationDate = null;
+        for (SurveyUnitModel response :
+                responses.stream().filter(rep -> rep.getMode().equals(mode)).toList()){
+            questionnaireState = response.getQuestionnaireState() != null ?
+                    response.getQuestionnaireState()
+                    : questionnaireState;
+            validationDate = response.getValidationDate() != null ?
+                    response.getValidationDate()
+                    : validationDate;
+
+            outputVariables.addAll(response.getCollectedVariables());
+            outputExternalVariables.addAll(response.getExternalVariables());
+        }
+        return SurveyUnitSimplifiedDto.builder()
+                .collectionInstrumentId(responses.getFirst().getCollectionInstrumentId())
+                .campaignId(responses.getFirst().getCampaignId())
+                .interrogationId(responses.getFirst().getInterrogationId())
+                .mode(mode)
+                .usualSurveyUnitId(responses.getFirst().getUsualSurveyUnitId())
+                .validationDate(validationDate)
+                .questionnaireState(questionnaireState)
+                .variablesUpdate(outputVariables)
+                .externalVariables(outputExternalVariables)
+                .build();
+    }
+
+    /**
+     * Gets all documents of an interrogation and merges them into DTOs
+     * @return a SurveyUnitSimplifiedDto list, 1 DTO / Interrogation
+     */
+    @Override
+    public List<SurveyUnitSimplifiedDto> findSimplifiedByCollectionInstrumentIdAndInterrogationIdList(String collectionInstrumentId, List<InterrogationId> interrogationIds) throws GenesisException {
+        List<SurveyUnitSimplifiedDto> results = new ArrayList<>();
+        List<Mode> modes = findModesByCollectionInstrumentId(collectionInstrumentId);
+        interrogationIds.forEach(interrogationId -> {
+            List<SurveyUnitModel> responses = findLatestByIdAndByCollectionInstrumentId(
+                    interrogationId.getInterrogationId(), collectionInstrumentId
+            );
+            modes.forEach(mode -> {
+                List<VariableModel> outputVariables = new ArrayList<>();
+                List<VariableModel> outputExternalVariables = new ArrayList<>();
+                List<String> usualSurveyUnitIds = new ArrayList<>();
+                RawResponseDto.QuestionnaireStateEnum questionnaireState = null;
+                LocalDateTime validationDate = null;
+                for (SurveyUnitModel response :
+                        responses.stream().filter(rep -> rep.getMode().equals(mode)).toList()){
+                    questionnaireState = response.getQuestionnaireState() != null ?
+                            response.getQuestionnaireState()
+                            : questionnaireState;
+                    validationDate = response.getValidationDate() != null ?
+                            response.getValidationDate()
+                            : validationDate;
+
+                    outputVariables.addAll(response.getCollectedVariables());
+                    outputExternalVariables.addAll(response.getExternalVariables());
+                    if(response.getUsualSurveyUnitId() != null){
+                        usualSurveyUnitIds.add(response.getUsualSurveyUnitId());
+                    }
+                }
+                if (!outputVariables.isEmpty() || !outputExternalVariables.isEmpty()) {
+                    results.add(SurveyUnitSimplifiedDto.builder()
+                            .collectionInstrumentId(responses.getFirst().getCollectionInstrumentId())
+                            .campaignId(responses.getFirst().getCampaignId())
+                            .interrogationId(interrogationId.getInterrogationId())
+                            .usualSurveyUnitId(!usualSurveyUnitIds.isEmpty() ? usualSurveyUnitIds.getFirst() : null)
+                            .mode(mode)
+                            .validationDate(validationDate)
+                            .questionnaireState(questionnaireState)
+                            .variablesUpdate(outputVariables)
+                            .externalVariables(outputExternalVariables)
+                            .build());
+                }
+            });
+        });
+        return results;
     }
 
 

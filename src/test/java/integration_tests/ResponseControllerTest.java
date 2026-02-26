@@ -6,7 +6,7 @@ import fr.insee.genesis.TestConstants;
 import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
 import fr.insee.genesis.controller.dto.SurveyUnitQualityToolDto;
-import fr.insee.genesis.controller.dto.SurveyUnitSimplified;
+import fr.insee.genesis.controller.dto.SurveyUnitSimplifiedDto;
 import fr.insee.genesis.controller.dto.VariableInputDto;
 import fr.insee.genesis.controller.dto.VariableQualityToolDto;
 import fr.insee.genesis.controller.dto.VariableStateInputDto;
@@ -188,7 +188,7 @@ class ResponseControllerTest {
 
     @Test
     void getLatestByUEOneObjectTest() {
-        ResponseEntity<SurveyUnitSimplified> response = responseControllerStatic.getLatestByInterrogationOneObject(DEFAULT_INTERROGATION_ID, DEFAULT_COLLECTION_INSTRUMENT_ID, Mode.WEB);
+        ResponseEntity<SurveyUnitSimplifiedDto> response = responseControllerStatic.getLatestByInterrogationOneObject(DEFAULT_INTERROGATION_ID, DEFAULT_COLLECTION_INSTRUMENT_ID, Mode.WEB);
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull();
@@ -199,7 +199,7 @@ class ResponseControllerTest {
 
     @Test
     void getLatestForUEListTest() {
-        ResponseEntity<List<SurveyUnitSimplified>> response = responseControllerStatic.getLatestForInterrogationListAndCollectionInstrument(DEFAULT_COLLECTION_INSTRUMENT_ID, interrogationIdList);
+        ResponseEntity<List<SurveyUnitSimplifiedDto>> response = responseControllerStatic.getLatestForInterrogationListAndCollectionInstrument(DEFAULT_COLLECTION_INSTRUMENT_ID, interrogationIdList);
 
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
