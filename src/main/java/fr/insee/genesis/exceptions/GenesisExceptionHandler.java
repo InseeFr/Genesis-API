@@ -55,15 +55,15 @@ public class GenesisExceptionHandler {
     }
 
     @ExceptionHandler(ReviewDisabledException.class)
-    public ResponseEntity<String> handleReviewDisabled(ReviewDisabledException ex) {
-        log.error("[{}] {}", ex.getClass().getSimpleName(), ex.getMessage());
+    public ResponseEntity<String> handleReviewDisabled(ReviewDisabledException exception) {
+        log.error("[{}] {}", exception.getClass().getSimpleName(), exception.getMessage());
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(ex.getMessage());
+                .body(exception.getMessage());
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> handleAny(Exception ex) {
-        log.error("Unexpected error (Type: {}) : {}", ex.getClass().getSimpleName(), ex.getMessage());
+    public ResponseEntity<String> handleAny(Exception exception) {
+        log.error("Unexpected error (Type: {}) : {}", exception.getClass().getSimpleName(), exception.getMessage(), exception);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("Internal server error");
     }
