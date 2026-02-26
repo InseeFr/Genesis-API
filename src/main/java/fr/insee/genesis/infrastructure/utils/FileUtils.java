@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
@@ -130,7 +131,7 @@ public class FileUtils {
 	public Path findFile(String directory, String regex) throws IOException {
 		try (Stream<Path> files = Files.find(Path.of(directory), 1, (path, basicFileAttributes) -> path.toFile().getName().toLowerCase().matches(regex))) {
 			return files.findFirst()
-					.orElseThrow(() -> new RuntimeException("No file (%s) found in ".formatted(regex) + directory));
+					.orElseThrow(() -> new NoSuchFileException("No file (%s) found in %s".formatted(regex, directory)));
 		}
 	}
 

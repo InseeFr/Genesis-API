@@ -578,8 +578,8 @@ public class ResponseController implements CommonApiResponse {
             fileUtils.moveDataFile(campaignName, mode.getFolder(),filepath);
             return;
         }
-        log.error("Error {} on file {} : {}", response.getStatusCode(), fileName,  response.getBody());
-
+        log.error("Failed to process file {} for campaign {} mode {} (HTTP: {})",
+                fileName, campaignName, mode.getModeName(), response.getStatusCode());
     }
 
     private static long getFileSizeInMB(Path filepath) {
@@ -676,6 +676,7 @@ public class ResponseController implements CommonApiResponse {
         return variablesMap;
     }
 
+    //
     private static VariablesMap getVariablesMapWithPath(String metadataFilePath) throws GenesisException {
         if(metadataFilePath.endsWith(".xml")) {
             //Parse DDI

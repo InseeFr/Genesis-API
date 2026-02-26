@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -82,7 +83,7 @@ public class QuestionnaireMetadataService implements QuestionnaireMetadataApiPor
      * @return VariablesMap or null if parsing fails
      */
     private MetadataModel readMetadatas(String campaignName, String modeName, FileUtils fileUtils,
-                                  List<GenesisError> errors) throws GenesisException{
+                                        List<GenesisError> errors) throws GenesisException{
 
         Path ddiFilePath;
         Path lunaticFilePath;
@@ -91,7 +92,8 @@ public class QuestionnaireMetadataService implements QuestionnaireMetadataApiPor
             ddiFilePath = fileUtils.findFile(String.format("%s/%s", fileUtils.getSpecFolder(campaignName), modeName), DDI_FILE_PATTERN);
             lunaticFilePath = fileUtils.findFile(String.format("%s/%s", fileUtils.getSpecFolder(campaignName), modeName), LUNATIC_FILE_PATTERN);
             metadataModel = parseMetadata(lunaticFilePath, ddiFilePath);
-        } catch (RuntimeException e) {
+        } catch (NoSuchFileException e) {
+            log.warn("Specification file missing for campaign={}, mode={}", campaignName, modeName);
             //DDI file not found and already log - Go to next step
         } catch (IOException e) {
             log.warn("No DDI File found for {}, {} mode. Will try to use Lunatic...", campaignName, modeName);
