@@ -333,7 +333,6 @@ public class ResponseController implements CommonApiResponse {
             @PathVariable("collectionInstrumentId") String collectionInstrumentId,
             @PathVariable("interrogationId") String interrogationId,
             @RequestParam("mode") Mode mode) {
-        try{
             return ResponseEntity.ok(
                     surveyUnitService.findSimplifiedByCollectionInstrumentIdAndInterrogationId(
                             collectionInstrumentId,
@@ -341,9 +340,6 @@ public class ResponseController implements CommonApiResponse {
                             mode
                     )
             );
-        }catch (GenesisException ge){
-            return ResponseEntity.status(ge.getStatus()).build();
-        }
     }
 
     /**
@@ -414,18 +410,13 @@ public class ResponseController implements CommonApiResponse {
             @PathVariable("collectionInstrumentId") String collectionInstrumentId,
             @RequestBody List<InterrogationId> interrogationIds)
     {
-        try{
-            return ResponseEntity.ok(
-                    surveyUnitService.findSimplifiedByCollectionInstrumentIdAndInterrogationIdList(
-                            collectionInstrumentId,
-                            interrogationIds
-                    )
-            );
-        }catch (GenesisException ge){
-            return ResponseEntity.status(ge.getStatus()).build();
-        }
+        return ResponseEntity.ok(
+                surveyUnitService.findSimplifiedByCollectionInstrumentIdAndInterrogationIdList(
+                        collectionInstrumentId,
+                        interrogationIds
+                )
+        );
     }
-
 
     @Operation(summary = "Save edited variables",
             description = "Save edited variables document into database")

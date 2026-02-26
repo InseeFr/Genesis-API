@@ -193,7 +193,10 @@ public class SurveyUnitService implements SurveyUnitApiPort {
      * @return a SurveyUnitSimplifiedDto of the interrogation
      */
     @Override
-    public SurveyUnitSimplifiedDto findSimplifiedByCollectionInstrumentIdAndInterrogationId(String collectionInstrumentId, String interrogationId, Mode mode) throws GenesisException {
+    public SurveyUnitSimplifiedDto findSimplifiedByCollectionInstrumentIdAndInterrogationId(
+            String collectionInstrumentId,
+            String interrogationId,
+            Mode mode){
         List<SurveyUnitModel> responses = findLatestByIdAndByCollectionInstrumentId(interrogationId, collectionInstrumentId);
         List<VariableModel> outputVariables = new ArrayList<>();
         List<VariableModel> outputExternalVariables = new ArrayList<>();
@@ -229,49 +232,21 @@ public class SurveyUnitService implements SurveyUnitApiPort {
      * @return a SurveyUnitSimplifiedDto list, 1 DTO / Interrogation
      */
     @Override
-    public List<SurveyUnitSimplifiedDto> findSimplifiedByCollectionInstrumentIdAndInterrogationIdList(String collectionInstrumentId, List<InterrogationId> interrogationIds) throws GenesisException {
+    public List<SurveyUnitSimplifiedDto> findSimplifiedByCollectionInstrumentIdAndInterrogationIdList(
+            String collectionInstrumentId,
+            List<InterrogationId> interrogationIds
+    ) {
         List<SurveyUnitSimplifiedDto> results = new ArrayList<>();
         List<Mode> modes = findModesByCollectionInstrumentId(collectionInstrumentId);
-        interrogationIds.forEach(interrogationId -> {
-            List<SurveyUnitModel> responses = findLatestByIdAndByCollectionInstrumentId(
-                    interrogationId.getInterrogationId(), collectionInstrumentId
-            );
-            modes.forEach(mode -> {
-                List<VariableModel> outputVariables = new ArrayList<>();
-                List<VariableModel> outputExternalVariables = new ArrayList<>();
-                List<String> usualSurveyUnitIds = new ArrayList<>();
-                RawResponseDto.QuestionnaireStateEnum questionnaireState = null;
-                LocalDateTime validationDate = null;
-                for (SurveyUnitModel response :
-                        responses.stream().filter(rep -> rep.getMode().equals(mode)).toList()){
-                    questionnaireState = response.getQuestionnaireState() != null ?
-                            response.getQuestionnaireState()
-                            : questionnaireState;
-                    validationDate = response.getValidationDate() != null ?
-                            response.getValidationDate()
-                            : validationDate;
-
-                    outputVariables.addAll(response.getCollectedVariables());
-                    outputExternalVariables.addAll(response.getExternalVariables());
-                    if(response.getUsualSurveyUnitId() != null){
-                        usualSurveyUnitIds.add(response.getUsualSurveyUnitId());
-                    }
-                }
-                if (!outputVariables.isEmpty() || !outputExternalVariables.isEmpty()) {
-                    results.add(SurveyUnitSimplifiedDto.builder()
-                            .collectionInstrumentId(responses.getFirst().getCollectionInstrumentId())
-                            .campaignId(responses.getFirst().getCampaignId())
-                            .interrogationId(interrogationId.getInterrogationId())
-                            .usualSurveyUnitId(!usualSurveyUnitIds.isEmpty() ? usualSurveyUnitIds.getFirst() : null)
-                            .mode(mode)
-                            .validationDate(validationDate)
-                            .questionnaireState(questionnaireState)
-                            .variablesUpdate(outputVariables)
-                            .externalVariables(outputExternalVariables)
-                            .build());
-                }
-            });
-        });
+        interrogationIds.forEach(interrogationId ->
+            modes.forEach(mode ->
+                    results.add(
+                            findSimplifiedByCollectionInstrumentIdAndInterrogationId(
+                                    collectionInstrumentId, interrogationId.getInterrogationId(), mode
+                            )
+                    )
+            )
+        );
         return results;
     }
 

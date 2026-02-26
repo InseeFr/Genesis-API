@@ -32,12 +32,12 @@ public interface SurveyUnitApiPort {
             String collectionInstrumentId,
             String interrogationId,
             Mode mode
-    ) throws GenesisException;
+    );
 
     List<SurveyUnitSimplifiedDto> findSimplifiedByCollectionInstrumentIdAndInterrogationIdList(
             String collectionInstrumentId,
             List<InterrogationId> interrogationIds
-    ) throws GenesisException;
+    );
 
 
     //========= OPTIMISATIONS PERFS (START) ==========
