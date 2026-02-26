@@ -78,6 +78,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
 
     /**
      * In this method we want to get the latest update for each variable of a survey unit
+     * 1 SurveyUnitModel / Document
      * But we need to separate the updates by mode
      * So we will calculate the latest state for a given collection mode
      * @param interrogationId : Interrogation id
@@ -120,6 +121,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                 List<VariableModel> externalVariablesToKeep = new ArrayList<>();
                 // We iterate over the variables of the update and add them to the list if they are not already added
                 if (surveyUnitModel.getCollectedVariables() != null) {
+                    addDataStateIntoCollectedVariables(surveyUnitModel);
                     surveyUnitModel.getCollectedVariables().stream()
                             .filter(colVar -> !addedVariables.contains(new VarIdScopeTuple(colVar.varId(), colVar.scope()
                                     , colVar.iteration())))
@@ -129,6 +131,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                             });
                 }
                 if (surveyUnitModel.getExternalVariables() != null){
+                    addDataStateIntoExternalVariables(surveyUnitModel);
                     surveyUnitModel.getExternalVariables().stream()
                          .filter(extVar -> !addedVariables.contains(new VarIdScopeTuple(extVar.varId(), extVar.scope(),
                                  extVar.iteration())))
@@ -149,6 +152,46 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         return latestUpdatesbyVariables;
     }
 
+    /**
+     * This method adds the SurveyUnitModel dataState into its variables, as the variable Document doesn't have it
+     */
+    private void addDataStateIntoCollectedVariables(SurveyUnitModel surveyUnitModel) {
+        surveyUnitModel.getCollectedVariables().replaceAll(
+                variableModel -> variableModel.state() == null ?
+                        VariableModel.builder()
+                                .varId(variableModel.varId())
+                                .value(variableModel.value())
+                                .state(surveyUnitModel.getState())
+                                .scope(variableModel.scope())
+                                .iteration(variableModel.iteration())
+                                .parentId(variableModel.parentId())
+                                .build()
+                        : variableModel
+        );
+    }
+
+    /**
+     * This method adds the SurveyUnitModel dataState into its variables, as the variable Document doesn't have it
+     */
+    private void addDataStateIntoExternalVariables(SurveyUnitModel surveyUnitModel) {
+        surveyUnitModel.getExternalVariables().replaceAll(
+                variableModel -> variableModel.state() == null ?
+                        VariableModel.builder()
+                                .varId(variableModel.varId())
+                                .value(variableModel.value())
+                                .state(surveyUnitModel.getState())
+                                .scope(variableModel.scope())
+                                .iteration(variableModel.iteration())
+                                .parentId(variableModel.parentId())
+                                .build()
+                        : variableModel
+        );
+    }
+
+    /**
+     * Gets all documents of an interrogation and merges them into a single DTO
+     * @return a SurveyUnitSimplifiedDto of the interrogation
+     */
     @Override
     public SurveyUnitSimplifiedDto findSimplifiedByCollectionInstrumentIdAndInterrogationId(String collectionInstrumentId, String interrogationId, Mode mode) throws GenesisException {
         List<SurveyUnitModel> responses = findLatestByIdAndByCollectionInstrumentId(interrogationId, collectionInstrumentId);
@@ -181,6 +224,10 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                 .build();
     }
 
+    /**
+     * Gets all documents of an interrogation and merges them into DTOs
+     * @return a SurveyUnitSimplifiedDto list, 1 DTO / Interrogation
+     */
     @Override
     public List<SurveyUnitSimplifiedDto> findSimplifiedByCollectionInstrumentIdAndInterrogationIdList(String collectionInstrumentId, List<InterrogationId> interrogationIds) throws GenesisException {
         List<SurveyUnitSimplifiedDto> results = new ArrayList<>();

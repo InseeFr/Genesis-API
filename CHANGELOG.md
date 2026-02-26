@@ -2,6 +2,7 @@
 ## 2.4.0 [TODO]
 ### Added
 - Restful endpoints to get latest responses without the logic in it (not to be confused with get latest states)
+- Simplified survey units now have datastate in their variables
 ### Changed
 - Deprecated non-restful old endpoint
 
