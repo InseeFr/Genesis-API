@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -226,7 +227,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
         VariablesMap variablesMap = metadataService.loadAndSaveIfNotExists(questionnaireId, questionnaireId, mode, fileUtils,
                 errors).getVariables();
         if (variablesMap == null) {
-            throw new GenesisException(400,
+            throw new GenesisException(HttpStatus.BAD_REQUEST,
                     "Error during metadata parsing for mode %s :%n%s"
                             .formatted(mode, errors.getLast().getMessage())
             );

@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.support.CronExpression;
@@ -46,7 +47,7 @@ public class DataProcessingContextController {
             withReview = withReview != null && withReview; //False if null
             dataProcessingContextApiPort.saveContext(partitionId, withReview);
         }catch (GenesisException e){
-            return new ResponseEntity<>(e.getMessage(), HttpStatusCode.valueOf(e.getStatus()));
+            return new ResponseEntity<>(e.getMessage(), e.getStatus());
         }
         return ResponseEntity.ok().build();
     }
@@ -62,7 +63,7 @@ public class DataProcessingContextController {
             withReview = withReview != null && withReview; //False if null
             dataProcessingContextApiPort.saveContextByCollectionInstrumentId(collectionInstrumentId, withReview);
         }catch (GenesisException e){
-            return new ResponseEntity<>(e.getMessage(), HttpStatusCode.valueOf(e.getStatus()));
+            return new ResponseEntity<>(e.getMessage(), e.getStatus());
         }
         return ResponseEntity.ok().build();
     }
@@ -78,7 +79,7 @@ public class DataProcessingContextController {
             boolean withReview = dataProcessingContextApiPort.getReviewByCollectionInstrumentId(collectionInstrumentId);
             return ResponseEntity.ok(withReview);
         }catch (GenesisException e){
-            return new ResponseEntity<>(e.getMessage(), HttpStatusCode.valueOf(e.getStatus()));
+            return new ResponseEntity<>(e.getMessage(), e.getStatus());
         }
     }
 
@@ -93,7 +94,7 @@ public class DataProcessingContextController {
             boolean withReview = dataProcessingContextApiPort.getReviewByPartitionId(partitionId);
             return ResponseEntity.ok(withReview);
         }catch (GenesisException e){
-            return new ResponseEntity<>(e.getMessage(), HttpStatusCode.valueOf(e.getStatus()));
+            return new ResponseEntity<>(e.getMessage(), e.getStatus());
         }
     }
 
@@ -119,7 +120,7 @@ public class DataProcessingContextController {
             //Check frequency
             if(!CronExpression.isValidExpression(frequency)) {
                 log.warn("Returned error for wrong frequency : {}", frequency);
-                throw new GenesisException(400, "Wrong frequency syntax");
+                throw new GenesisException(HttpStatus.BAD_REQUEST, "Wrong frequency syntax");
             }
 
             TrustParameters trustParameters = null;
@@ -138,7 +139,7 @@ public class DataProcessingContextController {
                     scheduleBeginDate, scheduleEndDate, trustParameters
             );
         }catch (GenesisException e){
-            return new ResponseEntity<>(e.getMessage(), HttpStatusCode.valueOf(e.getStatus()));
+            return new ResponseEntity<>(e.getMessage(), e.getStatus());
         }
         return ResponseEntity.ok().build();
     }
@@ -165,7 +166,7 @@ public class DataProcessingContextController {
             //Check frequency
             if(!CronExpression.isValidExpression(frequency)) {
                 log.warn("Returned error for wrong frequency : {}", frequency);
-                throw new GenesisException(400, "Wrong frequency syntax");
+                throw new GenesisException(HttpStatus.BAD_REQUEST, "Wrong frequency syntax");
             }
 
             TrustParameters trustParameters = null;
@@ -184,7 +185,7 @@ public class DataProcessingContextController {
                     scheduleBeginDate, scheduleEndDate, trustParameters
             );
         }catch (GenesisException e){
-            return new ResponseEntity<>(e.getMessage(), HttpStatusCode.valueOf(e.getStatus()));
+            return new ResponseEntity<>(e.getMessage(), e.getStatus());
         }
         return ResponseEntity.ok().build();
     }
@@ -228,7 +229,7 @@ public class DataProcessingContextController {
             dataProcessingContextApiPort.updateLastExecutionDate(partitionId, newDate);
             log.info("{} last execution updated at {} !", partitionId, newDate);
         }catch (GenesisException e){
-            return new ResponseEntity<>(e.getMessage(), HttpStatusCode.valueOf(e.getStatus()));
+            return new ResponseEntity<>(e.getMessage(), e.getStatus());
         }
         return ResponseEntity.ok().build();
     }
@@ -244,7 +245,7 @@ public class DataProcessingContextController {
             dataProcessingContextApiPort.updateLastExecutionDateByCollectionInstrumentId(collectionInstrumentId, newDate);
             log.info("{} last execution updated at {} !", collectionInstrumentId, newDate);
         }catch (GenesisException e){
-            return new ResponseEntity<>(e.getMessage(), HttpStatusCode.valueOf(e.getStatus()));
+            return new ResponseEntity<>(e.getMessage(), e.getStatus());
         }
         return ResponseEntity.ok().build();
     }
@@ -259,7 +260,7 @@ public class DataProcessingContextController {
         try {
             dataProcessingContextApiPort.deleteSchedules(partitionId);
         }catch (GenesisException e){
-            return new ResponseEntity<>(e.getMessage(), HttpStatusCode.valueOf(e.getStatus()));
+            return new ResponseEntity<>(e.getMessage(), e.getStatus());
         }
         log.info("Schedule deleted for survey {}", partitionId);
         return ResponseEntity.ok().build();
@@ -274,7 +275,7 @@ public class DataProcessingContextController {
         try {
             dataProcessingContextApiPort.deleteSchedulesByCollectionInstrumentId(collectionInstrumentId);
         }catch (GenesisException e){
-            return new ResponseEntity<>(e.getMessage(), HttpStatusCode.valueOf(e.getStatus()));
+            return new ResponseEntity<>(e.getMessage(), e.getStatus());
         }
         log.info("Schedule deleted for survey {}", collectionInstrumentId);
         return ResponseEntity.ok().build();
@@ -287,7 +288,7 @@ public class DataProcessingContextController {
         try{
             dataProcessingContextApiPort.deleteExpiredSchedules(fileUtils.getLogFolder());
         } catch (GenesisException e){
-            return new ResponseEntity<>(e.getMessage(), HttpStatusCode.valueOf(e.getStatus()));
+            return new ResponseEntity<>(e.getMessage(), e.getStatus());
         }
         log.info("Expired schedules deleted");
         return ResponseEntity.ok().build();

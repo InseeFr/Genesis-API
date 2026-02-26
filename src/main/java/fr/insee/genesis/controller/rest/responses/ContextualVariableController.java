@@ -52,8 +52,7 @@ public class ContextualVariableController {
     @PreAuthorize("hasAnyRole('USER_PLATINE','SCHEDULER')")
     public ResponseEntity<Object> saveContextualVariables(
             @RequestParam("questionnaireId") String questionnaireId
-    ) {
-        try {
+    ) throws GenesisException{
             FileUtils fileUtils = new FileUtils(config);
 
             String contextualFolderPath = fileUtils.getDataFolder(questionnaireId, "WEB", null) + Constants.CONTEXTUAL_FOLDER;
@@ -61,9 +60,7 @@ public class ContextualVariableController {
             int fileCount = contextualVariableApiPort.saveContextualVariableFiles(questionnaireId, fileUtils,contextualFolderPath);
 
             return ResponseEntity.ok("%d file(s) processed for questionnaire %s !".formatted(fileCount, questionnaireId));
-        } catch (GenesisException ge) {
-            return ResponseEntity.status(HttpStatusCode.valueOf(ge.getStatus())).body(ge.getMessage());
-        }
+
     }
 
     @Operation(summary = "Add contextual previous json file")
@@ -74,8 +71,8 @@ public class ContextualVariableController {
             @RequestParam("mode") Mode mode,
             @RequestParam(value = "sourceState", required = false) String sourceState,
             @RequestParam(value = "jsonFileName") String jsonFileName
-    ){
-        try {
+    ) throws GenesisException{
+
             FileUtils fileUtils = new FileUtils(config);
 
             fileUtils.ensureContextualFolderExists(questionnaireId, mode);
@@ -86,15 +83,11 @@ public class ContextualVariableController {
                     jsonFileName
             );
             if (!jsonFileName.toLowerCase().endsWith(".json")) {
-                throw new GenesisException(400, "File must be a JSON file !");
+                throw new GenesisException(HttpStatus.BAD_REQUEST, "File must be a JSON file !");
             }
             contextualPreviousVariableApiPort.readContextualPreviousFile(questionnaireId.toUpperCase(), sourceState, filePath);
             moveFile(questionnaireId, mode, fileUtils, filePath);
             return ResponseEntity.ok("Contextual previous variable file %s saved !".formatted(filePath));
-        }catch (GenesisException ge){
-            return ResponseEntity.status(HttpStatusCode.valueOf(ge.getStatus())).body(ge.getMessage());
-        } catch (IOException ioe) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur IO : " + ioe.getMessage());        }
     }
 
     @Operation(summary = "Add contextual external json file")
@@ -104,8 +97,7 @@ public class ContextualVariableController {
             @RequestParam("questionnaireId") String questionnaireId,
             @RequestParam("mode") Mode mode,
             @RequestParam(value = "jsonFileName") String jsonFileName
-    ){
-        try {
+    ) throws GenesisException{
             FileUtils fileUtils = new FileUtils(config);
 
             fileUtils.ensureContextualFolderExists(questionnaireId, mode);
@@ -116,23 +108,18 @@ public class ContextualVariableController {
                     jsonFileName
             );
             if (!jsonFileName.toLowerCase().endsWith(".json")) {
-                throw new GenesisException(400, "File must be a JSON file !");
+                throw new GenesisException(HttpStatus.BAD_REQUEST, "File must be a JSON file !");
             }
             contextualExternalVariableApiPort.readContextualExternalFile(questionnaireId, filePath);
             moveFile(questionnaireId, mode, fileUtils, filePath);
             return ResponseEntity.ok("Contextual external variable file %s saved !".formatted(filePath));
-        }catch (GenesisException ge){
-            return ResponseEntity.status(HttpStatusCode.valueOf(ge.getStatus())).body(ge.getMessage());
-        } catch (IOException ioe) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur IO : " + ioe.getMessage());
-        }
     }
 
     private static void moveFile(String questionnaireId, Mode mode, FileUtils fileUtils, String filePath) throws GenesisException {
         try {
             fileUtils.moveFiles(Path.of(filePath), fileUtils.getDoneFolder(questionnaireId, mode.getFolder()));
         } catch (IOException e) {
-            throw new GenesisException(500, "Error while moving file to done : %s".formatted(e.toString()));
+            throw new GenesisException(HttpStatus.INTERNAL_SERVER_ERROR, "Error while moving file to done");
         }
     }
 }
