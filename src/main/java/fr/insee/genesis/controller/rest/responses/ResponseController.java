@@ -284,6 +284,9 @@ public class ResponseController implements CommonApiResponse {
         return ResponseEntity.ok(responses);
     }
 
+    /**
+     * @deprecated Use restful and less logic getResponseByCollectionInstrumentAndInterrogation instead
+     */
     @Deprecated(since = "2.4.0")
     @Operation(summary = "Retrieve responses for an interrogation, using interrogationId and collectionInstrumentId from Genesis Database. For a given mode, it returns only the latest value of each variable regardless of the state. The result is one object by mode in the output")
     @GetMapping(path = "/simplified/by-interrogation-collection-instrument-and-mode/latest")
@@ -342,6 +345,9 @@ public class ResponseController implements CommonApiResponse {
         }
     }
 
+    /**
+     * @deprecated Use restful and less logic getResponseByCollectionInstrumentAndInterrogationList instead
+     */
     @Deprecated(since = "2.4.0")
     @Operation(summary = "Retrieve all responses for a collection instrument and a list of interrogations",
             description = "Return the latest state for each variable for the given interrogationIds and a given collection instrument (formerly questionnaire).<br>" +

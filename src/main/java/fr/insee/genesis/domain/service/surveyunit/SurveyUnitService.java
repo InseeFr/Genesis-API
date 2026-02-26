@@ -6,6 +6,7 @@ import fr.insee.genesis.controller.dto.CampaignWithQuestionnaire;
 import fr.insee.genesis.controller.dto.QuestionnaireWithCampaign;
 import fr.insee.genesis.controller.dto.SurveyUnitDto;
 import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
+import fr.insee.genesis.controller.dto.SurveyUnitSimplifiedDto;
 import fr.insee.genesis.controller.dto.VariableDto;
 import fr.insee.genesis.controller.dto.VariableInputDto;
 import fr.insee.genesis.controller.dto.VariableStateDto;
@@ -22,6 +23,7 @@ import fr.insee.genesis.domain.utils.GroupUtils;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.exceptions.QuestionnaireNotFoundException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
+import fr.insee.modelefiliere.RawResponseDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -142,6 +144,85 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             });
         });
         return latestUpdatesbyVariables;
+    }
+
+    @Override
+    public SurveyUnitSimplifiedDto findLatestByCollectionInstrumentIdAndInterrogationId(String collectionInstrumentId, String interrogationId, Mode mode) throws GenesisException {
+        List<SurveyUnitModel> responses = findLatestByIdAndByCollectionInstrumentId(interrogationId, collectionInstrumentId);
+        List<VariableModel> outputVariables = new ArrayList<>();
+        List<VariableModel> outputExternalVariables = new ArrayList<>();
+        RawResponseDto.QuestionnaireStateEnum questionnaireState = null;
+        LocalDateTime validationDate = null;
+        for (SurveyUnitModel response :
+                responses.stream().filter(rep -> rep.getMode().equals(mode)).toList()){
+            questionnaireState = response.getQuestionnaireState() != null ?
+                    response.getQuestionnaireState()
+                    : questionnaireState;
+            validationDate = response.getValidationDate() != null ?
+                    response.getValidationDate()
+                    : validationDate;
+
+            outputVariables.addAll(response.getCollectedVariables());
+            outputExternalVariables.addAll(response.getExternalVariables());
+        }
+        return SurveyUnitSimplifiedDto.builder()
+                .collectionInstrumentId(responses.getFirst().getCollectionInstrumentId())
+                .campaignId(responses.getFirst().getCampaignId())
+                .interrogationId(responses.getFirst().getInterrogationId())
+                .mode(mode)
+                .usualSurveyUnitId(responses.getFirst().getUsualSurveyUnitId())
+                .validationDate(validationDate)
+                .questionnaireState(questionnaireState)
+                .variablesUpdate(outputVariables)
+                .externalVariables(outputExternalVariables)
+                .build();
+    }
+
+    @Override
+    public List<SurveyUnitSimplifiedDto> findLatestByCollectionInstrumentIdAndInterrogationIdList(String collectionInstrumentId, List<InterrogationId> interrogationIds) throws GenesisException {
+        List<SurveyUnitSimplifiedDto> results = new ArrayList<>();
+        List<Mode> modes = findModesByCollectionInstrumentId(collectionInstrumentId);
+        interrogationIds.forEach(interrogationId -> {
+            List<SurveyUnitModel> responses = findLatestByIdAndByCollectionInstrumentId(
+                    interrogationId.getInterrogationId(), collectionInstrumentId
+            );
+            modes.forEach(mode -> {
+                List<VariableModel> outputVariables = new ArrayList<>();
+                List<VariableModel> outputExternalVariables = new ArrayList<>();
+                List<String> usualSurveyUnitIds = new ArrayList<>();
+                RawResponseDto.QuestionnaireStateEnum questionnaireState = null;
+                LocalDateTime validationDate = null;
+                for (SurveyUnitModel response :
+                        responses.stream().filter(rep -> rep.getMode().equals(mode)).toList()){
+                    questionnaireState = response.getQuestionnaireState() != null ?
+                            response.getQuestionnaireState()
+                            : questionnaireState;
+                    validationDate = response.getValidationDate() != null ?
+                            response.getValidationDate()
+                            : validationDate;
+
+                    outputVariables.addAll(response.getCollectedVariables());
+                    outputExternalVariables.addAll(response.getExternalVariables());
+                    if(response.getUsualSurveyUnitId() != null){
+                        usualSurveyUnitIds.add(response.getUsualSurveyUnitId());
+                    }
+                }
+                if (!outputVariables.isEmpty() || !outputExternalVariables.isEmpty()) {
+                    results.add(SurveyUnitSimplifiedDto.builder()
+                            .collectionInstrumentId(responses.getFirst().getCollectionInstrumentId())
+                            .campaignId(responses.getFirst().getCampaignId())
+                            .interrogationId(interrogationId.getInterrogationId())
+                            .usualSurveyUnitId(!usualSurveyUnitIds.isEmpty() ? usualSurveyUnitIds.getFirst() : null)
+                            .mode(mode)
+                            .validationDate(validationDate)
+                            .questionnaireState(questionnaireState)
+                            .variablesUpdate(outputVariables)
+                            .externalVariables(outputExternalVariables)
+                            .build());
+                }
+            });
+        });
+        return results;
     }
 
 
