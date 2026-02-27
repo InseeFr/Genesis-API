@@ -97,4 +97,9 @@ public class RawResponseDataPersistanceStub implements RawResponsePersistencePor
     public Set<String> findDistinctCollectionInstrumentIds() {
         return new HashSet<>();
     }
+
+    @Override
+    public long countDistinctInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId) {
+        return 0;
+    }
 }

@@ -136,4 +136,10 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
 
         return interrogationIds;
     }
+
+    @Override
+    public long countDistinctInterrogationIdsByQuestionnaireId(String questionnaireId) {
+        Long count = repository.countDistinctInterrogationIdsByQuestionnaireId(questionnaireId);
+        return count != null ? count : 0;
+    }
 }

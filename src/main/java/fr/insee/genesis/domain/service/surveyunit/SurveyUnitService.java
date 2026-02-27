@@ -689,4 +689,9 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         }
         return true;
     }
+
+    @Override
+    public long countDistinctInterrogationIdsByQuestionnaireAndCollectionInstrumentId(String id) {
+        return surveyUnitPersistencePort.countDistinctInterrogationIdsByQuestionnaireAndCollectionInstrumentId(id);
+    }
 }

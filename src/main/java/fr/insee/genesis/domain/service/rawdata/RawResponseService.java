@@ -537,6 +537,11 @@ public class  RawResponseService implements RawResponseApiPort {
     }
 
     @Override
+    public long countDistinctInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId) {
+        return rawResponsePersistencePort.countByCollectionInstrumentId(collectionInstrumentId);
+    }
+
+    @Override
     public long countByCollectionInstrumentId(String collectionInstrumentId) {
         return rawResponsePersistencePort.countByCollectionInstrumentId(collectionInstrumentId);
     }

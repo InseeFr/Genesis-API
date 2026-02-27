@@ -92,4 +92,6 @@ public interface SurveyUnitApiPort {
     Set<String> findCampaignIdsFrom(SurveyUnitInputDto dto);
 
     long countResponsesByQuestionnaireId(String questionnaireId);
+
+    long countDistinctInterrogationIdsByQuestionnaireAndCollectionInstrumentId(String id);
 }

@@ -128,4 +128,19 @@ public interface SurveyUnitMongoDBRepository extends MongoRepository<SurveyUnitD
 
 	@Query(value = "{ 'questionnaireId' : ?0 }", fields = "{ _id : 0, 'campaignId' : 1 }")
 	Set<String> findCampaignIdsByQuestionnaireId(String questionnaireId);
+
+
+    @Aggregation(pipeline = {
+            "{ '$match': { 'questionnaireId': ?0 } }",
+            "{ '$group': { '_id': '$interrogationId' } }",
+            "{ '$count': 'count' }"
+    })
+    Long countDistinctInterrogationIdsByQuestionnaireId(String questionnaireId);
+
+    @Aggregation(pipeline = {
+            "{ '$match': { 'collectionInstrumentId': ?0 } }",
+            "{ '$group': { '_id': '$interrogationId' } }",
+            "{ '$count': 'count' }"
+    })
+    Long countDistinctInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId);
 }
