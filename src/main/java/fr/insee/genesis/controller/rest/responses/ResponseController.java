@@ -543,7 +543,6 @@ public class ResponseController implements CommonApiResponse {
             }
         } catch (IOException | ParserConfigurationException | SAXException | XMLStreamException e) {
 
-            // Wrap technique -> métier
             throw new GenesisException(
                     HttpStatus.INTERNAL_SERVER_ERROR,
                     "Error while importing campaign %s (mode %s)"
