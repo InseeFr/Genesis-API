@@ -63,8 +63,12 @@ public class GenesisExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleAny(Exception exception) {
-        log.error("Unexpected error (Type: {}) : {}", exception.getClass().getSimpleName(), exception.getMessage(), exception);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        log.error("Unexpected error (Type: {}) : {}",
+                exception.getClass().getSimpleName(),
+                exception.getMessage(),
+                exception);
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("Internal server error");
     }
 }

@@ -93,16 +93,19 @@ public class QuestionnaireMetadataService implements QuestionnaireMetadataApiPor
             lunaticFilePath = fileUtils.findFile(String.format("%s/%s", fileUtils.getSpecFolder(campaignName), modeName), LUNATIC_FILE_PATTERN);
             metadataModel = parseMetadata(lunaticFilePath, ddiFilePath);
         } catch (NoSuchFileException e) {
-            log.warn("Specification file missing for campaign={}, mode={}", campaignName, modeName);
+            log.debug("Specification file missing for campaign={}, mode={}", campaignName, modeName);
             //DDI file not found and already log - Go to next step
         } catch (IOException e) {
             log.warn("No DDI File found for {}, {} mode. Will try to use Lunatic...", campaignName, modeName);
         }
         if(metadataModel == null ){
-            log.warn("DDI not found or error occurred. Trying Lunatic metadata...for {}, {} mode", campaignName, modeName);
+            log.debug("DDI not found or error occurred. Trying Lunatic metadata...for {}, {} mode", campaignName, modeName);
             try {
                 lunaticFilePath = fileUtils.findFile(String.format("%s/%s", fileUtils.getSpecFolder(campaignName), modeName), LUNATIC_FILE_PATTERN);
                 return parseMetadata(lunaticFilePath, null);
+            } catch (NoSuchFileException e) {
+                log.debug("No Lunatic specification file found for campaign={}, mode={}", campaignName, modeName);
+                return null;
             } catch (Exception ex) {
                 log.error("Error reading Lunatic metadata file", ex);
                 errors.add(new GenesisError(ex.toString()));
