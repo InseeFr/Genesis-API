@@ -141,7 +141,11 @@ public class ResponseController implements CommonApiResponse {
             }catch (NoDataException nde){
                 //Don't stop if NoDataError thrown
                 log.warn("No data for campaign {} mode {} : {}", campaignName, currentMode, nde.getMessage());
-            }
+            } catch (Exception e) {
+                log.warn("Error while processing campaign {} mode {} : {}",
+                        campaignName,
+                        currentMode,
+                        e.getMessage());        }
         }
 
         return ResponseEntity.ok(getSuccessMessage(isAnyDataSaved));
@@ -434,8 +438,13 @@ public class ResponseController implements CommonApiResponse {
                     fileUtils,
                     errors);
             if(metadataModel == null){
-                throw new GenesisException(HttpStatus.NOT_FOUND, errors.getLast().getMessage());
-            }
+                    String msg = errors.isEmpty()
+                            ? "Empty metadataModel for questionnaireId=%s, mode=%s"
+                            .formatted(surveyUnitInputDto.getQuestionnaireId(), surveyUnitInputDto.getMode())
+                            : errors.getLast().getMessage();
+
+                    throw new GenesisException(HttpStatus.NOT_FOUND, msg);
+                }
 
             //Check if input edited variables are in metadatas
             List<String> absentCollectedVariableNames =
