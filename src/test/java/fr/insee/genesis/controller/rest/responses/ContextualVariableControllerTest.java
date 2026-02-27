@@ -11,6 +11,11 @@ import fr.insee.genesis.domain.service.contextualvariable.ContextualVariableJson
 import fr.insee.genesis.domain.service.contextualvariable.external.ContextualExternalVariableJsonService;
 import fr.insee.genesis.domain.service.contextualvariable.previous.ContextualPreviousVariableJsonService;
 import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.exceptions.GenesisExceptionHandler;
+import fr.insee.genesis.exceptions.NoDataException;
+import fr.insee.genesis.exceptions.QuestionnaireNotFoundException;
+import fr.insee.genesis.exceptions.ReviewDisabledException;
+import fr.insee.genesis.exceptions.SpecificationNotFoundException;
 import fr.insee.genesis.infrastructure.document.contextualexternal.ContextualExternalVariableDocument;
 import fr.insee.genesis.infrastructure.document.contextualprevious.ContextualPreviousVariableDocument;
 import fr.insee.genesis.stubs.ConfigStub;
@@ -26,6 +31,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.FileSystemUtils;
 
@@ -607,10 +613,14 @@ class ContextualVariableControllerTest {
         );
 
         //WHEN + THEN
-        ResponseEntity<Object> response = contextualVariableController.readContextualPreviousJson(QUESTIONNAIRE_ID_PREVIOUS, Mode.WEB, sourceState,
-                fileName);
-        Assertions.assertEquals(400,response.getStatusCode().value());
-    }
+        GenesisException ex = Assertions.assertThrows(
+                GenesisException.class,
+                () -> contextualVariableController.readContextualPreviousJson(
+                        QUESTIONNAIRE_ID_PREVIOUS, Mode.WEB, sourceState, fileName
+                )
+        );
+
+        Assertions.assertEquals(400, ex.getStatus().value());    }
 
     @Test
     @SneakyThrows
@@ -628,9 +638,17 @@ class ContextualVariableControllerTest {
         );
 
         //WHEN + THEN
-        ResponseEntity<Object> response = contextualVariableController.readContextualPreviousJson(QUESTIONNAIRE_ID_PREVIOUS, Mode.WEB, null,
-                syntaxErrorFileName);
-        Assertions.assertEquals(400,response.getStatusCode().value());
+        GenesisException ex = Assertions.assertThrows(
+                GenesisException.class,
+                () -> contextualVariableController.readContextualPreviousJson(
+                        QUESTIONNAIRE_ID_PREVIOUS,
+                        Mode.WEB,
+                        null,
+                        syntaxErrorFileName
+                )
+        );
+
+        Assertions.assertEquals(400, ex.getStatus().value());
     }
     @Test
     @SneakyThrows
@@ -648,9 +666,14 @@ class ContextualVariableControllerTest {
         );
 
         //WHEN + THEN
-        ResponseEntity<Object> response = contextualVariableController.readContextualPreviousJson(QUESTIONNAIRE_ID_PREVIOUS, Mode.WEB, null,
-                syntaxErrorFileName);
-        Assertions.assertEquals(400,response.getStatusCode().value());
+        GenesisException ex = Assertions.assertThrows(
+                GenesisException.class,
+                () -> contextualVariableController.readContextualPreviousJson(
+                        QUESTIONNAIRE_ID_PREVIOUS, Mode.WEB, null, syntaxErrorFileName
+                )
+        );
+
+        Assertions.assertEquals(400, ex.getStatus().value());
     }
 
 
@@ -671,8 +694,14 @@ class ContextualVariableControllerTest {
         );
 
         //WHEN + THEN
-        ResponseEntity<Object> response = contextualVariableController.readContextualPreviousJson(QUESTIONNAIRE_ID_PREVIOUS, Mode.WEB, null, fileName);
-        Assertions.assertEquals(400,response.getStatusCode().value());
+        GenesisException ex = Assertions.assertThrows(
+                GenesisException.class,
+                () -> contextualVariableController.readContextualPreviousJson(
+                        QUESTIONNAIRE_ID_PREVIOUS, Mode.WEB, null, fileName
+                )
+        );
+
+        Assertions.assertEquals(400, ex.getStatus().value());
     }
 
 
@@ -856,6 +885,27 @@ class ContextualVariableControllerTest {
         );
     }
 
+    private ResponseEntity<String> toResponse(Exception e) {
+        GenesisExceptionHandler handler = new GenesisExceptionHandler();
+
+        if (e instanceof GenesisException ge) {
+            return handler.handleGenesis(ge);
+        }
+        if (e instanceof QuestionnaireNotFoundException qnfe) {
+            return handler.handleQuestionnaireNotFound(qnfe);
+        }
+        if (e instanceof NoDataException nde) {
+            return handler.handleNoData(nde);
+        }
+        if (e instanceof SpecificationNotFoundException snfe) {
+            return handler.handleSpec(snfe);
+        }
+        if (e instanceof ReviewDisabledException rde) {
+            return handler.handleReviewDisabled(rde);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error");
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {"invalid_syntax.json",
             "not_a_json.xml",
@@ -864,8 +914,8 @@ class ContextualVariableControllerTest {
             "double_interrogationId.json"}
     )
     @SneakyThrows
-    void readExternalJson_error_400(String fileName){
-        //GIVEN
+    void readExternalJson_error_400(String fileName) {
+        // GIVEN
         Path contextualPath = SOURCE_PATH_EXTERNAL.resolve("contextual");
         Files.createDirectories(contextualPath);
 
@@ -877,9 +927,19 @@ class ContextualVariableControllerTest {
                 StandardCopyOption.REPLACE_EXISTING
         );
 
-        //WHEN + THEN
-        ResponseEntity<Object> response = contextualVariableController.readContextualExternalJson(QUESTIONNAIRE_ID_EXTERNAL, Mode.WEB, fileName);
-        Assertions.assertEquals(400,response.getStatusCode().value());
+        // WHEN + THEN
+        ResponseEntity<String> response;
+        try {
+            ResponseEntity<Object> raw = contextualVariableController.readContextualExternalJson(
+                    QUESTIONNAIRE_ID_EXTERNAL, Mode.WEB, fileName
+            );
+            response = ResponseEntity.status(raw.getStatusCode())
+                    .body(raw.getBody() == null ? null : raw.getBody().toString());
+        } catch (Exception e) {
+            response = toResponse(e);
+        }
+
+        Assertions.assertEquals(400, response.getStatusCode().value());
     }
 
     //UTILS

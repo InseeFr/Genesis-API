@@ -3,9 +3,10 @@ package fr.insee.genesis.controller.rest;
 import fr.insee.bpm.metadata.model.MetadataModel;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.ports.api.QuestionnaireMetadataApiPort;
-import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.exceptions.QuestionnaireNotFoundException;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -27,8 +28,8 @@ public class QuestionnaireMetadataController {
     ){
         try {
             return ResponseEntity.ok().body(questionnaireMetadataApiPort.find(questionnaireId, mode));
-        } catch (GenesisException e) {
-            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
+        } catch (QuestionnaireNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 
