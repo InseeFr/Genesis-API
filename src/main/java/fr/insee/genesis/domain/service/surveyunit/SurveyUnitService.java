@@ -79,7 +79,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
 
     /**
      * In this method we want to get the latest update for each variable of a survey unit
-     * 1 SurveyUnitModel / Document
+     * 1 SurveyUnitModel / Mode
      * But we need to separate the updates by mode
      * So we will calculate the latest state for a given collection mode
      * @param interrogationId : Interrogation id
@@ -118,6 +118,11 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             ;
 
             suByMode.forEach(surveyUnitModel -> {
+                //Get non null usualSurveyUnitId
+                if (surveyUnitModel.getUsualSurveyUnitId() != null){
+                    latestUpdate.setUsualSurveyUnitId(surveyUnitModel.getUsualSurveyUnitId());
+                }
+
                 List<VariableModel> collectedVariablesToKeep = new ArrayList<>();
                 List<VariableModel> externalVariablesToKeep = new ArrayList<>();
                 // We iterate over the variables of the update and add them to the list if they are not already added
@@ -234,7 +239,6 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             String collectionInstrumentId,
             List<InterrogationId> interrogationIds
     ) {
-        List<SurveyUnitSimplifiedDto> results = new ArrayList<>();
         List<Mode> modes = findModesByCollectionInstrumentId(collectionInstrumentId);
         return interrogationIds.stream()
                 .flatMap(interrogationId -> modes.stream()
@@ -246,7 +250,6 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                 )
                 .filter(Objects::nonNull)
                 .toList();
-
     }
 
 
