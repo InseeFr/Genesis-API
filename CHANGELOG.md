@@ -1,8 +1,10 @@
 # Changelog
-## 2.4.0 [TODO]
+## 2.4.0 [2026-03-04]
 ### Added
 - Restful endpoints to get latest responses without the logic in it (not to be confused with get latest states)
 - Simplified survey units now have datastate in their variables
+- Volumetrics with distinct interrogationId
+- 
 ### Changed
 - Deprecated non-restful old endpoint
 ### Fixed
