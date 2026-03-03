@@ -347,6 +347,11 @@ public class  RawResponseService implements RawResponseApiPort {
         }
     }
 
+    @Override
+    public boolean existsByInterrogationId(String interrogationId) {
+        return rawResponsePersistencePort.existsByInterrogationId(interrogationId);
+    }
+
     private Map<String, Set<String>> getProcessedIdsMap(List<SurveyUnitModel> surveyUnitModels) {
         Map<String, Set<String>> processedInterrogationIdsPerQuestionnaire = new HashMap<>();
         surveyUnitModels.forEach(model ->
@@ -555,6 +560,8 @@ public class  RawResponseService implements RawResponseApiPort {
     public Page<RawResponseModel> findRawResponseDataByCollectionInstrumentId(String collectionInstrumentId, Pageable pageable) {
         return rawResponsePersistencePort.findByCollectionInstrumentId(collectionInstrumentId, pageable);
     }
+
+
 
     @SuppressWarnings("unchecked")
     static void handlePairwiseCollectedVariable(

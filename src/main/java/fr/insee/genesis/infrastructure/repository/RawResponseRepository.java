@@ -1,6 +1,5 @@
 package fr.insee.genesis.infrastructure.repository;
 
-import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponseModel;
 import fr.insee.genesis.infrastructure.document.rawdata.RawResponseDocument;
 import fr.insee.modelefiliere.ModeDto;
 import org.springframework.data.domain.Page;
@@ -52,6 +51,8 @@ public interface RawResponseRepository extends MongoRepository<RawResponseDocume
     })
     List<String> findDistinctCollectionInstrumentId();
     Page<RawResponseDocument> findByCollectionInstrumentId(String collectionInstrumentId, Pageable pageable);
+
+    boolean existsByInterrogationId(String interrogationId);
 
     @Aggregation(pipeline = {
             "{ '$match': { 'collectionInstrumentId': ?0 } }",

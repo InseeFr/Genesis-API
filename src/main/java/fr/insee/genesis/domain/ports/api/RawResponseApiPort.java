@@ -30,5 +30,5 @@ public interface RawResponseApiPort {
 
     Set<String> getDistinctCollectionInstrumentIds();
     Page<RawResponseModel> findRawResponseDataByCollectionInstrumentId(String collectionInstrumentId, Pageable pageable);
-
+    boolean existsByInterrogationId(String interrogationId);
 }

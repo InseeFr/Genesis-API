@@ -28,5 +28,7 @@ public interface LunaticJsonRawDataPersistencePort {
     List<GroupedInterrogation> findProcessedIdsGroupedByQuestionnaireSince(LocalDateTime since);
     List<GroupedInterrogation> findUnprocessedIds();
     Set<String> findUnprocessedInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId);
+
+    boolean existsByInterrogationId(String interrogationId);
     long countDistinctInterrogationIdsByQuestionnaireId(String questionnaireId);
 }

@@ -41,4 +41,6 @@ public interface LunaticJsonRawDataApiPort {
     Map<String, List<String>> findProcessedIdsgroupedByQuestionnaireSince(LocalDateTime since);
 
     Page<LunaticJsonRawDataModel> findRawDataByQuestionnaireId(String questionnaireId, Pageable pageable);
+
+    boolean existsByInterrogationId(String interrogationId);
 }
