@@ -5,12 +5,15 @@ import fr.insee.genesis.Constants;
 import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
+import fr.insee.genesis.exceptions.GenesisException;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
@@ -128,7 +131,7 @@ public class FileUtils {
 	public Path findFile(String directory, String regex) throws IOException {
 		try (Stream<Path> files = Files.find(Path.of(directory), 1, (path, basicFileAttributes) -> path.toFile().getName().toLowerCase().matches(regex))) {
 			return files.findFirst()
-					.orElseThrow(() -> new RuntimeException("No file (%s) found in ".formatted(regex) + directory));
+					.orElseThrow(() -> new NoSuchFileException("No file (%s) found in %s".formatted(regex, directory)));
 		}
 	}
 
@@ -254,13 +257,24 @@ public class FileUtils {
 			.filter(File::isDirectory)
 			.toList();
 	}
-    public void ensureContextualFolderExists(String questionnaireId, Mode mode) throws IOException {
-        String contextualFolderPath = getDataFolder(questionnaireId, mode.getFolder(), null) + Constants.CONTEXTUAL_FOLDER;
-        if (!isFolderPresent(contextualFolderPath)) {
-            Files.createDirectories(Path.of(contextualFolderPath));
-            log.debug("contextual folder created : {}", contextualFolderPath);
-        } else {
-            log.debug("contextual folder already exists : {}", contextualFolderPath);
+
+    public void ensureContextualFolderExists(String questionnaireId, Mode mode) throws GenesisException {
+        try {
+            String contextualFolderPath =
+                    getDataFolder(questionnaireId, mode.getFolder(), null) + Constants.CONTEXTUAL_FOLDER;
+
+            if (!isFolderPresent(contextualFolderPath)) {
+                Files.createDirectories(Path.of(contextualFolderPath));
+                log.debug("contextual folder created : {}", contextualFolderPath);
+            } else {
+                log.debug("contextual folder already exists : {}", contextualFolderPath);
+            }
+
+        } catch (IOException e) {
+            throw new GenesisException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Unable to create contextual folder"
+            );
         }
     }
 

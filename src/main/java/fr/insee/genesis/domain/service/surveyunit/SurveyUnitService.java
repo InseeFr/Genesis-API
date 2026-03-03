@@ -27,6 +27,7 @@ import fr.insee.modelefiliere.RawResponseDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -457,7 +458,6 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     public List<Mode> findModesByCollectionInstrumentId(String collectionInstrumentId) {
         List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findInterrogationIdsByCollectionInstrumentId(collectionInstrumentId);
         if (surveyUnitModels == null || surveyUnitModels.isEmpty()) {
-            log.warn("No collectionInstrument found with id: {}", collectionInstrumentId);
             throw new QuestionnaireNotFoundException(collectionInstrumentId);
         }
         List<Mode> sources =  surveyUnitModels.stream().map(SurveyUnitModel::getMode).distinct().toList();
@@ -567,7 +567,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                 .toList();
 
         if (statesReceived.contains(DataState.COLLECTED)){
-            throw new GenesisException(400,"You can not persist in database a new value with the state COLLECTED");
+            throw new GenesisException(HttpStatus.BAD_REQUEST,"You can not persist in database a new value with the state COLLECTED");
         }
 
         List<SurveyUnitModel> surveyUnitModels = new ArrayList<>();
@@ -615,17 +615,20 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     public String findQuestionnaireIdByInterrogationId(String interrogationId) throws GenesisException {
         List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findByInterrogationId(interrogationId);
         if (surveyUnitModels.isEmpty()){
-            throw new GenesisException(404,String.format("The interrogationId %s is not in database",interrogationId));
+            throw new GenesisException(HttpStatus.NOT_FOUND,String.format("The interrogationId %s is not in database",interrogationId));
         }
         Set<String> questionnaireIds = new HashSet<>();
         for(SurveyUnitModel surveyUnitModel : surveyUnitModels){
             questionnaireIds.add(surveyUnitModel.getCollectionInstrumentId());
         }
         if(questionnaireIds.size() > 1){
-            throw new GenesisException(207,String.format("Multiple questionnaires for %s :%n%s",
-                    interrogationId,
-                    String.join("\n", questionnaireIds)
-            ));
+            throw new GenesisException(
+                    HttpStatus.CONFLICT,
+                    "Multiple questionnaires for %s:%n%s".formatted(
+                            interrogationId,
+                            String.join("\n", questionnaireIds)
+                    )
+            );
         }
 
         return questionnaireIds.iterator().next(); //Return first (and supposed only) element of set

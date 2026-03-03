@@ -32,7 +32,6 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 
 import java.io.IOException;
@@ -45,6 +44,8 @@ import java.util.List;
 import static fr.insee.genesis.TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID;
 import static fr.insee.genesis.TestConstants.DEFAULT_INTERROGATION_ID;
 import static fr.insee.genesis.TestConstants.DEFAULT_SURVEY_UNIT_ID;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class ResponseControllerTest {
     //Given
@@ -372,7 +373,7 @@ class ResponseControllerTest {
     }
 
     @Test
-    void saveEditedTest() {
+    void saveEditedTest() throws GenesisException {
         //GIVEN
         surveyUnitPersistencePortStub.getMongoStub().clear();
         String questionnaireId = DEFAULT_COLLECTION_INSTRUMENT_ID;
@@ -433,7 +434,7 @@ class ResponseControllerTest {
     }
 
     @Test
-    void saveEditedTest_DocumentEdited() {
+    void saveEditedTest_DocumentEdited() throws GenesisException {
         //GIVEN
         surveyUnitPersistencePortStub.getMongoStub().clear();
         String questionnaireId = DEFAULT_COLLECTION_INSTRUMENT_ID;
@@ -503,7 +504,7 @@ class ResponseControllerTest {
     }
 
     @Test
-    void saveEditedTest_DocumentFormatted() {
+    void saveEditedTest_DocumentFormatted() throws GenesisException {
         //GIVEN
         surveyUnitPersistencePortStub.getMongoStub().clear();
         String questionnaireId = DEFAULT_COLLECTION_INSTRUMENT_ID;
@@ -574,7 +575,7 @@ class ResponseControllerTest {
         Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getModifiedBy()).isNull();
     }
     @Test
-    void saveEditedTest_No_Metadata_Error() {
+    void saveEditedTest_No_Metadata_Error() throws GenesisException {
         //GIVEN
         surveyUnitPersistencePortStub.getMongoStub().clear();
         String campaignId = "TEST";
@@ -611,15 +612,16 @@ class ResponseControllerTest {
                 .build();
         surveyUnitPersistencePortStub.getMongoStub().add(suModel);
 
-        ResponseEntity<Object> response =  responseControllerStatic.saveEditedVariables(
-                surveyUnitInputDto);
-        Assertions.assertThat(
-           response.getStatusCode()
-        ).isEqualTo(HttpStatusCode.valueOf(404));
+        GenesisException ex = assertThrows(
+                GenesisException.class,
+                () -> responseControllerStatic.saveEditedVariables(surveyUnitInputDto)
+        );
+
+        assertEquals(404, ex.getStatus().value());
     }
 
     @Test
-    void saveTest_With_Collected_State_Error(){
+    void saveTest_With_Collected_State_Error() throws GenesisException {
         //GIVEN
         surveyUnitPersistencePortStub.getMongoStub().clear();
         String varId = "PRENOM_C";
@@ -654,11 +656,15 @@ class ResponseControllerTest {
                 .build();
         surveyUnitPersistencePortStub.getMongoStub().add(suModel);
 
-        Assertions.assertThat(responseControllerStatic.saveEditedVariables(surveyUnitInputDto).getStatusCode()).isEqualTo(HttpStatusCode.valueOf(400));
-    }
+        GenesisException ex = assertThrows(
+                GenesisException.class,
+                () -> responseControllerStatic.saveEditedVariables(surveyUnitInputDto)
+        );
+
+        assertEquals(400, ex.getStatus().value());    }
 
     @Test
-    void saveEditedTest_int() {
+    void saveEditedTest_int() throws GenesisException {
         //GIVEN
         surveyUnitPersistencePortStub.getMongoStub().clear();
         String questionnaireId = DEFAULT_COLLECTION_INSTRUMENT_ID;
@@ -719,7 +725,7 @@ class ResponseControllerTest {
     }
 
     @Test
-    void saveEditedTest_null() {
+    void saveEditedTest_null() throws GenesisException {
         //GIVEN
         surveyUnitPersistencePortStub.getMongoStub().clear();
         String questionnaireId = DEFAULT_COLLECTION_INSTRUMENT_ID;

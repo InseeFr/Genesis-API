@@ -85,14 +85,9 @@ public class QuestionnaireController implements CommonApiResponse {
     @Operation(summary = "Get the questionnaireId corresponding to an interrogationId")
     @GetMapping(path = "/by-interrogation")
     @ApiResponse(responseCode = "200", description = "Successfully retrieved the questionnaireId")
-    public ResponseEntity<String> getQuestionnaireByInterrogation(@RequestParam("interrogationId") String interrogationId){
-        try {
+    public ResponseEntity<String> getQuestionnaireByInterrogation(@RequestParam("interrogationId") String interrogationId) throws GenesisException {
             String questionnaireId = surveyUnitService.findQuestionnaireIdByInterrogationId(interrogationId);
             return ResponseEntity.ok(questionnaireId);
-        } catch (GenesisException e) {
-            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
-        }
-
     }
 
 

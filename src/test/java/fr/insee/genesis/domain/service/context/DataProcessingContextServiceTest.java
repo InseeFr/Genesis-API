@@ -14,6 +14,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -212,7 +213,7 @@ class DataProcessingContextServiceTest {
         GenesisException ex = assertThrows(GenesisException.class, () -> dataProcessingContextService.getContext("00001"));
         //To ensure test is portable on Unix/Linux/macOS and windows systems
         String normalizedMessage = ex.getMessage().replaceAll("\\r?\\n", "");
-        Assertions.assertThat(ex.getStatus()).isEqualTo(500);
+        Assertions.assertThat(ex.getStatus()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
         Assertions.assertThat(normalizedMessage).isEqualTo("Multiple collection instruments for interrogation 00001");
     }
 
@@ -220,7 +221,7 @@ class DataProcessingContextServiceTest {
     void getContext_shouldThrow404IfNoInterrogations() {
         // When & Then
         GenesisException ex = assertThrows(GenesisException.class, () -> dataProcessingContextService.getContext("00001"));
-        Assertions.assertThat(ex.getStatus()).isEqualTo(404);
+        Assertions.assertThat(ex.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
         Assertions.assertThat(ex.getMessage()).isEqualTo("No interrogation in database with id 00001");
     }
 
