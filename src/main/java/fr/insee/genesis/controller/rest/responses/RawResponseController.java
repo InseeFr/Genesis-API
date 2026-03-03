@@ -25,7 +25,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -40,6 +47,8 @@ public class RawResponseController {
 
     private static final String SUCCESS_MESSAGE = "Interrogation %s saved";
     private static final String INTERROGATION_ID = "interrogationId";
+    public static final String NB_DOCS_WITH_FORMATTED = "%d document(s) processed, including %d FORMATTED after data verification for collectionInstrumentId %s";
+    public static final String NB_DOCS = "%d document(s) processed for collectionInstrumentId %s";
     private final LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort;
     private final RawResponseApiPort rawResponseApiPort;
     private final RawResponseInputRepository rawRepository;
@@ -111,9 +120,9 @@ public class RawResponseController {
         try {
             DataProcessResult result = rawResponseApiPort.processRawResponses(collectionInstrumentId, interrogationIdList, errors);
             return result.formattedDataCount() == 0 ?
-                    ResponseEntity.ok("%d document(s) processed".formatted(result.dataCount()))
-                    : ResponseEntity.ok("%d document(s) processed, including %d FORMATTED after data verification"
-                    .formatted(result.dataCount(), result.formattedDataCount()));
+                    ResponseEntity.ok(NB_DOCS.formatted(result.dataCount(), collectionInstrumentId))
+                    : ResponseEntity.ok(NB_DOCS_WITH_FORMATTED
+                    .formatted(result.dataCount(), result.formattedDataCount(), collectionInstrumentId));
         } catch (GenesisException e) {
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
         }
@@ -133,9 +142,9 @@ public class RawResponseController {
         try {
             DataProcessResult result = rawResponseApiPort.processRawResponses(collectionInstrumentId);
             return result.formattedDataCount() == 0 ?
-                    ResponseEntity.ok("%d document(s) processed".formatted(result.dataCount()))
-                    : ResponseEntity.ok("%d document(s) processed, including %d FORMATTED after data verification"
-                    .formatted(result.dataCount(), result.formattedDataCount()));
+                    ResponseEntity.ok(NB_DOCS.formatted(result.dataCount(), collectionInstrumentId))
+                    : ResponseEntity.ok(NB_DOCS_WITH_FORMATTED
+                    .formatted(result.dataCount(), result.formattedDataCount(), collectionInstrumentId));
         } catch (GenesisException e) {
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
         }
@@ -245,7 +254,7 @@ public class RawResponseController {
         log.info("Try to read raw JSONs for campaign {}, with startDate={} and endDate={} - page={} - size={}", campaignId, startDate, endDate,page,size);
         Pageable pageable = PageRequest.of(page, size);
         Page<LunaticJsonRawDataModel> rawResponses = lunaticJsonRawDataApiPort.findRawDataByCampaignIdAndDate(campaignId, startDate, endDate, pageable);
-        log.info("rawResponses={}", rawResponses.getContent().size());
+        log.info("rawResponses, lunatic-json for campaign {}, with startDate={} and endDate={} ={}", campaignId, startDate, endDate,rawResponses.getContent().size());
         return ResponseEntity.status(HttpStatus.OK).body(new PagedModel<>(rawResponses));
     }
 
@@ -260,12 +269,13 @@ public class RawResponseController {
         log.info("Try to read raw lunatic JSONs for questionnaire {} - page={} - size={}", questionnaireId, page, size);
         Pageable pageable = PageRequest.of(page, size);
         Page<LunaticJsonRawDataModel> rawResponses = lunaticJsonRawDataApiPort.findRawDataByQuestionnaireId(questionnaireId, pageable);
-        log.info("rawResponses={}", rawResponses.getContent().size());
+        log.info("rawResponses for questionnaire {} = {}",questionnaireId, rawResponses.getContent().size());
         return ResponseEntity.status(HttpStatus.OK).body(new PagedModel<>(rawResponses));
     }
 
     @Operation(summary = "Check existence of an interrogation")
     @RequestMapping(value = "/responses/raw/lunatic-json/{interrogationId}", method = RequestMethod.HEAD)
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> existsLunaticJsonByInterrogationId(@PathVariable String interrogationId) {
         if (lunaticJsonRawDataApiPort.existsByInterrogationId(interrogationId)) {
             return ResponseEntity.ok().build();
@@ -286,7 +296,7 @@ public class RawResponseController {
         log.info("Try to read raw lunatic JSONs for campaign {}, with startDate={} and endDate={} - page={} - size={}", campaignId, startDate, endDate,page,size);
         Pageable pageable = PageRequest.of(page, size);
         Page<RawResponseModel> rawResponses = rawResponseApiPort.findRawResponseDataByCampaignIdAndDate(campaignId, startDate, endDate, pageable);
-        log.info("rawResponses={}", rawResponses.getContent().size());
+        log.info("rawResponses for campaign {}, with startDate={} and endDate={} ={}",campaignId, startDate, endDate, rawResponses.getContent().size());
         return ResponseEntity.status(HttpStatus.OK).body(new PagedModel<>(rawResponses));
     }
 
@@ -307,6 +317,7 @@ public class RawResponseController {
 
     @Operation(summary = "Check existence of an interrogation")
     @RequestMapping(value = "/raw-responses/{interrogationId}", method = RequestMethod.HEAD)
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> exists(@PathVariable String interrogationId) {
         if (rawResponseApiPort.existsByInterrogationId(interrogationId)) {
             return ResponseEntity.ok().build();
