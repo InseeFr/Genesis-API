@@ -234,4 +234,9 @@ public class LunaticJsonRawDataPersistanceStub implements LunaticJsonRawDataPers
        unprocessedDocuments.forEach(doc -> interrogationIds.add(doc.interrogationId()));
        return interrogationIds;
     }
+
+    @Override
+    public long countDistinctInterrogationIdsByQuestionnaireId(String questionnaireId) {
+        return 0;
+    }
 }

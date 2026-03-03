@@ -549,6 +549,11 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     }
 
     @Override
+    public long countDistinctInterrogationIdsByQuestionnaireId(String questionnaireId) {
+        return lunaticJsonRawDataPersistencePort.countDistinctInterrogationIdsByQuestionnaireId(questionnaireId);
+    }
+
+    @Override
     public Map<String, List<String>> findProcessedIdsgroupedByQuestionnaireSince(LocalDateTime since) {
         List<GroupedInterrogation> idsByQuestionnaire = lunaticJsonRawDataPersistencePort.findProcessedIdsGroupedByQuestionnaireSince(since);
         List<String> partitionIds = idsByQuestionnaire.stream().map(GroupedInterrogation::partitionOrCampaignId).toList();
