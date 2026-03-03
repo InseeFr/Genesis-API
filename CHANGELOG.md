@@ -5,6 +5,8 @@
 - Simplified survey units now have datastate in their variables
 ### Changed
 - Deprecated non-restful old endpoint
+### Fixed
+- Returned null collectionInstrumentId in get unprocessed
 
 ## 2.3.1 [2026-02-24]
 ### Fixed
