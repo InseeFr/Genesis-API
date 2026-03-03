@@ -25,6 +25,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import static fr.insee.genesis.TestConstants.DEFAULT_INTERROGATION_ID;
+
 @Getter
 public class LunaticJsonRawDataPersistanceStub implements LunaticJsonRawDataPersistencePort {
     List<LunaticJsonRawDataDocument> mongoStub = new ArrayList<>();
@@ -233,5 +235,10 @@ public class LunaticJsonRawDataPersistanceStub implements LunaticJsonRawDataPers
        Set<String> interrogationIds = new LinkedHashSet<>();
        unprocessedDocuments.forEach(doc -> interrogationIds.add(doc.interrogationId()));
        return interrogationIds;
+    }
+
+    @Override
+    public boolean existsByInterrogationId(String interrogationId) {
+        return DEFAULT_INTERROGATION_ID.equals(interrogationId);
     }
 }

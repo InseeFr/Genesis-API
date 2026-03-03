@@ -24,6 +24,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 
+import static fr.insee.genesis.TestConstants.DEFAULT_INTERROGATION_ID;
+
 @Getter
 public class LunaticJsonMongoDBRepositoryStub implements LunaticJsonMongoDBRepository {
 
@@ -182,6 +184,11 @@ public class LunaticJsonMongoDBRepositoryStub implements LunaticJsonMongoDBRepos
     @Override
     public Page<LunaticJsonRawDataDocument> findByQuestionnaireId(String questionnaireId, Pageable pageable) {
         return null;
+    }
+
+    @Override
+    public boolean existsByInterrogationId(String interrogationId) {
+        return DEFAULT_INTERROGATION_ID.equals(interrogationId);
     }
 
     // Implémentations vides requises par MongoRepository

@@ -136,4 +136,9 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
 
         return interrogationIds;
     }
+
+    @Override
+    public boolean existsByInterrogationId(String interrogationId) {
+        return repository.existsByInterrogationId(interrogationId);
+    }
 }

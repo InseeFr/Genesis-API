@@ -264,6 +264,15 @@ public class RawResponseController {
         return ResponseEntity.status(HttpStatus.OK).body(new PagedModel<>(rawResponses));
     }
 
+    @Operation(summary = "Check existence of an interrogation")
+    @RequestMapping(value = "/responses/raw/lunatic-json/{interrogationId}", method = RequestMethod.HEAD)
+    public ResponseEntity<Void> existsLunaticJsonByInterrogationId(@PathVariable String interrogationId) {
+        if (lunaticJsonRawDataApiPort.existsByInterrogationId(interrogationId)) {
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.notFound().build();
+    }
+
     @Operation(summary = "Get rawResponse JSON data from one campaign in Genesis Database, filtered by start and end dates")
     @GetMapping(path = "/raw-responses/{campaignId}")
     @PreAuthorize("hasRole('USER_BATCH_GENERIC')")

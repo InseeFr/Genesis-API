@@ -338,7 +338,20 @@ class RawResponseControllerTest {
     }
 
     @Test
-    void existsInterrogation_shouldReturn200_whenExists() {
+    void existsRawResponseInterrogation_shouldReturn404_whenNotExists() {
+        // Given
+        String unknownId = "UNKNOWN_INTERROGATION_ID";
+
+        // When
+        ResponseEntity<Void> response = rawResponseController.exists(unknownId);
+
+        // Then
+        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(404);
+        Assertions.assertThat(response.getBody()).isNull();
+    }
+
+    @Test
+    void existsRawResponseInterrogation_shouldReturn200_whenExists() {
         // When
         ResponseEntity<Void> response = rawResponseController.exists(DEFAULT_INTERROGATION_ID);
 
@@ -348,12 +361,22 @@ class RawResponseControllerTest {
     }
 
     @Test
-    void existsInterrogation_shouldReturn404_whenNotExists() {
+    void existsLunaticJsonInterrogation_shouldReturn200_whenExists() {
+        // When
+        ResponseEntity<Void> response = rawResponseController.existsLunaticJsonByInterrogationId(DEFAULT_INTERROGATION_ID);
+
+        // Then
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        Assertions.assertThat(response.getBody()).isNull();
+    }
+
+    @Test
+    void existsLunaticJsonInterrogation_shouldReturn404_whenNotExists() {
         // Given
         String unknownId = "UNKNOWN_INTERROGATION_ID";
 
         // When
-        ResponseEntity<Void> response = rawResponseController.exists(unknownId);
+        ResponseEntity<Void> response = rawResponseController.existsLunaticJsonByInterrogationId(unknownId);
 
         // Then
         Assertions.assertThat(response.getStatusCode().value()).isEqualTo(404);
