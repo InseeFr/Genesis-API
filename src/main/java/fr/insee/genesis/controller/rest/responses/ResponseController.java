@@ -10,7 +10,7 @@ import fr.insee.genesis.controller.adapter.LunaticXmlAdapter;
 import fr.insee.genesis.controller.dto.SurveyUnitDto;
 import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
 import fr.insee.genesis.controller.dto.SurveyUnitQualityToolDto;
-import fr.insee.genesis.controller.dto.SurveyUnitSimplified;
+import fr.insee.genesis.controller.dto.SurveyUnitSimplifiedDto;
 import fr.insee.genesis.controller.rest.CommonApiResponse;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlCampaign;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlDataParser;
@@ -66,7 +66,6 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 @RequestMapping(path = "/responses" )
 @Controller
@@ -285,12 +284,16 @@ public class ResponseController implements CommonApiResponse {
         return ResponseEntity.ok(responses);
     }
 
+    /**
+     * @deprecated Use restful and less logic getResponseByCollectionInstrumentAndInterrogation instead
+     */
+    @Deprecated(since = "2.4.0")
     @Operation(summary = "Retrieve responses for an interrogation, using interrogationId and collectionInstrumentId from Genesis Database. For a given mode, it returns only the latest value of each variable regardless of the state. The result is one object by mode in the output")
     @GetMapping(path = "/simplified/by-interrogation-collection-instrument-and-mode/latest")
     @PreAuthorize("hasRole('USER_KRAFTWERK')")
-    public ResponseEntity<SurveyUnitSimplified> getLatestByInterrogationOneObject(@RequestParam("interrogationId") String interrogationId,
-                                                                             @RequestParam("collectionInstrumentId") String collectionInstrumentId,
-                                                                             @RequestParam("mode") Mode mode) {
+    public ResponseEntity<SurveyUnitSimplifiedDto> getLatestByInterrogationOneObject(@RequestParam("interrogationId") String interrogationId,
+                                                                                     @RequestParam("collectionInstrumentId") String collectionInstrumentId,
+                                                                                     @RequestParam("mode") Mode mode) {
         List<SurveyUnitModel> responses = surveyUnitService.findLatestByIdAndByCollectionInstrumentId(interrogationId, collectionInstrumentId);
         List<VariableModel> outputVariables = new ArrayList<>();
         List<VariableModel> outputExternalVariables = new ArrayList<>();
@@ -308,7 +311,7 @@ public class ResponseController implements CommonApiResponse {
             outputVariables.addAll(response.getCollectedVariables());
             outputExternalVariables.addAll(response.getExternalVariables());
         }
-        return ResponseEntity.ok(SurveyUnitSimplified.builder()
+        return ResponseEntity.ok(SurveyUnitSimplifiedDto.builder()
                 .collectionInstrumentId(responses.getFirst().getCollectionInstrumentId())
                 .campaignId(responses.getFirst().getCampaignId())
                 .interrogationId(responses.getFirst().getInterrogationId())
@@ -321,21 +324,43 @@ public class ResponseController implements CommonApiResponse {
                 .build());
     }
 
+    @Operation(summary = "Returns the response with the latest variables for a collectionInstrument, mode and " +
+            "interrogation")
+    @GetMapping(path = "/{collectionInstrumentId}/{mode}/{interrogationId}")
+    @PreAuthorize("hasRole('USER_KRAFTWERK')")
+    public ResponseEntity<SurveyUnitSimplifiedDto> getResponseByCollectionInstrumentAndInterrogation(
+            @PathVariable("collectionInstrumentId") String collectionInstrumentId,
+            @PathVariable("interrogationId") String interrogationId,
+            @RequestParam("mode") Mode mode) {
+            return ResponseEntity.ok(
+                    surveyUnitService.findSimplifiedByCollectionInstrumentIdAndInterrogationId(
+                            collectionInstrumentId,
+                            interrogationId,
+                            mode
+                    )
+            );
+    }
 
+    /**
+     * @deprecated Use restful and less logic getResponseByCollectionInstrumentAndInterrogationList instead
+     */
+    @Deprecated(since = "2.4.0")
     @Operation(summary = "Retrieve all responses for a collection instrument and a list of interrogations",
             description = "Return the latest state for each variable for the given interrogationIds and a given collection instrument (formerly questionnaire).<br>" +
                     "For a given id, the endpoint returns a document by collection mode (if there is more than one).")
     @PostMapping(path = "/simplified/by-list-interrogation-and-collection-instrument/latest")
     @PreAuthorize("hasRole('USER_KRAFTWERK')")
     //TODO move logic and unit test to surveyUnitService (also extract some methods instead of multiple lambdas)
-    public ResponseEntity<List<SurveyUnitSimplified>> getLatestForInterrogationListAndCollectionInstrument(
+    public ResponseEntity<List<SurveyUnitSimplifiedDto>> getLatestForInterrogationListAndCollectionInstrument(
             @RequestParam("collectionInstrumentId") String collectionInstrumentId,
             @RequestBody List<InterrogationId> interrogationIds)
     {
-        List<SurveyUnitSimplified> results = new ArrayList<>();
+        List<SurveyUnitSimplifiedDto> results = new ArrayList<>();
         List<Mode> modes = surveyUnitService.findModesByCollectionInstrumentId(collectionInstrumentId);
         interrogationIds.forEach(interrogationId -> {
-            List<SurveyUnitModel> responses = surveyUnitService.findLatestByIdAndByCollectionInstrumentId(interrogationId.getInterrogationId(), collectionInstrumentId);
+            List<SurveyUnitModel> responses = surveyUnitService.findLatestByIdAndByCollectionInstrumentId(
+                    interrogationId.getInterrogationId(), collectionInstrumentId
+            );
             modes.forEach(mode -> {
                 List<VariableModel> outputVariables = new ArrayList<>();
                 List<VariableModel> outputExternalVariables = new ArrayList<>();
@@ -358,7 +383,7 @@ public class ResponseController implements CommonApiResponse {
                     }
                 }
                 if (!outputVariables.isEmpty() || !outputExternalVariables.isEmpty()) {
-                    results.add(SurveyUnitSimplified.builder()
+                    results.add(SurveyUnitSimplifiedDto.builder()
                             .collectionInstrumentId(responses.getFirst().getCollectionInstrumentId())
                             .campaignId(responses.getFirst().getCampaignId())
                             .interrogationId(interrogationId.getInterrogationId())
@@ -375,88 +400,22 @@ public class ResponseController implements CommonApiResponse {
         return ResponseEntity.ok(results);
     }
 
-
-    //========= OPTIMISATIONS PERFS (START) ==========
-    /**
-     * @author Adrien Marchal
-     */
-    //TODO Unused for now, reuse code for optimizations, also move it to service
-    @Operation(summary = "Retrieve all responses for a questionnaire and a list of UE",
-            description = "Return the latest state for each variable for the given ids and a given questionnaire.<br>" +
+    @Operation(summary = "Retrieve all responses for a collection instrument and a list of interrogations",
+            description = "Return the latest state for each variable for the given interrogationIds and a given collection instrument (formerly questionnaire).<br>" +
                     "For a given id, the endpoint returns a document by collection mode (if there is more than one).")
-    @PostMapping(path = "/simplified/by-list-interrogation-and-questionnaire/latestV2")
+    @PostMapping(path = "/{collectionInstrumentId}")
     @PreAuthorize("hasRole('USER_KRAFTWERK')")
-    public ResponseEntity<List<SurveyUnitSimplified>> getLatestForInterrogationListV2(@RequestParam("questionnaireId") String questionnaireId,
-                                                                                      @RequestParam List<String> modes,
-                                                                                        @RequestBody List<InterrogationId> interrogationIds) {
-        List<SurveyUnitSimplified> results = new ArrayList<>();
-
-        //!!!WARNING!!! : FOR PERFORMANCES PURPOSES, WE DONT'MAKE REQUESTS ON INDIVIDUAL ELEMENTS ANYMORE, BUT ON A SUBLIST OF THE INPUTLIST
-        final int SUBBLOCK_SIZE = 100;
-        int offset = 0;
-        List<InterrogationId> interrogationIdsSubList;
-
-        for(String mode : modes) {
-
-            while(offset <= interrogationIds.size()) {
-                //extract part of input list
-                int endOffset = Math.min(offset + SUBBLOCK_SIZE, interrogationIds.size());
-                interrogationIdsSubList = interrogationIds.subList(offset, endOffset);
-
-                //1) For each InterrogationId, we collect all responses versions, in which ONLY THE LATEST VERSION of each variable is kept.
-                List<List<SurveyUnitModel>> responses = surveyUnitService.findLatestByIdAndByQuestionnaireIdAndModeOrdered(questionnaireId, mode, interrogationIdsSubList);
-
-                responses.forEach(responsesForSingleInterrId -> {
-                    SurveyUnitSimplified simplifiedResponse = fusionWithLastUpdated(responsesForSingleInterrId, mode);
-                    if(simplifiedResponse != null) {
-                        results.add(simplifiedResponse);
-                    }
-                });
-
-                offset = offset + SUBBLOCK_SIZE;
-            }
-        }
-
-        return ResponseEntity.ok(results);
+    public ResponseEntity<List<SurveyUnitSimplifiedDto>> getResponseByCollectionInstrumentAndInterrogationList(
+            @PathVariable("collectionInstrumentId") String collectionInstrumentId,
+            @RequestBody List<InterrogationId> interrogationIds)
+    {
+        return ResponseEntity.ok(
+                surveyUnitService.findSimplifiedByCollectionInstrumentIdAndInterrogationIdList(
+                        collectionInstrumentId,
+                        interrogationIds
+                )
+        );
     }
-
-
-    private SurveyUnitSimplified fusionWithLastUpdated(List<SurveyUnitModel> responsesForSingleInterrId, String mode) {
-        //NOTE : 1) "responses" in input here corresponds to all collected responses versions of a given "InterrogationId",
-        //       in which ONLY THE LATEST VERSION of each variable is kept.
-
-        //return simplifiedResponse
-        SurveyUnitSimplified simplifiedResponse = null;
-
-        //2) storage of the !!!FUSION!!! OF ALL LATEST UPDATED variables (located in the different versions of the stored "InterrogationId")
-        List<VariableModel> outputVariables = new ArrayList<>();
-        List<VariableModel> outputExternalVariables = new ArrayList<>();
-
-        responsesForSingleInterrId.forEach(response -> {
-            outputVariables.addAll(response.getCollectedVariables());
-            outputExternalVariables.addAll(response.getExternalVariables());
-        });
-
-        //3) add to the result list the compiled fusion of all the latest variables
-        if (!outputVariables.isEmpty() || !outputExternalVariables.isEmpty()) {
-            Mode modeWrapped = Mode.getEnumFromModeName(mode);
-
-            simplifiedResponse = SurveyUnitSimplified.builder()
-                    .collectionInstrumentId(responsesForSingleInterrId.getFirst().getCollectionInstrumentId())
-                    .campaignId(responsesForSingleInterrId.getFirst().getCampaignId())
-                    .interrogationId(responsesForSingleInterrId.getFirst().getInterrogationId())
-                    .mode(modeWrapped)
-                    .validationDate(responsesForSingleInterrId.getFirst().getValidationDate())
-                    .questionnaireState(responsesForSingleInterrId.getFirst().getQuestionnaireState())
-                    .variablesUpdate(outputVariables)
-                    .externalVariables(outputExternalVariables)
-                    .build();
-        }
-
-        return simplifiedResponse;
-    }
-    //========= OPTIMISATIONS PERFS (END) ==========
-
 
     @Operation(summary = "Save edited variables",
             description = "Save edited variables document into database")
@@ -706,4 +665,90 @@ public class ResponseController implements CommonApiResponse {
     private static String getSuccessMessage(boolean isAnyDataSaved) {
         return isAnyDataSaved ? SUCCESS_MESSAGE : SUCCESS_NO_DATA_MESSAGE;
     }
+
+
+
+    //SPRING/SUMMER 2025
+    //========= OPTIMISATIONS PERFS (START) ==========
+    /**
+     * @author Adrien Marchal
+     */
+    //TODO Unused for now, reuse code for optimizations, also move it to service
+    @Deprecated
+    @Operation(summary = "Retrieve all responses for a questionnaire and a list of UE",
+            description = "Return the latest state for each variable for the given ids and a given questionnaire.<br>" +
+                    "For a given id, the endpoint returns a document by collection mode (if there is more than one).")
+    @PostMapping(path = "/simplified/by-list-interrogation-and-questionnaire/latestV2")
+    @PreAuthorize("hasRole('USER_KRAFTWERK')")
+    public ResponseEntity<List<SurveyUnitSimplifiedDto>> getLatestForInterrogationListV2(@RequestParam("questionnaireId") String questionnaireId,
+                                                                                         @RequestParam List<String> modes,
+                                                                                         @RequestBody List<InterrogationId> interrogationIds) {
+        List<SurveyUnitSimplifiedDto> results = new ArrayList<>();
+
+        //!!!WARNING!!! : FOR PERFORMANCES PURPOSES, WE DONT'MAKE REQUESTS ON INDIVIDUAL ELEMENTS ANYMORE, BUT ON A SUBLIST OF THE INPUTLIST
+        final int SUBBLOCK_SIZE = 100;
+        int offset = 0;
+        List<InterrogationId> interrogationIdsSubList;
+
+        for(String mode : modes) {
+
+            while(offset <= interrogationIds.size()) {
+                //extract part of input list
+                int endOffset = Math.min(offset + SUBBLOCK_SIZE, interrogationIds.size());
+                interrogationIdsSubList = interrogationIds.subList(offset, endOffset);
+
+                //1) For each InterrogationId, we collect all responses versions, in which ONLY THE LATEST VERSION of each variable is kept.
+                List<List<SurveyUnitModel>> responses = surveyUnitService.findLatestByIdAndByQuestionnaireIdAndModeOrdered(questionnaireId, mode, interrogationIdsSubList);
+
+                responses.forEach(responsesForSingleInterrId -> {
+                    SurveyUnitSimplifiedDto simplifiedResponse = fusionWithLastUpdated(responsesForSingleInterrId, mode);
+                    if(simplifiedResponse != null) {
+                        results.add(simplifiedResponse);
+                    }
+                });
+
+                offset = offset + SUBBLOCK_SIZE;
+            }
+        }
+
+        return ResponseEntity.ok(results);
+    }
+
+
+    private SurveyUnitSimplifiedDto fusionWithLastUpdated(List<SurveyUnitModel> responsesForSingleInterrId, String mode) {
+        //NOTE : 1) "responses" in input here corresponds to all collected responses versions of a given "InterrogationId",
+        //       in which ONLY THE LATEST VERSION of each variable is kept.
+
+        //return simplifiedResponse
+        SurveyUnitSimplifiedDto simplifiedResponse = null;
+
+        //2) storage of the !!!FUSION!!! OF ALL LATEST UPDATED variables (located in the different versions of the stored "InterrogationId")
+        List<VariableModel> outputVariables = new ArrayList<>();
+        List<VariableModel> outputExternalVariables = new ArrayList<>();
+
+        responsesForSingleInterrId.forEach(response -> {
+            outputVariables.addAll(response.getCollectedVariables());
+            outputExternalVariables.addAll(response.getExternalVariables());
+        });
+
+        //3) add to the result list the compiled fusion of all the latest variables
+        if (!outputVariables.isEmpty() || !outputExternalVariables.isEmpty()) {
+            Mode modeWrapped = Mode.getEnumFromModeName(mode);
+
+            simplifiedResponse = SurveyUnitSimplifiedDto.builder()
+                    .collectionInstrumentId(responsesForSingleInterrId.getFirst().getCollectionInstrumentId())
+                    .campaignId(responsesForSingleInterrId.getFirst().getCampaignId())
+                    .interrogationId(responsesForSingleInterrId.getFirst().getInterrogationId())
+                    .mode(modeWrapped)
+                    .validationDate(responsesForSingleInterrId.getFirst().getValidationDate())
+                    .questionnaireState(responsesForSingleInterrId.getFirst().getQuestionnaireState())
+                    .variablesUpdate(outputVariables)
+                    .externalVariables(outputExternalVariables)
+                    .build();
+        }
+
+        return simplifiedResponse;
+    }
+    //========= OPTIMISATIONS PERFS (END) ==========
+
 }

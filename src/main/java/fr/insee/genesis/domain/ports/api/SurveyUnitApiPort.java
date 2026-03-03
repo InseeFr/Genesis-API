@@ -5,6 +5,7 @@ import fr.insee.genesis.controller.dto.CampaignWithQuestionnaire;
 import fr.insee.genesis.controller.dto.QuestionnaireWithCampaign;
 import fr.insee.genesis.controller.dto.SurveyUnitDto;
 import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
+import fr.insee.genesis.controller.dto.SurveyUnitSimplifiedDto;
 import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
@@ -26,6 +27,18 @@ public interface SurveyUnitApiPort {
     List<SurveyUnitModel> findByInterrogationId(String interrogationId);
 
     List<SurveyUnitModel> findLatestByIdAndByCollectionInstrumentId(String interrogationId, String collectionInstrumentId);
+
+    SurveyUnitSimplifiedDto findSimplifiedByCollectionInstrumentIdAndInterrogationId(
+            String collectionInstrumentId,
+            String interrogationId,
+            Mode mode
+    );
+
+    List<SurveyUnitSimplifiedDto> findSimplifiedByCollectionInstrumentIdAndInterrogationIdList(
+            String collectionInstrumentId,
+            List<InterrogationId> interrogationIds
+    );
+
 
     //========= OPTIMISATIONS PERFS (START) ==========
     List<List<SurveyUnitModel>> findLatestByIdAndByQuestionnaireIdAndModeOrdered(String questionnaireId, String mode, List<InterrogationId> interrogationIds);

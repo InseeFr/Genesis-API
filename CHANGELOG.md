@@ -1,4 +1,13 @@
 # Changelog
+## 2.4.0 [TODO]
+### Added
+- Restful endpoints to get latest responses without the logic in it (not to be confused with get latest states)
+- Simplified survey units now have datastate in their variables
+### Changed
+- Deprecated non-restful old endpoint
+### Fixed
+- Returned null collectionInstrumentId in get unprocessed
+
 ## 2.3.1 [2026-02-24]
 ### Fixed
 - 500 when save edited without campaignId

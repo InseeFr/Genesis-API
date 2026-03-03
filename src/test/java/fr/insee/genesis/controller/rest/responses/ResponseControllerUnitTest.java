@@ -2,7 +2,7 @@ package fr.insee.genesis.controller.rest.responses;
 
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.TestConstants;
-import fr.insee.genesis.controller.dto.SurveyUnitSimplified;
+import fr.insee.genesis.controller.dto.SurveyUnitSimplifiedDto;
 import fr.insee.genesis.controller.utils.AuthUtils;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
@@ -17,8 +17,10 @@ import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
 import fr.insee.modelefiliere.RawResponseDto;
+import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +33,8 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 class ResponseControllerUnitTest {
     static ResponseController responseController;
@@ -59,6 +63,78 @@ class ResponseControllerUnitTest {
                 questionnaireMetadataService,
                 dataProcessingContextApiPort
         );
+    }
+
+    @Test
+    @SneakyThrows
+    void getResponseByCollectionInstrumentAndInterrogation_test(){
+        //GIVEN
+        String collectionInstrumentId = "collectionInstrumentId";
+        String interrogationId = "interrogationTest";
+        Mode mode = Mode.WEB;
+        SurveyUnitSimplifiedDto surveyUnitSimplifiedDto = SurveyUnitSimplifiedDto.builder().build();
+        doReturn(surveyUnitSimplifiedDto).when(surveyUnitApiPort).findSimplifiedByCollectionInstrumentIdAndInterrogationId(
+                collectionInstrumentId,
+                interrogationId,
+                mode
+        );
+
+        //WHEN
+        ResponseEntity<SurveyUnitSimplifiedDto> response = responseController.getResponseByCollectionInstrumentAndInterrogation(
+                collectionInstrumentId,
+                interrogationId,
+                mode
+        );
+
+        //THEN
+        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(200);
+        verify(surveyUnitApiPort, times(1)).findSimplifiedByCollectionInstrumentIdAndInterrogationId(
+                collectionInstrumentId,
+                interrogationId,
+                mode
+        );
+        Assertions.assertThat(response.getBody()).isEqualTo(surveyUnitSimplifiedDto);
+    }
+
+    @Test
+    @SneakyThrows
+    void getResponseByCollectionInstrumentAndInterrogationList_test(){
+        //GIVEN
+        String collectionInstrumentId = "collectionInstrumentId";
+        List<InterrogationId> interrogationIds = List.of(
+                new InterrogationId("interrogationTest1")
+                , new InterrogationId("interrogationTest2")
+        );
+        SurveyUnitSimplifiedDto surveyUnitSimplifiedDto1 = SurveyUnitSimplifiedDto.builder()
+                .interrogationId(interrogationIds.getFirst().getInterrogationId())
+                .build();
+        SurveyUnitSimplifiedDto surveyUnitSimplifiedDto2 = SurveyUnitSimplifiedDto.builder()
+                .interrogationId(interrogationIds.getLast().getInterrogationId())
+                .build();
+        List<SurveyUnitSimplifiedDto> surveyUnitSimplifiedDtos = List.of(
+                surveyUnitSimplifiedDto1,
+                surveyUnitSimplifiedDto2
+        );
+        doReturn(surveyUnitSimplifiedDtos).when(surveyUnitApiPort).findSimplifiedByCollectionInstrumentIdAndInterrogationIdList(
+                collectionInstrumentId,
+                interrogationIds
+        );
+
+        //WHEN
+        ResponseEntity<List<SurveyUnitSimplifiedDto>> response = responseController.getResponseByCollectionInstrumentAndInterrogationList(
+                collectionInstrumentId,
+                interrogationIds
+        );
+
+        //THEN
+        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(200);
+        verify(surveyUnitApiPort, times(1)).findSimplifiedByCollectionInstrumentIdAndInterrogationIdList(
+                collectionInstrumentId,
+                interrogationIds
+        );
+        Assertions.assertThat(response.getBody()).hasSize(2);
+        Assertions.assertThat(response.getBody().getFirst()).isEqualTo(surveyUnitSimplifiedDto1);
+        Assertions.assertThat(response.getBody().getLast()).isEqualTo(surveyUnitSimplifiedDto2);
     }
 
     //Non regression test of #22876 and #22875
@@ -122,7 +198,7 @@ class ResponseControllerUnitTest {
         doReturn(isReversed ? surveyUnitModelList.reversed() : surveyUnitModelList).when(surveyUnitApiPort).findLatestByIdAndByCollectionInstrumentId(any(), any());
 
         //WHEN
-        ResponseEntity<List<SurveyUnitSimplified>> returnedResponse = responseController.getLatestForInterrogationListAndCollectionInstrument(
+        ResponseEntity<List<SurveyUnitSimplifiedDto>> returnedResponse = responseController.getLatestForInterrogationListAndCollectionInstrument(
                 TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
                 Collections.singletonList(new InterrogationId(TestConstants.DEFAULT_INTERROGATION_ID))
         );
