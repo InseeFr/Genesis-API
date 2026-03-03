@@ -163,6 +163,11 @@ public class RawDataDefinitions {
         public Page<RawResponseModel> findRawResponseDataByCollectionInstrumentId(String collectionInstrumentId, Pageable pageable) {
             return null;
         }
+
+        @Override
+        public boolean existsByInterrogationId(String interrogationId) {
+            return false;
+        }
     };
 
     RawResponseController rawResponseController = new RawResponseController(

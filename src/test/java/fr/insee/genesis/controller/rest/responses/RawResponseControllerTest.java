@@ -50,6 +50,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static fr.insee.genesis.TestConstants.DEFAULT_INTERROGATION_ID;
+
 @Slf4j
 class RawResponseControllerTest {
     private final FileUtils fileUtils = new FileUtils(new ConfigStub());
@@ -136,6 +138,11 @@ class RawResponseControllerTest {
         @Override
         public Page<RawResponseModel> findRawResponseDataByCollectionInstrumentId(String collectionInstrumentId, Pageable pageable) {
             return null;
+        }
+
+        @Override
+        public boolean existsByInterrogationId(String interrogationId) {
+            return DEFAULT_INTERROGATION_ID.equals(interrogationId);
         }
     };
 
@@ -328,6 +335,29 @@ class RawResponseControllerTest {
         Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         org.junit.jupiter.api.Assertions.assertNotNull(response.getBody());
         Assertions.assertThat(response.getBody().getContent()).hasSize(1);
+    }
+
+    @Test
+    void existsInterrogation_shouldReturn200_whenExists() {
+        // When
+        ResponseEntity<Void> response = rawResponseController.exists(DEFAULT_INTERROGATION_ID);
+
+        // Then
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        Assertions.assertThat(response.getBody()).isNull();
+    }
+
+    @Test
+    void existsInterrogation_shouldReturn404_whenNotExists() {
+        // Given
+        String unknownId = "UNKNOWN_INTERROGATION_ID";
+
+        // When
+        ResponseEntity<Void> response = rawResponseController.exists(unknownId);
+
+        // Then
+        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(404);
+        Assertions.assertThat(response.getBody()).isNull();
     }
 
     //Utils

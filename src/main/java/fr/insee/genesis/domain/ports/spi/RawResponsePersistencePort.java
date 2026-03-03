@@ -23,4 +23,6 @@ public interface RawResponsePersistencePort {
     Set<String> findDistinctCollectionInstrumentIds();
 
     Page<RawResponseModel> findByCollectionInstrumentId(String collectionInstrumentId, Pageable pageable);
+
+    boolean existsByInterrogationId(String interrogationId);
 }

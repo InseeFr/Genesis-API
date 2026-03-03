@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -38,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static fr.insee.genesis.TestConstants.DEFAULT_INTERROGATION_ID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -124,6 +126,29 @@ class RawResponseServiceUnitTest {
         //WHEN + THEN
         Assertions.assertThat(rawResponseService.getUnprocessedCollectionInstrumentIds())
                 .containsExactly("TEST-TABLEAUX");
+    }
+
+    @Test
+    void existsByInterrogationId_shouldReturnTrue_whenExists() {
+        // When
+        Mockito.when(rawResponsePersistencePort.existsByInterrogationId(DEFAULT_INTERROGATION_ID))
+                .thenReturn(true);
+        boolean exists = rawResponseService.existsByInterrogationId(DEFAULT_INTERROGATION_ID);
+
+        // Then
+        Assertions.assertThat(exists).isTrue();
+    }
+
+    @Test
+    void existsByInterrogationId_shouldReturnFalse_whenNotExists() {
+        // Given
+        String unknownId = "UNKNOWN_INTERROGATION_ID";
+
+        // When
+        boolean exists = rawResponseService.existsByInterrogationId(unknownId);
+
+        // Then
+        Assertions.assertThat(exists).isFalse();
     }
 
     @Nested
