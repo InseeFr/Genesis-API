@@ -24,6 +24,7 @@ public interface RawResponseApiPort {
     List<String> getUnprocessedCollectionInstrumentIds();
     void updateProcessDates(List<SurveyUnitModel> surveyUnitModels);
     Page<RawResponseModel> findRawResponseDataByCampaignIdAndDate(String campaignId, Instant startDate, Instant endDate, Pageable pageable);
+    long countDistinctInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId);
 
     long countByCollectionInstrumentId(String collectionInstrumentId);
 

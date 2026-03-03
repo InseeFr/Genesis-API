@@ -104,4 +104,9 @@ public class RawResponseDataPersistanceStub implements RawResponsePersistencePor
     public boolean existsByInterrogationId(String interrogationId) {
         return DEFAULT_INTERROGATION_ID.equals(interrogationId);
     }
+
+    @Override
+    public long countDistinctInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId) {
+        return 0;
+    }
 }

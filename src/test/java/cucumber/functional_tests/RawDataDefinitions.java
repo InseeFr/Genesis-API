@@ -150,6 +150,11 @@ public class RawDataDefinitions {
         }
 
         @Override
+        public long countDistinctInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId) {
+            return 0;
+        }
+
+        @Override
         public long countByCollectionInstrumentId(String collectionInstrumentId) {
             return 0;
         }

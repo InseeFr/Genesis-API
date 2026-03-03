@@ -90,6 +90,11 @@ public class LunaticJsonMongoDBRepositoryStub implements LunaticJsonMongoDBRepos
     }
 
     @Override
+    public Long countDistinctInterrogationIdsByQuestionnaireId(String questionnaireId) {
+        return 0L;
+    }
+
+    @Override
     public Page<LunaticJsonRawDataDocument> findByCampaignIdAndRecordDateBetween(String campagneId, Instant  start, Instant end, Pageable pageable){
         return Page.empty(pageable);
     }

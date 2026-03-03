@@ -30,4 +30,5 @@ public interface LunaticJsonRawDataPersistencePort {
     Set<String> findUnprocessedInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId);
 
     boolean existsByInterrogationId(String interrogationId);
+    long countDistinctInterrogationIdsByQuestionnaireId(String questionnaireId);
 }

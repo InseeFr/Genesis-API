@@ -16,8 +16,11 @@ import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -44,17 +47,23 @@ public class VolumetryLogService {
         if (Files.exists(logFilePath)){
             Files.delete(logFilePath);
         }
-        Files.writeString(logFilePath, "campaign;volumetry\n");
+        Files.writeString(logFilePath, "campaign;volumetry;distinctInterrogationIds\n");
 
         //Write lines
-        Set<String> collectionInstrumentIds = surveyUnitApiPort.findDistinctQuestionnairesAndCollectionInstrumentIds();
-        for (String collectionInstrumentId : collectionInstrumentIds) {
+        Set<String> collectionInstrumentIds =
+                surveyUnitApiPort.findDistinctQuestionnairesAndCollectionInstrumentIds();
+
+        List<String> sortedIds = new ArrayList<>(collectionInstrumentIds);
+        Collections.sort(sortedIds);
+
+        for (String collectionInstrumentId : sortedIds) {
             long countResult = surveyUnitApiPort.countResponsesByCollectionInstrumentId(collectionInstrumentId);
             countResult += surveyUnitApiPort.countResponsesByQuestionnaireId(collectionInstrumentId);
 
+            long distinctInterrogationIds =
+                    surveyUnitApiPort.countDistinctInterrogationIdsByQuestionnaireAndCollectionInstrumentId(collectionInstrumentId);
 
-            String line = collectionInstrumentId + ";" + countResult + "\n";
-
+            String line = collectionInstrumentId + ";" + countResult + ";" + distinctInterrogationIds + "\n";
             Files.writeString(logFilePath, line, StandardOpenOption.APPEND);
             responseVolumetricsByQuestionnaireMap.put(collectionInstrumentId, countResult);
         }
@@ -66,54 +75,82 @@ public class VolumetryLogService {
             LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort,
             RawResponseApiPort rawResponseApiPort
     ) throws IOException {
+
         Map<String, Map<String, Long>> rawDataVolumetricsMap = new HashMap<>();
         rawDataVolumetricsMap.put(Constants.MONGODB_LUNATIC_RAWDATA_COLLECTION_NAME, new HashMap<>());
         rawDataVolumetricsMap.put(Constants.MONGODB_RAW_RESPONSES_COLLECTION_NAME, new HashMap<>());
         rawDataVolumetricsMap.put(Constants.VOLUMETRY_RAW_TOTAL, new HashMap<>());
 
-        Path logFilePath = Path.of(config.getLogFolder()).resolve(Constants.VOLUMETRY_FOLDER_NAME)
+        Path logFilePath = Path.of(config.getLogFolder())
+                .resolve(Constants.VOLUMETRY_FOLDER_NAME)
                 .resolve(
-                        LocalDateTime.now().format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
-                                + Constants.VOLUMETRY_RAW_FILE_SUFFIX + ".csv");
+                        LocalDateTime.now()
+                                .format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
+                                + Constants.VOLUMETRY_RAW_FILE_SUFFIX + ".csv"
+                );
+
         Files.createDirectories(logFilePath.getParent());
-        //Overwrite log file with header if exists
-        if (Files.exists(logFilePath)){
+
+        // Overwrite file if exists
+        if (Files.exists(logFilePath)) {
             Files.delete(logFilePath);
         }
 
-        //Write header
-        Files.writeString(logFilePath, "questionnaireId;%s;%s;%s\n"
-                .formatted(
-                        Constants.MONGODB_LUNATIC_RAWDATA_COLLECTION_NAME,
-                        Constants.MONGODB_RAW_RESPONSES_COLLECTION_NAME,
-                        Constants.VOLUMETRY_RAW_TOTAL
-                )
+        Files.writeString(
+                logFilePath,
+                "questionnaireId;%s;%s;%s;distinctInterrogationIds\n"
+                        .formatted(
+                                Constants.MONGODB_LUNATIC_RAWDATA_COLLECTION_NAME,
+                                Constants.MONGODB_RAW_RESPONSES_COLLECTION_NAME,
+                                Constants.VOLUMETRY_RAW_TOTAL
+                        )
         );
 
-        //Write lines
-        Set<String> oldRawDataQuestionnaires = lunaticJsonRawDataApiPort.findDistinctQuestionnaireIds();
-        Set<String> rawDataQuestionnaires = new HashSet<>(rawResponseApiPort.getDistinctCollectionInstrumentIds());
-        rawDataQuestionnaires.addAll(oldRawDataQuestionnaires);
-        for (String questionnaireId : rawDataQuestionnaires) {
-            long oldRawDataCountResult = lunaticJsonRawDataApiPort.countRawResponsesByQuestionnaireId(questionnaireId);
-            long rawDataCountResult = rawResponseApiPort.countByCollectionInstrumentId(questionnaireId);
-            long total = oldRawDataCountResult + rawDataCountResult;
+        // Merge questionnaire ids from both sources
+        Set<String> lunaticQuestionnaires = lunaticJsonRawDataApiPort.findDistinctQuestionnaireIds();
+        Set<String> rawQuestionnaires = new HashSet<>(rawResponseApiPort.getDistinctCollectionInstrumentIds());
+        rawQuestionnaires.addAll(lunaticQuestionnaires);
 
-            String delimiter = ";";
-            String line = questionnaireId + delimiter
-                    + oldRawDataCountResult + delimiter
-                    + rawDataCountResult + delimiter
-                    + total
-                    +"\n";
+        List<String> sortedQuestionnaires = new ArrayList<>(rawQuestionnaires);
+        Collections.sort(sortedQuestionnaires);
+
+        for (String questionnaireId : sortedQuestionnaires) {
+
+            long lunaticCount =
+                    lunaticJsonRawDataApiPort.countRawResponsesByQuestionnaireId(questionnaireId);
+
+            long rawCount =
+                    rawResponseApiPort.countByCollectionInstrumentId(questionnaireId);
+
+            long total = lunaticCount + rawCount;
+
+            long lunaticDistinct =
+                    lunaticJsonRawDataApiPort.countDistinctInterrogationIdsByQuestionnaireId(questionnaireId);
+
+            long rawDistinct =
+                    rawResponseApiPort.countDistinctInterrogationIdsByCollectionInstrumentId(questionnaireId);
+
+            long distinctTotal = lunaticDistinct + rawDistinct;
+
+            String line = questionnaireId + ";"
+                    + lunaticCount + ";"
+                    + rawCount + ";"
+                    + total + ";"
+                    + distinctTotal
+                    + "\n";
 
             Files.writeString(logFilePath, line, StandardOpenOption.APPEND);
+
             rawDataVolumetricsMap.get(Constants.MONGODB_LUNATIC_RAWDATA_COLLECTION_NAME)
-                    .put(questionnaireId, oldRawDataCountResult);
+                    .put(questionnaireId, lunaticCount);
+
             rawDataVolumetricsMap.get(Constants.MONGODB_RAW_RESPONSES_COLLECTION_NAME)
-                    .put(questionnaireId, rawDataCountResult);
+                    .put(questionnaireId, rawCount);
+
             rawDataVolumetricsMap.get(Constants.VOLUMETRY_RAW_TOTAL)
                     .put(questionnaireId, total);
         }
+
         return rawDataVolumetricsMap;
     }
 

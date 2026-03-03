@@ -72,4 +72,6 @@ public interface SurveyUnitPersistencePort {
     Set<String> findCampaignIdsByQuestionnaireId(String questionnaireId);
 
     long countByQuestionnaireId(String questionnaireId);
+
+    long countDistinctInterrogationIdsByQuestionnaireAndCollectionInstrumentId(String id);
 }

@@ -45,6 +45,13 @@ public interface LunaticJsonMongoDBRepository extends MongoRepository<LunaticJso
     @Query(value = "{ 'interrogationId': ?0}")
     List<LunaticJsonRawDataDocument> findByInterrogationId(String interrogationId);
 
+    @Aggregation(pipeline = {
+            "{ '$match': { 'questionnaireId': ?0 } }",
+            "{ '$group': { '_id': '$interrogationId' } }",
+            "{ '$count': 'count' }"
+    })
+    Long countDistinctInterrogationIdsByQuestionnaireId(String questionnaireId);
+
     Page<LunaticJsonRawDataDocument> findByCampaignIdAndRecordDateBetween(String campagneId, Instant start, Instant  end, Pageable pageable);
     long countByQuestionnaireId(String questionnaireId);
     @Aggregation(pipeline = {

@@ -241,4 +241,9 @@ public class LunaticJsonRawDataPersistanceStub implements LunaticJsonRawDataPers
     public boolean existsByInterrogationId(String interrogationId) {
         return DEFAULT_INTERROGATION_ID.equals(interrogationId);
     }
+
+    @Override
+    public long countDistinctInterrogationIdsByQuestionnaireId(String questionnaireId) {
+        return 0;
+    }
 }
