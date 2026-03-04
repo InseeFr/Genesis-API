@@ -7,7 +7,9 @@ COPY ./target/*.jar $PATH_TO_JAR
 ENV JAVA_TOOL_OPTIONS_DEFAULT="-XX:MaxRAMPercentage=75"
 
 # Setup a non-root user context (security)
-RUN useradd -u 1000 -g 1000 -s /usr/sbin/nologin -M tomcatuser \
+RUN if ! getent passwd 1000 >/dev/null; then \
+      useradd -u 1000 -g 1000 -s /usr/sbin/nologin -M tomcatuser; \
+    fi \
  && mkdir -p /opt/app/temp-files \
  && chown -R 1000:1000 /opt/app
 
