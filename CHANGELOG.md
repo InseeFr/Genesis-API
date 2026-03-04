@@ -1,15 +1,12 @@
 # Changelog
-## 2.5.0 [TODO]
-### Changed
-- Java 21 -> 25
-
-## 2.4.0 [2026-03-04]
+## 2.4.0 [TODO]
 ### Added
 - Restful endpoints to get latest responses without the logic in it (not to be confused with get latest states)
 - Simplified survey units now have datastate in their variables
 - Volumetrics with distinct interrogationId
 ### Changed
 - Deprecated non-restful old endpoint
+- Java 21 -> 25
 ### Fixed
 - Returned null collectionInstrumentId in get unprocessed
 
