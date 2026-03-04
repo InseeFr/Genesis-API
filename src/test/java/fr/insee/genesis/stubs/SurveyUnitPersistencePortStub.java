@@ -31,6 +31,17 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
         return surveyUnitModelList;
     }
 
+    @Override
+    public List<SurveyUnitModel> findByUsualSurveyUnitAndCollectionInstrumentIds(String usualSurveyUnitId, String collectionInstrumentId) {
+        List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
+        for(SurveyUnitModel SurveyUnitModel : mongoStub){
+            if(SurveyUnitModel.getUsualSurveyUnitId().equals(usualSurveyUnitId) && SurveyUnitModel.getCollectionInstrumentId().equals(collectionInstrumentId))
+                surveyUnitModelList.add(SurveyUnitModel);
+        }
+
+        return surveyUnitModelList;
+    }
+
     //========= OPTIMISATIONS PERFS (START) ==========
     /**
      * @author Adrien Marchal
@@ -123,6 +134,20 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
         return surveyUnitModelList;
     }
 
+    @Override
+    public List<SurveyUnitModel> findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(String collectionInstrumentId, LocalDateTime start, LocalDateTime end) {
+        List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
+        for(SurveyUnitModel surveyUnitModel : mongoStub){
+            if(surveyUnitModel.getCollectionInstrumentId().equals(collectionInstrumentId)
+                    && !surveyUnitModel.getRecordDate().isBefore(start)
+                    && surveyUnitModel.getRecordDate().isBefore(end))
+                surveyUnitModelList.add(
+                        new SurveyUnitModel(surveyUnitModel.getInterrogationId(), surveyUnitModel.getMode())
+                );
+        }
+
+        return surveyUnitModelList;    }
+
 
     //======== OPTIMISATIONS PERFS (START) ========
     /**
@@ -211,6 +236,11 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
 
     @Override
     public long countByQuestionnaireId(String questionnaireId) {
+        return 0;
+    }
+
+    @Override
+    public long countDistinctInterrogationIdsByQuestionnaireAndCollectionInstrumentId(String id) {
         return 0;
     }
 }

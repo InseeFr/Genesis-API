@@ -5,6 +5,7 @@ import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -45,6 +46,30 @@ public class InterrogationController implements CommonApiResponse {
         List<InterrogationId> responses = surveyUnitService.findDistinctInterrogationIdsByQuestionnaireIdAndDateAfter(questionnaireId, since);
         return ResponseEntity.ok(responses);
     }
+
+    @Operation(summary = "Retrieve interrogations recorded between two dates for a given collection instrument")
+    @GetMapping(path = "/by-collection-instrument-and-between-datetime")
+    public ResponseEntity<List<InterrogationId>> getAllInterrogationIdsByCollectionInstrumentIdAndDate(
+            @RequestParam("collectionInstrumentId") String collectionInstrumentId,
+            @RequestParam("start")
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            @Parameter(
+                    description = "sinceDate",
+                    schema = @Schema(type = "string", format = "date-time", example = "2026-01-01T00:00:00")
+            )
+            LocalDateTime start,
+
+            @RequestParam("end")
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            @Parameter(
+                    description = "untilDate",
+                    schema = @Schema(type = "string", format = "date-time", example = "2026-01-31T23:59:59")
+            )
+            LocalDateTime end) {
+        List<InterrogationId> responses = surveyUnitService.findDistinctInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(collectionInstrumentId, start,end);
+        return ResponseEntity.ok(responses);
+    }
+
 
 
     //========= OPTIMISATIONS PERFS (START) ==========

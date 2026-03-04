@@ -17,10 +17,12 @@ import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import java.util.HashSet;
 import java.util.Set;
 
+import static fr.insee.genesis.TestConstants.DEFAULT_INTERROGATION_ID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -99,5 +101,30 @@ class LunaticJsonRawDataServiceUnitTest {
         //WHEN + THEN
         Assertions.assertThat(lunaticJsonRawDataService.getUnprocessedDataQuestionnaireIds())
                 .containsExactly("TEST-TABLEAUX");
+    }
+
+    @Test
+    void existsByInterrogationId_shouldReturnTrue_whenExists() {
+        // When
+        Mockito.when(lunaticJsonRawDataPersistencePort.existsByInterrogationId(DEFAULT_INTERROGATION_ID))
+                .thenReturn(true);
+        boolean exists = lunaticJsonRawDataService.existsByInterrogationId(DEFAULT_INTERROGATION_ID);
+
+        // Then
+        Assertions.assertThat(exists).isTrue();
+    }
+
+    @Test
+    void existsByInterrogationId_shouldReturnFalse_whenNotExists() {
+        // Given
+        String unknownId = "UNKNOWN_INTERROGATION_ID";
+        Mockito.when(lunaticJsonRawDataPersistencePort.existsByInterrogationId(unknownId))
+                .thenReturn(false);
+
+        // When
+        boolean exists = lunaticJsonRawDataService.existsByInterrogationId(unknownId);
+
+        // Then
+        Assertions.assertThat(exists).isFalse();
     }
 }

@@ -12,6 +12,8 @@ import org.mockito.InjectMocks;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static fr.insee.genesis.TestConstants.DEFAULT_INTERROGATION_ID;
+
 
 class LunaticJsonRawDataMongoAdapterTest {
 
@@ -73,5 +75,23 @@ class LunaticJsonRawDataMongoAdapterTest {
         //THEN
         List<LunaticJsonRawDataModel> rawdatas = adapter.findRawData("campaign01",Mode.WEB,List.of("interrogation01"));
         Assertions.assertThat(rawdatas).hasSize(1);
+    }
+
+    @Test
+    void existsByInterrogationId_shouldReturnTrue_whenRepositoryReturnsTrue() {
+        // When
+        boolean exists = adapter.existsByInterrogationId(DEFAULT_INTERROGATION_ID);
+
+        // Then
+        Assertions.assertThat(exists).isTrue();
+    }
+
+    @Test
+    void existsByInterrogationId_shouldReturnFalse_whenRepositoryReturnsFalse() {
+        // When
+        boolean exists = adapter.existsByInterrogationId("unknown-id");
+
+        // Then
+        Assertions.assertThat(exists).isFalse();
     }
 }

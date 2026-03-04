@@ -28,6 +28,7 @@ public interface LunaticJsonRawDataApiPort {
     void updateProcessDates(List<SurveyUnitModel> surveyUnitModels);
     Set<String> findDistinctQuestionnaireIds();
     long countRawResponsesByQuestionnaireId(String campaignId);
+    long countDistinctInterrogationIdsByQuestionnaireId(String questionnaireId);
     Page<LunaticJsonRawDataModel> findRawDataByCampaignIdAndDate(String campaignId, Instant  startDt, Instant endDt, Pageable pageable);
 
     List<LunaticJsonRawDataModel> getRawDataByInterrogationId(String interrogationId);
@@ -40,4 +41,6 @@ public interface LunaticJsonRawDataApiPort {
     Map<String, List<String>> findProcessedIdsgroupedByQuestionnaireSince(LocalDateTime since);
 
     Page<LunaticJsonRawDataModel> findRawDataByQuestionnaireId(String questionnaireId, Pageable pageable);
+
+    boolean existsByInterrogationId(String interrogationId);
 }

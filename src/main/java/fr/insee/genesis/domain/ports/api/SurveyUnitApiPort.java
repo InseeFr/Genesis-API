@@ -5,6 +5,7 @@ import fr.insee.genesis.controller.dto.CampaignWithQuestionnaire;
 import fr.insee.genesis.controller.dto.QuestionnaireWithCampaign;
 import fr.insee.genesis.controller.dto.SurveyUnitDto;
 import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
+import fr.insee.genesis.controller.dto.SurveyUnitSimplifiedDto;
 import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
@@ -19,11 +20,25 @@ public interface SurveyUnitApiPort {
 
     void saveSurveyUnits(List<SurveyUnitModel> suList);
 
-    List<SurveyUnitModel> findByIdsInterrogationAndCollectionInstrument(String interrogationId, String questionnaireId);
+    List<SurveyUnitModel> findByIdsInterrogationAndCollectionInstrument(String interrogationId, String collectionInstrumentId);
+
+    List<SurveyUnitModel> findByIdsUsualSurveyUnitAndCollectionInstrument(String usualSurveyUnitId, String collectionInstrumentId);
 
     List<SurveyUnitModel> findByInterrogationId(String interrogationId);
 
     List<SurveyUnitModel> findLatestByIdAndByCollectionInstrumentId(String interrogationId, String collectionInstrumentId);
+
+    SurveyUnitSimplifiedDto findSimplifiedByCollectionInstrumentIdAndInterrogationId(
+            String collectionInstrumentId,
+            String interrogationId,
+            Mode mode
+    );
+
+    List<SurveyUnitSimplifiedDto> findSimplifiedByCollectionInstrumentIdAndInterrogationIdList(
+            String collectionInstrumentId,
+            List<InterrogationId> interrogationIds
+    );
+
 
     //========= OPTIMISATIONS PERFS (START) ==========
     List<List<SurveyUnitModel>> findLatestByIdAndByQuestionnaireIdAndModeOrdered(String questionnaireId, String mode, List<InterrogationId> interrogationIds);
@@ -36,6 +51,8 @@ public interface SurveyUnitApiPort {
     List<InterrogationId> findDistinctInterrogationIdsByQuestionnaireId(String questionnaireId);
 
     List<InterrogationId> findDistinctInterrogationIdsByQuestionnaireIdAndDateAfter(String questionnaireId, LocalDateTime since);
+
+    List<InterrogationId> findDistinctInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(String collectionInstrumentId, LocalDateTime start, LocalDateTime end);
 
     //========= OPTIMISATIONS PERFS (START) ==========
     long countResponsesByCollectionInstrumentId(String questionnaireId);
@@ -88,4 +105,6 @@ public interface SurveyUnitApiPort {
     Set<String> findCampaignIdsFrom(SurveyUnitInputDto dto);
 
     long countResponsesByQuestionnaireId(String questionnaireId);
+
+    long countDistinctInterrogationIdsByQuestionnaireAndCollectionInstrumentId(String id);
 }

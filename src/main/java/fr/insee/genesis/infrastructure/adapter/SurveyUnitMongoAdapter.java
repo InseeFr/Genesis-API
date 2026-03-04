@@ -56,8 +56,16 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 		return results.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(results);
 	}
 
+    @Override
+    public List<SurveyUnitModel> findByUsualSurveyUnitAndCollectionInstrumentIds(String usualSurveyUnitId, String collectionInstrumentId) {
+        List<SurveyUnitDocument> results = new ArrayList<>();
+        results.addAll(mongoRepository.findByUsualSurveyUnitIdAndCollectionInstrumentId(usualSurveyUnitId, collectionInstrumentId));
+        // To ensure compatibility with older documents (with questionnaireId instead of collectionInstrumentId)
+        results.addAll(mongoRepository.findByUsualSurveyUnitIdAndQuestionnaireId(usualSurveyUnitId, collectionInstrumentId));
+        return results.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(results);    }
 
-	//========= OPTIMISATIONS PERFS (START) ==========
+
+    //========= OPTIMISATIONS PERFS (START) ==========
 	/**
 	 * @author Adrien Marchal
 	 */
@@ -167,7 +175,15 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 		return results.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(results);
 	}
 
-	//========== OPTIMISATIONS PERFS (START) ===========
+    @Override
+    public List<SurveyUnitModel> findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(String collectionInstrumentId, LocalDateTime start, LocalDateTime end) {
+        List<SurveyUnitDocument> results =  new ArrayList<>();
+        results.addAll(mongoRepository.findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(collectionInstrumentId,start,end));
+        results.addAll(mongoRepository.findInterrogationIdsQuestionnaireIdAndRecordDateBetween(collectionInstrumentId,start,end));
+        return results.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(results);
+    }
+
+    //========== OPTIMISATIONS PERFS (START) ===========
 	@Override
 	public long countByCollectionInstrumentId(String collectionInstrumentId) {
 		return mongoRepository.countByCollectionInstrumentId(collectionInstrumentId);
@@ -239,4 +255,17 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 	public long countByQuestionnaireId(String questionnaireId) {
 		return mongoRepository.countByQuestionnaireId(questionnaireId);
 	}
+
+    @Override
+    public long countDistinctInterrogationIdsByQuestionnaireAndCollectionInstrumentId(String id) {
+        Set<String> distinct = new HashSet<>();
+
+        mongoRepository.findInterrogationIdsByQuestionnaireId(id)
+                .forEach(d -> distinct.add(d.getInterrogationId()));
+
+        mongoRepository.findInterrogationIdsByCollectionInstrumentId(id)
+                .forEach(d -> distinct.add(d.getInterrogationId()));
+
+        return distinct.size();
+    }
 }

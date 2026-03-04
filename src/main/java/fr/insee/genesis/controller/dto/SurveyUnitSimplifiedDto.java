@@ -11,7 +11,7 @@ import java.util.List;
 
 @Builder
 @Data
-public class SurveyUnitSimplified {
+public class SurveyUnitSimplifiedDto {
 
 	private String collectionInstrumentId;
 	/**

@@ -20,6 +20,9 @@ public interface SurveyUnitMongoDBRepository extends MongoRepository<SurveyUnitD
 	List<SurveyUnitDocument> findByInterrogationIdAndQuestionnaireId(String interrogationId, String questionnaireId);
 	List<SurveyUnitDocument> findByInterrogationIdAndCollectionInstrumentId(String interrogationId, String collectionInstrumentId);
 
+	List<SurveyUnitDocument> findByUsualSurveyUnitIdAndCollectionInstrumentId(String usualSurveyUnitId, String collectionInstrumentId);
+	List<SurveyUnitDocument> findByUsualSurveyUnitIdAndQuestionnaireId(String usualSurveyUnitId, String questionnaireId);
+
 	//========= OPTIMISATIONS PERFS (START) ==========
 	/**
 	 * @author Adrien Marchal
@@ -40,7 +43,27 @@ public interface SurveyUnitMongoDBRepository extends MongoRepository<SurveyUnitD
 	@Query(value = "{ 'collectionInstrumentId' : ?0, 'recordDate': { $gte: ?1 } }", fields = "{ 'interrogationId' : 1, 'mode' :  1 }")
 	List<SurveyUnitDocument> findInterrogationIdsByCollectionInstrumentIdAndDateAfter(String collectionInstrumentId, LocalDateTime since);
 
-	/**
+    @Query(
+            value = "{ 'collectionInstrumentId' : ?0, 'recordDate': { $gte: ?1, $lt: ?2 } }",
+            fields = "{ 'interrogationId' : 1, 'mode' : 1 }"
+    )
+    List<SurveyUnitDocument> findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
+            String collectionInstrumentId,
+            LocalDateTime start,
+            LocalDateTime end
+    );
+
+    @Query(
+            value = "{ 'questionnaireId' : ?0, 'recordDate': { $gte: ?1, $lt: ?2 } }",
+            fields = "{ 'interrogationId' : 1, 'mode' : 1 }"
+    )
+    List<SurveyUnitDocument> findInterrogationIdsQuestionnaireIdAndRecordDateBetween(
+            String questionnaireId,
+            LocalDateTime start,
+            LocalDateTime end
+    );
+
+    /**
 	 * @author Adrien Marchal
 	 */
 	@Query(value = "{ 'questionnaireId' : ?0 }", count = true)
@@ -105,4 +128,19 @@ public interface SurveyUnitMongoDBRepository extends MongoRepository<SurveyUnitD
 
 	@Query(value = "{ 'questionnaireId' : ?0 }", fields = "{ _id : 0, 'campaignId' : 1 }")
 	Set<String> findCampaignIdsByQuestionnaireId(String questionnaireId);
+
+
+    @Aggregation(pipeline = {
+            "{ '$match': { 'questionnaireId': ?0 } }",
+            "{ '$group': { '_id': '$interrogationId' } }",
+            "{ '$count': 'count' }"
+    })
+    Long countDistinctInterrogationIdsByQuestionnaireId(String questionnaireId);
+
+    @Aggregation(pipeline = {
+            "{ '$match': { 'collectionInstrumentId': ?0 } }",
+            "{ '$group': { '_id': '$interrogationId' } }",
+            "{ '$count': 'count' }"
+    })
+    Long countDistinctInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId);
 }

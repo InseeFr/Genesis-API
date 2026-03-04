@@ -11,7 +11,9 @@ public interface SurveyUnitPersistencePort {
 
     void saveAll(List<SurveyUnitModel> suList);
 
-    List<SurveyUnitModel> findByIds(String interrogationId, String questionnaireId);
+    List<SurveyUnitModel> findByIds(String interrogationId, String collectionInstrumentId);
+
+    List<SurveyUnitModel> findByUsualSurveyUnitAndCollectionInstrumentIds(String usualSurveyUnitId, String collectionInstrumentId);
 
     //========= OPTIMISATIONS PERFS (START) ==========
     /**
@@ -29,6 +31,12 @@ public interface SurveyUnitPersistencePort {
     List<SurveyUnitModel> findInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId);
 
     List<SurveyUnitModel> findInterrogationIdsByQuestionnaireIdAndDateAfter(String questionnaireId, LocalDateTime since);
+
+    List<SurveyUnitModel> findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
+            String collectionInstrumentId,
+            LocalDateTime start,
+            LocalDateTime end
+    );
 
     //======== OPTIMISATIONS PERFS (START) ========
     long countByCollectionInstrumentId(String collectionInstrumentId);
@@ -64,4 +72,6 @@ public interface SurveyUnitPersistencePort {
     Set<String> findCampaignIdsByQuestionnaireId(String questionnaireId);
 
     long countByQuestionnaireId(String questionnaireId);
+
+    long countDistinctInterrogationIdsByQuestionnaireAndCollectionInstrumentId(String id);
 }
