@@ -238,4 +238,9 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     public long countByQuestionnaireId(String questionnaireId) {
         return 0;
     }
+
+    @Override
+    public long countDistinctInterrogationIdsByQuestionnaireAndCollectionInstrumentId(String id) {
+        return 0;
+    }
 }

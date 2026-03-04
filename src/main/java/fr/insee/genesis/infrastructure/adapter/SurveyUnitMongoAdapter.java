@@ -255,4 +255,17 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 	public long countByQuestionnaireId(String questionnaireId) {
 		return mongoRepository.countByQuestionnaireId(questionnaireId);
 	}
+
+    @Override
+    public long countDistinctInterrogationIdsByQuestionnaireAndCollectionInstrumentId(String id) {
+        Set<String> distinct = new HashSet<>();
+
+        mongoRepository.findInterrogationIdsByQuestionnaireId(id)
+                .forEach(d -> distinct.add(d.getInterrogationId()));
+
+        mongoRepository.findInterrogationIdsByCollectionInstrumentId(id)
+                .forEach(d -> distinct.add(d.getInterrogationId()));
+
+        return distinct.size();
+    }
 }

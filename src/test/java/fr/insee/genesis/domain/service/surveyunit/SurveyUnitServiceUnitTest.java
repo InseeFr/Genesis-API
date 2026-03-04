@@ -153,6 +153,50 @@ class SurveyUnitServiceUnitTest {
     }
 
     @Test
+    void get_simplified_should_return_usualSurveyId(){
+        //GIVEN
+        List<SurveyUnitDocument> surveyUnitDocuments = new ArrayList<>();
+        String usualSurveyUnitId = "test";
+
+        SurveyUnitDocument surveyUnitDocument = new SurveyUnitDocument();
+        surveyUnitDocument.setMode(String.valueOf(Mode.WEB));
+        surveyUnitDocument.setUsualSurveyUnitId(usualSurveyUnitId);
+        surveyUnitDocument.setState(DataState.COLLECTED.toString());
+        surveyUnitDocument.setRecordDate(LocalDateTime.now().minusMinutes(1));
+        surveyUnitDocument.setCollectedVariables(new ArrayList<>());
+        surveyUnitDocument.getCollectedVariables().add(new VariableDocument());
+        surveyUnitDocument.getCollectedVariables().getFirst().setVarId("VAR1");
+        surveyUnitDocument.getCollectedVariables().getFirst().setIteration(1);
+        surveyUnitDocument.getCollectedVariables().getFirst().setValue("VAR1");
+        surveyUnitDocuments.add(surveyUnitDocument);
+
+        surveyUnitDocument = new SurveyUnitDocument();
+        surveyUnitDocument.setMode(String.valueOf(Mode.WEB));
+        surveyUnitDocument.setState(DataState.EDITED.toString());
+        surveyUnitDocument.setRecordDate(LocalDateTime.now());
+        surveyUnitDocument.setCollectedVariables(new ArrayList<>());
+        surveyUnitDocument.getCollectedVariables().add(new VariableDocument());
+        surveyUnitDocument.getCollectedVariables().getFirst().setVarId("VAR1");
+        surveyUnitDocument.getCollectedVariables().getFirst().setIteration(1);
+        surveyUnitDocument.getCollectedVariables().getFirst().setValue("VAR1EDITED");
+        surveyUnitDocuments.add(surveyUnitDocument);
+
+        doReturn(SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnitDocuments))
+                .when(surveyUnitPersistencePortStub).findByIds(any(), any());
+
+        //WHEN
+        SurveyUnitSimplifiedDto surveyUnitSimplifiedDto = surveyUnitService.findSimplifiedByCollectionInstrumentIdAndInterrogationId(
+                "test",
+                "testInterrogation",
+                Mode.WEB
+        );
+
+        //THEN
+        Assertions.assertThat(surveyUnitSimplifiedDto).isNotNull();
+        Assertions.assertThat(surveyUnitSimplifiedDto.getUsualSurveyUnitId()).isNotNull().isEqualTo(usualSurveyUnitId);
+    }
+
+    @Test
     @SuppressWarnings("deprecation")
     @SneakyThrows
     void get_simplified_should_return_latest_state_in_collected_variable(){

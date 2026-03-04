@@ -17,6 +17,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static fr.insee.genesis.TestConstants.DEFAULT_INTERROGATION_ID;
+
 @Getter
 public class RawResponseDataPersistanceStub implements RawResponsePersistencePort {
     List<RawResponseDocument> mongoStub = new ArrayList<>();
@@ -96,5 +98,15 @@ public class RawResponseDataPersistanceStub implements RawResponsePersistencePor
     @Override
     public Set<String> findDistinctCollectionInstrumentIds() {
         return new HashSet<>();
+    }
+
+    @Override
+    public boolean existsByInterrogationId(String interrogationId) {
+        return DEFAULT_INTERROGATION_ID.equals(interrogationId);
+    }
+
+    @Override
+    public long countDistinctInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId) {
+        return 0;
     }
 }

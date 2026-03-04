@@ -37,6 +37,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -47,6 +48,7 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static fr.insee.genesis.TestConstants.DEFAULT_INTERROGATION_ID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyMap;
@@ -760,5 +762,30 @@ class LunaticJsonRawDataServiceTest {
                 .data(data)
                 .recordDate(LocalDateTime.now())
                 .build();
+    }
+
+    @Test
+    void existsByInterrogationId_shouldReturnTrue_whenExists() {
+        // When
+        Mockito.when(lunaticJsonRawDataPersistencePort.existsByInterrogationId(DEFAULT_INTERROGATION_ID))
+                .thenReturn(true);
+        boolean exists = lunaticJsonRawDataService.existsByInterrogationId(DEFAULT_INTERROGATION_ID);
+
+        // Then
+        Assertions.assertThat(exists).isTrue();
+    }
+
+    @Test
+    void existsByInterrogationId_shouldReturnFalse_whenNotExists() {
+        // Given
+        String unknownId = "UNKNOWN_INTERROGATION_ID";
+        Mockito.when(lunaticJsonRawDataPersistencePort.existsByInterrogationId(unknownId))
+                .thenReturn(false);
+
+        // When
+        boolean exists = lunaticJsonRawDataService.existsByInterrogationId(unknownId);
+
+        // Then
+        Assertions.assertThat(exists).isFalse();
     }
 }

@@ -21,7 +21,7 @@ public interface LunaticJsonMongoDBRepository extends MongoRepository<LunaticJso
     List<LunaticJsonRawDataDocument> findByNullProcessDate();
 
     @Aggregation(pipeline = {
-            "{ $match: { processDate: null } }",
+            "{ $match: { processDate: null, questionnaireId: { $ne: null } } }",
             "{ $group: { _id: 'questionnaireId' } }",
             "{ $project: { _id: 0, questionnaireId: '$_id' } }"
     })
@@ -44,6 +44,13 @@ public interface LunaticJsonMongoDBRepository extends MongoRepository<LunaticJso
 
     @Query(value = "{ 'interrogationId': ?0}")
     List<LunaticJsonRawDataDocument> findByInterrogationId(String interrogationId);
+
+    @Aggregation(pipeline = {
+            "{ '$match': { 'questionnaireId': ?0 } }",
+            "{ '$group': { '_id': '$interrogationId' } }",
+            "{ '$count': 'count' }"
+    })
+    Long countDistinctInterrogationIdsByQuestionnaireId(String questionnaireId);
 
     Page<LunaticJsonRawDataDocument> findByCampaignIdAndRecordDateBetween(String campagneId, Instant start, Instant  end, Pageable pageable);
     long countByQuestionnaireId(String questionnaireId);
@@ -102,4 +109,6 @@ public interface LunaticJsonMongoDBRepository extends MongoRepository<LunaticJso
     List<GroupedInterrogationDocument> aggregateRawGroupedWithNullProcessDate(String questionnaireId);
 
     Page<LunaticJsonRawDataDocument> findByQuestionnaireId(String questionnaireId, Pageable pageable);
+
+    boolean existsByInterrogationId(String interrogationId);
 }

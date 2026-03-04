@@ -1,6 +1,5 @@
 package fr.insee.genesis.infrastructure.repository;
 
-import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponseModel;
 import fr.insee.genesis.infrastructure.document.rawdata.RawResponseDocument;
 import fr.insee.modelefiliere.ModeDto;
 import org.springframework.data.domain.Page;
@@ -19,7 +18,7 @@ public interface RawResponseRepository extends MongoRepository<RawResponseDocume
     @Query(value = "{ 'collectionInstrumentId' : ?0, 'mode' : ?1, 'interrogationId': {$in: ?2} }")
     List<RawResponseDocument> findByCollectionInstrumentIdAndModeAndInterrogationIdList(String questionnaireId, String mode, List<String> interrogationIdList);
     @Aggregation(pipeline = {
-            "{ $match: { processDate: null } }",
+            "{ $match: { processDate: null, collectionInstrumentId: { $ne: null } } }",
             "{ $group: { _id: '$collectionInstrumentId' } }",
             "{ $project: { _id: 0, collectionInstrumentId: '$_id' } }"
     })
@@ -52,4 +51,14 @@ public interface RawResponseRepository extends MongoRepository<RawResponseDocume
     })
     List<String> findDistinctCollectionInstrumentId();
     Page<RawResponseDocument> findByCollectionInstrumentId(String collectionInstrumentId, Pageable pageable);
+
+    boolean existsByInterrogationId(String interrogationId);
+
+    @Aggregation(pipeline = {
+            "{ '$match': { 'collectionInstrumentId': ?0 } }",
+            "{ '$group': { '_id': '$interrogationId' } }",
+            "{ '$count': 'count' }"
+    })
+    Long countDistinctInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId);
+
 }
