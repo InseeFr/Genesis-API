@@ -95,14 +95,14 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
 
     @Override
     public Set<String> findDistinctQuestionnaireIds() {
-        Set<String> questionnaireIds = new HashSet<>();
-        for (String questionnaireId : mongoTemplate.getCollection(Constants.MONGODB_RAW_RESPONSES_COLLECTION_NAME).distinct(
-                "questionnaireId",
-                String.class)) {
-            questionnaireIds.add(questionnaireId);
+        List<String> ids = mongoTemplate.query(LunaticJsonRawDataDocument.class)
+                    .distinct("questionnaireId")
+                    .as(String.class)
+                    .all();
+        return ids.stream()
+                    .filter(id -> id != null && !id.isBlank())
+                    .collect(java.util.stream.Collectors.toSet());
         }
-        return questionnaireIds;
-    }
 
     @Override
     public Page<LunaticJsonRawDataModel> findByCampaignIdAndDate(String campaignId, Instant startDt, Instant  endDt, Pageable pageable) {
