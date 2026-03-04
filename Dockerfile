@@ -4,12 +4,10 @@ ENV PATH_TO_JAR=/opt/app/app.jar
 WORKDIR /opt/app/
 COPY ./target/*.jar $PATH_TO_JAR
 
-ENV JAVA_TOOL_OPTIONS_DEFAULT \
-    -XX:MaxRAMPercentage=75
+ENV JAVA_TOOL_OPTIONS_DEFAULT="-XX:MaxRAMPercentage=75"
 
 # Setup a non-root user context (security)
-RUN addgroup --gid 1000 tomcatgroup \
- && adduser  --uid 1000 --ingroup tomcatgroup --disabled-password --gecos "" --no-create-home tomcatuser \
+RUN useradd -u 1000 -g 1000 -s /usr/sbin/nologin -M tomcatuser \
  && mkdir -p /opt/app/temp-files \
  && chown -R 1000:1000 /opt/app
 
