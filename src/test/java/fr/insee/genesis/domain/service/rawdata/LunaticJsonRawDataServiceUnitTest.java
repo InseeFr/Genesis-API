@@ -769,10 +769,10 @@ class LunaticJsonRawDataServiceTest {
         // When
         Mockito.when(lunaticJsonRawDataPersistencePort.existsByInterrogationId(DEFAULT_INTERROGATION_ID))
                 .thenReturn(true);
-        boolean exists = lunaticJsonRawDataService.existsByInterrogationId(DEFAULT_INTERROGATION_ID);
+        boolean exists = service.existsByInterrogationId(DEFAULT_INTERROGATION_ID);
 
         // Then
-        Assertions.assertThat(exists).isTrue();
+        assertThat(exists).isTrue();
     }
 
     @Test
@@ -783,9 +783,9 @@ class LunaticJsonRawDataServiceTest {
                 .thenReturn(false);
 
         // When
-        boolean exists = lunaticJsonRawDataService.existsByInterrogationId(unknownId);
+        boolean exists = service.existsByInterrogationId(unknownId);
 
         // Then
-        Assertions.assertThat(exists).isFalse();
+        assertThat(exists).isFalse();
     }
 }

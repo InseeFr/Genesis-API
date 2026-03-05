@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
@@ -196,7 +197,7 @@ class VolumetryLogServiceUnitTest {
             List<Path> paths = pathStream.toList();
             Assertions.assertThat(paths).hasSize(1);
             String content = Files.readString(paths.getFirst());
-            Assertions.assertThat(content).isEqualTo("campaign;volumetry\n");
+            Assertions.assertThat(content).isEqualTo("campaign;volumetry;distinctInterrogationIds\n");
         }
     }
 
@@ -248,6 +249,8 @@ class VolumetryLogServiceUnitTest {
                 .when(surveyUnitApiPort).findDistinctQuestionnairesAndCollectionInstrumentIds();
         doReturn(7L).when(surveyUnitApiPort).countResponsesByCollectionInstrumentId(any());
         doReturn(0L).when(surveyUnitApiPort).countResponsesByQuestionnaireId(any());
+        doReturn(1L)
+                .when(surveyUnitApiPort).countDistinctInterrogationIdsByQuestionnaireAndCollectionInstrumentId(anyString());
 
         // WHEN
         volumetryLogService.writeVolumetries(surveyUnitApiPort);
@@ -255,8 +258,8 @@ class VolumetryLogServiceUnitTest {
         // THEN
         try (Stream<Path> pathStream = Files.list(logFilePath)) {
             String content = Files.readString(pathStream.toList().getFirst());
-            Assertions.assertThat(content).startsWith("campaign;volumetry\n");
-            Assertions.assertThat(content).contains(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID + ";7");
+            Assertions.assertThat(content).startsWith("campaign;volumetry;distinctInterrogationIds\n");
+            Assertions.assertThat(content).contains(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID + ";7;1");
         }
     }
 
@@ -339,10 +342,11 @@ class VolumetryLogServiceUnitTest {
     @SneakyThrows
     @DisplayName("writeRawDataVolumetries should merge from old models and filiere")
     void writeRawDataVolumetries_shouldMergeQuestionnairesFromBothSources() {
-        // GIVEN - QUEST1 dans les deux sources, QUEST2 seulement dans rawResponse
+        // GIVEN
         LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort = mock(LunaticJsonRawDataApiPort.class);
         doReturn(Set.of("QUEST1")).when(lunaticJsonRawDataApiPort).findDistinctQuestionnaireIds();
-        doReturn(5L).when(lunaticJsonRawDataApiPort).countRawResponsesByQuestionnaireId(any());
+        doReturn(5L).when(lunaticJsonRawDataApiPort).countRawResponsesByQuestionnaireId("QUEST1");
+        doReturn(0L).when(lunaticJsonRawDataApiPort).countRawResponsesByQuestionnaireId("QUEST2");
 
         RawResponseApiPort rawResponseApiPort = mock(RawResponseApiPort.class);
         doReturn(Set.of("QUEST1", "QUEST2")).when(rawResponseApiPort).getDistinctCollectionInstrumentIds();
@@ -362,7 +366,6 @@ class VolumetryLogServiceUnitTest {
         // QUEST2 : 0 (old) + 3 (new) = 3
         Assertions.assertThat(result.get(Constants.VOLUMETRY_RAW_TOTAL))
                 .containsEntry("QUEST2", 3L);
-        Assertions.assertThat(result.get(Constants.VOLUMETRY_RAW_TOTAL).get("QUEST2")).isEqualTo(3L);
     }
 
     @Test
