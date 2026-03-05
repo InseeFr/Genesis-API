@@ -7,6 +7,8 @@
 - 
 ### Changed
 - Deprecated non-restful old endpoint
+- Java 21 -> 25
+- 
 ### Fixed
 - Returned null collectionInstrumentId in get unprocessed
 
