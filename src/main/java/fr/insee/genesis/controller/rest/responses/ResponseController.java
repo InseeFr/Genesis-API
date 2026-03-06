@@ -389,6 +389,7 @@ public class ResponseController implements CommonApiResponse {
                             .interrogationId(interrogationId.getInterrogationId())
                             .usualSurveyUnitId(!usualSurveyUnitIds.isEmpty() ? usualSurveyUnitIds.getFirst() : null)
                             .mode(mode)
+                                    .isCapturedIndirectly(responses.getFirst().getIsCapturedIndirectly())
                             .validationDate(validationDate)
                             .questionnaireState(questionnaireState)
                             .variablesUpdate(outputVariables)
