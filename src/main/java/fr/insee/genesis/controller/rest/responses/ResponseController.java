@@ -301,6 +301,7 @@ public class ResponseController implements CommonApiResponse {
         LocalDateTime validationDate = null;
         for (SurveyUnitModel response :
                 responses.stream().filter(rep -> rep.getMode().equals(mode)).toList()){
+            //Keep last not null questionnaireState/validationDate
             questionnaireState = response.getQuestionnaireState() != null ?
                     response.getQuestionnaireState()
                     : questionnaireState;
@@ -426,7 +427,7 @@ public class ResponseController implements CommonApiResponse {
     ) {
         try {
             log.debug("Received in save edited : {}", surveyUnitInputDto.toString());
-            //Code quality : we need to put all that logic out of this controller
+            //TODO Code quality : we need to put all that logic out of this controller
             //Parse metadata
             //Try to look for DDI first, if no DDI found looks for lunatic components
             List<GenesisError> errors = new ArrayList<>();

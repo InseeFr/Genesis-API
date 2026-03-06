@@ -45,11 +45,11 @@ public class HealthCheckController implements CommonApiResponse{
                              MongoDB OK
                             \s
                              %s Responses
-                             %s Schedules
+                             %s Contexts
                        \s"""
                         .formatted(
                                 surveyUnitApiPort.countResponses(),
-                                dataProcessingContextApiPort.countSchedules()
+                                dataProcessingContextApiPort.countContexts()
                         ));
     }
 

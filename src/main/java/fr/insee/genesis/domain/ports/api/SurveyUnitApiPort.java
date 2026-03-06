@@ -65,6 +65,7 @@ public interface SurveyUnitApiPort {
 
     List<Mode> findModesByCollectionInstrumentId(String collectionInstrumentId);
 
+    @Deprecated
     List<Mode> findModesByCampaignId(String campaignId);
 
     //========= OPTIMISATIONS PERFS (START) ==========
@@ -102,6 +103,7 @@ public interface SurveyUnitApiPort {
 
     String findQuestionnaireIdByInterrogationId(String interrogationId) throws GenesisException;
 
+    @Deprecated
     Set<String> findCampaignIdsFrom(SurveyUnitInputDto dto);
 
     long countResponsesByQuestionnaireId(String questionnaireId);

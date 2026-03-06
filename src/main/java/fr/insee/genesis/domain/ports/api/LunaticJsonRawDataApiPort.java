@@ -20,6 +20,7 @@ import java.util.Set;
 public interface LunaticJsonRawDataApiPort {
 
     void save(LunaticJsonRawDataModel rawData);
+    @Deprecated
     List<LunaticJsonRawDataModel> getRawData(String campaignName, Mode mode, List<String> interrogationIdList);
     List<LunaticJsonRawDataModel> getRawDataByQuestionnaireId(String questionnaireId, Mode mode, List<String> interrogationIdList);
     List<SurveyUnitModel> convertRawData(List<LunaticJsonRawDataModel> rawData, VariablesMap variablesMap);
@@ -27,8 +28,10 @@ public interface LunaticJsonRawDataApiPort {
     Set<String> getUnprocessedDataQuestionnaireIds();
     void updateProcessDates(List<SurveyUnitModel> surveyUnitModels);
     Set<String> findDistinctQuestionnaireIds();
+    @Deprecated
     long countRawResponsesByQuestionnaireId(String campaignId);
     long countDistinctInterrogationIdsByQuestionnaireId(String questionnaireId);
+    @Deprecated
     Page<LunaticJsonRawDataModel> findRawDataByCampaignIdAndDate(String campaignId, Instant  startDt, Instant endDt, Pageable pageable);
 
     List<LunaticJsonRawDataModel> getRawDataByInterrogationId(String interrogationId);

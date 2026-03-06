@@ -1,0 +1,180 @@
+package fr.insee.genesis.controller.rest.responses;
+
+import fr.insee.genesis.Constants;
+import fr.insee.genesis.TestConstants;
+import fr.insee.genesis.domain.model.contextualvariable.ContextualVariableModel;
+import fr.insee.genesis.domain.model.surveyunit.Mode;
+import fr.insee.genesis.domain.ports.api.ContextualExternalVariableApiPort;
+import fr.insee.genesis.domain.ports.api.ContextualPreviousVariableApiPort;
+import fr.insee.genesis.domain.ports.api.ContextualVariableApiPort;
+import fr.insee.genesis.infrastructure.utils.FileUtils;
+import lombok.SneakyThrows;
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import org.springframework.http.ResponseEntity;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
+class ContextualVariableControllerUnitTest {
+
+    @Mock
+    private ContextualPreviousVariableApiPort contextualPreviousVariableApiPort;
+    @Mock
+    private ContextualExternalVariableApiPort contextualExternalVariableApiPort;
+    @Mock
+    private ContextualVariableApiPort contextualVariableApiPort;
+
+    private ContextualVariableController contextualVariableController;
+
+    @BeforeEach
+    void setUp() {
+        contextualVariableController = new ContextualVariableController(
+            contextualPreviousVariableApiPort,
+            contextualExternalVariableApiPort,
+            contextualVariableApiPort,
+            TestConstants.getConfigStub()
+        );
+    }
+
+    @Test
+    void getContextualVariables() {
+        //GIVEN
+        ContextualVariableModel contextualVariableModel = ContextualVariableModel.builder().build();
+        doReturn(contextualVariableModel).when(contextualVariableApiPort).getContextualVariable(
+            any(), any()
+        );
+
+        //WHEN
+        ResponseEntity<Object> response = contextualVariableController.getContextualVariables(
+                TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
+                TestConstants.DEFAULT_INTERROGATION_ID
+        );
+
+        //THEN
+        verify(contextualVariableApiPort, times(1)).getContextualVariable(
+                TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
+                TestConstants.DEFAULT_INTERROGATION_ID
+        );
+        Assertions.assertThat(response.getBody())
+                .isInstanceOf(ContextualVariableModel.class)
+                .isEqualTo(contextualVariableModel);
+    }
+
+    @Test
+    @SneakyThrows
+    void saveContextualVariables() {
+        //WHEN
+        contextualVariableController.saveContextualVariables(
+                TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID
+        );
+
+        //THEN
+        verify(contextualVariableApiPort, times(1)).saveContextualVariableFiles(
+                eq(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID),
+                any(),
+                any()
+        );
+    }
+
+    @Test
+    @SneakyThrows
+    void readContextualPreviousJson() {
+        //GIVEN
+        FileUtils fileUtils = new FileUtils(TestConstants.getConfigStub());
+        String expectedFilePath = "%s%s/%s".formatted(
+                fileUtils.getDataFolder(
+                        TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
+                        Mode.WEB.getFolder(),
+                        null
+                ),
+                Constants.CONTEXTUAL_FOLDER,
+                "ok.json"
+        );
+
+        //WHEN
+        contextualVariableController.readContextualPreviousJson(
+                TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
+                Mode.WEB,
+                null,
+                "ok.json"
+        );
+
+        //THEN
+        verify(contextualPreviousVariableApiPort, times(1)).readContextualPreviousFile(
+                eq(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID),
+                any(),
+                eq(expectedFilePath)
+        );
+    }
+
+    @Test
+    void readContextualPreviousJson_notJson() {
+        //WHEN
+        ResponseEntity<Object> response = contextualVariableController.readContextualPreviousJson(
+                TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
+                Mode.WEB,
+                null,
+                "ok.xml"
+        );
+
+        //THEN
+        verifyNoInteractions(contextualPreviousVariableApiPort);
+        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(400);
+    }
+
+    @Test
+    @SneakyThrows
+    void readContextualExternalJson() {
+        //GIVEN
+        FileUtils fileUtils = new FileUtils(TestConstants.getConfigStub());
+        String expectedFilePath = "%s%s/%s".formatted(
+                fileUtils.getDataFolder(
+                        TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
+                        Mode.WEB.getFolder(),
+                        null
+                ),
+                Constants.CONTEXTUAL_FOLDER,
+                "ok.json"
+        );
+
+        //WHEN
+        contextualVariableController.readContextualExternalJson(
+                TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
+                Mode.WEB,
+                "ok.json"
+        );
+
+        //THEN
+        verify(contextualExternalVariableApiPort, times(1)).readContextualExternalFile(
+                TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
+                expectedFilePath
+        );
+    }
+
+    @Test
+    void readContextualExternalJson_notJson() {
+        //WHEN
+        ResponseEntity<Object> response = contextualVariableController.readContextualExternalJson(
+                TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
+                Mode.WEB,
+                "ok.xml"
+        );
+
+        //THEN
+        verifyNoInteractions(contextualExternalVariableApiPort);
+        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(400);
+    }
+}

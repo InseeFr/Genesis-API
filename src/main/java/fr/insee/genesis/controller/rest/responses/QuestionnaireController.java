@@ -57,6 +57,7 @@ public class QuestionnaireController implements CommonApiResponse {
 
     @Operation(summary = "List questionnaires in database with their campaigns")
     @GetMapping(path = "/with-campaigns")
+    @Deprecated
     public ResponseEntity<List<QuestionnaireWithCampaign>> getQuestionnairesWithCampaigns() {
         List<QuestionnaireWithCampaign> questionnaireWithCampaignList =
                 surveyUnitService.findQuestionnairesWithCampaigns();
@@ -65,6 +66,7 @@ public class QuestionnaireController implements CommonApiResponse {
 
     @Operation(summary = "List questionnaires used for a given campaign")
     @GetMapping(path = "/by-campaign")
+    @Deprecated
     public ResponseEntity<Set<String>> getQuestionnairesByCampaign(@RequestParam("campaignId") String campaignId) {
         Set<String> questionnaires = surveyUnitService.findQuestionnaireIdsByCampaignId(campaignId);
         return ResponseEntity.ok(questionnaires);
@@ -76,6 +78,7 @@ public class QuestionnaireController implements CommonApiResponse {
      */
     @Operation(summary = "List questionnaires used for a given campaign (using a DISTINCT query)")
     @GetMapping(path = "/by-campaignV2")
+    @Deprecated(forRemoval = true) //TODO integrate logic to find by interrogationId
     public ResponseEntity<Set<String>> getQuestionnairesByCampaignV2(@RequestParam("campaignId") String campaignId) {
         Set<String> questionnaires = surveyUnitService.findQuestionnaireIdsByCampaignIdV2(campaignId);
         return ResponseEntity.ok(questionnaires);
@@ -92,7 +95,6 @@ public class QuestionnaireController implements CommonApiResponse {
         } catch (GenesisException e) {
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
         }
-
     }
 
 

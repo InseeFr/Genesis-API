@@ -64,7 +64,6 @@ public class RawResponseController {
     @PutMapping(path = "/responses/raw/lunatic-json/save")
     @PreAuthorize("hasRole('COLLECT_PLATFORM')")
     public ResponseEntity<String> saveRawResponsesFromJsonBody(
-
             @RequestParam("campaignName") String campaignName,
             @RequestParam("questionnaireId") String questionnaireId,
             @RequestParam(INTERROGATION_ID) String interrogationId,
@@ -99,7 +98,7 @@ public class RawResponseController {
     public ResponseEntity<String> saveRawResponsesFromRawResponseDto(
             @Valid @RequestBody RawResponseDto dto
     ) {
-        rawRepository.saveAsRawJson(dto);
+        rawRepository.saveAsRawJson(dto); //TODO put in service, repository is infra layer
         return ResponseEntity.status(201).body(String.format(SUCCESS_MESSAGE, dto.getInterrogationId()));
     }
 

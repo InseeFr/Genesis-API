@@ -27,6 +27,7 @@ public class CampaignController implements CommonApiResponse {
 
     @Operation(summary = "List campaigns in database")
     @GetMapping(path = "/")
+    @Deprecated
     public ResponseEntity<Set<String>> getCampaigns() {
         Set<String> campaigns = surveyUnitService.findDistinctCampaignIds();
         return ResponseEntity.ok(campaigns);
