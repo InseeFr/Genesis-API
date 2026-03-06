@@ -1,222 +1,1010 @@
 package fr.insee.genesis.infrastructure.adapter;
 
-import fr.insee.genesis.domain.model.surveyunit.Mode;
+import com.mongodb.client.DistinctIterable;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
+import fr.insee.genesis.Constants;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.infrastructure.document.surveyunit.SurveyUnitDocument;
-import fr.insee.genesis.infrastructure.document.surveyunit.VariableDocument;
 import fr.insee.genesis.infrastructure.repository.SurveyUnitMongoDBRepository;
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
+import org.bson.Document;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mockito;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.mongodb.core.MongoTemplate;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class SurveyUnitModelMongoAdapterTest {
-	
-    static SurveyUnitMongoDBRepository mongoRepository = Mockito.mock(SurveyUnitMongoDBRepository.class);
+class SurveyUnitMongoAdapterTest {
+
+	private static final String QUESTIONNAIRE_ID = "questionnaire-123";
+	private static final String COLLECTION_INSTRUMENT_ID = "instrument-456";
+	private static final String INTERROGATION_ID = "interrogation-789";
+	private static final String CAMPAIGN_ID = "campaign-101";
+	private static final String MODE = "CAWI";
+
+	@Mock
+	private SurveyUnitMongoDBRepository mongoRepository;
+
+	@Mock
+	private MongoTemplate mongoTemplate;
+
 	@InjectMocks
-	static SurveyUnitMongoAdapter surveyUnitMongoAdapter;
-	static SurveyUnitDocument suDoc;
-	static SurveyUnitDocument suDoc2;
-	static SurveyUnitDocument suDoc3;
-	static SurveyUnitDocument suDocFiliere;
+	private SurveyUnitMongoAdapter adapter;
 
-	@BeforeAll
-	static void setUp() {
-		surveyUnitMongoAdapter = new SurveyUnitMongoAdapter(mongoRepository, null);
-		suDoc= new SurveyUnitDocument();
-		suDoc.setCampaignId("campaignId");
-		suDoc.setInterrogationId("UE1100000001");
-		suDoc.setQuestionnaireId("TEST2023X01");
-		suDoc.setState("COLLECTED");
-		suDoc.setMode("WEB");
-		suDoc.setRecordDate(LocalDateTime.now());
-		suDoc.setCollectedVariables(List.of(new VariableDocument()));
-		suDoc.setExternalVariables(List.of(new VariableDocument()));
 
-		suDoc2= new SurveyUnitDocument();
-		suDoc2.setCampaignId("campaignId");
-		suDoc2.setInterrogationId("UE1100000001");
-		suDoc2.setQuestionnaireId("TEST2023X01");
-		suDoc2.setState("COLLECTED");
-		suDoc2.setMode("TEL");
-		suDoc2.setRecordDate(LocalDateTime.now());
-		suDoc2.setCollectedVariables(List.of(new VariableDocument()));
-		suDoc2.setExternalVariables(List.of(new VariableDocument()));
+	@Nested
+	@DisplayName("saveAll() tests")
+	class SaveAllTests {
 
-		suDoc3= new SurveyUnitDocument();
-		suDoc3.setCampaignId("campaignId");
-		suDoc3.setInterrogationId("UE1100000002");
-		suDoc3.setQuestionnaireId("TEST2023X01");
-		suDoc3.setState("COLLECTED");
-		suDoc3.setMode("WEB");
-		suDoc3.setRecordDate(LocalDateTime.now());
-		suDoc3.setCollectedVariables(List.of(new VariableDocument()));
-		suDoc3.setExternalVariables(List.of(new VariableDocument()));
+		@Test
+		@DisplayName("Should call repository.insert() with mapped documents")
+		@SuppressWarnings("unchecked")
+		void saveAll_shouldCallRepositoryInsert() {
+			// GIVEN
+			List<SurveyUnitModel> models = List.of(buildModel("i1"), buildModel("i2"));
 
-		suDocFiliere= new SurveyUnitDocument();
-		suDocFiliere.setInterrogationId("UE1100000002");
-		suDocFiliere.setCollectionInstrumentId("TEST2023X01");
-		suDocFiliere.setState("COLLECTED");
-		suDocFiliere.setMode("WEB");
-		suDocFiliere.setRecordDate(LocalDateTime.now());
-		suDocFiliere.setCollectedVariables(List.of(new VariableDocument()));
-		suDocFiliere.setExternalVariables(List.of(new VariableDocument()));
-	}
+			// WHEN
+			adapter.saveAll(models);
 
-	@Test
-	void shouldReturnListOfSurveyUnitModels_IfIdsFoundInDataBase() {
-		//Given
-		List<SurveyUnitDocument> responses = new ArrayList<>();
-		responses.add(suDoc);
-		responses.add(suDoc2);
-		when(mongoRepository.findByInterrogationIdAndQuestionnaireId(any(String.class), any(String.class))).thenReturn(responses);
-		// When
-		List<SurveyUnitModel> updates = surveyUnitMongoAdapter.findByIds("UE1100000001", "TEST2023X01");
-		// Then
-		Assertions.assertThat(updates).isNotNull().hasSize(2);
-		Assertions.assertThat(updates.getFirst().getMode()).isEqualTo(Mode.WEB);
-	}
-
-	@Test
-	void shouldReturnListOfSurveyUnitModelsDateAfter_IfDifferentDataModels() {
-		//Given
-		when(mongoRepository.findInterrogationIdsByQuestionnaireIdAndDateAfter(any(String.class), any(LocalDateTime.class)))
-				.thenReturn(Collections.singletonList(suDoc));
-		when(mongoRepository.findInterrogationIdsByCollectionInstrumentIdAndDateAfter(any(String.class), any(LocalDateTime.class)))
-				.thenReturn(Collections.singletonList(suDocFiliere));
-		// When
-		List<SurveyUnitModel> updates = surveyUnitMongoAdapter.findInterrogationIdsByQuestionnaireIdAndDateAfter(
-				"TEST2023X01", LocalDateTime.now().minusHours(1));
-		// Then
-		Assertions.assertThat(updates).isNotNull().hasSize(2);
-		Set<String> interrogationIds = new HashSet<>();
-		for(SurveyUnitModel update: updates){
-			interrogationIds.add(update.getInterrogationId());
-			Assertions.assertThat(update.getMode()).isEqualTo(Mode.WEB);
-			Assertions.assertThat(update.getCollectionInstrumentId()).isEqualTo("TEST2023X01");
+			// THEN
+			verify(mongoRepository).insert(any(List.class));
+			verifyNoMoreInteractions(mongoRepository);
 		}
-		Assertions.assertThat(interrogationIds).containsExactlyInAnyOrder("UE1100000001","UE1100000002");
+
+		@Test
+		@DisplayName("Should pass as many documents as models provided")
+		@SuppressWarnings("unchecked")
+		void saveAll_shouldMapAllModels() {
+			// GIVEN
+			List<SurveyUnitModel> models = List.of(buildModel("i1"), buildModel("i2"), buildModel("i3"));
+
+			// WHEN
+			adapter.saveAll(models);
+
+			// THEN
+			var captor = org.mockito.ArgumentCaptor.forClass(List.class);
+			verify(mongoRepository).insert(captor.capture());
+			assertThat(captor.getValue()).hasSize(3);
+		}
 	}
 
-	@Test
-	void shouldReturnEmptyList_IfIdsNotFoundInDataBase() {
-		//Given
-		when(mongoRepository.findByInterrogationIdAndQuestionnaireId(any(String.class), any(String.class))).thenReturn(List.of());
-		// When
-		List<SurveyUnitModel> updates = surveyUnitMongoAdapter.findByIds("UE1100000001", "TEST2023X01");
-		// Then
-		Assertions.assertThat(updates).isEmpty();
+	@Nested
+	@DisplayName("findByIds() tests")
+	class FindByIdsTests {
+
+		@Test
+		@DisplayName("Should call both repository methods and return merged results")
+		void findByIds_shouldCallBothRepositoryMethods() {
+			// GIVEN
+			when(mongoRepository.findByInterrogationIdAndCollectionInstrumentId(INTERROGATION_ID, COLLECTION_INSTRUMENT_ID))
+					.thenReturn(List.of(buildDoc("i1")));
+			when(mongoRepository.findByInterrogationIdAndQuestionnaireId(INTERROGATION_ID, COLLECTION_INSTRUMENT_ID))
+					.thenReturn(List.of(buildDoc("i2")));
+
+			// WHEN
+			List<SurveyUnitModel> result = adapter.findByIds(INTERROGATION_ID, COLLECTION_INSTRUMENT_ID);
+
+			// THEN
+			verify(mongoRepository).findByInterrogationIdAndCollectionInstrumentId(INTERROGATION_ID, COLLECTION_INSTRUMENT_ID);
+			verify(mongoRepository).findByInterrogationIdAndQuestionnaireId(INTERROGATION_ID, COLLECTION_INSTRUMENT_ID);
+			assertThat(result).hasSize(2);
+		}
+
+		@Test
+		@DisplayName("Should return empty list when both repository methods return empty lists")
+		void findByIds_noResults_shouldReturnEmptyList() {
+			// GIVEN
+			when(mongoRepository.findByInterrogationIdAndCollectionInstrumentId(any(), any())).thenReturn(List.of());
+			when(mongoRepository.findByInterrogationIdAndQuestionnaireId(any(), any())).thenReturn(List.of());
+
+			// WHEN
+			List<SurveyUnitModel> result = adapter.findByIds(INTERROGATION_ID, COLLECTION_INSTRUMENT_ID);
+
+			// THEN
+			assertThat(result).isEmpty();
+		}
 	}
 
-	@Test
-	void shouldReturnListOfSurveyUnitModels_IfInterrogationIdFoundInDataBase() {
-		//Given
-		List<SurveyUnitDocument> responses = new ArrayList<>();
-		responses.add(suDoc);
-		responses.add(suDoc2);
-		when(mongoRepository.findByInterrogationId(any(String.class))).thenReturn(responses);
-		// When
-		List<SurveyUnitModel> updates = surveyUnitMongoAdapter.findByInterrogationId("UE1100000001");
-		// Then
-		Assertions.assertThat(updates).isNotNull().hasSize(2);
-		Assertions.assertThat(updates.getFirst().getMode()).isEqualTo(Mode.WEB);
+	@Nested
+	@DisplayName("findByUsualSurveyUnitAndCollectionInstrumentIds() tests")
+	class FindByUsualSurveyUnitTests {
+
+		@Test
+		@DisplayName("Should call both repository methods and merge results")
+		void findByUsualSurveyUnit_shouldCallBothRepositoryMethods() {
+			// GIVEN
+			String usualSurveyUnitId = "usual-001";
+			when(mongoRepository.findByUsualSurveyUnitIdAndCollectionInstrumentId(usualSurveyUnitId, COLLECTION_INSTRUMENT_ID))
+					.thenReturn(List.of(buildDoc("i1")));
+			when(mongoRepository.findByUsualSurveyUnitIdAndQuestionnaireId(usualSurveyUnitId, COLLECTION_INSTRUMENT_ID))
+					.thenReturn(List.of());
+
+			// WHEN
+			List<SurveyUnitModel> result = adapter.findByUsualSurveyUnitAndCollectionInstrumentIds(usualSurveyUnitId, COLLECTION_INSTRUMENT_ID);
+
+			// THEN
+			verify(mongoRepository).findByUsualSurveyUnitIdAndCollectionInstrumentId(usualSurveyUnitId, COLLECTION_INSTRUMENT_ID);
+			verify(mongoRepository).findByUsualSurveyUnitIdAndQuestionnaireId(usualSurveyUnitId, COLLECTION_INSTRUMENT_ID);
+			assertThat(result).hasSize(1);
+		}
+
+		@Test
+		@DisplayName("Should return empty list when both repository methods return empty lists")
+		void findByUsualSurveyUnit_noResults_shouldReturnEmptyList() {
+			// GIVEN
+			when(mongoRepository.findByUsualSurveyUnitIdAndCollectionInstrumentId(any(), any())).thenReturn(List.of());
+			when(mongoRepository.findByUsualSurveyUnitIdAndQuestionnaireId(any(), any())).thenReturn(List.of());
+
+			// WHEN
+			List<SurveyUnitModel> result = adapter.findByUsualSurveyUnitAndCollectionInstrumentIds("usual-001", COLLECTION_INSTRUMENT_ID);
+
+			// THEN
+			assertThat(result).isEmpty();
+		}
 	}
 
-	@Test
-	void shouldReturnEmptyList_IfInterrogationIdNotFoundInDataBase() {
-		//Given
-		when(mongoRepository.findByInterrogationId(any(String.class))).thenReturn(List.of());
-		// When
-		List<SurveyUnitModel> updates = surveyUnitMongoAdapter.findByInterrogationId("UE1100000001");
-		// Then
-		Assertions.assertThat(updates).isEmpty();
+	@Nested
+	@DisplayName("findBySetOfIdsAndQuestionnaireIdAndMode() tests")
+	class FindBySetOfIdsTests {
+
+		@Test
+		@DisplayName("Should delegate to repository and return mapped models")
+		void findBySetOfIds_shouldReturnMappedModels() {
+			// GIVEN
+			List<String> ids = List.of("i1", "i2");
+			when(mongoRepository.findBySetOfIdsAndQuestionnaireIdAndMode(QUESTIONNAIRE_ID, MODE, ids))
+					.thenReturn(List.of(buildDoc("i1")));
+
+			// WHEN
+			List<SurveyUnitModel> result = adapter.findBySetOfIdsAndQuestionnaireIdAndMode(QUESTIONNAIRE_ID, MODE, ids);
+
+			// THEN
+			assertThat(result).hasSize(1);
+		}
+
+		@Test
+		@DisplayName("Should return empty list when repository returns empty list")
+		void findBySetOfIds_noResults_shouldReturnEmptyList() {
+			// GIVEN
+			when(mongoRepository.findBySetOfIdsAndQuestionnaireIdAndMode(any(), any(), any())).thenReturn(List.of());
+
+			// WHEN
+			List<SurveyUnitModel> result = adapter.findBySetOfIdsAndQuestionnaireIdAndMode(QUESTIONNAIRE_ID, MODE, List.of());
+
+			// THEN
+			assertThat(result).isEmpty();
+		}
 	}
 
-	@Test
-	void shouldReturnListOfSurveyUnitModels_IfQuestionnaireIdFoundInDataBase() {
-		//Given
-		List<SurveyUnitDocument> responses = new ArrayList<>();
-		responses.add(suDoc);
-		responses.add(suDoc2);
-		responses.add(suDoc3);
-		when(mongoRepository.findByQuestionnaireId(any(String.class))).thenReturn(responses.stream());
-		// When
-		Stream<SurveyUnitModel> updates = surveyUnitMongoAdapter.findByQuestionnaireId("TEST2023X01");
-		// Then
-		Assertions.assertThat(updates).isNotNull().hasSize(3);
+	@Nested
+	@DisplayName("findByInterrogationId() tests")
+	class FindByInterrogationIdTests {
+
+		@Test
+		@DisplayName("Should delegate to repository and return mapped models")
+		void findByInterrogationId_shouldReturnMappedModels() {
+			// GIVEN
+			when(mongoRepository.findByInterrogationId(INTERROGATION_ID))
+					.thenReturn(List.of(buildDoc("i1")));
+
+			// WHEN
+			List<SurveyUnitModel> result = adapter.findByInterrogationId(INTERROGATION_ID);
+
+			// THEN
+			assertThat(result).hasSize(1);
+		}
+
+		@Test
+		@DisplayName("Should return empty list when no document found")
+		void findByInterrogationId_noResults_shouldReturnEmptyList() {
+			// GIVEN
+			when(mongoRepository.findByInterrogationId(any())).thenReturn(List.of());
+
+			// WHEN
+			List<SurveyUnitModel> result = adapter.findByInterrogationId(INTERROGATION_ID);
+
+			// THEN
+			assertThat(result).isEmpty();
+		}
 	}
 
-	@Test
-	void shouldReturnEmptyList_IfQuestionnaireIdNotFoundInDataBase() {
-		//Given
-		when(mongoRepository.findByQuestionnaireId(any(String.class))).thenReturn(Stream.empty());
-		// When
-		List<SurveyUnitModel> updates = surveyUnitMongoAdapter.findByQuestionnaireId("TEST2023X01").toList();
-		// Then
-		Assertions.assertThat(updates).isEmpty();
+	@Nested
+	@DisplayName("findByInterrogationIdsAndQuestionnaireId() tests")
+	class FindByInterrogationIdsAndQuestionnaireIdTests {
+
+		@Test
+		@DisplayName("Should query repository once per model and aggregate results")
+		void findByInterrogationIds_shouldQueryRepositoryForEachModel() {
+			// GIVEN
+			List<SurveyUnitModel> models = List.of(buildModel("i1"), buildModel("i2"));
+			when(mongoRepository.findByInterrogationIdAndQuestionnaireId("i1", QUESTIONNAIRE_ID))
+					.thenReturn(List.of(buildDoc("i1")));
+			when(mongoRepository.findByInterrogationIdAndQuestionnaireId("i2", QUESTIONNAIRE_ID))
+					.thenReturn(List.of(buildDoc("i2")));
+
+			// WHEN
+			List<SurveyUnitModel> result = adapter.findByInterrogationIdsAndQuestionnaireId(models, QUESTIONNAIRE_ID);
+
+			// THEN
+			verify(mongoRepository, times(2)).findByInterrogationIdAndQuestionnaireId(anyString(), eq(QUESTIONNAIRE_ID));
+			assertThat(result).hasSize(2);
+		}
+
+		@Test
+		@DisplayName("Should return empty list when all repository queries return empty lists")
+		void findByInterrogationIds_noResults_shouldReturnEmptyList() {
+			// GIVEN
+			List<SurveyUnitModel> models = List.of(buildModel("i1"));
+			when(mongoRepository.findByInterrogationIdAndQuestionnaireId(any(), any())).thenReturn(List.of());
+
+			// WHEN
+			List<SurveyUnitModel> result = adapter.findByInterrogationIdsAndQuestionnaireId(models, QUESTIONNAIRE_ID);
+
+			// THEN
+			assertThat(result).isEmpty();
+		}
+
+		@Test
+		@DisplayName("Should return empty list when input model list is empty")
+		void findByInterrogationIds_emptyInput_shouldReturnEmptyList() {
+			// GIVEN
+
+			// WHEN
+			List<SurveyUnitModel> result = adapter.findByInterrogationIdsAndQuestionnaireId(List.of(), QUESTIONNAIRE_ID);
+
+			// THEN
+			assertThat(result).isEmpty();
+			verifyNoInteractions(mongoRepository);
+		}
 	}
 
-	@Test
-	void shouldReturnListOfSurveyUnitModels_WhenGivenAListOfInterrogationIds() {
-		//Given
-		List<SurveyUnitDocument> responses1 = new ArrayList<>();
-		responses1.add(suDoc);
-		responses1.add(suDoc2);
-		List<SurveyUnitDocument> responses2 = new ArrayList<>();
-		responses2.add(suDoc3);
-		when(mongoRepository.findByInterrogationIdAndQuestionnaireId("UE1100000001", "TEST2023X01")).thenReturn(responses1);
-		when(mongoRepository.findByInterrogationIdAndQuestionnaireId("UE1100000002", "TEST2023X01")).thenReturn(responses2);
-		SurveyUnitModel id1 = SurveyUnitModel.builder().interrogationId("UE1100000001").build();
-		SurveyUnitModel id2 = SurveyUnitModel.builder().interrogationId("UE1100000002").build();
-		List<SurveyUnitModel> ids = List.of(id1, id2);
-		// When
-		List<SurveyUnitModel> updates = surveyUnitMongoAdapter.findByInterrogationIdsAndQuestionnaireId(ids, "TEST2023X01");
-		// Then
-		Assertions.assertThat(updates).isNotNull().hasSize(3);
-		Assertions.assertThat(updates.getFirst().getMode()).isEqualTo(Mode.WEB);
+	// -------------------------------------------------------------------------
+	// findByQuestionnaireId() (Stream)
+	// -------------------------------------------------------------------------
+
+	@Nested
+	@DisplayName("findByQuestionnaireId() (Stream) tests")
+	class FindByQuestionnaireIdStreamTests {
+
+		@Test
+		@DisplayName("Should return a stream of mapped models")
+		void findByQuestionnaireId_shouldReturnMappedStream() {
+			// GIVEN
+			when(mongoRepository.findByQuestionnaireId(QUESTIONNAIRE_ID))
+					.thenReturn(Stream.of(buildDoc("i1"), buildDoc("i2")));
+
+			// WHEN
+			Stream<SurveyUnitModel> result = adapter.findByQuestionnaireId(QUESTIONNAIRE_ID);
+
+			// THEN
+			assertThat(result).isNotNull();
+			assertThat(result.toList()).hasSize(2);
+		}
+
+		@Test
+		@DisplayName("Should return an empty stream when repository returns empty stream")
+		void findByQuestionnaireId_emptyStream_shouldReturnEmptyStream() {
+			// GIVEN
+			when(mongoRepository.findByQuestionnaireId(QUESTIONNAIRE_ID)).thenReturn(Stream.empty());
+
+			// WHEN
+			Stream<SurveyUnitModel> result = adapter.findByQuestionnaireId(QUESTIONNAIRE_ID);
+
+			// THEN
+			assertThat(result.toList()).isEmpty();
+		}
 	}
 
-	@Test
-	void shouldReturnEmptyList_IfInterrogationIdsNotFoundInDataBase() {
-		//Given
-		when(mongoRepository.findByInterrogationIdAndQuestionnaireId(any(String.class),any(String.class))).thenReturn(List.of());
-		SurveyUnitModel id1 = SurveyUnitModel.builder().interrogationId("UE1100000001").build();
-		SurveyUnitModel id2 = SurveyUnitModel.builder().interrogationId("UE1100000002").build();
-		List<SurveyUnitModel> ids = List.of(id1, id2);
-		// When
-		List<SurveyUnitModel> updates = surveyUnitMongoAdapter.findByInterrogationIdsAndQuestionnaireId(ids, "TEST2023X01");
-		// Then
-		Assertions.assertThat(updates).isEmpty();
+	// -------------------------------------------------------------------------
+	// deleteByCollectionInstrumentId()
+	// -------------------------------------------------------------------------
+
+	@Nested
+	@DisplayName("deleteByCollectionInstrumentId() tests")
+	class DeleteByCollectionInstrumentIdTests {
+
+		@Test
+		@DisplayName("Should call both delete methods and return the sum of deleted counts")
+		void delete_shouldReturnSumOfDeletedCounts() {
+			// GIVEN
+			when(mongoRepository.deleteByCollectionInstrumentId(COLLECTION_INSTRUMENT_ID)).thenReturn(3L);
+			when(mongoRepository.deleteByQuestionnaireId(COLLECTION_INSTRUMENT_ID)).thenReturn(2L);
+
+			// WHEN
+			Long result = adapter.deleteByCollectionInstrumentId(COLLECTION_INSTRUMENT_ID);
+
+			// THEN
+			assertThat(result).isEqualTo(5L);
+		}
+
+		@Test
+		@DisplayName("Should return 0 when both delete methods return 0")
+		void delete_nothingDeleted_shouldReturnZero() {
+			// GIVEN
+			when(mongoRepository.deleteByCollectionInstrumentId(any())).thenReturn(0L);
+			when(mongoRepository.deleteByQuestionnaireId(any())).thenReturn(0L);
+
+			// WHEN
+			Long result = adapter.deleteByCollectionInstrumentId(COLLECTION_INSTRUMENT_ID);
+
+			// THEN
+			assertThat(result).isZero();
+		}
 	}
 
-	@Test
-	void shouldReturnCampaignCount() {
-		when(mongoRepository.countByCampaignId("CAMP42")).thenReturn(7L);
+	// -------------------------------------------------------------------------
+	// count()
+	// -------------------------------------------------------------------------
 
-		long count = surveyUnitMongoAdapter.countByCampaignId("CAMP42");
-		Assertions.assertThat(count).isEqualTo(7L);
+	@Nested
+	@DisplayName("count() tests")
+	class CountTests {
+
+		@Test
+		@DisplayName("Should return the count from repository")
+		void count_shouldReturnRepositoryValue() {
+			// GIVEN
+			when(mongoRepository.count()).thenReturn(99L);
+
+			// WHEN
+			long result = adapter.count();
+
+			// THEN
+			assertThat(result).isEqualTo(99L);
+		}
 	}
 
-	@Test
-	void shouldReturnZero_whenCountIsEmpty() {
-		when(mongoRepository.countByCampaignId("CAMP999")).thenReturn(0L);
+	// -------------------------------------------------------------------------
+	// findQuestionnaireIdsByCampaignId()
+	// -------------------------------------------------------------------------
 
-		long count = surveyUnitMongoAdapter.countByCampaignId("CAMP999");
-		Assertions.assertThat(count).isZero();
+	@Nested
+	@DisplayName("findQuestionnaireIdsByCampaignId() tests")
+	class FindQuestionnaireIdsByCampaignIdTests {
+
+		@Test
+		@DisplayName("Should extract questionnaireId from JSON lines returned by repository")
+		void findQuestionnaireIds_shouldExtractFromJson() {
+			// GIVEN
+			when(mongoRepository.findQuestionnaireIdsByCampaignId(CAMPAIGN_ID))
+					.thenReturn(Set.of("{\"questionnaireId\":\"q1\"}", "{\"questionnaireId\":\"q2\"}"));
+
+			// WHEN
+			Set<String> result = adapter.findQuestionnaireIdsByCampaignId(CAMPAIGN_ID);
+
+			// THEN
+			assertThat(result).containsExactlyInAnyOrder("q1", "q2");
+		}
+
+		@Test
+		@DisplayName("Should return empty set when repository returns empty set")
+		void findQuestionnaireIds_empty_shouldReturnEmptySet() {
+			// GIVEN
+			when(mongoRepository.findQuestionnaireIdsByCampaignId(CAMPAIGN_ID)).thenReturn(Set.of());
+
+			// WHEN
+			Set<String> result = adapter.findQuestionnaireIdsByCampaignId(CAMPAIGN_ID);
+
+			// THEN
+			assertThat(result).isEmpty();
+		}
+
+		@Test
+		@DisplayName("Should skip malformed JSON lines without throwing")
+		void findQuestionnaireIds_malformedJson_shouldSkipAndNotThrow() {
+			// GIVEN
+			when(mongoRepository.findQuestionnaireIdsByCampaignId(CAMPAIGN_ID))
+					.thenReturn(Set.of("not-valid-json", "{\"questionnaireId\":\"q1\"}"));
+
+			// WHEN
+			Set<String> result = adapter.findQuestionnaireIdsByCampaignId(CAMPAIGN_ID);
+
+			// THEN
+			assertThat(result).containsExactly("q1");
+		}
+	}
+
+	// -------------------------------------------------------------------------
+	// findQuestionnaireIdsByCampaignIdV2()
+	// -------------------------------------------------------------------------
+
+	@Nested
+	@DisplayName("findQuestionnaireIdsByCampaignIdV2() tests")
+	class FindQuestionnaireIdsByCampaignIdV2Tests {
+
+		@Test
+		@DisplayName("Should extract questionnaireId from JSON lines returned by repository")
+		void findQuestionnaireIdsV2_shouldExtractFromJson() {
+			// GIVEN
+			when(mongoRepository.findQuestionnaireIdsByCampaignIdV2(CAMPAIGN_ID))
+					.thenReturn(Set.of("{\"questionnaireId\":\"q1\"}"));
+
+			// WHEN
+			Set<String> result = adapter.findQuestionnaireIdsByCampaignIdV2(CAMPAIGN_ID);
+
+			// THEN
+			assertThat(result).containsExactly("q1");
+		}
+
+		@Test
+		@DisplayName("Should return empty set when repository returns empty set")
+		void findQuestionnaireIdsV2_empty_shouldReturnEmptySet() {
+			// GIVEN
+			when(mongoRepository.findQuestionnaireIdsByCampaignIdV2(CAMPAIGN_ID)).thenReturn(Set.of());
+
+			// WHEN
+			Set<String> result = adapter.findQuestionnaireIdsByCampaignIdV2(CAMPAIGN_ID);
+
+			// THEN
+			assertThat(result).isEmpty();
+		}
+	}
+
+	// -------------------------------------------------------------------------
+	// findDistinctCampaignIds()
+	// -------------------------------------------------------------------------
+
+	@Nested
+	@DisplayName("findDistinctCampaignIds() tests")
+	class FindDistinctCampaignIdsTests {
+
+		@Test
+		@DisplayName("Should return distinct campaignIds from mongoTemplate collection")
+		void findDistinctCampaignIds_shouldReturnIds() {
+			// GIVEN
+			@SuppressWarnings("unchecked")
+			MongoCollection<Document> mockCollection = mock(MongoCollection.class);
+			@SuppressWarnings("unchecked")
+			DistinctIterable<String> iterable = mock(DistinctIterable.class);
+			when(mongoTemplate.getCollection(Constants.MONGODB_RESPONSE_COLLECTION_NAME)).thenReturn(mockCollection);
+			when(mockCollection.distinct("campaignId", String.class)).thenReturn(iterable);
+			@SuppressWarnings("unchecked")
+			MongoCursor<String> cursor = mock(MongoCursor.class);
+			when(iterable.iterator()).thenReturn(cursor);
+			when(cursor.hasNext()).thenReturn(true, true, false);
+			when(cursor.next()).thenReturn("c1", "c2");
+
+			// WHEN
+			Set<String> result = adapter.findDistinctCampaignIds();
+
+			// THEN
+			assertThat(result).containsExactlyInAnyOrder("c1", "c2");
+		}
+
+		@Test
+		@DisplayName("Should not interact with the repository")
+		void findDistinctCampaignIds_shouldNotTouchRepository() {
+			// GIVEN
+			@SuppressWarnings("unchecked")
+			MongoCollection<Document> mockCollection = mock(MongoCollection.class);
+			@SuppressWarnings("unchecked")
+			DistinctIterable<String> iterable = mock(DistinctIterable.class);
+			when(mongoTemplate.getCollection(Constants.MONGODB_RESPONSE_COLLECTION_NAME)).thenReturn(mockCollection);
+			when(mockCollection.distinct("campaignId", String.class)).thenReturn(iterable);
+			@SuppressWarnings("unchecked")
+			MongoCursor<String> cursorEmpty = mock(MongoCursor.class);
+			when(iterable.iterator()).thenReturn(cursorEmpty);
+			when(cursorEmpty.hasNext()).thenReturn(false);
+
+			// WHEN
+			adapter.findDistinctCampaignIds();
+
+			// THEN
+			verifyNoInteractions(mongoRepository);
+		}
+	}
+
+	// -------------------------------------------------------------------------
+	// findInterrogationIdsByCollectionInstrumentId()
+	// -------------------------------------------------------------------------
+
+	@Nested
+	@DisplayName("findInterrogationIdsByCollectionInstrumentId() tests")
+	class FindInterrogationIdsByCollectionInstrumentIdTests {
+
+		@Test
+		@DisplayName("Should call both repository methods and merge results")
+		void findInterrogationIds_shouldCallBothMethods() {
+			// GIVEN
+			when(mongoRepository.findInterrogationIdsByCollectionInstrumentId(COLLECTION_INSTRUMENT_ID))
+					.thenReturn(List.of(buildDoc("i1")));
+			when(mongoRepository.findInterrogationIdsByQuestionnaireId(COLLECTION_INSTRUMENT_ID))
+					.thenReturn(List.of(buildDoc("i2")));
+
+			// WHEN
+			List<SurveyUnitModel> result = adapter.findInterrogationIdsByCollectionInstrumentId(COLLECTION_INSTRUMENT_ID);
+
+			// THEN
+			assertThat(result).hasSize(2);
+		}
+
+		@Test
+		@DisplayName("Should return empty list when both repository methods return empty")
+		void findInterrogationIds_noResults_shouldReturnEmptyList() {
+			// GIVEN
+			when(mongoRepository.findInterrogationIdsByCollectionInstrumentId(any())).thenReturn(List.of());
+			when(mongoRepository.findInterrogationIdsByQuestionnaireId(any())).thenReturn(List.of());
+
+			// WHEN
+			List<SurveyUnitModel> result = adapter.findInterrogationIdsByCollectionInstrumentId(COLLECTION_INSTRUMENT_ID);
+
+			// THEN
+			assertThat(result).isEmpty();
+		}
+	}
+
+	// -------------------------------------------------------------------------
+	// findInterrogationIdsByQuestionnaireIdAndDateAfter()
+	// -------------------------------------------------------------------------
+
+	@Nested
+	@DisplayName("findInterrogationIdsByQuestionnaireIdAndDateAfter() tests")
+	class FindInterrogationIdsByDateAfterTests {
+
+		@Test
+		@DisplayName("Should call both repository methods with the given date and merge results")
+		void findByDateAfter_shouldCallBothMethods() {
+			// GIVEN
+			LocalDateTime since = LocalDateTime.now().minusDays(7);
+			when(mongoRepository.findInterrogationIdsByQuestionnaireIdAndDateAfter(QUESTIONNAIRE_ID, since))
+					.thenReturn(List.of(buildDoc("i1")));
+			when(mongoRepository.findInterrogationIdsByCollectionInstrumentIdAndDateAfter(QUESTIONNAIRE_ID, since))
+					.thenReturn(List.of(buildDoc("i2")));
+
+			// WHEN
+			List<SurveyUnitModel> result = adapter.findInterrogationIdsByQuestionnaireIdAndDateAfter(QUESTIONNAIRE_ID, since);
+
+			// THEN
+			assertThat(result).hasSize(2);
+		}
+
+		@Test
+		@DisplayName("Should return empty list when both repository methods return empty")
+		void findByDateAfter_noResults_shouldReturnEmptyList() {
+			// GIVEN
+			LocalDateTime since = LocalDateTime.now();
+			when(mongoRepository.findInterrogationIdsByQuestionnaireIdAndDateAfter(any(), any())).thenReturn(List.of());
+			when(mongoRepository.findInterrogationIdsByCollectionInstrumentIdAndDateAfter(any(), any())).thenReturn(List.of());
+
+			// WHEN
+			List<SurveyUnitModel> result = adapter.findInterrogationIdsByQuestionnaireIdAndDateAfter(QUESTIONNAIRE_ID, since);
+
+			// THEN
+			assertThat(result).isEmpty();
+		}
+	}
+
+	// -------------------------------------------------------------------------
+	// findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween()
+	// -------------------------------------------------------------------------
+
+	@Nested
+	@DisplayName("findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween() tests")
+	class FindByRecordDateBetweenTests {
+
+		@Test
+		@DisplayName("Should call both repository methods and merge results")
+		void findByRecordDateBetween_shouldCallBothMethods() {
+			// GIVEN
+			LocalDateTime start = LocalDateTime.now().minusDays(10);
+			LocalDateTime end = LocalDateTime.now();
+			when(mongoRepository.findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(COLLECTION_INSTRUMENT_ID, start, end))
+					.thenReturn(List.of(buildDoc("i1")));
+			when(mongoRepository.findInterrogationIdsQuestionnaireIdAndRecordDateBetween(COLLECTION_INSTRUMENT_ID, start, end))
+					.thenReturn(List.of());
+
+			// WHEN
+			List<SurveyUnitModel> result = adapter.findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(COLLECTION_INSTRUMENT_ID, start, end);
+
+			// THEN
+			assertThat(result).hasSize(1);
+		}
+
+		@Test
+		@DisplayName("Should return empty list when both methods return empty")
+		void findByRecordDateBetween_noResults_shouldReturnEmptyList() {
+			// GIVEN
+			LocalDateTime start = LocalDateTime.now().minusDays(1);
+			LocalDateTime end = LocalDateTime.now();
+			when(mongoRepository.findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(any(), any(), any())).thenReturn(List.of());
+			when(mongoRepository.findInterrogationIdsQuestionnaireIdAndRecordDateBetween(any(), any(), any())).thenReturn(List.of());
+
+			// WHEN
+			List<SurveyUnitModel> result = adapter.findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(COLLECTION_INSTRUMENT_ID, start, end);
+
+			// THEN
+			assertThat(result).isEmpty();
+		}
+	}
+
+	// -------------------------------------------------------------------------
+	// countByCollectionInstrumentId()
+	// -------------------------------------------------------------------------
+
+	@Nested
+	@DisplayName("countByCollectionInstrumentId() tests")
+	class CountByCollectionInstrumentIdTests {
+
+		@Test
+		@DisplayName("Should return the count from repository")
+		void count_shouldReturnRepositoryValue() {
+			// GIVEN
+			when(mongoRepository.countByCollectionInstrumentId(COLLECTION_INSTRUMENT_ID)).thenReturn(12L);
+
+			// WHEN
+			long result = adapter.countByCollectionInstrumentId(COLLECTION_INSTRUMENT_ID);
+
+			// THEN
+			assertThat(result).isEqualTo(12L);
+		}
+	}
+
+	// -------------------------------------------------------------------------
+	// findPageableInterrogationIdsByQuestionnaireId()
+	// -------------------------------------------------------------------------
+
+	@Nested
+	@DisplayName("findPageableInterrogationIdsByQuestionnaireId() tests")
+	class FindPageableInterrogationIdsTests {
+
+		@Test
+		@DisplayName("Should delegate to repository with skip and limit and return mapped models")
+		void findPageable_shouldReturnMappedModels() {
+			// GIVEN
+			when(mongoRepository.findPageableInterrogationIdsByQuestionnaireId(QUESTIONNAIRE_ID, 0L, 10L))
+					.thenReturn(List.of(buildDoc("i1")));
+
+			// WHEN
+			List<SurveyUnitModel> result = adapter.findPageableInterrogationIdsByQuestionnaireId(QUESTIONNAIRE_ID, 0L, 10L);
+
+			// THEN
+			assertThat(result).hasSize(1);
+		}
+
+		@Test
+		@DisplayName("Should return empty list when repository returns empty list")
+		void findPageable_noResults_shouldReturnEmptyList() {
+			// GIVEN
+			when(mongoRepository.findPageableInterrogationIdsByQuestionnaireId(any(), any(), any())).thenReturn(List.of());
+
+			// WHEN
+			List<SurveyUnitModel> result = adapter.findPageableInterrogationIdsByQuestionnaireId(QUESTIONNAIRE_ID, 0L, 10L);
+
+			// THEN
+			assertThat(result).isEmpty();
+		}
+	}
+
+	// -------------------------------------------------------------------------
+	// findModesByCampaignIdV2() / findModesByQuestionnaireIdV2()
+	// -------------------------------------------------------------------------
+
+	@Nested
+	@DisplayName("findModesByCampaignIdV2() tests")
+	class FindModesByCampaignIdV2Tests {
+
+		@Test
+		@DisplayName("Should delegate to repository and return mapped models")
+		void findModes_shouldReturnMappedModels() {
+			// GIVEN
+			when(mongoRepository.findModesByCampaignIdV2(CAMPAIGN_ID)).thenReturn(List.of(buildDoc("i1")));
+
+			// WHEN
+			List<SurveyUnitModel> result = adapter.findModesByCampaignIdV2(CAMPAIGN_ID);
+
+			// THEN
+			assertThat(result).hasSize(1);
+		}
+
+		@Test
+		@DisplayName("Should return empty list when repository returns empty list")
+		void findModes_noResults_shouldReturnEmptyList() {
+			// GIVEN
+			when(mongoRepository.findModesByCampaignIdV2(any())).thenReturn(List.of());
+
+			// WHEN
+			List<SurveyUnitModel> result = adapter.findModesByCampaignIdV2(CAMPAIGN_ID);
+
+			// THEN
+			assertThat(result).isEmpty();
+		}
+	}
+
+	@Nested
+	@DisplayName("findModesByQuestionnaireIdV2() tests")
+	class FindModesByQuestionnaireIdV2Tests {
+
+		@Test
+		@DisplayName("Should delegate to repository and return mapped models")
+		void findModes_shouldReturnMappedModels() {
+			// GIVEN
+			when(mongoRepository.findModesByQuestionnaireIdV2(QUESTIONNAIRE_ID)).thenReturn(List.of(buildDoc("i1")));
+
+			// WHEN
+			List<SurveyUnitModel> result = adapter.findModesByQuestionnaireIdV2(QUESTIONNAIRE_ID);
+
+			// THEN
+			assertThat(result).hasSize(1);
+		}
+
+		@Test
+		@DisplayName("Should return empty list when repository returns empty list")
+		void findModes_noResults_shouldReturnEmptyList() {
+			// GIVEN
+			when(mongoRepository.findModesByQuestionnaireIdV2(any())).thenReturn(List.of());
+
+			// WHEN
+			List<SurveyUnitModel> result = adapter.findModesByQuestionnaireIdV2(QUESTIONNAIRE_ID);
+
+			// THEN
+			assertThat(result).isEmpty();
+		}
+	}
+
+	// -------------------------------------------------------------------------
+	// findInterrogationIdsByCampaignId()
+	// -------------------------------------------------------------------------
+
+	@Nested
+	@DisplayName("findInterrogationIdsByCampaignId() tests")
+	class FindInterrogationIdsByCampaignIdTests {
+
+		@Test
+		@DisplayName("Should delegate to repository and return mapped models")
+		void findInterrogationIds_shouldReturnMappedModels() {
+			// GIVEN
+			when(mongoRepository.findInterrogationIdsByCampaignId(CAMPAIGN_ID)).thenReturn(List.of(buildDoc("i1")));
+
+			// WHEN
+			List<SurveyUnitModel> result = adapter.findInterrogationIdsByCampaignId(CAMPAIGN_ID);
+
+			// THEN
+			assertThat(result).hasSize(1);
+		}
+
+		@Test
+		@DisplayName("Should return empty list when repository returns empty list")
+		void findInterrogationIds_noResults_shouldReturnEmptyList() {
+			// GIVEN
+			when(mongoRepository.findInterrogationIdsByCampaignId(any())).thenReturn(List.of());
+
+			// WHEN
+			List<SurveyUnitModel> result = adapter.findInterrogationIdsByCampaignId(CAMPAIGN_ID);
+
+			// THEN
+			assertThat(result).isEmpty();
+		}
+	}
+
+	// -------------------------------------------------------------------------
+	// countByCampaignId()
+	// -------------------------------------------------------------------------
+
+	@Nested
+	@DisplayName("countByCampaignId() tests")
+	class CountByCampaignIdTests {
+
+		@Test
+		@DisplayName("Should return the count from repository")
+		void countByCampaignId_shouldReturnRepositoryValue() {
+			// GIVEN
+			when(mongoRepository.countByCampaignId(CAMPAIGN_ID)).thenReturn(7L);
+
+			// WHEN
+			long result = adapter.countByCampaignId(CAMPAIGN_ID);
+
+			// THEN
+			assertThat(result).isEqualTo(7L);
+		}
+	}
+
+	// -------------------------------------------------------------------------
+	// findDistinctQuestionnairesAndCollectionInstrumentIds()
+	// -------------------------------------------------------------------------
+
+	@Nested
+	@DisplayName("findDistinctQuestionnairesAndCollectionInstrumentIds() tests")
+	class FindDistinctQuestionnairesAndCollectionInstrumentIdsTests {
+
+		@Test
+		@DisplayName("Should collect distinct ids from both questionnaireId and collectionInstrumentId fields")
+		@SuppressWarnings("unchecked")
+		void findDistinct_shouldCollectFromBothFields() {
+			// GIVEN
+			MongoCollection<Document> mockCollection = mock(MongoCollection.class);
+			DistinctIterable<String> questionnaireIterable = mock(DistinctIterable.class);
+
+			DistinctIterable<String> collectionIterable = mock(DistinctIterable.class);
+
+			when(mongoTemplate.getCollection(Constants.MONGODB_RESPONSE_COLLECTION_NAME)).thenReturn(mockCollection);
+			when(mockCollection.distinct("questionnaireId", String.class)).thenReturn(questionnaireIterable);
+			when(mockCollection.distinct("collectionInstrumentId", String.class)).thenReturn(collectionIterable);
+
+			doAnswer(inv -> { ((java.util.Collection<String>) inv.getArgument(0)).addAll(List.of("q1", "q2")); return null; })
+					.when(questionnaireIterable).into(any());
+			doAnswer(inv -> { ((java.util.Collection<String>) inv.getArgument(0)).add("c1"); return null; })
+					.when(collectionIterable).into(any());
+
+			// WHEN
+			Set<String> result = adapter.findDistinctQuestionnairesAndCollectionInstrumentIds();
+
+			// THEN
+			assertThat(result).containsExactlyInAnyOrder("q1", "q2", "c1");
+		}
+
+		@Test
+		@DisplayName("Should remove null values from the result set")
+		@SuppressWarnings("unchecked")
+		void findDistinct_shouldRemoveNulls() {
+			// GIVEN
+			MongoCollection<Document> mockCollection = mock(MongoCollection.class);
+			DistinctIterable<String> questionnaireIterable = mock(DistinctIterable.class);
+			DistinctIterable<String> collectionIterable = mock(DistinctIterable.class);
+
+			when(mongoTemplate.getCollection(Constants.MONGODB_RESPONSE_COLLECTION_NAME)).thenReturn(mockCollection);
+			when(mockCollection.distinct("questionnaireId", String.class)).thenReturn(questionnaireIterable);
+			when(mockCollection.distinct("collectionInstrumentId", String.class)).thenReturn(collectionIterable);
+
+			doAnswer(inv -> { ((java.util.Collection<String>) inv.getArgument(0)).add(null); return null; })
+					.when(questionnaireIterable).into(any());
+			doAnswer(inv -> { ((java.util.Collection<String>) inv.getArgument(0)).add("c1"); return null; })
+					.when(collectionIterable).into(any());
+
+			// WHEN
+			Set<String> result = adapter.findDistinctQuestionnairesAndCollectionInstrumentIds();
+
+			// THEN
+			assertThat(result).doesNotContainNull().containsExactly("c1");
+		}
+	}
+
+	// -------------------------------------------------------------------------
+	// findCampaignIdsByQuestionnaireId()
+	// -------------------------------------------------------------------------
+
+	@Nested
+	@DisplayName("findCampaignIdsByQuestionnaireId() tests")
+	class FindCampaignIdsByQuestionnaireIdTests {
+
+		@Test
+		@DisplayName("Should extract campaignId from JSON lines returned by repository")
+		void findCampaignIds_shouldExtractFromJson() {
+			// GIVEN
+			when(mongoRepository.findCampaignIdsByQuestionnaireId(QUESTIONNAIRE_ID))
+					.thenReturn(Set.of("{\"campaignId\":\"c1\"}", "{\"campaignId\":\"c2\"}"));
+
+			// WHEN
+			Set<String> result = adapter.findCampaignIdsByQuestionnaireId(QUESTIONNAIRE_ID);
+
+			// THEN
+			assertThat(result).containsExactlyInAnyOrder("c1", "c2");
+		}
+
+		@Test
+		@DisplayName("Should return empty set when repository returns empty list")
+		void findCampaignIds_empty_shouldReturnEmptySet() {
+			// GIVEN
+			when(mongoRepository.findCampaignIdsByQuestionnaireId(QUESTIONNAIRE_ID)).thenReturn(Set.of());
+
+			// WHEN
+			Set<String> result = adapter.findCampaignIdsByQuestionnaireId(QUESTIONNAIRE_ID);
+
+			// THEN
+			assertThat(result).isEmpty();
+		}
+
+		@Test
+		@DisplayName("Should skip malformed JSON lines without throwing")
+		void findCampaignIds_malformedJson_shouldSkipAndNotThrow() {
+			// GIVEN
+			when(mongoRepository.findCampaignIdsByQuestionnaireId(QUESTIONNAIRE_ID))
+					.thenReturn(Set.of("not-valid-json", "{\"campaignId\":\"c1\"}"));
+
+			// WHEN
+			Set<String> result = adapter.findCampaignIdsByQuestionnaireId(QUESTIONNAIRE_ID);
+
+			// THEN
+			assertThat(result).containsExactly("c1");
+		}
+	}
+
+	// -------------------------------------------------------------------------
+	// countByQuestionnaireId()
+	// -------------------------------------------------------------------------
+
+	@Nested
+	@DisplayName("countByQuestionnaireId() tests")
+	class CountByQuestionnaireIdTests {
+
+		@Test
+		@DisplayName("Should return the count from repository")
+		void count_shouldReturnRepositoryValue() {
+			// GIVEN
+			when(mongoRepository.countByQuestionnaireId(QUESTIONNAIRE_ID)).thenReturn(5L);
+
+			// WHEN
+			long result = adapter.countByQuestionnaireId(QUESTIONNAIRE_ID);
+
+			// THEN
+			assertThat(result).isEqualTo(5L);
+		}
+	}
+
+	// -------------------------------------------------------------------------
+	// countDistinctInterrogationIdsByQuestionnaireAndCollectionInstrumentId()
+	// -------------------------------------------------------------------------
+
+	@Nested
+	@DisplayName("countDistinctInterrogationIdsByQuestionnaireAndCollectionInstrumentId() tests")
+	class CountDistinctInterrogationIdsTests {
+
+		@Test
+		@DisplayName("Should count distinct interrogation ids across both repository queries")
+		void countDistinct_shouldReturnDistinctCount() {
+			// GIVEN
+			SurveyUnitDocument d1 = buildDoc("i1");
+			SurveyUnitDocument d2 = buildDoc("i2");
+			SurveyUnitDocument d3 = buildDoc("i1"); // duplicate of d1
+			when(mongoRepository.findInterrogationIdsByQuestionnaireId(QUESTIONNAIRE_ID)).thenReturn(List.of(d1, d2));
+			when(mongoRepository.findInterrogationIdsByCollectionInstrumentId(QUESTIONNAIRE_ID)).thenReturn(List.of(d3));
+
+			// WHEN
+			long result = adapter.countDistinctInterrogationIdsByQuestionnaireAndCollectionInstrumentId(QUESTIONNAIRE_ID);
+
+			// THEN
+			assertThat(result).isEqualTo(2L);
+		}
+
+		@Test
+		@DisplayName("Should return 0 when both repository methods return empty lists")
+		void countDistinct_noResults_shouldReturnZero() {
+			// GIVEN
+			when(mongoRepository.findInterrogationIdsByQuestionnaireId(any())).thenReturn(List.of());
+			when(mongoRepository.findInterrogationIdsByCollectionInstrumentId(any())).thenReturn(List.of());
+
+			// WHEN
+			long result = adapter.countDistinctInterrogationIdsByQuestionnaireAndCollectionInstrumentId(QUESTIONNAIRE_ID);
+
+			// THEN
+			assertThat(result).isZero();
+		}
+	}
+
+	// -------------------------------------------------------------------------
+	// Helpers
+	// -------------------------------------------------------------------------
+
+	private SurveyUnitModel buildModel(String interrogationId) {
+		return SurveyUnitModel.builder()
+				.interrogationId(interrogationId)
+				.collectionInstrumentId(COLLECTION_INSTRUMENT_ID)
+				.build();
+	}
+
+	private SurveyUnitDocument buildDoc(String interrogationId) {
+		SurveyUnitDocument doc = new SurveyUnitDocument();
+		doc.setInterrogationId(interrogationId);
+		return doc;
 	}
 }
