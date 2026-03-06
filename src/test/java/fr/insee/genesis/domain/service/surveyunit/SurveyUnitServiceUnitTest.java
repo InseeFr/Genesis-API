@@ -24,7 +24,7 @@ import fr.insee.genesis.infrastructure.document.surveyunit.SurveyUnitDocument;
 import fr.insee.genesis.infrastructure.document.surveyunit.VariableDocument;
 import fr.insee.genesis.infrastructure.mappers.SurveyUnitDocumentMapper;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
-import integration_tests.stubs.SurveyUnitPersistencePortStub;
+import cucumber.stubs.SurveyUnitPersistencePortStub;
 import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
