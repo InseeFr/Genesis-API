@@ -28,7 +28,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-class ContextualVariableControllerUnitTest {
+class ContextualVariableControllerTest {
 
     @Mock
     private ContextualPreviousVariableApiPort contextualPreviousVariableApiPort;
