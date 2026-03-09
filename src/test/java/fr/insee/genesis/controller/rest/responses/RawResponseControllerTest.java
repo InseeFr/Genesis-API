@@ -68,7 +68,7 @@ class RawResponseControllerTest {
     @Autowired
     private MockMvc mockMvc; // Simulates HTTP requests to the REST endpoints
 
-    /** MOCKS for initializing context, not used **/
+    /** MOCKS for initializing context to test roles **/
     @MockitoBean
     private MongoTemplate mongoTemplate;
     @MockitoBean

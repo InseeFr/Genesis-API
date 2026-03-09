@@ -332,7 +332,7 @@ public class ResponseController implements CommonApiResponse {
     public ResponseEntity<SurveyUnitSimplifiedDto> getResponseByCollectionInstrumentAndInterrogation(
             @PathVariable("collectionInstrumentId") String collectionInstrumentId,
             @PathVariable("interrogationId") String interrogationId,
-            @RequestParam("mode") Mode mode) {
+            @PathVariable("mode") Mode mode) {
             return ResponseEntity.ok(
                     surveyUnitService.findSimplifiedByCollectionInstrumentIdAndInterrogationId(
                             collectionInstrumentId,
