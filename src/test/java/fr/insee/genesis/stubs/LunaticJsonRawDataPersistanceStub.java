@@ -129,6 +129,11 @@ public class LunaticJsonRawDataPersistanceStub implements LunaticJsonRawDataPers
     }
 
     @Override
+    public void resetProcessDatesByQuestionnaireId(String questionnaireId) {
+
+    }
+
+    @Override
     public Set<String> findDistinctQuestionnaireIds() {
         Set<String> questionnaireIds = new HashSet<>();
         for(LunaticJsonRawDataDocument rawDataDoc : mongoStub){
