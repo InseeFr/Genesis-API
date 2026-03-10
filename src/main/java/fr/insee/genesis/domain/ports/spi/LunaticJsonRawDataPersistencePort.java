@@ -20,6 +20,9 @@ public interface LunaticJsonRawDataPersistencePort {
     List<LunaticJsonRawDataModel> findRawDataByInterrogationID(String interrogationId);
     List<LunaticJsonRawDataModel> getAllUnprocessedData();
     void updateProcessDates(String campaignId, Set<String> interrogationIds);
+
+    void resetProcessDates(String questionnaireId, Set<String> interrogationIds);
+
     Set<String> findDistinctQuestionnaireIds();
     Set<String> findDistinctQuestionnaireIdsByNullProcessDate();
     Set<Mode> findModesByQuestionnaire(String questionnaireId);
@@ -31,4 +34,12 @@ public interface LunaticJsonRawDataPersistencePort {
 
     boolean existsByInterrogationId(String interrogationId);
     long countDistinctInterrogationIdsByQuestionnaireId(String questionnaireId);
+
+    Set<String> findProcessedInterrogationIdsByCollectionInstrumentId(String questionnaireId);
+
+    Set<String> findProcessedInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
+            String questionnaireId,
+            LocalDateTime sinceDate,
+            LocalDateTime endDate
+    );
 }
