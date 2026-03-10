@@ -105,7 +105,8 @@ public class RawResponseDataPersistanceStub implements RawResponsePersistencePor
 
     @Override
     public void resetProcessDates(String collectionInstrumentId, Set<String> interrogationIds) {
-
+        // do nothing
+        return;
     }
 
     @Override
