@@ -57,6 +57,7 @@ import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPublicKey;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -126,6 +127,11 @@ public class RawDataDefinitions {
 
         @Override
         public DataProcessResult processRawResponses(String collectionInstrumentId) throws GenesisException {
+            return null;
+        }
+
+        @Override
+        public DataProcessResult reprocessRawResponses(String collectionInstrumentId, LocalDateTime sinceDate, LocalDateTime endDate) throws GenesisException {
             return null;
         }
 
