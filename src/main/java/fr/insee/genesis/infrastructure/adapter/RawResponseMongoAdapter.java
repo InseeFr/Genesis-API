@@ -60,6 +60,16 @@ public class RawResponseMongoAdapter implements RawResponsePersistencePort {
     }
 
     @Override
+    public void resetProcessDatesByCollectionInstrumentId(String collectionInstrumentId) {
+        mongoTemplate.updateMulti(
+                Query.query(Criteria.where("collectionInstrumentId").is(collectionInstrumentId)),
+                new Update().unset("processDate"),
+                Constants.MONGODB_RAW_RESPONSES_COLLECTION_NAME
+        );
+    }
+
+
+    @Override
     public List<String> getUnprocessedCollectionIds() {
         return repository.findDistinctCollectionInstrumentIdByProcessDateIsNull();
     }
