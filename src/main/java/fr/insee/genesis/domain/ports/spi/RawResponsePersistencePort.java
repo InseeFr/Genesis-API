@@ -15,6 +15,7 @@ public interface RawResponsePersistencePort {
     List<RawResponseModel> findRawResponses(String collectionInstrumentId, Mode mode, List<String> interrogationIdList);
     List<RawResponseModel> findRawResponsesByInterrogationID(String interrogationId);
     void updateProcessDates(String collectionInstrumentId, Set<String> interrogationIds);
+    void resetProcessDatesByCollectionInstrumentId(String collectionInstrumentId);
     List<String> getUnprocessedCollectionIds();
     Set<String> findUnprocessedInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId);
     List<ModeDto> findModesByCollectionInstrument(String collectionInstrumentId);

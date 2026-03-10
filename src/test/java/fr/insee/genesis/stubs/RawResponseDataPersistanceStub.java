@@ -45,6 +45,11 @@ public class RawResponseDataPersistanceStub implements RawResponsePersistencePor
     }
 
     @Override
+    public void resetProcessDatesByCollectionInstrumentId(String collectionInstrumentId) {
+
+    }
+
+    @Override
     public List<String> getUnprocessedCollectionIds() {
         return List.of();
     }

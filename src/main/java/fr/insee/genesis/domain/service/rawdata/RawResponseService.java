@@ -196,6 +196,18 @@ public class  RawResponseService implements RawResponseApiPort {
         return new DataProcessResult(dataCount, formattedDataCount, errors);
     }
 
+
+    @Override
+    public DataProcessResult reprocessRawResponses(String collectionInstrumentId) throws GenesisException {
+        log.info("Reprocessing raw responses for collectionInstrumentId={}", collectionInstrumentId);
+
+        surveyUnitService.deleteByCollectionInstrumentId(collectionInstrumentId);
+        rawResponsePersistencePort.resetProcessDatesByCollectionInstrumentId(collectionInstrumentId);
+
+        return processRawResponses(collectionInstrumentId);
+    }
+
+
     private List<SurveyUnitModel> getConvertedSurveyUnits(String collectionInstrumentId, Mode mode, List<String> interrogationIdListForMode, int maxIndex, VariablesMap variablesMap) {
         List<String> interrogationIdToProcess = interrogationIdListForMode.subList(0, maxIndex);
         List<RawResponseModel> rawResponseModels = getRawResponses(collectionInstrumentId, mode, interrogationIdToProcess);
