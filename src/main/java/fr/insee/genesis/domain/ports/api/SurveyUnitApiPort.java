@@ -73,6 +73,11 @@ public interface SurveyUnitApiPort {
 
     Long deleteByCollectionInstrumentId(String collectionInstrumentId);
 
+    Long deleteByCollectionInstrumentIdAndInterrogationIds(
+            String collectionInstrumentId,
+            Set<String> interrogationIds
+    );
+
     long countResponses();
 
     Set<String> findQuestionnaireIdsByCampaignId(String campaignId);
