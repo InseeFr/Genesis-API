@@ -327,6 +327,17 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
         return surveyUnitModels;
     }
 
+
+    @Override
+    public DataProcessResult reprocessRawResponses(
+            String collectionInstrumentId,
+            LocalDateTime sinceDate,
+            LocalDateTime endDate
+    ) throws GenesisException {
+        //Todo
+        return null;
+
+    }
     private static RawDataModelType getRawDataModelType(LunaticJsonRawDataModel rawData) {
         return rawData.data().containsKey("data") ?
                 RawDataModelType.FILIERE :
