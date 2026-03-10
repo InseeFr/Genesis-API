@@ -10,6 +10,7 @@ import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -23,6 +24,24 @@ public interface RawResponseRepository extends MongoRepository<RawResponseDocume
             "{ $project: { _id: 0, collectionInstrumentId: '$_id' } }"
     })
     List<String> findDistinctCollectionInstrumentIdByProcessDateIsNull();
+
+    @Aggregation(pipeline = {
+            "{ $match: { collectionInstrumentId: ?0, processDate: { $ne: null }, recordDate: { $gte: ?1, $lte: ?2 } } }",
+            "{ $group: { _id: '$interrogationId' } }",
+            "{ $project: { _id: 0, interrogationId: '$_id' } }"
+    })
+    List<String> findProcessedInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
+            String collectionInstrumentId,
+            LocalDateTime sinceDate,
+            LocalDateTime endDate
+    );
+
+    @Aggregation(pipeline = {
+            "{ $match: { collectionInstrumentId: ?0, processDate: { $ne: null } } }",
+            "{ $group: { _id: '$interrogationId' } }",
+            "{ $project: { _id: 0, interrogationId: '$_id' } }"
+    })
+    List<String> findProcessedInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId);
 
     @Aggregation(pipeline = {
             "{ $match: { collectionInstrumentId: ?0,processDate: null } }",
