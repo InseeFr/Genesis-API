@@ -2,6 +2,7 @@ package fr.insee.genesis.controller.rest.responses;
 
 import fr.insee.bpm.metadata.model.MetadataModel;
 import fr.insee.bpm.metadata.model.VariablesMap;
+import fr.insee.genesis.configuration.auth.security.DefaultSecurityConfig;
 import fr.insee.genesis.controller.dto.SurveyUnitDto;
 import fr.insee.genesis.controller.dto.SurveyUnitSimplifiedDto;
 import fr.insee.genesis.controller.utils.AuthUtils;
@@ -18,17 +19,6 @@ import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
-import fr.insee.genesis.infrastructure.repository.ContextualExternalVariableMongoDBRepository;
-import fr.insee.genesis.infrastructure.repository.ContextualPreviousVariableMongoDBRepository;
-import fr.insee.genesis.infrastructure.repository.DataProcessingContextMongoDBRepository;
-import fr.insee.genesis.infrastructure.repository.LastJsonExtractionMongoDBRepository;
-import fr.insee.genesis.infrastructure.repository.LunaticJsonMongoDBRepository;
-import fr.insee.genesis.infrastructure.repository.LunaticModelMongoDBRepository;
-import fr.insee.genesis.infrastructure.repository.QuestionnaireMetadataMongoDBRepository;
-import fr.insee.genesis.infrastructure.repository.RawResponseInputRepository;
-import fr.insee.genesis.infrastructure.repository.RawResponseRepository;
-import fr.insee.genesis.infrastructure.repository.RundeckExecutionDBRepository;
-import fr.insee.genesis.infrastructure.repository.SurveyUnitMongoDBRepository;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -39,11 +29,10 @@ import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfigurat
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -64,17 +53,19 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+@WebMvcTest(ResponseController.class)
+//Disable OIDC
+@TestPropertySource(properties = {
+        "fr.insee.genesis.authentication=NONE"
+})
+@Import({DefaultSecurityConfig.class})
 @ActiveProfiles("test")
+@AutoConfigureMockMvc
 @EnableAutoConfiguration(exclude = {MongoAutoConfiguration.class, MongoDataAutoConfiguration.class})
 class ResponseControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
-
-    @MockitoBean
-    private SurveyUnitApiPort surveyUnitService;
 
     @MockitoBean
     private SurveyUnitQualityService surveyUnitQualityService;
@@ -95,50 +86,22 @@ class ResponseControllerTest {
     private QuestionnaireMetadataService metadataService;
 
     @MockitoBean
-    private MongoTemplate mongoTemplate;
-    @MockitoBean
     private SurveyUnitApiPort surveyUnitApiPort;
     @MockitoBean
     private LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort;
     @MockitoBean
     private RawResponseApiPort rawResponseApiPort;
-    @MockitoBean
-    private RawResponseInputRepository rawRepository;
-    @MockitoBean
-    private SurveyUnitMongoDBRepository surveyUnitMongoDBRepository;
-    @MockitoBean
-    private LastJsonExtractionMongoDBRepository lastJsonExtractionMongoDBRepository;
-    @MockitoBean
-    private LunaticJsonMongoDBRepository lunaticJsonMongoDBRepository;
-    @MockitoBean
-    private RundeckExecutionDBRepository rundeckExecutionDBRepository;
-    @MockitoBean
-    private DataProcessingContextMongoDBRepository dataProcessingContextMongoDBRepository;
-    @MockitoBean
-    private LunaticModelMongoDBRepository lunaticModelMongoDBRepository;
-    @MockitoBean
-    private ContextualPreviousVariableMongoDBRepository contextualPreviousVariableMongoDBRepository;
-    @MockitoBean
-    private ContextualExternalVariableMongoDBRepository contextualExternalVariableMongoDBRepository;
-    @MockitoBean
-    private QuestionnaireMetadataMongoDBRepository questionnaireMetadataMongoDBRepository;
-    @MockitoBean
-    private RawResponseRepository rawResponseRepository;
 
-    // -------------------------------------------------------------------------
-    // DELETE /responses/delete/{collectionInstrumentId}
-    // -------------------------------------------------------------------------
 
     @Nested
     @DisplayName("DELETE /responses/delete/{collectionInstrumentId} tests")
     class DeleteAllResponsesByCollectionInstrumentTests {
 
         @Test
-        @WithMockUser(roles = "ADMIN")
         @DisplayName("Should return 200 with deleted count")
         void delete_shouldReturn200WithCount() throws Exception {
             // GIVEN
-            when(surveyUnitService.deleteByCollectionInstrumentId("QUEST01")).thenReturn(42L);
+            when(surveyUnitApiPort.deleteByCollectionInstrumentId("QUEST01")).thenReturn(42L);
 
             // WHEN / THEN
             mockMvc.perform(delete("/responses/delete/QUEST01").with(csrf()))
@@ -148,27 +111,15 @@ class ResponseControllerTest {
         }
 
         @Test
-        @WithMockUser(roles = "ADMIN")
         @DisplayName("Should return 200 with zero when no data exists")
         void delete_noData_shouldReturn200WithZero() throws Exception {
             // GIVEN
-            when(surveyUnitService.deleteByCollectionInstrumentId("QUEST01")).thenReturn(0L);
+            when(surveyUnitApiPort.deleteByCollectionInstrumentId("QUEST01")).thenReturn(0L);
 
             // WHEN / THEN
             mockMvc.perform(delete("/responses/delete/QUEST01").with(csrf()))
                     .andExpect(status().isOk())
                     .andExpect(content().string(containsString("0")));
-        }
-
-        @Test
-        @WithMockUser(roles = "USER")
-        @DisplayName("Should return 403 when user does not have ADMIN role")
-        void delete_wrongRole_shouldReturn403() throws Exception {
-            // GIVEN
-
-            // WHEN / THEN
-            mockMvc.perform(delete("/responses/delete/QUEST01").with(csrf()))
-                    .andExpect(status().isForbidden());
         }
     }
 
@@ -181,11 +132,10 @@ class ResponseControllerTest {
     class FindResponsesByInterrogationAndCollectionInstrumentTests {
 
         @Test
-        @WithMockUser(roles = "ADMIN")
         @DisplayName("Should return 200 with list of survey unit models")
         void find_shouldReturn200() throws Exception {
             // GIVEN
-            when(surveyUnitService.findByIdsInterrogationAndCollectionInstrument("INTERRO01", "QUEST01"))
+            when(surveyUnitApiPort.findByIdsInterrogationAndCollectionInstrument("INTERRO01", "QUEST01"))
                     .thenReturn(List.of(buildSurveyUnitModel("INTERRO01", "QUEST01", Mode.WEB, DataState.COLLECTED)));
 
             // WHEN / THEN
@@ -196,11 +146,10 @@ class ResponseControllerTest {
         }
 
         @Test
-        @WithMockUser(roles = "ADMIN")
         @DisplayName("Should return empty list when no responses found")
         void find_noResults_shouldReturnEmptyList() throws Exception {
             // GIVEN
-            when(surveyUnitService.findByIdsInterrogationAndCollectionInstrument(any(), any()))
+            when(surveyUnitApiPort.findByIdsInterrogationAndCollectionInstrument(any(), any()))
                     .thenReturn(List.of());
 
             // WHEN / THEN
@@ -209,19 +158,6 @@ class ResponseControllerTest {
                             .param("collectionInstrumentId", "QUEST01"))
                     .andExpect(status().isOk())
                     .andExpect(content().string("[]"));
-        }
-
-        @Test
-        @WithMockUser(roles = "USER")
-        @DisplayName("Should return 403 when user does not have ADMIN role")
-        void find_wrongRole_shouldReturn403() throws Exception {
-            // GIVEN
-
-            // WHEN / THEN
-            mockMvc.perform(get("/responses/by-interrogation-and-collection-instrument")
-                            .param("interrogationId", "INTERRO01")
-                            .param("collectionInstrumentId", "QUEST01"))
-                    .andExpect(status().isForbidden());
         }
     }
 
@@ -234,11 +170,10 @@ class ResponseControllerTest {
     class FindResponsesByUsualSurveyUnitAndCollectionInstrumentTests {
 
         @Test
-        @WithMockUser(roles = "ADMIN")
         @DisplayName("Should return 200 with list of models")
         void find_shouldReturn200() throws Exception {
             // GIVEN
-            when(surveyUnitService.findByIdsUsualSurveyUnitAndCollectionInstrument("USUAL01", "QUEST01"))
+            when(surveyUnitApiPort.findByIdsUsualSurveyUnitAndCollectionInstrument("USUAL01", "QUEST01"))
                     .thenReturn(List.of());
 
             // WHEN / THEN
@@ -247,38 +182,20 @@ class ResponseControllerTest {
                             .param("collectionInstrumentId", "QUEST01"))
                     .andExpect(status().isOk());
         }
-
-        @Test
-        @WithMockUser(roles = "USER")
-        @DisplayName("Should return 403 when user does not have ADMIN role")
-        void find_wrongRole_shouldReturn403() throws Exception {
-            // GIVEN
-
-            // WHEN / THEN
-            mockMvc.perform(get("/responses/by-usual-survey-unit-and-collection-instrument")
-                            .param("usualSurveyUnitId", "USUAL01")
-                            .param("collectionInstrumentId", "QUEST01"))
-                    .andExpect(status().isForbidden());
-        }
     }
-
-    // -------------------------------------------------------------------------
-    // GET /responses/by-interrogation-and-collection-instrument/latest-states
-    // -------------------------------------------------------------------------
 
     @Nested
     @DisplayName("GET /responses/by-interrogation-and-collection-instrument/latest-states tests")
     class FindResponsesByInterrogationAndCollectionInstrumentLatestStatesTests {
 
         @Test
-        @WithMockUser(roles = "USER_PLATINE")
         @DisplayName("Should return 200 when review is enabled")
         void findLatestStates_reviewEnabled_shouldReturn200() throws Exception {
             // GIVEN
             DataProcessingContextModel ctx = new DataProcessingContextModel();
             ctx.setWithReview(true);
             when(contextService.getContext("INTERRO01")).thenReturn(ctx);
-            when(surveyUnitService.findLatestValuesByStateByIdAndByCollectionInstrumentId("INTERRO01", "QUEST01"))
+            when(surveyUnitApiPort.findLatestValuesByStateByIdAndByCollectionInstrumentId("INTERRO01", "QUEST01"))
                     .thenReturn(getSurveyUnitDto());
 
             // WHEN / THEN
@@ -289,7 +206,6 @@ class ResponseControllerTest {
         }
 
         @Test
-        @WithMockUser(roles = "USER_PLATINE")
         @DisplayName("Should return 403 with 'Review is disabled' message when context is null")
         void findLatestStates_contextNull_shouldReturn403WithMessage() throws Exception {
             // GIVEN
@@ -304,7 +220,6 @@ class ResponseControllerTest {
         }
 
         @Test
-        @WithMockUser(roles = "USER_PLATINE")
         @DisplayName("Should return 403 with 'Review is disabled' message when withReview is false")
         void findLatestStates_reviewDisabled_shouldReturn403WithMessage() throws Exception {
             // GIVEN
@@ -321,14 +236,13 @@ class ResponseControllerTest {
         }
 
         @Test
-        @WithMockUser(roles = "SCHEDULER")
         @DisplayName("Should also allow SCHEDULER role")
         void findLatestStates_schedulerRole_shouldReturn200() throws Exception {
             // GIVEN
             DataProcessingContextModel ctx = new DataProcessingContextModel();
             ctx.setWithReview(true);
             when(contextService.getContext("INTERRO01")).thenReturn(ctx);
-            when(surveyUnitService.findLatestValuesByStateByIdAndByCollectionInstrumentId("INTERRO01", "QUEST01"))
+            when(surveyUnitApiPort.findLatestValuesByStateByIdAndByCollectionInstrumentId("INTERRO01", "QUEST01"))
                     .thenReturn(getSurveyUnitDto());
 
             // WHEN / THEN
@@ -336,19 +250,6 @@ class ResponseControllerTest {
                             .param("interrogationId", "INTERRO01")
                             .param("collectionInstrumentId", "QUEST01"))
                     .andExpect(status().isOk());
-        }
-
-        @Test
-        @WithMockUser(roles = "USER")
-        @DisplayName("Should return 403 when user does not have USER_PLATINE or SCHEDULER role")
-        void findLatestStates_wrongRole_shouldReturn403() throws Exception {
-            // GIVEN
-
-            // WHEN / THEN
-            mockMvc.perform(get("/responses/by-interrogation-and-collection-instrument/latest-states")
-                            .param("interrogationId", "INTERRO01")
-                            .param("collectionInstrumentId", "QUEST01"))
-                    .andExpect(status().isForbidden());
         }
     }
 
@@ -361,14 +262,13 @@ class ResponseControllerTest {
     class FindResponsesByInterrogationAndQuestionnaireLatestStatesTests {
 
         @Test
-        @WithMockUser(roles = "USER_PLATINE")
         @DisplayName("Should return 200 when review is enabled")
         void findByQuestionnaire_reviewEnabled_shouldReturn200() throws Exception {
             // GIVEN
             DataProcessingContextModel ctx = new DataProcessingContextModel();
             ctx.setWithReview(true);
             when(contextService.getContext("INTERRO01")).thenReturn(ctx);
-            when(surveyUnitService.findLatestValuesByStateByIdAndByCollectionInstrumentId("INTERRO01", "QUEST01"))
+            when(surveyUnitApiPort.findLatestValuesByStateByIdAndByCollectionInstrumentId("INTERRO01", "QUEST01"))
                     .thenReturn(getSurveyUnitDto());
 
             // WHEN / THEN
@@ -379,7 +279,6 @@ class ResponseControllerTest {
         }
 
         @Test
-        @WithMockUser(roles = "USER_PLATINE")
         @DisplayName("Should return 403 when review is disabled (shares same logic as new endpoint)")
         void findByQuestionnaire_reviewDisabled_shouldReturn403() throws Exception {
             // GIVEN
@@ -402,11 +301,10 @@ class ResponseControllerTest {
     class GetLatestByInterrogationAndCollectionInstrumentTests {
 
         @Test
-        @WithMockUser(roles = "ADMIN")
         @DisplayName("Should return 200 with list of models")
         void getLatest_shouldReturn200() throws Exception {
             // GIVEN
-            when(surveyUnitService.findLatestByIdAndByCollectionInstrumentId("INTERRO01", "QUEST01"))
+            when(surveyUnitApiPort.findLatestByIdAndByCollectionInstrumentId("INTERRO01", "QUEST01"))
                     .thenReturn(List.of());
 
             // WHEN / THEN
@@ -414,19 +312,6 @@ class ResponseControllerTest {
                             .param("interrogationId", "INTERRO01")
                             .param("collectionInstrumentId", "QUEST01"))
                     .andExpect(status().isOk());
-        }
-
-        @Test
-        @WithMockUser(roles = "USER")
-        @DisplayName("Should return 403 when user does not have ADMIN role")
-        void getLatest_wrongRole_shouldReturn403() throws Exception {
-            // GIVEN
-
-            // WHEN / THEN
-            mockMvc.perform(get("/responses/by-interrogation-and-collection-instrument/latest")
-                            .param("interrogationId", "INTERRO01")
-                            .param("collectionInstrumentId", "QUEST01"))
-                    .andExpect(status().isForbidden());
         }
     }
 
@@ -439,12 +324,11 @@ class ResponseControllerTest {
     class GetLatestByInterrogationOneObjectTests {
 
         @Test
-        @WithMockUser(roles = "USER_KRAFTWERK")
         @DisplayName("Should return 200 and aggregate collected + external variables per mode")
         void getLatestOneObject_shouldReturn200AndAggregateVariables() throws Exception {
             // GIVEN
             SurveyUnitModel model = buildSurveyUnitModel("INTERRO01", "QUEST01", Mode.WEB, DataState.COLLECTED);
-            when(surveyUnitService.findLatestByIdAndByCollectionInstrumentId("INTERRO01", "QUEST01"))
+            when(surveyUnitApiPort.findLatestByIdAndByCollectionInstrumentId("INTERRO01", "QUEST01"))
                     .thenReturn(List.of(model));
 
             // WHEN / THEN
@@ -457,13 +341,12 @@ class ResponseControllerTest {
         }
 
         @Test
-        @WithMockUser(roles = "USER_KRAFTWERK")
         @DisplayName("Should filter responses by mode before aggregating")
         void getLatestOneObject_shouldFilterByMode() throws Exception {
             // GIVEN
             SurveyUnitModel webModel = buildSurveyUnitModel("INTERRO01", "QUEST01", Mode.WEB, DataState.COLLECTED);
             SurveyUnitModel paperModel = buildSurveyUnitModel("INTERRO01", "QUEST01", Mode.PAPER, DataState.COLLECTED);
-            when(surveyUnitService.findLatestByIdAndByCollectionInstrumentId("INTERRO01", "QUEST01"))
+            when(surveyUnitApiPort.findLatestByIdAndByCollectionInstrumentId("INTERRO01", "QUEST01"))
                     .thenReturn(List.of(webModel, paperModel));
 
             // WHEN / THEN
@@ -473,20 +356,6 @@ class ResponseControllerTest {
                             .param("collectionInstrumentId", "QUEST01")
                             .param("mode", Mode.WEB.name()))
                     .andExpect(status().isOk());
-        }
-
-        @Test
-        @WithMockUser(roles = "USER")
-        @DisplayName("Should return 403 when user does not have USER_KRAFTWERK role")
-        void getLatestOneObject_wrongRole_shouldReturn403() throws Exception {
-            // GIVEN
-
-            // WHEN / THEN
-            mockMvc.perform(get("/responses/simplified/by-interrogation-collection-instrument-and-mode/latest")
-                            .param("interrogationId", "INTERRO01")
-                            .param("collectionInstrumentId", "QUEST01")
-                            .param("mode", Mode.WEB.name()))
-                    .andExpect(status().isForbidden());
         }
     }
 
@@ -499,11 +368,10 @@ class ResponseControllerTest {
     class GetResponseByCollectionInstrumentAndInterrogationTests {
 
         @Test
-        @WithMockUser(roles = "USER_KRAFTWERK")
         @DisplayName("Should return 200 with simplified dto")
         void getResponse_shouldReturn200() throws Exception {
             // GIVEN
-            when(surveyUnitService.findSimplifiedByCollectionInstrumentIdAndInterrogationId(
+            when(surveyUnitApiPort.findSimplifiedByCollectionInstrumentIdAndInterrogationId(
                     "QUEST01", "INTERRO01", Mode.WEB))
                     .thenReturn(SurveyUnitSimplifiedDto.builder().build());
 
@@ -513,11 +381,10 @@ class ResponseControllerTest {
         }
 
         @Test
-        @WithMockUser(roles = "USER_KRAFTWERK")
         @DisplayName("Should pass collectionInstrumentId, interrogationId and mode to service")
         void getResponse_shouldDelegateCorrectlyToService() throws Exception {
             // GIVEN
-            when(surveyUnitService.findSimplifiedByCollectionInstrumentIdAndInterrogationId(
+            when(surveyUnitApiPort.findSimplifiedByCollectionInstrumentIdAndInterrogationId(
                     anyString(), anyString(), any()))
                     .thenReturn(SurveyUnitSimplifiedDto.builder().build());
 
@@ -525,19 +392,8 @@ class ResponseControllerTest {
             mockMvc.perform(get("/responses/QUEST01/WEB/INTERRO01"));
 
             // THEN
-            verify(surveyUnitService).findSimplifiedByCollectionInstrumentIdAndInterrogationId(
+            verify(surveyUnitApiPort).findSimplifiedByCollectionInstrumentIdAndInterrogationId(
                     "QUEST01", "INTERRO01", Mode.WEB);
-        }
-
-        @Test
-        @WithMockUser(roles = "USER")
-        @DisplayName("Should return 403 when user does not have USER_KRAFTWERK role")
-        void getResponse_wrongRole_shouldReturn403() throws Exception {
-            // GIVEN
-
-            // WHEN / THEN
-            mockMvc.perform(get("/responses/QUEST01/WEB/INTERRO01"))
-                    .andExpect(status().isForbidden());
         }
     }
 
@@ -550,14 +406,13 @@ class ResponseControllerTest {
     class GetLatestForInterrogationListTests {
 
         @Test
-        @WithMockUser(roles = "USER_KRAFTWERK")
         @DisplayName("Should return 200 with simplified dto for each interrogation+mode combination with variables")
         void getLatestList_shouldReturn200() throws Exception {
             // GIVEN
             SurveyUnitModel model = buildSurveyUnitModel("INTERRO01", "QUEST01", Mode.WEB, DataState.COLLECTED);
-            when(surveyUnitService.findModesByCollectionInstrumentId("QUEST01"))
+            when(surveyUnitApiPort.findModesByCollectionInstrumentId("QUEST01"))
                     .thenReturn(List.of(Mode.WEB));
-            when(surveyUnitService.findLatestByIdAndByCollectionInstrumentId("INTERRO01", "QUEST01"))
+            when(surveyUnitApiPort.findLatestByIdAndByCollectionInstrumentId("INTERRO01", "QUEST01"))
                     .thenReturn(List.of(model));
 
             // WHEN / THEN
@@ -570,7 +425,6 @@ class ResponseControllerTest {
         }
 
         @Test
-        @WithMockUser(roles = "USER_KRAFTWERK")
         @DisplayName("Should exclude interrogations with no variables in any mode")
         void getLatestList_noVariables_shouldReturnEmptyList() throws Exception {
             // GIVEN
@@ -582,9 +436,9 @@ class ResponseControllerTest {
                     .collectedVariables(List.of())
                     .externalVariables(List.of())
                     .build();
-            when(surveyUnitService.findModesByCollectionInstrumentId("QUEST01"))
+            when(surveyUnitApiPort.findModesByCollectionInstrumentId("QUEST01"))
                     .thenReturn(List.of(Mode.WEB));
-            when(surveyUnitService.findLatestByIdAndByCollectionInstrumentId("INTERRO01", "QUEST01"))
+            when(surveyUnitApiPort.findLatestByIdAndByCollectionInstrumentId("INTERRO01", "QUEST01"))
                     .thenReturn(List.of(modelNoVars));
 
             // WHEN / THEN
@@ -595,21 +449,6 @@ class ResponseControllerTest {
                             .content("[{\"interrogationId\":\"INTERRO01\"}]"))
                     .andExpect(status().isOk())
                     .andExpect(content().string("[]"));
-        }
-
-        @Test
-        @WithMockUser(roles = "USER")
-        @DisplayName("Should return 403 when user does not have USER_KRAFTWERK role")
-        void getLatestList_wrongRole_shouldReturn403() throws Exception {
-            // GIVEN
-
-            // WHEN / THEN
-            mockMvc.perform(post("/responses/simplified/by-list-interrogation-and-collection-instrument/latest")
-                            .with(csrf())
-                            .param("collectionInstrumentId", "QUEST01")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("[]"))
-                    .andExpect(status().isForbidden());
         }
     }
 
@@ -622,11 +461,10 @@ class ResponseControllerTest {
     class GetResponseByCollectionInstrumentAndInterrogationListTests {
 
         @Test
-        @WithMockUser(roles = "USER_KRAFTWERK")
         @DisplayName("Should return 200 with list of simplified dtos")
         void getResponseList_shouldReturn200() throws Exception {
             // GIVEN
-            when(surveyUnitService.findSimplifiedByCollectionInstrumentIdAndInterrogationIdList(
+            when(surveyUnitApiPort.findSimplifiedByCollectionInstrumentIdAndInterrogationIdList(
                     eq("QUEST01"), any()))
                     .thenReturn(List.of());
 
@@ -639,11 +477,10 @@ class ResponseControllerTest {
         }
 
         @Test
-        @WithMockUser(roles = "USER_KRAFTWERK")
         @DisplayName("Should delegate to service with correct collectionInstrumentId")
         void getResponseList_shouldDelegateToService() throws Exception {
             // GIVEN
-            when(surveyUnitService.findSimplifiedByCollectionInstrumentIdAndInterrogationIdList(
+            when(surveyUnitApiPort.findSimplifiedByCollectionInstrumentIdAndInterrogationIdList(
                     anyString(), any()))
                     .thenReturn(List.of());
 
@@ -654,22 +491,8 @@ class ResponseControllerTest {
                     .content("[{\"interrogationId\":\"INTERRO01\"}]"));
 
             // THEN
-            verify(surveyUnitService).findSimplifiedByCollectionInstrumentIdAndInterrogationIdList(
+            verify(surveyUnitApiPort).findSimplifiedByCollectionInstrumentIdAndInterrogationIdList(
                     eq("QUEST01"), any());
-        }
-
-        @Test
-        @WithMockUser(roles = "USER")
-        @DisplayName("Should return 403 when user does not have USER_KRAFTWERK role")
-        void getResponseList_wrongRole_shouldReturn403() throws Exception {
-            // GIVEN
-
-            // WHEN / THEN
-            mockMvc.perform(post("/responses/QUEST01")
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("[]"))
-                    .andExpect(status().isForbidden());
         }
     }
 
@@ -691,7 +514,6 @@ class ResponseControllerTest {
                 """;
 
         @Test
-        @WithMockUser(roles = "USER_PLATINE")
         @DisplayName("Should return 200 with 'Data saved' message on success")
         void saveEdited_shouldReturn200WithSuccessMessage() throws Exception {
             // GIVEN
@@ -701,7 +523,7 @@ class ResponseControllerTest {
             when(surveyUnitQualityService.checkVariablesPresentInMetadata(any(), any()))
                     .thenReturn(List.of());
             when(authUtils.getIDEP()).thenReturn("user-idep");
-            when(surveyUnitService.parseEditedVariables(any(), eq("user-idep"), any()))
+            when(surveyUnitApiPort.parseEditedVariables(any(), eq("user-idep"), any()))
                     .thenReturn(List.of());
 
             // WHEN / THEN
@@ -714,7 +536,6 @@ class ResponseControllerTest {
         }
 
         @Test
-        @WithMockUser(roles = "USER_PLATINE")
         @DisplayName("Should call verifySurveyUnits and saveSurveyUnits after successful parse")
         void saveEdited_shouldCallVerifyThenSave() throws Exception {
             // GIVEN
@@ -724,7 +545,7 @@ class ResponseControllerTest {
             when(surveyUnitQualityService.checkVariablesPresentInMetadata(any(), any()))
                     .thenReturn(List.of());
             when(authUtils.getIDEP()).thenReturn("user-idep");
-            when(surveyUnitService.parseEditedVariables(any(), anyString(), any()))
+            when(surveyUnitApiPort.parseEditedVariables(any(), anyString(), any()))
                     .thenReturn(List.of());
 
             // WHEN
@@ -735,11 +556,10 @@ class ResponseControllerTest {
 
             // THEN
             verify(surveyUnitQualityService).verifySurveyUnits(any(), any());
-            verify(surveyUnitService).saveSurveyUnits(any());
+            verify(surveyUnitApiPort).saveSurveyUnits(any());
         }
 
         @Test
-        @WithMockUser(roles = "USER_PLATINE")
         @DisplayName("Should return 400 with absent variable names when metadata check fails")
         void saveEdited_absentVariables_shouldReturn400WithNames() throws Exception {
             // GIVEN
@@ -760,7 +580,6 @@ class ResponseControllerTest {
         }
 
         @Test
-        @WithMockUser(roles = "USER_PLATINE")
         @DisplayName("Should return 404 when metadataModel is null and error list is populated")
         void saveEdited_metadataNull_shouldReturn404() throws Exception {
             // GIVEN
@@ -781,7 +600,6 @@ class ResponseControllerTest {
         }
 
         @Test
-        @WithMockUser(roles = "USER_PLATINE")
         @DisplayName("Should return GenesisException status when parseEditedVariables throws")
         void saveEdited_parseThrows_shouldReturnExceptionStatus() throws Exception {
             // GIVEN
@@ -791,7 +609,7 @@ class ResponseControllerTest {
             when(surveyUnitQualityService.checkVariablesPresentInMetadata(any(), any()))
                     .thenReturn(List.of());
             when(authUtils.getIDEP()).thenReturn("user-idep");
-            when(surveyUnitService.parseEditedVariables(any(), anyString(), any()))
+            when(surveyUnitApiPort.parseEditedVariables(any(), anyString(), any()))
                     .thenThrow(new GenesisException(422, "Unprocessable entity"));
 
             // WHEN / THEN
@@ -801,18 +619,6 @@ class ResponseControllerTest {
                             .content(VALID_BODY))
                     .andExpect(status().isUnprocessableEntity())
                     .andExpect(content().string(containsString("Unprocessable entity")));
-        }
-
-        @Test
-        @WithMockUser(roles = "USER")
-        @DisplayName("Should return 403 when user does not have USER_PLATINE role")
-        void saveEdited_wrongRole_shouldReturn403() throws Exception {
-            // WHEN / THEN
-            mockMvc.perform(post("/responses/save-edited")
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(VALID_BODY))
-                    .andExpect(status().isForbidden());
         }
     }
 

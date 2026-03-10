@@ -1,4 +1,4 @@
-package fr.insee.genesis;
+package fr.insee.genesis.controller.rest;
 
 import fr.insee.genesis.domain.ports.api.DataProcessingContextApiPort;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
