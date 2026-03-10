@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -222,6 +223,16 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
         return new DataProcessResult(dataCount, formattedDataCount, errors);
     }
 
+    @Override
+    public DataProcessResult reprocessRawData(String questionnaireId) throws GenesisException {
+        log.info("Reprocessing raw responses for questionnaireId={}", questionnaireId);
+
+        surveyUnitService.deleteByCollectionInstrumentId(questionnaireId);
+        lunaticJsonRawDataPersistencePort.resetProcessDatesByQuestionnaireId(questionnaireId);
+
+        return processRawData(questionnaireId);
+    }
+
     private VariablesMap getVariablesMap(String questionnaireId, Mode mode, List<GenesisError> errors) throws GenesisException {
         VariablesMap variablesMap = metadataService.loadAndSaveIfNotExists(questionnaireId, questionnaireId, mode, fileUtils,
                 errors).getVariables();
@@ -334,7 +345,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     private static LocalDateTime getValidationDate(LunaticJsonRawDataModel rawData) {
         try{
             return rawData.data().get("validationDate") == null ? null :
-                LocalDateTime.parse(rawData.data().get("validationDate").toString());
+                LocalDateTime.parse(rawData.data().get("validationDate").toString(), DateTimeFormatter.ISO_OFFSET_DATE_TIME);
         }catch(Exception e){
             log.warn("Exception when parsing validation date : {}}",e.toString());
             return null;
