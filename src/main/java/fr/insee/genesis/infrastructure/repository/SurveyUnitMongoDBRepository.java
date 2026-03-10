@@ -103,6 +103,16 @@ public interface SurveyUnitMongoDBRepository extends MongoRepository<SurveyUnitD
 	Long deleteByQuestionnaireId(String questionnaireId);
 	Long deleteByCollectionInstrumentId(String collectionInstrumentId);
 
+    Long deleteByCollectionInstrumentIdAndInterrogationIdIn(
+            String collectionInstrumentId,
+            Set<String> interrogationIds
+    );
+
+    Long deleteByQuestionnaireIdAndInterrogationIdIn(
+            String questionnaireId,
+            Set<String> interrogationIds
+    );
+
 	@Meta(cursorBatchSize = 20)
 	Stream<SurveyUnitDocument> findByQuestionnaireId(String questionnaireId);
 

@@ -60,16 +60,6 @@ public class RawResponseMongoAdapter implements RawResponsePersistencePort {
     }
 
     @Override
-    public void resetProcessDatesByCollectionInstrumentId(String collectionInstrumentId) {
-        mongoTemplate.updateMulti(
-                Query.query(Criteria.where("collectionInstrumentId").is(collectionInstrumentId)),
-                new Update().unset("processDate"),
-                Constants.MONGODB_RAW_RESPONSES_COLLECTION_NAME
-        );
-    }
-
-
-    @Override
     public List<String> getUnprocessedCollectionIds() {
         return repository.findDistinctCollectionInstrumentIdByProcessDateIsNull();
     }
@@ -113,6 +103,38 @@ public class RawResponseMongoAdapter implements RawResponsePersistencePort {
         Page<RawResponseDocument> rawDataDocs = repository.findByCollectionInstrumentId(collectionInstrumentId, pageable);
         List<RawResponseModel> modelList = RawResponseDocumentMapper.INSTANCE.listDocumentToListModel(rawDataDocs.getContent());
         return new PageImpl<>(modelList, rawDataDocs.getPageable(), rawDataDocs.getTotalElements());
+    }
+
+    @Override
+    public Set<String> findProcessedInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId) {
+        return new HashSet<>(repository.findProcessedInterrogationIdsByCollectionInstrumentId(collectionInstrumentId));
+    }
+
+    @Override
+    public Set<String> findProcessedInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
+            String collectionInstrumentId,
+            LocalDateTime sinceDate,
+            LocalDateTime endDate
+    ) {
+        return new HashSet<>(
+                repository.findProcessedInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
+                        collectionInstrumentId,
+                        sinceDate,
+                        endDate
+                )
+        );
+    }
+
+    @Override
+    public void resetProcessDates(String collectionInstrumentId, Set<String> interrogationIds) {
+        mongoTemplate.updateMulti(
+                Query.query(
+                        Criteria.where("collectionInstrumentId").is(collectionInstrumentId)
+                                .and("interrogationId").in(interrogationIds)
+                ),
+                new Update().unset("processDate"),
+                Constants.MONGODB_RAW_RESPONSES_COLLECTION_NAME
+        );
     }
 
     @Override

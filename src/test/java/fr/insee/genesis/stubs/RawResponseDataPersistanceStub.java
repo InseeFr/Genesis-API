@@ -12,6 +12,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -44,10 +45,6 @@ public class RawResponseDataPersistanceStub implements RawResponsePersistencePor
         return;
     }
 
-    @Override
-    public void resetProcessDatesByCollectionInstrumentId(String collectionInstrumentId) {
-
-    }
 
     @Override
     public List<String> getUnprocessedCollectionIds() {
@@ -94,6 +91,21 @@ public class RawResponseDataPersistanceStub implements RawResponsePersistencePor
     @Override
     public Page<RawResponseModel> findByCollectionInstrumentId(String collectionInstrumentId, Pageable pageable) {
         return null;
+    }
+
+    @Override
+    public Set<String> findProcessedInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId) {
+        return Set.of();
+    }
+
+    @Override
+    public Set<String> findProcessedInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(String collectionInstrumentId, LocalDateTime sinceDate, LocalDateTime endDate) {
+        return Set.of();
+    }
+
+    @Override
+    public void resetProcessDates(String collectionInstrumentId, Set<String> interrogationIds) {
+
     }
 
     @Override
