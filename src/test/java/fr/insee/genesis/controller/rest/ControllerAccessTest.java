@@ -22,7 +22,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration;
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
@@ -60,11 +59,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class ControllerAccessTest {
 
     // Constants for user roles
-    // JWT claim properties loaded from application properties
-    @Value("${fr.insee.genesis.security.token.oidc-claim-role}")
-    private String claimRoleDotRoles;
-    @Value("${fr.insee.genesis.security.token.oidc-claim-username}")
-    private String claimName;
     @Autowired
     private MockMvc mockMvc; // Simulates HTTP requests to the REST endpoints
 

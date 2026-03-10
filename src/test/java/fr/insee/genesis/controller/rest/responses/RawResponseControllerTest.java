@@ -132,10 +132,6 @@ class RawResponseControllerTest {
         }
     }
 
-    // -------------------------------------------------------------------------
-    // POST /raw-responses
-    // -------------------------------------------------------------------------
-
     @Nested
     @DisplayName("POST /raw-responses tests")
     class SaveRawResponsesFromDtoTests {
@@ -172,10 +168,6 @@ class RawResponseControllerTest {
                     """;
         }
     }
-
-    // -------------------------------------------------------------------------
-    // POST /raw-responses/process
-    // -------------------------------------------------------------------------
 
     @Nested
     @DisplayName("POST /raw-responses/process tests")
@@ -236,10 +228,6 @@ class RawResponseControllerTest {
         }
     }
 
-    // -------------------------------------------------------------------------
-    // POST /raw-responses/{collectionInstrumentId}/process
-    // -------------------------------------------------------------------------
-
     @Nested
     @DisplayName("POST /raw-responses/{collectionInstrumentId}/process tests")
     class ProcessRawResponsesByCollectionInstrumentIdTests {
@@ -273,10 +261,6 @@ class RawResponseControllerTest {
         }
     }
 
-    // -------------------------------------------------------------------------
-    // GET /raw-responses/unprocessed/collection-instrument-ids
-    // -------------------------------------------------------------------------
-
     @Nested
     @DisplayName("GET /raw-responses/unprocessed/collection-instrument-ids tests")
     class GetUnprocessedCollectionInstrumentTests {
@@ -295,10 +279,6 @@ class RawResponseControllerTest {
         }
     }
 
-    // -------------------------------------------------------------------------
-    // GET /responses/raw/lunatic-json/get/unprocessed
-    // -------------------------------------------------------------------------
-
     @Nested
     @DisplayName("GET /responses/raw/lunatic-json/get/unprocessed tests")
     class GetUnprocessedJsonRawDataTests {
@@ -314,10 +294,6 @@ class RawResponseControllerTest {
                     .andExpect(status().isOk());
         }
     }
-
-    // -------------------------------------------------------------------------
-    // GET /responses/raw/lunatic-json/get/unprocessed/questionnaireIds
-    // -------------------------------------------------------------------------
 
     @Nested
     @DisplayName("GET /responses/raw/lunatic-json/get/unprocessed/questionnaireIds tests")
@@ -336,10 +312,6 @@ class RawResponseControllerTest {
                     .andExpect(content().string(containsString("QUEST01")));
         }
     }
-
-    // -------------------------------------------------------------------------
-    // POST /responses/raw/lunatic-json/process (deprecated)
-    // -------------------------------------------------------------------------
 
     @Nested
     @DisplayName("POST /responses/raw/lunatic-json/process tests (deprecated)")
@@ -575,10 +547,6 @@ class RawResponseControllerTest {
                     .andExpect(status().isNotFound());
         }
     }
-
-    // -------------------------------------------------------------------------
-    // GET /responses/raw/lunatic-json/processed/ids
-    // -------------------------------------------------------------------------
 
     @Nested
     @DisplayName("GET /responses/raw/lunatic-json/processed/ids tests")
