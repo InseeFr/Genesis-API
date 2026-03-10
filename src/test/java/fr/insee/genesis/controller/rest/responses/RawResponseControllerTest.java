@@ -107,6 +107,11 @@ class RawResponseControllerTest {
         }
 
         @Override
+        public DataProcessResult reprocessRawResponses(String collectionInstrumentId, LocalDateTime sinceDate, LocalDateTime endDate) throws GenesisException {
+            return null;
+        }
+
+        @Override
         public List<SurveyUnitModel> convertRawResponse(List<RawResponseModel> rawResponsModels, VariablesMap variablesMap) {
             return List.of();
         }
