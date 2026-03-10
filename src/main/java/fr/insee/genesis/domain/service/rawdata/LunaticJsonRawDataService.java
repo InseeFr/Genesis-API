@@ -223,15 +223,6 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
         return new DataProcessResult(dataCount, formattedDataCount, errors);
     }
 
-    @Override
-    public DataProcessResult reprocessRawData(String questionnaireId) throws GenesisException {
-        log.info("Reprocessing raw responses for questionnaireId={}", questionnaireId);
-
-        surveyUnitService.deleteByCollectionInstrumentId(questionnaireId);
-        lunaticJsonRawDataPersistencePort.resetProcessDatesByQuestionnaireId(questionnaireId);
-
-        return processRawData(questionnaireId);
-    }
 
     private VariablesMap getVariablesMap(String questionnaireId, Mode mode, List<GenesisError> errors) throws GenesisException {
         VariablesMap variablesMap = metadataService.loadAndSaveIfNotExists(questionnaireId, questionnaireId, mode, fileUtils,

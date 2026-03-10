@@ -497,6 +497,14 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     }
 
     @Override
+    public Long deleteByCollectionInstrumentIdAndInterrogationIds(
+            String collectionInstrumentId,
+            Set<String> interrogationIds
+    ) {
+        return surveyUnitPersistencePort.deleteByCollectionInstrumentIdAndInterrogationIds(collectionInstrumentId, interrogationIds);
+    }
+
+    @Override
     public long countResponses() {
         return surveyUnitPersistencePort.count();
     }

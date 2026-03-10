@@ -150,7 +150,7 @@ public class RawResponseController {
         }
     }
 
-    @Operation(summary = "Reprocess raw data for all data of an collection instrument")
+    @Operation(summary = "Reprocess raw data for processed data of a collection instrument")
     @PostMapping(path = "/raw-responses/{collectionInstrumentId}/reprocess")
     @PreAuthorize("hasRole('SCHEDULER')")
     public ResponseEntity<String> reProcessRawResponsesByCollectionInstrumentId(
@@ -158,15 +158,35 @@ public class RawResponseController {
                     description = "Id of the collection instrument (old questionnaireId)",
                     example = "ENQTEST2025X00"
             )
-            @PathVariable("collectionInstrumentId") String collectionInstrumentId
+            @PathVariable("collectionInstrumentId") String collectionInstrumentId,
+            @RequestParam(value = "sinceDate", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime sinceDate,
+            @RequestParam(value = "endDate", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate
     ) {
-        log.info("Try to reprocess raw responses for collectionInstrumentId {}", collectionInstrumentId);
+        log.info(
+                "Try to reprocess raw responses for collectionInstrumentId {}, sinceDate={}, endDate={}",
+                collectionInstrumentId,
+                sinceDate,
+                endDate
+        );
+
         try {
-            DataProcessResult result = rawResponseApiPort.reprocessRawResponses(collectionInstrumentId);
-            return result.formattedDataCount() == 0 ?
-                    ResponseEntity.ok(NB_DOCS.formatted(result.dataCount(), collectionInstrumentId))
-                    : ResponseEntity.ok(NB_DOCS_WITH_FORMATTED
-                    .formatted(result.dataCount(), result.formattedDataCount(), collectionInstrumentId));
+            DataProcessResult result = rawResponseApiPort.reprocessRawResponses(
+                    collectionInstrumentId,
+                    sinceDate,
+                    endDate
+            );
+
+            return result.formattedDataCount() == 0
+                    ? ResponseEntity.ok(NB_DOCS.formatted(result.dataCount(), collectionInstrumentId))
+                    : ResponseEntity.ok(
+                    NB_DOCS_WITH_FORMATTED.formatted(
+                            result.dataCount(),
+                            result.formattedDataCount(),
+                            collectionInstrumentId
+                    )
+            );
         } catch (GenesisException e) {
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
         }
@@ -242,24 +262,6 @@ public class RawResponseController {
         log.info("Try to process raw JSON datas for questionnaire {}",questionnaireId);
         try {
             DataProcessResult result = lunaticJsonRawDataApiPort.processRawData(questionnaireId);
-            return result.formattedDataCount() == 0 ?
-                    ResponseEntity.ok("%d document(s) processed".formatted(result.dataCount()))
-                    : ResponseEntity.ok("%d document(s) processed, including %d FORMATTED after data verification"
-                    .formatted(result.dataCount(), result.formattedDataCount()));
-        } catch (GenesisException e) {
-            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
-        }
-    }
-
-    @Operation(summary = "Reprocess raw data of a questionnaire (old raw model)")
-    @PostMapping(path = "/responses/raw/lunatic-json/{questionnaireId}/reprocess")
-    @PreAuthorize("hasRole('SCHEDULER')")
-    public ResponseEntity<String> reprocessJsonRawData(
-            @PathVariable String questionnaireId
-    ) {
-        log.info("Try to reprocess raw JSON datas for questionnaire {}",questionnaireId);
-        try {
-            DataProcessResult result = lunaticJsonRawDataApiPort.reprocessRawData(questionnaireId);
             return result.formattedDataCount() == 0 ?
                     ResponseEntity.ok("%d document(s) processed".formatted(result.dataCount()))
                     : ResponseEntity.ok("%d document(s) processed, including %d FORMATTED after data verification"
