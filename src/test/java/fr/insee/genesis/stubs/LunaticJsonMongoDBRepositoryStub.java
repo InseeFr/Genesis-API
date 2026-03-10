@@ -196,6 +196,16 @@ public class LunaticJsonMongoDBRepositoryStub implements LunaticJsonMongoDBRepos
         return DEFAULT_INTERROGATION_ID.equals(interrogationId);
     }
 
+    @Override
+    public List<String> findProcessedInterrogationIdsByQuestionnaireIdAndRecordDateBetween(String questionnaireId, LocalDateTime sinceDate, LocalDateTime endDate) {
+        return List.of();
+    }
+
+    @Override
+    public List<String> findProcessedInterrogationIdsByQuestionnaireId(String questionnaireId) {
+        return List.of();
+    }
+
     // Implémentations vides requises par MongoRepository
     @Override public <S extends LunaticJsonRawDataDocument> S save(S entity) { return null; }
     @Override public Optional<LunaticJsonRawDataDocument> findById(String s) { return Optional.empty(); }
