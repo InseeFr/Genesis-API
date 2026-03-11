@@ -14,7 +14,7 @@ import java.util.Set;
 public interface LunaticJsonRawDataPersistencePort {
 
     void save(LunaticJsonRawDataModel rawData);
-    List<LunaticJsonRawDataModel> findRawData(String campaignName, Mode mode, List<String> interrogationIdList);
+    List<LunaticJsonRawDataModel> findRawData(String questionnaireId, Mode mode, List<String> interrogationIdList);
     List<LunaticJsonRawDataModel> findRawDataByQuestionnaireId(String questionnaireId, Mode mode, List<String> interrogationIdList);
     Page<LunaticJsonRawDataModel> findRawDataByQuestionnaireId(String questionnaireId, Pageable pageable);
     List<LunaticJsonRawDataModel> findRawDataByInterrogationID(String interrogationId);
@@ -35,9 +35,9 @@ public interface LunaticJsonRawDataPersistencePort {
     boolean existsByInterrogationId(String interrogationId);
     long countDistinctInterrogationIdsByQuestionnaireId(String questionnaireId);
 
-    Set<String> findProcessedInterrogationIdsByCollectionInstrumentId(String questionnaireId);
+    Set<String> findProcessedInterrogationIdsByQuestionnaireId(String questionnaireId);
 
-    Set<String> findProcessedInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
+    Set<String> findProcessedInterrogationIdsByQuestionnaireIdAndRecordDateBetween(
             String questionnaireId,
             LocalDateTime sinceDate,
             LocalDateTime endDate

@@ -45,7 +45,7 @@ public class QuestionnaireMetadataService implements QuestionnaireMetadataApiPor
     }
 
     @Override
-    public MetadataModel loadAndSaveIfNotExists(String campaignName, String collectionInstrumentId, Mode mode, FileUtils fileUtils,
+    public MetadataModel loadAndSaveIfNotExists(String questionnaireId, String collectionInstrumentId, Mode mode, FileUtils fileUtils,
                                                 List<GenesisError> errors) throws GenesisException {
         List<QuestionnaireMetadataModel> questionnaireMetadataModels =
                 questionnaireMetadataPersistencePort.find(collectionInstrumentId.toUpperCase(), mode);

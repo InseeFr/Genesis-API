@@ -60,8 +60,8 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
     }
 
     @Override
-    public List<LunaticJsonRawDataModel> findRawData(String campaignName, Mode mode, List<String> interrogationIdList) {
-        List<LunaticJsonRawDataDocument> rawDataDocs = repository.findByCampaignModeAndInterrogations(campaignName, mode, interrogationIdList);
+    public List<LunaticJsonRawDataModel> findRawData(String questionnaireId, Mode mode, List<String> interrogationIdList) {
+        List<LunaticJsonRawDataDocument> rawDataDocs = repository.findByQuestionnaireModeAndInterrogations(questionnaireId, mode, interrogationIdList);
         return LunaticJsonRawDataDocumentMapper.INSTANCE.listDocumentToListModel(rawDataDocs);
     }
 
@@ -161,12 +161,12 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
     }
 
     @Override
-    public Set<String> findProcessedInterrogationIdsByCollectionInstrumentId(String questionnaireId) {
+    public Set<String> findProcessedInterrogationIdsByQuestionnaireId(String questionnaireId) {
         return new HashSet<>(repository.findProcessedInterrogationIdsByQuestionnaireId(questionnaireId));
     }
 
     @Override
-    public Set<String> findProcessedInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
+    public Set<String> findProcessedInterrogationIdsByQuestionnaireIdAndRecordDateBetween(
             String questionnaireId,
             LocalDateTime sinceDate,
             LocalDateTime endDate
