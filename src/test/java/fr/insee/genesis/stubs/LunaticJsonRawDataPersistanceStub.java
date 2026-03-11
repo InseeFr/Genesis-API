@@ -253,12 +253,12 @@ public class LunaticJsonRawDataPersistanceStub implements LunaticJsonRawDataPers
     }
 
     @Override
-    public Set<String> findProcessedInterrogationIdsByCollectionInstrumentId(String questionnaireId) {
+    public Set<String> findProcessedInterrogationIdsByQuestionnaireId(String questionnaireId) {
         return Set.of();
     }
 
     @Override
-    public Set<String> findProcessedInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(String questionnaireId, LocalDateTime sinceDate, LocalDateTime endDate) {
+    public Set<String> findProcessedInterrogationIdsByQuestionnaireIdAndRecordDateBetween(String questionnaireId, LocalDateTime sinceDate, LocalDateTime endDate) {
         return Set.of();
     }
 }
