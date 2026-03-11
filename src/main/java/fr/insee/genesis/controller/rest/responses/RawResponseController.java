@@ -288,8 +288,14 @@ public class RawResponseController {
             )
             @PathVariable("questionnaireId") String questionnaireId,
             @RequestParam(value = "sinceDate", required = false)
+            @Parameter(description = "Extract since",
+                    schema = @Schema(type = "string", format = "date-time", example = "2026-01-01T00:00:00")
+            )
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime sinceDate,
             @RequestParam(value = "endDate", required = false)
+            @Parameter(description = "Extract until",
+                    schema = @Schema(type = "string", format = "date-time", example = "2026-02-02T00:00:00")
+            )
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate
     ) {
         log.info(
