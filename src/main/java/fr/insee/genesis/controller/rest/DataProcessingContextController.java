@@ -3,6 +3,7 @@ package fr.insee.genesis.controller.rest;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.dto.ScheduleDto;
 import fr.insee.genesis.controller.dto.ScheduleRequestDto;
+import fr.insee.genesis.controller.dto.rawdata.ScheduleV2Dto;
 import fr.insee.genesis.domain.model.context.schedule.ServiceToCall;
 import fr.insee.genesis.domain.model.context.schedule.TrustParameters;
 import fr.insee.genesis.domain.ports.api.DataProcessingContextApiPort;
@@ -252,6 +253,17 @@ public class DataProcessingContextController {
         return ResponseEntity.ok(surveyScheduleDocumentModels);
     }
 
+    @Operation(summary = "Fetch all schedules V2")
+    @GetMapping(path = "/contexts/schedules/v2")
+    @PreAuthorize("hasAnyRole('SCHEDULER','READER')")
+    public ResponseEntity<Object> getAllSchedulesV3() {
+        log.debug("Got GET all schedules V2 request");
+
+        List<ScheduleV2Dto> schedules = dataProcessingContextApiPort.getAllSchedulesV2();
+
+        log.info("Returning {} V2 schedule documents...", schedules.size());
+        return ResponseEntity.ok(schedules);
+    }
 
     @Deprecated(forRemoval = true)
     @Operation(summary = "Set last execution date of a partition with new date or nothing")
@@ -314,6 +326,21 @@ public class DataProcessingContextController {
             return new ResponseEntity<>(e.getMessage(), HttpStatusCode.valueOf(e.getStatus()));
         }
         log.info("Schedule deleted for survey {}", collectionInstrumentId);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Delete V2 Kraftwerk execution schedule of a collection instrument id")
+    @DeleteMapping(path = "/contexts/{collectionInstrumentId}/schedules/v2")
+    @PreAuthorize("hasRole('USER_KRAFTWERK')")
+    public ResponseEntity<Object> deleteSchedulesV2ByCollectionInstrumentId(
+            @PathVariable("collectionInstrumentId") String collectionInstrumentId
+    ){
+        try {
+            dataProcessingContextApiPort.deleteSchedulesV2ByCollectionInstrumentId(collectionInstrumentId);
+        } catch (GenesisException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatusCode.valueOf(e.getStatus()));
+        }
+        log.info("V2 schedule deleted for collection instrument {}", collectionInstrumentId);
         return ResponseEntity.ok().build();
     }
 

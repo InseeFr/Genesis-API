@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.dto.ScheduleDto;
+import fr.insee.genesis.controller.dto.rawdata.ScheduleV2Dto;
 import fr.insee.genesis.controller.utils.ExportType;
 import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
 import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionSchedule;
@@ -208,6 +209,17 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
     }
 
     @Override
+    public void deleteSchedulesV2ByCollectionInstrumentId(String collectionInstrumentId) throws GenesisException {
+                DataProcessingContextModel dataProcessingContextModel =
+                dataProcessingContextPersistancePort.findByCollectionInstrumentId(collectionInstrumentId);
+        if (dataProcessingContextModel == null) {
+            throw new GenesisException(404, NOT_FOUND_MESSAGE);
+        }
+        dataProcessingContextModel.setKraftwerkExecutionScheduleV2(null);
+        dataProcessingContextPersistancePort.save(DataProcessingContextMapper.INSTANCE.modelToDocument(dataProcessingContextModel));
+    }
+
+    @Override
     public void deleteSchedulesByCollectionInstrumentId(String collectionInstrumentId) throws GenesisException {
         DataProcessingContextModel dataProcessingContextModel =
                         dataProcessingContextPersistancePort.findByCollectionInstrumentId(collectionInstrumentId);
@@ -230,6 +242,22 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
         );
 
         return scheduleDtos;
+    }
+
+    @Override
+    public List<ScheduleV2Dto> getAllSchedulesV2() {
+        List<ScheduleV2Dto> scheduleV2Dtos = new ArrayList<>();
+
+        List<DataProcessingContextModel> dataProcessingContextModels =
+                DataProcessingContextMapper.INSTANCE.listDocumentToListModel(
+                        dataProcessingContextPersistancePort.findAll()
+                );
+
+        dataProcessingContextModels.forEach(
+                model -> scheduleV2Dtos.add(model.toScheduleV2Dto())
+        );
+
+        return scheduleV2Dtos;
     }
 
     @Override
