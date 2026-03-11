@@ -48,6 +48,7 @@ public class ScheduleRequestDto {
     @Schema(description = "Encryption vault path")
     private String encryptionVaultPath = "";
 
+    @Schema(defaultValue = "false")
     private boolean useSignature = false;
 
     @Schema(description = "Add variable states to export", example = "false", defaultValue = "false")
