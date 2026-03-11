@@ -533,6 +533,7 @@ class DataProcessingContextControllerTest {
                 null,
                 null,
                 new ArrayList<>(),
+                null,
                 false
         );
         KraftwerkExecutionSchedule kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
@@ -581,6 +582,7 @@ class DataProcessingContextControllerTest {
                 "TESTSURVEYADDED_CI",
                 null,
                 new ArrayList<>(),
+                null,
                 false
         );
         KraftwerkExecutionSchedule kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
@@ -629,6 +631,7 @@ class DataProcessingContextControllerTest {
                 "TESTSURVEYADDED",
                 null,
                 new ArrayList<>(),
+                null,
                 false
         );
         KraftwerkExecutionSchedule kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
@@ -678,6 +681,7 @@ class DataProcessingContextControllerTest {
                 "TESTSURVEYADDED_CI",
                 null,
                 new ArrayList<>(),
+                null,
                 false
         );
         KraftwerkExecutionSchedule kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
@@ -727,6 +731,7 @@ class DataProcessingContextControllerTest {
                 "TESTSURVEYADDED2",
                 null,
                 new ArrayList<>(),
+                null,
                 false
         );
         KraftwerkExecutionSchedule kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
@@ -786,6 +791,7 @@ class DataProcessingContextControllerTest {
                 "TESTSURVEYADDED2_CI",
                 null,
                 new ArrayList<>(),
+                null,
                 false
         );
         KraftwerkExecutionSchedule kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
