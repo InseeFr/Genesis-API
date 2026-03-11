@@ -98,8 +98,8 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     }
 
     @Override
-    public List<LunaticJsonRawDataModel> getRawData(String campaignName, Mode mode, List<String> interrogationIdList) {
-        return lunaticJsonRawDataPersistencePort.findRawData(campaignName, mode, interrogationIdList);
+    public List<LunaticJsonRawDataModel> getRawData(String questionnaireId, Mode mode, List<String> interrogationIdList) {
+        return lunaticJsonRawDataPersistencePort.findRawData(questionnaireId, mode, interrogationIdList);
     }
 
     @Override
@@ -114,15 +114,15 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
 
     @Override
     @Deprecated(since = "1.13.0")
-    public DataProcessResult processRawData(String campaignName, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException {
+    public DataProcessResult processRawData(String questionnaireId, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException {
         int dataCount=0;
         int formattedDataCount=0;
         DataProcessingContextModel dataProcessingContext =
-                dataProcessingContextService.getContextByCollectionInstrumentId(campaignName);
-        List<Mode> modesList = controllerUtils.getModesList(campaignName, null);
+                dataProcessingContextService.getContextByCollectionInstrumentId(questionnaireId);
+        List<Mode> modesList = controllerUtils.getModesList(questionnaireId, null);
         for (Mode mode : modesList) {
             //Load and save metadata into database, throw exception if none
-            VariablesMap variablesMap = getVariablesMap(campaignName, mode, errors);
+            VariablesMap variablesMap = getVariablesMap(questionnaireId, mode, errors);
             int totalBatchs = Math.ceilDiv(interrogationIdList.size() , config.getRawDataProcessingBatchSize());
             int batchNumber = 1;
             List<String> interrogationIdListForMode = new ArrayList<>(interrogationIdList);
@@ -131,7 +131,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
                 int maxIndex = Math.min(interrogationIdListForMode.size(), config.getRawDataProcessingBatchSize());
                 List<String> interrogationIdToProcess = interrogationIdListForMode.subList(0, maxIndex);
 
-                List<LunaticJsonRawDataModel> rawData = getRawData(campaignName, mode, interrogationIdToProcess);
+                List<LunaticJsonRawDataModel> rawData = getRawData(questionnaireId, mode, interrogationIdToProcess);
 
                 List<SurveyUnitModel> surveyUnitModels = convertRawData(
                         rawData,
@@ -298,12 +298,12 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
 
         if (sinceDate == null) {
             interrogationIds =
-                    lunaticJsonRawDataPersistencePort.findProcessedInterrogationIdsByCollectionInstrumentId(questionnaireId);
+                    lunaticJsonRawDataPersistencePort.findProcessedInterrogationIdsByQuestionnaireId(questionnaireId);
         } else {
             LocalDateTime effectiveEndDate = endDate != null ? endDate : LocalDateTime.now();
 
             interrogationIds =
-                    lunaticJsonRawDataPersistencePort.findProcessedInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
+                    lunaticJsonRawDataPersistencePort.findProcessedInterrogationIdsByQuestionnaireIdAndRecordDateBetween(
                             questionnaireId,
                             sinceDate,
                             effectiveEndDate
