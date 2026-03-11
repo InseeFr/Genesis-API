@@ -2,6 +2,7 @@ package fr.insee.genesis.controller.rest;
 
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.dto.ScheduleDto;
+import fr.insee.genesis.controller.dto.ScheduleRequestDto;
 import fr.insee.genesis.domain.model.context.schedule.ServiceToCall;
 import fr.insee.genesis.domain.model.context.schedule.TrustParameters;
 import fr.insee.genesis.domain.ports.api.DataProcessingContextApiPort;
@@ -186,6 +187,42 @@ public class DataProcessingContextController {
         }catch (GenesisException e){
             return new ResponseEntity<>(e.getMessage(), HttpStatusCode.valueOf(e.getStatus()));
         }
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Schedule a Kraftwerk execution with extended parameters")
+    @PutMapping(path = "/contexts/schedules/v2")
+    @PreAuthorize("hasRole('USER_KRAFTWERK')")
+    public ResponseEntity<Object> saveScheduleV2(
+            @RequestBody ScheduleRequestDto request
+    ) {
+        try {
+            TrustParameters trustParameters = null;
+            if (request.isUseEncryption()) {
+                trustParameters = new TrustParameters(
+                        fileUtils.getKraftwerkOutFolder(request.getCollectionInstrumentId()),
+                        "",
+                        request.getEncryptionVaultPath(),
+                        request.isUseSignature()
+                );
+            }
+
+            dataProcessingContextApiPort.saveKraftwerkExecutionScheduleV2(
+                    request.getCollectionInstrumentId(),
+                    request.getExportType(),
+                    request.getFrequency(),
+                    request.getScheduleBeginDate(),
+                    request.getScheduleEndDate(),
+                    request.getMode(),
+                    request.isAddStates(),
+                    request.getDestinationFolder(),
+                    trustParameters
+            );
+
+        } catch (GenesisException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatusCode.valueOf(e.getStatus()));
+        }
+
         return ResponseEntity.ok().build();
     }
 

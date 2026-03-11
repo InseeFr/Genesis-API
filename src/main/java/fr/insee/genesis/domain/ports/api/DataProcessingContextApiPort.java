@@ -1,9 +1,11 @@
 package fr.insee.genesis.domain.ports.api;
 
 import fr.insee.genesis.controller.dto.ScheduleDto;
+import fr.insee.genesis.controller.utils.ExportType;
 import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
 import fr.insee.genesis.domain.model.context.schedule.ServiceToCall;
 import fr.insee.genesis.domain.model.context.schedule.TrustParameters;
+import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.exceptions.GenesisException;
 
 import java.time.LocalDateTime;
@@ -27,6 +29,16 @@ public interface DataProcessingContextApiPort {
                                         LocalDateTime startDate,
                                         LocalDateTime endDate,
                                         TrustParameters trustParameters) throws GenesisException;
+
+    void saveKraftwerkExecutionScheduleV2(String collectionInstrumentId,
+                                          ExportType exportType,
+                                          String frequency,
+                                          LocalDateTime startDate,
+                                          LocalDateTime endDate,
+                                          Mode mode,
+                                          boolean addStates,
+                                          String destinationFolder,
+                                          TrustParameters trustParameters) throws GenesisException;
 
     void updateLastExecutionDate(String surveyName, LocalDateTime newDate) throws GenesisException;
     void updateLastExecutionDateByCollectionInstrumentId(String collectionInstrumentId, LocalDateTime newDate) throws GenesisException;
