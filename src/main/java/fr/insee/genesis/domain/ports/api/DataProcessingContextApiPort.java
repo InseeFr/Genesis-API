@@ -1,6 +1,7 @@
 package fr.insee.genesis.domain.ports.api;
 
 import fr.insee.genesis.controller.dto.ScheduleDto;
+import fr.insee.genesis.controller.dto.rawdata.ScheduleV2Dto;
 import fr.insee.genesis.controller.utils.ExportType;
 import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
 import fr.insee.genesis.domain.model.context.schedule.ServiceToCall;
@@ -44,9 +45,14 @@ public interface DataProcessingContextApiPort {
     void updateLastExecutionDateByCollectionInstrumentId(String collectionInstrumentId, LocalDateTime newDate) throws GenesisException;
 
     void deleteSchedules(String surveyName) throws GenesisException;
+
+    void deleteSchedulesV2ByCollectionInstrumentId(String collectionInstrumentId) throws GenesisException;
+
     void deleteSchedulesByCollectionInstrumentId(String collectionInstrumentId) throws GenesisException;
 
     List<ScheduleDto> getAllSchedules();
+
+    List<ScheduleV2Dto> getAllSchedulesV2();
 
     void deleteExpiredSchedules(String logFolder) throws GenesisException;
 

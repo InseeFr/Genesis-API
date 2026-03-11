@@ -1,6 +1,7 @@
 package fr.insee.genesis.domain.model.context;
 
 import fr.insee.genesis.controller.dto.ScheduleDto;
+import fr.insee.genesis.controller.dto.rawdata.ScheduleV2Dto;
 import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionSchedule;
 import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionScheduleV2;
 import lombok.AllArgsConstructor;
@@ -40,6 +41,15 @@ public class DataProcessingContextModel {
                 .collectionInstrumentId(collectionInstrumentId)
                 .lastExecution(lastExecution)
                 .kraftwerkExecutionScheduleList(kraftwerkExecutionScheduleList)
+                .build();
+    }
+
+    public ScheduleV2Dto toScheduleV2Dto() {
+        return ScheduleV2Dto.builder()
+                .surveyName(partitionId)
+                .collectionInstrumentId(collectionInstrumentId)
+                .lastExecution(lastExecution)
+                .kraftwerkExecutionScheduleV2(kraftwerkExecutionScheduleV2)
                 .build();
     }
 }
