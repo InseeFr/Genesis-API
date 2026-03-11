@@ -78,6 +78,11 @@ public interface SurveyUnitApiPort {
             Set<String> interrogationIds
     );
 
+    Long deleteByQuestionnaireIdAndInterrogationIds(
+            String questionnaireId,
+            Set<String> interrogationIds
+    );
+
     long countResponses();
 
     Set<String> findQuestionnaireIdsByCampaignId(String campaignId);
