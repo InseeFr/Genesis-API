@@ -4,10 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.dto.ScheduleDto;
+import fr.insee.genesis.controller.utils.ExportType;
 import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
 import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionSchedule;
+import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionScheduleV2;
 import fr.insee.genesis.domain.model.context.schedule.ServiceToCall;
 import fr.insee.genesis.domain.model.context.schedule.TrustParameters;
+import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.ports.api.DataProcessingContextApiPort;
 import fr.insee.genesis.domain.ports.spi.DataProcessingContextPersistancePort;
@@ -125,6 +128,46 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
                 )
         );
         dataProcessingContextPersistancePort.save(DataProcessingContextMapper.INSTANCE.modelToDocument(dataProcessingContextModel));
+    }
+
+    @Override
+    public void saveKraftwerkExecutionScheduleV2(String collectionInstrumentId,
+                                                 ExportType exportType,
+                                                 String frequency,
+                                                 LocalDateTime startDate,
+                                                 LocalDateTime endDate,
+                                                 Mode mode,
+                                                 boolean addStates,
+                                                 String destinationFolder,
+                                                 TrustParameters trustParameters) throws GenesisException {
+
+        DataProcessingContextModel dataProcessingContextModel =
+                dataProcessingContextPersistancePort.findByCollectionInstrumentId(collectionInstrumentId);
+
+        if (dataProcessingContextModel == null) {
+            dataProcessingContextModel = DataProcessingContextModel.builder()
+                    .collectionInstrumentId(collectionInstrumentId)
+                    .withReview(false)
+                    .kraftwerkExecutionScheduleList(new ArrayList<>())
+                    .build();
+        }
+
+        dataProcessingContextModel.setKraftwerkExecutionScheduleV2(
+                new KraftwerkExecutionScheduleV2(
+                        frequency,
+                        exportType,
+                        startDate,
+                        endDate,
+                        mode,
+                        addStates,
+                        destinationFolder,
+                        trustParameters
+                )
+        );
+
+        dataProcessingContextPersistancePort.save(
+                DataProcessingContextMapper.INSTANCE.modelToDocument(dataProcessingContextModel)
+        );
     }
 
     @Deprecated(forRemoval = true)

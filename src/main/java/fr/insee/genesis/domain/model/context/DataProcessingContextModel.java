@@ -2,6 +2,7 @@ package fr.insee.genesis.domain.model.context;
 
 import fr.insee.genesis.controller.dto.ScheduleDto;
 import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionSchedule;
+import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionScheduleV2;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -28,6 +29,8 @@ public class DataProcessingContextModel {
     private LocalDateTime lastExecution;
 
     List<KraftwerkExecutionSchedule> kraftwerkExecutionScheduleList;
+
+    private KraftwerkExecutionScheduleV2 kraftwerkExecutionScheduleV2;
 
     boolean withReview;
 
