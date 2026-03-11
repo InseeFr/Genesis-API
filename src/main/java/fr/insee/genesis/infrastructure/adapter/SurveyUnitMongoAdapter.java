@@ -118,6 +118,17 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
         );
     }
 
+    @Override
+    public Long deleteByQuestionnaireIdAndInterrogationIds(
+            String questionnaireId,
+            Set<String> interrogationIds
+    ) {
+        return mongoRepository.deleteByQuestionnaireIdAndInterrogationIdIn(
+                questionnaireId,
+                interrogationIds
+        );
+    }
+
 	@Override
 	public long count() {
 		return mongoRepository.count();
