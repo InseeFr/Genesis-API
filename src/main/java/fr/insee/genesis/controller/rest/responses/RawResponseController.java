@@ -14,6 +14,7 @@ import fr.insee.modelefiliere.RawResponseDto;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -160,8 +161,14 @@ public class RawResponseController {
             )
             @PathVariable("collectionInstrumentId") String collectionInstrumentId,
             @RequestParam(value = "sinceDate", required = false)
+            @Parameter(description = "Extract since",
+                    schema = @Schema(type = "string", format = "date-time", example = "2026-01-01T00:00:00")
+            )
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime sinceDate,
             @RequestParam(value = "endDate", required = false)
+            @Parameter(description = "Extract until",
+                    schema = @Schema(type = "string", format = "date-time", example = "2026-02-02T00:00:00")
+            )
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate
     ) {
         log.info(
@@ -266,6 +273,48 @@ public class RawResponseController {
                     ResponseEntity.ok("%d document(s) processed".formatted(result.dataCount()))
                     : ResponseEntity.ok("%d document(s) processed, including %d FORMATTED after data verification"
                     .formatted(result.dataCount(), result.formattedDataCount()));
+        } catch (GenesisException e) {
+            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
+        }
+    }
+
+    @Operation(summary = "Reprocess raw data of a questionnaire (old raw model)")
+    @PostMapping(path = "/responses/raw/lunatic-json/{questionnaireId}/reprocess")
+    @PreAuthorize("hasRole('SCHEDULER')")
+    public ResponseEntity<String> reProcessJsonRawDataByQuestionnaireId(
+            @Parameter(
+                    description = "Id of the questionnaireId",
+                    example = "ENQTEST2025X00"
+            )
+            @PathVariable("questionnaireId") String questionnaireId,
+            @RequestParam(value = "sinceDate", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime sinceDate,
+            @RequestParam(value = "endDate", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate
+    ) {
+        log.info(
+                "Try to reprocess raw responses for questionnaireId {}, sinceDate={}, endDate={}",
+                questionnaireId,
+                sinceDate,
+                endDate
+        );
+
+        try {
+            DataProcessResult result = lunaticJsonRawDataApiPort.reprocessRawData(
+                    questionnaireId,
+                    sinceDate,
+                    endDate
+            );
+
+            return result.formattedDataCount() == 0
+                    ? ResponseEntity.ok(NB_DOCS.formatted(result.dataCount(), questionnaireId))
+                    : ResponseEntity.ok(
+                    NB_DOCS_WITH_FORMATTED.formatted(
+                            result.dataCount(),
+                            result.formattedDataCount(),
+                            questionnaireId
+                    )
+            );
         } catch (GenesisException e) {
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
         }

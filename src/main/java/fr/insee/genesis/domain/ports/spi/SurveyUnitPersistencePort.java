@@ -57,6 +57,11 @@ public interface SurveyUnitPersistencePort {
             Set<String> interrogationIds
     );
 
+    Long deleteByQuestionnaireIdAndInterrogationIds(
+            String questionnaireId,
+            Set<String> interrogationIds
+    );
+
     long count();
 
     Set<String> findQuestionnaireIdsByCampaignId(String campaignId);
