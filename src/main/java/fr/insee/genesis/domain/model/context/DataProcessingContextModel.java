@@ -45,8 +45,11 @@ public class DataProcessingContextModel {
     }
 
     public ScheduleV2Dto toScheduleV2Dto() {
+        String resolvedCollectionInstrumentId =
+                collectionInstrumentId != null ? collectionInstrumentId : partitionId;
+
         return ScheduleV2Dto.builder()
-                .collectionInstrumentId(collectionInstrumentId)
+                .collectionInstrumentId(resolvedCollectionInstrumentId)
                 .lastExecution(lastExecution)
                 .frequency(kraftwerkExecutionScheduleV2 != null ? kraftwerkExecutionScheduleV2.getFrequency() : null)
                 .exportType(kraftwerkExecutionScheduleV2 != null ? kraftwerkExecutionScheduleV2.getExportType() : null)
