@@ -20,22 +20,22 @@ import java.util.List;
 @AllArgsConstructor
 public class DataProcessingContextModel {
     @Id
-    private ObjectId id; //Used to remove warning
+    private ObjectId id; // Used to remove warning
 
     @Deprecated(forRemoval = true)
     private String partitionId;
 
-    private String collectionInstrumentId; //QuestionnaireId
+    private String collectionInstrumentId; // QuestionnaireId
 
     private LocalDateTime lastExecution;
 
-    List<KraftwerkExecutionSchedule> kraftwerkExecutionScheduleList;
+    private List<KraftwerkExecutionSchedule> kraftwerkExecutionScheduleList;
 
-    private KraftwerkExecutionScheduleV2 kraftwerkExecutionScheduleV2;
+    private List<KraftwerkExecutionScheduleV2> kraftwerkExecutionScheduleV2List;
 
-    boolean withReview;
+    private boolean withReview;
 
-    public ScheduleDto toScheduleDto(){
+    public ScheduleDto toScheduleDto() {
         return ScheduleDto.builder()
                 .surveyName(partitionId)
                 .collectionInstrumentId(collectionInstrumentId)
@@ -44,30 +44,36 @@ public class DataProcessingContextModel {
                 .build();
     }
 
-    public ScheduleV2Dto toScheduleV2Dto() {
+    public List<ScheduleV2Dto> toScheduleV2Dtos() {
+        if (kraftwerkExecutionScheduleV2List == null || kraftwerkExecutionScheduleV2List.isEmpty()) {
+            return List.of();
+        }
 
-        return ScheduleV2Dto.builder()
-                .collectionInstrumentId(collectionInstrumentId)
-                .lastExecution(lastExecution)
-                .frequency(kraftwerkExecutionScheduleV2 != null ? kraftwerkExecutionScheduleV2.getFrequency() : null)
-                .exportType(kraftwerkExecutionScheduleV2 != null ? kraftwerkExecutionScheduleV2.getExportType() : null)
-                .scheduleBeginDate(kraftwerkExecutionScheduleV2 != null ? kraftwerkExecutionScheduleV2.getScheduleBeginDate() : null)
-                .scheduleEndDate(kraftwerkExecutionScheduleV2 != null ? kraftwerkExecutionScheduleV2.getScheduleEndDate() : null)
-                .mode(kraftwerkExecutionScheduleV2 != null ? kraftwerkExecutionScheduleV2.getMode() : null)
-                .useEncryption(kraftwerkExecutionScheduleV2 != null && kraftwerkExecutionScheduleV2.getTrustParameters() != null)
-                .encryptionVaultPath(
-                        kraftwerkExecutionScheduleV2 != null && kraftwerkExecutionScheduleV2.getTrustParameters() != null
-                                ? kraftwerkExecutionScheduleV2.getTrustParameters().getVaultPath()
-                                : ""
+        return kraftwerkExecutionScheduleV2List.stream()
+                .map(schedule -> ScheduleV2Dto.builder()
+                        .scheduleUuid(schedule.getScheduleUuid())
+                        .collectionInstrumentId(collectionInstrumentId)
+                        .lastExecution(lastExecution)
+                        .frequency(schedule.getFrequency())
+                        .exportType(schedule.getExportType())
+                        .scheduleBeginDate(schedule.getScheduleBeginDate())
+                        .scheduleEndDate(schedule.getScheduleEndDate())
+                        .mode(schedule.getMode())
+                        .useEncryption(schedule.getTrustParameters() != null)
+                        .encryptionVaultPath(
+                                schedule.getTrustParameters() != null
+                                        ? schedule.getTrustParameters().getVaultPath()
+                                        : ""
+                        )
+                        .useSignature(
+                                schedule.getTrustParameters() != null
+                                        && schedule.getTrustParameters().isUseSignature()
+                        )
+                        .addStates(schedule.isAddStates())
+                        .destinationType(schedule.getDestinationType())
+                        .destinationFolder(schedule.getDestinationFolder())
+                        .build()
                 )
-                .useSignature(
-                        kraftwerkExecutionScheduleV2 != null
-                                && kraftwerkExecutionScheduleV2.getTrustParameters() != null
-                                && kraftwerkExecutionScheduleV2.getTrustParameters().isUseSignature()
-                )
-                .addStates(kraftwerkExecutionScheduleV2 != null && kraftwerkExecutionScheduleV2.isAddStates())
-                .destinationType(kraftwerkExecutionScheduleV2 != null ? kraftwerkExecutionScheduleV2.getDestinationType() : null)
-                .destinationFolder(kraftwerkExecutionScheduleV2 != null ? kraftwerkExecutionScheduleV2.getDestinationFolder() : null)
-                .build();
+                .toList();
     }
 }

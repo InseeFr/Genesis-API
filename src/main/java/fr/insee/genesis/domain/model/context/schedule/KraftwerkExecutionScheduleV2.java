@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class KraftwerkExecutionScheduleV2 {
 
+    private String scheduleUuid;
     private String frequency;
     private ExportType exportType;
 

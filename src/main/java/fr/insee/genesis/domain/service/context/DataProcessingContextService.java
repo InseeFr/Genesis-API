@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -133,16 +134,16 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
     }
 
     @Override
-    public void saveKraftwerkExecutionScheduleV2(String collectionInstrumentId,
-                                                 ExportType exportType,
-                                                 String frequency,
-                                                 LocalDateTime startDate,
-                                                 LocalDateTime endDate,
-                                                 Mode mode,
-                                                 DestinationType destinationType,
-                                                 boolean addStates,
-                                                 String destinationFolder,
-                                                 TrustParameters trustParameters) throws GenesisException {
+    public String createKraftwerkExecutionSchedule(String collectionInstrumentId,
+                                                     ExportType exportType,
+                                                     String frequency,
+                                                     LocalDateTime startDate,
+                                                     LocalDateTime endDate,
+                                                     Mode mode,
+                                                     DestinationType destinationType,
+                                                     boolean addStates,
+                                                     String destinationFolder,
+                                                     TrustParameters trustParameters) throws GenesisException {
 
         DataProcessingContextModel dataProcessingContextModel =
                 dataProcessingContextPersistancePort.findByCollectionInstrumentId(collectionInstrumentId);
@@ -151,23 +152,78 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
             dataProcessingContextModel = DataProcessingContextModel.builder()
                     .collectionInstrumentId(collectionInstrumentId)
                     .withReview(false)
-                    .kraftwerkExecutionScheduleList(new ArrayList<>())
+                    .kraftwerkExecutionScheduleV2List(new ArrayList<>())
                     .build();
         }
 
-        dataProcessingContextModel.setKraftwerkExecutionScheduleV2(
-                new KraftwerkExecutionScheduleV2(
-                        frequency,
-                        exportType,
-                        startDate,
-                        endDate,
-                        mode,
-                        destinationType,
-                        addStates,
-                        destinationFolder,
-                        trustParameters
-                )
+        if (dataProcessingContextModel.getKraftwerkExecutionScheduleV2List() == null) {
+            dataProcessingContextModel.setKraftwerkExecutionScheduleV2List(new ArrayList<>());
+        }
+
+        String scheduleUuid = UUID.randomUUID().toString();
+
+        KraftwerkExecutionScheduleV2 newSchedule = new KraftwerkExecutionScheduleV2(
+                scheduleUuid,
+                frequency,
+                exportType,
+                startDate,
+                endDate,
+                mode,
+                destinationType,
+                addStates,
+                destinationFolder,
+                trustParameters
         );
+
+        dataProcessingContextModel.getKraftwerkExecutionScheduleV2List().add(newSchedule);
+
+        dataProcessingContextPersistancePort.save(
+                DataProcessingContextMapper.INSTANCE.modelToDocument(dataProcessingContextModel)
+        );
+
+        return scheduleUuid;
+    }
+
+    @Override
+    public void updateKraftwerkExecutionSchedule(String collectionInstrumentId,
+                                                   String scheduleUuid,
+                                                   ExportType exportType,
+                                                   String frequency,
+                                                   LocalDateTime startDate,
+                                                   LocalDateTime endDate,
+                                                   Mode mode,
+                                                   DestinationType destinationType,
+                                                   boolean addStates,
+                                                   String destinationFolder,
+                                                   TrustParameters trustParameters) throws GenesisException {
+
+        DataProcessingContextModel dataProcessingContextModel =
+                dataProcessingContextPersistancePort.findByCollectionInstrumentId(collectionInstrumentId);
+
+        if (dataProcessingContextModel == null) {
+            throw new GenesisException(404, "Collection instrument not found");
+        }
+
+        if (dataProcessingContextModel.getKraftwerkExecutionScheduleV2List() == null
+                || dataProcessingContextModel.getKraftwerkExecutionScheduleV2List().isEmpty()) {
+            throw new GenesisException(404, "No V2 schedule found for this collection instrument");
+        }
+
+        KraftwerkExecutionScheduleV2 scheduleToUpdate = dataProcessingContextModel.getKraftwerkExecutionScheduleV2List()
+                .stream()
+                .filter(schedule -> scheduleUuid.equals(schedule.getScheduleUuid()))
+                .findFirst()
+                .orElseThrow(() -> new GenesisException(404, "V2 schedule not found"));
+
+        scheduleToUpdate.setFrequency(frequency);
+        scheduleToUpdate.setExportType(exportType);
+        scheduleToUpdate.setScheduleBeginDate(startDate);
+        scheduleToUpdate.setScheduleEndDate(endDate);
+        scheduleToUpdate.setMode(mode);
+        scheduleToUpdate.setDestinationType(destinationType);
+        scheduleToUpdate.setAddStates(addStates);
+        scheduleToUpdate.setDestinationFolder(destinationFolder);
+        scheduleToUpdate.setTrustParameters(trustParameters);
 
         dataProcessingContextPersistancePort.save(
                 DataProcessingContextMapper.INSTANCE.modelToDocument(dataProcessingContextModel)
@@ -212,14 +268,28 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
     }
 
     @Override
-    public void deleteSchedulesV2ByCollectionInstrumentId(String collectionInstrumentId) throws GenesisException {
-                DataProcessingContextModel dataProcessingContextModel =
+    public void deleteScheduleV2(String collectionInstrumentId, String scheduleUuid) throws GenesisException {
+        DataProcessingContextModel dataProcessingContextModel =
                 dataProcessingContextPersistancePort.findByCollectionInstrumentId(collectionInstrumentId);
         if (dataProcessingContextModel == null) {
             throw new GenesisException(404, NOT_FOUND_MESSAGE);
         }
-        dataProcessingContextModel.setKraftwerkExecutionScheduleV2(null);
-        dataProcessingContextPersistancePort.save(DataProcessingContextMapper.INSTANCE.modelToDocument(dataProcessingContextModel));
+
+        if (dataProcessingContextModel.getKraftwerkExecutionScheduleV2List() == null
+                || dataProcessingContextModel.getKraftwerkExecutionScheduleV2List().isEmpty()) {
+            throw new GenesisException(404, "No V2 schedule found for this collection instrument");
+        }
+
+        boolean removed = dataProcessingContextModel.getKraftwerkExecutionScheduleV2List()
+                .removeIf(schedule -> scheduleUuid.equals(schedule.getScheduleUuid()));
+
+        if (!removed) {
+            throw new GenesisException(404, "V2 schedule not found");
+        }
+
+        dataProcessingContextPersistancePort.save(
+                DataProcessingContextMapper.INSTANCE.modelToDocument(dataProcessingContextModel)
+        );
     }
 
     @Override
@@ -255,8 +325,9 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
                 );
 
         return dataProcessingContextModels.stream()
-                .filter(model -> model.getKraftwerkExecutionScheduleV2() != null)
-                .map(DataProcessingContextModel::toScheduleV2Dto)
+                .filter(model -> model.getKraftwerkExecutionScheduleV2List() != null
+                        && !model.getKraftwerkExecutionScheduleV2List().isEmpty())
+                .flatMap(model -> model.toScheduleV2Dtos().stream())
                 .toList();
     }
 

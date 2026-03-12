@@ -100,6 +100,42 @@ public class DataProcessingContextController {
         }
     }
 
+    @Operation(summary = "Create a Kraftwerk execution schedule V2")
+    @PostMapping(path = "/contexts/schedules/v2")
+    @PreAuthorize("hasRole('USER_KRAFTWERK')")
+    public ResponseEntity<Object> createScheduleV2(
+            @Valid @RequestBody ScheduleRequestDto request
+    ) {
+        try {
+            TrustParameters trustParameters = null;
+            if (request.isUseEncryption()) {
+                trustParameters = new TrustParameters(
+                        fileUtils.getKraftwerkOutFolder(request.getCollectionInstrumentId()),
+                        "",
+                        request.getEncryptionVaultPath(),
+                        request.isUseSignature()
+                );
+            }
+
+            String scheduleUuid = dataProcessingContextApiPort.createKraftwerkExecutionSchedule(
+                    request.getCollectionInstrumentId(),
+                    request.getExportType(),
+                    request.getFrequency(),
+                    request.getScheduleBeginDate(),
+                    request.getScheduleEndDate(),
+                    request.getMode(),
+                    request.getDestinationType(),
+                    request.isAddStates(),
+                    request.getDestinationFolder(),
+                    trustParameters
+            );
+
+            return ResponseEntity.ok(scheduleUuid);
+
+        } catch (GenesisException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatusCode.valueOf(e.getStatus()));
+        }
+    }
     @Deprecated(forRemoval = true)
     @Operation(summary = "Schedule a Kraftwerk execution")
     @PutMapping(path = "/context/schedules")
@@ -192,25 +228,28 @@ public class DataProcessingContextController {
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "Schedule a Kraftwerk execution with extended parameters")
-    @PutMapping(path = "/contexts/schedules/v2")
+    @Operation(summary = "Update a Kraftwerk execution schedule V2")
+    @PutMapping(path = "/contexts/{collectionInstrumentId}/schedules/v2/{scheduleUuid}")
     @PreAuthorize("hasRole('USER_KRAFTWERK')")
-    public ResponseEntity<Object> saveScheduleV2(
+    public ResponseEntity<Object> updateScheduleV2(
+            @PathVariable("collectionInstrumentId") String collectionInstrumentId,
+            @PathVariable("scheduleUuid") String scheduleUuid,
             @Valid @RequestBody ScheduleRequestDto request
     ) {
         try {
             TrustParameters trustParameters = null;
             if (request.isUseEncryption()) {
                 trustParameters = new TrustParameters(
-                        fileUtils.getKraftwerkOutFolder(request.getCollectionInstrumentId()),
+                        fileUtils.getKraftwerkOutFolder(collectionInstrumentId),
                         "",
                         request.getEncryptionVaultPath(),
                         request.isUseSignature()
                 );
             }
 
-            dataProcessingContextApiPort.saveKraftwerkExecutionScheduleV2(
-                    request.getCollectionInstrumentId(),
+            dataProcessingContextApiPort.updateKraftwerkExecutionSchedule(
+                    collectionInstrumentId,
+                    scheduleUuid,
                     request.getExportType(),
                     request.getFrequency(),
                     request.getScheduleBeginDate(),
@@ -331,18 +370,19 @@ public class DataProcessingContextController {
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "Delete V2 Kraftwerk execution schedule of a collection instrument id")
-    @DeleteMapping(path = "/contexts/{collectionInstrumentId}/schedules/v2")
+    @Operation(summary = "Delete a V2 Kraftwerk execution schedule")
+    @DeleteMapping(path = "/contexts/{collectionInstrumentId}/schedules/v2/{scheduleUuid}")
     @PreAuthorize("hasRole('USER_KRAFTWERK')")
-    public ResponseEntity<Object> deleteSchedulesV2ByCollectionInstrumentId(
-            @PathVariable("collectionInstrumentId") String collectionInstrumentId
+    public ResponseEntity<Object> deleteScheduleV2(
+            @PathVariable(value = "collectionInstrumentId") String collectionInstrumentId,
+            @PathVariable(value = "scheduleUuid") String scheduleUuid
     ){
         try {
-            dataProcessingContextApiPort.deleteSchedulesV2ByCollectionInstrumentId(collectionInstrumentId);
+            dataProcessingContextApiPort.deleteScheduleV2(collectionInstrumentId, scheduleUuid);
         } catch (GenesisException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatusCode.valueOf(e.getStatus()));
         }
-        log.info("V2 schedule deleted for collection instrument {}", collectionInstrumentId);
+        log.info("V2 schedule {} deleted for collection instrument {}", scheduleUuid, collectionInstrumentId);
         return ResponseEntity.ok().build();
     }
 
