@@ -46,10 +46,26 @@ public class DataProcessingContextModel {
 
     public ScheduleV2Dto toScheduleV2Dto() {
         return ScheduleV2Dto.builder()
-                .surveyName(partitionId)
                 .collectionInstrumentId(collectionInstrumentId)
                 .lastExecution(lastExecution)
-                .kraftwerkExecutionScheduleV2(kraftwerkExecutionScheduleV2)
+                .frequency(kraftwerkExecutionScheduleV2 != null ? kraftwerkExecutionScheduleV2.getFrequency() : null)
+                .exportType(kraftwerkExecutionScheduleV2 != null ? kraftwerkExecutionScheduleV2.getExportType() : null)
+                .scheduleBeginDate(kraftwerkExecutionScheduleV2 != null ? kraftwerkExecutionScheduleV2.getScheduleBeginDate() : null)
+                .scheduleEndDate(kraftwerkExecutionScheduleV2 != null ? kraftwerkExecutionScheduleV2.getScheduleEndDate() : null)
+                .mode(kraftwerkExecutionScheduleV2 != null ? kraftwerkExecutionScheduleV2.getMode() : null)
+                .useEncryption(kraftwerkExecutionScheduleV2 != null && kraftwerkExecutionScheduleV2.getTrustParameters() != null)
+                .encryptionVaultPath(
+                        kraftwerkExecutionScheduleV2 != null && kraftwerkExecutionScheduleV2.getTrustParameters() != null
+                                ? kraftwerkExecutionScheduleV2.getTrustParameters().getVaultPath()
+                                : ""
+                )
+                .useSignature(
+                        kraftwerkExecutionScheduleV2 != null
+                                && kraftwerkExecutionScheduleV2.getTrustParameters() != null
+                                && kraftwerkExecutionScheduleV2.getTrustParameters().isUseSignature()
+                )
+                .addStates(kraftwerkExecutionScheduleV2 != null && kraftwerkExecutionScheduleV2.isAddStates())
+                .destinationFolder(kraftwerkExecutionScheduleV2 != null ? kraftwerkExecutionScheduleV2.getDestinationFolder() : null)
                 .build();
     }
 }

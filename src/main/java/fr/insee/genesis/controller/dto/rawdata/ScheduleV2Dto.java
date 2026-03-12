@@ -1,6 +1,8 @@
 package fr.insee.genesis.controller.dto.rawdata;
 
-import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionScheduleV2;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import fr.insee.genesis.controller.utils.ExportType;
+import fr.insee.genesis.domain.model.surveyunit.Mode;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,8 +15,22 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ScheduleV2Dto {
-    private String surveyName;
     private String collectionInstrumentId;
     private LocalDateTime lastExecution;
-    private KraftwerkExecutionScheduleV2 kraftwerkExecutionScheduleV2;
+
+    private String frequency;
+    private ExportType exportType;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    private LocalDateTime scheduleBeginDate;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    private LocalDateTime scheduleEndDate;
+
+    private Mode mode;
+    private boolean useEncryption;
+    private String encryptionVaultPath;
+    private boolean useSignature;
+    private boolean addStates;
+    private String destinationFolder;
 }
