@@ -216,6 +216,7 @@ public class DataProcessingContextController {
                     request.getScheduleBeginDate(),
                     request.getScheduleEndDate(),
                     request.getMode(),
+                    request.getDestinationType(),
                     request.isAddStates(),
                     request.getDestinationFolder(),
                     trustParameters

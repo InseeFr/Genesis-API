@@ -45,11 +45,9 @@ public class DataProcessingContextModel {
     }
 
     public ScheduleV2Dto toScheduleV2Dto() {
-        String resolvedCollectionInstrumentId =
-                collectionInstrumentId != null ? collectionInstrumentId : partitionId;
 
         return ScheduleV2Dto.builder()
-                .collectionInstrumentId(resolvedCollectionInstrumentId)
+                .collectionInstrumentId(collectionInstrumentId)
                 .lastExecution(lastExecution)
                 .frequency(kraftwerkExecutionScheduleV2 != null ? kraftwerkExecutionScheduleV2.getFrequency() : null)
                 .exportType(kraftwerkExecutionScheduleV2 != null ? kraftwerkExecutionScheduleV2.getExportType() : null)
@@ -68,6 +66,7 @@ public class DataProcessingContextModel {
                                 && kraftwerkExecutionScheduleV2.getTrustParameters().isUseSignature()
                 )
                 .addStates(kraftwerkExecutionScheduleV2 != null && kraftwerkExecutionScheduleV2.isAddStates())
+                .destinationType(kraftwerkExecutionScheduleV2 != null ? kraftwerkExecutionScheduleV2.getDestinationType() : null)
                 .destinationFolder(kraftwerkExecutionScheduleV2 != null ? kraftwerkExecutionScheduleV2.getDestinationFolder() : null)
                 .build();
     }

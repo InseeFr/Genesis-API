@@ -4,6 +4,7 @@ import fr.insee.genesis.controller.dto.ScheduleDto;
 import fr.insee.genesis.controller.dto.rawdata.ScheduleV2Dto;
 import fr.insee.genesis.controller.utils.ExportType;
 import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
+import fr.insee.genesis.domain.model.context.schedule.DestinationType;
 import fr.insee.genesis.domain.model.context.schedule.ServiceToCall;
 import fr.insee.genesis.domain.model.context.schedule.TrustParameters;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
@@ -37,6 +38,7 @@ public interface DataProcessingContextApiPort {
                                           LocalDateTime startDate,
                                           LocalDateTime endDate,
                                           Mode mode,
+                                          DestinationType destinationType,
                                           boolean addStates,
                                           String destinationFolder,
                                           TrustParameters trustParameters) throws GenesisException;

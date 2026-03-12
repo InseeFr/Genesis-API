@@ -7,6 +7,7 @@ import fr.insee.genesis.controller.dto.ScheduleDto;
 import fr.insee.genesis.controller.dto.rawdata.ScheduleV2Dto;
 import fr.insee.genesis.controller.utils.ExportType;
 import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
+import fr.insee.genesis.domain.model.context.schedule.DestinationType;
 import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionSchedule;
 import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionScheduleV2;
 import fr.insee.genesis.domain.model.context.schedule.ServiceToCall;
@@ -138,6 +139,7 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
                                                  LocalDateTime startDate,
                                                  LocalDateTime endDate,
                                                  Mode mode,
+                                                 DestinationType destinationType,
                                                  boolean addStates,
                                                  String destinationFolder,
                                                  TrustParameters trustParameters) throws GenesisException {
@@ -160,6 +162,7 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
                         startDate,
                         endDate,
                         mode,
+                        destinationType,
                         addStates,
                         destinationFolder,
                         trustParameters
