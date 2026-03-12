@@ -2,6 +2,7 @@ package fr.insee.genesis.controller.dto.rawdata;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import fr.insee.genesis.controller.utils.ExportType;
+import fr.insee.genesis.domain.model.context.schedule.DestinationType;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,6 +29,7 @@ public class ScheduleV2Dto {
     private LocalDateTime scheduleEndDate;
 
     private Mode mode;
+    private DestinationType destinationType;
     private boolean useEncryption;
     private String encryptionVaultPath;
     private boolean useSignature;

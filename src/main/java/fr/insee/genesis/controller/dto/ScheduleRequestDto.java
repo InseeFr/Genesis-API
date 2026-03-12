@@ -2,6 +2,7 @@ package fr.insee.genesis.controller.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import fr.insee.genesis.controller.utils.ExportType;
+import fr.insee.genesis.domain.model.context.schedule.DestinationType;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -41,6 +42,9 @@ public class ScheduleRequestDto {
     private LocalDateTime scheduleEndDate;
 
     private Mode mode;
+
+    @Schema(defaultValue = "APPLISHARE")
+    private DestinationType destinationType = DestinationType.APPLISHARE;
 
     @Schema(defaultValue = "false")
     private boolean useEncryption = false;

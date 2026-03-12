@@ -24,6 +24,7 @@ public class KraftwerkExecutionScheduleV2 {
     private LocalDateTime scheduleEndDate;
 
     private Mode mode;
+    private DestinationType destinationType;
     private boolean addStates;
     private String destinationFolder;
     private TrustParameters trustParameters;
