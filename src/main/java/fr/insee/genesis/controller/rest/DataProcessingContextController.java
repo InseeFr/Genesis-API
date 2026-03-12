@@ -11,6 +11,7 @@ import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatusCode;
@@ -195,7 +196,7 @@ public class DataProcessingContextController {
     @PutMapping(path = "/contexts/schedules/v2")
     @PreAuthorize("hasRole('USER_KRAFTWERK')")
     public ResponseEntity<Object> saveScheduleV2(
-            @RequestBody ScheduleRequestDto request
+            @Valid @RequestBody ScheduleRequestDto request
     ) {
         try {
             TrustParameters trustParameters = null;

@@ -246,18 +246,15 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
 
     @Override
     public List<ScheduleV2Dto> getAllSchedulesV2() {
-        List<ScheduleV2Dto> scheduleV2Dtos = new ArrayList<>();
-
         List<DataProcessingContextModel> dataProcessingContextModels =
                 DataProcessingContextMapper.INSTANCE.listDocumentToListModel(
                         dataProcessingContextPersistancePort.findAll()
                 );
 
-        dataProcessingContextModels.forEach(
-                model -> scheduleV2Dtos.add(model.toScheduleV2Dto())
-        );
-
-        return scheduleV2Dtos;
+        return dataProcessingContextModels.stream()
+                .filter(model -> model.getKraftwerkExecutionScheduleV2() != null)
+                .map(DataProcessingContextModel::toScheduleV2Dto)
+                .toList();
     }
 
     @Override
