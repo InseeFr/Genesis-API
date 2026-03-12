@@ -32,23 +32,35 @@ public interface DataProcessingContextApiPort {
                                         LocalDateTime endDate,
                                         TrustParameters trustParameters) throws GenesisException;
 
-    void saveKraftwerkExecutionScheduleV2(String collectionInstrumentId,
-                                          ExportType exportType,
-                                          String frequency,
-                                          LocalDateTime startDate,
-                                          LocalDateTime endDate,
-                                          Mode mode,
-                                          DestinationType destinationType,
-                                          boolean addStates,
-                                          String destinationFolder,
-                                          TrustParameters trustParameters) throws GenesisException;
+    String createKraftwerkExecutionSchedule(String collectionInstrumentId,
+                                              ExportType exportType,
+                                              String frequency,
+                                              LocalDateTime startDate,
+                                              LocalDateTime endDate,
+                                              Mode mode,
+                                              DestinationType destinationType,
+                                              boolean addStates,
+                                              String destinationFolder,
+                                              TrustParameters trustParameters) throws GenesisException;
+
+    void updateKraftwerkExecutionSchedule(String collectionInstrumentId,
+                                                   String scheduleUuid,
+                                                   ExportType exportType,
+                                                   String frequency,
+                                                   LocalDateTime startDate,
+                                                   LocalDateTime endDate,
+                                                   Mode mode,
+                                                   DestinationType destinationType,
+                                                   boolean addStates,
+                                                   String destinationFolder,
+                                                   TrustParameters trustParameters) throws GenesisException;
 
     void updateLastExecutionDate(String surveyName, LocalDateTime newDate) throws GenesisException;
     void updateLastExecutionDateByCollectionInstrumentId(String collectionInstrumentId, LocalDateTime newDate) throws GenesisException;
 
     void deleteSchedules(String surveyName) throws GenesisException;
 
-    void deleteSchedulesV2ByCollectionInstrumentId(String collectionInstrumentId) throws GenesisException;
+    void deleteScheduleV2(String collectionInstrumentId, String scheduleUuid) throws GenesisException;
 
     void deleteSchedulesByCollectionInstrumentId(String collectionInstrumentId) throws GenesisException;
 

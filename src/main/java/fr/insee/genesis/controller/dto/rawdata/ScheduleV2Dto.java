@@ -16,6 +16,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ScheduleV2Dto {
+
+    private String scheduleUuid;
     private String collectionInstrumentId;
     private LocalDateTime lastExecution;
 

@@ -25,6 +25,6 @@ public class DataProcessingContextDocument{
         private String collectionInstrumentId; // QuestionnaireId
         private LocalDateTime lastExecution;
         private List<KraftwerkExecutionSchedule> kraftwerkExecutionScheduleList;
-        private KraftwerkExecutionScheduleV2 kraftwerkExecutionScheduleV2;
+        private List<KraftwerkExecutionScheduleV2> kraftwerkExecutionScheduleV2List;
         private boolean withReview;
 }
