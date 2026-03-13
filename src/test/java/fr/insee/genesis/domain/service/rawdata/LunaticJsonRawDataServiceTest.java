@@ -15,6 +15,7 @@ import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.domain.utils.JsonUtils;
+import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.mappers.DataProcessingContextMapper;
 import fr.insee.genesis.infrastructure.mappers.LunaticJsonRawDataDocumentMapper;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
@@ -692,4 +693,46 @@ class LunaticJsonRawDataServiceTest {
 
         Assertions.assertThat(getValueString(doubleObject)).isEqualTo("101010101010.111");
     }
+
+    @Test
+    void reprocessRawData_should_return_empty_result_when_no_processed_interrogation_ids_found() throws Exception {
+        // GIVEN
+        lunaticJsonRawDataPersistanceStub.getMongoStub().clear();
+        surveyUnitPersistencePortStub.getMongoStub().clear();
+
+        String questionnaireId = "TESTIDQUEST";
+
+        // WHEN
+        DataProcessResult result = lunaticJsonRawDataService.reprocessRawData(questionnaireId, null, null);
+
+        // THEN
+        Assertions.assertThat(result).isNotNull();
+        Assertions.assertThat(result.dataCount()).isEqualTo(0);
+        Assertions.assertThat(result.formattedDataCount()).isEqualTo(0);
+        Assertions.assertThat(result.errors()).isEmpty();
+    }
+
+    @Test
+    void reprocessRawData_should_throw_when_endDate_is_provided_without_sinceDate() {
+        String questionnaireId = "TESTIDQUEST";
+        LocalDateTime endDate = LocalDateTime.now();
+
+        Assertions.assertThatThrownBy(() ->
+                        lunaticJsonRawDataService.reprocessRawData(questionnaireId, null, endDate))
+                .isInstanceOf(GenesisException.class)
+                .hasMessage("endDate cannot be provided without sinceDate");
+    }
+
+    @Test
+    void reprocessRawData_should_throw_when_endDate_is_before_sinceDate() {
+        String questionnaireId = "TESTIDQUEST";
+        LocalDateTime sinceDate = LocalDateTime.of(2024, 1, 10, 10, 0);
+        LocalDateTime endDate = LocalDateTime.of(2024, 1, 9, 10, 0);
+
+        Assertions.assertThatThrownBy(() ->
+                        lunaticJsonRawDataService.reprocessRawData(questionnaireId, sinceDate, endDate))
+                .isInstanceOf(GenesisException.class)
+                .hasMessage("endDate must be after or equal to sinceDate");
+    }
+
 }

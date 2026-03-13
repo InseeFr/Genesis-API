@@ -197,13 +197,30 @@ public class LunaticJsonMongoDBRepositoryStub implements LunaticJsonMongoDBRepos
     }
 
     @Override
-    public List<String> findProcessedInterrogationIdsByQuestionnaireIdAndRecordDateBetween(String questionnaireId, LocalDateTime sinceDate, LocalDateTime endDate) {
-        return List.of();
+    public List<String> findProcessedInterrogationIdsByQuestionnaireId(String questionnaireId) {
+        return documents.stream()
+                .filter(doc -> Objects.equals(doc.questionnaireId(), questionnaireId))
+                .filter(doc -> doc.processDate() != null)
+                .map(LunaticJsonRawDataDocument::interrogationId)
+                .distinct()
+                .toList();
     }
 
     @Override
-    public List<String> findProcessedInterrogationIdsByQuestionnaireId(String questionnaireId) {
-        return List.of();
+    public List<String> findProcessedInterrogationIdsByQuestionnaireIdAndRecordDateBetween(
+            String questionnaireId,
+            LocalDateTime sinceDate,
+            LocalDateTime endDate
+    ) {
+        return documents.stream()
+                .filter(doc -> Objects.equals(doc.questionnaireId(), questionnaireId))
+                .filter(doc -> doc.processDate() != null)
+                .filter(doc -> doc.recordDate() != null)
+                .filter(doc -> !doc.recordDate().isBefore(sinceDate))
+                .filter(doc -> !doc.recordDate().isAfter(endDate))
+                .map(LunaticJsonRawDataDocument::interrogationId)
+                .distinct()
+                .toList();
     }
 
     // Implémentations vides requises par MongoRepository
