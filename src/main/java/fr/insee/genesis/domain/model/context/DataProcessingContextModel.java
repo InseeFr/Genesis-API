@@ -50,6 +50,7 @@ public class DataProcessingContextModel {
         }
 
         return kraftwerkExecutionScheduleV2List.stream()
+                .filter(schedule -> schedule != null && schedule.getScheduleUuid() != null)
                 .map(schedule -> ScheduleV2Dto.builder()
                         .scheduleUuid(schedule.getScheduleUuid())
                         .collectionInstrumentId(getResolvedCollectionInstrumentId())
