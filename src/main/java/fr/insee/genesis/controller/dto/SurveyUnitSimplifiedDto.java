@@ -22,7 +22,8 @@ public class SurveyUnitSimplifiedDto {
 	private String interrogationId;
 	private String usualSurveyUnitId;
 	private Mode mode;
-	private LocalDateTime validationDate;
+    private Boolean isCapturedIndirectly;
+    private LocalDateTime validationDate;
 	private RawResponseDto.QuestionnaireStateEnum questionnaireState;
 	private List<VariableModel> variablesUpdate;
 	private List<VariableModel> externalVariables;

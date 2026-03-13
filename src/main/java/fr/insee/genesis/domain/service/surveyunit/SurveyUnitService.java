@@ -223,6 +223,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                 .interrogationId(first.getInterrogationId())
                 .mode(mode)
                 .usualSurveyUnitId(first.getUsualSurveyUnitId())
+                .isCapturedIndirectly(first.getIsCapturedIndirectly())
                 .validationDate(validationDate)
                 .questionnaireState(questionnaireState)
                 .variablesUpdate(outputVariables)
