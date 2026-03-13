@@ -1,6 +1,7 @@
 package fr.insee.genesis.controller.rest;
 
 import fr.insee.genesis.Constants;
+import fr.insee.genesis.controller.dto.KraftwerkExecutionScheduleInput;
 import fr.insee.genesis.controller.dto.ScheduleDto;
 import fr.insee.genesis.controller.dto.ScheduleRequestDto;
 import fr.insee.genesis.controller.dto.rawdata.ScheduleV2Dto;
@@ -117,18 +118,21 @@ public class DataProcessingContextController {
                 );
             }
 
-            String scheduleUuid = dataProcessingContextApiPort.createKraftwerkExecutionSchedule(
-                    request.getCollectionInstrumentId(),
-                    request.getExportType(),
-                    request.getFrequency(),
-                    request.getScheduleBeginDate(),
-                    request.getScheduleEndDate(),
-                    request.getMode(),
-                    request.getDestinationType(),
-                    request.isAddStates(),
-                    request.getDestinationFolder(),
-                    trustParameters
-            );
+            KraftwerkExecutionScheduleInput scheduleInput = KraftwerkExecutionScheduleInput.builder()
+                    .collectionInstrumentId(request.getCollectionInstrumentId())
+                    .exportType(request.getExportType())
+                    .frequency(request.getFrequency())
+                    .startDate(request.getScheduleBeginDate())
+                    .endDate(request.getScheduleEndDate())
+                    .mode(request.getMode())
+                    .destinationType(request.getDestinationType())
+                    .addStates(request.isAddStates())
+                    .destinationFolder(request.getDestinationFolder())
+                    .trustParameters(trustParameters)
+                    .batchSize(request.getBatchSize())
+                    .build();
+
+            String scheduleUuid = dataProcessingContextApiPort.createKraftwerkExecutionSchedule(scheduleInput);
 
             return ResponseEntity.ok(scheduleUuid);
 
@@ -136,6 +140,7 @@ public class DataProcessingContextController {
             return new ResponseEntity<>(e.getMessage(), HttpStatusCode.valueOf(e.getStatus()));
         }
     }
+
     @Deprecated(forRemoval = true)
     @Operation(summary = "Schedule a Kraftwerk execution")
     @PutMapping(path = "/context/schedules")
@@ -247,19 +252,22 @@ public class DataProcessingContextController {
                 );
             }
 
-            dataProcessingContextApiPort.updateKraftwerkExecutionSchedule(
-                    collectionInstrumentId,
-                    scheduleUuid,
-                    request.getExportType(),
-                    request.getFrequency(),
-                    request.getScheduleBeginDate(),
-                    request.getScheduleEndDate(),
-                    request.getMode(),
-                    request.getDestinationType(),
-                    request.isAddStates(),
-                    request.getDestinationFolder(),
-                    trustParameters
-            );
+            KraftwerkExecutionScheduleInput scheduleInput = KraftwerkExecutionScheduleInput.builder()
+                    .collectionInstrumentId(collectionInstrumentId)
+                    .scheduleUuid(scheduleUuid)
+                    .exportType(request.getExportType())
+                    .frequency(request.getFrequency())
+                    .startDate(request.getScheduleBeginDate())
+                    .endDate(request.getScheduleEndDate())
+                    .mode(request.getMode())
+                    .destinationType(request.getDestinationType())
+                    .addStates(request.isAddStates())
+                    .destinationFolder(request.getDestinationFolder())
+                    .trustParameters(trustParameters)
+                    .batchSize(request.getBatchSize())
+                    .build();
+
+            dataProcessingContextApiPort.updateKraftwerkExecutionSchedule(scheduleInput);
 
         } catch (GenesisException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatusCode.valueOf(e.getStatus()));
@@ -303,6 +311,18 @@ public class DataProcessingContextController {
         List<ScheduleV2Dto> schedules = dataProcessingContextApiPort.getAllSchedulesV2();
 
         log.info("Returning {} V2 schedule documents...", schedules.size());
+        return ResponseEntity.ok(schedules);
+    }
+
+    @Operation(summary = "Fetch V2 schedules by collection instrument id")
+    @GetMapping(path = "/contexts/{collectionInstrumentId}/schedules/v2")
+    @PreAuthorize("hasAnyRole('SCHEDULER','READER')")
+    public ResponseEntity<Object> getSchedulesV2ByCollectionInstrumentId(
+            @PathVariable("collectionInstrumentId") String collectionInstrumentId
+    ) {
+        List<ScheduleV2Dto> schedules =
+                dataProcessingContextApiPort.getSchedulesV2ByCollectionInstrumentId(collectionInstrumentId);
+
         return ResponseEntity.ok(schedules);
     }
 
@@ -367,6 +387,21 @@ public class DataProcessingContextController {
             return new ResponseEntity<>(e.getMessage(), HttpStatusCode.valueOf(e.getStatus()));
         }
         log.info("Schedule deleted for survey {}", collectionInstrumentId);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Delete all V2 Kraftwerk execution schedules of a collection instrument id")
+    @DeleteMapping(path = "/contexts/{collectionInstrumentId}/schedules/v2")
+    @PreAuthorize("hasRole('USER_KRAFTWERK')")
+    public ResponseEntity<Object> deleteSchedulesV2ByCollectionInstrumentId(
+            @PathVariable("collectionInstrumentId") String collectionInstrumentId
+    ){
+        try {
+            dataProcessingContextApiPort.deleteSchedulesV2ByCollectionInstrumentId(collectionInstrumentId);
+        } catch (GenesisException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatusCode.valueOf(e.getStatus()));
+        }
+        log.info("All V2 schedules deleted for collection instrument {}", collectionInstrumentId);
         return ResponseEntity.ok().build();
     }
 

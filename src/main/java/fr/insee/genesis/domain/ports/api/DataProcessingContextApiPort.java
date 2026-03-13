@@ -1,13 +1,11 @@
 package fr.insee.genesis.domain.ports.api;
 
+import fr.insee.genesis.controller.dto.KraftwerkExecutionScheduleInput;
 import fr.insee.genesis.controller.dto.ScheduleDto;
 import fr.insee.genesis.controller.dto.rawdata.ScheduleV2Dto;
-import fr.insee.genesis.controller.utils.ExportType;
 import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
-import fr.insee.genesis.domain.model.context.schedule.DestinationType;
 import fr.insee.genesis.domain.model.context.schedule.ServiceToCall;
 import fr.insee.genesis.domain.model.context.schedule.TrustParameters;
-import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.exceptions.GenesisException;
 
 import java.time.LocalDateTime;
@@ -32,28 +30,9 @@ public interface DataProcessingContextApiPort {
                                         LocalDateTime endDate,
                                         TrustParameters trustParameters) throws GenesisException;
 
-    String createKraftwerkExecutionSchedule(String collectionInstrumentId,
-                                              ExportType exportType,
-                                              String frequency,
-                                              LocalDateTime startDate,
-                                              LocalDateTime endDate,
-                                              Mode mode,
-                                              DestinationType destinationType,
-                                              boolean addStates,
-                                              String destinationFolder,
-                                              TrustParameters trustParameters) throws GenesisException;
+    String createKraftwerkExecutionSchedule(KraftwerkExecutionScheduleInput scheduleInput) throws GenesisException;
 
-    void updateKraftwerkExecutionSchedule(String collectionInstrumentId,
-                                                   String scheduleUuid,
-                                                   ExportType exportType,
-                                                   String frequency,
-                                                   LocalDateTime startDate,
-                                                   LocalDateTime endDate,
-                                                   Mode mode,
-                                                   DestinationType destinationType,
-                                                   boolean addStates,
-                                                   String destinationFolder,
-                                                   TrustParameters trustParameters) throws GenesisException;
+    void updateKraftwerkExecutionSchedule(KraftwerkExecutionScheduleInput scheduleInput) throws GenesisException;
 
     void updateLastExecutionDate(String surveyName, LocalDateTime newDate) throws GenesisException;
     void updateLastExecutionDateByCollectionInstrumentId(String collectionInstrumentId, LocalDateTime newDate) throws GenesisException;
@@ -63,6 +42,10 @@ public interface DataProcessingContextApiPort {
     void deleteScheduleV2(String collectionInstrumentId, String scheduleUuid) throws GenesisException;
 
     void deleteSchedulesByCollectionInstrumentId(String collectionInstrumentId) throws GenesisException;
+
+    void deleteSchedulesV2ByCollectionInstrumentId(String collectionInstrumentId) throws GenesisException;
+
+    List<ScheduleV2Dto> getSchedulesV2ByCollectionInstrumentId(String collectionInstrumentId);
 
     List<ScheduleDto> getAllSchedules();
 

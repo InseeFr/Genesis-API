@@ -3,16 +3,14 @@ package fr.insee.genesis.domain.service.context;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import fr.insee.genesis.Constants;
+import fr.insee.genesis.controller.dto.KraftwerkExecutionScheduleInput;
 import fr.insee.genesis.controller.dto.ScheduleDto;
 import fr.insee.genesis.controller.dto.rawdata.ScheduleV2Dto;
-import fr.insee.genesis.controller.utils.ExportType;
 import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
-import fr.insee.genesis.domain.model.context.schedule.DestinationType;
 import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionSchedule;
 import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionScheduleV2;
 import fr.insee.genesis.domain.model.context.schedule.ServiceToCall;
 import fr.insee.genesis.domain.model.context.schedule.TrustParameters;
-import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.ports.api.DataProcessingContextApiPort;
 import fr.insee.genesis.domain.ports.spi.DataProcessingContextPersistancePort;
@@ -34,6 +32,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 @Service
 @Slf4j
@@ -134,23 +133,16 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
     }
 
     @Override
-    public String createKraftwerkExecutionSchedule(String collectionInstrumentId,
-                                                     ExportType exportType,
-                                                     String frequency,
-                                                     LocalDateTime startDate,
-                                                     LocalDateTime endDate,
-                                                     Mode mode,
-                                                     DestinationType destinationType,
-                                                     boolean addStates,
-                                                     String destinationFolder,
-                                                     TrustParameters trustParameters) throws GenesisException {
+    public String createKraftwerkExecutionSchedule(KraftwerkExecutionScheduleInput scheduleInput) {
 
         DataProcessingContextModel dataProcessingContextModel =
-                dataProcessingContextPersistancePort.findByCollectionInstrumentId(collectionInstrumentId);
+                dataProcessingContextPersistancePort.findByCollectionInstrumentId(
+                        scheduleInput.getCollectionInstrumentId()
+                );
 
         if (dataProcessingContextModel == null) {
             dataProcessingContextModel = DataProcessingContextModel.builder()
-                    .collectionInstrumentId(collectionInstrumentId)
+                    .collectionInstrumentId(scheduleInput.getCollectionInstrumentId())
                     .withReview(false)
                     .kraftwerkExecutionScheduleV2List(new ArrayList<>())
                     .build();
@@ -164,15 +156,16 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
 
         KraftwerkExecutionScheduleV2 newSchedule = new KraftwerkExecutionScheduleV2(
                 scheduleUuid,
-                frequency,
-                exportType,
-                startDate,
-                endDate,
-                mode,
-                destinationType,
-                addStates,
-                destinationFolder,
-                trustParameters
+                scheduleInput.getFrequency(),
+                scheduleInput.getExportType(),
+                scheduleInput.getStartDate(),
+                scheduleInput.getEndDate(),
+                scheduleInput.getMode(),
+                scheduleInput.getDestinationType(),
+                scheduleInput.isAddStates(),
+                scheduleInput.getDestinationFolder(),
+                scheduleInput.getTrustParameters(),
+                scheduleInput.getBatchSize()
         );
 
         dataProcessingContextModel.getKraftwerkExecutionScheduleV2List().add(newSchedule);
@@ -185,20 +178,12 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
     }
 
     @Override
-    public void updateKraftwerkExecutionSchedule(String collectionInstrumentId,
-                                                   String scheduleUuid,
-                                                   ExportType exportType,
-                                                   String frequency,
-                                                   LocalDateTime startDate,
-                                                   LocalDateTime endDate,
-                                                   Mode mode,
-                                                   DestinationType destinationType,
-                                                   boolean addStates,
-                                                   String destinationFolder,
-                                                   TrustParameters trustParameters) throws GenesisException {
+    public void updateKraftwerkExecutionSchedule(KraftwerkExecutionScheduleInput scheduleInput) throws GenesisException {
 
         DataProcessingContextModel dataProcessingContextModel =
-                dataProcessingContextPersistancePort.findByCollectionInstrumentId(collectionInstrumentId);
+                dataProcessingContextPersistancePort.findByCollectionInstrumentId(
+                        scheduleInput.getCollectionInstrumentId()
+                );
 
         if (dataProcessingContextModel == null) {
             throw new GenesisException(404, "Collection instrument not found");
@@ -211,19 +196,20 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
 
         KraftwerkExecutionScheduleV2 scheduleToUpdate = dataProcessingContextModel.getKraftwerkExecutionScheduleV2List()
                 .stream()
-                .filter(schedule -> scheduleUuid.equals(schedule.getScheduleUuid()))
+                .filter(schedule -> scheduleInput.getScheduleUuid().equals(schedule.getScheduleUuid()))
                 .findFirst()
                 .orElseThrow(() -> new GenesisException(404, "V2 schedule not found"));
 
-        scheduleToUpdate.setFrequency(frequency);
-        scheduleToUpdate.setExportType(exportType);
-        scheduleToUpdate.setScheduleBeginDate(startDate);
-        scheduleToUpdate.setScheduleEndDate(endDate);
-        scheduleToUpdate.setMode(mode);
-        scheduleToUpdate.setDestinationType(destinationType);
-        scheduleToUpdate.setAddStates(addStates);
-        scheduleToUpdate.setDestinationFolder(destinationFolder);
-        scheduleToUpdate.setTrustParameters(trustParameters);
+        scheduleToUpdate.setFrequency(scheduleInput.getFrequency());
+        scheduleToUpdate.setExportType(scheduleInput.getExportType());
+        scheduleToUpdate.setScheduleBeginDate(scheduleInput.getStartDate());
+        scheduleToUpdate.setScheduleEndDate(scheduleInput.getEndDate());
+        scheduleToUpdate.setMode(scheduleInput.getMode());
+        scheduleToUpdate.setDestinationType(scheduleInput.getDestinationType());
+        scheduleToUpdate.setAddStates(scheduleInput.isAddStates());
+        scheduleToUpdate.setDestinationFolder(scheduleInput.getDestinationFolder());
+        scheduleToUpdate.setTrustParameters(scheduleInput.getTrustParameters());
+        scheduleToUpdate.setBatchSize(scheduleInput.getBatchSize());
 
         dataProcessingContextPersistancePort.save(
                 DataProcessingContextMapper.INSTANCE.modelToDocument(dataProcessingContextModel)
@@ -304,6 +290,32 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
     }
 
     @Override
+    public void deleteSchedulesV2ByCollectionInstrumentId(String collectionInstrumentId) throws GenesisException {
+        DataProcessingContextModel dataProcessingContextModel =
+                dataProcessingContextPersistancePort.findByCollectionInstrumentId(collectionInstrumentId);
+
+        if (dataProcessingContextModel == null) {
+            throw new GenesisException(404, NOT_FOUND_MESSAGE);
+        }
+
+        dataProcessingContextModel.setKraftwerkExecutionScheduleV2List(new ArrayList<>());
+
+        dataProcessingContextPersistancePort.save(
+                DataProcessingContextMapper.INSTANCE.modelToDocument(dataProcessingContextModel)
+        );
+    }
+
+    @Override
+    public List<ScheduleV2Dto> getSchedulesV2ByCollectionInstrumentId(String collectionInstrumentId) {
+        List<DataProcessingContextModel> dataProcessingContextModels =
+                dataProcessingContextPersistancePort.findByCollectionInstrumentIds(List.of(collectionInstrumentId));
+
+        return dataProcessingContextModels.stream()
+                .flatMap(model -> model.toScheduleV2Dtos().stream())
+                .toList();
+    }
+
+    @Override
     public List<ScheduleDto> getAllSchedules() {
         List<ScheduleDto> scheduleDtos = new ArrayList<>();
 
@@ -325,9 +337,18 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
                 );
 
         return dataProcessingContextModels.stream()
-                .filter(model -> model.getKraftwerkExecutionScheduleV2List() != null
-                        && !model.getKraftwerkExecutionScheduleV2List().isEmpty())
-                .flatMap(model -> model.toScheduleV2Dtos().stream())
+                .flatMap(model -> {
+                    if (model.getKraftwerkExecutionScheduleV2List() == null
+                            || model.getKraftwerkExecutionScheduleV2List().isEmpty()) {
+                        return Stream.of(
+                                ScheduleV2Dto.builder()
+                                        .collectionInstrumentId(model.getResolvedCollectionInstrumentId())
+                                        .lastExecution(model.getLastExecution())
+                                        .build()
+                        );
+                    }
+                    return model.toScheduleV2Dtos().stream();
+                })
                 .toList();
     }
 

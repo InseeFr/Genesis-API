@@ -61,4 +61,7 @@ public class ScheduleRequestDto {
     @NotBlank
     @Schema(description = "Destination folder (Applishare or S3)", requiredMode = Schema.RequiredMode.REQUIRED)
     private String destinationFolder;
+
+    @Schema(description = "Batch size", defaultValue = "100")
+    private Integer batchSize;
 }

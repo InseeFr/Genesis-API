@@ -37,4 +37,5 @@ public class ScheduleV2Dto {
     private boolean useSignature;
     private boolean addStates;
     private String destinationFolder;
+    private Integer batchSize;
 }
