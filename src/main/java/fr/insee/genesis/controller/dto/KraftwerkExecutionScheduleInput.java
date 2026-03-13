@@ -1,29 +1,27 @@
-package fr.insee.genesis.domain.model.context.schedule;
+package fr.insee.genesis.controller.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import fr.insee.genesis.controller.utils.ExportType;
+import fr.insee.genesis.domain.model.context.schedule.DestinationType;
+import fr.insee.genesis.domain.model.context.schedule.TrustParameters;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class KraftwerkExecutionScheduleV2 {
-
+public class KraftwerkExecutionScheduleInput {
+    private String collectionInstrumentId;
     private String scheduleUuid;
-    private String frequency;
     private ExportType exportType;
-
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private LocalDateTime scheduleBeginDate;
-
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private LocalDateTime scheduleEndDate;
-
+    private String frequency;
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
     private Mode mode;
     private DestinationType destinationType;
     private boolean addStates;

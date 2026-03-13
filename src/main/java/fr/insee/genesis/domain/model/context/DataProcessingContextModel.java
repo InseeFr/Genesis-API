@@ -52,7 +52,7 @@ public class DataProcessingContextModel {
         return kraftwerkExecutionScheduleV2List.stream()
                 .map(schedule -> ScheduleV2Dto.builder()
                         .scheduleUuid(schedule.getScheduleUuid())
-                        .collectionInstrumentId(collectionInstrumentId)
+                        .collectionInstrumentId(getResolvedCollectionInstrumentId())
                         .lastExecution(lastExecution)
                         .frequency(schedule.getFrequency())
                         .exportType(schedule.getExportType())
@@ -72,8 +72,15 @@ public class DataProcessingContextModel {
                         .addStates(schedule.isAddStates())
                         .destinationType(schedule.getDestinationType())
                         .destinationFolder(schedule.getDestinationFolder())
+                        .batchSize(schedule.getBatchSize())
                         .build()
                 )
                 .toList();
+    }
+
+    public String getResolvedCollectionInstrumentId() {
+        return collectionInstrumentId != null && !collectionInstrumentId.isBlank()
+                ? collectionInstrumentId
+                : partitionId;
     }
 }
