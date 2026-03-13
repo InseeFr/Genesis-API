@@ -2,14 +2,25 @@ package fr.insee.genesis.controller.rest.responses;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.insee.bpm.metadata.model.MetadataModel;
+import fr.insee.bpm.metadata.model.Variable;
+import fr.insee.bpm.metadata.model.VariableType;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.TestConstants;
 import fr.insee.genesis.controller.IntegrationTestAbstract;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
+import fr.insee.genesis.infrastructure.document.context.DataProcessingContextDocument;
+import fr.insee.genesis.infrastructure.document.metadata.QuestionnaireMetadataDocument;
 import fr.insee.genesis.infrastructure.document.rawdata.LunaticJsonRawDataDocument;
+import fr.insee.genesis.infrastructure.document.rawdata.RawResponseDocument;
+import fr.insee.genesis.infrastructure.document.surveyunit.SurveyUnitDocument;
+import fr.insee.genesis.infrastructure.document.surveyunit.VariableDocument;
 import fr.insee.genesis.infrastructure.repository.LunaticJsonMongoDBRepository;
+import fr.insee.modelefiliere.RawResponseDto;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -23,18 +34,26 @@ import org.springframework.security.test.context.support.WithMockUser;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static fr.insee.genesis.domain.utils.JsonUtils.jsonToMap;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@Slf4j
 class RawResponseControllerIT extends IntegrationTestAbstract {
 
     @Autowired
@@ -42,6 +61,14 @@ class RawResponseControllerIT extends IntegrationTestAbstract {
 
     @Autowired
     MongoTemplate mongoTemplate;
+
+    ObjectMapper objectMapper;
+
+    @BeforeEach
+    void init(){
+        objectMapper = new ObjectMapper();
+        objectMapper.findAndRegisterModules();
+    }
 
 
     @Nested
@@ -156,8 +183,6 @@ class RawResponseControllerIT extends IntegrationTestAbstract {
             Map<String, Object> documentMap = mapArgumentCaptor.getValue();
             Assertions.assertThat(documentMap).isNotNull();
 
-            ObjectMapper objectMapper = new ObjectMapper();
-            objectMapper.findAndRegisterModules();
             JsonNode inputJson = objectMapper.readTree(jsonBody);
             JsonNode sentDocument = objectMapper.valueToTree(documentMap);
 
@@ -190,6 +215,281 @@ class RawResponseControllerIT extends IntegrationTestAbstract {
 
             //THEN
             verifyNoInteractions(mongoTemplate);
+        }
+    }
+
+    @Nested
+    @DisplayName("Raw data processing tests")
+    class rawDataProcessingTests {
+
+        @Test
+        @WithMockUser(roles = "SCHEDULER")
+        @DisplayName("Filiere model raw data should be processed with a interrogationId list")
+        @SneakyThrows
+        void process_raw_response_interrogation_list_test(){
+            //GIVEN
+            String collectionInstrumentId = "TESTQUEST";
+            Mode mode = Mode.WEB;
+            List<String> interrogationIds = List.of("INTERRO1", "INTERRO2");
+
+            String variableName = "VAR1";
+            String collectedValue = "value1";
+            Map<String, String> collectedVariablesAndValues = new HashMap<>();
+            collectedVariablesAndValues.put(variableName, collectedValue);
+
+            String externalVariableName = "EXTVAR1";
+            String externalValue = "externalvalue1";
+            Map<String, String> externalVariablesAndValues = new HashMap<>();
+            externalVariablesAndValues.put(externalVariableName, externalValue);
+
+            setFiliereModelTestMockBehaviour(
+                    collectionInstrumentId,
+                    mode,
+                    interrogationIds,
+                    collectedVariablesAndValues,
+                    externalVariablesAndValues
+            );
+
+            // WHEN
+            mockMvc.perform(post("/raw-responses/process")
+                            .with(csrf())
+                            .param("collectionInstrumentId", collectionInstrumentId)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(interrogationIds)))
+                    .andExpect(status().isOk());
+
+            //THEN
+            @SuppressWarnings("unchecked")
+            ArgumentCaptor<List<SurveyUnitDocument>> listArgumentCaptor =
+                    ArgumentCaptor.forClass(List.class);
+            verify(surveyUnitMongoDBRepository, times(1))
+                    .insert(listArgumentCaptor.capture());
+
+            //Check saved data
+            List<SurveyUnitDocument> savedDocuments = listArgumentCaptor.getValue();
+            Assertions.assertThat(savedDocuments).isNotNull().hasSize(interrogationIds.size());
+            for(String interrogationId : interrogationIds){
+                SurveyUnitDocument savedDocument = savedDocuments.stream().filter(
+                        surveyUnitDocument ->
+                                surveyUnitDocument.getInterrogationId().equals(interrogationId)
+                ).toList().getFirst();
+                Assertions.assertThat(savedDocument.getCollectedVariables()).isNotNull().hasSize(1);
+                VariableDocument variableDocument = savedDocument.getCollectedVariables().getFirst();
+                Assertions.assertThat(variableDocument.getVarId()).isEqualTo(variableName);
+                Assertions.assertThat(variableDocument.getValue()).isEqualTo(interrogationId + collectedValue);
+                Assertions.assertThat(variableDocument.getScope()).isEqualTo(Constants.ROOT_GROUP_NAME);
+                Assertions.assertThat(variableDocument.getIteration()).isEqualTo(1);
+                Assertions.assertThat(variableDocument.getParentId()).isNull();
+
+                Assertions.assertThat(savedDocument.getExternalVariables()).isNotNull().hasSize(1);
+                variableDocument = savedDocument.getExternalVariables().getFirst();
+                Assertions.assertThat(variableDocument.getVarId()).isEqualTo(externalVariableName);
+                Assertions.assertThat(variableDocument.getValue()).isEqualTo(interrogationId + externalValue);
+                Assertions.assertThat(variableDocument.getScope()).isEqualTo(Constants.ROOT_GROUP_NAME);
+                Assertions.assertThat(variableDocument.getIteration()).isEqualTo(1);
+                Assertions.assertThat(variableDocument.getParentId()).isNull();
+            }
+        }
+
+//        @Test
+//        @WithMockUser(roles = "SCHEDULER")
+//        @DisplayName("Filiere model raw data should be processed with a interrogationId list")
+//        @SneakyThrows
+//        void process_raw_response_collectionInstrumentId_test(){
+//            //GIVEN
+//
+//            // WHEN
+//            mockMvc.perform(post("/raw-responses/%s/process".formatted(collectionInstrumentId))
+//                            .with(csrf())
+//                            .contentType(MediaType.APPLICATION_JSON))
+//                    .andExpect(status().isOk());
+//
+//            //THEN
+//            @SuppressWarnings("unchecked")
+//            ArgumentCaptor<List<SurveyUnitDocument>> listArgumentCaptor =
+//                    ArgumentCaptor.forClass(List.class);
+//            verify(surveyUnitMongoDBRepository, times(1))
+//                    .insert(listArgumentCaptor.capture());
+//
+//            //Check saved data
+//            //INTERRO1
+//            List<SurveyUnitDocument> savedDocuments = listArgumentCaptor.getValue();
+//            Assertions.assertThat(savedDocuments).isNotNull().hasSize(2);
+//
+//            SurveyUnitDocument savedDocument = savedDocuments.stream().filter(
+//                    surveyUnitDocument ->
+//                            surveyUnitDocument.getInterrogationId().equals(interrogationIds.getFirst())
+//            ).toList().getFirst();
+//            Assertions.assertThat(savedDocument.getCollectedVariables()).isNotNull().hasSize(1);
+//            VariableDocument variableDocument = savedDocument.getCollectedVariables().getFirst();
+//            Assertions.assertThat(variableDocument.getVarId()).isEqualTo(variableName);
+//            Assertions.assertThat(variableDocument.getValue()).isEqualTo(value1);
+//            Assertions.assertThat(variableDocument.getScope()).isEqualTo(metadataModel.getRootGroup().getName());
+//            Assertions.assertThat(variableDocument.getIteration()).isEqualTo(1);
+//            Assertions.assertThat(variableDocument.getParentId()).isNull();
+//
+//            //INTERRO2
+//            savedDocument = savedDocuments.stream().filter(
+//                    surveyUnitDocument ->
+//                            surveyUnitDocument.getInterrogationId().equals(interrogationIds.getLast())
+//            ).toList().getFirst();
+//            Assertions.assertThat(savedDocument.getCollectedVariables()).isNotNull().hasSize(1);
+//            variableDocument = savedDocument.getCollectedVariables().getFirst();
+//            Assertions.assertThat(variableDocument.getVarId()).isEqualTo(variableName);
+//            Assertions.assertThat(variableDocument.getValue()).isEqualTo(value2);
+//            Assertions.assertThat(variableDocument.getScope()).isEqualTo(metadataModel.getRootGroup().getName());
+//            Assertions.assertThat(variableDocument.getIteration()).isEqualTo(1);
+//            Assertions.assertThat(variableDocument.getParentId()).isNull();
+//        }
+
+        //OLD RAW DOC TODO met ça dans le bon test
+//            String oldVariableValue = "value1";
+//            Map<String, Object> dataMap = getNewDataMap();
+//            addVariableToDataMap(dataMap, oldVariableName, oldVariableValue);
+//            LunaticJsonRawDataDocument lunaticJsonRawDataDocument = LunaticJsonRawDataDocument.builder()
+//                    .interrogationId("INTERRO1")
+//                    .questionnaireId(collectionInstrumentId)
+//                    .idUE("UE1")
+//                    .mode(mode)
+//                    .data(dataMap)
+//                    .recordDate(LocalDateTime.now())
+//                    .build();
+
+        @SneakyThrows
+        private void setFiliereModelTestMockBehaviour(
+                String collectionInstrumentId,
+                Mode mode,
+                List<String> interrogationIds,
+                Map<String, String> collectedVariableNamesAndValues,
+                Map<String, String> externalVariableNamesAndValues
+                ){
+            //Disable withReview
+            DataProcessingContextDocument dataProcessingContextDocument = new DataProcessingContextDocument();
+            dataProcessingContextDocument.setCollectionInstrumentId(collectionInstrumentId);
+            dataProcessingContextDocument.setWithReview(false);
+            when(dataProcessingContextMongoDBRepository.findByCollectionInstrumentIdList(anyList()))
+                    .thenReturn(List.of(dataProcessingContextDocument));
+
+            //Mode list
+            when(controllerUtils.getModesList(eq(collectionInstrumentId), any()))
+                    .thenReturn(List.of(mode));
+
+            //Metadata
+            MetadataModel metadataModel = new MetadataModel();
+            for(Map.Entry<String,String> variable : collectedVariableNamesAndValues.entrySet()) {
+                metadataModel.getVariables().putVariable(
+                        new Variable(
+                                variable.getKey(),
+                                metadataModel.getRootGroup(),
+                                VariableType.STRING
+                        )
+                );
+            }
+            for(Map.Entry<String,String> variable : externalVariableNamesAndValues.entrySet()) {
+                metadataModel.getVariables().putVariable(
+                        new Variable(
+                                variable.getKey(),
+                                metadataModel.getRootGroup(),
+                                VariableType.STRING
+                        )
+                );
+            }
+            QuestionnaireMetadataDocument questionnaireMetadataDocument = new QuestionnaireMetadataDocument(
+                    null,
+                    collectionInstrumentId,
+                    mode,
+                    metadataModel
+            );
+            when(questionnaireMetadataMongoDBRepository.findByCollectionInstrumentIdAndMode(
+                    collectionInstrumentId, mode
+            )).thenReturn(List.of(questionnaireMetadataDocument));
+
+            //FILIERE RAW DOCS
+            List<RawResponseDocument> rawResponseDocuments = new ArrayList<>();
+            for(String interrogationId : interrogationIds){
+                Map<String, Object> dataMap = getNewDataMap();
+                //COLLECTED VARIABLES
+                for(Map.Entry<String,String> variable : collectedVariableNamesAndValues.entrySet()) {
+                    String variableName = variable.getKey();
+                    //To have different value on each interrogation
+                    String value = interrogationId + variable.getValue();
+
+                    addVariableToDataMap(dataMap, variableName, value, Constants.COLLECTED_NODE_NAME);
+                }
+                //EXTERNAL VARIABLES
+                for(Map.Entry<String,String> variable : externalVariableNamesAndValues.entrySet()) {
+                    String variableName = variable.getKey();
+                    String value = interrogationId + variable.getValue();
+
+                    addVariableToDataMap(dataMap, variableName, value, Constants.EXTERNAL_NODE_NAME);
+                }
+
+                Map<String, Object> payload = new HashMap<>();
+                payload.put("data", dataMap);
+
+                //Filiere model fields
+                payload.put("usualSurveyUnitId", "usualSurveyUnitId");
+                payload.put("majorModelVersion", "1");
+                payload.put("questionnaireState", RawResponseDto.QuestionnaireStateEnum.FINISHED.toString());
+
+                RawResponseDocument rawResponseDocument = RawResponseDocument.builder()
+                        .interrogationId(interrogationId)
+                        .collectionInstrumentId(collectionInstrumentId)
+                        .mode(mode.getJsonName())
+                        .payload(payload)
+                        .recordDate(LocalDateTime.now())
+                        .build();
+                rawResponseDocuments.add(rawResponseDocument);
+            }
+            when(rawResponseRepository.findByCollectionInstrumentIdAndModeAndInterrogationIdList(
+                    collectionInstrumentId,
+                    mode.getJsonName(),
+                    interrogationIds
+            )).thenReturn(rawResponseDocuments);
+        }
+
+        private Map<String, Object> getNewDataMap() {
+            Map<String, Object> dataMap = new HashMap<>();
+            dataMap.put(Constants.COLLECTED_NODE_NAME, new HashMap<>());
+            dataMap.put(Constants.EXTERNAL_NODE_NAME, new HashMap<>());
+            return dataMap;
+        }
+
+        private void addVariableToDataMap(Map<String, Object> dataMap,
+                                          String variableName,
+                                          String value,
+                                          String collectedOrExternal
+        ) {
+            switch (collectedOrExternal){
+                case Constants.COLLECTED_NODE_NAME -> addCollectedVariableToDataMap(
+                        dataMap, variableName, value
+                );
+                case Constants.EXTERNAL_NODE_NAME -> addExternalVariableToDataMap(
+                        dataMap, variableName, value
+                );
+                case null -> log.warn("null collectedOrExternal");
+                default -> log.warn("Unknown collectedOrExternal : {}", collectedOrExternal);
+            }
+
+        }
+
+        private void addCollectedVariableToDataMap(Map<String, Object> dataMap,
+                                          String variableName,
+                                          String value
+        ) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> collectedMap = (Map<String, Object>) dataMap.get(Constants.COLLECTED_NODE_NAME);
+            Map<String, String> variableMap = new HashMap<>();
+            variableMap.put(Constants.COLLECTED_NODE_NAME, value);
+            collectedMap.put(variableName, variableMap);
+        }
+        private void addExternalVariableToDataMap(Map<String, Object> dataMap,
+                                                   String variableName,
+                                                   String value
+        ) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> externalMap = (Map<String, Object>) dataMap.get(Constants.EXTERNAL_NODE_NAME);
+            externalMap.put(variableName, value);
         }
     }
 }

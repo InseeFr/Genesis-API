@@ -1,5 +1,7 @@
 package fr.insee.genesis.controller;
 
+import fr.insee.genesis.controller.utils.ControllerUtils;
+import fr.insee.genesis.domain.ports.spi.SurveyUnitQualityToolPort;
 import fr.insee.genesis.infrastructure.repository.ContextualExternalVariableMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.ContextualPreviousVariableMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.DataProcessingContextMongoDBRepository;
@@ -42,27 +44,33 @@ public abstract class IntegrationTestAbstract {
     protected MockMvc mockMvc;
 
     @MockitoBean
-    private MongoTemplate mongoTemplate;
+    protected ControllerUtils controllerUtils;
     @MockitoBean
-    private RawResponseRepository rawResponseRepository;
+    protected MongoTemplate mongoTemplate;
     @MockitoBean
-    private SurveyUnitMongoDBRepository surveyUnitMongoDBRepository;
+    protected RawResponseRepository rawResponseRepository;
     @MockitoBean
-    private LastJsonExtractionMongoDBRepository lastJsonExtractionMongoDBRepository;
+    protected SurveyUnitMongoDBRepository surveyUnitMongoDBRepository;
     @MockitoBean
-    private LunaticJsonMongoDBRepository lunaticJsonMongoDBRepository;
+    protected LastJsonExtractionMongoDBRepository lastJsonExtractionMongoDBRepository;
     @MockitoBean
-    private RundeckExecutionDBRepository rundeckExecutionDBRepository;
+    protected LunaticJsonMongoDBRepository lunaticJsonMongoDBRepository;
     @MockitoBean
-    private DataProcessingContextMongoDBRepository dataProcessingContextMongoDBRepository;
+    protected RundeckExecutionDBRepository rundeckExecutionDBRepository;
     @MockitoBean
-    private LunaticModelMongoDBRepository lunaticModelMongoDBRepository;
+    protected DataProcessingContextMongoDBRepository dataProcessingContextMongoDBRepository;
     @MockitoBean
-    private ContextualPreviousVariableMongoDBRepository contextualPreviousVariableMongoDBRepository;
+    protected LunaticModelMongoDBRepository lunaticModelMongoDBRepository;
     @MockitoBean
-    private ContextualExternalVariableMongoDBRepository contextualExternalVariableMongoDBRepository;
+    protected ContextualPreviousVariableMongoDBRepository contextualPreviousVariableMongoDBRepository;
     @MockitoBean
-    private QuestionnaireMetadataMongoDBRepository questionnaireMetadataMongoDBRepository;
+    protected ContextualExternalVariableMongoDBRepository contextualExternalVariableMongoDBRepository;
+    @MockitoBean
+    protected QuestionnaireMetadataMongoDBRepository questionnaireMetadataMongoDBRepository;
+
+    //Mocked quality tool port
+    @MockitoBean
+    protected SurveyUnitQualityToolPort surveyUnitQualityToolPort;
 
     /**
      * Compare 2 maps
