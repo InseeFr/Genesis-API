@@ -337,18 +337,7 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
                 );
 
         return dataProcessingContextModels.stream()
-                .flatMap(model -> {
-                    if (model.getKraftwerkExecutionScheduleV2List() == null
-                            || model.getKraftwerkExecutionScheduleV2List().isEmpty()) {
-                        return Stream.of(
-                                ScheduleV2Dto.builder()
-                                        .collectionInstrumentId(model.getResolvedCollectionInstrumentId())
-                                        .lastExecution(model.getLastExecution())
-                                        .build()
-                        );
-                    }
-                    return model.toScheduleV2Dtos().stream();
-                })
+                .flatMap(model -> model.toScheduleV2Dtos().stream())
                 .toList();
     }
 
