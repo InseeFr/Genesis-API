@@ -18,7 +18,6 @@ import fr.insee.genesis.infrastructure.document.rawdata.RawResponseDocument;
 import fr.insee.genesis.infrastructure.document.surveyunit.GroupedInterrogationDocument;
 import fr.insee.genesis.infrastructure.document.surveyunit.SurveyUnitDocument;
 import fr.insee.genesis.infrastructure.document.surveyunit.VariableDocument;
-import fr.insee.genesis.infrastructure.repository.LunaticJsonMongoDBRepository;
 import fr.insee.modelefiliere.RawResponseDto;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -30,8 +29,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -61,13 +58,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @Slf4j
 class RawResponseControllerIT extends IntegrationTestAbstract {
-
-    //MOCKS
-    @Autowired
-    LunaticJsonMongoDBRepository lunaticJsonMongoDBRepository;
-    @Autowired
-    MongoTemplate mongoTemplate;
-
     //SPIES
     @MockitoSpyBean
     RawResponseMongoAdapter rawResponseMongoAdapter;
