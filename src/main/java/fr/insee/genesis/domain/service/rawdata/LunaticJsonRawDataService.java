@@ -521,10 +521,13 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     }
 
     @Override
+    //TODO use questionnaireId
     public void updateProcessDates(List<SurveyUnitModel> surveyUnitModels) {
         Set<String> campaignIds = new HashSet<>();
         for (SurveyUnitModel surveyUnitModel : surveyUnitModels) {
-            campaignIds.add(surveyUnitModel.getCampaignId());
+            if(surveyUnitModel.getCampaignId() != null) {
+                campaignIds.add(surveyUnitModel.getCampaignId());
+            }
         }
 
         for (String campaignId : campaignIds) {
