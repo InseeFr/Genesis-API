@@ -1,5 +1,6 @@
 package fr.insee.genesis.controller.rest;
 
+import fr.insee.genesis.controller.IntegrationTestAbstract;
 import fr.insee.genesis.domain.ports.api.DataProcessingContextApiPort;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.RawResponseApiPort;
@@ -22,15 +23,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration;
-import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -51,12 +46,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-
-@SpringBootTest
-@AutoConfigureMockMvc
-@ActiveProfiles("test")
-@EnableAutoConfiguration(exclude = {MongoAutoConfiguration.class, MongoDataAutoConfiguration.class})
-class ControllerAccessIT {
+class ControllerAccessIT extends IntegrationTestAbstract {
 
     // Constants for user roles
     @Autowired
@@ -67,8 +57,6 @@ class ControllerAccessIT {
 
 /** MOCKS for initializing context, not used **/
     @MockitoBean
-    private MongoTemplate mongoTemplate;
-    @MockitoBean
     private SurveyUnitApiPort surveyUnitApiPort;
     @MockitoBean
     private LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort;
@@ -76,26 +64,6 @@ class ControllerAccessIT {
     private RawResponseApiPort rawResponseApiPort;
     @MockitoBean
     private RawResponseInputRepository rawRepository;
-    @MockitoBean
-    private SurveyUnitMongoDBRepository surveyUnitMongoDBRepository;
-    @MockitoBean
-    private LastJsonExtractionMongoDBRepository lastJsonExtractionMongoDBRepository;
-    @MockitoBean
-    private LunaticJsonMongoDBRepository lunaticJsonMongoDBRepository;
-    @MockitoBean
-    private RundeckExecutionDBRepository rundeckExecutionDBRepository;
-    @MockitoBean
-    private DataProcessingContextMongoDBRepository dataProcessingContextMongoDBRepository;
-    @MockitoBean
-    private LunaticModelMongoDBRepository lunaticModelMongoDBRepository;
-    @MockitoBean
-    private ContextualPreviousVariableMongoDBRepository contextualPreviousVariableMongoDBRepository;
-    @MockitoBean
-    private ContextualExternalVariableMongoDBRepository contextualExternalVariableMongoDBRepository;
-    @MockitoBean
-    private QuestionnaireMetadataMongoDBRepository questionnaireMetadataMongoDBRepository;
-    @MockitoBean
-    private RawResponseRepository rawResponseRepository;
 
     /**
      * Provides a stream of URIs that are allowed for reader.
