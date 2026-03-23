@@ -119,7 +119,11 @@ class RawResponseControllerIT extends IntegrationTestAbstract {
 
             //Same data than JSON
             Map<String, Object> jsonMap = jsonToMap(jsonBody);
-            Assertions.assertThat(compareMaps(jsonMap, lunaticJsonRawDataDocument.data())).isTrue();
+
+            JsonNode requestBodyJsonNode = objectMapper.convertValue(jsonMap, JsonNode.class);
+            JsonNode documentDataJsonNode = objectMapper.convertValue(lunaticJsonRawDataDocument.data(), JsonNode.class);
+
+            Assertions.assertThat(requestBodyJsonNode).isEqualTo(documentDataJsonNode);
         }
 
         @Test
