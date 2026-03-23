@@ -33,6 +33,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -73,7 +74,7 @@ class LunaticModelControllerIT extends IntegrationTestAbstract {
         @WithMockUser(roles = "USER_BACK_OFFICE")
         @DisplayName("Lunatic model saving test")
         @SneakyThrows
-        void save_LunaticModel_test(String jsonFilePathString){
+        void save_lunaticModel_test(String jsonFilePathString){
             //GIVEN
             String questionnaireId = "QUEST01";
             Path jsonFilePath = Path.of(TestConstants.TEST_RESOURCES_DIRECTORY,
@@ -121,6 +122,28 @@ class LunaticModelControllerIT extends IntegrationTestAbstract {
 
             //Upsert check
             verify(terminatingUpdate, times(1)).upsert();
+        }
+
+        @Test
+        @WithMockUser(roles = "USER_BACK_OFFICE")
+        @DisplayName("Lunatic model save invalid syntax")
+        @SneakyThrows
+        void save_lunaticModel_syntax_error_test(){
+            //GIVEN
+            String questionnaireId = "QUEST01";
+            Path jsonFilePath = Path.of(TestConstants.TEST_RESOURCES_DIRECTORY,
+                    "specs/LUNATIC-TEST-ERROR/lunaticsyntaxerror.json");
+
+            String jsonBody = Files.readString(jsonFilePath);
+
+            //WHEN + THEN
+            mockMvc.perform(put("/lunatic-model/save")
+                            .with(csrf())
+                            .param("questionnaireId", questionnaireId)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(jsonBody))
+                    .andExpect(status().isBadRequest());
+            verifyNoInteractions(lunaticModelMongoAdapterSpy);
         }
     }
 }
