@@ -26,7 +26,10 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -36,7 +39,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class LunaticModelControllerIT extends IntegrationTestAbstract {
@@ -124,6 +129,7 @@ class LunaticModelControllerIT extends IntegrationTestAbstract {
             verify(terminatingUpdate, times(1)).upsert();
         }
 
+        //SAD PATH
         @Test
         @WithMockUser(roles = "USER_BACK_OFFICE")
         @DisplayName("Lunatic model save invalid syntax")
@@ -144,6 +150,56 @@ class LunaticModelControllerIT extends IntegrationTestAbstract {
                             .content(jsonBody))
                     .andExpect(status().isBadRequest());
             verifyNoInteractions(lunaticModelMongoAdapterSpy);
+        }
+    }
+
+    @Nested
+    @DisplayName("Get Lunatic model tests")
+    class GetLunaticModelTests{
+        //HAPPY PATH
+        @Test
+        @DisplayName("Get Lunatic model test")
+        @WithMockUser(roles = "READER")
+        @SneakyThrows
+        void get_lunaticModel_test(){
+            //GIVEN
+            String collectionInstrumentId = "collectionInstrumentId";
+
+            String key = "key";
+            String value = "value";
+            Map<String, Object> lunaticModelMap = new HashMap<>();
+            lunaticModelMap.put(key, value);
+
+            LunaticModelDocument lunaticModelDocument = LunaticModelDocument.builder()
+                    .collectionInstrumentId(collectionInstrumentId)
+                    .lunaticModel(lunaticModelMap)
+                    .recordDate(LocalDateTime.now())
+                    .build();
+            when(lunaticModelMongoDBRepository.findByCollectionInstrumentId(collectionInstrumentId))
+                    .thenReturn(List.of(lunaticModelDocument));
+
+            //WHEN + THEN
+            mockMvc.perform(get("/lunatic-model/get")
+                            .with(csrf())
+                            .param("questionnaireId", collectionInstrumentId))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$." + key).value(value));
+        }
+
+        //BAD PATHS
+        @Test
+        @DisplayName("Get non existent Lunatic model")
+        @WithMockUser(roles = "READER")
+        @SneakyThrows
+        void get_lunaticModel_not_found_test(){
+            //GIVEN
+            String collectionInstrumentId = "collectionInstrumentId";
+
+            //WHEN + THEN
+            mockMvc.perform(get("/lunatic-model/get")
+                            .with(csrf())
+                            .param("questionnaireId", collectionInstrumentId))
+                    .andExpect(status().isNotFound());
         }
     }
 }

@@ -908,4 +908,6 @@ class RawResponseControllerIT extends IntegrationTestAbstract {
         Map<String, Object> externalMap = (Map<String, Object>) dataMap.get(Constants.EXTERNAL_NODE_NAME);
         externalMap.put(variableName, value);
     }
+
+    //TODO GET tests
 }
