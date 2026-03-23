@@ -13,6 +13,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.springframework.data.mongodb.core.ExecutableUpdateOperation;
@@ -63,15 +65,19 @@ class LunaticModelControllerIT extends IntegrationTestAbstract {
     @DisplayName("Save Lunatic model tests")
     class SaveLunaticModelTests{
         //HAPPY PATH
-        @Test
+        @ParameterizedTest
+        @ValueSource(strings ={
+                "specs/LUNATIC-TEST/lunaticlog2021x21_web.json",
+                "specs/RAWDATATESTCAMPAIGN/WEB/lunaticFAM2025X01.json"
+        })
         @WithMockUser(roles = "USER_BACK_OFFICE")
         @DisplayName("Lunatic model saving test")
         @SneakyThrows
-        void save_LunaticModel_test(){
+        void save_LunaticModel_test(String jsonFilePathString){
             //GIVEN
             String questionnaireId = "QUEST01";
             Path jsonFilePath = Path.of(TestConstants.TEST_RESOURCES_DIRECTORY,
-                    "specs/LUNATIC-TEST/lunaticlog2021x21_web.json");
+                    jsonFilePathString);
 
             String jsonBody = Files.readString(jsonFilePath);
 
