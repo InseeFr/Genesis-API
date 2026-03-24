@@ -26,14 +26,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -232,7 +225,7 @@ public class RawResponseController {
             @RequestParam("campaignName") String campaignName,
             @RequestParam(value = "mode") Mode modeSpecified
     ) {
-        List<LunaticJsonRawDataModel> data = lunaticJsonRawDataApiPort.getRawData(campaignName, modeSpecified, List.of(interrogationId));
+        List<LunaticJsonRawDataModel> data = lunaticJsonRawDataApiPort.getRawDataByQuestionnaireId(campaignName, modeSpecified, List.of(interrogationId));
         return ResponseEntity.ok(data.getFirst());
     }
 
