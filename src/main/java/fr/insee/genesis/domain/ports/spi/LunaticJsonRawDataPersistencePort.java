@@ -14,7 +14,6 @@ import java.util.Set;
 public interface LunaticJsonRawDataPersistencePort {
 
     void save(LunaticJsonRawDataModel rawData);
-    List<LunaticJsonRawDataModel> findRawData(String questionnaireId, Mode mode, List<String> interrogationIdList);
     List<LunaticJsonRawDataModel> findRawDataByQuestionnaireId(String questionnaireId, Mode mode, List<String> interrogationIdList);
     Page<LunaticJsonRawDataModel> findRawDataByQuestionnaireId(String questionnaireId, Pageable pageable);
     List<LunaticJsonRawDataModel> findRawDataByInterrogationID(String interrogationId);
