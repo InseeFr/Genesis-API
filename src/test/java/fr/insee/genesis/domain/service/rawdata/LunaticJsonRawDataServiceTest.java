@@ -707,8 +707,8 @@ class LunaticJsonRawDataServiceTest {
 
         // THEN
         Assertions.assertThat(result).isNotNull();
-        Assertions.assertThat(result.dataCount()).isEqualTo(0);
-        Assertions.assertThat(result.formattedDataCount()).isEqualTo(0);
+        Assertions.assertThat(result.dataCount()).isZero();
+        Assertions.assertThat(result.formattedDataCount()).isZero();
         Assertions.assertThat(result.errors()).isEmpty();
     }
 
