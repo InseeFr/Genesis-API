@@ -73,7 +73,7 @@ class LunaticJsonRawDataMongoAdapterTest {
         //WHEN
         repository.getDocuments().add(doc);
         //THEN
-        List<LunaticJsonRawDataModel> rawdatas = adapter.findRawData("questionnaire01",Mode.WEB,List.of("interrogation01"));
+        List<LunaticJsonRawDataModel> rawdatas = adapter.findRawDataByQuestionnaireId("questionnaire01",Mode.WEB,List.of("interrogation01"));
         Assertions.assertThat(rawdatas).hasSize(1);
     }
 
