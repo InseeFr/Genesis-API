@@ -7,11 +7,7 @@ import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.controller.dto.rawdata.LunaticJsonRawDataUnprocessedDto;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
-import fr.insee.genesis.domain.model.surveyunit.DataState;
-import fr.insee.genesis.domain.model.surveyunit.GroupedInterrogation;
-import fr.insee.genesis.domain.model.surveyunit.Mode;
-import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
-import fr.insee.genesis.domain.model.surveyunit.VariableModel;
+import fr.insee.genesis.domain.model.surveyunit.*;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.RawDataModelType;
@@ -41,13 +37,9 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
+
 import static fr.insee.genesis.domain.service.rawdata.RawResponseService.processCollectedVariable;
 
 @Service
@@ -98,11 +90,6 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     }
 
     @Override
-    public List<LunaticJsonRawDataModel> getRawData(String questionnaireId, Mode mode, List<String> interrogationIdList) {
-        return lunaticJsonRawDataPersistencePort.findRawData(questionnaireId, mode, interrogationIdList);
-    }
-
-    @Override
     public List<LunaticJsonRawDataModel> getRawDataByQuestionnaireId(String questionnaireId, Mode mode, List<String> interrogationIdList) {
         return lunaticJsonRawDataPersistencePort.findRawDataByQuestionnaireId(questionnaireId, mode, interrogationIdList);
     }
@@ -134,7 +121,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
                 int maxIndex = Math.min(interrogationIdListForMode.size(), config.getRawDataProcessingBatchSize());
                 List<String> interrogationIdToProcess = interrogationIdListForMode.subList(0, maxIndex);
 
-                List<LunaticJsonRawDataModel> rawData = getRawData(questionnaireId, mode, interrogationIdToProcess);
+                List<LunaticJsonRawDataModel> rawData = getRawDataByQuestionnaireId(questionnaireId, mode, interrogationIdToProcess);
 
                 List<SurveyUnitModel> surveyUnitModels = convertRawData(
                         rawData,

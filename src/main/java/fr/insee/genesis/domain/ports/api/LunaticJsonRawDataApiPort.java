@@ -11,8 +11,8 @@ import fr.insee.genesis.exceptions.GenesisException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import java.time.LocalDateTime;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -20,7 +20,6 @@ import java.util.Set;
 public interface LunaticJsonRawDataApiPort {
 
     void save(LunaticJsonRawDataModel rawData);
-    List<LunaticJsonRawDataModel> getRawData(String campaignName, Mode mode, List<String> interrogationIdList);
     List<LunaticJsonRawDataModel> getRawDataByQuestionnaireId(String questionnaireId, Mode mode, List<String> interrogationIdList);
 
     DataProcessResult reprocessRawData(
