@@ -1,5 +1,6 @@
 package fr.insee.genesis.domain.service.surveyunit;
 
+import cucumber.stubs.SurveyUnitPersistencePortStub;
 import fr.insee.bpm.metadata.model.MetadataModel;
 import fr.insee.bpm.metadata.model.Variable;
 import fr.insee.bpm.metadata.model.VariableType;
@@ -19,12 +20,12 @@ import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
 import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.exceptions.NoDataException;
 import fr.insee.genesis.exceptions.QuestionnaireNotFoundException;
 import fr.insee.genesis.infrastructure.document.surveyunit.SurveyUnitDocument;
 import fr.insee.genesis.infrastructure.document.surveyunit.VariableDocument;
 import fr.insee.genesis.infrastructure.mappers.SurveyUnitDocumentMapper;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
-import cucumber.stubs.SurveyUnitPersistencePortStub;
 import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -153,6 +154,7 @@ class SurveyUnitServiceUnitTest {
     }
 
     @Test
+    @SneakyThrows
     void get_simplified_should_return_usualSurveyId(){
         //GIVEN
         List<SurveyUnitDocument> surveyUnitDocuments = new ArrayList<>();
@@ -286,6 +288,20 @@ class SurveyUnitServiceUnitTest {
         Assertions.assertThat(surveyUnitSimplifiedDto.getExternalVariables()).isNotNull().hasSize(1);
         Assertions.assertThat(surveyUnitSimplifiedDto.getExternalVariables().getFirst()).isNotNull();
         Assertions.assertThat(surveyUnitSimplifiedDto.getExternalVariables().getFirst().state()).isEqualTo(DataState.FORCED);
+    }
+
+    @Test
+    void get_simplified_should_throw_genesis_exception_if_not_found(){
+        try {
+            surveyUnitService.findSimplifiedByCollectionInstrumentIdAndInterrogationId(
+                    "test",
+                    "testInterrogation",
+                    Mode.WEB
+            );
+            Assertions.fail();
+        }catch (NoDataException e){
+            Assertions.assertThat(e.getMessage()).contains("No response found for interrogation ");
+        }
     }
 
 

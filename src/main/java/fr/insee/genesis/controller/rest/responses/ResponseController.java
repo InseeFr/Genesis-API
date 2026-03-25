@@ -332,7 +332,8 @@ public class ResponseController implements CommonApiResponse {
     public ResponseEntity<SurveyUnitSimplifiedDto> getResponseByCollectionInstrumentAndInterrogation(
             @PathVariable("collectionInstrumentId") String collectionInstrumentId,
             @PathVariable("interrogationId") String interrogationId,
-            @PathVariable("mode") Mode mode) {
+            @PathVariable("mode") Mode mode){
+        try {
             return ResponseEntity.ok(
                     surveyUnitService.findSimplifiedByCollectionInstrumentIdAndInterrogationId(
                             collectionInstrumentId,
@@ -340,6 +341,10 @@ public class ResponseController implements CommonApiResponse {
                             mode
                     )
             );
+        } catch (NoDataException e){
+            log.error(e.getMessage());
+            return ResponseEntity.notFound().build();
+        }
     }
 
     /**

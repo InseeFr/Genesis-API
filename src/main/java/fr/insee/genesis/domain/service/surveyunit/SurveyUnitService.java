@@ -21,6 +21,7 @@ import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
 import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.utils.GroupUtils;
 import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.exceptions.NoDataException;
 import fr.insee.genesis.exceptions.QuestionnaireNotFoundException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.modelefiliere.RawResponseDto;
@@ -194,8 +195,14 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     public SurveyUnitSimplifiedDto findSimplifiedByCollectionInstrumentIdAndInterrogationId(
             String collectionInstrumentId,
             String interrogationId,
-            Mode mode){
+            Mode mode) throws NoDataException {
         List<SurveyUnitModel> responses = findLatestByIdAndByCollectionInstrumentId(interrogationId, collectionInstrumentId);
+
+        if(responses.isEmpty()){
+            String errorMessage = "No response found for interrogation %s".formatted(interrogationId);
+            log.debug(errorMessage);
+            throw new NoDataException(errorMessage);
+        }
 
         List<VariableModel> outputVariables = new ArrayList<>();
         List<VariableModel> outputExternalVariables = new ArrayList<>();
@@ -243,11 +250,18 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         List<Mode> modes = findModesByCollectionInstrumentId(collectionInstrumentId);
         return interrogationIds.stream()
                 .flatMap(interrogationId -> modes.stream()
-                        .map(mode -> findSimplifiedByCollectionInstrumentIdAndInterrogationId(
-                                collectionInstrumentId,
-                                interrogationId.getInterrogationId(),
-                                mode
-                        ))
+                        .map(mode -> {
+                            try {
+                                return findSimplifiedByCollectionInstrumentIdAndInterrogationId(
+                                        collectionInstrumentId,
+                                        interrogationId.getInterrogationId(),
+                                        mode
+                                );
+                            } catch (NoDataException e) {
+                                log.debug(e.getMessage());
+                            }
+                            return null;
+                        })
                 )
                 .filter(Objects::nonNull)
                 .toList();
