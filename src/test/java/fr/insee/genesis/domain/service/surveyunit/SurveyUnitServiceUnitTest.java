@@ -1,6 +1,5 @@
 package fr.insee.genesis.domain.service.surveyunit;
 
-import cucumber.stubs.SurveyUnitPersistencePortStub;
 import fr.insee.bpm.metadata.model.MetadataModel;
 import fr.insee.bpm.metadata.model.Variable;
 import fr.insee.bpm.metadata.model.VariableType;
@@ -49,14 +48,13 @@ import static org.mockito.Mockito.verify;
 
 class SurveyUnitServiceUnitTest {
 
-    //Given
     static SurveyUnitService surveyUnitService;
     static SurveyUnitPersistencePort surveyUnitPersistencePortStub;
     static QuestionnaireMetadataService questionnaireMetadataServiceStub;
 
     @BeforeEach
     void init() {
-        surveyUnitPersistencePortStub = mock(SurveyUnitPersistencePortStub.class);
+        surveyUnitPersistencePortStub = mock(SurveyUnitPersistencePort.class);
         questionnaireMetadataServiceStub = mock(QuestionnaireMetadataService.class);
         surveyUnitService = new SurveyUnitService(
                 surveyUnitPersistencePortStub,
