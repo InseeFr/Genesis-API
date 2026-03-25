@@ -48,6 +48,7 @@ public class DataProcessingContextMongoAdapter implements DataProcessingContextP
     }
 
     @Override
+    @Deprecated(forRemoval = true)
     public List<DataProcessingContextModel> findByPartitionIds(List<String> partitionIds){
         List<DataProcessingContextDocument> existingDocuments =
                 dataProcessingContextMongoDBRepository.findByPartitionIdList(partitionIds);
@@ -58,7 +59,9 @@ public class DataProcessingContextMongoAdapter implements DataProcessingContextP
     public DataProcessingContextModel findByCollectionInstrumentId(String collectionInstrumentId) {
         List<DataProcessingContextDocument> existingDocuments =
                 dataProcessingContextMongoDBRepository.findByCollectionInstrumentIdList(List.of(collectionInstrumentId));
-        return DataProcessingContextMapper.INSTANCE.documentToModel(existingDocuments.isEmpty()?null:existingDocuments.getFirst());
+        return DataProcessingContextMapper.INSTANCE.documentToModel(
+                existingDocuments.isEmpty() ? null : existingDocuments.getFirst()
+        );
     }
 
     @Override
@@ -95,6 +98,7 @@ public class DataProcessingContextMongoAdapter implements DataProcessingContextP
 
     @Override
     public List<KraftwerkExecutionSchedule> removeExpiredSchedules(DataProcessingContextModel dataProcessingContextModel) throws IOException {
+        //TODO move non mongo related logic to service
         List<KraftwerkExecutionSchedule> deletedKraftwerkExecutionSchedules = new ArrayList<>();
         for (KraftwerkExecutionSchedule kraftwerkExecutionScheduleToRemove :
                 dataProcessingContextModel.getKraftwerkExecutionScheduleList().stream().filter(
@@ -104,7 +108,7 @@ public class DataProcessingContextMongoAdapter implements DataProcessingContextP
             Query query =
                     Query.query(Criteria.where("scheduleEndDate").is(kraftwerkExecutionScheduleToRemove.getScheduleEndDate()));
             // If collectionInstrumentId is present we use it, if not we use partitionId
-            if (dataProcessingContextModel.getCollectionInstrumentId()!=null){
+            if (dataProcessingContextModel.getCollectionInstrumentId() != null){
                 mongoTemplate.updateMulti(Query.query(Criteria.where("collectionInstrumentId").is(dataProcessingContextModel.getCollectionInstrumentId())), new Update().pull(
                                 "kraftwerkExecutionScheduleList", query),
                         Constants.MONGODB_SCHEDULE_COLLECTION_NAME);

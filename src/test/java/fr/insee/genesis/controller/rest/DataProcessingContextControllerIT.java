@@ -1,17 +1,22 @@
 package fr.insee.genesis.controller.rest;
 
+import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.IntegrationTestAbstract;
 import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionSchedule;
 import fr.insee.genesis.domain.model.context.schedule.ServiceToCall;
 import fr.insee.genesis.infrastructure.document.context.DataProcessingContextDocument;
 import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
+import org.bson.Document;
+import org.bson.types.ObjectId;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 
@@ -20,10 +25,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -160,5 +167,125 @@ public class DataProcessingContextControllerIT extends IntegrationTestAbstract {
             Assertions.assertThat(dataProcessingContextDocument.isWithReview())
                     .isFalse();
         }
+    }
+
+    @Nested
+    @DisplayName("Schedule deleting tests")
+    class DeleteSchedulesTests{
+        //HAPPY PATHS
+        @Test
+        @WithMockUser(roles = "USER_KRAFTWERK")
+        @DisplayName("Delete schedule test")
+        @SneakyThrows
+        void delete_schedule_test(){
+            //GIVEN
+            String collectionInstrumentId = "collectionInstrumentId";
+            ObjectId objectId = new ObjectId();
+
+            DataProcessingContextDocument dataProcessingContextDocument = new DataProcessingContextDocument();
+            dataProcessingContextDocument.setId(objectId);
+            dataProcessingContextDocument.setCollectionInstrumentId(collectionInstrumentId);
+            dataProcessingContextDocument.setKraftwerkExecutionScheduleList(new ArrayList<>());
+            dataProcessingContextDocument.getKraftwerkExecutionScheduleList().add(new KraftwerkExecutionSchedule(
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+            ));
+            when(dataProcessingContextMongoDBRepository.findByCollectionInstrumentIdList(anyList()))
+                    .thenReturn(List.of(dataProcessingContextDocument));
+
+            //WHEN
+            //TODO s in context
+            mockMvc.perform(delete("/context/%s/schedules".formatted(collectionInstrumentId))
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk());
+
+            //THEN
+            ArgumentCaptor<DataProcessingContextDocument> dataProcessingContextDocumentArgumentCaptor =
+                    ArgumentCaptor.forClass(DataProcessingContextDocument.class);
+            verify(dataProcessingContextMongoDBRepository, times(1))
+                    .save(dataProcessingContextDocumentArgumentCaptor.capture());
+            DataProcessingContextDocument savedDocument = dataProcessingContextDocumentArgumentCaptor.getValue();
+            Assertions.assertThat(savedDocument).isNotNull();
+            Assertions.assertThat(savedDocument.getId()).isEqualTo(objectId);
+            Assertions.assertThat(savedDocument.getKraftwerkExecutionScheduleList()).isEmpty();
+        }
+
+        @Test
+        @WithMockUser(roles = "SCHEDULER")
+        @DisplayName("Delete expired schedules test")
+        @SneakyThrows
+        void delete_expired_schedules_test(){
+            //GIVEN
+            String collectionInstrumentId = "collectionInstrumentId";
+            ObjectId objectId = new ObjectId();
+
+            DataProcessingContextDocument dataProcessingContextDocument = new DataProcessingContextDocument();
+            dataProcessingContextDocument.setId(objectId);
+            dataProcessingContextDocument.setCollectionInstrumentId(collectionInstrumentId);
+            dataProcessingContextDocument.setKraftwerkExecutionScheduleList(new ArrayList<>());
+            //Expired schedule
+            String expiredFrequency = "0 0 0 0 0 0";
+            LocalDateTime expiredDate = LocalDateTime.now().minusDays(3);
+            dataProcessingContextDocument.getKraftwerkExecutionScheduleList().add(new KraftwerkExecutionSchedule(
+                    expiredFrequency,
+                    null,
+                    LocalDateTime.now().minusDays(7),
+                    expiredDate,
+                    null
+            ));
+            when(dataProcessingContextMongoDBRepository.findAll())
+                    .thenReturn(List.of(dataProcessingContextDocument));
+
+            //WHEN
+            //TODO s in context
+            mockMvc.perform(delete("/context/schedules/expired-schedules")
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk());
+
+            //THEN
+            ArgumentCaptor<Query> queryCaptor = ArgumentCaptor.forClass(Query.class);
+            ArgumentCaptor<Update> updateCaptor = ArgumentCaptor.forClass(Update.class);
+
+            verify(mongoTemplate).updateMulti(
+                    queryCaptor.capture(),
+                    updateCaptor.capture(),
+                    eq(Constants.MONGODB_SCHEDULE_COLLECTION_NAME)
+            );
+
+            Assertions.assertThat(queryCaptor.getValue().getQueryObject()).containsEntry(
+                   "collectionInstrumentId", collectionInstrumentId
+            );
+
+            Document updateObject = updateCaptor.getValue().getUpdateObject();
+            Document pullClause = (Document) updateObject.get("$pull");
+            Assertions.assertThat(pullClause).isNotNull();
+
+            Query pullQuery = (Query) pullClause.get("kraftwerkExecutionScheduleList");
+
+            Document pullQueryObject = pullQuery.getQueryObject();
+            Assertions.assertThat(pullQueryObject).isNotNull().containsEntry("scheduleEndDate", expiredDate);
+        }
+
+        //BAD PATHS
+        @Test
+        @WithMockUser(roles = "USER_KRAFTWERK")
+        @DisplayName("Delete schedule should return 404 if context doesn't exist")
+        @SneakyThrows
+        void delete_schedule_not_found_test(){
+            //GIVEN
+            String collectionInstrumentId = "collectionInstrumentId";
+
+            //WHEN + THEN
+            mockMvc.perform(delete("/contexts/%s/schedules".formatted(collectionInstrumentId))
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isNotFound());
+        }
+
     }
 }

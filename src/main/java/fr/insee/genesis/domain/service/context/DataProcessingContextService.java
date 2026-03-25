@@ -163,11 +163,7 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
         dataProcessingContextPersistancePort.save(DataProcessingContextMapper.INSTANCE.modelToDocument(dataProcessingContextModel));
     }
 
-    /**
-     * @Deprecated Will be replaced by Bangles V1 + partitionId is obsolete
-     */
     @Override
-    @Deprecated(forRemoval = true)
     public void deleteSchedules(String partitionId) throws GenesisException {
         DataProcessingContextModel dataProcessingContextModel =
                 DataProcessingContextMapper.INSTANCE.documentToModel(
@@ -180,11 +176,7 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
         dataProcessingContextPersistancePort.save(DataProcessingContextMapper.INSTANCE.modelToDocument(dataProcessingContextModel));
     }
 
-    /**
-     * @Deprecated Will be replaced by Bangles V1
-     */
     @Override
-    @Deprecated
     public void deleteSchedulesByCollectionInstrumentId(String collectionInstrumentId) throws GenesisException {
         DataProcessingContextModel dataProcessingContextModel =
                         dataProcessingContextPersistancePort.findByCollectionInstrumentId(collectionInstrumentId);
@@ -196,7 +188,7 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
     }
 
     /**
-     * @Deprecated Will be replaced by Bangles V1
+     * @Deprecated Will be replaced by Bangles V1 ?
      */
     @Override
     @Deprecated
@@ -213,11 +205,7 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
         return scheduleDtos;
     }
 
-    /**
-     * @Deprecated Will be replaced by Bangles V1
-     */
     @Override
-    @Deprecated
     public void deleteExpiredSchedules(String logFolder) throws GenesisException {
         List<DataProcessingContextModel> dataProcessingContextModels =
                 DataProcessingContextMapper.INSTANCE.listDocumentToListModel(dataProcessingContextPersistancePort.findAll());
@@ -226,7 +214,7 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
                 List<KraftwerkExecutionSchedule> deletedKraftwerkExecutionSchedules = dataProcessingContextPersistancePort.removeExpiredSchedules(context);
                 //Save in JSON log
                 if(!deletedKraftwerkExecutionSchedules.isEmpty()) {
-                    String scheduleName = context.getCollectionInstrumentId()==null ?
+                    String scheduleName = context.getCollectionInstrumentId() == null ?
                             context.getPartitionId() : context.getCollectionInstrumentId();
                     Path jsonLogPath = Path.of(logFolder, Constants.SCHEDULE_ARCHIVE_FOLDER_NAME,
                             scheduleName + ".json");
@@ -246,7 +234,9 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
                     }
                 }
             } catch (IOException e) {
-                String name = context.getCollectionInstrumentId()!=null?context.getCollectionInstrumentId() :context.getPartitionId();
+                String name = context.getCollectionInstrumentId() != null ?
+                        context.getCollectionInstrumentId()
+                        : context.getPartitionId();
                 throw new GenesisException(500,String.format("An error occured trying to delete expired schedules for %s",name));
             }
         }
