@@ -263,8 +263,14 @@ public class ResponseController implements CommonApiResponse {
     public ResponseEntity<Object> findResponsesByInterrogationAndCollectionInstrumentLatestStates(
             @RequestParam("interrogationId") String interrogationId,
             @RequestParam("collectionInstrumentId") String collectionInstrumentId) throws GenesisException {
+        //TODO move logic to service
+        DataProcessingContextModel dataProcessingContextModel;
         //Check context
-        DataProcessingContextModel dataProcessingContextModel = contextService.getContext(interrogationId);
+        try {
+            dataProcessingContextModel = contextService.getContext(interrogationId);
+        }catch (GenesisException e){
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
 
         if(dataProcessingContextModel == null || !dataProcessingContextModel.isWithReview()){
             return ResponseEntity.status(403).body(new ApiError("Review is disabled for that partition"));

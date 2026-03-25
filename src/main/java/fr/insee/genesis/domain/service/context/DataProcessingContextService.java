@@ -257,6 +257,7 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
         return dataProcessingContextPersistancePort.count();
     }
 
+    //TODO get context by collectionInstrumentId
     @Override
     public DataProcessingContextModel getContext(String interrogationId) throws GenesisException {
         List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findByInterrogationId(interrogationId);
@@ -280,6 +281,7 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
         }
 
         return dataProcessingContextPersistancePort.findByCollectionInstrumentId(collectionInstrumentIds.stream().toList().getFirst());
+        //TODO if multiple contexts, priorize withReview false
     }
 
     @Override
