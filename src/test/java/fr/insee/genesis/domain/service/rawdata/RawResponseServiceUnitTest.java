@@ -109,7 +109,7 @@ class RawResponseServiceUnitTest {
         //GIVEN
         List<String> questionnaireIds = new ArrayList<>();
         questionnaireIds.add("QUEST1"); //No spec
-        questionnaireIds.add("TEST-TABLEAUX");
+        questionnaireIds.add(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID);
         doReturn(questionnaireIds).when(rawResponsePersistencePort).getUnprocessedCollectionIds();
         doReturn(List.of(ModeDto.CAWI)).when(rawResponsePersistencePort).findModesByCollectionInstrument(any());
         //No mock for metadataservice this time
@@ -131,7 +131,7 @@ class RawResponseServiceUnitTest {
 
         //WHEN + THEN
         Assertions.assertThat(rawResponseService.getUnprocessedCollectionInstrumentIds())
-                .containsExactly("TEST-TABLEAUX");
+                .containsExactly(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID);
     }
 
     @Test

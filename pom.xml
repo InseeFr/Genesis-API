@@ -256,6 +256,9 @@
                         <include>**/*Test.java</include>
                         <include>**/*Tests.java</include>
                     </includes>
+                    <excludes>
+                        <exclude>**/*IT.java</exclude>
+                    </excludes>
                     <parallel>methods</parallel>
                     <threadCount>4</threadCount>
                     <argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar}</argLine>
@@ -284,10 +287,10 @@
                 <version>${pitest.version}</version>
                 <configuration>
                     <targetClasses>
-                        <param>fr.insee.kraftwerk.*</param>
+                        <param>fr.insee.genesis.*</param>
                     </targetClasses>
                     <targetTests>
-                        <param>fr.insee.kraftwerk.*</param>
+                        <param>fr.insee.genesis.*</param>
                     </targetTests>
                     <mutators>
                         <mutator>STRONGER</mutator>
