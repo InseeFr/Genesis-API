@@ -20,6 +20,7 @@ import fr.insee.genesis.infrastructure.document.context.DataProcessingContextDoc
 import fr.insee.genesis.infrastructure.mappers.DataProcessingContextMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -30,9 +31,9 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Stream;
 
 @Service
 @Slf4j
@@ -154,6 +155,21 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
 
         String scheduleUuid = UUID.randomUUID().toString();
 
+        Optional<KraftwerkExecutionScheduleV2> scheduleAlreadyExists = dataProcessingContextModel.getKraftwerkExecutionScheduleV2List()
+                .stream()
+                .filter(schedule ->
+                    schedule.getMode()==scheduleInput.getMode() && schedule.getDestinationType() == scheduleInput.getDestinationType()
+                )
+                .findFirst();
+
+        if (scheduleAlreadyExists.isPresent()){
+            throw new DuplicateKeyException(String.format("Schedule already exists for collectionInstrumentId %s with mode %s and destinationType %s. Use update endpoint with scheduleUuid %s",
+                    scheduleInput.getCollectionInstrumentId(),
+                    scheduleInput.getMode(),
+                    scheduleInput.getDestinationType(),
+                    scheduleAlreadyExists.get().getScheduleUuid()));
+        }
+
         KraftwerkExecutionScheduleV2 newSchedule = new KraftwerkExecutionScheduleV2(
                 scheduleUuid,
                 scheduleInput.getFrequency(),
@@ -210,6 +226,8 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
         scheduleToUpdate.setDestinationFolder(scheduleInput.getDestinationFolder());
         scheduleToUpdate.setTrustParameters(scheduleInput.getTrustParameters());
         scheduleToUpdate.setBatchSize(scheduleInput.getBatchSize());
+
+
 
         dataProcessingContextPersistancePort.save(
                 DataProcessingContextMapper.INSTANCE.modelToDocument(dataProcessingContextModel)
@@ -369,7 +387,7 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
                         Files.write(jsonLogPath, jsonToWrite.getBytes());
                     }
                 }
-            } catch (IOException e) {
+            } catch (IOException _) {
                 String name = context.getCollectionInstrumentId()!=null?context.getCollectionInstrumentId() :context.getPartitionId();
                 throw new GenesisException(500,String.format("An error occured trying to delete expired schedules for %s",name));
             }
