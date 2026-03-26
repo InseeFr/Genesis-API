@@ -517,7 +517,7 @@ public class ResponseController implements CommonApiResponse {
 
         //Create context if not exist
         if(contextService.getContextByCollectionInstrumentId(campaignName) == null){
-            contextService.saveContext(campaignName, false);
+            contextService.saveContextByCollectionInstrumentId(campaignName, false);
         }
 
     }
@@ -605,7 +605,7 @@ public class ResponseController implements CommonApiResponse {
 
             campaign = parser.getCampaign();
             LunaticXmlSurveyUnit su = parser.readNextSurveyUnit();
-            contextService.saveContext(campaign.getCampaignId(), false);
+            contextService.saveContextByCollectionInstrumentId(campaign.getCampaignId(), false);
             VariablesMap variablesMap = null;
             while (su != null) {
                 if(variablesMap == null){

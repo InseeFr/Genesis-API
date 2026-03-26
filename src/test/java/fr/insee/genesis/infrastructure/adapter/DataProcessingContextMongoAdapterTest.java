@@ -35,7 +35,6 @@ import static org.mockito.Mockito.when;
 @DisplayName("DataProcessingContextMongoAdapter tests")
 class DataProcessingContextMongoAdapterTest {
 
-    private static final String PARTITION_ID = "partition-123";
     private static final String COLLECTION_INSTRUMENT_ID = "instrument-456";
 
     @Mock
@@ -248,7 +247,7 @@ class DataProcessingContextMongoAdapterTest {
         void removeExpiredSchedules_noExpired_shouldReturnEmptyList() throws IOException {
             //GIVEN
             KraftwerkExecutionSchedule future = buildSchedule(LocalDateTime.now().plusDays(1));
-            DataProcessingContextModel model = buildModelWithSchedules(COLLECTION_INSTRUMENT_ID, List.of(future));
+            DataProcessingContextModel model = buildModelWithSchedules(List.of(future));
 
             //WHEN
             List<KraftwerkExecutionSchedule> removed = adapter.removeExpiredSchedules(model);
@@ -263,7 +262,7 @@ class DataProcessingContextMongoAdapterTest {
         void removeExpiredSchedules_withCollectionInstrumentId_shouldUpdateByCollectionInstrumentId() throws IOException {
             //GIVEN
             KraftwerkExecutionSchedule expired = buildSchedule(LocalDateTime.now().minusDays(1));
-            DataProcessingContextModel model = buildModelWithSchedules(COLLECTION_INSTRUMENT_ID, List.of(expired));
+            DataProcessingContextModel model = buildModelWithSchedules(List.of(expired));
 
             //WHEN
             List<KraftwerkExecutionSchedule> removed = adapter.removeExpiredSchedules(model);
@@ -282,38 +281,12 @@ class DataProcessingContextMongoAdapterTest {
         }
 
         @Test
-        @DisplayName("Should call updateMulti by surveyName (partitionId) when collectionInstrumentId is null")
-        //TODO Remove this test when removing partitionId
-        void removeExpiredSchedules_nullCollectionInstrumentId_shouldUpdateByPartitionId() throws IOException {
-            //GIVEN
-            KraftwerkExecutionSchedule expired = buildSchedule(LocalDateTime.now().minusDays(1));
-            DataProcessingContextModel model = buildModelWithSchedules(null, List.of(expired));
-            model.setPartitionId(PARTITION_ID);
-
-            //WHEN
-            List<KraftwerkExecutionSchedule> removed = adapter.removeExpiredSchedules(model);
-
-            assertThat(removed).hasSize(1).containsExactly(expired);
-
-            ArgumentCaptor<Query> queryCaptor = ArgumentCaptor.forClass(Query.class);
-            verify(mongoTemplate).updateMulti(
-                    queryCaptor.capture(),
-                    any(Update.class),
-                    eq(Constants.MONGODB_SCHEDULE_COLLECTION_NAME)
-            );
-
-            //THEN
-            // The outer query must filter by surveyName
-            assertThat(queryCaptor.getValue().toString()).contains("surveyName");
-        }
-
-        @Test
         @DisplayName("Should remove only expired schedules from a mixed list")
         void removeExpiredSchedules_mixedList_shouldRemoveOnlyExpired() throws IOException {
             //GIVEN
             KraftwerkExecutionSchedule expired = buildSchedule(LocalDateTime.now().minusDays(1));
             KraftwerkExecutionSchedule future = buildSchedule(LocalDateTime.now().plusDays(1));
-            DataProcessingContextModel model = buildModelWithSchedules(COLLECTION_INSTRUMENT_ID, List.of(expired, future));
+            DataProcessingContextModel model = buildModelWithSchedules(List.of(expired, future));
 
             //WHEN
             List<KraftwerkExecutionSchedule> removed = adapter.removeExpiredSchedules(model);
@@ -330,7 +303,7 @@ class DataProcessingContextMongoAdapterTest {
             //GIVEN
             KraftwerkExecutionSchedule expired1 = buildSchedule(LocalDateTime.now().minusDays(1));
             KraftwerkExecutionSchedule expired2 = buildSchedule(LocalDateTime.now().minusDays(2));
-            DataProcessingContextModel model = buildModelWithSchedules(COLLECTION_INSTRUMENT_ID, List.of(expired1, expired2));
+            DataProcessingContextModel model = buildModelWithSchedules(List.of(expired1, expired2));
 
             //WHEN
             List<KraftwerkExecutionSchedule> removed = adapter.removeExpiredSchedules(model);
@@ -344,7 +317,7 @@ class DataProcessingContextMongoAdapterTest {
         @DisplayName("Should return empty list when schedule list is empty")
         void removeExpiredSchedules_emptyScheduleList_shouldReturnEmptyList() throws IOException {
             //GIVEN
-            DataProcessingContextModel model = buildModelWithSchedules(COLLECTION_INSTRUMENT_ID, List.of());
+            DataProcessingContextModel model = buildModelWithSchedules(List.of());
 
             //WHEN
             List<KraftwerkExecutionSchedule> removed = adapter.removeExpiredSchedules(model);
@@ -440,10 +413,9 @@ class DataProcessingContextMongoAdapterTest {
         );
     }
 
-    private DataProcessingContextModel buildModelWithSchedules(String collectionInstrumentId,
-                                                               List<KraftwerkExecutionSchedule> schedules) {
+    private DataProcessingContextModel buildModelWithSchedules(List<KraftwerkExecutionSchedule> schedules) {
         return DataProcessingContextModel.builder()
-                .collectionInstrumentId(collectionInstrumentId)
+                .collectionInstrumentId(DataProcessingContextMongoAdapterTest.COLLECTION_INSTRUMENT_ID)
                 .kraftwerkExecutionScheduleList(schedules)
                 .build();
     }

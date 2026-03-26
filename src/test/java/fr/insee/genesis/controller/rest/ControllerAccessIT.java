@@ -5,17 +5,7 @@ import fr.insee.genesis.domain.ports.api.DataProcessingContextApiPort;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.RawResponseApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
-import fr.insee.genesis.infrastructure.repository.ContextualExternalVariableMongoDBRepository;
-import fr.insee.genesis.infrastructure.repository.ContextualPreviousVariableMongoDBRepository;
-import fr.insee.genesis.infrastructure.repository.DataProcessingContextMongoDBRepository;
-import fr.insee.genesis.infrastructure.repository.LastJsonExtractionMongoDBRepository;
-import fr.insee.genesis.infrastructure.repository.LunaticJsonMongoDBRepository;
-import fr.insee.genesis.infrastructure.repository.LunaticModelMongoDBRepository;
-import fr.insee.genesis.infrastructure.repository.QuestionnaireMetadataMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.RawResponseInputRepository;
-import fr.insee.genesis.infrastructure.repository.RawResponseRepository;
-import fr.insee.genesis.infrastructure.repository.RundeckExecutionDBRepository;
-import fr.insee.genesis.infrastructure.repository.SurveyUnitMongoDBRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,7 +13,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -96,8 +85,7 @@ class ControllerAccessIT extends IntegrationTestAbstract {
         return Stream.of(
                 Arguments.of(PUT,"/lunatic-model/save?questionnaireId=TEST", new HashMap<>()),
                 Arguments.of(POST,"/edited/previous/json?questionnaireId=TEST&mode=WEB&jsonFileName=truc.json"),
-                Arguments.of(POST,"/edited/external/json?questionnaireId=TEST&mode=WEB&jsonFileName=truc.json"),
-                Arguments.of(PUT,"/context/review?partitionId=TEST")
+                Arguments.of(POST,"/edited/external/json?questionnaireId=TEST&mode=WEB&jsonFileName=truc.json")
         );
     }
 
@@ -226,9 +214,9 @@ class ControllerAccessIT extends IntegrationTestAbstract {
     @Test
     @DisplayName("Reader should not access other schedule endpoints")
     void reader_should_not_access_other_schedules_services() throws Exception {
-        doNothing().when(dataProcessingContextApiPort).deleteSchedules(anyString());
+        doNothing().when(dataProcessingContextApiPort).deleteSchedulesByCollectionInstrumentId(anyString());
         mockMvc.perform(
-                        delete("/context/schedules?partitionId=ENQ_TEST").with(
+                        delete("/context/ENQ_TEST/schedules").with(
                                 jwt().authorities(new SimpleGrantedAuthority("ROLE_READER")))
                 )
                 .andExpect(status().isForbidden());

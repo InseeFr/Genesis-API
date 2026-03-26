@@ -18,9 +18,6 @@ public class DataProcessingContextDocument{
         @Id
         private ObjectId id;
         @Indexed
-        @Deprecated
-        private String partitionId; //ex Survey Name, campaignId
-        @Indexed
         private String collectionInstrumentId; // QuestionnaireId
         private LocalDateTime lastExecution;
         private List<KraftwerkExecutionSchedule> kraftwerkExecutionScheduleList;

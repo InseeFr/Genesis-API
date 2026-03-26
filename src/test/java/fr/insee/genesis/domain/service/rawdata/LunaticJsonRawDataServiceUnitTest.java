@@ -640,8 +640,8 @@ class LunaticJsonRawDataServiceTest {
 
             DataProcessingContextModel dataProcessingContextModel = mock(DataProcessingContextModel.class);
             when(dataProcessingContextModel.isWithReview()).thenReturn(false);
-            when(dataProcessingContextModel.getPartitionId()).thenReturn(CAMPAIGN_ID);
-            when(dataProcessingContextPersistancePort.findByPartitionIds(List.of(CAMPAIGN_ID)))
+            when(dataProcessingContextModel.getCollectionInstrumentId()).thenReturn(QUESTIONNAIRE_ID);
+            when(dataProcessingContextPersistancePort.findByCollectionInstrumentIds(List.of(QUESTIONNAIRE_ID)))
                     .thenReturn(List.of(dataProcessingContextModel));
 
             //WHEN
@@ -661,11 +661,10 @@ class LunaticJsonRawDataServiceTest {
                     .thenReturn(List.of(groupedInterrogation));
 
             DataProcessingContextModel dataProcessingContextModel = DataProcessingContextModel.builder()
-                    .partitionId(CAMPAIGN_ID)
                     .collectionInstrumentId(QUESTIONNAIRE_ID)
                     .withReview(true)
                     .build();
-            when(dataProcessingContextPersistancePort.findByPartitionIds(List.of(CAMPAIGN_ID)))
+            when(dataProcessingContextPersistancePort.findByCollectionInstrumentIds(List.of(QUESTIONNAIRE_ID)))
                     .thenReturn(List.of(dataProcessingContextModel));
 
             //WHEN

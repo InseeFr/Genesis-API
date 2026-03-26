@@ -560,10 +560,10 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     @Override
     public Map<String, List<String>> findProcessedIdsgroupedByQuestionnaireSince(LocalDateTime since) {
         List<GroupedInterrogation> idsByQuestionnaire = lunaticJsonRawDataPersistencePort.findProcessedIdsGroupedByQuestionnaireSince(since);
-        List<String> partitionIds = idsByQuestionnaire.stream().map(GroupedInterrogation::partitionOrCampaignId).toList();
-        List<DataProcessingContextModel> contexts = dataProcessingContextPersistancePort.findByPartitionIds(partitionIds);
-        List<String> partitionIdsWithReview = contexts.stream().filter(DataProcessingContextModel::isWithReview).map(DataProcessingContextModel::getPartitionId).toList();
-        return idsByQuestionnaire.stream().filter(groupedInterrogation -> partitionIdsWithReview.contains(groupedInterrogation.partitionOrCampaignId()))
+        List<String> collectionInstrumentIds = idsByQuestionnaire.stream().map(GroupedInterrogation::questionnaireId).toList();
+        List<DataProcessingContextModel> contexts = dataProcessingContextPersistancePort.findByCollectionInstrumentIds(collectionInstrumentIds);
+        List<String> collectionInstrumentIdsWithReview = contexts.stream().filter(DataProcessingContextModel::isWithReview).map(DataProcessingContextModel::getCollectionInstrumentId).toList();
+        return idsByQuestionnaire.stream().filter(groupedInterrogation -> collectionInstrumentIdsWithReview.contains(groupedInterrogation.questionnaireId()))
                 .collect(Collectors.toMap(
                 GroupedInterrogation::questionnaireId,
                 GroupedInterrogation::interrogationIds
