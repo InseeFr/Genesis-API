@@ -41,6 +41,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static fr.insee.genesis.domain.utils.JsonUtils.jsonToMap;
 import static org.mockito.ArgumentMatchers.any;
@@ -723,8 +724,13 @@ class RawResponseControllerIT extends IntegrationTestAbstract {
                 Assertions.assertThat(variableDocument.getParentId()).isNull();
 
                 //Process date update
+                @SuppressWarnings("unchecked")
+                ArgumentCaptor<Set<String>> setArgumentCaptor = ArgumentCaptor.forClass(Set.class);
                 verify(lunaticJsonRawDataMongoAdapter, times(2))
-                        .updateProcessDates(questionnaireId, new HashSet<>(interrogationIds));
+                        .updateProcessDates(eq(questionnaireId), setArgumentCaptor.capture());
+
+                Set<String> callSet = setArgumentCaptor.getValue();
+                Assertions.assertThat(callSet).containsExactlyInAnyOrder("INTERRO1", "INTERRO2");
             }
         }
 
@@ -766,8 +772,14 @@ class RawResponseControllerIT extends IntegrationTestAbstract {
             List<SurveyUnitDocument> savedDocuments = listArgumentCaptor.getValue();
             Assertions.assertThat(savedDocuments).isNotNull().isEmpty();
 
+            //Process date update
+            @SuppressWarnings("unchecked")
+            ArgumentCaptor<Set<String>> setArgumentCaptor = ArgumentCaptor.forClass(Set.class);
             verify(lunaticJsonRawDataMongoAdapter, times(1))
-                    .updateProcessDates(questionnaireId, new HashSet<>(interrogationIds));
+                    .updateProcessDates(eq(questionnaireId), setArgumentCaptor.capture());
+
+            Set<String> callSet = setArgumentCaptor.getValue();
+            Assertions.assertThat(callSet).containsExactly("INTERRO1");
         }
 
         //OLD MODEL UTILS
