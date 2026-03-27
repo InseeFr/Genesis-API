@@ -9,6 +9,7 @@ import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
 import org.bson.Document;
 import org.bson.types.ObjectId;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -215,6 +216,8 @@ public class DataProcessingContextControllerIT extends IntegrationTestAbstract {
         }
 
         @Test
+        //TODO use a file infra interface (mocked) here
+        @Disabled("Writes directly on the pod/runner with files")
         @WithMockUser(roles = "SCHEDULER")
         @DisplayName("Delete expired schedules test")
         @SneakyThrows
