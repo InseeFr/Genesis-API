@@ -5,8 +5,6 @@ import fr.insee.bpm.metadata.model.Variable;
 import fr.insee.bpm.metadata.model.VariableType;
 import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.TestConstants;
-import fr.insee.genesis.controller.dto.CampaignWithQuestionnaire;
-import fr.insee.genesis.controller.dto.QuestionnaireWithCampaign;
 import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
 import fr.insee.genesis.controller.dto.SurveyUnitSimplifiedDto;
 import fr.insee.genesis.controller.dto.VariableInputDto;
@@ -36,7 +34,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -197,7 +194,6 @@ class SurveyUnitServiceUnitTest {
     }
 
     @Test
-    @SuppressWarnings("deprecation")
     @SneakyThrows
     void get_simplified_should_return_latest_state_in_collected_variable(){
         //GIVEN
@@ -243,7 +239,6 @@ class SurveyUnitServiceUnitTest {
     }
 
     @Test
-    @SuppressWarnings("deprecation")
     @SneakyThrows
     void get_simplified_should_return_latest_state_in_external_variable(){
         //GIVEN
@@ -507,22 +502,6 @@ class SurveyUnitServiceUnitTest {
         }
 
         @Test
-        @DisplayName("findModesByCampaignId should return distinct modes")
-        void findModesByCampaignId_shouldReturnDistinctModes() {
-            // GIVEN
-            SurveyUnitDocument webDoc = buildDoc("INTERRO1", Mode.WEB);
-            SurveyUnitDocument f2fDoc = buildDoc("INTERRO2", Mode.F2F);
-            doReturn(SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(List.of(webDoc, f2fDoc)))
-                    .when(surveyUnitPersistencePortStub).findInterrogationIdsByCampaignId(any());
-
-            // WHEN
-            List<Mode> result = surveyUnitService.findModesByCampaignId("CAMPAIGN1");
-
-            // THEN
-            assertThat(result).containsExactlyInAnyOrder(Mode.WEB, Mode.F2F);
-        }
-
-        @Test
         @DisplayName("findModesByQuestionnaireIdV2 should return distinct modes")
         void findModesByQuestionnaireIdV2_shouldReturnDistinctModes() {
             // GIVEN
@@ -537,21 +516,6 @@ class SurveyUnitServiceUnitTest {
 
             // THEN
             assertThat(result).containsExactly(Mode.WEB);
-        }
-
-        @Test
-        @DisplayName("findModesByCampaignIdV2 should return distinct modes")
-        void findModesByCampaignIdV2_shouldReturnDistinctModes() {
-            // GIVEN
-            SurveyUnitDocument f2fDoc = buildDoc("INTERRO1", Mode.F2F);
-            doReturn(SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(List.of(f2fDoc)))
-                    .when(surveyUnitPersistencePortStub).findModesByCampaignIdV2(any());
-
-            // WHEN
-            List<Mode> result = surveyUnitService.findModesByCampaignIdV2("CAMPAIGN1");
-
-            // THEN
-            assertThat(result).containsExactly(Mode.F2F);
         }
     }
 
@@ -576,16 +540,6 @@ class SurveyUnitServiceUnitTest {
 
         // WHEN + THEN
         assertThat(surveyUnitService.countResponses()).isEqualTo(500L);
-    }
-
-    @Test
-    @DisplayName("countResponsesByCampaignId should call persistance port")
-    void countResponsesByCampaignId_shouldDelegateToPersistencePort() {
-        // GIVEN
-        doReturn(123L).when(surveyUnitPersistencePortStub).countByCampaignId(any());
-
-        // WHEN + THEN
-        assertThat(surveyUnitService.countResponsesByCampaignId("CAMPAIGN1")).isEqualTo(123L);
     }
 
     @Test
@@ -653,44 +607,6 @@ class SurveyUnitServiceUnitTest {
                     TestConstants.DEFAULT_INTERROGATION_ID
             )).isInstanceOf(GenesisException.class);
         }
-    }
-
-    @Test
-    @DisplayName("findCampaignsWithQuestionnaires should group questionnaires with their campaign")
-    void findCampaignsWithQuestionnaires_shouldGroupQuestionnairesPerCampaign() {
-        // GIVEN
-        doReturn(Set.of("CAMPAIGN1", "CAMPAIGN2"))
-                .when(surveyUnitPersistencePortStub).findDistinctCampaignIds();
-        doReturn(Set.of("QUEST1", "QUEST2"))
-                .when(surveyUnitPersistencePortStub).findQuestionnaireIdsByCampaignId("CAMPAIGN1");
-        doReturn(Set.of("QUEST3"))
-                .when(surveyUnitPersistencePortStub).findQuestionnaireIdsByCampaignId("CAMPAIGN2");
-
-        // WHEN
-        List<CampaignWithQuestionnaire> result = surveyUnitService.findCampaignsWithQuestionnaires();
-
-        // THEN
-        assertThat(result).hasSize(2);
-        CampaignWithQuestionnaire campaign1Result = result.stream()
-                .filter(c -> c.getCampaignId().equals("CAMPAIGN1")).findFirst().orElseThrow();
-        assertThat(campaign1Result.getQuestionnaires()).containsExactlyInAnyOrder("QUEST1", "QUEST2");
-    }
-
-    @Test
-    @DisplayName("findQuestionnairesWithCampaigns should group campaigns with their questionnaire")
-    void findQuestionnairesWithCampaigns_shouldGroupCampaignsPerQuestionnaire() {
-        // GIVEN
-        doReturn(Set.of("QUEST1"))
-                .when(surveyUnitPersistencePortStub).findDistinctQuestionnairesAndCollectionInstrumentIds();
-        doReturn(Set.of("CAMPAIGN1", "CAMPAIGN2"))
-                .when(surveyUnitPersistencePortStub).findCampaignIdsByQuestionnaireId("QUEST1");
-
-        // WHEN
-        List<QuestionnaireWithCampaign> result = surveyUnitService.findQuestionnairesWithCampaigns();
-
-        // THEN
-        assertThat(result).hasSize(1);
-        assertThat(result.getFirst().getCampaigns()).containsExactlyInAnyOrder("CAMPAIGN1", "CAMPAIGN2");
     }
 
     @Nested

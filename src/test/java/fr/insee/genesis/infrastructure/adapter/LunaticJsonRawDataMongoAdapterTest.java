@@ -203,38 +203,6 @@ class LunaticJsonRawDataMongoAdapterTest {
     }
 
     @Nested
-    @DisplayName("findRawData() tests")
-    class FindRawDataTests {
-
-        @Test
-        @DisplayName("Should delegate to repository and return mapped models")
-        void findRawData_shouldCallRepositoryAndReturnModels() {
-            //GIVEN
-            List<String> interrogationIds = List.of("i1", "i2");
-            when(repository.findByCampaignModeAndInterrogations(CAMPAIGN_ID, MODE, interrogationIds))
-                    .thenReturn(List.of(getDocument()));
-
-            //WHEN
-            List<LunaticJsonRawDataModel> result = adapter.findRawData(CAMPAIGN_ID, MODE, interrogationIds);
-
-            //THEN
-            assertThat(result).isNotNull().hasSize(1);
-            verify(repository).findByCampaignModeAndInterrogations(CAMPAIGN_ID, MODE, interrogationIds);
-        }
-
-        @Test
-        @DisplayName("Should return empty list when repository returns no documents")
-        void findRawData_noDocuments_shouldReturnEmptyList() {
-            //GIVEN
-            when(repository.findByCampaignModeAndInterrogations(any(), any(), any()))
-                    .thenReturn(List.of());
-
-            //WHEN + THEN
-            assertThat(adapter.findRawData(CAMPAIGN_ID, MODE, List.of())).isEmpty();
-        }
-    }
-
-    @Nested
     @DisplayName("findRawDataByQuestionnaireId(questionnaireId, mode, interrogationIds) tests")
     class FindRawDataByQuestionnaireIdWithModeTests {
 
@@ -363,7 +331,7 @@ class LunaticJsonRawDataMongoAdapterTest {
             Set<String> ids = Set.of("i1", "i2");
 
             //WHEN
-            adapter.updateProcessDates(CAMPAIGN_ID, ids);
+            adapter.updateProcessDates(QUESTIONNAIRE_ID, ids);
 
             //THEN
             verify(mongoTemplate).updateMulti(
@@ -377,7 +345,7 @@ class LunaticJsonRawDataMongoAdapterTest {
         @DisplayName("Should call updateMulti() exactly once")
         void updateProcessDates_shouldCallUpdateMultiOnce() {
             //GIVEN
-            adapter.updateProcessDates(CAMPAIGN_ID, Set.of("i1"));
+            adapter.updateProcessDates(QUESTIONNAIRE_ID, Set.of("i1"));
 
             //WHEN + THEN
             verify(mongoTemplate, times(1)).updateMulti(any(), any(), any(String.class));
@@ -387,7 +355,7 @@ class LunaticJsonRawDataMongoAdapterTest {
         @DisplayName("Should not call repository — only mongoTemplate")
         void updateProcessDates_shouldNotTouchRepository() {
             //GIVEN
-            adapter.updateProcessDates(CAMPAIGN_ID, Set.of("i1"));
+            adapter.updateProcessDates(QUESTIONNAIRE_ID, Set.of("i1"));
 
             //WHEN + THEN
             verifyNoInteractions(repository);
@@ -483,7 +451,6 @@ class LunaticJsonRawDataMongoAdapterTest {
     @Nested
     @DisplayName("findByCampaignIdAndDate() tests")
     class FindByCampaignIdAndDateTests {
-
         @Test
         @DisplayName("Should return a Page of mapped models")
         void findByCampaignIdAndDate_shouldReturnPage() {

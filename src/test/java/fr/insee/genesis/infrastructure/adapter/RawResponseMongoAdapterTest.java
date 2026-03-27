@@ -42,7 +42,6 @@ import static org.mockito.Mockito.when;
 class RawResponseMongoAdapterTest {
 
 	private static final String COLLECTION_INSTRUMENT_ID = "instrument-123";
-	private static final String CAMPAIGN_ID = "campaign-456";
 	private static final String INTERROGATION_ID = "interrogation-789";
 	private static final Mode MODE = Mode.WEB;
 
@@ -303,6 +302,7 @@ class RawResponseMongoAdapterTest {
 	@Nested
 	@DisplayName("findByCampaignIdAndDate() tests")
 	class FindByCampaignIdAndDateTests {
+		private static final String CAMPAIGN_ID = "campaign-456";
 
 		@Test
 		@DisplayName("Should return a Page of mapped models")

@@ -40,7 +40,9 @@ import org.springframework.http.ResponseEntity;
 import org.mockito.Mockito;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -92,7 +94,6 @@ class LunaticJsonRawDataServiceTest {
     @InjectMocks
     private LunaticJsonRawDataService service;
 
-    private static final String CAMPAIGN_ID = "campaign-1";
     private static final String QUESTIONNAIRE_ID = "questionnaire-1";
     private static final String INTERROGATION_ID = "interrogation-1";
 
@@ -292,7 +293,7 @@ class LunaticJsonRawDataServiceTest {
 
             //THEN
             assertThat(result).isEmpty();
-            verify(lunaticJsonRawDataPersistencePort, atLeastOnce()).updateProcessDates(eq(CAMPAIGN_ID), anySet());
+            verify(lunaticJsonRawDataPersistencePort, atLeastOnce()).updateProcessDates(eq(QUESTIONNAIRE_ID), anySet());
         }
 
         @Test
@@ -381,7 +382,6 @@ class LunaticJsonRawDataServiceTest {
             data.put("isCapturedIndirectly", "true");
 
             LunaticJsonRawDataModel rawData = LunaticJsonRawDataModel.builder()
-                    .campaignId(CAMPAIGN_ID)
                     .questionnaireId(QUESTIONNAIRE_ID)
                     .interrogationId(INTERROGATION_ID)
                     .idUE("testIdUE")
@@ -417,7 +417,6 @@ class LunaticJsonRawDataServiceTest {
             data.put("validationDate", "not-a-date");
 
             LunaticJsonRawDataModel rawData = LunaticJsonRawDataModel.builder()
-                    .campaignId(CAMPAIGN_ID)
                     .questionnaireId(QUESTIONNAIRE_ID)
                     .interrogationId(INTERROGATION_ID)
                     .idUE("idUE-1")
@@ -468,7 +467,7 @@ class LunaticJsonRawDataServiceTest {
         void returnsDtos() {
             //GIVEN
             GroupedInterrogation grouped = new GroupedInterrogation(
-                    QUESTIONNAIRE_ID, null, List.of("id1", "id2"));
+                    QUESTIONNAIRE_ID, List.of("id1", "id2"));
             when(lunaticJsonRawDataPersistencePort.findUnprocessedIds()).thenReturn(List.of(grouped));
 
             //WHEN
@@ -564,22 +563,24 @@ class LunaticJsonRawDataServiceTest {
     class UpdateProcessDatesTests {
 
         @Test
-        @DisplayName("Groups interrogation ids by campaign and calls port once per campaign")
+        @DisplayName("Groups interrogation ids by questionnaire and calls port once per questionnaire")
         void groupsByCampaignId() {
             //GIVEN
+            String collectionInstrumentId2 = QUESTIONNAIRE_ID + "2";
             SurveyUnitModel m1 = SurveyUnitModel.builder()
-                    .campaignId(CAMPAIGN_ID).interrogationId("id1").build();
+                    .collectionInstrumentId(QUESTIONNAIRE_ID).interrogationId("id1").build();
             SurveyUnitModel m2 = SurveyUnitModel.builder()
-                    .campaignId(CAMPAIGN_ID).interrogationId("id2").build();
+                    .collectionInstrumentId(QUESTIONNAIRE_ID).interrogationId("id2").build();
             SurveyUnitModel m3 = SurveyUnitModel.builder()
-                    .campaignId("campaign-2").interrogationId("id3").build();
+                    .collectionInstrumentId(collectionInstrumentId2).interrogationId("id3").build();
 
             //WHEN
             service.updateProcessDates(List.of(m1, m2, m3));
 
             //THEN
-            verify(lunaticJsonRawDataPersistencePort).updateProcessDates(eq(CAMPAIGN_ID), argThat(s -> s.containsAll(Set.of("id1", "id2"))));
-            verify(lunaticJsonRawDataPersistencePort).updateProcessDates(eq("campaign-2"), argThat(s -> s.contains("id3")));
+            verify(lunaticJsonRawDataPersistencePort).updateProcessDates(eq(QUESTIONNAIRE_ID), argThat(s -> s.containsAll(Set.of(
+                    "id1", "id2"))));
+            verify(lunaticJsonRawDataPersistencePort).updateProcessDates(eq(collectionInstrumentId2), argThat(s -> s.contains("id3")));
         }
 
         @Test
@@ -634,7 +635,7 @@ class LunaticJsonRawDataServiceTest {
         void noReview_filtered() {
             //GIVEN
             LocalDateTime since = LocalDateTime.now().minusDays(1);
-            GroupedInterrogation group = new GroupedInterrogation(CAMPAIGN_ID, QUESTIONNAIRE_ID, List.of("id1"));
+            GroupedInterrogation group = new GroupedInterrogation( QUESTIONNAIRE_ID, List.of("id1"));
             when(lunaticJsonRawDataPersistencePort.findProcessedIdsGroupedByQuestionnaireSince(since))
                     .thenReturn(List.of(group));
 
@@ -656,7 +657,7 @@ class LunaticJsonRawDataServiceTest {
         void withReview_included() {
             //GIVEN
             LocalDateTime since = LocalDateTime.now().minusDays(1);
-            GroupedInterrogation groupedInterrogation = new GroupedInterrogation(QUESTIONNAIRE_ID, CAMPAIGN_ID, List.of("id1"));
+            GroupedInterrogation groupedInterrogation = new GroupedInterrogation(QUESTIONNAIRE_ID, List.of("id1"));
             when(lunaticJsonRawDataPersistencePort.findProcessedIdsGroupedByQuestionnaireSince(since))
                     .thenReturn(List.of(groupedInterrogation));
 
@@ -753,7 +754,6 @@ class LunaticJsonRawDataServiceTest {
         data.put("COLLECTED", collectedData);
 
         return LunaticJsonRawDataModel.builder()
-                .campaignId(CAMPAIGN_ID)
                 .questionnaireId(QUESTIONNAIRE_ID)
                 .interrogationId(INTERROGATION_ID)
                 .idUE("idUE-1")
@@ -786,5 +786,37 @@ class LunaticJsonRawDataServiceTest {
 
         // Then
         assertThat(exists).isFalse();
+    }
+
+    @Test
+    void findRawDataByCampaignIdAndDate_should_return_page_from_persistance_port(){
+        //GIVEN
+        String campaignId = "campaignId";
+        Instant start = Instant.now().minusSeconds(30);
+        Instant end = Instant.now();
+        Page<LunaticJsonRawDataModel> lunaticJsonRawDataModelPage = new PageImpl<>(new ArrayList<>());
+        when(lunaticJsonRawDataPersistencePort.findByCampaignIdAndDate(
+                eq(campaignId),
+                eq(start),
+                eq(end),
+                any(Pageable.class)
+        )).thenReturn(lunaticJsonRawDataModelPage);
+
+        //WHEN
+        Page<LunaticJsonRawDataModel> result = service.findRawDataByCampaignIdAndDate(
+                campaignId,
+                start,
+                end,
+                Pageable.ofSize(1)
+        );
+
+        //THEN
+        verify(lunaticJsonRawDataPersistencePort, times(1)).findByCampaignIdAndDate(
+                eq(campaignId),
+                eq(start),
+                eq(end),
+                any(Pageable.class)
+        );
+        assertThat(result).isEqualTo(lunaticJsonRawDataModelPage);
     }
 }

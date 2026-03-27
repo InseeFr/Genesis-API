@@ -41,14 +41,6 @@ public class ModeController implements CommonApiResponse {
         }
     }
 
-    @Operation(summary = "List sources/modes used for a given campaign")
-    @GetMapping(path = "/by-campaign")
-    @Deprecated
-    public ResponseEntity<List<Mode>> getModesByCampaign(@RequestParam("campaignId") String campaignId) {
-        List<Mode> modes = surveyUnitService.findModesByCampaignId(campaignId);
-        return ResponseEntity.ok(modes);
-    }
-
     //TODO Integrate into normal usage
     //========= OPTIMISATIONS PERFS (START) ==========
 //    @Operation(summary = "List sources/modes used for a given questionnaire")

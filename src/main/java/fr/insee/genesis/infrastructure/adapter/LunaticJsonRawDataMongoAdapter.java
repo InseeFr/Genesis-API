@@ -60,12 +60,6 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
     }
 
     @Override
-    public List<LunaticJsonRawDataModel> findRawData(String campaignName, Mode mode, List<String> interrogationIdList) {
-        List<LunaticJsonRawDataDocument> rawDataDocs = repository.findByCampaignModeAndInterrogations(campaignName, mode, interrogationIdList);
-        return LunaticJsonRawDataDocumentMapper.INSTANCE.listDocumentToListModel(rawDataDocs);
-    }
-
-    @Override
     public List<LunaticJsonRawDataModel> findRawDataByQuestionnaireId(String questionnaireId, Mode mode, List<String> interrogationIdList) {
         List<LunaticJsonRawDataDocument> rawDataDocs = repository.findByQuestionnaireModeAndInterrogations(questionnaireId, mode, interrogationIdList);
         return LunaticJsonRawDataDocumentMapper.INSTANCE.listDocumentToListModel(rawDataDocs);
@@ -85,9 +79,9 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
     }
 
     @Override
-    public void updateProcessDates(String campaignId, Set<String> interrogationIds) {
+    public void updateProcessDates(String questionnaireId, Set<String> interrogationIds) {
         mongoTemplate.updateMulti(
-                Query.query(Criteria.where("campaignId").is(campaignId).and("interrogationId").in(interrogationIds))
+                Query.query(Criteria.where("questionnaireId").is(questionnaireId).and("interrogationId").in(interrogationIds))
                 , new Update().set("processDate", LocalDateTime.now())
                 , Constants.MONGODB_LUNATIC_RAWDATA_COLLECTION_NAME
         );

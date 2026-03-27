@@ -19,7 +19,6 @@ class SurveyUnitModelTest {
 
     private static final String INTERROGATION_ID = "interrogation-123";
     private static final String COLLECTION_INSTRUMENT_ID = "instrument-456";
-    private static final String CAMPAIGN_ID = "campaign-789";
     private static final String USUAL_SURVEY_UNIT_ID = "usual-unit-001";
     private static final String TECHNICAL_SURVEY_UNIT_ID = "technical-unit-002";
     private static final String MAJOR_MODEL_VERSION = "2";
@@ -83,7 +82,6 @@ class SurveyUnitModelTest {
 
             SurveyUnitModel model = new SurveyUnitModel(
                     COLLECTION_INSTRUMENT_ID,
-                    CAMPAIGN_ID,
                     INTERROGATION_ID,
                     USUAL_SURVEY_UNIT_ID,
                     TECHNICAL_SURVEY_UNIT_ID,
@@ -384,34 +382,6 @@ class SurveyUnitModelTest {
         void toString_shouldNotBeNullOrEmpty() {
             SurveyUnitModel model = new SurveyUnitModel();
             assertThat(model.toString()).isNotNull().isNotEmpty();
-        }
-    }
-
-    // -------------------------------------------------------------------------
-    // Deprecation awareness
-    // -------------------------------------------------------------------------
-
-    @Nested
-    @DisplayName("Deprecated field (campaignId) tests")
-    class DeprecatedFieldTests {
-
-        @Test
-        @DisplayName("campaignId setter and getter should still function")
-        @SuppressWarnings("deprecation")
-        void campaignId_shouldBeSettableAndGettable() {
-            SurveyUnitModel model = new SurveyUnitModel();
-            model.setCampaignId(CAMPAIGN_ID);
-            assertThat(model.getCampaignId()).isEqualTo(CAMPAIGN_ID);
-        }
-
-        @Test
-        @DisplayName("campaignId via builder should still work")
-        @SuppressWarnings("deprecation")
-        void campaignId_viaBuilder_shouldWork() {
-            SurveyUnitModel model = SurveyUnitModel.builder()
-                    .campaignId(CAMPAIGN_ID)
-                    .build();
-            assertThat(model.getCampaignId()).isEqualTo(CAMPAIGN_ID);
         }
     }
 }

@@ -314,64 +314,6 @@ class RawResponseControllerTest {
     }
 
     @Nested
-    @DisplayName("POST /responses/raw/lunatic-json/process tests (deprecated)")
-    class ProcessJsonRawDataDeprecatedTests {
-
-        @Test
-        @DisplayName("Should return 200 with count when no formatted data")
-        void processDeprecated_noFormatted_shouldReturn200() throws Exception {
-            // GIVEN
-            when(lunaticJsonRawDataApiPort.processRawData(anyString(), anyList(), anyList()))
-                    .thenReturn(new DataProcessResult(5, 0, new ArrayList<>()));
-
-            // WHEN / THEN
-            mockMvc.perform(post("/responses/raw/lunatic-json/process")
-                            .with(csrf())
-                            .param("campaignName", "CAMPAIGN")
-                            .param("questionnaireId", "QUEST01")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("[\"i1\"]"))
-                    .andExpect(status().isOk())
-                    .andExpect(content().string(containsString("5")));
-        }
-
-        @Test
-        @DisplayName("Should return 200 with formatted info when formatted data present")
-        void processDeprecated_withFormatted_shouldReturnFormattedInfo() throws Exception {
-            // GIVEN
-            when(lunaticJsonRawDataApiPort.processRawData(anyString(), anyList(), anyList()))
-                    .thenReturn(new DataProcessResult(5, 2, new ArrayList<>()));
-
-            // WHEN / THEN
-            mockMvc.perform(post("/responses/raw/lunatic-json/process")
-                            .with(csrf())
-                            .param("campaignName", "CAMPAIGN")
-                            .param("questionnaireId", "QUEST01")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("[\"i1\"]"))
-                    .andExpect(status().isOk())
-                    .andExpect(content().string(containsString("FORMATTED")));
-        }
-
-        @Test
-        @DisplayName("Should return GenesisException status when port throws")
-        void processDeprecated_genesisException_shouldReturnExceptionStatus() throws Exception {
-            // GIVEN
-            when(lunaticJsonRawDataApiPort.processRawData(anyString(), anyList(), anyList()))
-                    .thenThrow(new GenesisException(500, "Internal error"));
-
-            // WHEN / THEN
-            mockMvc.perform(post("/responses/raw/lunatic-json/process")
-                            .with(csrf())
-                            .param("campaignName", "CAMPAIGN")
-                            .param("questionnaireId", "QUEST01")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("[\"i1\"]"))
-                    .andExpect(status().isInternalServerError());
-        }
-    }
-
-    @Nested
     @DisplayName("POST /responses/raw/lunatic-json/{questionnaireId}/process tests")
     class ProcessJsonRawDataByQuestionnaireIdTests {
 

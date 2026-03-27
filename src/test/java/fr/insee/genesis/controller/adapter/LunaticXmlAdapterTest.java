@@ -219,19 +219,6 @@ class LunaticXmlAdapterTest {
         }
 
         @Test
-        @DisplayName("Should map campaignId")
-        void convert_shouldMapCampaignId() {
-            // GIVEN
-            LunaticXmlSurveyUnit su = buildSurveyUnit(List.of(collectedDataWithValue("VAR1", "val")));
-
-            // WHEN
-            SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, CAMPAIGN_ID, MODE));
-
-            // THEN
-            assertThat(collected.getCampaignId()).isEqualTo(CAMPAIGN_ID);
-        }
-
-        @Test
         @DisplayName("Should map mode")
         void convert_shouldMapMode() {
             // GIVEN

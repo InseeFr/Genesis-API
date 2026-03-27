@@ -320,7 +320,6 @@ public class ResponseController implements CommonApiResponse {
         }
         return ResponseEntity.ok(SurveyUnitSimplifiedDto.builder()
                 .collectionInstrumentId(responses.getFirst().getCollectionInstrumentId())
-                .campaignId(responses.getFirst().getCampaignId())
                 .interrogationId(responses.getFirst().getInterrogationId())
                 .mode(mode)
                 .usualSurveyUnitId(responses.getFirst().getUsualSurveyUnitId())
@@ -397,7 +396,6 @@ public class ResponseController implements CommonApiResponse {
                 if (!outputVariables.isEmpty() || !outputExternalVariables.isEmpty()) {
                     results.add(SurveyUnitSimplifiedDto.builder()
                             .collectionInstrumentId(responses.getFirst().getCollectionInstrumentId())
-                            .campaignId(responses.getFirst().getCampaignId())
                             .interrogationId(interrogationId.getInterrogationId())
                             .usualSurveyUnitId(!usualSurveyUnitIds.isEmpty() ? usualSurveyUnitIds.getFirst() : null)
                             .mode(mode)
@@ -750,7 +748,6 @@ public class ResponseController implements CommonApiResponse {
 
             simplifiedResponse = SurveyUnitSimplifiedDto.builder()
                     .collectionInstrumentId(responsesForSingleInterrId.getFirst().getCollectionInstrumentId())
-                    .campaignId(responsesForSingleInterrId.getFirst().getCampaignId())
                     .interrogationId(responsesForSingleInterrId.getFirst().getInterrogationId())
                     .mode(modeWrapped)
                     .validationDate(responsesForSingleInterrId.getFirst().getValidationDate())

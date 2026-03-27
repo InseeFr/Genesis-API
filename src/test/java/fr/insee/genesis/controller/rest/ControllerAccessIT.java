@@ -75,9 +75,9 @@ class ControllerAccessIT extends IntegrationTestAbstract {
     private static Stream<Arguments> responseEndpoint() {
         return Stream.of(
                 Arguments.of(GET,"/responses/raw/lunatic-json/get/unprocessed"),
-                Arguments.of(GET,"/responses/raw/lunatic-json/get/by-interrogation-mode-and-campaign?interrogationId=test&campaignName=test&mode=WEB"),
-                Arguments.of(GET,"/responses/raw/lunatic-json/campaignId=TOTO"),
-                Arguments.of(POST,"/responses/raw/lunatic-json/process?campaignName=test&questionnaireId=idTest")
+                Arguments.of(GET,"/responses/raw/lunatic-json/TOTO"),
+                Arguments.of(GET,"/raw-responses/TOTO"),
+                Arguments.of(POST,"/responses/raw/lunatic-json/test/process")
         );
     }
 

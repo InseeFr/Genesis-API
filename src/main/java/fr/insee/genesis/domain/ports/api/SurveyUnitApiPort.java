@@ -66,46 +66,17 @@ public interface SurveyUnitApiPort {
 
     List<Mode> findModesByCollectionInstrumentId(String collectionInstrumentId);
 
-    @Deprecated
-    List<Mode> findModesByCampaignId(String campaignId);
-
-    //========= OPTIMISATIONS PERFS (START) ==========
-    List<Mode> findModesByCampaignIdV2(String campaignId);
-    //========= OPTIMISATIONS PERFS (END) ==========
-
     Long deleteByCollectionInstrumentId(String collectionInstrumentId);
 
     long countResponses();
 
-    Set<String> findQuestionnaireIdsByCampaignId(String campaignId);
-
-    //========= OPTIMISATIONS PERFS (START) ==========
-    /**
-     * @author Adrien Marchal
-     */
-    Set<String> findQuestionnaireIdsByCampaignIdV2(String campaignId);
-    //========= OPTIMISATIONS PERFS (END) ==========
-
-    @Deprecated
-    Set<String> findDistinctCampaignIds();
-
-    @Deprecated
-    long countResponsesByCampaignId(String campaignId);
-
     Set<String> findDistinctQuestionnairesAndCollectionInstrumentIds();
-
-    List<CampaignWithQuestionnaire> findCampaignsWithQuestionnaires();
-
-    List<QuestionnaireWithCampaign> findQuestionnairesWithCampaigns();
 
     List<SurveyUnitModel> parseEditedVariables(SurveyUnitInputDto surveyUnitInputDto,
                                          String userIdentifier,
                                          VariablesMap variablesMap) throws GenesisException;
 
     String findQuestionnaireIdByInterrogationId(String interrogationId) throws GenesisException;
-
-    @Deprecated
-    Set<String> findCampaignIdsFrom(SurveyUnitInputDto dto);
 
     long countResponsesByQuestionnaireId(String questionnaireId);
 

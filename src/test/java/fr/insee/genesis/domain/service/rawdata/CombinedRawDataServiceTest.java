@@ -58,7 +58,6 @@ class CombinedRawDataServiceTest {
                 .thenReturn(rawResponseModels);
 
         LunaticJsonRawDataModel lunatic1 = LunaticJsonRawDataModel.builder()
-                .campaignId("CAMPAIGN")
                 .questionnaireId("QUESTIONNAIRE")
                 .interrogationId(interrogationId)
                 .data(Map.of("key", "value"))

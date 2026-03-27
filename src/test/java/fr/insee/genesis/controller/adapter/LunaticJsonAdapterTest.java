@@ -74,19 +74,6 @@ class LunaticJsonAdapterTest {
         }
 
         @Test
-        @DisplayName("Should set campaignId to empty string")
-        void convert_shouldSetCampaignIdToEmptyString() {
-            // GIVEN
-            LunaticJsonSurveyUnit su = buildSurveyUnit("q1", "i1");
-
-            // WHEN
-            SurveyUnitModel result = adapter.convert(su);
-
-            // THEN
-            assertThat(result.getCampaignId()).isEmpty();
-        }
-
-        @Test
         @DisplayName("Should set a non-null recordDate close to now")
         void convert_shouldSetRecordDateCloseToNow() {
             // GIVEN
