@@ -216,6 +216,21 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
                 .findFirst()
                 .orElseThrow(() -> new GenesisException(404, "V2 schedule not found"));
 
+        Optional<KraftwerkExecutionScheduleV2> tripletAlreadyExists = dataProcessingContextModel.getKraftwerkExecutionScheduleV2List()
+                .stream()
+                .filter(schedule ->
+                        schedule.getMode()==scheduleInput.getMode() && schedule.getExportType() == scheduleInput.getExportType()
+                )
+                .findFirst();
+
+        if (tripletAlreadyExists.isPresent()){
+            throw new DuplicateKeyException(String.format("Schedule already exists for collectionInstrumentId %s with mode %s and exportType %s. Modify scheduleUuid %s instead",
+                    scheduleInput.getCollectionInstrumentId(),
+                    scheduleInput.getMode(),
+                    scheduleInput.getExportType(),
+                    tripletAlreadyExists.get().getScheduleUuid()));
+        }
+
         scheduleToUpdate.setFrequency(scheduleInput.getFrequency());
         scheduleToUpdate.setExportType(scheduleInput.getExportType());
         scheduleToUpdate.setScheduleBeginDate(scheduleInput.getStartDate());
@@ -226,8 +241,6 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
         scheduleToUpdate.setDestinationFolder(scheduleInput.getDestinationFolder());
         scheduleToUpdate.setTrustParameters(scheduleInput.getTrustParameters());
         scheduleToUpdate.setBatchSize(scheduleInput.getBatchSize());
-
-
 
         dataProcessingContextPersistancePort.save(
                 DataProcessingContextMapper.INSTANCE.modelToDocument(dataProcessingContextModel)
