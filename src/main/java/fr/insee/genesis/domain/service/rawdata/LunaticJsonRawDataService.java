@@ -263,56 +263,6 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
 
 
     @Override
-    public DataProcessResult reprocessRawData(
-            String questionnaireId,
-            LocalDateTime sinceDate,
-            LocalDateTime endDate
-    ) throws GenesisException {
-
-        log.info(
-                "Reprocessing raw responses for questionnaireId={}, sinceDate={}, endDate={}",
-                questionnaireId,
-                sinceDate,
-                endDate
-        );
-
-        if (sinceDate == null && endDate != null) {
-            throw new GenesisException(400, "endDate cannot be provided without sinceDate");
-        }
-
-        if (sinceDate != null && endDate != null && endDate.isBefore(sinceDate)) {
-            throw new GenesisException(400, "endDate must be after or equal to sinceDate");
-        }
-
-        Set<String> interrogationIds;
-
-        if (sinceDate == null) {
-            interrogationIds =
-                    lunaticJsonRawDataPersistencePort.findProcessedInterrogationIdsByQuestionnaireId(questionnaireId);
-        } else {
-            LocalDateTime effectiveEndDate = endDate != null ? endDate : LocalDateTime.now();
-
-            interrogationIds =
-                    lunaticJsonRawDataPersistencePort.findProcessedInterrogationIdsByQuestionnaireIdAndRecordDateBetween(
-                            questionnaireId,
-                            sinceDate,
-                            effectiveEndDate
-                    );
-        }
-
-        if (interrogationIds.isEmpty()) {
-            return new DataProcessResult(0, 0, new ArrayList<>());
-        }
-
-        surveyUnitService.deleteByQuestionnaireIdAndInterrogationIds(questionnaireId, interrogationIds);
-        lunaticJsonRawDataPersistencePort.resetProcessDates(questionnaireId, interrogationIds);
-
-        return processRawData(questionnaireId,  new ArrayList<>(interrogationIds),
-                new ArrayList<>());
-    }
-
-
-    @Override
     public List<SurveyUnitModel> convertRawData(List<LunaticJsonRawDataModel> rawDataList, VariablesMap variablesMap) {
         //Convert to genesis model
         List<SurveyUnitModel> surveyUnitModels = new ArrayList<>();
@@ -371,7 +321,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     private static RawDataModelType getRawDataModelType(LunaticJsonRawDataModel rawData) {
         return rawData.data().containsKey("data") ?
                 RawDataModelType.FILIERE :
-                RawDataModelType.DEFAULT;
+                RawDataModelType.LEGACY;
     }
 
     private static LocalDateTime getValidationDate(LunaticJsonRawDataModel rawData) {

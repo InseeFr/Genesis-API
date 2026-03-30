@@ -37,12 +37,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService.getValueString;
@@ -194,55 +189,6 @@ public class  RawResponseService implements RawResponseApiPort {
             }
         }
         return new DataProcessResult(dataCount, formattedDataCount, errors);
-    }
-
-    @Override
-    public DataProcessResult reprocessRawResponses(
-            String collectionInstrumentId,
-            LocalDateTime sinceDate,
-            LocalDateTime endDate
-    ) throws GenesisException {
-
-        log.info(
-                "Reprocessing raw responses for collectionInstrumentId={}, sinceDate={}, endDate={}",
-                collectionInstrumentId,
-                sinceDate,
-                endDate
-        );
-
-        if (sinceDate == null && endDate != null) {
-            throw new GenesisException(400, "endDate cannot be provided without sinceDate");
-        }
-
-        if (sinceDate != null && endDate != null && endDate.isBefore(sinceDate)) {
-            throw new GenesisException(400, "endDate must be after or equal to sinceDate");
-        }
-
-        Set<String> interrogationIds;
-
-        if (sinceDate == null) {
-            interrogationIds =
-                    rawResponsePersistencePort.findProcessedInterrogationIdsByCollectionInstrumentId(collectionInstrumentId);
-        } else {
-            LocalDateTime effectiveEndDate = endDate != null ? endDate : LocalDateTime.now();
-
-            interrogationIds =
-                    rawResponsePersistencePort.findProcessedInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
-                            collectionInstrumentId,
-                            sinceDate,
-                            effectiveEndDate
-                    );
-        }
-
-        if (interrogationIds.isEmpty()) {
-            return new DataProcessResult(0, 0, new ArrayList<>());
-        }
-
-        surveyUnitService.deleteByCollectionInstrumentIdAndInterrogationIds(collectionInstrumentId, interrogationIds);
-        rawResponsePersistencePort.resetProcessDates(collectionInstrumentId, interrogationIds);
-
-        return processRawResponses(collectionInstrumentId,  new ArrayList<>(interrogationIds),
-                new ArrayList<>());
     }
 
 

@@ -94,22 +94,6 @@ public class RawResponseDataPersistanceStub implements RawResponsePersistencePor
     }
 
     @Override
-    public Set<String> findProcessedInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId) {
-        return Set.of();
-    }
-
-    @Override
-    public Set<String> findProcessedInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(String collectionInstrumentId, LocalDateTime sinceDate, LocalDateTime endDate) {
-        return Set.of();
-    }
-
-    @Override
-    public void resetProcessDates(String collectionInstrumentId, Set<String> interrogationIds) {
-        // do nothing
-        return;
-    }
-
-    @Override
     public long countByCollectionInstrumentId(String collectionInstrumentId) {
         return 0;
     }

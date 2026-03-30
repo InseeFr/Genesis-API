@@ -30,6 +30,7 @@ import java.util.Set;
 @Service
 @Qualifier("lunaticJsonMongoAdapter")
 public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersistencePort {
+
     private final LunaticJsonMongoDBRepository repository;
     private final MongoTemplate mongoTemplate;
 
@@ -88,18 +89,6 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
     }
 
     @Override
-    public void resetProcessDates(String questionnaireId, Set<String> interrogationIds) {
-        mongoTemplate.updateMulti(
-                Query.query(
-                        Criteria.where("questionnaireId").is(questionnaireId)
-                                .and("interrogationId").in(interrogationIds)
-                ),
-                new Update().unset("processDate"),
-                Constants.MONGODB_LUNATIC_RAWDATA_COLLECTION_NAME
-        );
-    }
-
-    @Override
     public Set<String> findDistinctQuestionnaireIds() {
         List<String> ids = mongoTemplate.query(LunaticJsonRawDataDocument.class)
                     .distinct("questionnaireId")
@@ -153,27 +142,5 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
         Long count = repository.countDistinctInterrogationIdsByQuestionnaireId(questionnaireId);
         return count != null ? count : 0;
     }
-
-    @Override
-    public Set<String> findProcessedInterrogationIdsByQuestionnaireId(String questionnaireId) {
-        return new HashSet<>(repository.findProcessedInterrogationIdsByQuestionnaireId(questionnaireId));
-    }
-
-    @Override
-    public Set<String> findProcessedInterrogationIdsByQuestionnaireIdAndRecordDateBetween(
-            String questionnaireId,
-            LocalDateTime sinceDate,
-            LocalDateTime endDate
-    ) {
-        return new HashSet<>(
-                repository.findProcessedInterrogationIdsByQuestionnaireIdAndRecordDateBetween(
-                        questionnaireId,
-                        sinceDate,
-                        endDate
-                )
-        );
-    }
-
-
 
 }

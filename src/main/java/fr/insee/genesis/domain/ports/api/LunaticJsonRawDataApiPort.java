@@ -21,13 +21,6 @@ public interface LunaticJsonRawDataApiPort {
 
     void save(LunaticJsonRawDataModel rawData);
     List<LunaticJsonRawDataModel> getRawDataByQuestionnaireId(String questionnaireId, Mode mode, List<String> interrogationIdList);
-
-    DataProcessResult reprocessRawData(
-            String questionnaireId,
-            LocalDateTime sinceDate,
-            LocalDateTime endDate
-    ) throws GenesisException;
-
     List<SurveyUnitModel> convertRawData(List<LunaticJsonRawDataModel> rawData, VariablesMap variablesMap);
 
     List<LunaticJsonRawDataUnprocessedDto> getUnprocessedDataIds();
