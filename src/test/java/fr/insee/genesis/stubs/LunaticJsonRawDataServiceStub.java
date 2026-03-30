@@ -21,7 +21,7 @@ import java.util.Set;
 public class LunaticJsonRawDataServiceStub implements LunaticJsonRawDataApiPort {
     @Override
     public void save(LunaticJsonRawDataModel rawData) {
-
+        // stub, this method unused in tests yet.
     }
 
     @Override
@@ -46,7 +46,7 @@ public class LunaticJsonRawDataServiceStub implements LunaticJsonRawDataApiPort 
 
     @Override
     public void updateProcessDates(List<SurveyUnitModel> surveyUnitModels) {
-
+        // stub, this method unused in tests yet.
     }
 
     @Override
