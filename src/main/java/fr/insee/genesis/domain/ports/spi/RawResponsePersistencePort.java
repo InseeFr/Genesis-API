@@ -7,7 +7,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -24,13 +23,6 @@ public interface RawResponsePersistencePort {
     Set<String> findDistinctCollectionInstrumentIds();
     long countDistinctInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId);
     Page<RawResponseModel> findByCollectionInstrumentId(String collectionInstrumentId, Pageable pageable);
-    Set<String> findProcessedInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId);
-    Set<String> findProcessedInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
-            String collectionInstrumentId,
-            LocalDateTime sinceDate,
-            LocalDateTime endDate
-    );
-
-    void resetProcessDates(String collectionInstrumentId, Set<String> interrogationIds);
     boolean existsByInterrogationId(String interrogationId);
+
 }

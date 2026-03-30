@@ -11,7 +11,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -21,12 +20,6 @@ public interface RawResponseApiPort {
     List<RawResponseModel> getRawResponsesByInterrogationID(String interrogationId);
     DataProcessResult processRawResponses(String collectionInstrumentId, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException;
     DataProcessResult processRawResponses(String collectionInstrumentId) throws GenesisException;
-
-    DataProcessResult reprocessRawResponses(
-            String collectionInstrumentId,
-            LocalDateTime sinceDate,
-            LocalDateTime endDate
-    ) throws GenesisException;
 
     List<SurveyUnitModel> convertRawResponse(List<RawResponseModel> rawResponses, VariablesMap variablesMap);
     List<String> getUnprocessedCollectionInstrumentIds();
