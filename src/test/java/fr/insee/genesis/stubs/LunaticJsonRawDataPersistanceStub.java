@@ -125,31 +125,6 @@ public class LunaticJsonRawDataPersistanceStub implements LunaticJsonRawDataPers
     }
 
     @Override
-    public void resetProcessDates(String questionnaireId, Set<String> interrogationIds) {
-        for (int i = 0; i < mongoStub.size(); i++) {
-            LunaticJsonRawDataDocument document = mongoStub.get(i);
-
-            if (document.questionnaireId().equals(questionnaireId)
-                    && interrogationIds.contains(document.interrogationId())) {
-
-                LunaticJsonRawDataDocument newDocument = LunaticJsonRawDataDocument.builder()
-                        .id(document.id())
-                        .campaignId(document.campaignId())
-                        .questionnaireId(document.questionnaireId())
-                        .interrogationId(document.interrogationId())
-                        .idUE(document.idUE())
-                        .mode(document.mode())
-                        .data(document.data())
-                        .recordDate(document.recordDate())
-                        .processDate(null)
-                        .build();
-
-                mongoStub.set(i, newDocument);
-            }
-        }
-    }
-
-    @Override
     public Set<String> findDistinctQuestionnaireIds() {
         Set<String> questionnaireIds = new HashSet<>();
         for(LunaticJsonRawDataDocument rawDataDoc : mongoStub){
@@ -268,13 +243,4 @@ public class LunaticJsonRawDataPersistanceStub implements LunaticJsonRawDataPers
         return 0;
     }
 
-    @Override
-    public Set<String> findProcessedInterrogationIdsByQuestionnaireId(String questionnaireId) {
-        return Set.of();
-    }
-
-    @Override
-    public Set<String> findProcessedInterrogationIdsByQuestionnaireIdAndRecordDateBetween(String questionnaireId, LocalDateTime sinceDate, LocalDateTime endDate) {
-        return Set.of();
-    }
 }
