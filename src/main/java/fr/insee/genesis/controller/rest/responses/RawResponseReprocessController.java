@@ -28,7 +28,7 @@ public class RawResponseReprocessController {
 
     @Operation(summary = "Reprocess raw response of a collection instrument.")
     @PostMapping(path = "/raw-responses/{collectionInstrumentId}/reprocess")
-    @PreAuthorize("hasRole('SCHEDULER')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> reProcessRawResponsesByCollectionInstrumentId(
             @Parameter(
                     description = "Id of the collection instrument (old questionnaireId)",
@@ -61,7 +61,7 @@ public class RawResponseReprocessController {
     @Operation(summary = "Reprocess Lunatic raw data for a questionnaire model. " +
             "**Note**: Lunatic raw data is the legacy format of raw responses.")
     @PostMapping(path = "/responses/raw/lunatic-json/{questionnaireId}/reprocess")
-    @PreAuthorize("hasRole('SCHEDULER')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> reProcessJsonRawDataByQuestionnaireId(
             @Parameter(
                     description = "Questionnaire model id (old name for collection instrument id).",
