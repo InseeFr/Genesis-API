@@ -158,15 +158,15 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
         Optional<KraftwerkExecutionScheduleV2> scheduleAlreadyExists = dataProcessingContextModel.getKraftwerkExecutionScheduleV2List()
                 .stream()
                 .filter(schedule ->
-                    schedule.getMode()==scheduleInput.getMode() && schedule.getDestinationType() == scheduleInput.getDestinationType()
+                    schedule.getMode()==scheduleInput.getMode() && schedule.getExportType() == scheduleInput.getExportType()
                 )
                 .findFirst();
 
         if (scheduleAlreadyExists.isPresent()){
-            throw new DuplicateKeyException(String.format("Schedule already exists for collectionInstrumentId %s with mode %s and destinationType %s. Use update endpoint with scheduleUuid %s",
+            throw new DuplicateKeyException(String.format("Schedule already exists for collectionInstrumentId %s with mode %s and exportType %s. Use update endpoint with scheduleUuid %s",
                     scheduleInput.getCollectionInstrumentId(),
                     scheduleInput.getMode(),
-                    scheduleInput.getDestinationType(),
+                    scheduleInput.getExportType(),
                     scheduleAlreadyExists.get().getScheduleUuid()));
         }
 
