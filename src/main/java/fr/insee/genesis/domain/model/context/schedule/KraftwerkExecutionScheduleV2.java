@@ -28,6 +28,7 @@ public class KraftwerkExecutionScheduleV2 {
     private DestinationType destinationType;
     private boolean addStates;
     private String destinationFolder;
+    private boolean useSymmetricEncryption;
     private TrustParameters trustParameters;
     private Integer batchSize;
 }

@@ -2,7 +2,7 @@ package fr.insee.genesis.domain.ports.api;
 
 import fr.insee.genesis.controller.dto.KraftwerkExecutionScheduleInput;
 import fr.insee.genesis.controller.dto.ScheduleDto;
-import fr.insee.genesis.controller.dto.rawdata.ScheduleV2Dto;
+import fr.insee.genesis.controller.dto.rawdata.ScheduleResponseDto;
 import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
 import fr.insee.genesis.domain.model.context.schedule.ServiceToCall;
 import fr.insee.genesis.domain.model.context.schedule.TrustParameters;
@@ -45,11 +45,11 @@ public interface DataProcessingContextApiPort {
 
     void deleteSchedulesV2ByCollectionInstrumentId(String collectionInstrumentId) throws GenesisException;
 
-    List<ScheduleV2Dto> getSchedulesV2ByCollectionInstrumentId(String collectionInstrumentId);
+    List<ScheduleResponseDto> getSchedulesV2ByCollectionInstrumentId(String collectionInstrumentId);
 
     List<ScheduleDto> getAllSchedules();
 
-    List<ScheduleV2Dto> getAllSchedulesV2();
+    List<ScheduleResponseDto> getAllSchedulesV2();
 
     void deleteExpiredSchedules(String logFolder) throws GenesisException;
 

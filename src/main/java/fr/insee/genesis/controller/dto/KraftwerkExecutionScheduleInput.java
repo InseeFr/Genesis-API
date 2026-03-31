@@ -26,6 +26,8 @@ public class KraftwerkExecutionScheduleInput {
     private DestinationType destinationType;
     private boolean addStates;
     private String destinationFolder;
+    private boolean useAsymmetricEncryption;
+    private boolean useSymmetricEncryption;
     private TrustParameters trustParameters;
     private Integer batchSize;
 }
