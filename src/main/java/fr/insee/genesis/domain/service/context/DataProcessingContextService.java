@@ -5,7 +5,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.dto.KraftwerkExecutionScheduleInput;
 import fr.insee.genesis.controller.dto.ScheduleDto;
-import fr.insee.genesis.controller.dto.rawdata.ScheduleV2Dto;
+import fr.insee.genesis.controller.dto.rawdata.ScheduleResponseDto;
 import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
 import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionSchedule;
 import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionScheduleV2;
@@ -180,6 +180,7 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
                 scheduleInput.getDestinationType(),
                 scheduleInput.isAddStates(),
                 scheduleInput.getDestinationFolder(),
+                scheduleInput.isUseSymmetricEncryption(),
                 scheduleInput.getTrustParameters(),
                 scheduleInput.getBatchSize()
         );
@@ -221,6 +222,7 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
                 .filter(schedule ->
                         schedule.getMode()==scheduleInput.getMode() && schedule.getExportType() == scheduleInput.getExportType()
                 )
+                .filter(schedule -> !schedule.getScheduleUuid().equals(scheduleInput.getScheduleUuid()))
                 .findFirst();
 
         if (tripletAlreadyExists.isPresent()){
@@ -239,6 +241,7 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
         scheduleToUpdate.setDestinationType(scheduleInput.getDestinationType());
         scheduleToUpdate.setAddStates(scheduleInput.isAddStates());
         scheduleToUpdate.setDestinationFolder(scheduleInput.getDestinationFolder());
+        scheduleToUpdate.setUseSymmetricEncryption(scheduleInput.isUseSymmetricEncryption());
         scheduleToUpdate.setTrustParameters(scheduleInput.getTrustParameters());
         scheduleToUpdate.setBatchSize(scheduleInput.getBatchSize());
 
@@ -337,12 +340,12 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
     }
 
     @Override
-    public List<ScheduleV2Dto> getSchedulesV2ByCollectionInstrumentId(String collectionInstrumentId) {
+    public List<ScheduleResponseDto> getSchedulesV2ByCollectionInstrumentId(String collectionInstrumentId) {
         List<DataProcessingContextModel> dataProcessingContextModels =
                 dataProcessingContextPersistancePort.findByCollectionInstrumentIds(List.of(collectionInstrumentId));
 
         return dataProcessingContextModels.stream()
-                .flatMap(model -> model.toScheduleV2Dtos().stream())
+                .flatMap(model -> model.toScheduleResponseDtos().stream())
                 .toList();
     }
 
@@ -361,14 +364,14 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
     }
 
     @Override
-    public List<ScheduleV2Dto> getAllSchedulesV2() {
+    public List<ScheduleResponseDto> getAllSchedulesV2() {
         List<DataProcessingContextModel> dataProcessingContextModels =
                 DataProcessingContextMapper.INSTANCE.listDocumentToListModel(
                         dataProcessingContextPersistancePort.findAll()
                 );
 
         return dataProcessingContextModels.stream()
-                .flatMap(model -> model.toScheduleV2Dtos().stream())
+                .flatMap(model -> model.toScheduleResponseDtos().stream())
                 .toList();
     }
 

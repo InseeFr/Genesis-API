@@ -1,7 +1,7 @@
 package fr.insee.genesis.domain.model.context;
 
 import fr.insee.genesis.controller.dto.ScheduleDto;
-import fr.insee.genesis.controller.dto.rawdata.ScheduleV2Dto;
+import fr.insee.genesis.controller.dto.rawdata.ScheduleResponseDto;
 import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionSchedule;
 import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionScheduleV2;
 import lombok.AllArgsConstructor;
@@ -44,14 +44,14 @@ public class DataProcessingContextModel {
                 .build();
     }
 
-    public List<ScheduleV2Dto> toScheduleV2Dtos() {
+    public List<ScheduleResponseDto> toScheduleResponseDtos() {
         if (kraftwerkExecutionScheduleV2List == null || kraftwerkExecutionScheduleV2List.isEmpty()) {
             return List.of();
         }
 
         return kraftwerkExecutionScheduleV2List.stream()
                 .filter(schedule -> schedule != null && schedule.getScheduleUuid() != null)
-                .map(schedule -> ScheduleV2Dto.builder()
+                .map(schedule -> ScheduleResponseDto.builder()
                         .scheduleUuid(schedule.getScheduleUuid())
                         .collectionInstrumentId(getResolvedCollectionInstrumentId())
                         .lastExecution(lastExecution)
@@ -60,7 +60,8 @@ public class DataProcessingContextModel {
                         .scheduleBeginDate(schedule.getScheduleBeginDate())
                         .scheduleEndDate(schedule.getScheduleEndDate())
                         .mode(schedule.getMode())
-                        .useEncryption(schedule.getTrustParameters() != null)
+                        .useSymmetricEncryption(schedule.isUseSymmetricEncryption())
+                        .useAsymmetricEncryption(schedule.getTrustParameters() != null)
                         .encryptionVaultPath(
                                 schedule.getTrustParameters() != null
                                         ? schedule.getTrustParameters().getVaultPath()

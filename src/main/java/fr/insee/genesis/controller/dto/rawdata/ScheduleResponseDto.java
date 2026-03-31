@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ScheduleV2Dto {
+public class ScheduleResponseDto {
 
     private String scheduleUuid;
     private String collectionInstrumentId;
@@ -32,7 +32,8 @@ public class ScheduleV2Dto {
 
     private Mode mode;
     private DestinationType destinationType;
-    private boolean useEncryption;
+    private boolean useAsymmetricEncryption;
+    private boolean useSymmetricEncryption;
     private String encryptionVaultPath;
     private boolean useSignature;
     private boolean addStates;

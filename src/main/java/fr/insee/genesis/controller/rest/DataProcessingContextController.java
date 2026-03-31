@@ -4,7 +4,7 @@ import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.dto.KraftwerkExecutionScheduleInput;
 import fr.insee.genesis.controller.dto.ScheduleDto;
 import fr.insee.genesis.controller.dto.ScheduleRequestDto;
-import fr.insee.genesis.controller.dto.rawdata.ScheduleV2Dto;
+import fr.insee.genesis.controller.dto.rawdata.ScheduleResponseDto;
 import fr.insee.genesis.domain.model.context.schedule.ServiceToCall;
 import fr.insee.genesis.domain.model.context.schedule.TrustParameters;
 import fr.insee.genesis.domain.ports.api.DataProcessingContextApiPort;
@@ -109,7 +109,7 @@ public class DataProcessingContextController {
     ) {
         try {
             TrustParameters trustParameters = null;
-            if (request.isUseEncryption()) {
+            if (request.isUseAsymmetricEncryption()) {
                 trustParameters = new TrustParameters(
                         fileUtils.getKraftwerkOutFolder(request.getCollectionInstrumentId()),
                         "",
@@ -243,7 +243,7 @@ public class DataProcessingContextController {
     ) {
         try {
             TrustParameters trustParameters = null;
-            if (request.isUseEncryption()) {
+            if (request.isUseAsymmetricEncryption()) {
                 trustParameters = new TrustParameters(
                         fileUtils.getKraftwerkOutFolder(collectionInstrumentId),
                         "",
@@ -263,6 +263,8 @@ public class DataProcessingContextController {
                     .destinationType(request.getDestinationType())
                     .addStates(request.isAddStates())
                     .destinationFolder(request.getDestinationFolder())
+                    .useAsymmetricEncryption(request.isUseAsymmetricEncryption())
+                    .useSymmetricEncryption(request.isUseSymmetricEncryption())
                     .trustParameters(trustParameters)
                     .batchSize(request.getBatchSize())
                     .build();
@@ -308,7 +310,7 @@ public class DataProcessingContextController {
     public ResponseEntity<Object> getAllSchedulesV3() {
         log.debug("Got GET all schedules V2 request");
 
-        List<ScheduleV2Dto> schedules = dataProcessingContextApiPort.getAllSchedulesV2();
+        List<ScheduleResponseDto> schedules = dataProcessingContextApiPort.getAllSchedulesV2();
 
         log.info("Returning {} V2 schedule documents...", schedules.size());
         return ResponseEntity.ok(schedules);
@@ -320,7 +322,7 @@ public class DataProcessingContextController {
     public ResponseEntity<Object> getSchedulesV2ByCollectionInstrumentId(
             @PathVariable("collectionInstrumentId") String collectionInstrumentId
     ) {
-        List<ScheduleV2Dto> schedules =
+        List<ScheduleResponseDto> schedules =
                 dataProcessingContextApiPort.getSchedulesV2ByCollectionInstrumentId(collectionInstrumentId);
 
         return ResponseEntity.ok(schedules);

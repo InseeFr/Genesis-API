@@ -2,6 +2,7 @@ package fr.insee.genesis.controller.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import fr.insee.genesis.controller.utils.ExportType;
+import fr.insee.genesis.controller.validation.schedule.ValidScheduleRequest;
 import fr.insee.genesis.domain.model.context.schedule.DestinationType;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -17,6 +18,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(description = "Request used to schedule a Kraftwerk export workflow")
+@ValidScheduleRequest
 public class ScheduleRequestDto {
 
     @NotBlank
@@ -47,7 +49,10 @@ public class ScheduleRequestDto {
     private DestinationType destinationType = DestinationType.APPLISHARE;
 
     @Schema(defaultValue = "false")
-    private boolean useEncryption = false;
+    private boolean useSymmetricEncryption = false;
+
+    @Schema(defaultValue = "false")
+    private boolean useAsymmetricEncryption = false;
 
     @Schema(description = "Encryption vault path")
     private String encryptionVaultPath = "";
