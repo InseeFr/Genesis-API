@@ -6,6 +6,7 @@ import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
 import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionSchedule;
 import fr.insee.genesis.domain.model.context.schedule.ServiceToCall;
 import fr.insee.genesis.domain.service.context.DataProcessingContextService;
+import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.document.context.DataProcessingContextDocument;
 import fr.insee.genesis.infrastructure.mappers.DataProcessingContextMapper;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.io.IOException;
@@ -73,7 +75,7 @@ class DataProcessingContextControllerTest {
     }
 
     @Test
-    void addScheduleWithoutEncryptionTest() {
+    void addScheduleWithoutEncryptionTest() throws GenesisException {
         //When
         String partitionId = "TESTADDSURVEY";
         ServiceToCall serviceToCall = ServiceToCall.MAIN;
@@ -100,7 +102,7 @@ class DataProcessingContextControllerTest {
     }
 
     @Test
-    void addScheduleWithoutEncryptionTestUsingCollectionInstrumentId() {
+    void addScheduleWithoutEncryptionTestUsingCollectionInstrumentId() throws GenesisException {
         //When
         String collectionInstrumentId = "TESTADDSURVEY_CI";
         ServiceToCall serviceToCall = ServiceToCall.MAIN;
@@ -127,7 +129,7 @@ class DataProcessingContextControllerTest {
     }
 
     @Test
-    void addScheduleWithoutEncryptionTest_nullServiceToCall() {
+    void addScheduleWithoutEncryptionTest_nullServiceToCall() throws GenesisException {
         //When
         String partitionId = "TESTADDSURVEY";
         ServiceToCall serviceToCall = null;
@@ -155,7 +157,7 @@ class DataProcessingContextControllerTest {
     }
 
     @Test
-    void addScheduleWithoutEncryptionTest_nullServiceToCall_collectionInstrumentId() {
+    void addScheduleWithoutEncryptionTest_nullServiceToCall_collectionInstrumentId() throws GenesisException {
         //When
         String collectionInstrumentId = "TESTADDSURVEY_CI";
         ServiceToCall serviceToCall = null;
@@ -183,7 +185,7 @@ class DataProcessingContextControllerTest {
     }
 
     @Test
-    void addScheduleWithEncryptionTest() {
+    void addScheduleWithEncryptionTest() throws GenesisException {
         //When
         String partitionId = "TESTADDSURVEY";
         ServiceToCall serviceToCall = ServiceToCall.MAIN;
@@ -221,7 +223,7 @@ class DataProcessingContextControllerTest {
     }
 
     @Test
-    void addScheduleWithEncryptionTest_collectionInstrumentId() {
+    void addScheduleWithEncryptionTest_collectionInstrumentId() throws GenesisException {
         //When
         String collectionInstrumentId = "TESTADDSURVEY_CI";
         ServiceToCall serviceToCall = ServiceToCall.MAIN;
@@ -259,7 +261,7 @@ class DataProcessingContextControllerTest {
     }
 
     @Test
-    void addAdditionnalScheduleTest() {
+    void addAdditionnalScheduleTest() throws GenesisException {
         //When
         String partitionId = "TESTSURVEY"; //Already exists in stub
         ServiceToCall serviceToCall = ServiceToCall.MAIN;
@@ -287,7 +289,7 @@ class DataProcessingContextControllerTest {
     }
 
     @Test
-    void addAdditionnalScheduleTest_collectionInstrumentId() {
+    void addAdditionnalScheduleTest_collectionInstrumentId() throws GenesisException {
         //When
         String collectionInstrumentId = "TESTADDSURVEY_CI"; //Already exists in stub
         ServiceToCall serviceToCall = ServiceToCall.MAIN;
@@ -315,7 +317,7 @@ class DataProcessingContextControllerTest {
     }
 
     @Test
-    void addScheduleDedupTest()  {
+    void addScheduleDedupTest() throws GenesisException {
         //Given
         addNewDocumentToStub();
 
@@ -345,7 +347,7 @@ class DataProcessingContextControllerTest {
     }
 
     @Test
-    void addScheduleDedupTest_collectionInstrumentId()  {
+    void addScheduleDedupTest_collectionInstrumentId() throws GenesisException {
         //Given
         addNewDocumentToStubWithCollectionInstrumentId();
 
@@ -375,7 +377,7 @@ class DataProcessingContextControllerTest {
     }
 
     @Test
-    void updateLastExecutionTest(){
+    void updateLastExecutionTest() throws GenesisException {
         //Given
         addNewDocumentToStub();
 
@@ -389,7 +391,7 @@ class DataProcessingContextControllerTest {
     }
 
     @Test
-    void updateLastExecutionTest_collectionInstrumentId(){
+    void updateLastExecutionTest_collectionInstrumentId() throws GenesisException {
         //Given
         addNewDocumentToStubWithCollectionInstrumentId();
 
@@ -403,7 +405,7 @@ class DataProcessingContextControllerTest {
     }
 
     @Test
-    void setLastExecutionTestToNull(){
+    void setLastExecutionTestToNull() throws GenesisException {
         //Given
         addNewDocumentToStub();
 
@@ -417,7 +419,7 @@ class DataProcessingContextControllerTest {
     }
 
     @Test
-    void setLastExecutionTestToNull_collectionInstrumentId(){
+    void setLastExecutionTestToNull_collectionInstrumentId() throws GenesisException {
         //Given
         addNewDocumentToStubWithCollectionInstrumentId();
 
@@ -431,7 +433,7 @@ class DataProcessingContextControllerTest {
     }
 
     @Test
-    void setLastExecutionTest(){
+    void setLastExecutionTest() throws GenesisException {
         //Given
         LocalDateTime date = LocalDateTime.now();
         addNewDocumentToStub();
@@ -446,7 +448,7 @@ class DataProcessingContextControllerTest {
     }
 
     @Test
-    void setLastExecutionTest_collectionInstrumentId(){
+    void setLastExecutionTest_collectionInstrumentId() throws GenesisException {
         //Given
         LocalDateTime date = LocalDateTime.now();
         addNewDocumentToStubWithCollectionInstrumentId();
@@ -461,71 +463,97 @@ class DataProcessingContextControllerTest {
     }
 
     @Test
-    void wrongFrequencyTest(){
-        //When+Then
-        String partitionId = "TESTSURVEY"; //Already exists in stub
+    void wrongFrequencyTest() {
+        String partitionId = "TESTSURVEY";
         ServiceToCall serviceToCall = ServiceToCall.MAIN;
         String frequency = "ERROR";
         LocalDateTime scheduleBeginDate = LocalDateTime.now();
         LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
 
-        ResponseEntity<Object> response = dataProcessingContextController.saveSchedule(partitionId, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate,
-                false, "", "", false);
-        Assertions.assertThat(response.getStatusCode().is4xxClientError()).isTrue();
+        Assertions.assertThatThrownBy(() ->
+                        dataProcessingContextController.saveSchedule(
+                                partitionId,
+                                serviceToCall,
+                                frequency,
+                                scheduleBeginDate,
+                                scheduleEndDate,
+                                false,
+                                "",
+                                "",
+                                false
+                        )
+                )
+                .isInstanceOfSatisfying(GenesisException.class, exception -> {
+                    Assertions.assertThat(exception.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+                    Assertions.assertThat(exception.getMessage()).isEqualTo("Wrong frequency syntax");
+                });
     }
 
     @Test
-    void wrongFrequencyTest_collectionInstrumentId(){
-        //When+Then
-        String collectionInstrumentId = "TESTSURVEY_CI"; //Already exists in stub
+    void wrongFrequencyTest_collectionInstrumentId() {
+        String collectionInstrumentId = "TESTSURVEY_CI";
         ServiceToCall serviceToCall = ServiceToCall.MAIN;
         String frequency = "ERROR";
         LocalDateTime scheduleBeginDate = LocalDateTime.now();
         LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
 
-        ResponseEntity<Object> response = dataProcessingContextController.saveScheduleWithCollectionInstrumentId(collectionInstrumentId, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate,
-                false, "", "", false);
-        Assertions.assertThat(response.getStatusCode().is4xxClientError()).isTrue();
+        Assertions.assertThatThrownBy(() ->
+                        dataProcessingContextController.saveScheduleWithCollectionInstrumentId(
+                                collectionInstrumentId,
+                                serviceToCall,
+                                frequency,
+                                scheduleBeginDate,
+                                scheduleEndDate,
+                                false,
+                                "",
+                                "",
+                                false
+                        )
+                )
+                .isInstanceOfSatisfying(GenesisException.class, exception -> {
+                    Assertions.assertThat(exception.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+                    Assertions.assertThat(exception.getMessage()).isEqualTo("Wrong frequency syntax");
+                });
     }
 
     @Test
-    void notFoundTest(){
-        //When+Then
-        ResponseEntity<Object> response = dataProcessingContextController.setSurveyLastExecution("ERROR", LocalDateTime.now());
-        Assertions.assertThat(response.getStatusCode().is4xxClientError()).isTrue();
+    void notFoundTest() {
+        Assertions.assertThatThrownBy(() ->
+                        dataProcessingContextController.setSurveyLastExecution("ERROR", LocalDateTime.now())
+                )
+                .isInstanceOf(GenesisException.class);
     }
 
     @Test
-    void notFoundTest_collectionInstrumentId(){
-        //When+Then
-        ResponseEntity<Object> response = dataProcessingContextController.setSurveyLastExecutionByCollectionInstrumentId("ERROR", LocalDateTime.now());
-        Assertions.assertThat(response.getStatusCode().is4xxClientError()).isTrue();
+    void notFoundTest_collectionInstrumentId() {
+        Assertions.assertThatThrownBy(() ->
+                        dataProcessingContextController.setSurveyLastExecutionByCollectionInstrumentId("ERROR", LocalDateTime.now())
+                )
+                .isInstanceOfSatisfying(GenesisException.class, exception -> {
+                    Assertions.assertThat(exception.getStatus().is4xxClientError()).isTrue();
+                });
     }
 
     @Test
-    void deleteScheduleTest(){
-        //When
-        dataProcessingContextController.deleteSchedules("TESTSURVEY");
-
-        //Then
-        Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub()).filteredOn(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getPartitionId().equals("TESTSURVEY")
-        ).isEmpty();
+    void deleteScheduleTest() {
+        Assertions.assertThatThrownBy(() ->
+                        dataProcessingContextController.deleteSchedules("TESTSURVEY")
+                )
+                .isInstanceOf(GenesisException.class)
+                .hasMessage("Context not found");
     }
 
     @Test
-    void deleteScheduleTest_collectionInstrumentId(){
-        //When
-        dataProcessingContextController.deleteSchedulesByCollectionInstrumentId("TESTSURVEY_CI");
-
-        //Then
-        Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub()).filteredOn(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getPartitionId().equals("TESTSURVEY_CI")
-        ).isEmpty();
+    void deleteScheduleTest_collectionInstrumentId() {
+        Assertions.assertThatThrownBy(() ->
+                        dataProcessingContextController.deleteSchedulesByCollectionInstrumentId("TESTSURVEY_CI")
+                )
+                .isInstanceOf(GenesisException.class)
+                .hasMessage("Context not found");
     }
 
     @Test
-    void deleteExpiredScheduleTest_execution() {
+    void deleteExpiredScheduleTest_execution() throws GenesisException {
         //Given
         DataProcessingContextModel dataProcessingContextModel = new DataProcessingContextModel(
                 null,
@@ -573,7 +601,7 @@ class DataProcessingContextControllerTest {
     }
 
     @Test
-    void deleteExpiredScheduleTest_execution_collectionInstrumentId() {
+    void deleteExpiredScheduleTest_execution_collectionInstrumentId() throws GenesisException {
         //Given
         DataProcessingContextModel dataProcessingContextModel = new DataProcessingContextModel(
                 null,
@@ -621,7 +649,7 @@ class DataProcessingContextControllerTest {
     }
 
     @Test
-    void deleteExpiredScheduleTest_wholeSurvey() {
+    void deleteExpiredScheduleTest_wholeSurvey() throws GenesisException {
         //Given
         DataProcessingContextModel dataProcessingContextModel = new DataProcessingContextModel(
                 null,
@@ -670,7 +698,7 @@ class DataProcessingContextControllerTest {
     }
 
     @Test
-    void deleteExpiredScheduleTest_wholeSurvey_collectionInstrumentId() {
+    void deleteExpiredScheduleTest_wholeSurvey_collectionInstrumentId() throws GenesisException {
         //Given
         DataProcessingContextModel dataProcessingContextModel = new DataProcessingContextModel(
                 null,
@@ -719,7 +747,7 @@ class DataProcessingContextControllerTest {
     }
 
     @Test
-    void deleteExpiredScheduleTest_appendLog() {
+    void deleteExpiredScheduleTest_appendLog() throws GenesisException {
         //Given
         DataProcessingContextModel dataProcessingContextModel = new DataProcessingContextModel(
                 null,
@@ -778,7 +806,7 @@ class DataProcessingContextControllerTest {
     }
 
     @Test
-    void deleteExpiredScheduleTest_appendLog_collectionInstrumentId() {
+    void deleteExpiredScheduleTest_appendLog_collectionInstrumentId() throws GenesisException {
         //Given
         DataProcessingContextModel dataProcessingContextModel = new DataProcessingContextModel(
                 null,
@@ -838,7 +866,7 @@ class DataProcessingContextControllerTest {
 
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
-    void getReview_test(boolean withReview){
+    void getReview_test(boolean withReview) throws GenesisException {
         //GIVEN
         String partitionId = "TESTPARTITION";
         DataProcessingContextDocument doc = new DataProcessingContextDocument();
@@ -858,7 +886,7 @@ class DataProcessingContextControllerTest {
 
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
-    void getReview_test_collectionInstrumentId(boolean withReview){
+    void getReview_test_collectionInstrumentId(boolean withReview) throws GenesisException {
         //GIVEN
         String collectionInstrumentId = "TESTPARTITION_CI";
         DataProcessingContextDocument doc = new DataProcessingContextDocument();
@@ -877,25 +905,23 @@ class DataProcessingContextControllerTest {
     }
 
     @Test
-    void getReview_no_context_test(){
-        //WHEN
-        ResponseEntity<Object> response = dataProcessingContextController.getReviewIndicator(
-                "TESTPARTITIONIDNOCONTEXT"
-        );
-
-        //THEN
-        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(404);
+    void getReview_no_context_test() {
+        Assertions.assertThatThrownBy(() ->
+                        dataProcessingContextController.getReviewIndicator("TESTPARTITIONIDNOCONTEXT")
+                )
+                .isInstanceOf(GenesisException.class)
+                .hasMessage("Data processing context not found");
     }
 
     @Test
-    void getReview_no_context_test_collectionInstrumentId(){
-        //WHEN
-        ResponseEntity<Object> response = dataProcessingContextController.getReviewIndicatorByCollectionInstrumentId(
-                "TESTPARTITIONIDNOCONTEXT_CI"
-        );
-
-        //THEN
-        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(404);
+    void getReview_no_context_test_collectionInstrumentId() {
+        Assertions.assertThatThrownBy(() ->
+                        dataProcessingContextController.getReviewIndicatorByCollectionInstrumentId(
+                                "TESTPARTITIONIDNOCONTEXT_CI"
+                        )
+                )
+                .isInstanceOf(GenesisException.class)
+                .hasMessage("Data processing context not found");
     }
 
 

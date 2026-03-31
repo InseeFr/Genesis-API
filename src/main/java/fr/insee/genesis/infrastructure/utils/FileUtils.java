@@ -263,12 +263,13 @@ public class FileUtils {
             String contextualFolderPath =
                     getDataFolder(questionnaireId, mode.getFolder(), null) + Constants.CONTEXTUAL_FOLDER;
 
-            if (!isFolderPresent(contextualFolderPath)) {
-                Files.createDirectories(Path.of(contextualFolderPath));
-                log.debug("contextual folder created : {}", contextualFolderPath);
-            } else {
+            if (isFolderPresent(contextualFolderPath)) {
                 log.debug("contextual folder already exists : {}", contextualFolderPath);
+                return;
             }
+
+            Files.createDirectories(Path.of(contextualFolderPath));
+            log.debug("contextual folder created : {}", contextualFolderPath);
 
         } catch (IOException e) {
             throw new GenesisException(

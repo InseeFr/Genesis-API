@@ -47,7 +47,7 @@ public class UtilsController implements CommonApiResponse{
 		XMLSplitter.split(inputFolder, filename, outputFolder, "SurveyUnit", nbSU);
 		return ResponseEntity.ok("File split");
 	}
-//TODO
+
 	@Operation(summary = "Record volumetrics of each campaign in a folder")
 	@PutMapping(path = "/volumetrics/save-all-campaigns")
 	@PreAuthorize("hasRole('SCHEDULER')")

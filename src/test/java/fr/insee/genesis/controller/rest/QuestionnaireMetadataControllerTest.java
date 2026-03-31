@@ -5,6 +5,7 @@ import fr.insee.bpm.metadata.model.Variable;
 import fr.insee.bpm.metadata.model.VariableType;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
+import fr.insee.genesis.exceptions.QuestionnaireNotFoundException;
 import fr.insee.genesis.infrastructure.document.metadata.QuestionnaireMetadataDocument;
 import fr.insee.genesis.stubs.QuestionnaireMetadataPersistencePortStub;
 import org.assertj.core.api.Assertions;
@@ -58,16 +59,17 @@ class QuestionnaireMetadataControllerTest {
     }
 
     @Test
-    void getMetadataTest_not_found(){
-        //GIVEN
+    void getMetadataTest_not_found() {
+        // GIVEN
         String questionnaireId = "ERRORTESTQUEST";
         Mode mode = Mode.WEB;
 
-        //WHEN
-        ResponseEntity<Object> response = questionnaireMetadataController.getMetadata(questionnaireId, mode);
-
-        //THEN
-        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(404);
+        // WHEN / THEN
+        Assertions.assertThatThrownBy(() ->
+                        questionnaireMetadataController.getMetadata(questionnaireId, mode)
+                )
+                .isInstanceOf(QuestionnaireNotFoundException.class)
+                .hasMessage("No questionnaire found with id: ERRORTESTQUEST");
     }
 
     @Test

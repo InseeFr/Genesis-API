@@ -108,12 +108,12 @@ public class DataProcessingContextDefinitions {
     }
 
     @When("We save data processing context for partition {string}")
-    public void save_context(String partitionId){
+    public void save_context(String partitionId) throws GenesisException {
         response = dataProcessingContextController.saveContext(partitionId, null);
     }
 
     @When("We save data processing context for partition {string} and review indicator to {string}")
-    public void save_context_with_review_indicator(String partitionId, String withReviewString) {
+    public void save_context_with_review_indicator(String partitionId, String withReviewString) throws GenesisException {
         response = dataProcessingContextController.saveContext(partitionId, Boolean.parseBoolean(withReviewString));
     }
 
@@ -122,7 +122,7 @@ public class DataProcessingContextDefinitions {
                                         String frequency,
                                         String serviceToCallString,
                                         String startDateString,
-                                        String endDateString) {
+                                        String endDateString) throws GenesisException {
         ServiceToCall serviceToCall = ServiceToCall.valueOf(serviceToCallString);
         LocalDateTime startDate = LocalDateTime.parse(startDateString);
         LocalDateTime endDate = LocalDateTime.parse(endDateString);
@@ -139,7 +139,7 @@ public class DataProcessingContextDefinitions {
     }
 
     @When("We delete the schedules of {string}")
-    public void delete_schedules(String partitionId){
+    public void delete_schedules(String partitionId) throws GenesisException {
         response = dataProcessingContextController.deleteSchedules(partitionId);
     }
 

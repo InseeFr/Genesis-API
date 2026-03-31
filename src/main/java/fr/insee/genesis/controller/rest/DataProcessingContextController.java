@@ -40,15 +40,13 @@ public class DataProcessingContextController {
     @PutMapping(path = "/context/review")
     @PreAuthorize("hasAnyRole('USER_PLATINE', 'USER_BACK_OFFICE', 'SCHEDULER')")
     public ResponseEntity<Object> saveContext(
-            @Parameter(description = "Identifier of the partition", required = true) @RequestParam("partitionId") String partitionId,
-            @Parameter(description = "Allow reviewing") @RequestParam(value = "withReview", defaultValue = "false") Boolean withReview
-    ){
-        try {
-            withReview = withReview != null && withReview; //False if null
-            dataProcessingContextApiPort.saveContext(partitionId, withReview);
-        }catch (GenesisException e){
-            return new ResponseEntity<>(e.getMessage(), e.getStatus());
-        }
+            @Parameter(description = "Identifier of the partition", required = true)
+            @RequestParam("partitionId") String partitionId,
+            @Parameter(description = "Allow reviewing")
+            @RequestParam(value = "withReview", defaultValue = "false") Boolean withReview
+    ) throws GenesisException {
+        withReview = withReview != null && withReview;
+        dataProcessingContextApiPort.saveContext(partitionId, withReview);
         return ResponseEntity.ok().build();
     }
 
@@ -57,14 +55,11 @@ public class DataProcessingContextController {
     @PreAuthorize("hasAnyRole('USER_PLATINE', 'USER_BACK_OFFICE', 'SCHEDULER')")
     public ResponseEntity<Object> saveContextWithCollectionInstrumentId(
             @PathVariable("collectionInstrumentId") String collectionInstrumentId,
-            @Parameter(description = "Allow reviewing") @RequestParam(value = "withReview", defaultValue = "false") Boolean withReview
-    ){
-        try {
-            withReview = withReview != null && withReview; //False if null
-            dataProcessingContextApiPort.saveContextByCollectionInstrumentId(collectionInstrumentId, withReview);
-        }catch (GenesisException e){
-            return new ResponseEntity<>(e.getMessage(), e.getStatus());
-        }
+            @Parameter(description = "Allow reviewing")
+            @RequestParam(value = "withReview", defaultValue = "false") Boolean withReview
+    ) throws GenesisException {
+        withReview = withReview != null && withReview;
+        dataProcessingContextApiPort.saveContextByCollectionInstrumentId(collectionInstrumentId, withReview);
         return ResponseEntity.ok().build();
     }
 
@@ -74,13 +69,9 @@ public class DataProcessingContextController {
     @PreAuthorize("hasAnyRole('USER_BACK_OFFICE','SCHEDULER','USER_PLATINE')")
     public ResponseEntity<Object> getReviewIndicatorByCollectionInstrumentId(
             @PathVariable("collectionInstrumentId") String collectionInstrumentId
-    ){
-        try {
-            boolean withReview = dataProcessingContextApiPort.getReviewByCollectionInstrumentId(collectionInstrumentId);
-            return ResponseEntity.ok(withReview);
-        }catch (GenesisException e){
-            return new ResponseEntity<>(e.getMessage(), e.getStatus());
-        }
+    ) throws GenesisException {
+        boolean withReview = dataProcessingContextApiPort.getReviewByCollectionInstrumentId(collectionInstrumentId);
+        return ResponseEntity.ok(withReview);
     }
 
     @Deprecated(forRemoval = true)
@@ -88,14 +79,11 @@ public class DataProcessingContextController {
     @GetMapping(path = "/context/review")
     @PreAuthorize("hasAnyRole('USER_BACK_OFFICE','SCHEDULER','USER_PLATINE')")
     public ResponseEntity<Object> getReviewIndicator(
-            @Parameter(description = "Identifier of the partition", required = true) @RequestParam("partitionId") String partitionId
-    ){
-        try {
-            boolean withReview = dataProcessingContextApiPort.getReviewByPartitionId(partitionId);
-            return ResponseEntity.ok(withReview);
-        }catch (GenesisException e){
-            return new ResponseEntity<>(e.getMessage(), e.getStatus());
-        }
+            @Parameter(description = "Identifier of the partition", required = true)
+            @RequestParam("partitionId") String partitionId
+    ) throws GenesisException {
+        boolean withReview = dataProcessingContextApiPort.getReviewByPartitionId(partitionId);
+        return ResponseEntity.ok(withReview);
     }
 
     @Deprecated(forRemoval = true)
@@ -115,32 +103,33 @@ public class DataProcessingContextController {
             @Parameter(description = "(Encryption) output folder") @RequestParam(value = "encryptionOutputFolder",
                     defaultValue = "") String encryptionOutputFolder,
             @Parameter(description = "(Encryption) Use signature system") @RequestParam(value = "useSignature", defaultValue = "false") boolean useSignature
-    ) {
-        try {
-            //Check frequency
-            if(!CronExpression.isValidExpression(frequency)) {
-                log.warn("Returned error for wrong frequency : {}", frequency);
-                throw new GenesisException(HttpStatus.BAD_REQUEST, "Wrong frequency syntax");
-            }
+    ) throws GenesisException {
 
-            TrustParameters trustParameters = null;
-            if(useEncryption) {
-                trustParameters = new TrustParameters(
-                        fileUtils.getKraftwerkOutFolder(partitionId),
-                        encryptionOutputFolder,
-                        encryptionVaultPath,
-                        useSignature
-                );
-            }
-            dataProcessingContextApiPort.saveKraftwerkExecutionSchedule(
-                    partitionId,
-                    serviceToCall == null ? ServiceToCall.MAIN : serviceToCall,
-                    frequency,
-                    scheduleBeginDate, scheduleEndDate, trustParameters
-            );
-        }catch (GenesisException e){
-            return new ResponseEntity<>(e.getMessage(), e.getStatus());
+        //Check frequency
+        if (!CronExpression.isValidExpression(frequency)) {
+            log.warn("Returned error for wrong frequency : {}", frequency);
+            throw new GenesisException(HttpStatus.BAD_REQUEST, "Wrong frequency syntax");
         }
+
+        TrustParameters trustParameters = null;
+        if (useEncryption) {
+            trustParameters = new TrustParameters(
+                    fileUtils.getKraftwerkOutFolder(partitionId),
+                    encryptionOutputFolder,
+                    encryptionVaultPath,
+                    useSignature
+            );
+        }
+
+        dataProcessingContextApiPort.saveKraftwerkExecutionSchedule(
+                partitionId,
+                serviceToCall == null ? ServiceToCall.MAIN : serviceToCall,
+                frequency,
+                scheduleBeginDate,
+                scheduleEndDate,
+                trustParameters
+        );
+
         return ResponseEntity.ok().build();
     }
 
@@ -161,8 +150,7 @@ public class DataProcessingContextController {
             @Parameter(description = "(Encryption) output folder") @RequestParam(value = "encryptionOutputFolder",
                     defaultValue = "") String encryptionOutputFolder,
             @Parameter(description = "(Encryption) Use signature system") @RequestParam(value = "useSignature", defaultValue = "false") boolean useSignature
-    ) {
-        try {
+    ) throws GenesisException{
             //Check frequency
             if(!CronExpression.isValidExpression(frequency)) {
                 log.warn("Returned error for wrong frequency : {}", frequency);
@@ -184,9 +172,7 @@ public class DataProcessingContextController {
                     frequency,
                     scheduleBeginDate, scheduleEndDate, trustParameters
             );
-        }catch (GenesisException e){
-            return new ResponseEntity<>(e.getMessage(), e.getStatus());
-        }
+
         return ResponseEntity.ok().build();
     }
 
@@ -224,13 +210,11 @@ public class DataProcessingContextController {
     public ResponseEntity<Object> setSurveyLastExecution(
             @Parameter(description = "Survey name to call Kraftwerk on") @RequestBody String partitionId,
             @Parameter(description = "Date to save as last execution date", example = "2024-01-01T12:00:00") @RequestParam("newDate") LocalDateTime newDate
-    ) {
-        try {
-            dataProcessingContextApiPort.updateLastExecutionDate(partitionId, newDate);
-            log.info("{} last execution updated at {} !", partitionId, newDate);
-        }catch (GenesisException e){
-            return new ResponseEntity<>(e.getMessage(), e.getStatus());
-        }
+    ) throws GenesisException{
+
+        dataProcessingContextApiPort.updateLastExecutionDate(partitionId, newDate);
+        log.info("{} last execution updated at {} !", partitionId, newDate);
+
         return ResponseEntity.ok().build();
     }
 
@@ -240,13 +224,11 @@ public class DataProcessingContextController {
     public ResponseEntity<Object> setSurveyLastExecutionByCollectionInstrumentId(
             @PathVariable("collectionInstrumentId") @RequestBody String collectionInstrumentId,
             @Parameter(description = "Date to save as last execution date", example = "2024-01-01T12:00:00") @RequestParam("newDate") LocalDateTime newDate
-    ) {
-        try {
-            dataProcessingContextApiPort.updateLastExecutionDateByCollectionInstrumentId(collectionInstrumentId, newDate);
-            log.info("{} last execution updated at {} !", collectionInstrumentId, newDate);
-        }catch (GenesisException e){
-            return new ResponseEntity<>(e.getMessage(), e.getStatus());
-        }
+    ) throws GenesisException{
+
+        dataProcessingContextApiPort.updateLastExecutionDateByCollectionInstrumentId(collectionInstrumentId, newDate);
+        log.info("{} last execution updated at {} !", collectionInstrumentId, newDate);
+
         return ResponseEntity.ok().build();
     }
 
@@ -256,12 +238,9 @@ public class DataProcessingContextController {
     @PreAuthorize("hasRole('USER_KRAFTWERK')")
     public ResponseEntity<Object> deleteSchedules(
             @Parameter(description = "Survey name of the schedule(s) to delete") @RequestParam("partitionId") String partitionId
-    ){
-        try {
-            dataProcessingContextApiPort.deleteSchedules(partitionId);
-        }catch (GenesisException e){
-            return new ResponseEntity<>(e.getMessage(), e.getStatus());
-        }
+    ) throws GenesisException{
+
+        dataProcessingContextApiPort.deleteSchedules(partitionId);
         log.info("Schedule deleted for survey {}", partitionId);
         return ResponseEntity.ok().build();
     }
@@ -271,12 +250,9 @@ public class DataProcessingContextController {
     @PreAuthorize("hasRole('USER_KRAFTWERK')")
     public ResponseEntity<Object> deleteSchedulesByCollectionInstrumentId(
             @PathVariable("collectionInstrumentId") String collectionInstrumentId
-    ){
-        try {
-            dataProcessingContextApiPort.deleteSchedulesByCollectionInstrumentId(collectionInstrumentId);
-        }catch (GenesisException e){
-            return new ResponseEntity<>(e.getMessage(), e.getStatus());
-        }
+    ) throws GenesisException{
+
+        dataProcessingContextApiPort.deleteSchedulesByCollectionInstrumentId(collectionInstrumentId);
         log.info("Schedule deleted for survey {}", collectionInstrumentId);
         return ResponseEntity.ok().build();
     }
@@ -284,12 +260,9 @@ public class DataProcessingContextController {
     @Operation(summary = "Delete expired schedules")
     @DeleteMapping(path = "/context/schedules/expired-schedules")
     @PreAuthorize("hasRole('SCHEDULER')")
-    public ResponseEntity<Object> deleteExpiredSchedules(){
-        try{
-            dataProcessingContextApiPort.deleteExpiredSchedules(fileUtils.getLogFolder());
-        } catch (GenesisException e){
-            return new ResponseEntity<>(e.getMessage(), e.getStatus());
-        }
+    public ResponseEntity<Object> deleteExpiredSchedules() throws GenesisException{
+
+        dataProcessingContextApiPort.deleteExpiredSchedules(fileUtils.getLogFolder());
         log.info("Expired schedules deleted");
         return ResponseEntity.ok().build();
     }

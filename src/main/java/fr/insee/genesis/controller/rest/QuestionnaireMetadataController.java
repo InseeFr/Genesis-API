@@ -25,12 +25,9 @@ public class QuestionnaireMetadataController {
     public ResponseEntity<Object> getMetadata(
             @RequestParam("questionnaireId") String questionnaireId,
             @RequestParam("mode") Mode mode
-    ){
-        try {
+    ) throws QuestionnaireNotFoundException{
+
             return ResponseEntity.ok().body(questionnaireMetadataApiPort.find(questionnaireId, mode));
-        } catch (QuestionnaireNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        }
     }
 
     @Operation(summary = "Save questionnaire metadata into database")
