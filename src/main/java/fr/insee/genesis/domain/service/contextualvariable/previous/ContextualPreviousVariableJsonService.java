@@ -78,7 +78,7 @@ public class ContextualPreviousVariableJsonService implements ContextualPrevious
         }catch (JsonParseException jpe){
             contextualPreviousVariablePersistancePort.restoreBackup(collectionInstrumentId);
             throw new GenesisException(HttpStatus.BAD_REQUEST, "JSON Parsing exception : %s".formatted(jpe.toString()));
-        }catch (IOException ioe){
+        }catch (IOException _){
             contextualPreviousVariablePersistancePort.restoreBackup(collectionInstrumentId);
             throw new GenesisException(HttpStatus.INTERNAL_SERVER_ERROR, "I/O error while processing contextual previous file");
         }

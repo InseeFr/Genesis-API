@@ -271,7 +271,7 @@ public class FileUtils {
             Files.createDirectories(Path.of(contextualFolderPath));
             log.debug("contextual folder created : {}", contextualFolderPath);
 
-        } catch (IOException e) {
+        } catch (IOException _) {
             throw new GenesisException(
                     HttpStatus.INTERNAL_SERVER_ERROR,
                     "Unable to create contextual folder"

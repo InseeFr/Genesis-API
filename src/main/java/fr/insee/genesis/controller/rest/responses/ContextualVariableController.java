@@ -117,7 +117,7 @@ public class ContextualVariableController {
     private static void moveFile(String questionnaireId, Mode mode, FileUtils fileUtils, String filePath) throws GenesisException {
         try {
             fileUtils.moveFiles(Path.of(filePath), fileUtils.getDoneFolder(questionnaireId, mode.getFolder()));
-        } catch (IOException e) {
+        } catch (IOException _) {
             throw new GenesisException(HttpStatus.INTERNAL_SERVER_ERROR, "Error while moving file to done");
         }
     }

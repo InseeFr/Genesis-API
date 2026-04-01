@@ -510,7 +510,7 @@ public class ResponseController implements CommonApiResponse {
             if(contextService.getContextByCollectionInstrumentId(campaignName) == null){
                 contextService.saveContext(campaignName, false);
             }
-        } catch (IOException | ParserConfigurationException | SAXException | XMLStreamException e) {
+        } catch (IOException | ParserConfigurationException | SAXException | XMLStreamException _) {
 
             throw new GenesisException(
                     HttpStatus.INTERNAL_SERVER_ERROR,
