@@ -11,7 +11,6 @@ import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.repository.RawResponseInputRepository;
 import fr.insee.modelefiliere.RawResponseDto;
-import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
@@ -64,7 +63,6 @@ public class RawResponseController {
     @PutMapping(path = "/responses/raw/lunatic-json/save")
     @PreAuthorize("hasRole('COLLECT_PLATFORM')")
     public ResponseEntity<String> saveRawResponsesFromJsonBody(
-
             @RequestParam("campaignName") String campaignName,
             @RequestParam("questionnaireId") String questionnaireId,
             @RequestParam(INTERROGATION_ID) String interrogationId,
@@ -99,7 +97,7 @@ public class RawResponseController {
     public ResponseEntity<String> saveRawResponsesFromRawResponseDto(
             @Valid @RequestBody RawResponseDto dto
     ) {
-        rawRepository.saveAsRawJson(dto);
+        rawRepository.saveAsRawJson(dto); //TODO put in service, repository is infra layer
         return ResponseEntity.status(201).body(String.format(SUCCESS_MESSAGE, dto.getInterrogationId()));
     }
 
@@ -175,42 +173,7 @@ public class RawResponseController {
         return ResponseEntity.ok(lunaticJsonRawDataApiPort.getUnprocessedDataQuestionnaireIds());
     }
 
-    @Hidden
-    @GetMapping(path = "/responses/raw/lunatic-json/get/by-interrogation-mode-and-campaign")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<LunaticJsonRawDataModel> getJsonRawData(
-            @RequestParam(INTERROGATION_ID) String interrogationId,
-            @RequestParam("campaignName") String campaignName,
-            @RequestParam(value = "mode") Mode modeSpecified
-    ) {
-        List<LunaticJsonRawDataModel> data = lunaticJsonRawDataApiPort.getRawData(campaignName, modeSpecified, List.of(interrogationId));
-        return ResponseEntity.ok(data.getFirst());
-    }
-
     //PROCESS
-    @Operation(summary = "Process raw data of a campaign")
-    @PostMapping(path = "/responses/raw/lunatic-json/process")
-    @PreAuthorize("hasRole('SCHEDULER')")
-    @Deprecated(since = "1.13.0")
-    public ResponseEntity<String> processJsonRawData(
-            @RequestParam("campaignName") String campaignName,
-            @RequestParam("questionnaireId") String questionnaireId,
-            @RequestBody List<String> interrogationIdList
-    ) {
-        log.info("Try to process raw JSON datas for campaign {} and {} interrogationIds", campaignName, interrogationIdList.size());
-        List<GenesisError> errors = new ArrayList<>();
-
-        try {
-            DataProcessResult result = lunaticJsonRawDataApiPort.processRawData(campaignName, interrogationIdList, errors);
-            return result.formattedDataCount() == 0 ?
-                    ResponseEntity.ok("%d document(s) processed".formatted(result.dataCount()))
-                    : ResponseEntity.ok("%d document(s) processed, including %d FORMATTED after data verification"
-                    .formatted(result.dataCount(), result.formattedDataCount()));
-        } catch (GenesisException e) {
-            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
-        }
-    }
-
     @Operation(summary = "Process raw data of a questionnaire (old raw model)")
     @PostMapping(path = "/responses/raw/lunatic-json/{questionnaireId}/process")
     @PreAuthorize("hasRole('SCHEDULER')")

@@ -25,7 +25,7 @@ import java.nio.file.Path;
 import java.util.List;
 
 @Service
-@AllArgsConstructor
+ @AllArgsConstructor
 @Slf4j
 public class QuestionnaireMetadataService implements QuestionnaireMetadataApiPort {
     private static final String DDI_FILE_PATTERN = "ddi[\\w,\\s-]+\\.xml";
@@ -45,6 +45,7 @@ public class QuestionnaireMetadataService implements QuestionnaireMetadataApiPor
     }
 
     @Override
+    //TODO remove campaignName
     public MetadataModel loadAndSaveIfNotExists(String campaignName, String collectionInstrumentId, Mode mode, FileUtils fileUtils,
                                                 List<GenesisError> errors) throws GenesisException {
         List<QuestionnaireMetadataModel> questionnaireMetadataModels =
@@ -99,7 +100,8 @@ public class QuestionnaireMetadataService implements QuestionnaireMetadataApiPor
             try {
                 lunaticFilePath = fileUtils.findFile(String.format("%s/%s", fileUtils.getSpecFolder(campaignName), modeName), LUNATIC_FILE_PATTERN);
                 return parseMetadata(lunaticFilePath, null);
-            } catch (Exception ex) {
+            } //TODO remove error if java.nio.file.NoSuchFileException to avoid log spam
+            catch (Exception ex) {
                 log.error("Error reading Lunatic metadata file", ex);
                 errors.add(new GenesisError(ex.toString()));
                 return null;

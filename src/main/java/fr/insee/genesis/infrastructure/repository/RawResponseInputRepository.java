@@ -13,6 +13,7 @@ import java.util.Map;
 
 @Repository
 @RequiredArgsConstructor
+//TODO rename to adapter, it's not a repo
 public class RawResponseInputRepository {
 
     private final MongoTemplate mongoTemplate;
@@ -24,7 +25,7 @@ public class RawResponseInputRepository {
 
         try {
             json = objectMapper.writeValueAsString(dto);
-            // Parser en Document BSON (Mongo gère automatiquement les types)
+            // Parse into BSON document (Mongo handles types automatically) 
             Document payload = Document.parse(json);
 
             Map<String, Object> document = new java.util.HashMap<>();

@@ -74,7 +74,6 @@ public class DataVerifier {
         SurveyUnitModel sampleSurveyUnitModel = surveyUnitModelsList.stream().filter(element -> element.getInterrogationId().equals(interrogationId)).toList().getFirst();
         SurveyUnitModel newFormattedSurveyUnitModel = SurveyUnitModel.builder()
                 .collectionInstrumentId(sampleSurveyUnitModel.getCollectionInstrumentId())
-                .campaignId(sampleSurveyUnitModel.getCampaignId())
                 .interrogationId(interrogationId)
                 .usualSurveyUnitId(sampleSurveyUnitModel.getUsualSurveyUnitId())
                 .state(DataState.FORMATTED)

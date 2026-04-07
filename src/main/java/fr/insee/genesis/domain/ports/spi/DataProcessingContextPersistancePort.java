@@ -8,9 +8,6 @@ import java.io.IOException;
 import java.util.List;
 
 public interface DataProcessingContextPersistancePort {
-    DataProcessingContextDocument findByPartitionId(String partitionId);
-
-    List<DataProcessingContextModel> findByPartitionIds(List<String> partitionIds);
 
     DataProcessingContextModel findByCollectionInstrumentId(String collectionInstrumentId);
 
@@ -19,8 +16,6 @@ public interface DataProcessingContextPersistancePort {
     void save(DataProcessingContextDocument dataProcessingContextDocument);
 
     void saveAll(List<DataProcessingContextDocument> dataProcessingContextDocuments);
-
-    void deleteBypartitionId(String partitionId);
 
     List<DataProcessingContextDocument> findAll();
 

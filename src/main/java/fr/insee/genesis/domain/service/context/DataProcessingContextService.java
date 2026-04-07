@@ -13,7 +13,6 @@ import fr.insee.genesis.domain.ports.api.DataProcessingContextApiPort;
 import fr.insee.genesis.domain.ports.spi.DataProcessingContextPersistancePort;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
 import fr.insee.genesis.exceptions.GenesisException;
-import fr.insee.genesis.infrastructure.document.context.DataProcessingContextDocument;
 import fr.insee.genesis.infrastructure.mappers.DataProcessingContextMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,23 +43,6 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
     }
 
     @Override
-    public void saveContext(String partitionId, Boolean withReview) throws GenesisException {
-
-        DataProcessingContextModel dataProcessingContextModel =
-                DataProcessingContextMapper.INSTANCE.documentToModel(dataProcessingContextPersistancePort.findByPartitionId(partitionId));
-        if(dataProcessingContextModel == null){
-            //Create if not exist
-            dataProcessingContextModel = DataProcessingContextModel.builder()
-                    .partitionId(partitionId)
-                    .kraftwerkExecutionScheduleList(new ArrayList<>())
-                    .build();
-        }
-        dataProcessingContextModel.setWithReview(withReview);
-
-        dataProcessingContextPersistancePort.save(DataProcessingContextMapper.INSTANCE.modelToDocument(dataProcessingContextModel));
-    }
-
-    @Override
     public void saveContextByCollectionInstrumentId(String collectionInstrumentId, Boolean withReview) throws GenesisException {
         DataProcessingContextModel dataProcessingContextModel = dataProcessingContextPersistancePort.findByCollectionInstrumentId(collectionInstrumentId);
         if(dataProcessingContextModel == null){
@@ -75,36 +57,11 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
         dataProcessingContextPersistancePort.save(DataProcessingContextMapper.INSTANCE.modelToDocument(dataProcessingContextModel));
     }
 
+    /**
+     * @Deprecated Will be replaced by Bangles V1
+     */
     @Override
-    public void saveKraftwerkExecutionSchedule(String partitionId,
-                                               ServiceToCall serviceToCall,
-                                               String frequency,
-                                               LocalDateTime startDate,
-                                               LocalDateTime endDate,
-                                               TrustParameters trustParameters) throws GenesisException {
-        DataProcessingContextModel dataProcessingContextModel =
-                DataProcessingContextMapper.INSTANCE.documentToModel(dataProcessingContextPersistancePort.findByPartitionId(partitionId));
-        if(dataProcessingContextModel == null){
-            //Create if not exist
-            dataProcessingContextModel = DataProcessingContextModel.builder()
-                    .partitionId(partitionId)
-                    .withReview(false)
-                    .kraftwerkExecutionScheduleList(new ArrayList<>())
-                    .build();
-        }
-
-        dataProcessingContextModel.getKraftwerkExecutionScheduleList().add(
-                new KraftwerkExecutionSchedule(frequency,
-                        serviceToCall,
-                        startDate,
-                        endDate,
-                        trustParameters
-                )
-        );
-        dataProcessingContextPersistancePort.save(DataProcessingContextMapper.INSTANCE.modelToDocument(dataProcessingContextModel));
-    }
-
-    @Override
+    @Deprecated
     public void saveKraftwerkExecutionScheduleByCollectionInstrumentId(String collectionInstrumentId, ServiceToCall serviceToCall, String frequency, LocalDateTime startDate, LocalDateTime endDate, TrustParameters trustParameters) throws GenesisException {
         DataProcessingContextModel dataProcessingContextModel = dataProcessingContextPersistancePort.findByCollectionInstrumentId(collectionInstrumentId);
         if(dataProcessingContextModel == null){
@@ -127,40 +84,17 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
         dataProcessingContextPersistancePort.save(DataProcessingContextMapper.INSTANCE.modelToDocument(dataProcessingContextModel));
     }
 
-    @Deprecated(forRemoval = true)
+    /**
+     * @Deprecated Will be replaced by Bangles V1
+     */
     @Override
-    public void updateLastExecutionDate(String partitionId, LocalDateTime newDate) throws GenesisException {
-         DataProcessingContextModel dataProcessingContextModel =
-                DataProcessingContextMapper.INSTANCE.documentToModel(
-                        dataProcessingContextPersistancePort.findByPartitionId(partitionId)
-                );
-        if (dataProcessingContextModel == null) {
-            throw new GenesisException(404, NOT_FOUND_MESSAGE);
-        }
-        dataProcessingContextModel.setLastExecution(newDate);
-        dataProcessingContextPersistancePort.save(DataProcessingContextMapper.INSTANCE.modelToDocument(dataProcessingContextModel));
-    }
-
-    @Override
+    @Deprecated
     public void updateLastExecutionDateByCollectionInstrumentId(String collectionInstrumentId, LocalDateTime newDate) throws GenesisException {
         DataProcessingContextModel dataProcessingContextModel = dataProcessingContextPersistancePort.findByCollectionInstrumentId(collectionInstrumentId);
         if (dataProcessingContextModel == null) {
             throw new GenesisException(404, NOT_FOUND_MESSAGE);
         }
         dataProcessingContextModel.setLastExecution(newDate);
-        dataProcessingContextPersistancePort.save(DataProcessingContextMapper.INSTANCE.modelToDocument(dataProcessingContextModel));
-    }
-
-    @Override
-    public void deleteSchedules(String partitionId) throws GenesisException {
-        DataProcessingContextModel dataProcessingContextModel =
-                DataProcessingContextMapper.INSTANCE.documentToModel(
-                        dataProcessingContextPersistancePort.findByPartitionId(partitionId)
-                );
-        if (dataProcessingContextModel == null) {
-            throw new GenesisException(404, NOT_FOUND_MESSAGE);
-        }
-        dataProcessingContextModel.setKraftwerkExecutionScheduleList(new ArrayList<>());
         dataProcessingContextPersistancePort.save(DataProcessingContextMapper.INSTANCE.modelToDocument(dataProcessingContextModel));
     }
 
@@ -175,7 +109,11 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
         dataProcessingContextPersistancePort.save(DataProcessingContextMapper.INSTANCE.modelToDocument(dataProcessingContextModel));
     }
 
+    /**
+     * @Deprecated Will be replaced by Bangles V1 ?
+     */
     @Override
+    @Deprecated
     public List<ScheduleDto> getAllSchedules() {
         List<ScheduleDto> scheduleDtos = new ArrayList<>();
 
@@ -198,8 +136,7 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
                 List<KraftwerkExecutionSchedule> deletedKraftwerkExecutionSchedules = dataProcessingContextPersistancePort.removeExpiredSchedules(context);
                 //Save in JSON log
                 if(!deletedKraftwerkExecutionSchedules.isEmpty()) {
-                    String scheduleName = context.getCollectionInstrumentId()==null ?
-                            context.getPartitionId() : context.getCollectionInstrumentId();
+                    String scheduleName = context.getCollectionInstrumentId();
                     Path jsonLogPath = Path.of(logFolder, Constants.SCHEDULE_ARCHIVE_FOLDER_NAME,
                             scheduleName + ".json");
                     ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
@@ -218,17 +155,18 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
                     }
                 }
             } catch (IOException e) {
-                String name = context.getCollectionInstrumentId()!=null?context.getCollectionInstrumentId() :context.getPartitionId();
+                String name = context.getCollectionInstrumentId();
                 throw new GenesisException(500,String.format("An error occured trying to delete expired schedules for %s",name));
             }
         }
     }
 
     @Override
-    public long countSchedules() {
+    public long countContexts() {
         return dataProcessingContextPersistancePort.count();
     }
 
+    //TODO get context by collectionInstrumentId
     @Override
     public DataProcessingContextModel getContext(String interrogationId) throws GenesisException {
         List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findByInterrogationId(interrogationId);
@@ -252,24 +190,12 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
         }
 
         return dataProcessingContextPersistancePort.findByCollectionInstrumentId(collectionInstrumentIds.stream().toList().getFirst());
+        //TODO if multiple contexts, priorize withReview false
     }
 
     @Override
     public DataProcessingContextModel getContextByCollectionInstrumentId(String collectionInstrumentId){
         return dataProcessingContextPersistancePort.findByCollectionInstrumentId(collectionInstrumentId);
-    }
-
-    @Override
-    @Deprecated(forRemoval = true)
-    public List<String> getPartitionIds(boolean withReview){
-        List<String> partitionIds = new ArrayList<>();
-        for(DataProcessingContextModel dataProcessingContextModel
-        : DataProcessingContextMapper.INSTANCE.listDocumentToListModel(
-                dataProcessingContextPersistancePort.findAllByReview(withReview)
-        )){
-            partitionIds.add(dataProcessingContextModel.getPartitionId());
-        }
-        return partitionIds;
     }
 
     @Override
@@ -284,19 +210,6 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
             }
         }
         return collectionInstrumentIds;
-    }
-
-    @Deprecated(forRemoval = true)
-    @Override
-    public boolean getReviewByPartitionId(String partitionId) throws GenesisException {
-        DataProcessingContextDocument dataProcessingContextDocument =
-                dataProcessingContextPersistancePort.findByPartitionId(partitionId);
-        if(dataProcessingContextDocument == null){
-            throw new GenesisException(404, "Data processing context not found");
-        }
-        return DataProcessingContextMapper.INSTANCE.documentToModel(
-                dataProcessingContextPersistancePort.findByPartitionId(partitionId)
-        ).isWithReview();
     }
 
     @Override

@@ -2,8 +2,6 @@ package fr.insee.genesis.domain.service.surveyunit;
 
 import fr.insee.bpm.metadata.model.VariableType;
 import fr.insee.bpm.metadata.model.VariablesMap;
-import fr.insee.genesis.controller.dto.CampaignWithQuestionnaire;
-import fr.insee.genesis.controller.dto.QuestionnaireWithCampaign;
 import fr.insee.genesis.controller.dto.SurveyUnitDto;
 import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
 import fr.insee.genesis.controller.dto.SurveyUnitSimplifiedDto;
@@ -21,6 +19,7 @@ import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
 import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.utils.GroupUtils;
 import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.exceptions.NoDataException;
 import fr.insee.genesis.exceptions.QuestionnaireNotFoundException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.modelefiliere.RawResponseDto;
@@ -37,7 +36,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -194,8 +192,14 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     public SurveyUnitSimplifiedDto findSimplifiedByCollectionInstrumentIdAndInterrogationId(
             String collectionInstrumentId,
             String interrogationId,
-            Mode mode){
+            Mode mode) throws NoDataException {
         List<SurveyUnitModel> responses = findLatestByIdAndByCollectionInstrumentId(interrogationId, collectionInstrumentId);
+
+        if(responses.isEmpty()){
+            String errorMessage = "No response found for interrogation %s".formatted(interrogationId);
+            log.debug(errorMessage);
+            throw new NoDataException(errorMessage);
+        }
 
         List<VariableModel> outputVariables = new ArrayList<>();
         List<VariableModel> outputExternalVariables = new ArrayList<>();
@@ -219,7 +223,6 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         SurveyUnitModel first = responses.getFirst();
         return SurveyUnitSimplifiedDto.builder()
                 .collectionInstrumentId(first.getCollectionInstrumentId())
-                .campaignId(first.getCampaignId())
                 .interrogationId(first.getInterrogationId())
                 .mode(mode)
                 .usualSurveyUnitId(first.getUsualSurveyUnitId())
@@ -243,11 +246,18 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         List<Mode> modes = findModesByCollectionInstrumentId(collectionInstrumentId);
         return interrogationIds.stream()
                 .flatMap(interrogationId -> modes.stream()
-                        .map(mode -> findSimplifiedByCollectionInstrumentIdAndInterrogationId(
-                                collectionInstrumentId,
-                                interrogationId.getInterrogationId(),
-                                mode
-                        ))
+                        .map(mode -> {
+                            try {
+                                return findSimplifiedByCollectionInstrumentIdAndInterrogationId(
+                                        collectionInstrumentId,
+                                        interrogationId.getInterrogationId(),
+                                        mode
+                                );
+                            } catch (NoDataException e) {
+                                log.debug(e.getMessage());
+                            }
+                            return null;
+                        })
                 )
                 .filter(Objects::nonNull)
                 .toList();
@@ -465,26 +475,10 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         return sources;
     }
 
-    @Override
-    public List<Mode> findModesByCampaignId(String campaignId) {
-        List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findInterrogationIdsByCampaignId(campaignId);
-        List<Mode> sources = new ArrayList<>();
-        surveyUnitModels.forEach(surveyUnitModel -> sources.add(surveyUnitModel.getMode()));
-        return sources.stream().distinct().toList();
-    }
-
     //========= OPTIMISATIONS PERFS (START) ==========
     @Override
     public List<Mode> findModesByQuestionnaireIdV2(String questionnaireId) {
         List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findModesByQuestionnaireIdV2(questionnaireId);
-        List<Mode> sources = new ArrayList<>();
-        surveyUnitModels.forEach(surveyUnitModel -> sources.add(surveyUnitModel.getMode()));
-        return sources.stream().distinct().toList();
-    }
-
-    @Override
-    public List<Mode> findModesByCampaignIdV2(String campaignId) {
-        List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findModesByCampaignIdV2(campaignId);
         List<Mode> sources = new ArrayList<>();
         surveyUnitModels.forEach(surveyUnitModel -> sources.add(surveyUnitModel.getMode()));
         return sources.stream().distinct().toList();
@@ -502,57 +496,8 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     }
 
     @Override
-    public Set<String> findQuestionnaireIdsByCampaignId(String campaignId) {
-            return surveyUnitPersistencePort.findQuestionnaireIdsByCampaignId(campaignId);
-    }
-
-    //========= OPTIMISATIONS PERFS (START) ==========
-    /**
-     * @author Adrien Marchal
-     */
-    @Override
-    public Set<String> findQuestionnaireIdsByCampaignIdV2(String campaignId) {
-        return surveyUnitPersistencePort.findQuestionnaireIdsByCampaignIdV2(campaignId);
-    }
-    //========= OPTIMISATIONS PERFS (END) ==========
-
-    @Override
-    public Set<String> findDistinctCampaignIds() {
-        return surveyUnitPersistencePort.findDistinctCampaignIds();
-    }
-
-    @Override
-    public List<CampaignWithQuestionnaire> findCampaignsWithQuestionnaires() {
-        List<CampaignWithQuestionnaire> campaignsWithQuestionnaireList = new ArrayList<>();
-        for(String campaignId : findDistinctCampaignIds()){
-            Set<String> questionnaires = findQuestionnaireIdsByCampaignId(campaignId);
-            campaignsWithQuestionnaireList.add(new CampaignWithQuestionnaire(campaignId,questionnaires));
-        }
-        return campaignsWithQuestionnaireList;
-    }
-
-    @Override
-    public long countResponsesByCampaignId(String campaignId){
-        return surveyUnitPersistencePort.countByCampaignId(campaignId);
-    }
-
-    @Override
     public Set<String> findDistinctQuestionnairesAndCollectionInstrumentIds() {
         return surveyUnitPersistencePort.findDistinctQuestionnairesAndCollectionInstrumentIds();
-    }
-
-    @Override
-    public List<QuestionnaireWithCampaign> findQuestionnairesWithCampaigns() {
-        List<QuestionnaireWithCampaign> questionnaireWithCampaignList = new ArrayList<>();
-        for(String questionnaireId : findDistinctQuestionnairesAndCollectionInstrumentIds()){
-            Set<String> campaigns = surveyUnitPersistencePort.findCampaignIdsByQuestionnaireId(questionnaireId);
-            questionnaireWithCampaignList.add(new QuestionnaireWithCampaign(
-                    questionnaireId,
-                    campaigns)
-            );
-
-        }
-        return questionnaireWithCampaignList;
     }
 
     @Override
@@ -575,7 +520,6 @@ public class SurveyUnitService implements SurveyUnitApiPort {
 
         for (DataState state : statesReceived){
             SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
-                    .campaignId(surveyUnitInputDto.getCampaignId())
                     .mode(surveyUnitInputDto.getMode())
                     .collectionInstrumentId(surveyUnitInputDto.getQuestionnaireId().toUpperCase())
                     .interrogationId(surveyUnitInputDto.getInterrogationId())
@@ -630,17 +574,6 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         }
 
         return questionnaireIds.iterator().next(); //Return first (and supposed only) element of set
-    }
-
-    @Override
-    public Set<String> findCampaignIdsFrom(SurveyUnitInputDto dto) {
-        List<SurveyUnitModel> responses = findByIdsInterrogationAndCollectionInstrument(
-                dto.getInterrogationId(),
-                dto.getQuestionnaireId()
-        );
-        return responses.stream()
-                .map(SurveyUnitModel::getCampaignId)
-                .collect(Collectors.toSet());
     }
 
     @Override
