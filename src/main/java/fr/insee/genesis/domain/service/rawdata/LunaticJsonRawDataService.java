@@ -4,7 +4,6 @@ import fr.insee.bpm.metadata.model.MetadataModel;
 import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.configuration.Config;
-import fr.insee.genesis.controller.dto.rawdata.LunaticJsonRawDataUnprocessedDto;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
@@ -291,22 +290,6 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
             return Boolean.FALSE;
         }
 
-    }
-
-    @Override
-    public List<LunaticJsonRawDataUnprocessedDto> getUnprocessedDataIds() {
-        List<LunaticJsonRawDataUnprocessedDto> dtos = new ArrayList<>();
-
-        for (GroupedInterrogation groupedInterrogation : lunaticJsonRawDataPersistencePort.findUnprocessedIds()) {
-            for (String interrogationId : groupedInterrogation.interrogationIds()){
-                dtos.add(LunaticJsonRawDataUnprocessedDto.builder()
-                        .questionnaireId(groupedInterrogation.questionnaireId())
-                        .interrogationId(interrogationId)
-                        .build()
-                );
-            }
-        }
-        return dtos;
     }
 
     @Override

@@ -45,11 +45,6 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
     }
 
     @Override
-    public List<LunaticJsonRawDataModel> getAllUnprocessedData() {
-        return LunaticJsonRawDataDocumentMapper.INSTANCE.listDocumentToListModel(repository.findByNullProcessDate());
-    }
-
-    @Override
     public Set<String> findDistinctQuestionnaireIdsByNullProcessDate(){
         return new HashSet<>(repository.findDistinctQuestionnaireIdByProcessDateIsNull());
     }

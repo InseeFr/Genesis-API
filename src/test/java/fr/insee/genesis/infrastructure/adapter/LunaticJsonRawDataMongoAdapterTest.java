@@ -90,35 +90,6 @@ class LunaticJsonRawDataMongoAdapterTest {
     }
 
     @Nested
-    @DisplayName("getAllUnprocessedData() tests")
-    class GetAllUnprocessedDataTests {
-
-        @Test
-        @DisplayName("Should return mapped models from repository")
-        void getAllUnprocessedData_shouldReturnMappedModels() {
-            //GIVEN
-            when(repository.findByNullProcessDate()).thenReturn(List.of(getDocument()));
-
-            //WHEN
-            List<LunaticJsonRawDataModel> result = adapter.getAllUnprocessedData();
-
-            //THEN
-            assertThat(result).isNotNull().hasSize(1);
-            verify(repository).findByNullProcessDate();
-        }
-
-        @Test
-        @DisplayName("Should return empty list when repository returns no documents")
-        void getAllUnprocessedData_noDocuments_shouldReturnEmptyList() {
-            //GIVEN
-            when(repository.findByNullProcessDate()).thenReturn(List.of());
-
-            //WHEN + THEN
-            assertThat(adapter.getAllUnprocessedData()).isEmpty();
-        }
-    }
-
-    @Nested
     @DisplayName("findDistinctQuestionnaireIdsByNullProcessDate() tests")
     class FindDistinctQuestionnaireIdsByNullProcessDateTests {
 

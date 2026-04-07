@@ -459,38 +459,6 @@ class LunaticJsonRawDataServiceTest {
     }
 
     @Nested
-    @DisplayName("getUnprocessedDataIds()")
-    class GetUnprocessedDataIdsTests {
-
-        @Test
-        @DisplayName("Returns DTOs for each interrogation id")
-        void returnsDtos() {
-            //GIVEN
-            GroupedInterrogation grouped = new GroupedInterrogation(
-                    QUESTIONNAIRE_ID, List.of("id1", "id2"));
-            when(lunaticJsonRawDataPersistencePort.findUnprocessedIds()).thenReturn(List.of(grouped));
-
-            //WHEN
-            List<LunaticJsonRawDataUnprocessedDto> result = service.getUnprocessedDataIds();
-
-            //THEN
-            assertThat(result).hasSize(2);
-            assertThat(result.get(0).interrogationId()).isEqualTo("id1");
-            assertThat(result.get(1).interrogationId()).isEqualTo("id2");
-        }
-
-        @Test
-        @DisplayName("Returns empty list when no unprocessed ids")
-        void noUnprocessed_returnsEmpty() {
-            //GIVEN
-            when(lunaticJsonRawDataPersistencePort.findUnprocessedIds()).thenReturn(List.of());
-
-            //WHEN + THEN
-            assertThat(service.getUnprocessedDataIds()).isEmpty();
-        }
-    }
-
-    @Nested
     @DisplayName("getUnprocessedDataQuestionnaireIds()")
     class GetUnprocessedDataQuestionnaireIdsTests {
 

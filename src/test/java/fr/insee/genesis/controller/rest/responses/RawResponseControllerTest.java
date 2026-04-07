@@ -280,22 +280,6 @@ class RawResponseControllerTest {
     }
 
     @Nested
-    @DisplayName("GET /responses/raw/lunatic-json/get/unprocessed tests")
-    class GetUnprocessedJsonRawDataTests {
-
-        @Test
-        @DisplayName("Should return 200 with unprocessed data ids")
-        void getUnprocessedJson_shouldReturn200() throws Exception {
-            // GIVEN
-            when(lunaticJsonRawDataApiPort.getUnprocessedDataIds()).thenReturn(List.of());
-
-            // WHEN / THEN
-            mockMvc.perform(get("/responses/raw/lunatic-json/get/unprocessed"))
-                    .andExpect(status().isOk());
-        }
-    }
-
-    @Nested
     @DisplayName("GET /responses/raw/lunatic-json/get/unprocessed/questionnaireIds tests")
     class GetUnprocessedJsonRawDataQuestionnairesIdsTests {
 
