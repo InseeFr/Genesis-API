@@ -457,13 +457,6 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     }
     //=========== OPTIMISATIONS PERFS (END) =============
 
-
-    @Override
-    public List<SurveyUnitModel> findInterrogationIdsAndModesByQuestionnaireId(String questionnaireId) {
-        List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findInterrogationIdsByCollectionInstrumentId(questionnaireId);
-        return surveyUnitModels.stream().distinct().toList();
-    }
-
     @Override
     public List<Mode> findModesByCollectionInstrumentId(String collectionInstrumentId) {
         List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findInterrogationIdsByCollectionInstrumentId(collectionInstrumentId);
@@ -471,8 +464,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             log.warn("No collectionInstrument found with id: {}", collectionInstrumentId);
             throw new QuestionnaireNotFoundException(collectionInstrumentId);
         }
-        List<Mode> sources =  surveyUnitModels.stream().map(SurveyUnitModel::getMode).distinct().toList();
-        return sources;
+        return surveyUnitModels.stream().map(SurveyUnitModel::getMode).distinct().toList();
     }
 
     //========= OPTIMISATIONS PERFS (START) ==========

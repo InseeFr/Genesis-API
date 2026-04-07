@@ -1,8 +1,6 @@
 package fr.insee.genesis.domain.ports.api;
 
 import fr.insee.bpm.metadata.model.VariablesMap;
-import fr.insee.genesis.controller.dto.CampaignWithQuestionnaire;
-import fr.insee.genesis.controller.dto.QuestionnaireWithCampaign;
 import fr.insee.genesis.controller.dto.SurveyUnitDto;
 import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
 import fr.insee.genesis.controller.dto.SurveyUnitSimplifiedDto;
@@ -46,8 +44,6 @@ public interface SurveyUnitApiPort {
     //========= OPTIMISATIONS PERFS (END) ==========
 
     SurveyUnitDto findLatestValuesByStateByIdAndByCollectionInstrumentId(String interrogationId, String collectionInstrumentId) throws GenesisException;
-
-    List<SurveyUnitModel> findInterrogationIdsAndModesByQuestionnaireId(String questionnaireId);
 
     List<InterrogationId> findDistinctInterrogationIdsByQuestionnaireId(String questionnaireId);
 
