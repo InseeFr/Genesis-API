@@ -25,7 +25,7 @@ public class CombinedRawDataController {
     @Operation(summary = "Retrieve combined raw responses and Lunatic raw data for a given interrogationId")
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'USER_PLATINE')")
-    public ResponseEntity<CombinedRawDataDto> getCombinetRawData(
+    public ResponseEntity<CombinedRawDataDto> getCombinedRawData(
             @RequestParam(INTERROGATION_ID) String interrogationId
     ){
         CombinedRawDataDto data = combinedRawDataService.getCombinedRawDataByInterrogationId(interrogationId);

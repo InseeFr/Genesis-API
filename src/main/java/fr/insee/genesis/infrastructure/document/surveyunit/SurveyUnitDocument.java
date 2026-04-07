@@ -21,12 +21,6 @@ import java.util.List;
 @CompoundIndex(name = "interrogationId_1_collectionInstrumentId_1", def = "{'interrogationId': 1, 'collectionInstrumentId': 1}")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SurveyUnitDocument {
-
-	/**
-	 * @deprecated This piece of information will not be available anymore in the raw responses
-	 */
-	@Deprecated(forRemoval = true, since ="2026-01-01")
-	private String campaignId;
 	@Indexed
 	private String interrogationId;
 

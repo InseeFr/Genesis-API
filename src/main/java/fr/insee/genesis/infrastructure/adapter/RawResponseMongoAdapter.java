@@ -66,7 +66,7 @@ public class RawResponseMongoAdapter implements RawResponsePersistencePort {
 
     @Override
     public Set<String> findUnprocessedInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId) {
-        // We remove duplicate ids
+        // We remove duplicate ids by returning Set
         return new HashSet<>(repository.findInterrogationIdByCollectionInstrumentIdAndProcessDateIsNull(collectionInstrumentId));
     }
 

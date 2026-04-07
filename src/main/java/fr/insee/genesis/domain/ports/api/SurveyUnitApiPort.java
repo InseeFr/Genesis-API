@@ -1,8 +1,6 @@
 package fr.insee.genesis.domain.ports.api;
 
 import fr.insee.bpm.metadata.model.VariablesMap;
-import fr.insee.genesis.controller.dto.CampaignWithQuestionnaire;
-import fr.insee.genesis.controller.dto.QuestionnaireWithCampaign;
 import fr.insee.genesis.controller.dto.SurveyUnitDto;
 import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
 import fr.insee.genesis.controller.dto.SurveyUnitSimplifiedDto;
@@ -10,6 +8,7 @@ import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.exceptions.NoDataException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -32,7 +31,7 @@ public interface SurveyUnitApiPort {
             String collectionInstrumentId,
             String interrogationId,
             Mode mode
-    );
+    ) throws NoDataException;
 
     List<SurveyUnitSimplifiedDto> findSimplifiedByCollectionInstrumentIdAndInterrogationIdList(
             String collectionInstrumentId,
@@ -45,8 +44,6 @@ public interface SurveyUnitApiPort {
     //========= OPTIMISATIONS PERFS (END) ==========
 
     SurveyUnitDto findLatestValuesByStateByIdAndByCollectionInstrumentId(String interrogationId, String collectionInstrumentId) throws GenesisException;
-
-    List<SurveyUnitModel> findInterrogationIdsAndModesByQuestionnaireId(String questionnaireId);
 
     List<InterrogationId> findDistinctInterrogationIdsByQuestionnaireId(String questionnaireId);
 
@@ -65,44 +62,17 @@ public interface SurveyUnitApiPort {
 
     List<Mode> findModesByCollectionInstrumentId(String collectionInstrumentId);
 
-    List<Mode> findModesByCampaignId(String campaignId);
-
-    //========= OPTIMISATIONS PERFS (START) ==========
-    List<Mode> findModesByCampaignIdV2(String campaignId);
-    //========= OPTIMISATIONS PERFS (END) ==========
-
     Long deleteByCollectionInstrumentId(String collectionInstrumentId);
 
     long countResponses();
 
-    Set<String> findQuestionnaireIdsByCampaignId(String campaignId);
-
-    //========= OPTIMISATIONS PERFS (START) ==========
-    /**
-     * @author Adrien Marchal
-     */
-    Set<String> findQuestionnaireIdsByCampaignIdV2(String campaignId);
-    //========= OPTIMISATIONS PERFS (END) ==========
-
-    @Deprecated
-    Set<String> findDistinctCampaignIds();
-
-    @Deprecated
-    long countResponsesByCampaignId(String campaignId);
-
     Set<String> findDistinctQuestionnairesAndCollectionInstrumentIds();
-
-    List<CampaignWithQuestionnaire> findCampaignsWithQuestionnaires();
-
-    List<QuestionnaireWithCampaign> findQuestionnairesWithCampaigns();
 
     List<SurveyUnitModel> parseEditedVariables(SurveyUnitInputDto surveyUnitInputDto,
                                          String userIdentifier,
                                          VariablesMap variablesMap) throws GenesisException;
 
     String findQuestionnaireIdByInterrogationId(String interrogationId) throws GenesisException;
-
-    Set<String> findCampaignIdsFrom(SurveyUnitInputDto dto);
 
     long countResponsesByQuestionnaireId(String questionnaireId);
 
