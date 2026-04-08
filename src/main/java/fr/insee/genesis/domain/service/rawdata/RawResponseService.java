@@ -81,6 +81,13 @@ public class  RawResponseService implements RawResponseApiPort {
     }
 
     @Override
+    public DataProcessResult processRawResponses(String collectionInstrumentId) throws GenesisException {
+        List<String> interrogationIds = rawResponsePersistencePort
+                .findUnprocessedInterrogationIdsByCollectionInstrumentId(collectionInstrumentId).stream().toList();
+        return processRawResponses(collectionInstrumentId, interrogationIds, new ArrayList<>());
+    }
+
+    @Override
     public DataProcessResult processRawResponses(String collectionInstrumentId, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException {
         int dataCount=0;
         int formattedDataCount=0;
@@ -144,13 +151,6 @@ public class  RawResponseService implements RawResponseApiPort {
             return false;
         }
         return dataProcessingContext.isWithReview();
-    }
-
-    @Override
-    public DataProcessResult processRawResponses(String collectionInstrumentId) throws GenesisException {
-        List<String> interrogationIds = rawResponsePersistencePort
-                .findUnprocessedInterrogationIdsByCollectionInstrumentId(collectionInstrumentId).stream().toList();
-        return processRawResponses(collectionInstrumentId, interrogationIds, new ArrayList<>());
     }
 
     private VariablesMap getVariablesMap(String collectionInstrumentId, Mode mode, List<GenesisError> errors) throws GenesisException {
