@@ -96,14 +96,10 @@ public class  RawResponseService implements RawResponseApiPort {
             while(!interrogationIdListForMode.isEmpty()){
                 log.info("Processing raw data batch {}/{}", batchNumber, totalBatchs);
                 int maxIndex = Math.min(interrogationIdListForMode.size(), config.getRawDataProcessingBatchSize());
+
                 List<String> interrogationIdToProcess = interrogationIdListForMode.subList(0, maxIndex);
-
                 List<RawResponseModel> rawResponseModels = getRawResponses(collectionInstrumentId, mode, interrogationIdToProcess);
-
-                List<SurveyUnitModel> surveyUnitModels = convertRawResponse(
-                        rawResponseModels,
-                        variablesMap
-                );
+                List<SurveyUnitModel> surveyUnitModels = convertRawResponse(rawResponseModels, variablesMap);
 
                 //Save converted data
                 surveyUnitQualityService.verifySurveyUnits(surveyUnitModels, variablesMap);
