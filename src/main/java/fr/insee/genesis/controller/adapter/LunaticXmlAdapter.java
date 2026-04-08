@@ -23,10 +23,9 @@ public class LunaticXmlAdapter {
      * Convert a Lunatic XML survey unit into a genesis survey unit model
      * @param su Lunatic XML survey unit to convert
      * @param variablesMap variable definitions (used for loops)
-     * @param campaignId survey id
      * @return Genesis SurveyUnitModels for each data state
      */
-    public static List<SurveyUnitModel> convert(LunaticXmlSurveyUnit su, VariablesMap variablesMap, String campaignId, Mode mode){
+    public static List<SurveyUnitModel> convert(LunaticXmlSurveyUnit su, VariablesMap variablesMap, Mode mode){
         //Get COLLECTED Data and external variables
         List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
         SurveyUnitModel surveyUnitModel = getStateDataFromSurveyUnit(su, variablesMap, DataState.COLLECTED, mode);
