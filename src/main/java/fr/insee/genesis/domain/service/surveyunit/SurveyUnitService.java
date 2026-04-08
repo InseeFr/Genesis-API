@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -383,19 +382,15 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     @Override
     public List<InterrogationId> findDistinctInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
             String collectionInstrumentId,
-            LocalDateTime start,
-            LocalDateTime end
+            Instant start,
+            Instant end
     ) {
-        ZoneId zone = ZoneId.of("Europe/Paris");
-
-        Instant startInstant = start.atZone(zone).toInstant();
-        Instant endInstant = end.atZone(zone).toInstant();
 
         return surveyUnitPersistencePort
                 .findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
                         collectionInstrumentId,
-                        startInstant,
-                        endInstant
+                        start,
+                        end
                 )
                 .stream()
                 .map(su -> new InterrogationId(su.getInterrogationId()))

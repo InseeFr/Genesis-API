@@ -4,7 +4,7 @@ import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.RawDataModelType;
 import fr.insee.genesis.exceptions.GenesisException;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public interface ReprocessRawResponseApiPort {
 
@@ -20,7 +20,7 @@ public interface ReprocessRawResponseApiPort {
      */
     DataProcessResult reprocessRawResponses(
             RawDataModelType rawDataModelType,
-            String collectionInstrumentId, LocalDateTime sinceDate, LocalDateTime endDate)
+            String collectionInstrumentId, Instant sinceDate, Instant endDate)
             throws GenesisException;
 
 }

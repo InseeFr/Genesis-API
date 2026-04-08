@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Controller
 @RequiredArgsConstructor
@@ -36,17 +36,21 @@ public class RawResponseReprocessController {
             @PathVariable("collectionInstrumentId")
             String collectionInstrumentId,
 
-            @Parameter(description = "Extract since",
-                    schema = @Schema(type = "string", format = "date-time", example = "2026-01-01T00:00:00"))
+            @Parameter(
+                    description = "Extract since",
+                    schema = @Schema(type = "string", format = "date-time", example = "2026-01-01T00:00:00Z")
+            )
             @RequestParam(value = "sinceDate", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-            LocalDateTime sinceDate,
+            Instant sinceDate,
 
-            @Parameter(description = "Extract until",
-                    schema = @Schema(type = "string", format = "date-time", example = "2026-02-02T00:00:00"))
+            @Parameter(
+                    description = "Extract until",
+                    schema = @Schema(type = "string", format = "date-time", example = "2026-02-02T00:00:00Z")
+            )
             @RequestParam(value = "endDate", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-            LocalDateTime endDate
+            Instant endDate
     ) throws GenesisException {
 
         DataProcessResult result = reprocessRawResponseApiPort.reprocessRawResponses(
@@ -69,17 +73,21 @@ public class RawResponseReprocessController {
             @PathVariable("questionnaireId")
             String collectionInstrumentId, // 'questionnaireId' is the legacy name for 'collectionInstrumentId'
 
-            @Parameter(description = "Extract since",
-                    schema = @Schema(type = "string", format = "date-time", example = "2026-01-01T00:00:00"))
+            @Parameter(
+                    description = "Extract since",
+                    schema = @Schema(type = "string", format = "date-time", example = "2026-01-01T00:00:00Z")
+            )
             @RequestParam(value = "sinceDate", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-            LocalDateTime sinceDate,
+            Instant sinceDate,
 
-            @Parameter(description = "Extract until",
-                    schema = @Schema(type = "string", format = "date-time", example = "2026-02-02T00:00:00"))
+            @Parameter(
+                    description = "Extract until",
+                    schema = @Schema(type = "string", format = "date-time", example = "2026-02-02T00:00:00Z")
+            )
             @RequestParam(value = "endDate", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-            LocalDateTime endDate
+            Instant endDate
     ) throws GenesisException {
 
         DataProcessResult result = reprocessRawResponseApiPort.reprocessRawResponses(

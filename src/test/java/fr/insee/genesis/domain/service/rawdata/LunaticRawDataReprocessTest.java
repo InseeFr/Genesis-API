@@ -10,7 +10,9 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 class LunaticRawDataReprocessTest {
 
@@ -44,7 +46,7 @@ class LunaticRawDataReprocessTest {
     @Test
     void reprocessRawData_should_throw_when_endDate_is_provided_without_sinceDate() {
         String questionnaireId = "TESTIDQUEST";
-        LocalDateTime endDate = LocalDateTime.now();
+        Instant endDate = Instant.now();
 
         Assertions.assertThatThrownBy(() ->
                         reprocessRawResponseService.reprocessRawResponses(
@@ -56,8 +58,8 @@ class LunaticRawDataReprocessTest {
     @Test
     void reprocessRawData_should_throw_when_endDate_is_before_sinceDate() {
         String questionnaireId = "TESTIDQUEST";
-        LocalDateTime sinceDate = LocalDateTime.of(2024, 1, 10, 10, 0);
-        LocalDateTime endDate = LocalDateTime.of(2024, 1, 9, 10, 0);
+        Instant sinceDate = LocalDateTime.of(2024, 1, 10, 10, 0).toInstant(ZoneOffset.UTC);
+        Instant endDate = LocalDateTime.of(2024, 1, 9, 10, 0).toInstant(ZoneOffset.UTC);
 
         Assertions.assertThatThrownBy(() ->
                 reprocessRawResponseService.reprocessRawResponses(

@@ -13,6 +13,7 @@ import org.springframework.data.repository.query.FluentQuery;
 
 import java.time.LocalDateTime;
 import java.time.Instant;
+import java.time.chrono.ChronoLocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -209,15 +210,15 @@ public class LunaticJsonMongoDBRepositoryStub implements LunaticJsonMongoDBRepos
     @Override
     public List<String> findProcessedInterrogationIdsByQuestionnaireIdAndRecordDateBetween(
             String questionnaireId,
-            LocalDateTime sinceDate,
-            LocalDateTime endDate
+            Instant sinceDate,
+            Instant endDate
     ) {
         return documents.stream()
                 .filter(doc -> Objects.equals(doc.questionnaireId(), questionnaireId))
                 .filter(doc -> doc.processDate() != null)
                 .filter(doc -> doc.recordDate() != null)
-                .filter(doc -> !doc.recordDate().isBefore(sinceDate))
-                .filter(doc -> !doc.recordDate().isAfter(endDate))
+                .filter(doc -> !doc.recordDate().isBefore(ChronoLocalDateTime.from(sinceDate)))
+                .filter(doc -> !doc.recordDate().isAfter(ChronoLocalDateTime.from(endDate)))
                 .map(LunaticJsonRawDataDocument::interrogationId)
                 .distinct()
                 .toList();
