@@ -81,7 +81,7 @@ public class  RawResponseService implements RawResponseApiPort {
     }
 
     @Override
-    public DataProcessResult processRawResponses(String collectionInstrumentId, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException {
+    public DataProcessResult processRawResponsesByInterrogationIds(String collectionInstrumentId, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException {
         int dataCount=0;
         int formattedDataCount=0;
         DataProcessingContextModel dataProcessingContext =
@@ -136,7 +136,7 @@ public class  RawResponseService implements RawResponseApiPort {
     }
 
     @Override
-    public DataProcessResult processRawResponses(String collectionInstrumentId) throws GenesisException {
+    public DataProcessResult processRawResponsesByInterrogationIds(String collectionInstrumentId) throws GenesisException {
         int dataCount=0;
         int formattedDataCount=0;
         DataProcessingContextModel dataProcessingContext =

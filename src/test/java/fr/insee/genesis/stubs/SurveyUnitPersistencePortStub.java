@@ -4,7 +4,9 @@ import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
 import lombok.Getter;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -135,18 +137,30 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     }
 
     @Override
-    public List<SurveyUnitModel> findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(String collectionInstrumentId, LocalDateTime start, LocalDateTime end) {
+    public List<SurveyUnitModel> findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
+            String collectionInstrumentId,
+            Instant start,
+            Instant end
+    ) {
         List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
-        for(SurveyUnitModel surveyUnitModel : mongoStub){
-            if(surveyUnitModel.getCollectionInstrumentId().equals(collectionInstrumentId)
-                    && !surveyUnitModel.getRecordDate().isBefore(start)
-                    && surveyUnitModel.getRecordDate().isBefore(end))
+        ZoneId zone = ZoneId.of("Europe/Paris");
+
+        for (SurveyUnitModel surveyUnitModel : mongoStub) {
+            Instant recordDateInstant = surveyUnitModel.getRecordDate()
+                    .atZone(zone)
+                    .toInstant();
+
+            if (surveyUnitModel.getCollectionInstrumentId().equals(collectionInstrumentId)
+                    && !recordDateInstant.isBefore(start)
+                    && recordDateInstant.isBefore(end)) {
                 surveyUnitModelList.add(
                         new SurveyUnitModel(surveyUnitModel.getInterrogationId(), surveyUnitModel.getMode())
                 );
+            }
         }
 
-        return surveyUnitModelList;    }
+        return surveyUnitModelList;
+    }
 
 
     //======== OPTIMISATIONS PERFS (START) ========

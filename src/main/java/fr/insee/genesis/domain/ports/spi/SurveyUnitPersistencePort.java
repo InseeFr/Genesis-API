@@ -2,6 +2,7 @@ package fr.insee.genesis.domain.ports.spi;
 
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
@@ -34,8 +35,8 @@ public interface SurveyUnitPersistencePort {
 
     List<SurveyUnitModel> findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
             String collectionInstrumentId,
-            LocalDateTime start,
-            LocalDateTime end
+            Instant start,
+            Instant end
     );
 
     //======== OPTIMISATIONS PERFS (START) ========

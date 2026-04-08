@@ -112,7 +112,7 @@ public class RawResponseController {
         log.info("Try to process raw responses for collectionInstrumentId {} and {} interrogationIds", collectionInstrumentId, interrogationIdList.size());
         List<GenesisError> errors = new ArrayList<>();
         try {
-            DataProcessResult result = rawResponseApiPort.processRawResponses(collectionInstrumentId, interrogationIdList, errors);
+            DataProcessResult result = rawResponseApiPort.processRawResponsesByInterrogationIds(collectionInstrumentId, interrogationIdList, errors);
             return ResponseEntity.ok(result.message(collectionInstrumentId));
         } catch (GenesisException e) {
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
@@ -131,7 +131,7 @@ public class RawResponseController {
     ) {
         log.info("Try to process raw responses for collectionInstrumentId {}", collectionInstrumentId);
         try {
-            DataProcessResult result = rawResponseApiPort.processRawResponses(collectionInstrumentId);
+            DataProcessResult result = rawResponseApiPort.processRawResponsesByInterrogationIds(collectionInstrumentId);
             return ResponseEntity.ok(result.message(collectionInstrumentId));
         } catch (GenesisException e) {
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
@@ -189,7 +189,7 @@ public class RawResponseController {
         List<GenesisError> errors = new ArrayList<>();
 
         try {
-            DataProcessResult result = lunaticJsonRawDataApiPort.processRawData(campaignName, interrogationIdList, errors);
+            DataProcessResult result = lunaticJsonRawDataApiPort.processRawDataByInterrogationIds(campaignName, interrogationIdList, errors);
             return result.formattedDataCount() == 0 ?
                     ResponseEntity.ok("%d document(s) processed".formatted(result.dataCount()))
                     : ResponseEntity.ok("%d document(s) processed, including %d FORMATTED after data verification"
