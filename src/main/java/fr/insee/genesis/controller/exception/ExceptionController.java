@@ -1,9 +1,6 @@
 package fr.insee.genesis.controller.exception;
 
-import fr.insee.genesis.exceptions.GenesisException;
-import fr.insee.genesis.exceptions.InvalidDateIntervalException;
-import fr.insee.genesis.exceptions.ModesConflictException;
-import fr.insee.genesis.exceptions.UndefinedModesException;
+import fr.insee.genesis.exceptions.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -54,6 +51,14 @@ public class ExceptionController {
     @ExceptionHandler(UndefinedModesException.class)
     public ProblemDetail handleUndefinedModesException(UndefinedModesException e) {
         log.error("UndefinedModesException: {}", e.getMessage());
+        return ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_FOUND,
+                e.getMessage());
+    }
+
+    @ExceptionHandler(UndefinedMetadataException.class)
+    public ProblemDetail handleUndefinedMetadataException(UndefinedMetadataException e) {
+        log.error("UndefinedMetadataException: {}", e.getMessage());
         return ProblemDetail.forStatusAndDetail(
                 HttpStatus.NOT_FOUND,
                 e.getMessage());

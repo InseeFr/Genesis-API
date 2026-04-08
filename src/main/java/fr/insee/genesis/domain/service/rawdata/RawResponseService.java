@@ -23,6 +23,7 @@ import fr.insee.genesis.domain.utils.GroupUtils;
 import fr.insee.genesis.domain.utils.JsonUtils;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.exceptions.UndefinedMetadataException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.modelefiliere.ModeDto;
 import fr.insee.modelefiliere.RawResponseDto;
@@ -81,7 +82,7 @@ public class  RawResponseService implements RawResponseApiPort {
     }
 
     @Override
-    public DataProcessResult processRawResponses(String collectionInstrumentId) throws GenesisException {
+    public DataProcessResult processRawResponses(String collectionInstrumentId) {
         List<String> interrogationIds = rawResponsePersistencePort
                 .findUnprocessedInterrogationIdsByCollectionInstrumentId(collectionInstrumentId).stream().toList();
         return processRawResponses(collectionInstrumentId, interrogationIds, new ArrayList<>());
@@ -89,8 +90,7 @@ public class  RawResponseService implements RawResponseApiPort {
 
     @Override
     public DataProcessResult processRawResponses(
-            String collectionInstrumentId, List<String> interrogationIdList, List<GenesisError> errors)
-            throws GenesisException {
+            String collectionInstrumentId, List<String> interrogationIdList, List<GenesisError> errors) {
         int dataCount=0;
         int formattedDataCount=0;
         DataProcessingContextModel dataProcessingContext =
@@ -100,8 +100,9 @@ public class  RawResponseService implements RawResponseApiPort {
         boolean shouldUseQualityTool = resolveWithReviewValue(dataProcessingContext, collectionInstrumentId);
 
         for (Mode mode : modesList) {
-            //Load and save metadata into database, throw exception if none
-            VariablesMap variablesMap = getVariablesMap(collectionInstrumentId,mode,errors);
+
+            VariablesMap variablesMap = loadAndSaveMetadata(collectionInstrumentId, mode, errors);
+
             int totalBatchs = Math.ceilDiv(interrogationIdList.size() , config.getRawDataProcessingBatchSize());
             int batchNumber = 1;
             List<String> interrogationIdListForMode = new ArrayList<>(interrogationIdList);
@@ -155,14 +156,20 @@ public class  RawResponseService implements RawResponseApiPort {
         return dataProcessingContext.isWithReview();
     }
 
-    private VariablesMap getVariablesMap(String collectionInstrumentId, Mode mode, List<GenesisError> errors) throws GenesisException {
-        VariablesMap variablesMap = metadataService.loadAndSaveIfNotExists(collectionInstrumentId, collectionInstrumentId, mode, fileUtils,
-                errors).getVariables();
+    /** Load and save metadata into database, throw exception if none. */
+    private VariablesMap loadAndSaveMetadata(String collectionInstrumentId, Mode mode, List<GenesisError> errors) {
+        VariablesMap variablesMap;
+        try {
+            variablesMap = metadataService.loadAndSaveIfNotExists(
+                    collectionInstrumentId, collectionInstrumentId, mode, fileUtils, errors).getVariables();
+        } catch (GenesisException genesisException) {
+            throw new UndefinedMetadataException(
+                    "Cannot load metadata for collection instrument %s and mode %s.".formatted(collectionInstrumentId, mode),
+                    genesisException);
+        }
         if (variablesMap == null) {
-            throw new GenesisException(400,
-                    "Error during metadata parsing for mode %s :%n%s"
-                            .formatted(mode, errors.getLast().getMessage())
-            );
+            throw new UndefinedMetadataException(
+                    "Error during metadata parsing for mode %s :%n%s".formatted(mode, errors.getLast().getMessage()));
         }
         return variablesMap;
     }

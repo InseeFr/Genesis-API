@@ -1,7 +1,6 @@
 package fr.insee.genesis.controller.utils;
 
 import fr.insee.genesis.domain.model.surveyunit.Mode;
-import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.exceptions.ModesConflictException;
 import fr.insee.genesis.exceptions.UndefinedModesException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
