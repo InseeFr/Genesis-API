@@ -108,9 +108,9 @@ public class ReprocessRawResponseService implements ReprocessRawResponseApiPort 
         rawResponseReprocessPersistencePort.resetProcessDates(collectionInstrumentId, interrogationIds);
 
         return switch (rawDataModelType) {
-            case FILIERE -> rawResponseService.processRawResponses(
+            case FILIERE -> rawResponseService.processRawResponsesByInterrogationIds(
                     collectionInstrumentId, new ArrayList<>(interrogationIds), new ArrayList<>());
-            case LEGACY -> lunaticJsonRawDataService.processRawData(
+            case LEGACY -> lunaticJsonRawDataService.processRawDataByInterrogationIds(
                     collectionInstrumentId, new ArrayList<>(interrogationIds), new ArrayList<>());
         };
     }

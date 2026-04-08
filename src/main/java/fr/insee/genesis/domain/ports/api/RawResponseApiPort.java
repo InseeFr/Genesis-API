@@ -18,8 +18,8 @@ public interface RawResponseApiPort {
 
     List<RawResponseModel> getRawResponses(String collectionInstrumentId, Mode mode, List<String> interrogationIdList);
     List<RawResponseModel> getRawResponsesByInterrogationID(String interrogationId);
-    DataProcessResult processRawResponses(String collectionInstrumentId, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException;
-    DataProcessResult processRawResponses(String collectionInstrumentId) throws GenesisException;
+    DataProcessResult processRawResponsesByInterrogationIds(String collectionInstrumentId, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException;
+    DataProcessResult processRawResponsesByInterrogationIds(String collectionInstrumentId) throws GenesisException;
 
     List<SurveyUnitModel> convertRawResponse(List<RawResponseModel> rawResponses, VariablesMap variablesMap);
     List<String> getUnprocessedCollectionInstrumentIds();

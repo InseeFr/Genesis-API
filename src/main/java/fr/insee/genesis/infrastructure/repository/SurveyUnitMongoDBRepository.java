@@ -7,6 +7,7 @@ import org.springframework.data.mongodb.repository.Query;
 import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
@@ -49,8 +50,8 @@ public interface SurveyUnitMongoDBRepository extends MongoRepository<SurveyUnitD
     )
     List<SurveyUnitDocument> findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
             String collectionInstrumentId,
-            LocalDateTime start,
-            LocalDateTime end
+            Instant start,
+            Instant end
     );
 
     @Query(
@@ -59,8 +60,8 @@ public interface SurveyUnitMongoDBRepository extends MongoRepository<SurveyUnitD
     )
     List<SurveyUnitDocument> findInterrogationIdsQuestionnaireIdAndRecordDateBetween(
             String questionnaireId,
-            LocalDateTime start,
-            LocalDateTime end
+            Instant start,
+            Instant end
     );
 
     /**
