@@ -2,6 +2,8 @@ package fr.insee.genesis.controller.exception;
 
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.exceptions.InvalidDateIntervalException;
+import fr.insee.genesis.exceptions.ModesConflictException;
+import fr.insee.genesis.exceptions.UndefinedModesException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -38,6 +40,22 @@ public class ExceptionController {
         log.error("InvalidDateIntervalException: {}", e.getMessage());
         return ProblemDetail.forStatusAndDetail(
                 HttpStatus.BAD_REQUEST,
+                e.getMessage());
+    }
+
+    @ExceptionHandler(ModesConflictException.class)
+    public ProblemDetail handleModesConflictException(ModesConflictException e) {
+        log.error("ModesConflictException: {}", e.getMessage());
+        return ProblemDetail.forStatusAndDetail(
+                HttpStatus.CONFLICT,
+                e.getMessage());
+    }
+
+    @ExceptionHandler(UndefinedModesException.class)
+    public ProblemDetail handleUndefinedModesException(UndefinedModesException e) {
+        log.error("UndefinedModesException: {}", e.getMessage());
+        return ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_FOUND,
                 e.getMessage());
     }
 

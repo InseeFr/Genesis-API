@@ -88,12 +88,14 @@ public class  RawResponseService implements RawResponseApiPort {
     }
 
     @Override
-    public DataProcessResult processRawResponses(String collectionInstrumentId, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException {
+    public DataProcessResult processRawResponses(
+            String collectionInstrumentId, List<String> interrogationIdList, List<GenesisError> errors)
+            throws GenesisException {
         int dataCount=0;
         int formattedDataCount=0;
         DataProcessingContextModel dataProcessingContext =
                 dataProcessingContextService.getContextByCollectionInstrumentId(collectionInstrumentId);
-        List<Mode> modesList = controllerUtils.getModesList(collectionInstrumentId, null);
+        List<Mode> modesList = controllerUtils.getModesList(collectionInstrumentId);
 
         boolean shouldUseQualityTool = resolveWithReviewValue(dataProcessingContext, collectionInstrumentId);
 
