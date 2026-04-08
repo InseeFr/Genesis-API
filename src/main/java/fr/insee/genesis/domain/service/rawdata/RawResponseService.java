@@ -87,6 +87,9 @@ public class  RawResponseService implements RawResponseApiPort {
         DataProcessingContextModel dataProcessingContext =
                 dataProcessingContextService.getContextByCollectionInstrumentId(collectionInstrumentId);
         List<Mode> modesList = controllerUtils.getModesList(collectionInstrumentId, null);
+
+        boolean shouldUseQualityTool = resolveWithReviewValue(dataProcessingContext, collectionInstrumentId);
+
         for (Mode mode : modesList) {
             //Load and save metadata into database, throw exception if none
             VariablesMap variablesMap = getVariablesMap(collectionInstrumentId,mode,errors);
@@ -115,12 +118,9 @@ public class  RawResponseService implements RawResponseApiPort {
                         .toList()
                         .size();
 
-                //Send processed ids grouped by questionnaire (if review activated)
-                if(dataProcessingContext != null && dataProcessingContext.isWithReview()) {
+                // Send processed ids grouped by questionnaire (if review activated)
+                if (shouldUseQualityTool)
                     sendProcessedIdsToQualityTool(surveyUnitModels);
-                } else {
-                    log.warn("Data processing context not found for collection instrument {}. Ids processed not send to quality tool.",collectionInstrumentId);
-                }
 
                 //Remove processed ids from list
                 interrogationIdListForMode = interrogationIdListForMode.subList(maxIndex, interrogationIdListForMode.size());
@@ -129,6 +129,21 @@ public class  RawResponseService implements RawResponseApiPort {
             }
         }
         return new DataProcessResult(dataCount, formattedDataCount, errors);
+    }
+
+    /**
+     * Returns the value of the 'withReview' property in the context object.
+     * @param dataProcessingContext {@link DataProcessingContextModel}
+     * @param collectionInstrumentId Passed for logging purposes.
+     * @return The 'withReview' value, false if context is null.
+     */
+    private static boolean resolveWithReviewValue(DataProcessingContextModel dataProcessingContext, String collectionInstrumentId) {
+        if (dataProcessingContext == null) {
+            log.warn("Data processing context not found for collection instrument {}. " +
+                    "Ids processed not send to quality tool.", collectionInstrumentId);
+            return false;
+        }
+        return dataProcessingContext.isWithReview();
     }
 
     @Override
