@@ -137,68 +137,9 @@ public class  RawResponseService implements RawResponseApiPort {
 
     @Override
     public DataProcessResult processRawResponses(String collectionInstrumentId) throws GenesisException {
-        int dataCount=0;
-        int formattedDataCount=0;
-        DataProcessingContextModel dataProcessingContext =
-                dataProcessingContextService.getContextByCollectionInstrumentId(collectionInstrumentId);
-        List<GenesisError> errors = new ArrayList<>();
-
-        List<Mode> modesList = controllerUtils.getModesList(collectionInstrumentId, null);
-        for (Mode mode : modesList) {
-            //Load and save metadata into database, throw exception if none
-            VariablesMap variablesMap = getVariablesMap(collectionInstrumentId,mode,errors);
-            Set<String> interrogationIds =
-                    rawResponsePersistencePort.findUnprocessedInterrogationIdsByCollectionInstrumentId(collectionInstrumentId);
-
-            int totalBatchs = Math.ceilDiv(interrogationIds.size() , config.getRawDataProcessingBatchSize());
-            int batchNumber = 1;
-            List<String> interrogationIdListForMode = new ArrayList<>(interrogationIds);
-            while(!interrogationIdListForMode.isEmpty()){
-                log.info("Processing raw data batch {}/{}", batchNumber, totalBatchs);
-                int maxIndex = Math.min(interrogationIdListForMode.size(), config.getRawDataProcessingBatchSize());
-
-                List<SurveyUnitModel> surveyUnitModels = getConvertedSurveyUnits(
-                        collectionInstrumentId,
-                        mode,
-                        interrogationIdListForMode,
-                        maxIndex,
-                        variablesMap);
-
-                //Save converted data
-                surveyUnitQualityService.verifySurveyUnits(surveyUnitModels, variablesMap);
-                surveyUnitService.saveSurveyUnits(surveyUnitModels);
-
-                //Update process dates
-                updateProcessDates(surveyUnitModels);
-
-                //Increment data count
-                dataCount += surveyUnitModels.size();
-                formattedDataCount += surveyUnitModels.stream()
-                        .filter(surveyUnitModel -> surveyUnitModel.getState().equals(DataState.FORMATTED))
-                        .toList()
-                        .size();
-
-                //Send processed ids grouped by questionnaire (if review activated)
-                if(dataProcessingContext != null && dataProcessingContext.isWithReview()) {
-                    sendProcessedIdsToQualityTool(surveyUnitModels);
-                }
-
-                //Remove processed ids from list
-                interrogationIdListForMode = interrogationIdListForMode.subList(maxIndex, interrogationIdListForMode.size());
-                batchNumber++;
-            }
-        }
-        return new DataProcessResult(dataCount, formattedDataCount, errors);
-    }
-
-
-    private List<SurveyUnitModel> getConvertedSurveyUnits(String collectionInstrumentId, Mode mode, List<String> interrogationIdListForMode, int maxIndex, VariablesMap variablesMap) {
-        List<String> interrogationIdToProcess = interrogationIdListForMode.subList(0, maxIndex);
-        List<RawResponseModel> rawResponseModels = getRawResponses(collectionInstrumentId, mode, interrogationIdToProcess);
-        return convertRawResponse(
-                rawResponseModels,
-                variablesMap
-        );
+        List<String> interrogationIds = rawResponsePersistencePort
+                .findUnprocessedInterrogationIdsByCollectionInstrumentId(collectionInstrumentId).stream().toList();
+        return processRawResponses(collectionInstrumentId, interrogationIds, new ArrayList<>());
     }
 
     private VariablesMap getVariablesMap(String collectionInstrumentId, Mode mode, List<GenesisError> errors) throws GenesisException {
