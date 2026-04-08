@@ -176,6 +176,16 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     }
 
     @Override
+    public Long deleteByCollectionInstrumentIdAndInterrogationIds(String collectionInstrumentId, Set<String> interrogationIds) {
+        return 0L;
+    }
+
+    @Override
+    public Long deleteByQuestionnaireIdAndInterrogationIds(String questionnaireId, Set<String> interrogationIds) {
+        return 0L;
+    }
+
+    @Override
     public long count() {
         return mongoStub.size();
     }

@@ -69,23 +69,19 @@ public class LunaticJsonRawDataPersistanceStub implements LunaticJsonRawDataPers
     }
 
     @Override
-    public List<LunaticJsonRawDataModel> findRawData(String campaignName, Mode mode, List<String> interrogationIdList) {
+    public List<LunaticJsonRawDataModel> findRawDataByQuestionnaireId(String questionnaireId, Mode mode, List<String> interrogationIdList) {
         List<LunaticJsonRawDataDocument> docs = mongoStub.stream().filter(lunaticJsonRawDataDocument ->
-                lunaticJsonRawDataDocument.campaignId().equals(campaignName)
-                        && lunaticJsonRawDataDocument.mode().equals(mode)
-                        && interrogationIdList.contains(lunaticJsonRawDataDocument.interrogationId())
+                    getQuestionnaireId(lunaticJsonRawDataDocument).equals(questionnaireId)
+                            && lunaticJsonRawDataDocument.mode().equals(mode)
+                            && interrogationIdList.contains(lunaticJsonRawDataDocument.interrogationId())
         ).toList();
         return LunaticJsonRawDataDocumentMapper.INSTANCE.listDocumentToListModel(docs);
     }
-
-    @Override
-    public List<LunaticJsonRawDataModel> findRawDataByQuestionnaireId(String questionnaireId, Mode mode, List<String> interrogationIdList) {
-        List<LunaticJsonRawDataDocument> docs = mongoStub.stream().filter(lunaticJsonRawDataDocument ->
-                lunaticJsonRawDataDocument.questionnaireId().equals(questionnaireId)
-                        && lunaticJsonRawDataDocument.mode().equals(mode)
-                        && interrogationIdList.contains(lunaticJsonRawDataDocument.interrogationId())
-        ).toList();
-        return LunaticJsonRawDataDocumentMapper.INSTANCE.listDocumentToListModel(docs);    }
+    /** 'questionnaireId' is the new name of the 'campaignId' property. */
+    private static String getQuestionnaireId(LunaticJsonRawDataDocument lunaticJsonRawDataDocument) {
+        return lunaticJsonRawDataDocument.questionnaireId() !=  null ?
+                lunaticJsonRawDataDocument.questionnaireId() : lunaticJsonRawDataDocument.campaignId();
+    }
 
     @Override
     public Page<LunaticJsonRawDataModel> findRawDataByQuestionnaireId(String questionnaireId, Pageable pageable) {
@@ -246,4 +242,5 @@ public class LunaticJsonRawDataPersistanceStub implements LunaticJsonRawDataPers
     public long countDistinctInterrogationIdsByQuestionnaireId(String questionnaireId) {
         return 0;
     }
+
 }

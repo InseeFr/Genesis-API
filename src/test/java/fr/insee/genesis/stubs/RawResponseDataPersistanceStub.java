@@ -12,6 +12,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -43,6 +44,7 @@ public class RawResponseDataPersistanceStub implements RawResponsePersistencePor
     public void updateProcessDates(String collectionInstrumentId, Set<String> interrogationIds) {
         return;
     }
+
 
     @Override
     public List<String> getUnprocessedCollectionIds() {

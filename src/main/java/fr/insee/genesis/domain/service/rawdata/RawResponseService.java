@@ -37,12 +37,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService.getValueString;
@@ -195,6 +190,7 @@ public class  RawResponseService implements RawResponseApiPort {
         }
         return new DataProcessResult(dataCount, formattedDataCount, errors);
     }
+
 
     private List<SurveyUnitModel> getConvertedSurveyUnits(String collectionInstrumentId, Mode mode, List<String> interrogationIdListForMode, int maxIndex, VariablesMap variablesMap) {
         List<String> interrogationIdToProcess = interrogationIdListForMode.subList(0, maxIndex);

@@ -1,11 +1,7 @@
 package fr.insee.genesis.domain.ports.api;
 
 import fr.insee.bpm.metadata.model.VariablesMap;
-import fr.insee.genesis.controller.dto.CampaignWithQuestionnaire;
-import fr.insee.genesis.controller.dto.QuestionnaireWithCampaign;
-import fr.insee.genesis.controller.dto.SurveyUnitDto;
-import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
-import fr.insee.genesis.controller.dto.SurveyUnitSimplifiedDto;
+import fr.insee.genesis.controller.dto.*;
 import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
@@ -72,6 +68,11 @@ public interface SurveyUnitApiPort {
     //========= OPTIMISATIONS PERFS (END) ==========
 
     Long deleteByCollectionInstrumentId(String collectionInstrumentId);
+
+    Long deleteByQuestionnaireIdAndInterrogationIds(
+            String questionnaireId,
+            Set<String> interrogationIds
+    );
 
     long countResponses();
 
