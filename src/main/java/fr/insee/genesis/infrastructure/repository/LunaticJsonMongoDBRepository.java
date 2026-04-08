@@ -120,8 +120,8 @@ public interface LunaticJsonMongoDBRepository extends MongoRepository<LunaticJso
     })
     List<String> findProcessedInterrogationIdsByQuestionnaireIdAndRecordDateBetween(
             String questionnaireId,
-            LocalDateTime sinceDate,
-            LocalDateTime endDate
+            Instant sinceDate,
+            Instant endDate
     );
 
     @Aggregation(pipeline = {

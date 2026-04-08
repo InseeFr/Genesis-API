@@ -3,7 +3,7 @@ package fr.insee.genesis.stubs;
 import fr.insee.genesis.domain.ports.spi.RawResponseReprocessPersistencePort;
 import fr.insee.genesis.infrastructure.document.rawdata.LunaticJsonRawDataDocument;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -18,7 +18,7 @@ public class RawResponseReprocessPersistenceStub implements RawResponseReprocess
     }
 
     @Override
-    public Set<String> findProcessedInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(String questionnaireId, LocalDateTime sinceDate, LocalDateTime endDate) {
+    public Set<String> findProcessedInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(String questionnaireId, Instant sinceDate, Instant endDate) {
         return Set.of();
     }
 
