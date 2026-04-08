@@ -75,7 +75,7 @@ public class LunaticJsonRawDataServiceStub implements LunaticJsonRawDataApiPort 
     }
 
     @Override
-    public DataProcessResult processRawData(String campaignName, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException {
+    public DataProcessResult processRawDataByInterrogationIds(String campaignName, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException {
         return null;
     }
 

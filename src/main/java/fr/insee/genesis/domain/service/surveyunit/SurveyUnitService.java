@@ -17,7 +17,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -379,9 +381,22 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     }
 
     @Override
-    public List<InterrogationId> findDistinctInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(String collectionInstrumentId, LocalDateTime start, LocalDateTime end) {
+    public List<InterrogationId> findDistinctInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
+            String collectionInstrumentId,
+            LocalDateTime start,
+            LocalDateTime end
+    ) {
+        ZoneId zone = ZoneId.of("Europe/Paris");
+
+        Instant startInstant = start.atZone(zone).toInstant();
+        Instant endInstant = end.atZone(zone).toInstant();
+
         return surveyUnitPersistencePort
-                .findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(collectionInstrumentId,start,end)
+                .findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
+                        collectionInstrumentId,
+                        startInstant,
+                        endInstant
+                )
                 .stream()
                 .map(su -> new InterrogationId(su.getInterrogationId()))
                 .distinct()
