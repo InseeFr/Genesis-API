@@ -15,7 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Set;
 
@@ -42,8 +42,8 @@ public class ReprocessRawResponseService implements ReprocessRawResponseApiPort 
     public DataProcessResult reprocessRawResponses(
             @NonNull RawDataModelType rawDataModelType,
             @NonNull String collectionInstrumentId,
-            LocalDateTime sinceDate,
-            LocalDateTime endDate) throws GenesisException {
+            Instant sinceDate,
+            Instant endDate) throws GenesisException {
 
         log.info("Start reprocess {} data for collectionInstrumentId={}, sinceDate={}, endDate={}",
                 rawDataModelType, collectionInstrumentId, sinceDate, endDate);
@@ -68,7 +68,7 @@ public class ReprocessRawResponseService implements ReprocessRawResponseApiPort 
         return reprocessInterrogations(rawDataModelType, collectionInstrumentId, interrogationIds);
     }
 
-    private static InputFilterType validateInputs(LocalDateTime sinceDate, LocalDateTime endDate) {
+    private static InputFilterType validateInputs(Instant sinceDate, Instant endDate) {
         if (bothDatesAreNull(sinceDate, endDate)) {
             return InputFilterType.COLLECTION_ID;
         }
@@ -81,18 +81,18 @@ public class ReprocessRawResponseService implements ReprocessRawResponseApiPort 
         return InputFilterType.COLLECTION_ID_AND_DATE;
     }
 
-    private static boolean endIsBeforeSince(LocalDateTime sinceDate, LocalDateTime endDate) {
+    private static boolean endIsBeforeSince(Instant sinceDate, Instant endDate) {
         return endDate != null && endDate.isBefore(sinceDate);
     }
 
-    private static boolean bothDatesAreNull(LocalDateTime sinceDate, LocalDateTime endDate) {
+    private static boolean bothDatesAreNull(Instant sinceDate, Instant endDate) {
         return sinceDate == null && endDate == null;
     }
 
-    private static LocalDateTime effectiveEndDate(LocalDateTime endDate) {
+    private static Instant effectiveEndDate(Instant endDate) {
         if (endDate != null)
             return endDate;
-        var now = LocalDateTime.now();
+        var now = Instant.now();
         log.info("Effective end date: {}", now);
         return now;
     }
@@ -108,9 +108,9 @@ public class ReprocessRawResponseService implements ReprocessRawResponseApiPort 
         rawResponseReprocessPersistencePort.resetProcessDates(collectionInstrumentId, interrogationIds);
 
         return switch (rawDataModelType) {
-            case FILIERE -> rawResponseService.processRawResponses(
+            case FILIERE -> rawResponseService.processRawResponsesByInterrogationIds(
                     collectionInstrumentId, new ArrayList<>(interrogationIds), new ArrayList<>());
-            case LEGACY -> lunaticJsonRawDataService.processRawData(
+            case LEGACY -> lunaticJsonRawDataService.processRawDataByInterrogationIds(
                     collectionInstrumentId, new ArrayList<>(interrogationIds), new ArrayList<>());
         };
     }

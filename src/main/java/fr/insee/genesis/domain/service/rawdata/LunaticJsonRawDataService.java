@@ -108,12 +108,8 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
         return lunaticJsonRawDataPersistencePort.findRawDataByInterrogationID(interrogationId);
     }
 
-    /**
-     * @deprecated Use the method with 'collectionInstrumentId' instead.
-     */
     @Override
-    @Deprecated(since = "1.13.0")
-    public DataProcessResult processRawData(String questionnaireId, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException {
+    public DataProcessResult processRawDataByInterrogationIds(String questionnaireId, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException {
         int dataCount=0;
         int formattedDataCount=0;
         DataProcessingContextModel dataProcessingContext =

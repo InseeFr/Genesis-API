@@ -101,12 +101,12 @@ public class RawDataDefinitions {
     RawResponseApiPort rawResponseApiPortStub = new RawResponseApiPort() {
 
         @Override
-        public DataProcessResult processRawResponses(String questionnaireId, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException {
+        public DataProcessResult processRawResponsesByInterrogationIds(String questionnaireId, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException {
             return null;
         }
 
         @Override
-        public DataProcessResult processRawResponses(String collectionInstrumentId) throws GenesisException {
+        public DataProcessResult processRawResponsesByInterrogationIds(String collectionInstrumentId) throws GenesisException {
             return null;
         }
 

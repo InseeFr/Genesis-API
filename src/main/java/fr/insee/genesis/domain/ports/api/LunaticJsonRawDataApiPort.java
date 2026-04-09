@@ -36,8 +36,7 @@ public interface LunaticJsonRawDataApiPort {
     /**
      * @deprecated Use the method with 'collectionInstrumentId' instead.
      */
-    @Deprecated(since = "1.13.0")
-    DataProcessResult processRawData(String campaignName, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException;
+    DataProcessResult processRawDataByInterrogationIds(String campaignName, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException;
 
     DataProcessResult processRawData(String collectionInstrumentId) throws GenesisException;
 

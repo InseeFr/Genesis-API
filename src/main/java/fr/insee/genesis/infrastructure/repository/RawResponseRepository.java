@@ -10,7 +10,6 @@ import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -32,8 +31,8 @@ public interface RawResponseRepository extends MongoRepository<RawResponseDocume
     })
     List<String> findProcessedInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
             String collectionInstrumentId,
-            LocalDateTime sinceDate,
-            LocalDateTime endDate
+            Instant sinceDate,
+            Instant endDate
     );
 
     @Aggregation(pipeline = {

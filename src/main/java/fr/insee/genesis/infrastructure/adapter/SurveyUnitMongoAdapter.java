@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -198,7 +199,7 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 	}
 
     @Override
-    public List<SurveyUnitModel> findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(String collectionInstrumentId, LocalDateTime start, LocalDateTime end) {
+    public List<SurveyUnitModel> findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(String collectionInstrumentId, Instant start, Instant end) {
         List<SurveyUnitDocument> results =  new ArrayList<>();
         results.addAll(mongoRepository.findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(collectionInstrumentId,start,end));
         results.addAll(mongoRepository.findInterrogationIdsQuestionnaireIdAndRecordDateBetween(collectionInstrumentId,start,end));

@@ -11,7 +11,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -36,7 +36,7 @@ public class LunaticJsonReprocessMongoAdapter implements RawResponseReprocessPer
      */
     @Override
     public Set<String> findProcessedInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
-            String questionnaireId, LocalDateTime sinceDate, LocalDateTime endDate) {
+            String questionnaireId, Instant sinceDate, Instant endDate) {
         return new HashSet<>(
                 repository.findProcessedInterrogationIdsByQuestionnaireIdAndRecordDateBetween(
                         questionnaireId, sinceDate, endDate));
