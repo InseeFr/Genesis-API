@@ -23,6 +23,7 @@ import fr.insee.genesis.domain.utils.GroupUtils;
 import fr.insee.genesis.domain.utils.JsonUtils;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.exceptions.InvalidMetadataException;
 import fr.insee.genesis.exceptions.UndefinedMetadataException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.modelefiliere.ModeDto;
@@ -91,50 +92,45 @@ public class  RawResponseService implements RawResponseApiPort {
     @Override
     public DataProcessResult processRawResponses(
             String collectionInstrumentId, List<String> interrogationIdList, List<GenesisError> errors) {
-        int dataCount=0;
-        int formattedDataCount=0;
+
         DataProcessingContextModel dataProcessingContext =
                 dataProcessingContextService.getContextByCollectionInstrumentId(collectionInstrumentId);
         List<Mode> modesList = controllerUtils.getModesList(collectionInstrumentId);
 
+        int dataCount = 0;
+        int formattedDataCount = 0;
+        int batchSize = config.getRawDataProcessingBatchSize();
+        int totalBatches = Math.ceilDiv(interrogationIdList.size(), batchSize);
         boolean shouldUseQualityTool = resolveWithReviewValue(dataProcessingContext, collectionInstrumentId);
 
         for (Mode mode : modesList) {
-
             VariablesMap variablesMap = loadAndSaveMetadata(collectionInstrumentId, mode, errors);
 
-            int totalBatchs = Math.ceilDiv(interrogationIdList.size() , config.getRawDataProcessingBatchSize());
-            int batchNumber = 1;
             List<String> interrogationIdListForMode = new ArrayList<>(interrogationIdList);
-            while(!interrogationIdListForMode.isEmpty()){
-                log.info("Processing raw data batch {}/{}", batchNumber, totalBatchs);
-                int maxIndex = Math.min(interrogationIdListForMode.size(), config.getRawDataProcessingBatchSize());
+            int batchNumber = 1;
 
+            while(! interrogationIdListForMode.isEmpty()) {
+                log.info("Processing raw data batch {}/{}", batchNumber, totalBatches);
+
+                int maxIndex = Math.min(interrogationIdListForMode.size(), batchSize);
                 List<String> interrogationIdToProcess = interrogationIdListForMode.subList(0, maxIndex);
+
                 List<RawResponseModel> rawResponseModels = getRawResponses(collectionInstrumentId, mode, interrogationIdToProcess);
                 List<SurveyUnitModel> surveyUnitModels = convertRawResponse(rawResponseModels, variablesMap);
 
-                //Save converted data
                 surveyUnitQualityService.verifySurveyUnits(surveyUnitModels, variablesMap);
                 surveyUnitService.saveSurveyUnits(surveyUnitModels);
-
-                //Update process dates
                 updateProcessDates(surveyUnitModels);
 
-                //Increment data count
                 dataCount += surveyUnitModels.size();
-                formattedDataCount += surveyUnitModels.stream()
+                formattedDataCount += (int) surveyUnitModels.stream()
                         .filter(surveyUnitModel -> surveyUnitModel.getState().equals(DataState.FORMATTED))
-                        .toList()
-                        .size();
+                        .count();
 
-                // Send processed ids grouped by questionnaire (if review activated)
                 if (shouldUseQualityTool)
                     sendProcessedIdsToQualityTool(surveyUnitModels);
 
-                //Remove processed ids from list
                 interrogationIdListForMode = interrogationIdListForMode.subList(maxIndex, interrogationIdListForMode.size());
-
                 batchNumber++;
             }
         }
@@ -168,7 +164,7 @@ public class  RawResponseService implements RawResponseApiPort {
                     genesisException);
         }
         if (variablesMap == null) {
-            throw new UndefinedMetadataException(
+            throw new InvalidMetadataException(
                     "Error during metadata parsing for mode %s :%n%s".formatted(mode, errors.getLast().getMessage()));
         }
         return variablesMap;
@@ -290,18 +286,13 @@ public class  RawResponseService implements RawResponseApiPort {
 
     @Override
     public void updateProcessDates(List<SurveyUnitModel> surveyUnitModels) {
-        Set<String> collectionInstrumentIds = new HashSet<>();
-        for (SurveyUnitModel surveyUnitModel : surveyUnitModels) {
-            collectionInstrumentIds.add(surveyUnitModel.getCollectionInstrumentId());
-        }
-
-        for (String collectionInstrumentId : collectionInstrumentIds) {
+        surveyUnitModels.stream().map(SurveyUnitModel::getCollectionInstrumentId).distinct().forEach(collectionInstrumentId -> {
             Set<String> interrogationIds = surveyUnitModels.stream()
                     .filter(su -> su.getCollectionInstrumentId().equals(collectionInstrumentId))
                     .map(SurveyUnitModel::getInterrogationId)
                     .collect(Collectors.toSet());
             rawResponsePersistencePort.updateProcessDates(collectionInstrumentId, interrogationIds);
-        }
+        });
     }
 
     @Override
