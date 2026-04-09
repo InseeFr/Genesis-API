@@ -99,15 +99,6 @@ public class RawDataDefinitions {
     };
 
     RawResponseApiPort rawResponseApiPortStub = new RawResponseApiPort() {
-        @Override
-        public List<RawResponseModel> getRawResponses(String questionnaireModelId, Mode mode, List<String> interrogationIdList) {
-            return List.of();
-        }
-
-        @Override
-        public List<RawResponseModel> getRawResponsesByInterrogationID(String interrogationId) {
-            return List.of();
-        }
 
         @Override
         public DataProcessResult processRawResponses(String questionnaireId, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException {
