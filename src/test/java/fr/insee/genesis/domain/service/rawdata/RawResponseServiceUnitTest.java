@@ -448,7 +448,7 @@ class RawResponseServiceUnitTest {
         Mockito.when(metadataService.loadAndSaveIfNotExists(eq(fooCollectionInstrumentId), eq(fooCollectionInstrumentId), eq(fooMode), any(), any())).thenReturn(new MetadataModel());
 
         // When
-        DataProcessResult dataProcessResult = rawResponseService.processRawResponses(fooCollectionInstrumentId);
+        DataProcessResult dataProcessResult = rawResponseService.processRawResponsesByInterrogationIds(fooCollectionInstrumentId);
 
         // Then
         assertEquals(2, dataProcessResult.dataCount());

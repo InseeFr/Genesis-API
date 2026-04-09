@@ -77,14 +77,14 @@ public class  RawResponseService implements RawResponseApiPort {
     }
 
     @Override
-    public DataProcessResult processRawResponses(String collectionInstrumentId) {
+    public DataProcessResult processRawResponsesByInterrogationIds(String collectionInstrumentId) {
         List<String> interrogationIds = rawResponsePersistencePort
                 .findUnprocessedInterrogationIdsByCollectionInstrumentId(collectionInstrumentId).stream().toList();
-        return processRawResponses(collectionInstrumentId, interrogationIds, new ArrayList<>());
+        return processRawResponsesByInterrogationIds(collectionInstrumentId, interrogationIds, new ArrayList<>());
     }
 
     @Override
-    public DataProcessResult processRawResponses(
+    public DataProcessResult processRawResponsesByInterrogationIds(
             String collectionInstrumentId, List<String> interrogationIdList, List<GenesisError> errors) {
 
         DataProcessingContextModel dataProcessingContext =
