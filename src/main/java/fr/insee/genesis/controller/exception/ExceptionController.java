@@ -60,7 +60,7 @@ public class ExceptionController {
     public ProblemDetail handleUndefinedMetadataException(UndefinedMetadataException e) {
         log.error("UndefinedMetadataException: {}", e.getMessage());
         return ProblemDetail.forStatusAndDetail(
-                HttpStatus.BAD_REQUEST,
+                HttpStatus.NOT_FOUND,
                 e.getMessage());
     }
 
