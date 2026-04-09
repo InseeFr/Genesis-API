@@ -53,10 +53,11 @@ public class RawResponseMongoAdapter implements RawResponsePersistencePort {
     @Override
     public void updateProcessDates(String collectionInstrumentId, Set<String> interrogationIds) {
         mongoTemplate.updateMulti(
-                Query.query(Criteria.where("collectionInstrumentId").is(collectionInstrumentId).and("interrogationId").in(interrogationIds))
-                , new Update().set("processDate", LocalDateTime.now())
-                , Constants.MONGODB_RAW_RESPONSES_COLLECTION_NAME
-        );
+                Query.query(Criteria.where("collectionInstrumentId")
+                        .is(collectionInstrumentId)
+                        .and("interrogationId").in(interrogationIds)),
+                new Update().set("processDate", LocalDateTime.now()),
+                Constants.MONGODB_RAW_RESPONSES_COLLECTION_NAME);
     }
 
     @Override
