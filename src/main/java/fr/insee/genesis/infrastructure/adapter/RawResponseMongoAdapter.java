@@ -93,12 +93,6 @@ public class RawResponseMongoAdapter implements RawResponsePersistencePort {
     }
 
     @Override
-    public long countDistinctInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId) {
-        Long count = repository.countDistinctInterrogationIdsByCollectionInstrumentId(collectionInstrumentId);
-        return count != null ? count : 0;
-    }
-
-    @Override
     public Page<RawResponseModel> findByCollectionInstrumentId(String collectionInstrumentId, Pageable pageable) {
         Page<RawResponseDocument> rawDataDocs = repository.findByCollectionInstrumentId(collectionInstrumentId, pageable);
         List<RawResponseModel> modelList = RawResponseDocumentMapper.INSTANCE.listDocumentToListModel(rawDataDocs.getContent());
