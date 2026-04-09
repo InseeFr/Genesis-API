@@ -116,6 +116,9 @@ public class  RawResponseService implements RawResponseApiPort {
                 List<String> interrogationIdToProcess = interrogationIdListForMode.subList(0, maxIndex);
 
                 List<RawResponseModel> rawResponseModels = getRawResponses(collectionInstrumentId, mode, interrogationIdToProcess);
+                rawResponseModels.removeIf(rawResponseModel -> rawResponseModel.processDate() != null);
+                // (Don't process raw responses that have already been processed.)
+
                 List<SurveyUnitModel> surveyUnitModels = convertRawResponse(rawResponseModels, variablesMap);
 
                 surveyUnitQualityService.verifySurveyUnits(surveyUnitModels, variablesMap);
