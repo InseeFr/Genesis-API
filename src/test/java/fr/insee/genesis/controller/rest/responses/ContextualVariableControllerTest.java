@@ -32,6 +32,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.FileSystemUtils;
 
@@ -885,7 +886,7 @@ class ContextualVariableControllerTest {
         );
     }
 
-    private ResponseEntity<String> toResponse(Exception e) {
+    private ProblemDetail toResponse(Exception e) {
         GenesisExceptionHandler handler = new GenesisExceptionHandler();
 
         if (e instanceof GenesisException ge) {
@@ -903,7 +904,9 @@ class ContextualVariableControllerTest {
         if (e instanceof ReviewDisabledException rde) {
             return handler.handleReviewDisabled(rde);
         }
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error");
+        return ProblemDetail.forStatusAndDetail(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Internal server error");
     }
 
     @ParameterizedTest
@@ -928,18 +931,17 @@ class ContextualVariableControllerTest {
         );
 
         // WHEN + THEN
-        ResponseEntity<String> response;
+        ProblemDetail response;
         try {
             ResponseEntity<Object> raw = contextualVariableController.readContextualExternalJson(
                     QUESTIONNAIRE_ID_EXTERNAL, Mode.WEB, fileName
             );
-            response = ResponseEntity.status(raw.getStatusCode())
-                    .body(raw.getBody() == null ? null : raw.getBody().toString());
+            response = (ProblemDetail) raw.getBody();
         } catch (Exception e) {
             response = toResponse(e);
         }
 
-        Assertions.assertEquals(400, response.getStatusCode().value());
+        Assertions.assertEquals(400, response.getStatus());
     }
 
     //UTILS
