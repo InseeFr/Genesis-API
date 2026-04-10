@@ -2,7 +2,6 @@ package fr.insee.genesis.infrastructure.adapter;
 
 import com.mongodb.client.DistinctIterable;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoCursor;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.infrastructure.document.surveyunit.SurveyUnitDocument;
@@ -364,132 +363,6 @@ class SurveyUnitMongoAdapterTest {
 	}
 
 	@Nested
-	@DisplayName("findQuestionnaireIdsByCampaignId() tests")
-	class FindQuestionnaireIdsByCampaignIdTests {
-
-		@Test
-		@DisplayName("Should extract questionnaireId from JSON lines returned by repository")
-		void findQuestionnaireIds_shouldExtractFromJson() {
-			// GIVEN
-			when(mongoRepository.findQuestionnaireIdsByCampaignId(CAMPAIGN_ID))
-					.thenReturn(Set.of("{\"questionnaireId\":\"q1\"}", "{\"questionnaireId\":\"q2\"}"));
-
-			// WHEN
-			Set<String> result = adapter.findQuestionnaireIdsByCampaignId(CAMPAIGN_ID);
-
-			// THEN
-			assertThat(result).containsExactlyInAnyOrder("q1", "q2");
-		}
-
-		@Test
-		@DisplayName("Should return empty set when repository returns empty set")
-		void findQuestionnaireIds_empty_shouldReturnEmptySet() {
-			// GIVEN
-			when(mongoRepository.findQuestionnaireIdsByCampaignId(CAMPAIGN_ID)).thenReturn(Set.of());
-
-			// WHEN
-			Set<String> result = adapter.findQuestionnaireIdsByCampaignId(CAMPAIGN_ID);
-
-			// THEN
-			assertThat(result).isEmpty();
-		}
-
-		@Test
-		@DisplayName("Should skip malformed JSON lines without throwing")
-		void findQuestionnaireIds_malformedJson_shouldSkipAndNotThrow() {
-			// GIVEN
-			when(mongoRepository.findQuestionnaireIdsByCampaignId(CAMPAIGN_ID))
-					.thenReturn(Set.of("not-valid-json", "{\"questionnaireId\":\"q1\"}"));
-
-			// WHEN
-			Set<String> result = adapter.findQuestionnaireIdsByCampaignId(CAMPAIGN_ID);
-
-			// THEN
-			assertThat(result).containsExactly("q1");
-		}
-	}
-
-	@Nested
-	@DisplayName("findQuestionnaireIdsByCampaignIdV2() tests")
-	class FindQuestionnaireIdsByCampaignIdV2Tests {
-
-		@Test
-		@DisplayName("Should extract questionnaireId from JSON lines returned by repository")
-		void findQuestionnaireIdsV2_shouldExtractFromJson() {
-			// GIVEN
-			when(mongoRepository.findQuestionnaireIdsByCampaignIdV2(CAMPAIGN_ID))
-					.thenReturn(Set.of("{\"questionnaireId\":\"q1\"}"));
-
-			// WHEN
-			Set<String> result = adapter.findQuestionnaireIdsByCampaignIdV2(CAMPAIGN_ID);
-
-			// THEN
-			assertThat(result).containsExactly("q1");
-		}
-
-		@Test
-		@DisplayName("Should return empty set when repository returns empty set")
-		void findQuestionnaireIdsV2_empty_shouldReturnEmptySet() {
-			// GIVEN
-			when(mongoRepository.findQuestionnaireIdsByCampaignIdV2(CAMPAIGN_ID)).thenReturn(Set.of());
-
-			// WHEN
-			Set<String> result = adapter.findQuestionnaireIdsByCampaignIdV2(CAMPAIGN_ID);
-
-			// THEN
-			assertThat(result).isEmpty();
-		}
-	}
-
-	@Nested
-	@DisplayName("findDistinctCampaignIds() tests")
-	class FindDistinctCampaignIdsTests {
-
-		@Test
-		@DisplayName("Should return distinct campaignIds from mongoTemplate collection")
-		void findDistinctCampaignIds_shouldReturnIds() {
-			// GIVEN
-			@SuppressWarnings("unchecked")
-			MongoCollection<Document> mockCollection = mock(MongoCollection.class);
-			@SuppressWarnings("unchecked")
-			DistinctIterable<String> iterable = mock(DistinctIterable.class);
-			@SuppressWarnings("unchecked")
-			MongoCursor<String> cursor = mock(MongoCursor.class);
-			when(mongoTemplate.getCollection(Constants.MONGODB_RESPONSE_COLLECTION_NAME)).thenReturn(mockCollection);
-			when(mockCollection.distinct("campaignId", String.class)).thenReturn(iterable);
-			when(iterable.iterator()).thenReturn(cursor);
-			when(cursor.hasNext()).thenReturn(true, true, false);
-			when(cursor.next()).thenReturn("c1", "c2");
-
-			// WHEN
-			Set<String> result = adapter.findDistinctCampaignIds();
-
-			// THEN
-			assertThat(result).containsExactlyInAnyOrder("c1", "c2");
-		}
-
-		@Test
-		@DisplayName("Should not interact with the repository")
-		@SuppressWarnings("unchecked")
-		void findDistinctCampaignIds_shouldNotTouchRepository() {
-			// GIVEN
-			MongoCollection<Document> mockCollection = mock(MongoCollection.class);
-			DistinctIterable<String> iterable = mock(DistinctIterable.class);
-			MongoCursor<String> cursor = mock(MongoCursor.class);
-			when(mongoTemplate.getCollection(Constants.MONGODB_RESPONSE_COLLECTION_NAME)).thenReturn(mockCollection);
-			when(mockCollection.distinct("campaignId", String.class)).thenReturn(iterable);
-			when(iterable.iterator()).thenReturn(cursor);
-			when(cursor.hasNext()).thenReturn(false);
-
-			// WHEN
-			adapter.findDistinctCampaignIds();
-
-			// THEN
-			verifyNoInteractions(mongoRepository);
-		}
-	}
-
-	@Nested
 	@DisplayName("findInterrogationIdsByCollectionInstrumentId() tests")
 	class FindInterrogationIdsByCollectionInstrumentIdTests {
 
@@ -651,37 +524,6 @@ class SurveyUnitMongoAdapterTest {
 	}
 
 	@Nested
-	@DisplayName("findModesByCampaignIdV2() tests")
-	class FindModesByCampaignIdV2Tests {
-
-		@Test
-		@DisplayName("Should delegate to repository and return mapped models")
-		void findModes_shouldReturnMappedModels() {
-			// GIVEN
-			when(mongoRepository.findModesByCampaignIdV2(CAMPAIGN_ID)).thenReturn(List.of(buildDoc("i1")));
-
-			// WHEN
-			List<SurveyUnitModel> result = adapter.findModesByCampaignIdV2(CAMPAIGN_ID);
-
-			// THEN
-			assertThat(result).hasSize(1);
-		}
-
-		@Test
-		@DisplayName("Should return empty list when repository returns empty list")
-		void findModes_noResults_shouldReturnEmptyList() {
-			// GIVEN
-			when(mongoRepository.findModesByCampaignIdV2(any())).thenReturn(List.of());
-
-			// WHEN
-			List<SurveyUnitModel> result = adapter.findModesByCampaignIdV2(CAMPAIGN_ID);
-
-			// THEN
-			assertThat(result).isEmpty();
-		}
-	}
-
-	@Nested
 	@DisplayName("findModesByQuestionnaireIdV2() tests")
 	class FindModesByQuestionnaireIdV2Tests {
 
@@ -709,55 +551,6 @@ class SurveyUnitMongoAdapterTest {
 
 			// THEN
 			assertThat(result).isEmpty();
-		}
-	}
-
-	@Nested
-	@DisplayName("findInterrogationIdsByCampaignId() tests")
-	class FindInterrogationIdsByCampaignIdTests {
-
-		@Test
-		@DisplayName("Should delegate to repository and return mapped models")
-		void findInterrogationIds_shouldReturnMappedModels() {
-			// GIVEN
-			when(mongoRepository.findInterrogationIdsByCampaignId(CAMPAIGN_ID)).thenReturn(List.of(buildDoc("i1")));
-
-			// WHEN
-			List<SurveyUnitModel> result = adapter.findInterrogationIdsByCampaignId(CAMPAIGN_ID);
-
-			// THEN
-			assertThat(result).hasSize(1);
-		}
-
-		@Test
-		@DisplayName("Should return empty list when repository returns empty list")
-		void findInterrogationIds_noResults_shouldReturnEmptyList() {
-			// GIVEN
-			when(mongoRepository.findInterrogationIdsByCampaignId(any())).thenReturn(List.of());
-
-			// WHEN
-			List<SurveyUnitModel> result = adapter.findInterrogationIdsByCampaignId(CAMPAIGN_ID);
-
-			// THEN
-			assertThat(result).isEmpty();
-		}
-	}
-
-	@Nested
-	@DisplayName("countByCampaignId() tests")
-	class CountByCampaignIdTests {
-
-		@Test
-		@DisplayName("Should return the count from repository")
-		void countByCampaignId_shouldReturnRepositoryValue() {
-			// GIVEN
-			when(mongoRepository.countByCampaignId(CAMPAIGN_ID)).thenReturn(7L);
-
-			// WHEN
-			long result = adapter.countByCampaignId(CAMPAIGN_ID);
-
-			// THEN
-			assertThat(result).isEqualTo(7L);
 		}
 	}
 
@@ -809,52 +602,6 @@ class SurveyUnitMongoAdapterTest {
 
 			// THEN
 			assertThat(result).doesNotContainNull().containsExactly("c1");
-		}
-	}
-
-	@Nested
-	@DisplayName("findCampaignIdsByQuestionnaireId() tests")
-	class FindCampaignIdsByQuestionnaireIdTests {
-
-		@Test
-		@DisplayName("Should extract campaignId from JSON lines returned by repository")
-		void findCampaignIds_shouldExtractFromJson() {
-			// GIVEN
-			when(mongoRepository.findCampaignIdsByQuestionnaireId(QUESTIONNAIRE_ID))
-					.thenReturn(Set.of("{\"campaignId\":\"c1\"}", "{\"campaignId\":\"c2\"}"));
-
-			// WHEN
-			Set<String> result = adapter.findCampaignIdsByQuestionnaireId(QUESTIONNAIRE_ID);
-
-			// THEN
-			assertThat(result).containsExactlyInAnyOrder("c1", "c2");
-		}
-
-		@Test
-		@DisplayName("Should return empty set when repository returns empty set")
-		void findCampaignIds_empty_shouldReturnEmptySet() {
-			// GIVEN
-			when(mongoRepository.findCampaignIdsByQuestionnaireId(QUESTIONNAIRE_ID)).thenReturn(Set.of());
-
-			// WHEN
-			Set<String> result = adapter.findCampaignIdsByQuestionnaireId(QUESTIONNAIRE_ID);
-
-			// THEN
-			assertThat(result).isEmpty();
-		}
-
-		@Test
-		@DisplayName("Should skip malformed JSON lines without throwing")
-		void findCampaignIds_malformedJson_shouldSkipAndNotThrow() {
-			// GIVEN
-			when(mongoRepository.findCampaignIdsByQuestionnaireId(QUESTIONNAIRE_ID))
-					.thenReturn(Set.of("not-valid-json", "{\"campaignId\":\"c1\"}"));
-
-			// WHEN
-			Set<String> result = adapter.findCampaignIdsByQuestionnaireId(QUESTIONNAIRE_ID);
-
-			// THEN
-			assertThat(result).containsExactly("c1");
 		}
 	}
 
