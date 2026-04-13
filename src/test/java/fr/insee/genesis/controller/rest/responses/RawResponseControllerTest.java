@@ -1,7 +1,6 @@
 package fr.insee.genesis.controller.rest.responses;
 
 
-import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.controller.dto.rawdata.LunaticJsonRawDataUnprocessedDto;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
@@ -16,7 +15,7 @@ import fr.insee.genesis.domain.ports.api.RawResponseApiPort;
 import fr.insee.genesis.domain.service.context.DataProcessingContextService;
 import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService;
-import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
+import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityToolService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.domain.utils.JsonUtils;
 import fr.insee.genesis.exceptions.GenesisError;
@@ -58,15 +57,20 @@ class RawResponseControllerTest {
     private static final QuestionnaireMetadataPersistencePortStub questionnaireMetadataPersistencePortStub =
             new QuestionnaireMetadataPersistencePortStub();
 
+    private final DataProcessingContextService dataProcessingContextService = new DataProcessingContextService(
+            dataProcessingContextPersistancePortStub,
+            surveyUnitPersistencePortStub);
+
+    private final SurveyUnitQualityToolService surveyUnitQualityToolService = new SurveyUnitQualityToolService(
+            surveyUnitQualityToolPerretAdapterStub,
+            dataProcessingContextService);
 
     private final LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort = new LunaticJsonRawDataService(lunaticJsonRawDataPersistanceStub,
             new ControllerUtils(fileUtils),
             new QuestionnaireMetadataService(questionnaireMetadataPersistencePortStub),
             new SurveyUnitService(surveyUnitPersistencePortStub, new QuestionnaireMetadataService(questionnaireMetadataPersistencePortStub), fileUtils),
-            new SurveyUnitQualityService(),
             fileUtils,
-            new DataProcessingContextService(dataProcessingContextPersistancePortStub, surveyUnitPersistencePortStub),
-            surveyUnitQualityToolPerretAdapterStub,
+            surveyUnitQualityToolService,
             new ConfigStub(),
             new DataProcessingContextPersistancePortStub()
     );
@@ -89,11 +93,6 @@ class RawResponseControllerTest {
         @Override
         public DataProcessResult processRawResponsesByInterrogationIds(String collectionInstrumentId) throws GenesisException {
             return null;
-        }
-
-        @Override
-        public List<SurveyUnitModel> convertRawResponse(List<RawResponseModel> rawResponsModels, VariablesMap variablesMap) {
-            return List.of();
         }
 
         @Override

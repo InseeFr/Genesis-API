@@ -4,6 +4,7 @@ import fr.insee.genesis.domain.ports.api.DataProcessingContextApiPort;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.RawResponseApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
+import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityToolService;
 import fr.insee.genesis.infrastructure.repository.ContextualExternalVariableMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.ContextualPreviousVariableMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.DataProcessingContextMongoDBRepository;
@@ -102,7 +103,8 @@ class ControllerAccessTest {
     private QuestionnaireMetadataMongoDBRepository questionnaireMetadataMongoDBRepository;
     @MockitoBean
     private RawResponseRepository rawResponseRepository;
-
+    @MockitoBean
+    private SurveyUnitQualityToolService surveyUnitQualityToolService;
     /**
      * Provides a stream of URIs that are allowed for reader.
      */

@@ -1,7 +1,6 @@
 package cucumber.functional_tests;
 
 import cucumber.functional_tests.config.CucumberSpringConfiguration;
-import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.TestConstants;
 import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.controller.rest.responses.RawResponseController;
@@ -16,14 +15,19 @@ import fr.insee.genesis.domain.ports.api.RawResponseApiPort;
 import fr.insee.genesis.domain.service.context.DataProcessingContextService;
 import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService;
-import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
+import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityToolService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.domain.utils.JsonUtils;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.repository.RawResponseInputRepository;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
-import fr.insee.genesis.stubs.*;
+import fr.insee.genesis.stubs.ConfigStub;
+import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
+import fr.insee.genesis.stubs.LunaticJsonRawDataPersistanceStub;
+import fr.insee.genesis.stubs.QuestionnaireMetadataPersistencePortStub;
+import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
+import fr.insee.genesis.stubs.SurveyUnitQualityToolPerretAdapterStub;
 import fr.insee.modelefiliere.RawResponseDto;
 import io.cucumber.java.Before;
 import io.cucumber.java.en.Given;
@@ -71,22 +75,25 @@ public class RawDataDefinitions {
     FileUtils fileUtils = new FileUtils(config);
     SurveyUnitService surveyUnitService = new SurveyUnitService(surveyUnitPersistencePortStub, new QuestionnaireMetadataService(questionnaireMetadataPersistencePortStub), fileUtils);
     ControllerUtils controllerUtils = new ControllerUtils(fileUtils);
-    SurveyUnitQualityService surveyUnitQualityService = new SurveyUnitQualityService();
     DataProcessingContextPersistancePortStub dataProcessingContextPersistancePortStub =
             new DataProcessingContextPersistancePortStub();
     SurveyUnitQualityToolPerretAdapterStub surveyUnitQualityToolPerretAdapterStub = new SurveyUnitQualityToolPerretAdapterStub();
+    DataProcessingContextService dataProcessingContextService = new DataProcessingContextService(
+            new DataProcessingContextPersistancePortStub(),
+            surveyUnitPersistencePortStub);
+
+    SurveyUnitQualityToolService surveyUnitQualityToolService = new SurveyUnitQualityToolService(
+            surveyUnitQualityToolPerretAdapterStub,
+            dataProcessingContextService);
+
     LunaticJsonRawDataService lunaticJsonRawDataService =
             new LunaticJsonRawDataService(
                     lunaticJsonRawDataPersistanceStub,
                     controllerUtils,
                     new QuestionnaireMetadataService(questionnaireMetadataPersistencePortStub),
                     surveyUnitService,
-                    surveyUnitQualityService,
                     fileUtils,
-                    new DataProcessingContextService(
-                            dataProcessingContextPersistancePortStub,
-                            surveyUnitPersistencePortStub),
-                    surveyUnitQualityToolPerretAdapterStub,
+                    surveyUnitQualityToolService,
                     config,
                     dataProcessingContextPersistancePortStub);
 
@@ -108,11 +115,6 @@ public class RawDataDefinitions {
         @Override
         public DataProcessResult processRawResponsesByInterrogationIds(String collectionInstrumentId) throws GenesisException {
             return null;
-        }
-
-        @Override
-        public List<SurveyUnitModel> convertRawResponse(List<RawResponseModel> rawResponsModels, VariablesMap variablesMap) {
-            return List.of();
         }
 
         @Override

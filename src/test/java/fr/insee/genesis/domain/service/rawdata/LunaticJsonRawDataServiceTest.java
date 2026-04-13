@@ -12,13 +12,18 @@ import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
 import fr.insee.genesis.domain.service.context.DataProcessingContextService;
 import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
-import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
+import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityToolService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.domain.utils.JsonUtils;
 import fr.insee.genesis.infrastructure.mappers.DataProcessingContextMapper;
 import fr.insee.genesis.infrastructure.mappers.LunaticJsonRawDataDocumentMapper;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
-import fr.insee.genesis.stubs.*;
+import fr.insee.genesis.stubs.ConfigStub;
+import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
+import fr.insee.genesis.stubs.LunaticJsonRawDataPersistanceStub;
+import fr.insee.genesis.stubs.QuestionnaireMetadataPersistencePortStub;
+import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
+import fr.insee.genesis.stubs.SurveyUnitQualityToolPerretAdapterStub;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -29,7 +34,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService.getValueString;
+import static fr.insee.genesis.domain.utils.LunaticJsonRawDataConverter.convertRawData;
+import static fr.insee.genesis.domain.utils.LunaticJsonRawDataConverter.getValueString;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 class LunaticJsonRawDataServiceTest {
@@ -44,16 +50,23 @@ class LunaticJsonRawDataServiceTest {
     DataProcessingContextPersistancePortStub dataProcessingContextPersistancePortStub = new DataProcessingContextPersistancePortStub();
     SurveyUnitQualityToolPerretAdapterStub surveyUnitQualityToolPerretAdapterStub = new SurveyUnitQualityToolPerretAdapterStub();
     ConfigStub configStub = new ConfigStub();
+    DataProcessingContextService dataProcessingContextService = new DataProcessingContextService(
+            dataProcessingContextPersistancePortStub,
+            surveyUnitPersistencePortStub);
+    static QuestionnaireMetadataPersistencePortStub questionnaireMetadataPersistencePortStub = new QuestionnaireMetadataPersistencePortStub();
+    SurveyUnitService surveyUnitService = new SurveyUnitService(surveyUnitPersistencePortStub, new QuestionnaireMetadataService(questionnaireMetadataPersistencePortStub), fileUtils);
+
+    SurveyUnitQualityToolService surveyUnitQualityToolService = new SurveyUnitQualityToolService(
+            surveyUnitQualityToolPerretAdapterStub,
+            dataProcessingContextService);
     LunaticJsonRawDataService lunaticJsonRawDataService =
             new LunaticJsonRawDataService(
                     lunaticJsonRawDataPersistanceStub,
                     controllerUtils,
                     metadataService,
-                    new SurveyUnitService(surveyUnitPersistencePortStub, metadataService, fileUtils),
-                    new SurveyUnitQualityService(),
+                    surveyUnitService,
                     fileUtils,
-                    new DataProcessingContextService(dataProcessingContextPersistancePortStub, surveyUnitPersistencePortStub),
-                    surveyUnitQualityToolPerretAdapterStub,
+                    surveyUnitQualityToolService,
                     configStub,
                     dataProcessingContextPersistancePortStub
             );
@@ -350,7 +363,7 @@ class LunaticJsonRawDataServiceTest {
                 .mode(Mode.WEB)
                 .build();
 
-        assertDoesNotThrow(() -> lunaticJsonRawDataService.convertRawData(List.of(rawDataModel),new VariablesMap()));
+        assertDoesNotThrow(() -> convertRawData(List.of(rawDataModel),new VariablesMap()));
     }
 
     @Test
@@ -369,7 +382,7 @@ class LunaticJsonRawDataServiceTest {
                 .mode(Mode.WEB)
                 .build();
 
-        List<SurveyUnitModel> suModels =  lunaticJsonRawDataService.convertRawData(List.of(rawDataModel),new VariablesMap());
+        List<SurveyUnitModel> suModels =  convertRawData(List.of(rawDataModel),new VariablesMap());
         Assertions.assertThat(suModels).hasSize(1);
         Assertions.assertThat(suModels.getFirst().getCollectedVariables()).hasSize(1);
         Assertions.assertThat(suModels.getFirst().getExternalVariables()).isEmpty();
@@ -432,7 +445,7 @@ class LunaticJsonRawDataServiceTest {
                 .mode(Mode.WEB)
                 .build();
 
-        assertDoesNotThrow(() -> lunaticJsonRawDataService.convertRawData(List.of(rawDataModel),new VariablesMap()));
+        assertDoesNotThrow(() -> convertRawData(List.of(rawDataModel),new VariablesMap()));
     }
 
     @Test
@@ -451,7 +464,7 @@ class LunaticJsonRawDataServiceTest {
                 .mode(Mode.WEB)
                 .build();
 
-        List<SurveyUnitModel> suModels =  lunaticJsonRawDataService.convertRawData(List.of(rawDataModel),new VariablesMap());
+        List<SurveyUnitModel> suModels =  convertRawData(List.of(rawDataModel),new VariablesMap());
         Assertions.assertThat(suModels).hasSize(1);
         Assertions.assertThat(suModels.getFirst().getExternalVariables()).hasSize(1);
         Assertions.assertThat(suModels.getFirst().getCollectedVariables()).isEmpty();
@@ -634,7 +647,7 @@ class LunaticJsonRawDataServiceTest {
 
         // WHEN
         List<SurveyUnitModel> suModels =
-                lunaticJsonRawDataService.convertRawData(List.of(rawDataModel), new VariablesMap());
+                convertRawData(List.of(rawDataModel), new VariablesMap());
 
         // THEN
         Assertions.assertThat(suModels).hasSize(1);

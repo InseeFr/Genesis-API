@@ -2,7 +2,6 @@ package fr.insee.genesis.domain.service.rawdata;
 
 import fr.insee.bpm.metadata.model.MetadataModel;
 import fr.insee.bpm.metadata.model.VariablesMap;
-import fr.insee.genesis.Constants;
 import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.controller.dto.rawdata.LunaticJsonRawDataUnprocessedDto;
 import fr.insee.genesis.controller.utils.ControllerUtils;
@@ -11,20 +10,15 @@ import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.GroupedInterrogation;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
-import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
-import fr.insee.genesis.domain.model.surveyunit.rawdata.RawDataModelType;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.spi.DataProcessingContextPersistancePort;
 import fr.insee.genesis.domain.ports.spi.LunaticJsonRawDataPersistencePort;
-import fr.insee.genesis.domain.ports.spi.SurveyUnitQualityToolPort;
-import fr.insee.genesis.domain.service.context.DataProcessingContextService;
 import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
-import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
+import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityToolService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
-import fr.insee.genesis.domain.utils.GroupUtils;
-import fr.insee.genesis.domain.utils.JsonUtils;
+import fr.insee.genesis.domain.utils.LunaticJsonRawDataConverter;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
@@ -33,23 +27,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static fr.insee.genesis.domain.service.rawdata.RawResponseService.processCollectedVariable;
 
 @Service
 @Slf4j
@@ -58,9 +45,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     private final ControllerUtils controllerUtils;
     private final QuestionnaireMetadataService metadataService;
     private final SurveyUnitService surveyUnitService;
-    private final SurveyUnitQualityService surveyUnitQualityService;
-    private final SurveyUnitQualityToolPort surveyUnitQualityToolPort;
-    private final DataProcessingContextService dataProcessingContextService;
+    private final SurveyUnitQualityToolService surveyUnitQualityToolService;
     private final FileUtils fileUtils;
     private final Config config;
 
@@ -70,26 +55,23 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     private final DataProcessingContextPersistancePort dataProcessingContextPersistancePort;
 
     @Autowired
-    public LunaticJsonRawDataService(LunaticJsonRawDataPersistencePort lunaticJsonRawDataNewPersistencePort,
-                                     ControllerUtils controllerUtils,
-                                     QuestionnaireMetadataService metadataService,
-                                     SurveyUnitService surveyUnitService,
-                                     SurveyUnitQualityService surveyUnitQualityService,
-                                     FileUtils fileUtils,
-                                     DataProcessingContextService dataProcessingContextService,
-                                     SurveyUnitQualityToolPort surveyUnitQualityToolPort,
-                                     Config config,
-                                     DataProcessingContextPersistancePort dataProcessingContextPersistancePort
+    public LunaticJsonRawDataService(
+            LunaticJsonRawDataPersistencePort lunaticJsonRawDataNewPersistencePort,
+            ControllerUtils controllerUtils,
+            QuestionnaireMetadataService metadataService,
+            SurveyUnitService surveyUnitService,
+            FileUtils fileUtils,
+            SurveyUnitQualityToolService surveyUnitQualityToolService,
+            Config config,
+            DataProcessingContextPersistancePort dataProcessingContextPersistancePort
     ) {
         this.controllerUtils = controllerUtils;
         this.metadataService = metadataService;
         this.surveyUnitService = surveyUnitService;
-        this.surveyUnitQualityService = surveyUnitQualityService;
+        this.surveyUnitQualityToolService = surveyUnitQualityToolService;
         this.fileUtils = fileUtils;
         this.lunaticJsonRawDataPersistencePort = lunaticJsonRawDataNewPersistencePort;
         this.dataProcessingContextPersistancePort = dataProcessingContextPersistancePort;
-        this.surveyUnitQualityToolPort = surveyUnitQualityToolPort;
-        this.dataProcessingContextService = dataProcessingContextService;
         this.config = config;
     }
 
@@ -99,269 +81,91 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     }
 
     @Override
-    public List<LunaticJsonRawDataModel> getRawDataByQuestionnaireId(String questionnaireId, Mode mode, List<String> interrogationIdList) {
-        return lunaticJsonRawDataPersistencePort.findRawDataByQuestionnaireId(questionnaireId, mode, interrogationIdList);
+    public List<LunaticJsonRawDataModel> getRawDataByQuestionnaireId(
+            String questionnaireId, Mode mode, List<String> interrogationIdList
+    ) {
+        return lunaticJsonRawDataPersistencePort.findRawDataByQuestionnaireId(
+                questionnaireId, mode, interrogationIdList);
     }
 
-    @Override    
+    @Override
     public List<LunaticJsonRawDataModel> getRawDataByInterrogationId(String interrogationId) {
         return lunaticJsonRawDataPersistencePort.findRawDataByInterrogationID(interrogationId);
     }
 
     @Override
-    public DataProcessResult processRawDataByInterrogationIds(String questionnaireId, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException {
-        int dataCount=0;
-        int formattedDataCount=0;
-        DataProcessingContextModel dataProcessingContext =
-                dataProcessingContextService.getContextByCollectionInstrumentId(questionnaireId);
-        List<Mode> modesList = controllerUtils.getModesList(questionnaireId, null);
-        for (Mode mode : modesList) {
-            //Load and save metadata into database, throw exception if none
-            VariablesMap variablesMap = getVariablesMap(questionnaireId, mode, errors);
-            int totalBatchs = Math.ceilDiv(interrogationIdList.size() , config.getRawDataProcessingBatchSize());
-            int batchNumber = 1;
-            List<String> interrogationIdListForMode = new ArrayList<>(interrogationIdList);
-            while(!interrogationIdListForMode.isEmpty()){
-                log.info("Processing raw data batch {}/{}", batchNumber, totalBatchs);
-                int maxIndex = Math.min(interrogationIdListForMode.size(), config.getRawDataProcessingBatchSize());
-                List<String> interrogationIdToProcess = interrogationIdListForMode.subList(0, maxIndex);
-
-                List<LunaticJsonRawDataModel> rawData = getRawDataByQuestionnaireId(questionnaireId, mode, interrogationIdToProcess);
-
-                List<SurveyUnitModel> surveyUnitModels = convertRawData(
-                        rawData,
-                        variablesMap
-                );
-
-                //Save converted data
-                surveyUnitQualityService.verifySurveyUnits(surveyUnitModels, variablesMap);
-                surveyUnitService.saveSurveyUnits(surveyUnitModels);
-
-                //Update process dates
-                updateProcessDates(surveyUnitModels);
-
-                //Increment data count
-                dataCount += surveyUnitModels.size();
-                formattedDataCount += surveyUnitModels.stream()
-                        .filter(surveyUnitModel -> surveyUnitModel.getState().equals(DataState.FORMATTED))
-                        .toList()
-                        .size();
-
-                //Send processed ids grouped by questionnaire (if review activated)
-                if(dataProcessingContext != null && dataProcessingContext.isWithReview()) {
-                    sendProcessedIdsToQualityTool(surveyUnitModels);
-                }
-
-                //Remove processed ids from list
-                interrogationIdListForMode = interrogationIdListForMode.subList(maxIndex, interrogationIdListForMode.size());
-
-                batchNumber++;
-            }
-        }
-        return new DataProcessResult(dataCount, formattedDataCount, errors);
-    }
-
-    @Override
     public DataProcessResult processRawData(String questionnaireId) throws GenesisException {
-        int dataCount=0;
-        int formattedDataCount=0;
-        DataProcessingContextModel dataProcessingContext =
-                dataProcessingContextService.getContextByCollectionInstrumentId(questionnaireId);
-        List<GenesisError> errors = new ArrayList<>();
+        List<String> interrogationIds = lunaticJsonRawDataPersistencePort
+                .findUnprocessedInterrogationIdsByCollectionInstrumentId(questionnaireId)
+                .stream()
+                .toList();
 
-        List<Mode> modesList = controllerUtils.getModesList(questionnaireId, null);
-        for (Mode mode : modesList) {
-            //Load and save metadata into database, throw exception if none
+        return processRawDataByInterrogationIds(questionnaireId, interrogationIds, new ArrayList<>());
+    }
+
+    @Override
+    public DataProcessResult processRawDataByInterrogationIds(
+            String questionnaireId,
+            List<String> interrogationIdList,
+            List<GenesisError> errors
+    ) throws GenesisException {
+
+        List<Mode> modes = controllerUtils.getModesList(questionnaireId, null);
+        boolean resolveWithReviewValue = surveyUnitQualityToolService.resolveWithReviewValue(questionnaireId);
+
+        int batchSize = config.getRawDataProcessingBatchSize();
+        int totalBatches = Math.ceilDiv(interrogationIdList.size(), batchSize);
+        int dataCount = 0;
+        int formattedDataCount = 0;
+
+        for (Mode mode : modes) {
             VariablesMap variablesMap = getVariablesMap(questionnaireId, mode, errors);
-            Set<String> interrogationIds =
-                    lunaticJsonRawDataPersistencePort.findUnprocessedInterrogationIdsByCollectionInstrumentId(questionnaireId);
-
-            int totalBatchs = Math.ceilDiv(interrogationIds.size() , config.getRawDataProcessingBatchSize());
+            List<String> interrogationIdListForMode = new ArrayList<>(interrogationIdList);
             int batchNumber = 1;
-            List<String> interrogationIdListForMode = new ArrayList<>(interrogationIds);
-            while(!interrogationIdListForMode.isEmpty()){
-                log.info("Processing raw data batch {}/{}", batchNumber, totalBatchs);
 
-                int maxIndex = Math.min(interrogationIdListForMode.size(), config.getRawDataProcessingBatchSize());
-                List<SurveyUnitModel> surveyUnitModels = getConvertedSurveyUnits(
-                        questionnaireId,
-                        mode,
-                        interrogationIdListForMode,
-                        maxIndex,
-                        variablesMap
-                );
+            while (!interrogationIdListForMode.isEmpty()) {
+                log.info("Processing raw data batch {}/{}", batchNumber, totalBatches);
 
-                //Save converted data
-                surveyUnitQualityService.verifySurveyUnits(surveyUnitModels, variablesMap);
-                surveyUnitService.saveSurveyUnits(surveyUnitModels);
+                int maxIndex = Math.min(interrogationIdListForMode.size(), batchSize);
+                List<String> batch = interrogationIdListForMode.subList(0, maxIndex);
 
-                //Update process dates
-                updateProcessDates(surveyUnitModels);
+                List<LunaticJsonRawDataModel> rawData = lunaticJsonRawDataPersistencePort
+                        .findRawDataByQuestionnaireId(questionnaireId, mode, batch);
 
-                //Increment data count
-                dataCount += surveyUnitModels.size();
-                formattedDataCount += surveyUnitModels.stream()
-                        .filter(surveyUnitModel -> surveyUnitModel.getState().equals(DataState.FORMATTED))
-                        .toList()
-                        .size();
+                List<SurveyUnitModel> surveyUnits =
+                        LunaticJsonRawDataConverter.convertRawData(rawData, variablesMap);
 
-                //Send processed ids grouped by questionnaire (if review activated)
-                if(dataProcessingContext != null && dataProcessingContext.isWithReview()) {
-                    sendProcessedIdsToQualityTool(surveyUnitModels);
+                surveyUnitService.saveSurveyUnits(surveyUnits);
+                updateProcessDates(surveyUnits);
+
+                dataCount += surveyUnits.size();
+                formattedDataCount += (int) surveyUnits.stream()
+                        .filter(su -> su.getState() == DataState.FORMATTED)
+                        .count();
+
+                if (resolveWithReviewValue) {
+                    surveyUnitQualityToolService.sendProcessedIdsToQualityTool(surveyUnits);
                 }
 
-                //Remove processed ids from list
-                interrogationIdListForMode = interrogationIdListForMode.subList(maxIndex, interrogationIdListForMode.size());
+                interrogationIdListForMode =
+                        interrogationIdListForMode.subList(maxIndex, interrogationIdListForMode.size());
                 batchNumber++;
             }
         }
+
         return new DataProcessResult(dataCount, formattedDataCount, errors);
-    }
-
-
-    private VariablesMap getVariablesMap(String questionnaireId, Mode mode, List<GenesisError> errors) throws GenesisException {
-        VariablesMap variablesMap = metadataService.loadAndSaveIfNotExists(questionnaireId, questionnaireId, mode, fileUtils,
-                errors).getVariables();
-        if (variablesMap == null) {
-            throw new GenesisException(400,
-                    "Error during metadata parsing for mode %s :%n%s"
-                            .formatted(mode, errors.getLast().getMessage())
-            );
-        }
-        return variablesMap;
-    }
-
-    private List<SurveyUnitModel> getConvertedSurveyUnits(String questionnaireId, Mode mode, List<String> interrogationIdListForMode, int maxIndex, VariablesMap variablesMap) {
-        List<String> interrogationIdToProcess = interrogationIdListForMode.subList(0, maxIndex);
-        List<LunaticJsonRawDataModel> rawData = getRawDataByQuestionnaireId(questionnaireId, mode, interrogationIdToProcess);
-        return convertRawData(
-                rawData,
-                variablesMap
-        );
-    }
-
-    private void sendProcessedIdsToQualityTool(List<SurveyUnitModel> surveyUnitModels) {
-        try {
-            ResponseEntity<Object> response =
-                    surveyUnitQualityToolPort.sendProcessedIds(getProcessedIdsMap(surveyUnitModels));
-
-        if (response.getStatusCode().is2xxSuccessful()) {
-            log.info("Successfully sent {} ids to quality tool", getProcessedIdsMap(surveyUnitModels).size());
-        }else{
-            log.warn("Survey unit quality tool responded non-2xx code {} and body {}",
-                    response.getStatusCode(), response.getBody());
-        }
-        }catch (IOException e){
-            log.error("Error during Perret call request building : {}", e.toString());
-        }
-    }
-
-    private Map<String, Set<String>> getProcessedIdsMap(List<SurveyUnitModel> surveyUnitModels) {
-        Map<String, Set<String>> processedInterrogationIdsPerQuestionnaire = new HashMap<>();
-        surveyUnitModels.forEach(model ->
-                processedInterrogationIdsPerQuestionnaire
-                        .computeIfAbsent(model.getCollectionInstrumentId(), k -> new HashSet<>())
-                        .add(model.getInterrogationId())
-        );
-        return processedInterrogationIdsPerQuestionnaire;
-    }
-
-
-    @Override
-    public List<SurveyUnitModel> convertRawData(List<LunaticJsonRawDataModel> rawDataList, VariablesMap variablesMap) {
-        //Convert to genesis model
-        List<SurveyUnitModel> surveyUnitModels = new ArrayList<>();
-        List<SurveyUnitModel> emptySurveyUnitModels = new ArrayList<>();
-        //For each possible data state (we receive COLLECTED or EDITED)
-        for(DataState dataState : List.of(DataState.COLLECTED,DataState.EDITED)){
-            for (LunaticJsonRawDataModel rawData : rawDataList) {
-                RawDataModelType rawDataModelType = getRawDataModelType(rawData);
-
-                //Get optional fields
-                Boolean isCapturedIndirectly = getIsCapturedIndirectly(rawData);
-                LocalDateTime validationDate = getValidationDate(rawData);
-
-                SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
-                        .campaignId(rawData.campaignId())
-                        .collectionInstrumentId(rawData.questionnaireId())
-                        .mode(rawData.mode())
-                        .interrogationId(rawData.interrogationId())
-                        .usualSurveyUnitId(rawData.idUE())
-                        .validationDate(validationDate)
-                        .isCapturedIndirectly(isCapturedIndirectly)
-                        .state(dataState)
-                        .fileDate(rawData.recordDate())
-                        .recordDate(LocalDateTime.now())
-                        .collectedVariables(new ArrayList<>())
-                        .externalVariables(new ArrayList<>())
-                        .build();
-
-                //Data collected variables conversion
-                convertRawDataCollectedVariables(rawData, surveyUnitModel, dataState, rawDataModelType, variablesMap);
-
-                //External variables conversion into COLLECTED document
-                if(dataState == DataState.COLLECTED){
-                    convertRawDataExternalVariables(rawData, surveyUnitModel, rawDataModelType, variablesMap);
-                }
-
-                boolean hasNoVariable = surveyUnitModel.getCollectedVariables().isEmpty()
-                        && surveyUnitModel.getExternalVariables().isEmpty();
-
-                if(hasNoVariable){
-                    if(surveyUnitModel.getState() == DataState.COLLECTED){
-                        log.warn("No collected or external variable for interrogation {}, raw data is ignored.", rawData.interrogationId());
-                    }
-                    emptySurveyUnitModels.add(surveyUnitModel);
-                    continue;// don't add suModel but update processDate
-                }
-                surveyUnitModels.add(surveyUnitModel);
-            }
-        }
-        if(!emptySurveyUnitModels.isEmpty()){
-            updateProcessDates(emptySurveyUnitModels);
-        }
-        return surveyUnitModels;
-    }
-
-    private static RawDataModelType getRawDataModelType(LunaticJsonRawDataModel rawData) {
-        return rawData.data().containsKey("data") ?
-                RawDataModelType.FILIERE :
-                RawDataModelType.LEGACY;
-    }
-
-    private static LocalDateTime getValidationDate(LunaticJsonRawDataModel rawData) {
-        try{
-            return rawData.data().get("validationDate") == null ? null :
-                LocalDateTime.parse(rawData.data().get("validationDate").toString(), DateTimeFormatter.ISO_OFFSET_DATE_TIME);
-        }catch(Exception e){
-            log.warn("Exception when parsing validation date : {}}",e.toString());
-            return null;
-        }
-    }
-
-    private static Boolean getIsCapturedIndirectly(LunaticJsonRawDataModel rawData) {
-        try{
-            return rawData.data().get("isCapturedIndirectly") == null ? null :
-                    Boolean.parseBoolean(rawData.data().get("isCapturedIndirectly").toString());
-        }catch(Exception e){
-            log.warn("Exception when parsing isCapturedIndirectly : {}}",e.toString());
-            return Boolean.FALSE;
-        }
-
     }
 
     @Override
     public List<LunaticJsonRawDataUnprocessedDto> getUnprocessedDataIds() {
         List<LunaticJsonRawDataUnprocessedDto> dtos = new ArrayList<>();
-
         for (GroupedInterrogation groupedInterrogation : lunaticJsonRawDataPersistencePort.findUnprocessedIds()) {
-            for (String interrogationId : groupedInterrogation.interrogationIds()){
+            for (String interrogationId : groupedInterrogation.interrogationIds()) {
                 dtos.add(LunaticJsonRawDataUnprocessedDto.builder()
                         .campaignId(groupedInterrogation.partitionOrCampaignId())
                         .questionnaireId(groupedInterrogation.questionnaireId())
                         .interrogationId(interrogationId)
-                        .build()
-                );
+                        .build());
             }
         }
         return dtos;
@@ -369,173 +173,27 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
 
     @Override
     public Set<String> getUnprocessedDataQuestionnaireIds() {
-        Set<String> unprocessedQuestionnaireIds = lunaticJsonRawDataPersistencePort.findDistinctQuestionnaireIdsByNullProcessDate();
-        Set<String> unprocessedQuestionnaireIdsWithSpecs = new HashSet<>();
-        for (String unprocessedQuestionnaireId : unprocessedQuestionnaireIds){
-            Set<Mode> modes = lunaticJsonRawDataPersistencePort.findModesByQuestionnaire(unprocessedQuestionnaireId);
-            if (modes.isEmpty()){
-                continue;
-            }
-
-            boolean areAllSpecsOK = true;
-            for(Mode mode : modes){
-                if(!isSpecsPresentForQuestionnaireAndMode(unprocessedQuestionnaireId, mode)){
-                    areAllSpecsOK = false;
-                }
-            }
-            if(areAllSpecsOK){
-                unprocessedQuestionnaireIdsWithSpecs.add(unprocessedQuestionnaireId);
-            }
-        }
-
-        return unprocessedQuestionnaireIdsWithSpecs;
-    }
-
-    private boolean isSpecsPresentForQuestionnaireAndMode(String unprocessedQuestionnaireId, Mode mode) {
-        List<GenesisError> genesisErrors = new ArrayList<>();
-        MetadataModel metadataModel;
-        try {
-            metadataModel = metadataService.loadAndSaveIfNotExists(
-                    unprocessedQuestionnaireId,
-                    unprocessedQuestionnaireId,
-                    mode,
-                    fileUtils,
-                    genesisErrors
-            );
-        } catch (GenesisException ge) {
-            log.warn("Genesis exception thrown for questionnaire %s and mode %s, excluding from get questionnaire ids...".formatted(unprocessedQuestionnaireId, mode));
-            return false;
-        }
-        return metadataModel != null && genesisErrors.isEmpty();
-    }
-
-    @SuppressWarnings("unchecked")
-    private static void convertRawDataExternalVariables(
-            LunaticJsonRawDataModel srcRawData,
-            SurveyUnitModel dstSurveyUnitModel,
-            RawDataModelType rawDataModelType,
-            VariablesMap variablesMap
-    ) {
-        Map<String, Object> dataMap = srcRawData.data();
-        if (rawDataModelType.equals(RawDataModelType.FILIERE)) {
-            dataMap = (Map<String, Object>) dataMap.get("data");
-        }
-
-        dataMap = (Map<String, Object>)dataMap.get("EXTERNAL");
-        Map<String,Object> externalMap = JsonUtils.asMap(dataMap);
-        if (externalMap != null && !externalMap.isEmpty()){
-            convertToExternalVar(dstSurveyUnitModel, variablesMap, externalMap);
-        }
-    }
-
-    private static void convertToExternalVar(SurveyUnitModel dstSurveyUnitModel, VariablesMap variablesMap, Map<String, Object> externalMap) {
-        for(Map.Entry<String, Object> externalVariableEntry : externalMap.entrySet()){
-            Object valueObject = externalVariableEntry.getValue();
-            if (valueObject instanceof List<?>){
-                //Array of values
-                convertListVar(valueObject, externalVariableEntry, variablesMap, dstSurveyUnitModel.getExternalVariables());
-                continue;
-            }
-            //Value
-            if (valueObject != null) {
-                convertOneVar(externalVariableEntry, valueObject.toString(), variablesMap, 1, dstSurveyUnitModel.getExternalVariables());
-            }
-        }
-    }
-
-    private static void convertOneVar(Map.Entry<String, Object> externalVariableEntry, String valueObject, VariablesMap variablesMap, int iteration, List<VariableModel> dstSurveyUnitModel) {
-        VariableModel externalVariableModel = VariableModel.builder()
-                .varId(externalVariableEntry.getKey())
-                .value(valueObject)
-                .scope(getIdLoop(variablesMap, externalVariableEntry.getKey()))
-                .iteration(iteration)
-                .parentId(GroupUtils.getParentGroupName(externalVariableEntry.getKey(), variablesMap))
-                .build();
-        dstSurveyUnitModel.add(externalVariableModel);
-    }
-
-    @SuppressWarnings("unchecked")
-    private void convertRawDataCollectedVariables(
-            LunaticJsonRawDataModel srcRawData,
-            SurveyUnitModel dstSurveyUnitModel,
-            DataState dataState,
-            RawDataModelType rawDataModelType,
-            VariablesMap variablesMap
-    ) {
-        Map<String, Object> dataMap = srcRawData.data();
-        if (rawDataModelType.equals(RawDataModelType.FILIERE)) {
-            dataMap = (Map<String, Object>) dataMap.get("data");
-        }
-
-        dataMap = (Map<String, Object>)dataMap.get("COLLECTED");
-
-
-        Map<String,Object> collectedMap = JsonUtils.asMap(dataMap);
-        if (collectedMap == null || collectedMap.isEmpty()){
-            if(dataState.equals(DataState.COLLECTED)) {
-                log.warn("No collected data for interrogation {}", srcRawData.interrogationId());
-            }
-            return;
-        }
-        convertToCollectedVar(dstSurveyUnitModel, dataState, variablesMap, collectedMap);
-
-    }
-
-    private static void convertToCollectedVar(
-            SurveyUnitModel dstSurveyUnitModel,
-            DataState dataState,
-            VariablesMap variablesMap,
-            Map<String, Object> collectedMap
-    ) {
-        final String stateKey = dataState.toString();
-        final var dest = dstSurveyUnitModel.getCollectedVariables();
-
-        for (Map.Entry<String, Object> collectedVariable : collectedMap.entrySet()) {
-            processCollectedVariable(collectedVariable, stateKey, variablesMap, dstSurveyUnitModel, dest);
-        }
-    }
-
-
-    private static void convertListVar(Object valuesForState, Map.Entry<String, Object> collectedVariable, VariablesMap variablesMap, List<VariableModel> dstSurveyUnitModel) {
-        List<String> values = JsonUtils.asStringList(valuesForState);
-        if (!values.isEmpty()) {
-            int iteration = 1;
-            for (String value : values) {
-                if (value != null && !value.isEmpty()) {
-                    convertOneVar(collectedVariable, value, variablesMap, iteration, dstSurveyUnitModel);
-                }
-                iteration++;
-            }
-        }
-    }
-
-    private static String getIdLoop(VariablesMap variablesMap, String variableName) {
-        if (variablesMap.getVariable(variableName) == null) {
-            log.warn("Variable {} not present in metadatas, assigning to {}", variableName, Constants.ROOT_GROUP_NAME);
-            return Constants.ROOT_GROUP_NAME;
-        }
-        return variablesMap.getVariable(variableName).getGroupName();
+        return lunaticJsonRawDataPersistencePort
+                .findDistinctQuestionnaireIdsByNullProcessDate()
+                .stream()
+                .filter(this::hasValidModesWithSpecs)
+                .collect(Collectors.toSet());
     }
 
     @Override
     public void updateProcessDates(List<SurveyUnitModel> surveyUnitModels) {
-        Set<String> campaignIds = new HashSet<>();
-        for (SurveyUnitModel surveyUnitModel : surveyUnitModels) {
-            campaignIds.add(surveyUnitModel.getCampaignId());
-        }
-
-        for (String campaignId : campaignIds) {
-            Set<String> interrogationIds = new HashSet<>();
-            for (SurveyUnitModel surveyUnitModel :
-                    surveyUnitModels.stream().filter(
-                            surveyUnitModel -> surveyUnitModel.getCampaignId().equals(campaignId)
-                    ).toList()) {
-                interrogationIds.add(surveyUnitModel.getInterrogationId());
-            }
-            lunaticJsonRawDataPersistencePort.updateProcessDates(campaignId, interrogationIds);
-        }
+        surveyUnitModels.stream()
+                .map(SurveyUnitModel::getCampaignId)
+                .distinct()
+                .forEach(campaignId -> {
+                    Set<String> ids = surveyUnitModels.stream()
+                            .filter(su -> su.getCampaignId().equals(campaignId))
+                            .map(SurveyUnitModel::getInterrogationId)
+                            .collect(Collectors.toSet());
+                    lunaticJsonRawDataPersistencePort.updateProcessDates(campaignId, ids);
+                });
     }
-    
+
     @Override
     public Set<String> findDistinctQuestionnaireIds() {
         return lunaticJsonRawDataPersistencePort.findDistinctQuestionnaireIds();
@@ -553,19 +211,27 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
 
     @Override
     public Map<String, List<String>> findProcessedIdsgroupedByQuestionnaireSince(LocalDateTime since) {
-        List<GroupedInterrogation> idsByQuestionnaire = lunaticJsonRawDataPersistencePort.findProcessedIdsGroupedByQuestionnaireSince(since);
-        List<String> partitionIds = idsByQuestionnaire.stream().map(GroupedInterrogation::partitionOrCampaignId).toList();
-        List<DataProcessingContextModel> contexts = dataProcessingContextPersistancePort.findByPartitionIds(partitionIds);
-        List<String> partitionIdsWithReview = contexts.stream().filter(DataProcessingContextModel::isWithReview).map(DataProcessingContextModel::getPartitionId).toList();
-        return idsByQuestionnaire.stream().filter(groupedInterrogation -> partitionIdsWithReview.contains(groupedInterrogation.partitionOrCampaignId()))
+        List<GroupedInterrogation> idsByQuestionnaire =
+                lunaticJsonRawDataPersistencePort.findProcessedIdsGroupedByQuestionnaireSince(since);
+        List<String> partitionIds = idsByQuestionnaire.stream()
+                .map(GroupedInterrogation::partitionOrCampaignId).toList();
+        List<String> partitionIdsWithReview = dataProcessingContextPersistancePort
+                .findByPartitionIds(partitionIds).stream()
+                .filter(DataProcessingContextModel::isWithReview)
+                .map(DataProcessingContextModel::getPartitionId)
+                .toList();
+        return idsByQuestionnaire.stream()
+                .filter(g -> partitionIdsWithReview.contains(g.partitionOrCampaignId()))
                 .collect(Collectors.toMap(
-                GroupedInterrogation::questionnaireId,
-                GroupedInterrogation::interrogationIds
-        ));
+                        GroupedInterrogation::questionnaireId,
+                        GroupedInterrogation::interrogationIds
+                ));
     }
 
     @Override
-    public Page<LunaticJsonRawDataModel> findRawDataByQuestionnaireId(String questionnaireId, Pageable pageable) {
+    public Page<LunaticJsonRawDataModel> findRawDataByQuestionnaireId(
+            String questionnaireId, Pageable pageable
+    ) {
         return lunaticJsonRawDataPersistencePort.findRawDataByQuestionnaireId(questionnaireId, pageable);
     }
 
@@ -575,20 +241,42 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     }
 
     @Override
-    public Page<LunaticJsonRawDataModel> findRawDataByCampaignIdAndDate(String campaignId, Instant startDt, Instant endDt, Pageable pageable){
-        return lunaticJsonRawDataPersistencePort.findByCampaignIdAndDate(campaignId,startDt, endDt,pageable);
-
+    public Page<LunaticJsonRawDataModel> findRawDataByCampaignIdAndDate(
+            String campaignId, Instant startDt, Instant endDt, Pageable pageable
+    ) {
+        return lunaticJsonRawDataPersistencePort.findByCampaignIdAndDate(campaignId, startDt, endDt, pageable);
     }
 
-    //Utils
-    protected static String getValueString(Object value) {
-        if (value instanceof Double || value instanceof Float) {
-            BigDecimal bd = new BigDecimal(value.toString());
-            return bd.stripTrailingZeros().toPlainString();
+    private VariablesMap getVariablesMap(
+            String questionnaireId, Mode mode, List<GenesisError> errors
+    ) throws GenesisException {
+        VariablesMap variablesMap = metadataService.loadAndSaveIfNotExists(
+                questionnaireId, questionnaireId, mode, fileUtils, errors
+        ).getVariables();
+        if (variablesMap == null) {
+            throw new GenesisException(400,
+                    "Error during metadata parsing for mode %s :%n%s"
+                            .formatted(mode, errors.getLast().getMessage()));
         }
-        if (value instanceof Number) {
-            return value.toString();
+        return variablesMap;
+    }
+
+    private boolean hasValidModesWithSpecs(String questionnaireId) {
+        Set<Mode> modes = lunaticJsonRawDataPersistencePort.findModesByQuestionnaire(questionnaireId);
+        if (modes.isEmpty()) return false;
+        return modes.stream().allMatch(mode -> isSpecsPresentForMode(questionnaireId, mode));
+    }
+
+    private boolean isSpecsPresentForMode(String questionnaireId, Mode mode) {
+        List<GenesisError> errors = new ArrayList<>();
+        try {
+            MetadataModel metadata = metadataService.loadAndSaveIfNotExists(
+                    questionnaireId, questionnaireId, mode, fileUtils, errors
+            );
+            return metadata != null && errors.isEmpty();
+        } catch (GenesisException e) {
+            log.warn("Genesis exception for questionnaire {} and mode {}, excluding.", questionnaireId, mode);
+            return false;
         }
-        return String.valueOf(value);
     }
 }

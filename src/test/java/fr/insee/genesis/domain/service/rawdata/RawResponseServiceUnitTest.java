@@ -4,17 +4,14 @@ import fr.insee.bpm.metadata.model.MetadataModel;
 import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.TestConstants;
 import fr.insee.genesis.controller.utils.ControllerUtils;
-import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponseModel;
 import fr.insee.genesis.domain.ports.spi.QuestionnaireMetadataPersistencePort;
 import fr.insee.genesis.domain.ports.spi.RawResponsePersistencePort;
-import fr.insee.genesis.domain.ports.spi.SurveyUnitQualityToolPort;
-import fr.insee.genesis.domain.service.context.DataProcessingContextService;
 import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
-import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
+import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityToolService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
@@ -46,12 +43,10 @@ class RawResponseServiceUnitTest {
     static ControllerUtils controllerUtils;
     static QuestionnaireMetadataService metadataService;
     static SurveyUnitService surveyUnitService;
-    static DataProcessingContextService dataProcessingContextService;
-
+    static SurveyUnitQualityToolService surveyUnitQualityToolService;
     private ArgumentCaptor<List<SurveyUnitModel>> surveyUnitModelsCaptor;
 
     private static final String TEST_VALIDATION_DATE = "2025-11-11T06:00:00Z";
-
     @BeforeEach
     @SuppressWarnings("unchecked")
     void init() {
@@ -59,15 +54,13 @@ class RawResponseServiceUnitTest {
         controllerUtils = mock(ControllerUtils.class);
         metadataService = mock(QuestionnaireMetadataService.class);
         surveyUnitService = mock(SurveyUnitService.class);
-        dataProcessingContextService = mock(DataProcessingContextService.class);
+        surveyUnitQualityToolService = mock(SurveyUnitQualityToolService.class);
 
         rawResponseService = new RawResponseService(
                 controllerUtils,
                 metadataService,
                 surveyUnitService,
-                mock(SurveyUnitQualityService.class),
-                mock(SurveyUnitQualityToolPort.class),
-                dataProcessingContextService,
+                surveyUnitQualityToolService,
                 new FileUtils(new ConfigStub()),
                 new ConfigStub(),
                 rawResponsePersistencePort
@@ -87,10 +80,9 @@ class RawResponseServiceUnitTest {
         doReturn(List.of(ModeDto.CAWI)).when(rawResponsePersistencePort).findModesByCollectionInstrument(any());
         doReturn(new MetadataModel()).when(metadataService).loadAndSaveIfNotExists(any(), any(), any(), any(), any());
 
-
         //WHEN + THEN
         Assertions.assertThat(rawResponseService.getUnprocessedCollectionInstrumentIds())
-                .containsExactlyInAnyOrder("QUEST1","QUEST2");
+                .containsExactlyInAnyOrder("QUEST1", "QUEST2");
     }
 
     @Test
@@ -110,14 +102,11 @@ class RawResponseServiceUnitTest {
                 new ControllerUtils(new FileUtils(new ConfigStub())),
                 metadataService,
                 mock(SurveyUnitService.class),
-                mock(SurveyUnitQualityService.class),
-                mock(SurveyUnitQualityToolPort.class),
-                mock(DataProcessingContextService.class),
+                mock(SurveyUnitQualityToolService.class),
                 new FileUtils(new ConfigStub()),
                 new ConfigStub(),
                 rawResponsePersistencePort
         );
-
 
         //WHEN + THEN
         Assertions.assertThat(rawResponseService.getUnprocessedCollectionInstrumentIds())
@@ -422,10 +411,6 @@ class RawResponseServiceUnitTest {
         String fooCollectionInstrumentId = "FOOX00";
         Mode fooMode = Mode.WEB;
 
-        DataProcessingContextModel fooProcessingContext = DataProcessingContextModel.builder()
-                .collectionInstrumentId(fooCollectionInstrumentId).withReview(false)
-                .build();
-
         Set<String> interrogationIds = Set.of("interrogation-id-1", "interrogation-id-2");
         List<String> interrogationIdList = interrogationIds.stream().toList();
         Map<String, Object> fooVariable = Map.of("COLLECTED", "some value");
@@ -448,7 +433,7 @@ class RawResponseServiceUnitTest {
         Mockito.when(rawResponsePersistencePort.findUnprocessedInterrogationIdsByCollectionInstrumentId(fooCollectionInstrumentId)).thenReturn(interrogationIds);
         Mockito.when(rawResponsePersistencePort.findRawResponses(fooCollectionInstrumentId, fooMode, interrogationIdList)).thenReturn(mockedRawResponses);
         Mockito.when(controllerUtils.getModesList(fooCollectionInstrumentId)).thenReturn(List.of(fooMode));
-        Mockito.when(dataProcessingContextService.getContextByCollectionInstrumentId(fooCollectionInstrumentId)).thenReturn(fooProcessingContext);
+        Mockito.when(surveyUnitQualityToolService.resolveWithReviewValue(fooCollectionInstrumentId)).thenReturn(false);
         Mockito.when(metadataService.loadAndSaveIfNotExists(eq(fooCollectionInstrumentId), eq(fooCollectionInstrumentId), eq(fooMode), any(), any())).thenReturn(new MetadataModel());
 
         // When

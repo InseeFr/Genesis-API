@@ -1,6 +1,5 @@
 package fr.insee.genesis.stubs;
 
-import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.controller.dto.rawdata.LunaticJsonRawDataUnprocessedDto;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
@@ -26,11 +25,6 @@ public class LunaticJsonRawDataServiceStub implements LunaticJsonRawDataApiPort 
 
     @Override
     public List<LunaticJsonRawDataModel> getRawDataByQuestionnaireId(String questionnaireId, Mode mode, List<String> interrogationIdList) {
-        return List.of();
-    }
-
-    @Override
-    public List<SurveyUnitModel> convertRawData(List<LunaticJsonRawDataModel> rawData, VariablesMap variablesMap) {
         return List.of();
     }
 

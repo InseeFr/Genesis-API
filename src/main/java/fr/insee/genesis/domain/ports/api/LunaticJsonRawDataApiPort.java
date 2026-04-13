@@ -21,7 +21,6 @@ public interface LunaticJsonRawDataApiPort {
 
     void save(LunaticJsonRawDataModel rawData);
     List<LunaticJsonRawDataModel> getRawDataByQuestionnaireId(String questionnaireId, Mode mode, List<String> interrogationIdList);
-    List<SurveyUnitModel> convertRawData(List<LunaticJsonRawDataModel> rawData, VariablesMap variablesMap);
 
     List<LunaticJsonRawDataUnprocessedDto> getUnprocessedDataIds();
     Set<String> getUnprocessedDataQuestionnaireIds();
@@ -33,9 +32,6 @@ public interface LunaticJsonRawDataApiPort {
 
     List<LunaticJsonRawDataModel> getRawDataByInterrogationId(String interrogationId);
 
-    /**
-     * @deprecated Use the method with 'collectionInstrumentId' instead.
-     */
     DataProcessResult processRawDataByInterrogationIds(String campaignName, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException;
 
     DataProcessResult processRawData(String collectionInstrumentId) throws GenesisException;

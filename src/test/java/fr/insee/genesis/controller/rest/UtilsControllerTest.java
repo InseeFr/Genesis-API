@@ -15,8 +15,8 @@ import fr.insee.genesis.domain.ports.spi.DataProcessingContextPersistancePort;
 import fr.insee.genesis.domain.service.context.DataProcessingContextService;
 import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService;
+import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityToolService;
 import fr.insee.genesis.domain.service.rawdata.RawResponseService;
-import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.domain.service.volumetry.VolumetryLogService;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
@@ -63,7 +63,6 @@ class UtilsControllerTest {
     static ControllerUtils controllerUtils = new ControllerUtils(fileUtils);
     static QuestionnaireMetadataService metadataService = new QuestionnaireMetadataService(new QuestionnaireMetadataPersistencePortStub());
     static SurveyUnitService surveyUnitService = new SurveyUnitService(surveyUnitPersistencePortStub, metadataService, fileUtils);
-    static SurveyUnitQualityService surveyUnitQualityService = new SurveyUnitQualityService();
 
     static Path logFileFolder = Path.of(new ConfigStub().getLogFolder()).resolve(Constants.VOLUMETRY_FOLDER_NAME);
 
@@ -73,17 +72,20 @@ class UtilsControllerTest {
         lunaticJsonRawDataPersistencePort = new LunaticJsonRawDataPersistanceStub();
         rawResponseDataPersistanceStub = new RawResponseDataPersistanceStub();
         SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(surveyUnitPersistencePortStub, metadataService, fileUtils);
+        DataProcessingContextService dataProcessingContextService = new DataProcessingContextService(
+                new DataProcessingContextPersistancePortStub(),
+                surveyUnitPersistencePortStub);
+
+        SurveyUnitQualityToolService surveyUnitQualityToolService = new SurveyUnitQualityToolService(
+                surveyUnitQualityToolPerretAdapterStub,
+                dataProcessingContextService);
         LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort = new LunaticJsonRawDataService(
                         lunaticJsonRawDataPersistencePort,
                         controllerUtils,
                         metadataService,
                         surveyUnitService,
-                        surveyUnitQualityService,
                         fileUtils,
-                        new DataProcessingContextService(
-                                new DataProcessingContextPersistancePortStub(),
-                                surveyUnitPersistencePortStub),
-                        surveyUnitQualityToolPerretAdapterStub,
+                        surveyUnitQualityToolService,
                         new ConfigStub(),
                         contextStub);
 
@@ -91,15 +93,10 @@ class UtilsControllerTest {
                 controllerUtils,
                 metadataService,
                 surveyUnitService,
-                surveyUnitQualityService,
-                surveyUnitQualityToolPerretAdapterStub,
-                new DataProcessingContextService(
-                        new DataProcessingContextPersistancePortStub(),
-                        surveyUnitPersistencePortStub),
+                surveyUnitQualityToolService,
                 fileUtils,
                 new ConfigStub(),
-                rawResponseDataPersistanceStub
-        );
+                rawResponseDataPersistanceStub);
 
 
         utilsControllerStatic = new UtilsController(

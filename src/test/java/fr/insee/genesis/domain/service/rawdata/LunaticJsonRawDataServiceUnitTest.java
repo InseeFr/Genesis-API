@@ -6,10 +6,8 @@ import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.ports.spi.DataProcessingContextPersistancePort;
 import fr.insee.genesis.domain.ports.spi.LunaticJsonRawDataPersistencePort;
 import fr.insee.genesis.domain.ports.spi.QuestionnaireMetadataPersistencePort;
-import fr.insee.genesis.domain.ports.spi.SurveyUnitQualityToolPort;
-import fr.insee.genesis.domain.service.context.DataProcessingContextService;
 import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
-import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
+import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityToolService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.genesis.stubs.ConfigStub;
@@ -45,10 +43,8 @@ class LunaticJsonRawDataServiceUnitTest {
                 new ControllerUtils(new FileUtils(new ConfigStub())),
                 metadataService,
                 mock(SurveyUnitService.class),
-                mock(SurveyUnitQualityService.class),
                 new FileUtils(new ConfigStub()),
-                mock(DataProcessingContextService.class),
-                mock(SurveyUnitQualityToolPort.class),
+                mock(SurveyUnitQualityToolService.class),
                 new ConfigStub(),
                 mock(DataProcessingContextPersistancePort.class)
         );
@@ -89,10 +85,8 @@ class LunaticJsonRawDataServiceUnitTest {
                 new ControllerUtils(new FileUtils(new ConfigStub())),
                 metadataService,
                 mock(SurveyUnitService.class),
-                mock(SurveyUnitQualityService.class),
                 new FileUtils(new ConfigStub()),
-                mock(DataProcessingContextService.class),
-                mock(SurveyUnitQualityToolPort.class),
+                mock(SurveyUnitQualityToolService.class),
                 new ConfigStub(),
                 mock(DataProcessingContextPersistancePort.class)
         );
