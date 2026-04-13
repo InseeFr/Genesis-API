@@ -2,9 +2,21 @@ package fr.insee.genesis.domain.service.surveyunit;
 
 import fr.insee.bpm.metadata.model.VariableType;
 import fr.insee.bpm.metadata.model.VariablesMap;
-
-import fr.insee.genesis.controller.dto.*;
-import fr.insee.genesis.domain.model.surveyunit.*;
+import fr.insee.genesis.controller.dto.CampaignWithQuestionnaire;
+import fr.insee.genesis.controller.dto.QuestionnaireWithCampaign;
+import fr.insee.genesis.controller.dto.SurveyUnitDto;
+import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
+import fr.insee.genesis.controller.dto.SurveyUnitSimplifiedDto;
+import fr.insee.genesis.controller.dto.VariableDto;
+import fr.insee.genesis.controller.dto.VariableInputDto;
+import fr.insee.genesis.controller.dto.VariableStateDto;
+import fr.insee.genesis.domain.model.surveyunit.DataState;
+import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
+import fr.insee.genesis.domain.model.surveyunit.InterrogationInfo;
+import fr.insee.genesis.domain.model.surveyunit.Mode;
+import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
+import fr.insee.genesis.domain.model.surveyunit.VarIdScopeTuple;
+import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
 import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
@@ -20,8 +32,13 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -188,7 +205,6 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                 .filter(su -> su.getRecordDate() != null)
                 .filter(su -> recordedBefore == null || !su.getRecordDate().isAfter(recordedBefore))
                 .toList();
-        System.out.println(responses.getFirst().getRecordDate().atOffset(ZoneOffset.UTC).toInstant());
         List<VariableModel> outputVariables = new ArrayList<>();
         List<VariableModel> outputExternalVariables = new ArrayList<>();
         RawResponseDto.QuestionnaireStateEnum questionnaireState = null;
