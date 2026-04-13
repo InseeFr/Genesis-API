@@ -14,6 +14,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -44,7 +45,7 @@ class SurveyUnitModelMongoAdapterTest {
 		suDoc.setQuestionnaireId("TEST2023X01");
 		suDoc.setState("COLLECTED");
 		suDoc.setMode("WEB");
-		suDoc.setRecordDate(LocalDateTime.now());
+		suDoc.setRecordDate(LocalDateTime.now().toInstant(ZoneOffset.UTC));
 		suDoc.setCollectedVariables(List.of(new VariableDocument()));
 		suDoc.setExternalVariables(List.of(new VariableDocument()));
 
@@ -54,7 +55,7 @@ class SurveyUnitModelMongoAdapterTest {
 		suDoc2.setQuestionnaireId("TEST2023X01");
 		suDoc2.setState("COLLECTED");
 		suDoc2.setMode("TEL");
-		suDoc2.setRecordDate(LocalDateTime.now());
+		suDoc2.setRecordDate(LocalDateTime.now().toInstant(ZoneOffset.UTC));
 		suDoc2.setCollectedVariables(List.of(new VariableDocument()));
 		suDoc2.setExternalVariables(List.of(new VariableDocument()));
 
@@ -64,7 +65,7 @@ class SurveyUnitModelMongoAdapterTest {
 		suDoc3.setQuestionnaireId("TEST2023X01");
 		suDoc3.setState("COLLECTED");
 		suDoc3.setMode("WEB");
-		suDoc3.setRecordDate(LocalDateTime.now());
+		suDoc3.setRecordDate(LocalDateTime.now().toInstant(ZoneOffset.UTC));
 		suDoc3.setCollectedVariables(List.of(new VariableDocument()));
 		suDoc3.setExternalVariables(List.of(new VariableDocument()));
 
@@ -73,7 +74,7 @@ class SurveyUnitModelMongoAdapterTest {
 		suDocFiliere.setCollectionInstrumentId("TEST2023X01");
 		suDocFiliere.setState("COLLECTED");
 		suDocFiliere.setMode("WEB");
-		suDocFiliere.setRecordDate(LocalDateTime.now());
+		suDocFiliere.setRecordDate(LocalDateTime.now().toInstant(ZoneOffset.UTC));
 		suDocFiliere.setCollectedVariables(List.of(new VariableDocument()));
 		suDocFiliere.setExternalVariables(List.of(new VariableDocument()));
 	}

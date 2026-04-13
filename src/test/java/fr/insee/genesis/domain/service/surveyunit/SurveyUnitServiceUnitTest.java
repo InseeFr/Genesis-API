@@ -19,6 +19,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -151,7 +152,7 @@ class SurveyUnitServiceUnitTest {
         surveyUnitDocument.setMode(String.valueOf(Mode.WEB));
         surveyUnitDocument.setUsualSurveyUnitId(usualSurveyUnitId);
         surveyUnitDocument.setState(DataState.COLLECTED.toString());
-        surveyUnitDocument.setRecordDate(LocalDateTime.now().minusMinutes(1));
+        surveyUnitDocument.setRecordDate(LocalDateTime.now().minusMinutes(1).toInstant(ZoneOffset.UTC));
         surveyUnitDocument.setCollectedVariables(new ArrayList<>());
         surveyUnitDocument.getCollectedVariables().add(new VariableDocument());
         surveyUnitDocument.getCollectedVariables().getFirst().setVarId("VAR1");
@@ -162,7 +163,7 @@ class SurveyUnitServiceUnitTest {
         surveyUnitDocument = new SurveyUnitDocument();
         surveyUnitDocument.setMode(String.valueOf(Mode.WEB));
         surveyUnitDocument.setState(DataState.EDITED.toString());
-        surveyUnitDocument.setRecordDate(LocalDateTime.now());
+        surveyUnitDocument.setRecordDate(LocalDateTime.now().toInstant(ZoneOffset.UTC));
         surveyUnitDocument.setCollectedVariables(new ArrayList<>());
         surveyUnitDocument.getCollectedVariables().add(new VariableDocument());
         surveyUnitDocument.getCollectedVariables().getFirst().setVarId("VAR1");
@@ -196,7 +197,7 @@ class SurveyUnitServiceUnitTest {
         SurveyUnitDocument surveyUnitDocument = new SurveyUnitDocument();
         surveyUnitDocument.setMode(String.valueOf(Mode.WEB));
         surveyUnitDocument.setState(DataState.COLLECTED.toString());
-        surveyUnitDocument.setRecordDate(LocalDateTime.now().minusMinutes(1));
+        surveyUnitDocument.setRecordDate(LocalDateTime.now().minusMinutes(1).toInstant(ZoneOffset.UTC));
         surveyUnitDocument.setCollectedVariables(new ArrayList<>());
         surveyUnitDocument.getCollectedVariables().add(new VariableDocument());
         surveyUnitDocument.getCollectedVariables().getFirst().setVarId("VAR1");
@@ -207,7 +208,7 @@ class SurveyUnitServiceUnitTest {
         surveyUnitDocument = new SurveyUnitDocument();
         surveyUnitDocument.setMode(String.valueOf(Mode.WEB));
         surveyUnitDocument.setState(DataState.EDITED.toString());
-        surveyUnitDocument.setRecordDate(LocalDateTime.now());
+        surveyUnitDocument.setRecordDate(LocalDateTime.now().toInstant(ZoneOffset.UTC));
         surveyUnitDocument.setCollectedVariables(new ArrayList<>());
         surveyUnitDocument.getCollectedVariables().add(new VariableDocument());
         surveyUnitDocument.getCollectedVariables().getFirst().setVarId("VAR1");
@@ -243,7 +244,7 @@ class SurveyUnitServiceUnitTest {
         SurveyUnitDocument surveyUnitDocument = new SurveyUnitDocument();
         surveyUnitDocument.setMode(String.valueOf(Mode.WEB));
         surveyUnitDocument.setState(DataState.COLLECTED.toString());
-        surveyUnitDocument.setRecordDate(LocalDateTime.now().minusMinutes(1));
+        surveyUnitDocument.setRecordDate(LocalDateTime.now().minusMinutes(1).toInstant(ZoneOffset.UTC));
         surveyUnitDocument.setExternalVariables(new ArrayList<>());
         surveyUnitDocument.getExternalVariables().add(new VariableDocument());
         surveyUnitDocument.getExternalVariables().getFirst().setVarId("VAR1");
@@ -254,7 +255,7 @@ class SurveyUnitServiceUnitTest {
         surveyUnitDocument = new SurveyUnitDocument();
         surveyUnitDocument.setMode(String.valueOf(Mode.WEB));
         surveyUnitDocument.setState(DataState.FORCED.toString());
-        surveyUnitDocument.setRecordDate(LocalDateTime.now());
+        surveyUnitDocument.setRecordDate(LocalDateTime.now().toInstant(ZoneOffset.UTC));
         surveyUnitDocument.setExternalVariables(new ArrayList<>());
         surveyUnitDocument.getExternalVariables().add(new VariableDocument());
         surveyUnitDocument.getExternalVariables().getFirst().setVarId("VAR1");
@@ -316,7 +317,7 @@ class SurveyUnitServiceUnitTest {
         surveyUnitDocument.setMode(String.valueOf(Mode.WEB));
         surveyUnitDocument.setIdUE(TestConstants.DEFAULT_SURVEY_UNIT_ID);
         surveyUnitDocument.setState(DataState.COLLECTED.toString());
-        surveyUnitDocument.setRecordDate(LocalDateTime.now().minusMinutes(1));
+        surveyUnitDocument.setRecordDate(LocalDateTime.now().minusMinutes(1).toInstant(ZoneOffset.UTC));
         surveyUnitDocument.setCollectedVariables(new ArrayList<>());
         surveyUnitDocument.getCollectedVariables().add(new VariableDocument());
         surveyUnitDocument.getCollectedVariables().getFirst().setVarId("VAR1");
@@ -327,7 +328,7 @@ class SurveyUnitServiceUnitTest {
         surveyUnitDocument = new SurveyUnitDocument();
         surveyUnitDocument.setMode(String.valueOf(Mode.WEB));
         surveyUnitDocument.setState(DataState.EDITED.toString());
-        surveyUnitDocument.setRecordDate(LocalDateTime.now());
+        surveyUnitDocument.setRecordDate(LocalDateTime.now().toInstant(ZoneOffset.UTC));
         surveyUnitDocument.setCollectedVariables(new ArrayList<>());
         surveyUnitDocument.getCollectedVariables().add(new VariableDocument());
         surveyUnitDocument.getCollectedVariables().getFirst().setVarId("VAR2");
@@ -371,7 +372,7 @@ class SurveyUnitServiceUnitTest {
         surveyUnitDocument.setMode(String.valueOf(Mode.WEB));
         surveyUnitDocument.setUsualSurveyUnitId(TestConstants.DEFAULT_SURVEY_UNIT_ID);
         surveyUnitDocument.setState(DataState.COLLECTED.toString());
-        surveyUnitDocument.setRecordDate(LocalDateTime.now().minusMinutes(1));
+        surveyUnitDocument.setRecordDate(LocalDateTime.now().minusMinutes(1).toInstant(ZoneOffset.UTC));
         surveyUnitDocument.setCollectedVariables(new ArrayList<>());
         surveyUnitDocument.getCollectedVariables().add(new VariableDocument());
         surveyUnitDocument.getCollectedVariables().getFirst().setVarId("VAR1");

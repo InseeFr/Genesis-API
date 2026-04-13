@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -157,7 +158,7 @@ class UtilsControllerTest {
                 .collectionInstrumentId("TEST-TABLEAUX")
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2023, 1, 1, 0, 0, 0))
-                .recordDate(LocalDateTime.of(2024, 1, 1, 0, 0, 0))
+                .recordDate(LocalDateTime.of(2024, 1, 1, 0, 0, 0).toInstant(ZoneOffset.UTC))
                 .externalVariables(externalVariableList)
                 .collectedVariables(collectedVariableList)
                 .build());
@@ -461,7 +462,7 @@ class UtilsControllerTest {
                 .collectionInstrumentId(collectionInstrumentId)
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2023, 2, 2, 0, 0, 0))
-                .recordDate(LocalDateTime.of(2024, 2, 2, 0, 0, 0))
+                .recordDate(LocalDateTime.of(2024, 2, 2, 0, 0, 0).toInstant(ZoneOffset.UTC))
                 .externalVariables(externalVariableList)
                 .collectedVariables(collectedVariableList)
                 .build();

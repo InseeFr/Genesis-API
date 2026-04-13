@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -216,7 +217,7 @@ class ResponseControllerTest {
                 "C OLD C", //<Collected/External> <NEW or OLD> <Collected/Edited>
                 "E OLD C",
                 LocalDateTime.of(1999,2,2,0,0,0),
-                LocalDateTime.of(1999,2,2,0,0,0),
+                LocalDateTime.of(1999,2,2,0,0,0).toInstant(ZoneOffset.UTC),
                 surveyUnitPersistencePortStub
         );
 
@@ -225,7 +226,7 @@ class ResponseControllerTest {
                 "C NEW E",
                 "E NEW E",
                 LocalDateTime.of(2025,2,2,0,0,0),
-                LocalDateTime.of(2025,2,2,0,0,0),
+                LocalDateTime.of(2025,2,2,0,0,0).toInstant(ZoneOffset.UTC),
                 surveyUnitPersistencePortStub
         );
 
@@ -234,7 +235,7 @@ class ResponseControllerTest {
                 "C OLD E",
                 "E OLD E",
                 LocalDateTime.of(1999,2,2,0,0,0),
-                LocalDateTime.of(1999,2,2,0,0,0),
+                LocalDateTime.of(1999,2,2,0,0,0).toInstant(ZoneOffset.UTC),
                 surveyUnitPersistencePortStub
         );
 
@@ -330,7 +331,7 @@ class ResponseControllerTest {
                 "?",
                 "?",
                 LocalDateTime.of(1999,2,2,0,0,0),
-                LocalDateTime.of(1999,2,2,0,0,0),
+                LocalDateTime.of(1999,2,2,0,0,0).toInstant(ZoneOffset.UTC),
                 surveyUnitPersistencePortStub
         );
 

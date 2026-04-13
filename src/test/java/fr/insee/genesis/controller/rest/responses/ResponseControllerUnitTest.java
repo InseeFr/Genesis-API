@@ -25,8 +25,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.ResponseEntity;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -127,7 +127,7 @@ class ResponseControllerUnitTest {
         //WHEN
         ResponseEntity<List<SurveyUnitSimplifiedDto>> response = responseController.searchResponses(
                 collectionInstrumentId,
-                Instant.now(),
+                null,
                 interrogationIds
         );
 
@@ -176,7 +176,7 @@ class ResponseControllerUnitTest {
                         .interrogationId(TestConstants.DEFAULT_INTERROGATION_ID)
                         .collectedVariables(collectedVariables)
                         .externalVariables(new ArrayList<>())
-                        .recordDate(LocalDateTime.now().minusMinutes(5))
+                        .recordDate(LocalDateTime.now().minusMinutes(5).toInstant(ZoneOffset.UTC))
                         .build()
         );
 
@@ -197,7 +197,7 @@ class ResponseControllerUnitTest {
                         .interrogationId(TestConstants.DEFAULT_INTERROGATION_ID)
                         .collectedVariables(collectedVariables)
                         .externalVariables(new ArrayList<>())
-                        .recordDate(LocalDateTime.now().minusMinutes(1))
+                        .recordDate(LocalDateTime.now().minusMinutes(1).toInstant(ZoneOffset.UTC))
                         .build()
         );
 

@@ -12,7 +12,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -30,7 +32,7 @@ class Utils {
 
         addAdditionalSurveyUnitModelToMongoStub("TEST-TABLEAUX", DEFAULT_COLLECTION_INSTRUMENT_ID, DEFAULT_SURVEY_UNIT_ID,
                 LocalDateTime.of(2023, 1, 1, 0, 0, 0),
-                LocalDateTime.of(2024, 1, 1, 0, 0, 0),
+                LocalDateTime.of(2024, 1, 1, 0, 0, 0).toInstant(ZoneOffset.UTC),
                 surveyUnitPersistencePortStub);
 
 
@@ -177,12 +179,12 @@ class Utils {
     static void addAdditionalSurveyUnitModelToMongoStub(String campaignId, String questionnaireId, SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) {
         addAdditionalSurveyUnitModelToMongoStub(campaignId,questionnaireId, DEFAULT_SURVEY_UNIT_ID,
                 LocalDateTime.of(2023, 2, 2, 0, 0, 0),
-                LocalDateTime.of(2024, 2, 2, 0, 0, 0),
+                LocalDateTime.of(2024, 2, 2, 0, 0, 0).toInstant(ZoneOffset.UTC),
                 surveyUnitPersistencePortStub);
     }
 
     static void addAdditionalSurveyUnitModelToMongoStub(String campaignId, String questionnaireId, String idUE,
-                                                        LocalDateTime fileDate, LocalDateTime recordDate,
+                                                        LocalDateTime fileDate, Instant recordDate,
                                                         SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) {
         List<VariableModel> externalVariableList = new ArrayList<>();
         VariableModel externalVariable = VariableModel.builder()
@@ -224,7 +226,7 @@ class Utils {
                 .collectionInstrumentId(questionnaireId)
                 .state(DataState.COLLECTED)
                 .fileDate(fileDate)
-                .recordDate(recordDate)
+                .recordDate(Instant.from(recordDate))
                 .externalVariables(externalVariableList)
                 .collectedVariables(collectedVariableList)
                 .build();
@@ -237,7 +239,7 @@ class Utils {
                                                         String collectedVariableValue,
                                                         String externalVariableValue,
                                                         LocalDateTime fileDate,
-                                                        LocalDateTime recordDate,
+                                                        Instant recordDate,
                                                         SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) {
         List<VariableModel> externalVariableList = new ArrayList<>();
         VariableModel variable = VariableModel.builder()
@@ -265,7 +267,7 @@ class Utils {
                 .collectionInstrumentId(DEFAULT_COLLECTION_INSTRUMENT_ID)
                 .state(state)
                 .fileDate(fileDate)
-                .recordDate(recordDate)
+                .recordDate(Instant.from(recordDate))
                 .externalVariables(externalVariableList)
                 .collectedVariables(collectedVariableList)
                 .build();
@@ -277,7 +279,7 @@ class Utils {
                                                         String collectedVariableValue,
                                                         String externalVariableValue,
                                                         LocalDateTime fileDate,
-                                                        LocalDateTime recordDate,
+                                                        Instant recordDate,
                                                         SurveyUnitPersistencePortStub surveyUnitPersistencePortStub) {
         List<VariableModel> externalVariableList = new ArrayList<>();
         VariableModel variable = VariableModel.builder()
@@ -305,7 +307,7 @@ class Utils {
                 .collectionInstrumentId(DEFAULT_COLLECTION_INSTRUMENT_ID)
                 .state(state)
                 .fileDate(fileDate)
-                .recordDate(recordDate)
+                .recordDate(Instant.from(recordDate))
                 .externalVariables(externalVariableList)
                 .collectedVariables(collectedVariableList)
                 .build();

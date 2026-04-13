@@ -1,10 +1,13 @@
 package fr.insee.genesis.stubs;
 
+import fr.insee.genesis.domain.model.surveyunit.InterrogationInfo;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
 import lombok.Getter;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -125,7 +128,7 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     public List<SurveyUnitModel> findInterrogationIdsByQuestionnaireIdAndDateAfter(String questionnaireId, LocalDateTime since) {
         List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
         for(SurveyUnitModel surveyUnitModel : mongoStub){
-            if(surveyUnitModel.getCollectionInstrumentId().equals(questionnaireId) && surveyUnitModel.getRecordDate().isAfter(since))
+            if(surveyUnitModel.getCollectionInstrumentId().equals(questionnaireId) && surveyUnitModel.getRecordDate().isAfter(since.toInstant(ZoneOffset.UTC)))
                 surveyUnitModelList.add(
                         new SurveyUnitModel(surveyUnitModel.getInterrogationId(), surveyUnitModel.getMode())
                 );
@@ -135,12 +138,30 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     }
 
     @Override
+    public List<InterrogationInfo> findInterrogationInfoByCollectionInstrumentId(String collectionInstrumentId) {
+        return List.of();
+    }
+
+    @Override
+    public List<InterrogationInfo> findInterrogationInfoByCollectionInstrumentIdAndSince(String collectionInstrumentId, Instant since) {
+        List<InterrogationInfo> ids = new ArrayList<>();
+        for(SurveyUnitModel surveyUnitModel : mongoStub){
+            if(surveyUnitModel.getCollectionInstrumentId().equals(collectionInstrumentId)
+                    && surveyUnitModel.getRecordDate().isAfter(since))
+                ids.add(
+                        new InterrogationInfo(surveyUnitModel.getInterrogationId(), surveyUnitModel.getRecordDate())
+                );
+        }
+        return ids;
+    }
+
+    @Override
     public List<SurveyUnitModel> findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(String collectionInstrumentId, LocalDateTime start, LocalDateTime end) {
         List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
         for(SurveyUnitModel surveyUnitModel : mongoStub){
             if(surveyUnitModel.getCollectionInstrumentId().equals(collectionInstrumentId)
-                    && !surveyUnitModel.getRecordDate().isBefore(start)
-                    && surveyUnitModel.getRecordDate().isBefore(end))
+                    && !surveyUnitModel.getRecordDate().isBefore(start.toInstant(ZoneOffset.UTC))
+                    && surveyUnitModel.getRecordDate().isBefore(end.toInstant(ZoneOffset.UTC)))
                 surveyUnitModelList.add(
                         new SurveyUnitModel(surveyUnitModel.getInterrogationId(), surveyUnitModel.getMode())
                 );

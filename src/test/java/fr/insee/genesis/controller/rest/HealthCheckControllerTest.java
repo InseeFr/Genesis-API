@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -75,7 +76,7 @@ class HealthCheckControllerTest {
                 .collectionInstrumentId("TESTQUESTIONNAIREID")
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2023, 1, 1, 0, 0 , 0))
-                .recordDate(LocalDateTime.of(2024, 1, 1, 0, 0, 0))
+                .recordDate(LocalDateTime.of(2024, 1, 1, 0, 0, 0).toInstant(ZoneOffset.UTC))
                 .externalVariables(externalVariableList)
                 .collectedVariables(collectedVariableList)
                 .build());

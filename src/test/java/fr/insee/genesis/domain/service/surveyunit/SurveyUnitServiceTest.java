@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -86,7 +87,7 @@ class SurveyUnitServiceTest {
                 .collectionInstrumentId(DEFAULT_COLLECTION_INSTRUMENT_ID)
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2023,1,1,0,0,0))
-                .recordDate(LocalDateTime.of(2024,1,1,0,0,0))
+                .recordDate(LocalDateTime.of(2024,1,1,0,0,0).toInstant(ZoneOffset.UTC))
                 .externalVariables(externalVariableList)
                 .collectedVariables(collectedVariableList)
                 .build());
@@ -140,7 +141,7 @@ class SurveyUnitServiceTest {
                         .collectionInstrumentId(DEFAULT_COLLECTION_INSTRUMENT_ID)
                         .state(DataState.COLLECTED)
                         .fileDate(LocalDateTime.of(2023,1,1,0,0,0))
-                        .recordDate(LocalDateTime.of(2024,1,1,0,0,0))
+                        .recordDate(LocalDateTime.of(2024,1,1,0,0,0).toInstant(ZoneOffset.UTC))
                         .externalVariables(externalVariableList)
                         .collectedVariables(collectedVariableList)
                         .build()
@@ -155,7 +156,7 @@ class SurveyUnitServiceTest {
                         && surveyUnitModel.getCollectionInstrumentId().equals(DEFAULT_COLLECTION_INSTRUMENT_ID)
                         && surveyUnitModel.getState().equals(DataState.COLLECTED)
                         && surveyUnitModel.getFileDate().equals(LocalDateTime.of(2023,1,1,0,0,0))
-                        && surveyUnitModel.getRecordDate().equals(LocalDateTime.of(2024,1,1,0,0,0))
+                        && surveyUnitModel.getRecordDate().equals(LocalDateTime.of(2024,1,1,0,0,0).toInstant(ZoneOffset.UTC))
                         && !surveyUnitModel.getExternalVariables().stream().filter(
                                 externalVariable -> externalVariable.varId().equals("TESTVARID")
                                         && externalVariable.iteration().equals(1)
@@ -252,8 +253,8 @@ class SurveyUnitServiceTest {
     void findDistinctInterrogationIdsByQuestionnaireIdAndDateAfterTest_no_doc_in_period(){
         addAdditionnalSurveyUnitModelToMongoStub();
 
-        Assertions.assertThat(surveyUnitServiceStatic.findDistinctInterrogationIdsByQuestionnaireIdAndDateAfter(DEFAULT_COLLECTION_INSTRUMENT_ID,LocalDateTime.of(2025,9,1,0,0,0))).filteredOn(
-                interrogationId -> interrogationId.getInterrogationId().equals(DEFAULT_INTERROGATION_ID)
+        Assertions.assertThat(surveyUnitServiceStatic.findDistinctInterrogationIdsByCollectionInstrumentIdAndSince(DEFAULT_COLLECTION_INSTRUMENT_ID, LocalDateTime.of(2025,9,1,0,0,0).toInstant(ZoneOffset.UTC))).filteredOn(
+                interrogationId -> interrogationId.interrogationId().equals(DEFAULT_INTERROGATION_ID)
         ).isEmpty();
     }
 
@@ -261,8 +262,8 @@ class SurveyUnitServiceTest {
     void findDistinctInterrogationIdsByQuestionnaireIdAndDateAfterTest_doc_in_period(){
         addAdditionnalSurveyUnitModelToMongoStub();
 
-        Assertions.assertThat(surveyUnitServiceStatic.findDistinctInterrogationIdsByQuestionnaireIdAndDateAfter(DEFAULT_COLLECTION_INSTRUMENT_ID,LocalDateTime.of(2022,1,1,0,0,0))).filteredOn(
-                interrogationId -> interrogationId.getInterrogationId().equals(DEFAULT_INTERROGATION_ID)
+        Assertions.assertThat(surveyUnitServiceStatic.findDistinctInterrogationIdsByCollectionInstrumentIdAndSince(DEFAULT_COLLECTION_INSTRUMENT_ID, LocalDateTime.of(2024,1,1,0,0,0).toInstant(ZoneOffset.UTC))).filteredOn(
+                interrogationId -> interrogationId.interrogationId().equals(DEFAULT_INTERROGATION_ID)
         ).isNotEmpty().hasSize(1);
     }
 
@@ -652,7 +653,7 @@ class SurveyUnitServiceTest {
                 .collectionInstrumentId(DEFAULT_COLLECTION_INSTRUMENT_ID)
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2023,2,2,0,0,0))
-                .recordDate(LocalDateTime.of(2024,2,2,0,0,0))
+                .recordDate(LocalDateTime.of(2024,2,2,0,0,0).toInstant(ZoneOffset.UTC))
                 .externalVariables(externalVariableList)
                 .collectedVariables(collectedVariableList)
                 .build();
@@ -699,7 +700,7 @@ class SurveyUnitServiceTest {
                 .collectionInstrumentId(questionnaireId)
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2023, 2, 2, 0, 0, 0))
-                .recordDate(LocalDateTime.of(2024, 2, 2, 0, 0, 0))
+                .recordDate(LocalDateTime.of(2024, 2, 2, 0, 0, 0).toInstant(ZoneOffset.UTC))
                 .externalVariables(externalVariableList)
                 .collectedVariables(collectedVariableList)
                 .build();
@@ -737,7 +738,7 @@ class SurveyUnitServiceTest {
                 .collectionInstrumentId(DEFAULT_COLLECTION_INSTRUMENT_ID)
                 .state(state)
                 .fileDate(fileDate)
-                .recordDate(recordDate)
+                .recordDate(recordDate.toInstant(ZoneOffset.UTC))
                 .externalVariables(externalVariableList)
                 .collectedVariables(collectedVariableList)
                 .build();
@@ -776,7 +777,7 @@ class SurveyUnitServiceTest {
                 .collectionInstrumentId(DEFAULT_COLLECTION_INSTRUMENT_ID)
                 .state(state)
                 .fileDate(fileDate)
-                .recordDate(recordDate)
+                .recordDate(recordDate.toInstant(ZoneOffset.UTC))
                 .externalVariables(externalVariableList)
                 .collectedVariables(collectedVariableList)
                 .build();

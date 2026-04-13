@@ -4,16 +4,17 @@ import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
+import fr.insee.genesis.infrastructure.document.surveyunit.SurveyUnitDocument;
+import fr.insee.genesis.infrastructure.document.surveyunit.VariableDocument;
 import fr.insee.genesis.infrastructure.mappers.SurveyUnitDocumentMapper;
 import fr.insee.genesis.infrastructure.mappers.SurveyUnitDocumentMapperImpl;
-import fr.insee.genesis.infrastructure.document.surveyunit.VariableDocument;
-import fr.insee.genesis.infrastructure.document.surveyunit.SurveyUnitDocument;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -127,7 +128,7 @@ class SurveyUnitDocumentMapperImplTest {
                 .collectionInstrumentId(COLLECTION_INSTRUMENT_ID)
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2023,1,1,0,0,0))
-                .recordDate(LocalDateTime.of(2024,1,1,0,0,0))
+                .recordDate(LocalDateTime.of(2024,1,1,0,0,0).toInstant(ZoneOffset.UTC))
                 .externalVariables(externalVariableModelList)
                 .collectedVariables(collectedVariableList)
                 .build();
