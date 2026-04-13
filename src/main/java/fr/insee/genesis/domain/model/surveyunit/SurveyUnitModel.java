@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -41,8 +42,7 @@ public class SurveyUnitModel {
 	private Boolean isCapturedIndirectly;
 	private RawResponseDto.QuestionnaireStateEnum questionnaireState;
 	private LocalDateTime validationDate;
-	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'hh:mm")
-	private LocalDateTime recordDate;
+	private Instant recordDate;
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'hh:mm")
 	private LocalDateTime fileDate;
 

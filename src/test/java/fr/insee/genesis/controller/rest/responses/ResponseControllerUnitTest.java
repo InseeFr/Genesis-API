@@ -25,6 +25,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.ResponseEntity;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -73,10 +74,11 @@ class ResponseControllerUnitTest {
         String interrogationId = "interrogationTest";
         Mode mode = Mode.WEB;
         SurveyUnitSimplifiedDto surveyUnitSimplifiedDto = SurveyUnitSimplifiedDto.builder().build();
-        doReturn(surveyUnitSimplifiedDto).when(surveyUnitApiPort).findSimplifiedByCollectionInstrumentIdAndInterrogationId(
+        doReturn(surveyUnitSimplifiedDto).when(surveyUnitApiPort).findSimplified(
                 collectionInstrumentId,
                 interrogationId,
-                mode
+                mode,
+                null
         );
 
         //WHEN
@@ -88,10 +90,11 @@ class ResponseControllerUnitTest {
 
         //THEN
         Assertions.assertThat(response.getStatusCode().value()).isEqualTo(200);
-        verify(surveyUnitApiPort, times(1)).findSimplifiedByCollectionInstrumentIdAndInterrogationId(
+        verify(surveyUnitApiPort, times(1)).findSimplified(
                 collectionInstrumentId,
                 interrogationId,
-                mode
+                mode,
+                null
         );
         Assertions.assertThat(response.getBody()).isEqualTo(surveyUnitSimplifiedDto);
     }
@@ -115,22 +118,25 @@ class ResponseControllerUnitTest {
                 surveyUnitSimplifiedDto1,
                 surveyUnitSimplifiedDto2
         );
-        doReturn(surveyUnitSimplifiedDtos).when(surveyUnitApiPort).findSimplifiedByCollectionInstrumentIdAndInterrogationIdList(
+        doReturn(surveyUnitSimplifiedDtos).when(surveyUnitApiPort).findSimplifiedList(
                 collectionInstrumentId,
-                interrogationIds
+                interrogationIds,
+                null
         );
 
         //WHEN
-        ResponseEntity<List<SurveyUnitSimplifiedDto>> response = responseController.getResponseByCollectionInstrumentAndInterrogationList(
+        ResponseEntity<List<SurveyUnitSimplifiedDto>> response = responseController.searchResponses(
                 collectionInstrumentId,
+                Instant.now(),
                 interrogationIds
         );
 
         //THEN
         Assertions.assertThat(response.getStatusCode().value()).isEqualTo(200);
-        verify(surveyUnitApiPort, times(1)).findSimplifiedByCollectionInstrumentIdAndInterrogationIdList(
+        verify(surveyUnitApiPort, times(1)).findSimplifiedList(
                 collectionInstrumentId,
-                interrogationIds
+                interrogationIds,
+                null
         );
         Assertions.assertThat(response.getBody()).hasSize(2);
         Assertions.assertThat(response.getBody().getFirst()).isEqualTo(surveyUnitSimplifiedDto1);

@@ -249,7 +249,7 @@ public class  RawResponseService implements RawResponseApiPort {
                         .isCapturedIndirectly(isCapturedIndirectly)
                         .state(dataState)
                         .fileDate(rawResponseModel.recordDate())
-                        .recordDate(LocalDateTime.now())
+                        .recordDate(Instant.now())
                         .collectedVariables(new ArrayList<>())
                         .externalVariables(new ArrayList<>())
                         .build();

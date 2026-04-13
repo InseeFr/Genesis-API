@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.client.MongoCollection;
 import fr.insee.genesis.Constants;
+import fr.insee.genesis.domain.model.surveyunit.InterrogationInfo;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
 import fr.insee.genesis.infrastructure.document.surveyunit.SurveyUnitDocument;
@@ -18,6 +19,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -175,7 +177,23 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 		return results.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(results);
 	}
 
-    @Override
+	@Override
+	public List<InterrogationInfo> findInterrogationInfoByCollectionInstrumentId(String collectionInstrumentId) {
+		return mongoRepository.findProjectedByCollectionInstrumentId(collectionInstrumentId)
+				.stream()
+				.map(proj -> new InterrogationInfo(proj.getInterrogationId(), proj.getRecordDate()))
+				.toList();
+	}
+
+	@Override
+	public List<InterrogationInfo> findInterrogationInfoByCollectionInstrumentIdAndSince(String collectionInstrumentId, Instant since) {
+		return mongoRepository.findProjectedByCollectionInstrumentIdAndSince(collectionInstrumentId, since)
+				.stream()
+				.map(proj -> new InterrogationInfo(proj.getInterrogationId(), proj.getRecordDate()))
+				.toList();
+	}
+
+	@Override
     public List<SurveyUnitModel> findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(String collectionInstrumentId, LocalDateTime start, LocalDateTime end) {
         List<SurveyUnitDocument> results =  new ArrayList<>();
         results.addAll(mongoRepository.findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(collectionInstrumentId,start,end));

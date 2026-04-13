@@ -7,10 +7,12 @@ import fr.insee.genesis.controller.dto.SurveyUnitDto;
 import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
 import fr.insee.genesis.controller.dto.SurveyUnitSimplifiedDto;
 import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
+import fr.insee.genesis.domain.model.surveyunit.InterrogationInfo;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.exceptions.GenesisException;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
@@ -28,15 +30,17 @@ public interface SurveyUnitApiPort {
 
     List<SurveyUnitModel> findLatestByIdAndByCollectionInstrumentId(String interrogationId, String collectionInstrumentId);
 
-    SurveyUnitSimplifiedDto findSimplifiedByCollectionInstrumentIdAndInterrogationId(
+    SurveyUnitSimplifiedDto findSimplified(
             String collectionInstrumentId,
             String interrogationId,
-            Mode mode
+            Mode mode,
+            Instant recordedBefore
     );
 
-    List<SurveyUnitSimplifiedDto> findSimplifiedByCollectionInstrumentIdAndInterrogationIdList(
+    List<SurveyUnitSimplifiedDto> findSimplifiedList(
             String collectionInstrumentId,
-            List<InterrogationId> interrogationIds
+            List<InterrogationId> interrogationIds,
+            Instant before
     );
 
 
@@ -50,7 +54,9 @@ public interface SurveyUnitApiPort {
 
     List<InterrogationId> findDistinctInterrogationIdsByQuestionnaireId(String questionnaireId);
 
-    List<InterrogationId> findDistinctInterrogationIdsByQuestionnaireIdAndDateAfter(String questionnaireId, LocalDateTime since);
+    List<InterrogationInfo> findDistinctInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId);
+
+    List<InterrogationInfo> findDistinctInterrogationIdsByCollectionInstrumentIdAndSince(String collectionInstrumentId, Instant since);
 
     List<InterrogationId> findDistinctInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(String collectionInstrumentId, LocalDateTime start, LocalDateTime end);
 

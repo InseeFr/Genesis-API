@@ -1,24 +1,28 @@
 package fr.insee.genesis.controller.rest.responses;
 
+import fr.insee.genesis.controller.dto.InterrogationBatchResponse;
 import fr.insee.genesis.controller.rest.CommonApiResponse;
 import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
+import fr.insee.genesis.domain.model.surveyunit.InterrogationInfo;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
-@RequestMapping(path = "/interrogations" )
 @Controller
 @Slf4j
 public class InterrogationController implements CommonApiResponse {
@@ -32,23 +36,49 @@ public class InterrogationController implements CommonApiResponse {
 
 
     @Operation(summary = "Retrieve all interrogations for a given questionnaire")
-    @GetMapping(path = "/by-questionnaire")
+    @GetMapping(path = "interrogations/by-questionnaire")
     public ResponseEntity<List<InterrogationId>> getAllInterrogationIdsByQuestionnaire(@RequestParam("questionnaireId") String questionnaireId) {
         List<InterrogationId> responses = surveyUnitService.findDistinctInterrogationIdsByQuestionnaireId(questionnaireId);
         return ResponseEntity.ok(responses);
     }
 
+    @Operation(summary = "Retrieve all interrogations for a given collection instrument")
+    @GetMapping(path = "collection-instruments/{collectionInstrumentId}/interrogations/all")
+    public ResponseEntity<InterrogationBatchResponse> getAllInterrogationIdsByCollectionInstrumentId(
+            @PathVariable String collectionInstrumentId) {
+        List<InterrogationInfo> idsInfo = surveyUnitService.findDistinctInterrogationIdsByCollectionInstrumentId(collectionInstrumentId);
+        InterrogationBatchResponse response = buildInterrogationBatchResponse(idsInfo);
+        return ResponseEntity.ok(response);
+    }
+
     @Operation(summary = "Retrieve interrogations recorded since a specified date for a given questionnaire")
-    @GetMapping(path = "/by-questionnaire-and-since-datetime")
-    public ResponseEntity<List<InterrogationId>> getAllInterrogationIdsByQuestionnaire(
-            @RequestParam("questionnaireId") String questionnaireId,
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime since) {
-        List<InterrogationId> responses = surveyUnitService.findDistinctInterrogationIdsByQuestionnaireIdAndDateAfter(questionnaireId, since);
-        return ResponseEntity.ok(responses);
+    @GetMapping(path = "collection-instruments/{collectionInstrumentId}/interrogations")
+    public ResponseEntity<InterrogationBatchResponse> getAllInterrogationIdsByQuestionnaire(
+            @PathVariable String collectionInstrumentId,
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant since) {
+        List<InterrogationInfo> idsInfo = surveyUnitService.findDistinctInterrogationIdsByCollectionInstrumentIdAndSince(collectionInstrumentId, since);
+        InterrogationBatchResponse response = buildInterrogationBatchResponse(idsInfo);
+        return ResponseEntity.ok(response);
+    }
+
+    private static @NonNull InterrogationBatchResponse buildInterrogationBatchResponse(List<InterrogationInfo> ids) {
+        Optional<Instant> maxTimeStamp = ids.stream()
+                .map(InterrogationInfo::recordDate)
+                .max(Comparator.naturalOrder());
+        InterrogationBatchResponse response = new InterrogationBatchResponse();
+        if (maxTimeStamp.isPresent()){
+            response.setInterrogationIds(ids.stream()
+                    .map(InterrogationInfo::interrogationId)
+                    .distinct()
+                    .map(InterrogationId::new)
+                    .toList());
+            response.setNextSince(maxTimeStamp.get());
+        }
+        return response;
     }
 
     @Operation(summary = "Retrieve interrogations recorded between two dates for a given collection instrument")
-    @GetMapping(path = "/by-collection-instrument-and-between-datetime")
+    @GetMapping(path = "interrogations/by-collection-instrument-and-between-datetime")
     public ResponseEntity<List<InterrogationId>> getAllInterrogationIdsByCollectionInstrumentIdAndDate(
             @RequestParam("collectionInstrumentId") String collectionInstrumentId,
             @RequestParam("start")
@@ -78,7 +108,7 @@ public class InterrogationController implements CommonApiResponse {
      * @author Alexis Szmundy
      */
     @Operation(summary = "Retrieve number of interrogations for a given questionnaire/collection instrument")
-    @GetMapping(path = "/by-questionnaire/{questionnaireId}/count")
+    @GetMapping(path = "interrogations/by-questionnaire/{questionnaireId}/count")
     public ResponseEntity<Long> countAllInterrogationIdsByQuestionnaireOrCollectionInstrument(
             @Parameter(description = "questionnaireId/collectionInstrumentId", required = true) @PathVariable("questionnaireId") String questionnaireId
     ) {
@@ -92,7 +122,7 @@ public class InterrogationController implements CommonApiResponse {
      * @author Adrien Marchal
      */
     @Operation(summary = "Retrieve paginated interrogations for a given questionnaire")
-    @GetMapping(path = "/by-questionnaire/{questionnaireId}/paginated")
+    @GetMapping(path = "interrogations/by-questionnaire/{questionnaireId}/paginated")
     public ResponseEntity<List<InterrogationId>> getPaginatedInterrogationIdsByQuestionnaire(
             @Parameter(description = "questionnaireId", required = true) @PathVariable("questionnaireId") String questionnaireId,
             @Parameter(description = "if totalSize is 0, a count query is made to get the real totalSize to process", required = false) @RequestParam(defaultValue = "0") long totalSize,

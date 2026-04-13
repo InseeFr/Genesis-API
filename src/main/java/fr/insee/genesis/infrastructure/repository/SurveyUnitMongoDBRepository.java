@@ -1,12 +1,14 @@
 package fr.insee.genesis.infrastructure.repository;
 
 import fr.insee.genesis.infrastructure.document.surveyunit.SurveyUnitDocument;
+import fr.insee.genesis.infrastructure.document.surveyunit.SurveyUnitInterrogationProjection;
+import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.Meta;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
-import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
@@ -42,6 +44,18 @@ public interface SurveyUnitMongoDBRepository extends MongoRepository<SurveyUnitD
 
 	@Query(value = "{ 'collectionInstrumentId' : ?0, 'recordDate': { $gte: ?1 } }", fields = "{ 'interrogationId' : 1, 'mode' :  1 }")
 	List<SurveyUnitDocument> findInterrogationIdsByCollectionInstrumentIdAndDateAfter(String collectionInstrumentId, LocalDateTime since);
+
+	@Query(
+			value = "{ 'collectionInstrumentId' : ?0 }",
+			fields = "{ 'interrogationId' : 1, 'mode' : 1, 'recordDate' : 1, '_id': 0 }"
+	)
+	List<SurveyUnitInterrogationProjection> findProjectedByCollectionInstrumentId(String collectionInstrumentId);
+
+	@Query(
+			value = "{ 'collectionInstrumentId' : ?0, 'recordDate': { $gt: ?1 } }",
+			fields = "{ 'interrogationId' : 1, 'mode' : 1, 'recordDate' : 1, '_id': 0 }"
+	)
+	List<SurveyUnitInterrogationProjection> findProjectedByCollectionInstrumentIdAndSince(String collectionInstrumentId, Instant since);
 
     @Query(
             value = "{ 'collectionInstrumentId' : ?0, 'recordDate': { $gte: ?1, $lt: ?2 } }",

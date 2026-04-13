@@ -34,6 +34,7 @@ import fr.insee.genesis.exceptions.NoDataException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.modelefiliere.RawResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -63,6 +64,7 @@ import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -333,10 +335,11 @@ public class ResponseController implements CommonApiResponse {
             @PathVariable("interrogationId") String interrogationId,
             @RequestParam("mode") Mode mode) {
             return ResponseEntity.ok(
-                    surveyUnitService.findSimplifiedByCollectionInstrumentIdAndInterrogationId(
+                    surveyUnitService.findSimplified(
                             collectionInstrumentId,
                             interrogationId,
-                            mode
+                            mode,
+                            null
                     )
             );
     }
@@ -401,19 +404,26 @@ public class ResponseController implements CommonApiResponse {
         return ResponseEntity.ok(results);
     }
 
-    @Operation(summary = "Retrieve all responses for a collection instrument and a list of interrogations",
+    @Operation(summary = "Retrieve responses for a collection instrument and a list of interrogations",
             description = "Return the latest state for each variable for the given interrogationIds and a given collection instrument (formerly questionnaire).<br>" +
-                    "For a given id, the endpoint returns a document by collection mode (if there is more than one).")
+                    "For a given id, the endpoint returns a document by collection mode (if there is more than one)<br>" +
+                    "If the 'recordedBefore' parameter is provided, only responses recorded before this timestamp will be returned.")
     @PostMapping(path = "/{collectionInstrumentId}")
     @PreAuthorize("hasRole('USER_KRAFTWERK')")
-    public ResponseEntity<List<SurveyUnitSimplifiedDto>> getResponseByCollectionInstrumentAndInterrogationList(
+    public ResponseEntity<List<SurveyUnitSimplifiedDto>> searchResponses(
             @PathVariable("collectionInstrumentId") String collectionInstrumentId,
+            @Parameter(
+                    description = "Filter responses to those recorded strictly before the given timestamp (ISO-8601 UTC format).",
+                    example = "2026-01-15T10:15:30Z"
+            )
+            @RequestParam(value = "recordedBefore", required = false) Instant recordedBefore,
             @RequestBody List<InterrogationId> interrogationIds)
     {
         return ResponseEntity.ok(
-                surveyUnitService.findSimplifiedByCollectionInstrumentIdAndInterrogationIdList(
+                surveyUnitService.findSimplifiedList(
                         collectionInstrumentId,
-                        interrogationIds
+                        interrogationIds,
+                        recordedBefore
                 )
         );
     }

@@ -12,6 +12,7 @@ import fr.insee.genesis.controller.dto.VariableInputDto;
 import fr.insee.genesis.controller.dto.VariableStateDto;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
+import fr.insee.genesis.domain.model.surveyunit.InterrogationInfo;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VarIdScopeTuple;
@@ -29,7 +30,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -191,18 +194,25 @@ public class SurveyUnitService implements SurveyUnitApiPort {
      * @return a SurveyUnitSimplifiedDto of the interrogation
      */
     @Override
-    public SurveyUnitSimplifiedDto findSimplifiedByCollectionInstrumentIdAndInterrogationId(
+    public SurveyUnitSimplifiedDto findSimplified(
             String collectionInstrumentId,
             String interrogationId,
-            Mode mode){
+            Mode mode,
+            Instant recordedBefore){
         List<SurveyUnitModel> responses = findLatestByIdAndByCollectionInstrumentId(interrogationId, collectionInstrumentId);
 
+        // We keep only the survey unit recorded in the collection before the time stamp 'recordedBefore'
+        List<SurveyUnitModel> filteredResponses = responses.stream()
+                .filter(su -> su.getRecordDate() != null)
+                .filter(su -> recordedBefore == null || !su.getRecordDate().isAfter(recordedBefore))
+                .toList();
+        System.out.println(responses.getFirst().getRecordDate().atOffset(ZoneOffset.UTC).toInstant());
         List<VariableModel> outputVariables = new ArrayList<>();
         List<VariableModel> outputExternalVariables = new ArrayList<>();
         RawResponseDto.QuestionnaireStateEnum questionnaireState = null;
         LocalDateTime validationDate = null;
 
-        for (SurveyUnitModel response : responses) {
+        for (SurveyUnitModel response : filteredResponses) {
             if (!mode.equals(response.getMode())) {
                 continue;
             }
@@ -216,7 +226,11 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             outputExternalVariables.addAll(response.getExternalVariables());
         }
 
-        SurveyUnitModel first = responses.getFirst();
+        if (filteredResponses.isEmpty()){
+            return null;
+        }
+
+        SurveyUnitModel first = filteredResponses.getFirst();
         return SurveyUnitSimplifiedDto.builder()
                 .collectionInstrumentId(first.getCollectionInstrumentId())
                 .campaignId(first.getCampaignId())
@@ -236,17 +250,19 @@ public class SurveyUnitService implements SurveyUnitApiPort {
      * @return a SurveyUnitSimplifiedDto list, 1 DTO / Interrogation
      */
     @Override
-    public List<SurveyUnitSimplifiedDto> findSimplifiedByCollectionInstrumentIdAndInterrogationIdList(
+    public List<SurveyUnitSimplifiedDto> findSimplifiedList(
             String collectionInstrumentId,
-            List<InterrogationId> interrogationIds
+            List<InterrogationId> interrogationIds,
+            Instant recordedBefore
     ) {
         List<Mode> modes = findModesByCollectionInstrumentId(collectionInstrumentId);
         return interrogationIds.stream()
                 .flatMap(interrogationId -> modes.stream()
-                        .map(mode -> findSimplifiedByCollectionInstrumentIdAndInterrogationId(
+                        .map(mode -> findSimplified(
                                 collectionInstrumentId,
                                 interrogationId.getInterrogationId(),
-                                mode
+                                mode,
+                                recordedBefore
                         ))
                 )
                 .filter(Objects::nonNull)
@@ -387,13 +403,13 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     }
 
     @Override
-    public List<InterrogationId> findDistinctInterrogationIdsByQuestionnaireIdAndDateAfter(String questionnaireId, LocalDateTime since) {
-        return  surveyUnitPersistencePort
-                .findInterrogationIdsByQuestionnaireIdAndDateAfter(questionnaireId, since)
-                .stream()
-                .map(su -> new InterrogationId(su.getInterrogationId()))
-                .distinct()
-                .toList();
+    public List<InterrogationInfo> findDistinctInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId) {
+        return surveyUnitPersistencePort.findInterrogationInfoByCollectionInstrumentId(collectionInstrumentId);
+    }
+
+    @Override
+    public List<InterrogationInfo> findDistinctInterrogationIdsByCollectionInstrumentIdAndSince(String collectionInstrumentId, Instant since) {
+        return surveyUnitPersistencePort.findInterrogationInfoByCollectionInstrumentIdAndSince(collectionInstrumentId, since);
     }
 
     @Override
@@ -580,7 +596,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                     .collectionInstrumentId(surveyUnitInputDto.getQuestionnaireId().toUpperCase())
                     .interrogationId(surveyUnitInputDto.getInterrogationId())
                     .state(state)
-                    .recordDate(LocalDateTime.now())
+                    .recordDate(Instant.now())
                     .collectedVariables(new ArrayList<>())
                     .externalVariables(new ArrayList<>())
                     .modifiedBy(userIdentifier)
@@ -778,7 +794,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             //Variable doesn't contain state
             return true;
         }
-        LocalDateTime mostRecentStateDateTime = variableStatesSameState.getFirst().getDate();
+        Instant mostRecentStateDateTime = variableStatesSameState.getFirst().getDate();
         return mostRecentStateDateTime.isBefore(surveyUnitModel.getRecordDate());
     }
 

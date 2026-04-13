@@ -174,10 +174,11 @@ class SurveyUnitServiceUnitTest {
                 .when(surveyUnitPersistencePortStub).findByIds(any(), any());
 
         //WHEN
-        SurveyUnitSimplifiedDto surveyUnitSimplifiedDto = surveyUnitService.findSimplifiedByCollectionInstrumentIdAndInterrogationId(
+        SurveyUnitSimplifiedDto surveyUnitSimplifiedDto = surveyUnitService.findSimplified(
                 "test",
                 "testInterrogation",
-                Mode.WEB
+                Mode.WEB,
+                null
         );
 
         //THEN
@@ -218,10 +219,11 @@ class SurveyUnitServiceUnitTest {
                 .when(surveyUnitPersistencePortStub).findByIds(any(), any());
 
         //WHEN
-        SurveyUnitSimplifiedDto surveyUnitSimplifiedDto = surveyUnitService.findSimplifiedByCollectionInstrumentIdAndInterrogationId(
+        SurveyUnitSimplifiedDto surveyUnitSimplifiedDto = surveyUnitService.findSimplified(
                 "test",
                 "testInterrogation",
-                Mode.WEB
+                Mode.WEB,
+                null
         );
 
         //THEN
@@ -264,10 +266,11 @@ class SurveyUnitServiceUnitTest {
                 .when(surveyUnitPersistencePortStub).findByIds(any(), any());
 
         //WHEN
-        SurveyUnitSimplifiedDto surveyUnitSimplifiedDto = surveyUnitService.findSimplifiedByCollectionInstrumentIdAndInterrogationId(
+        SurveyUnitSimplifiedDto surveyUnitSimplifiedDto = surveyUnitService.findSimplified(
                 "test",
                 "testInterrogation",
-                Mode.WEB
+                Mode.WEB,
+                null
         );
 
         //THEN

@@ -293,7 +293,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
                         .isCapturedIndirectly(isCapturedIndirectly)
                         .state(dataState)
                         .fileDate(rawData.recordDate())
-                        .recordDate(LocalDateTime.now())
+                        .recordDate(Instant.now())
                         .collectedVariables(new ArrayList<>())
                         .externalVariables(new ArrayList<>())
                         .build();

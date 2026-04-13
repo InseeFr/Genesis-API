@@ -8,6 +8,7 @@ import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -50,7 +51,7 @@ public class SurveyUnitDocument {
 	private String state;
 	@Indexed
 	private String mode;
-	private LocalDateTime recordDate;
+	private Instant recordDate;
 	private LocalDateTime fileDate;
 	private List<VariableDocument> collectedVariables;
 	private List<VariableDocument> externalVariables;

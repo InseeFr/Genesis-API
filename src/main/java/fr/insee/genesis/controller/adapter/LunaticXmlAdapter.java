@@ -5,14 +5,14 @@ import fr.insee.genesis.controller.sources.xml.LunaticXmlCollectedData;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlOtherData;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
 import fr.insee.genesis.controller.sources.xml.ValueType;
-import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
-import fr.insee.genesis.domain.utils.GroupUtils;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
+import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
+import fr.insee.genesis.domain.utils.GroupUtils;
 import lombok.experimental.UtilityClass;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -74,7 +74,7 @@ public class LunaticXmlAdapter {
                 .interrogationId(su.getId())
                 .state(dataState)
                 .mode(mode)
-                .recordDate(LocalDateTime.now())
+                .recordDate(Instant.now())
                 .fileDate(su.getFileDate())
                 .build();
 
