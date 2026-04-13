@@ -85,17 +85,17 @@ public class InterrogationController implements CommonApiResponse {
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
             @Parameter(
                     description = "sinceDate",
-                    schema = @Schema(type = "string", format = "date-time", example = "2026-01-01T00:00:00")
+                    schema = @Schema(type = "string", format = "date-time", example = "2026-01-01T00:00:00Z")
             )
-            LocalDateTime start,
+            Instant start,
 
             @RequestParam("end")
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
             @Parameter(
                     description = "untilDate",
-                    schema = @Schema(type = "string", format = "date-time", example = "2026-01-31T23:59:59")
+                    schema = @Schema(type = "string", format = "date-time", example = "2026-01-31T23:59:59Z")
             )
-            LocalDateTime end) {
+            Instant end) {
         List<InterrogationId> responses = surveyUnitService.findDistinctInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(collectionInstrumentId, start,end);
         return ResponseEntity.ok(responses);
     }

@@ -109,6 +109,28 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 		return countDeleted;
 	}
 
+    @Override
+    public Long deleteByCollectionInstrumentIdAndInterrogationIds(
+            String collectionInstrumentId,
+            Set<String> interrogationIds
+    ) {
+        return mongoRepository.deleteByCollectionInstrumentIdAndInterrogationIdIn(
+                collectionInstrumentId,
+                interrogationIds
+        );
+    }
+
+    @Override
+    public Long deleteByQuestionnaireIdAndInterrogationIds(
+            String questionnaireId,
+            Set<String> interrogationIds
+    ) {
+        return mongoRepository.deleteByQuestionnaireIdAndInterrogationIdIn(
+                questionnaireId,
+                interrogationIds
+        );
+    }
+
 	@Override
 	public long count() {
 		return mongoRepository.count();
@@ -193,8 +215,8 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 				.toList();
 	}
 
-	@Override
-    public List<SurveyUnitModel> findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(String collectionInstrumentId, LocalDateTime start, LocalDateTime end) {
+    @Override
+    public List<SurveyUnitModel> findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(String collectionInstrumentId, Instant start, Instant end) {
         List<SurveyUnitDocument> results =  new ArrayList<>();
         results.addAll(mongoRepository.findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(collectionInstrumentId,start,end));
         results.addAll(mongoRepository.findInterrogationIdsQuestionnaireIdAndRecordDateBetween(collectionInstrumentId,start,end));

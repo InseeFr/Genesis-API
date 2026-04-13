@@ -40,8 +40,8 @@ public interface SurveyUnitPersistencePort {
 
     List<SurveyUnitModel> findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
             String collectionInstrumentId,
-            LocalDateTime start,
-            LocalDateTime end
+            Instant start,
+            Instant end
     );
 
     //======== OPTIMISATIONS PERFS (START) ========
@@ -57,6 +57,16 @@ public interface SurveyUnitPersistencePort {
     List<SurveyUnitModel> findInterrogationIdsByCampaignId(String campaignId);
 
     Long deleteByCollectionInstrumentId(String collectionInstrumentId);
+
+    Long deleteByCollectionInstrumentIdAndInterrogationIds(
+            String collectionInstrumentId,
+            Set<String> interrogationIds
+    );
+
+    Long deleteByQuestionnaireIdAndInterrogationIds(
+            String questionnaireId,
+            Set<String> interrogationIds
+    );
 
     long count();
 

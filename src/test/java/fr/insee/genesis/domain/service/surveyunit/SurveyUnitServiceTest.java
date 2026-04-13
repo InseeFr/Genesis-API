@@ -18,6 +18,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.ZoneOffset;
@@ -271,8 +272,8 @@ class SurveyUnitServiceTest {
     void findDistinctInterrogationIdsByCollectionInstrumentIdAndRecordDateBetweenTest_no_doc_in_period() {
         addAdditionnalSurveyUnitModelToMongoStub();
 
-        LocalDateTime start = LocalDateTime.of(2025, 9, 1, 0, 0, 0);
-        LocalDateTime end   = LocalDateTime.of(2025, 9, 2, 0, 0, 0);
+        Instant start = Instant.parse("2025-09-01T00:00:00Z");
+        Instant end   = Instant.parse("2025-09-02T00:00:00Z");
 
         Assertions.assertThat(
                         surveyUnitServiceStatic.findDistinctInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
@@ -286,8 +287,8 @@ class SurveyUnitServiceTest {
     void findDistinctInterrogationIdsByCollectionInstrumentIdAndRecordDateBetweenTest_doc_in_period() {
         addAdditionnalSurveyUnitModelToMongoStub();
 
-        LocalDateTime start = LocalDateTime.of(2022, 1, 1, 0, 0, 0);
-        LocalDateTime end   = LocalDateTime.of(2026, 1, 1, 0, 0, 0);
+        Instant start = Instant.parse("2022-01-01T00:00:00Z");
+        Instant end   = Instant.parse("2026-01-01T00:00:00Z");
 
         Assertions.assertThat(
                         surveyUnitServiceStatic.findDistinctInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
