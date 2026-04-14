@@ -76,6 +76,8 @@ class RawResponseControllerTest {
     @MockitoBean
     private RawResponseInputRepository rawRepository;
 
+    private final RawResponseController rawResponseController = new RawResponseController(lunaticJsonRawDataApiPort,  rawResponseApiPortStub, rawResponseInputRepositoryStub);
+
     @Nested
     @DisplayName("PUT /responses/raw/lunatic-json/save tests")
     class SaveRawResponsesFromJsonBodyTests {
@@ -129,6 +131,46 @@ class RawResponseControllerTest {
                             .content("{}"))
                     .andExpect(status().isInternalServerError())
                     .andExpect(content().string(containsString("Unexpected error")));
+        }
+
+        @Test
+        void saveJsonRawDataFromStringTest() throws Exception {
+        //GIVEN
+        lunaticJsonRawDataPersistanceStub.getMongoStub().clear();
+        String campaignId = "SAMPLETEST-PARADATA-V1";
+        String questionnaireId = "testIdQuest".toUpperCase();
+        String interrogationId = "testinterrogationId";
+        String idUE = "testIdUE";
+        Map<String,Object> json = JsonUtils.jsonToMap("{\"COLLECTED\": {\"testdata\": {\"COLLECTED\": [\"test\"]}}}");
+
+        //WHEN
+        ResponseEntity<String> response = rawResponseController.saveRawResponsesFromJsonBody(
+                campaignId
+                , questionnaireId
+                , interrogationId
+                , idUE
+                , Mode.WEB
+                , json
+        );
+
+        //THEN
+        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub()).isNotEmpty().hasSize(1);
+        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().campaignId()).isNotNull().isEqualTo(campaignId);
+        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().questionnaireId()).isNotNull().isEqualTo(questionnaireId);
+        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().idUE()).isNotNull().isEqualTo(idUE);
+        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().interrogationId()).isNotNull().isEqualTo(interrogationId);
+        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().mode()).isEqualTo(Mode.WEB);
+
+        Map<String, Object> collectedVar = JsonUtils.asMap(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().get("COLLECTED"));
+        Assertions.assertThat(collectedVar.get("testdata")).isNotNull();
+
+        Object value = JsonUtils.asMap(collectedVar.get("testdata")).get(DataState.COLLECTED.toString());
+        Assertions.assertThat(value).isNotNull().isInstanceOf(List.class);
+        List<?> list = (List<?>) value;
+        Assertions.assertThat(list).hasSize(1);
+        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().recordDate()).isNotNull();
+        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().processDate()).isNull();
         }
     }
 

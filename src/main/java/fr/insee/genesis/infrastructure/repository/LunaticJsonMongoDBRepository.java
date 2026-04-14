@@ -111,4 +111,23 @@ public interface LunaticJsonMongoDBRepository extends MongoRepository<LunaticJso
     Page<LunaticJsonRawDataDocument> findByQuestionnaireId(String questionnaireId, Pageable pageable);
 
     boolean existsByInterrogationId(String interrogationId);
+
+
+    @Aggregation(pipeline = {
+            "{ $match: { questionnaireId: ?0, processDate: { $ne: null }, recordDate: { $gte: ?1, $lte: ?2 } } }",
+            "{ $group: { _id: '$interrogationId' } }",
+            "{ $project: { _id: 0, interrogationId: '$_id' } }"
+    })
+    List<String> findProcessedInterrogationIdsByQuestionnaireIdAndRecordDateBetween(
+            String questionnaireId,
+            Instant sinceDate,
+            Instant endDate
+    );
+
+    @Aggregation(pipeline = {
+            "{ $match: { questionnaireId: ?0, processDate: { $ne: null } } }",
+            "{ $group: { _id: '$interrogationId' } }",
+            "{ $project: { _id: 0, interrogationId: '$_id' } }"
+    })
+    List<String> findProcessedInterrogationIdsByQuestionnaireId(String questionnaireId);
 }

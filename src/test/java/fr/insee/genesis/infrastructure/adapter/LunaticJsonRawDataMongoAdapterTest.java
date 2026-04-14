@@ -677,6 +677,41 @@ class LunaticJsonRawDataMongoAdapterTest {
         }
     }
 
+    @Test
+    void getAllUnprocessedDataTest(){
+        //WHEN
+        repository.getDocuments().add(doc);
+        LunaticJsonRawDataDocument rawData2 = LunaticJsonRawDataDocument.builder()
+                .campaignId("campaign01")
+                .questionnaireId("questionnaire01")
+                .interrogationId("interrogation01")
+                .idUE("idUE01")
+                .mode(Mode.WEB)
+                .processDate(LocalDateTime.now())
+                .build();
+        repository.getDocuments().add(rawData2);
+        //THEN
+        Assertions.assertThat(adapter.getAllUnprocessedData()).hasSize(1);
+    }
+
+    @Test
+    void existsByInterrogationId_shouldReturnTrue_whenRepositoryReturnsTrue() {
+        // When
+        boolean exists = adapter.existsByInterrogationId(DEFAULT_INTERROGATION_ID);
+
+        // Then
+        Assertions.assertThat(exists).isTrue();
+    }
+
+    @Test
+    void existsByInterrogationId_shouldReturnFalse_whenRepositoryReturnsFalse() {
+        // When
+        boolean exists = adapter.existsByInterrogationId("unknown-id");
+
+        // Then
+        Assertions.assertThat(exists).isFalse();
+    }
+
     //UTILS
     private LunaticJsonRawDataModel buildModel() {
         return LunaticJsonRawDataModel.builder()
@@ -698,5 +733,4 @@ class LunaticJsonRawDataMongoAdapterTest {
                 LocalDateTime.now(),
                 LocalDateTime.now()
         );
-    }
 }

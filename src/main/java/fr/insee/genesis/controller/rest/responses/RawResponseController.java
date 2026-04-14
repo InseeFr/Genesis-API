@@ -14,6 +14,7 @@ import fr.insee.modelefiliere.RawResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -42,22 +43,15 @@ import java.util.Set;
 
 @Slf4j
 @Controller
+@RequiredArgsConstructor
 public class RawResponseController {
 
     private static final String SUCCESS_MESSAGE = "Interrogation %s saved";
     private static final String INTERROGATION_ID = "interrogationId";
-    public static final String NB_DOCS_WITH_FORMATTED = "%d document(s) processed, including %d FORMATTED after data verification for collectionInstrumentId %s";
-    public static final String NB_DOCS = "%d document(s) processed for collectionInstrumentId %s";
+
     private final LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort;
     private final RawResponseApiPort rawResponseApiPort;
     private final RawResponseInputRepository rawRepository;
-
-
-    public RawResponseController(LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort, RawResponseApiPort rawResponseApiPort, RawResponseInputRepository rawRepository) {
-        this.lunaticJsonRawDataApiPort = lunaticJsonRawDataApiPort;
-        this.rawResponseApiPort = rawResponseApiPort;
-        this.rawRepository = rawRepository;
-    }
 
     @Operation(summary = "Save lunatic json data from one interrogation in Genesis Database")
     @PutMapping(path = "/responses/raw/lunatic-json/save")
@@ -116,11 +110,8 @@ public class RawResponseController {
         log.info("Try to process raw responses for collectionInstrumentId {} and {} interrogationIds", collectionInstrumentId, interrogationIdList.size());
         List<GenesisError> errors = new ArrayList<>();
         try {
-            DataProcessResult result = rawResponseApiPort.processRawResponses(collectionInstrumentId, interrogationIdList, errors);
-            return result.formattedDataCount() == 0 ?
-                    ResponseEntity.ok(NB_DOCS.formatted(result.dataCount(), collectionInstrumentId))
-                    : ResponseEntity.ok(NB_DOCS_WITH_FORMATTED
-                    .formatted(result.dataCount(), result.formattedDataCount(), collectionInstrumentId));
+            DataProcessResult result = rawResponseApiPort.processRawResponsesByInterrogationIds(collectionInstrumentId, interrogationIdList, errors);
+            return ResponseEntity.ok(result.message(collectionInstrumentId));
         } catch (GenesisException e) {
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
         }
@@ -138,11 +129,8 @@ public class RawResponseController {
     ) {
         log.info("Try to process raw responses for collectionInstrumentId {}", collectionInstrumentId);
         try {
-            DataProcessResult result = rawResponseApiPort.processRawResponses(collectionInstrumentId);
-            return result.formattedDataCount() == 0 ?
-                    ResponseEntity.ok(NB_DOCS.formatted(result.dataCount(), collectionInstrumentId))
-                    : ResponseEntity.ok(NB_DOCS_WITH_FORMATTED
-                    .formatted(result.dataCount(), result.formattedDataCount(), collectionInstrumentId));
+            DataProcessResult result = rawResponseApiPort.processRawResponsesByInterrogationIds(collectionInstrumentId);
+            return ResponseEntity.ok(result.message(collectionInstrumentId));
         } catch (GenesisException e) {
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
         }
