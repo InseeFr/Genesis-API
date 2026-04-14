@@ -7,6 +7,7 @@ import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
 import fr.insee.genesis.infrastructure.document.rawdata.LunaticJsonRawDataDocument;
 import fr.insee.genesis.infrastructure.document.surveyunit.GroupedInterrogationDocument;
 import fr.insee.genesis.infrastructure.repository.LunaticJsonMongoDBRepository;
+import org.assertj.core.api.Assertions;
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -31,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
+import static fr.insee.genesis.TestConstants.DEFAULT_INTERROGATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -678,24 +680,10 @@ class LunaticJsonRawDataMongoAdapterTest {
     }
 
     @Test
-    void getAllUnprocessedDataTest(){
-        //WHEN
-        repository.getDocuments().add(doc);
-        LunaticJsonRawDataDocument rawData2 = LunaticJsonRawDataDocument.builder()
-                .campaignId("campaign01")
-                .questionnaireId("questionnaire01")
-                .interrogationId("interrogation01")
-                .idUE("idUE01")
-                .mode(Mode.WEB)
-                .processDate(LocalDateTime.now())
-                .build();
-        repository.getDocuments().add(rawData2);
-        //THEN
-        Assertions.assertThat(adapter.getAllUnprocessedData()).hasSize(1);
-    }
-
-    @Test
     void existsByInterrogationId_shouldReturnTrue_whenRepositoryReturnsTrue() {
+        // Given
+        when(repository.existsByInterrogationId(DEFAULT_INTERROGATION_ID)).thenReturn(true);
+
         // When
         boolean exists = adapter.existsByInterrogationId(DEFAULT_INTERROGATION_ID);
 
@@ -733,4 +721,5 @@ class LunaticJsonRawDataMongoAdapterTest {
                 LocalDateTime.now(),
                 LocalDateTime.now()
         );
+    }
 }

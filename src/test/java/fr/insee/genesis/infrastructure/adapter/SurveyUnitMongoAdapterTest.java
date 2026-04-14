@@ -16,7 +16,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -442,8 +444,8 @@ class SurveyUnitMongoAdapterTest {
 		@DisplayName("Should call both repository methods and merge results")
 		void findByRecordDateBetween_shouldCallBothMethods() {
 			// GIVEN
-			LocalDateTime start = LocalDateTime.now().minusDays(10);
-			LocalDateTime end = LocalDateTime.now();
+			Instant start = LocalDateTime.now().minusDays(10).toInstant(ZoneOffset.UTC);
+			Instant end = LocalDateTime.now().toInstant(ZoneOffset.UTC);
 			when(mongoRepository.findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(COLLECTION_INSTRUMENT_ID, start, end))
 					.thenReturn(List.of(buildDoc("i1")));
 			when(mongoRepository.findInterrogationIdsQuestionnaireIdAndRecordDateBetween(COLLECTION_INSTRUMENT_ID, start, end))
@@ -460,8 +462,8 @@ class SurveyUnitMongoAdapterTest {
 		@DisplayName("Should return empty list when both methods return empty")
 		void findByRecordDateBetween_noResults_shouldReturnEmptyList() {
 			// GIVEN
-			LocalDateTime start = LocalDateTime.now().minusDays(1);
-			LocalDateTime end = LocalDateTime.now();
+			Instant start = LocalDateTime.now().minusDays(1).toInstant(ZoneOffset.UTC);
+			Instant end = LocalDateTime.now().toInstant(ZoneOffset.UTC);
 			when(mongoRepository.findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(any(), any(), any())).thenReturn(List.of());
 			when(mongoRepository.findInterrogationIdsQuestionnaireIdAndRecordDateBetween(any(), any(), any())).thenReturn(List.of());
 

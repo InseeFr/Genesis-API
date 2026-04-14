@@ -6,6 +6,7 @@ import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
+import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -37,6 +38,8 @@ public interface LunaticJsonRawDataApiPort {
     Map<String, List<String>> findProcessedIdsgroupedByQuestionnaireSince(LocalDateTime since);
 
     Page<LunaticJsonRawDataModel> findRawDataByQuestionnaireId(String questionnaireId, Pageable pageable);
+
+    DataProcessResult processRawDataByInterrogationIds(String campaignName, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException;
 
     boolean existsByInterrogationId(String interrogationId);
 }

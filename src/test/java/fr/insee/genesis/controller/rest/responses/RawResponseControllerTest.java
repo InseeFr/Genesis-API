@@ -76,8 +76,6 @@ class RawResponseControllerTest {
     @MockitoBean
     private RawResponseInputRepository rawRepository;
 
-    private final RawResponseController rawResponseController = new RawResponseController(lunaticJsonRawDataApiPort,  rawResponseApiPortStub, rawResponseInputRepositoryStub);
-
     @Nested
     @DisplayName("PUT /responses/raw/lunatic-json/save tests")
     class SaveRawResponsesFromJsonBodyTests {
@@ -132,46 +130,6 @@ class RawResponseControllerTest {
                     .andExpect(status().isInternalServerError())
                     .andExpect(content().string(containsString("Unexpected error")));
         }
-
-        @Test
-        void saveJsonRawDataFromStringTest() throws Exception {
-        //GIVEN
-        lunaticJsonRawDataPersistanceStub.getMongoStub().clear();
-        String campaignId = "SAMPLETEST-PARADATA-V1";
-        String questionnaireId = "testIdQuest".toUpperCase();
-        String interrogationId = "testinterrogationId";
-        String idUE = "testIdUE";
-        Map<String,Object> json = JsonUtils.jsonToMap("{\"COLLECTED\": {\"testdata\": {\"COLLECTED\": [\"test\"]}}}");
-
-        //WHEN
-        ResponseEntity<String> response = rawResponseController.saveRawResponsesFromJsonBody(
-                campaignId
-                , questionnaireId
-                , interrogationId
-                , idUE
-                , Mode.WEB
-                , json
-        );
-
-        //THEN
-        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub()).isNotEmpty().hasSize(1);
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().campaignId()).isNotNull().isEqualTo(campaignId);
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().questionnaireId()).isNotNull().isEqualTo(questionnaireId);
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().idUE()).isNotNull().isEqualTo(idUE);
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().interrogationId()).isNotNull().isEqualTo(interrogationId);
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().mode()).isEqualTo(Mode.WEB);
-
-        Map<String, Object> collectedVar = JsonUtils.asMap(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().get("COLLECTED"));
-        Assertions.assertThat(collectedVar.get("testdata")).isNotNull();
-
-        Object value = JsonUtils.asMap(collectedVar.get("testdata")).get(DataState.COLLECTED.toString());
-        Assertions.assertThat(value).isNotNull().isInstanceOf(List.class);
-        List<?> list = (List<?>) value;
-        Assertions.assertThat(list).hasSize(1);
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().recordDate()).isNotNull();
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().processDate()).isNull();
-        }
     }
 
     @Nested
@@ -219,7 +177,7 @@ class RawResponseControllerTest {
         @DisplayName("Should return 200 with count message when no formatted data")
         void process_noFormatted_shouldReturnCountMessage() throws Exception {
             // GIVEN
-            when(rawResponseApiPort.processRawResponses(eq("QUEST01"), anyList(), anyList()))
+            when(rawResponseApiPort.processRawResponsesByInterrogationIds(eq("QUEST01"), anyList(), anyList()))
                     .thenReturn(new DataProcessResult(10, 0, new ArrayList<>()));
 
             // WHEN / THEN
@@ -237,7 +195,7 @@ class RawResponseControllerTest {
         @DisplayName("Should return 200 with formatted count message when formatted data present")
         void process_withFormatted_shouldReturnFormattedCountMessage() throws Exception {
             // GIVEN
-            when(rawResponseApiPort.processRawResponses(eq("QUEST01"), anyList(), anyList()))
+            when(rawResponseApiPort.processRawResponsesByInterrogationIds(eq("QUEST01"), anyList(), anyList()))
                     .thenReturn(new DataProcessResult(10, 3, new ArrayList<>()));
 
             // WHEN / THEN
@@ -256,7 +214,7 @@ class RawResponseControllerTest {
         @DisplayName("Should return GenesisException status when port throws")
         void process_genesisException_shouldReturnExceptionStatus() throws Exception {
             // GIVEN
-            when(rawResponseApiPort.processRawResponses(anyString(), anyList(), anyList()))
+            when(rawResponseApiPort.processRawResponsesByInterrogationIds(anyString(), anyList(), anyList()))
                     .thenThrow(new GenesisException(404, "Not found"));
 
             // WHEN / THEN
@@ -278,7 +236,7 @@ class RawResponseControllerTest {
         @DisplayName("Should return 200 with count message")
         void processByCollectionInstrumentId_shouldReturn200() throws Exception {
             // GIVEN
-            when(rawResponseApiPort.processRawResponses("QUEST01"))
+            when(rawResponseApiPort.processRawResponsesByInterrogationIds("QUEST01"))
                     .thenReturn(new DataProcessResult(5, 0, new ArrayList<>()));
 
             // WHEN / THEN
@@ -292,7 +250,7 @@ class RawResponseControllerTest {
         @DisplayName("Should return GenesisException status when port throws")
         void processByCollectionInstrumentId_genesisException_shouldReturnExceptionStatus() throws Exception {
             // GIVEN
-            when(rawResponseApiPort.processRawResponses(anyString()))
+            when(rawResponseApiPort.processRawResponsesByInterrogationIds(anyString()))
                     .thenThrow(new GenesisException(422, "Unprocessable"));
 
             // WHEN / THEN

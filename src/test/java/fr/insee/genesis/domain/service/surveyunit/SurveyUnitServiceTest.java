@@ -30,7 +30,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -43,7 +45,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-class SurveyUnitServiceUnitTest {
+class SurveyUnitServiceTest {
 
     static SurveyUnitService surveyUnitService;
     static SurveyUnitPersistencePort surveyUnitPersistencePortStub;
@@ -447,8 +449,8 @@ class SurveyUnitServiceUnitTest {
                 " ids between dates")
         void findDistinctByCollectionInstrumentIdAndRecordDateBetween_shouldReturnDistinctIds() {
             // GIVEN
-            LocalDateTime start = LocalDateTime.now().minusDays(7);
-            LocalDateTime end = LocalDateTime.now();
+            Instant start = LocalDateTime.now().minusDays(7).toInstant(ZoneOffset.UTC);
+            Instant end = LocalDateTime.now().toInstant(ZoneOffset.UTC);
             SurveyUnitDocument doc = buildDoc("INTERRO1", Mode.WEB);
             doReturn(SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(List.of(doc)))
                     .when(surveyUnitPersistencePortStub).findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(any(), any(), any());

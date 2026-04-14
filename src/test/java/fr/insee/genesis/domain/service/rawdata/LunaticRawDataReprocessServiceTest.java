@@ -2,10 +2,10 @@ package fr.insee.genesis.domain.service.rawdata;
 
 import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.RawDataModelType;
+import fr.insee.genesis.domain.ports.spi.RawResponseReprocessPersistencePort;
+import fr.insee.genesis.domain.ports.spi.RawResponseReprocessPersistenceRouter;
+import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
 import fr.insee.genesis.exceptions.InvalidDateIntervalException;
-import fr.insee.genesis.stubs.LunaticJsonRawDataServiceStub;
-import fr.insee.genesis.stubs.RawResponseReprocessPersistenceRouterStub;
-import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,17 +14,26 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 
-class LunaticRawDataReprocessTest {
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+class LunaticRawDataReprocessServiceTest {
 
     private ReprocessRawResponseService reprocessRawResponseService;
 
     @BeforeEach
     void freshStart() {
+        RawResponseReprocessPersistenceRouter rawResponseReprocessPersistenceRouter =
+                mock(RawResponseReprocessPersistenceRouter.class);
+        when(rawResponseReprocessPersistenceRouter.resolve(any()))
+                .thenReturn(mock(RawResponseReprocessPersistencePort.class));
         reprocessRawResponseService = new ReprocessRawResponseService(
-            new SurveyUnitPersistencePortStub(),
-            null,
-            new LunaticJsonRawDataServiceStub(),
-            new RawResponseReprocessPersistenceRouterStub());
+                mock(SurveyUnitPersistencePort.class),
+                null,
+                mock(LunaticJsonRawDataService.class),
+                rawResponseReprocessPersistenceRouter
+        );
     }
 
     @Test

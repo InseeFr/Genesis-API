@@ -378,7 +378,7 @@ class LunaticJsonRawDataServiceTest {
 
             Map<String, Object> data = new HashMap<>();
             data.put("COLLECTED", collected);
-            data.put("validationDate", "2024-01-15T10:00:00");
+            data.put("validationDate", "2024-01-15T10:00:00+00:00");
             data.put("isCapturedIndirectly", "true");
 
             LunaticJsonRawDataModel rawData = LunaticJsonRawDataModel.builder()
