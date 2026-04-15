@@ -6,7 +6,6 @@ import fr.insee.genesis.controller.dto.rawdata.ScheduleResponseDto;
 import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
 import fr.insee.genesis.exceptions.GenesisException;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 public interface DataProcessingContextApiPort {
