@@ -30,7 +30,7 @@ public class ScheduleRequestDto {
     private ExportType exportType;
 
     @NotBlank
-    @Schema(description = "Frequency in Spring cron format (6 inputs). Example: 0 0 6 * * *", example = "0 0 6 * * *", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "Frequency in Spring cron format (6 inputs). https://crontab.cronhub.io/ is an editor. Example: 0 0 6 * * *", example = "0 0 6 * * *", requiredMode = Schema.RequiredMode.REQUIRED)
     private String frequency;
 
     @NotNull
