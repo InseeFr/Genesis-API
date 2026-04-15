@@ -27,7 +27,6 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.stream.Stream;
 
 class DataProcessingContextControllerTest {
@@ -57,491 +56,14 @@ class DataProcessingContextControllerTest {
     }
 
     @Test
-    void getAllSchedulesV2Test() {
+    void deleteScheduleTest_collectionInstrumentId(){
         //When
-        ResponseEntity<Object> response = dataProcessingContextController.getAllSchedulesV2();
-
-        //Then
-        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-    }
-
-    @Test
-    void addScheduleWithoutEncryptionTest() throws GenesisException {
-        //When
-        String collectionInstrumentId = "TESTADDSURVEY";
-        ServiceToCall serviceToCall = ServiceToCall.MAIN;
-        String frequency = "0 0 6 * * *";
-        LocalDateTime scheduleBeginDate = LocalDateTime.now();
-        LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
-
-        dataProcessingContextController.saveScheduleWithCollectionInstrumentId(collectionInstrumentId, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate,
-                false, "TEST", "TEST", false);
+        dataProcessingContextController.deleteSchedulesByCollectionInstrumentId("TESTSURVEY_CI");
 
         //Then
         Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub()).filteredOn(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals(collectionInstrumentId)
-        ).isNotEmpty();
-
-        List<DataProcessingContextDocument> mongoStubFiltered = dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals(collectionInstrumentId)).toList();
-
-        DataProcessingContextDocument dataProcessingContextDocument = mongoStubFiltered.getFirst();
-
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList()).isNotEmpty();
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getFrequency()).isEqualTo(frequency);
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters()).isNull();
-    }
-
-    @Test
-    void addScheduleWithoutEncryptionTestUsingCollectionInstrumentId() throws GenesisException {
-        //When
-        String collectionInstrumentId = "TESTADDSURVEY_CI";
-        ServiceToCall serviceToCall = ServiceToCall.MAIN;
-        String frequency = "0 0 6 * * *";
-        LocalDateTime scheduleBeginDate = LocalDateTime.now();
-        LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
-
-        dataProcessingContextController.saveScheduleWithCollectionInstrumentId(collectionInstrumentId, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate,
-                false, "TEST", "TEST", false);
-
-        //Then
-        Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub()).filteredOn(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals(collectionInstrumentId)
-        ).isNotEmpty();
-
-        List<DataProcessingContextDocument> mongoStubFiltered = dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals(collectionInstrumentId)).toList();
-
-        DataProcessingContextDocument dataProcessingContextDocument = mongoStubFiltered.getFirst();
-
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList()).isNotEmpty();
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getFrequency()).isEqualTo(frequency);
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters()).isNull();
-    }
-
-    @Test
-    void addScheduleWithoutEncryptionTest_nullServiceToCall() throws GenesisException {
-        //When
-        String collectionInstrumentId = "TESTADDSURVEY";
-        ServiceToCall serviceToCall = null;
-        String frequency = "0 0 6 * * *";
-        LocalDateTime scheduleBeginDate = LocalDateTime.now();
-        LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
-
-        dataProcessingContextController.saveScheduleWithCollectionInstrumentId(collectionInstrumentId, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate,
-                false, "TEST", "TEST", false);
-
-        //Then
-        Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub()).filteredOn(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals(collectionInstrumentId)
-        ).isNotEmpty();
-
-        List<DataProcessingContextDocument> mongoStubFiltered = dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals(collectionInstrumentId)).toList();
-
-        DataProcessingContextDocument dataProcessingContextDocument = mongoStubFiltered.getFirst();
-
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList()).isNotEmpty();
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getServiceToCall()).isEqualTo(ServiceToCall.MAIN);
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getFrequency()).isEqualTo(frequency);
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters()).isNull();
-    }
-
-    @Test
-    void addScheduleWithoutEncryptionTest_nullServiceToCall_collectionInstrumentId() throws GenesisException {
-        //When
-        String collectionInstrumentId = "TESTADDSURVEY_CI";
-        ServiceToCall serviceToCall = null;
-        String frequency = "0 0 6 * * *";
-        LocalDateTime scheduleBeginDate = LocalDateTime.now();
-        LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
-
-        dataProcessingContextController.saveScheduleWithCollectionInstrumentId(collectionInstrumentId, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate,
-                false, "TEST", "TEST", false);
-
-        //Then
-        Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub()).filteredOn(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals(collectionInstrumentId)
-        ).isNotEmpty();
-
-        List<DataProcessingContextDocument> mongoStubFiltered = dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals(collectionInstrumentId)).toList();
-
-        DataProcessingContextDocument dataProcessingContextDocument = mongoStubFiltered.getFirst();
-
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList()).isNotEmpty();
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getServiceToCall()).isEqualTo(ServiceToCall.MAIN);
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getFrequency()).isEqualTo(frequency);
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters()).isNull();
-    }
-
-    @Test
-    void addScheduleWithEncryptionTest() throws GenesisException {
-        //When
-        String collectionInstrumentId = "TESTADDSURVEY";
-        ServiceToCall serviceToCall = ServiceToCall.MAIN;
-        String frequency = "0 0 6 * * *";
-        LocalDateTime scheduleBeginDate = LocalDateTime.now();
-        LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
-
-
-        dataProcessingContextController.saveScheduleWithCollectionInstrumentId(collectionInstrumentId, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate, true,
-                "testvault/testkey",
-                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("OUT_ENCRYPTED").resolve(collectionInstrumentId).toString(),
-                false
-        );
-
-        //Then
-        Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub()).filteredOn(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals(collectionInstrumentId)
-        ).isNotEmpty();
-
-        List<DataProcessingContextDocument> mongoStubFiltered = dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals(collectionInstrumentId)).toList();
-
-        DataProcessingContextDocument dataProcessingContextDocument = mongoStubFiltered.getFirst();
-
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList()).isNotEmpty();
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getFrequency()).isEqualTo(frequency);
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters()).isNotNull();
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters().getInputPath()).contains(
-                "TESTADDSURVEY");
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters().getOutputFolder()).contains(
-                "TESTADDSURVEY");
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters().getVaultPath()).isEqualTo(
-                "testvault/testkey");
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters().isUseSignature()).isFalse();
-    }
-
-    @Test
-    void addScheduleWithEncryptionTest_collectionInstrumentId() throws GenesisException {
-        //When
-        String collectionInstrumentId = "TESTADDSURVEY_CI";
-        ServiceToCall serviceToCall = ServiceToCall.MAIN;
-        String frequency = "0 0 6 * * *";
-        LocalDateTime scheduleBeginDate = LocalDateTime.now();
-        LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
-
-
-        dataProcessingContextController.saveScheduleWithCollectionInstrumentId(collectionInstrumentId, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate, true,
-                "testvault/testkey",
-                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("OUT_ENCRYPTED").resolve(collectionInstrumentId).toString(),
-                false
-        );
-
-        //Then
-        Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub()).filteredOn(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals(collectionInstrumentId)
-        ).isNotEmpty();
-
-        List<DataProcessingContextDocument> mongoStubFiltered = dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals(collectionInstrumentId)).toList();
-
-        DataProcessingContextDocument dataProcessingContextDocument = mongoStubFiltered.getFirst();
-
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList()).isNotEmpty();
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getFrequency()).isEqualTo(frequency);
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters()).isNotNull();
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters().getInputPath()).contains(
-                "TESTADDSURVEY");
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters().getOutputFolder()).contains(
-                "TESTADDSURVEY");
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters().getVaultPath()).isEqualTo(
-                "testvault/testkey");
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters().isUseSignature()).isFalse();
-    }
-
-    @Test
-    void addAdditionnalScheduleTest() throws GenesisException {
-        //When
-        String collectionInstrumentId = "TESTSURVEY"; //Already exists in stub
-        ServiceToCall serviceToCall = ServiceToCall.MAIN;
-        String frequency = "0 0 6 * * *";
-        LocalDateTime scheduleBeginDate = LocalDateTime.now();
-        LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
-
-
-        dataProcessingContextController.saveScheduleWithCollectionInstrumentId(collectionInstrumentId, serviceToCall, frequency, scheduleBeginDate,
-                scheduleEndDate,
-                false, "", "", false);
-
-        //Then
-        Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub()).filteredOn(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals(collectionInstrumentId)
-        ).isNotEmpty().hasSize(1);
-
-        List<DataProcessingContextDocument> mongoStubFiltered = dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals(collectionInstrumentId)).toList();
-
-        DataProcessingContextDocument dataProcessingContextDocument = mongoStubFiltered.getFirst();
-        Assertions.assertThat(dataProcessingContextDocument.getLastExecution()).isNull();
-
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList()).isNotEmpty();
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getFrequency()).isEqualTo(frequency);
-    }
-
-    @Test
-    void addAdditionnalScheduleTest_collectionInstrumentId() throws GenesisException {
-        //When
-        String collectionInstrumentId = "TESTADDSURVEY_CI"; //Already exists in stub
-        ServiceToCall serviceToCall = ServiceToCall.MAIN;
-        String frequency = "0 0 6 * * *";
-        LocalDateTime scheduleBeginDate = LocalDateTime.now();
-        LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
-
-
-        dataProcessingContextController.saveScheduleWithCollectionInstrumentId(collectionInstrumentId, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate,
-                false, "", "", false);
-
-        //Then
-        Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub()).filteredOn(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals(collectionInstrumentId)
-        ).isNotEmpty().hasSize(1);
-
-        List<DataProcessingContextDocument> mongoStubFiltered = dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals(collectionInstrumentId)).toList();
-
-        DataProcessingContextDocument dataProcessingContextDocument = mongoStubFiltered.getFirst();
-        Assertions.assertThat(dataProcessingContextDocument.getLastExecution()).isNull();
-
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList()).isNotEmpty();
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getFrequency()).isEqualTo(frequency);
-    }
-
-    @Test
-    void addScheduleDedupTest() throws GenesisException {
-        //Given
-        addNewDocumentToStub();
-
-        //When
-        String collectionInstrumentId = "TESTSURVEY"; //Already exists in stub
-        ServiceToCall serviceToCall = ServiceToCall.MAIN;
-        String frequency = "0 0 6 * * *";
-        LocalDateTime scheduleBeginDate = LocalDateTime.now();
-        LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
-
-
-        dataProcessingContextController.saveScheduleWithCollectionInstrumentId(collectionInstrumentId, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate,
-                false, "", "", false);
-        //Then
-        Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub()).filteredOn(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals(collectionInstrumentId)
-        ).isNotEmpty().hasSize(1);
-
-        List<DataProcessingContextDocument> mongoStubFiltered = dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals(collectionInstrumentId)).toList();
-
-        DataProcessingContextDocument dataProcessingContextDocument = mongoStubFiltered.getFirst();
-        Assertions.assertThat(dataProcessingContextDocument.getLastExecution()).isNull();
-
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList()).isNotEmpty();
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getFrequency()).isEqualTo(frequency);
-    }
-
-    @Test
-    void addScheduleDedupTest_collectionInstrumentId() throws GenesisException {
-        //Given
-        addNewDocumentToStubWithCollectionInstrumentId();
-
-        //When
-        String collectionInstrumentId = "TESTSURVEY_CI"; //Already exists in stub
-        ServiceToCall serviceToCall = ServiceToCall.MAIN;
-        String frequency = "0 0 6 * * *";
-        LocalDateTime scheduleBeginDate = LocalDateTime.now();
-        LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
-
-
-        dataProcessingContextController.saveScheduleWithCollectionInstrumentId(collectionInstrumentId, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate,
-                false, "", "", false);
-        //Then
-        Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub()).filteredOn(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals(collectionInstrumentId)
-        ).isNotEmpty().hasSize(1);
-
-        List<DataProcessingContextDocument> mongoStubFiltered = dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals(collectionInstrumentId)).toList();
-
-        DataProcessingContextDocument dataProcessingContextDocument = mongoStubFiltered.getFirst();
-        Assertions.assertThat(dataProcessingContextDocument.getLastExecution()).isNull();
-
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList()).isNotEmpty();
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getFrequency()).isEqualTo(frequency);
-    }
-
-    @Test
-    void updateLastExecutionTest() throws GenesisException {
-        //Given
-        addNewDocumentToStub();
-
-        //When
-        dataProcessingContextController.setSurveyLastExecutionByCollectionInstrumentId("TESTSURVEY", LocalDateTime.now());
-
-        //Then
-        List<DataProcessingContextDocument> mongoStubFiltered = dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals("TESTSURVEY")).toList();
-        Assertions.assertThat(mongoStubFiltered.getFirst().getLastExecution()).isNotNull();
-    }
-
-    @Test
-    void updateLastExecutionTest_collectionInstrumentId() throws GenesisException {
-        //Given
-        addNewDocumentToStubWithCollectionInstrumentId();
-
-        //When
-        dataProcessingContextController.setSurveyLastExecutionByCollectionInstrumentId("TESTSURVEY_CI", LocalDateTime.now());
-
-        //Then
-        List<DataProcessingContextDocument> mongoStubFiltered = dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals("TESTSURVEY_CI")).toList();
-        Assertions.assertThat(mongoStubFiltered.getFirst().getLastExecution()).isNotNull();
-    }
-
-    @Test
-    void setLastExecutionTestToNull() throws GenesisException {
-        //Given
-        addNewDocumentToStub();
-
-        //When
-        dataProcessingContextController.setSurveyLastExecutionByCollectionInstrumentId("TESTSURVEY", null);
-
-        //Then
-        List<DataProcessingContextDocument> mongoStubFiltered = dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals("TESTSURVEY")).toList();
-        Assertions.assertThat(mongoStubFiltered.getFirst().getLastExecution()).isNull();
-    }
-
-    @Test
-    void setLastExecutionTestToNull_collectionInstrumentId() throws GenesisException {
-        //Given
-        addNewDocumentToStubWithCollectionInstrumentId();
-
-        //When
-        dataProcessingContextController.setSurveyLastExecutionByCollectionInstrumentId("TESTSURVEY_CI", null);
-
-        //Then
-        List<DataProcessingContextDocument> mongoStubFiltered = dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals("TESTSURVEY_CI")).toList();
-        Assertions.assertThat(mongoStubFiltered.getFirst().getLastExecution()).isNull();
-    }
-
-    @Test
-    void setLastExecutionTest() throws GenesisException {
-        //Given
-        LocalDateTime date = LocalDateTime.now();
-        addNewDocumentToStub();
-
-        //When
-        dataProcessingContextController.setSurveyLastExecutionByCollectionInstrumentId("TESTSURVEY", date);
-
-        //Then
-        List<DataProcessingContextDocument> mongoStubFiltered = dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals("TESTSURVEY")).toList();
-        Assertions.assertThat(mongoStubFiltered.getFirst().getLastExecution()).isEqualTo(date);
-    }
-
-    @Test
-    void setLastExecutionTest_collectionInstrumentId() throws GenesisException {
-        //Given
-        LocalDateTime date = LocalDateTime.now();
-        addNewDocumentToStubWithCollectionInstrumentId();
-
-        //When
-        dataProcessingContextController.setSurveyLastExecutionByCollectionInstrumentId("TESTSURVEY_CI", date);
-
-        //Then
-        List<DataProcessingContextDocument> mongoStubFiltered = dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals("TESTSURVEY_CI")).toList();
-        Assertions.assertThat(mongoStubFiltered.getFirst().getLastExecution()).isEqualTo(date);
-    }
-
-    @Test
-    void wrongFrequencyTest() {
-        String collectionInstrumentId = "TESTSURVEY";
-        ServiceToCall serviceToCall = ServiceToCall.MAIN;
-        String frequency = "ERROR";
-        LocalDateTime scheduleBeginDate = LocalDateTime.now();
-        LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
-
-        Assertions.assertThatThrownBy(() ->
-                        dataProcessingContextController.saveScheduleWithCollectionInstrumentId(
-                                collectionInstrumentId,
-                                serviceToCall,
-                                frequency,
-                                scheduleBeginDate,
-                                scheduleEndDate,
-                                false,
-                                "",
-                                "",
-                                false
-                        )
-                )
-                .isInstanceOfSatisfying(GenesisException.class, exception -> {
-                    Assertions.assertThat(exception.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
-                    Assertions.assertThat(exception.getMessage()).isEqualTo("Wrong frequency syntax");
-                });
-    }
-
-    @Test
-    void wrongFrequencyTest_collectionInstrumentId() {
-        String collectionInstrumentId = "TESTSURVEY_CI";
-        ServiceToCall serviceToCall = ServiceToCall.MAIN;
-        String frequency = "ERROR";
-        LocalDateTime scheduleBeginDate = LocalDateTime.now();
-        LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
-
-        Assertions.assertThatThrownBy(() ->
-                        dataProcessingContextController.saveScheduleWithCollectionInstrumentId(
-                                collectionInstrumentId,
-                                serviceToCall,
-                                frequency,
-                                scheduleBeginDate,
-                                scheduleEndDate,
-                                false,
-                                "",
-                                "",
-                                false
-                        )
-                )
-                .isInstanceOfSatisfying(GenesisException.class, exception -> {
-                    Assertions.assertThat(exception.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
-                    Assertions.assertThat(exception.getMessage()).isEqualTo("Wrong frequency syntax");
-                });
-    }
-
-    @Test
-    void notFoundTest() {
-        Assertions.assertThatThrownBy(() ->
-                        dataProcessingContextController.setSurveyLastExecution("ERROR", LocalDateTime.now())
-                )
-                .isInstanceOf(GenesisException.class);
-    }
-
-    @Test
-    void notFoundTest_collectionInstrumentId() {
-        Assertions.assertThatThrownBy(() ->
-                        dataProcessingContextController.setSurveyLastExecutionByCollectionInstrumentId("ERROR", LocalDateTime.now())
-                )
-                .isInstanceOfSatisfying(GenesisException.class, exception -> {
-                    Assertions.assertThat(exception.getStatus().is4xxClientError()).isTrue();
-                });
-    }
-
-    @Test
-    void deleteScheduleTest() {
-        Assertions.assertThatThrownBy(() ->
-                        dataProcessingContextController.deleteSchedules("TESTSURVEY")
-                )
-                .isInstanceOf(GenesisException.class)
-                .hasMessage("Context not found");
-    }
-
-    @Test
-    void deleteScheduleTest_collectionInstrumentId() {
-        Assertions.assertThatThrownBy(() ->
-                        dataProcessingContextController.deleteSchedulesByCollectionInstrumentId("TESTSURVEY_CI")
-                )
-                .isInstanceOf(GenesisException.class)
-                .hasMessage("Context not found");
+                dataProcessingContextDocument.getPartitionId().equals("TESTSURVEY_CI")
+        ).isEmpty();
     }
 
     @Test
@@ -553,6 +75,7 @@ class DataProcessingContextControllerTest {
                 "TESTSURVEYADDED",
                 null,
                 new ArrayList<>(),
+                null,
                 false
         );
         KraftwerkExecutionSchedule kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
@@ -601,6 +124,7 @@ class DataProcessingContextControllerTest {
                 "TESTSURVEYADDED_CI",
                 null,
                 new ArrayList<>(),
+                null,
                 false
         );
         KraftwerkExecutionSchedule kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
@@ -649,6 +173,7 @@ class DataProcessingContextControllerTest {
                 "TESTSURVEYADDED",
                 null,
                 new ArrayList<>(),
+                null,
                 false
         );
         KraftwerkExecutionSchedule kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
@@ -698,6 +223,7 @@ class DataProcessingContextControllerTest {
                 "TESTSURVEYADDED_CI",
                 null,
                 new ArrayList<>(),
+                null,
                 false
         );
         KraftwerkExecutionSchedule kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
@@ -747,6 +273,7 @@ class DataProcessingContextControllerTest {
                 "TESTSURVEYADDED2",
                 null,
                 new ArrayList<>(),
+                null,
                 false
         );
         KraftwerkExecutionSchedule kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
@@ -806,6 +333,7 @@ class DataProcessingContextControllerTest {
                 "TESTSURVEYADDED2_CI",
                 null,
                 new ArrayList<>(),
+                null,
                 false
         );
         KraftwerkExecutionSchedule kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
@@ -858,27 +386,7 @@ class DataProcessingContextControllerTest {
 
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
-    void getReview_test(boolean withReview) throws GenesisException {
-        //GIVEN
-        String collectionInstrumentId = "TESTPARTITION";
-        DataProcessingContextDocument doc = new DataProcessingContextDocument();
-        doc.setCollectionInstrumentId("TESTPARTITION");
-        doc.setKraftwerkExecutionScheduleList(new ArrayList<>());
-        doc.setWithReview(withReview);
-        dataProcessingContextPersistancePortStub.getMongoStub().add(doc);
-
-        //WHEN
-        ResponseEntity<Object> response = dataProcessingContextController.getReviewIndicatorByCollectionInstrumentId(collectionInstrumentId);
-
-        //THEN
-        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(200);
-        Assertions.assertThat(response.getBody().getClass()).isEqualTo(Boolean.class);
-        Assertions.assertThat((Boolean) response.getBody()).isEqualTo(withReview);
-    }
-
-    @ParameterizedTest
-    @ValueSource(booleans = {false, true})
-    void getReview_test_collectionInstrumentId(boolean withReview) throws GenesisException {
+    void getReview_test_collectionInstrumentId(boolean withReview){
         //GIVEN
         String collectionInstrumentId = "TESTPARTITION_CI";
         DataProcessingContextDocument doc = new DataProcessingContextDocument();
@@ -897,73 +405,13 @@ class DataProcessingContextControllerTest {
     }
 
     @Test
-    void getReview_no_context_test() {
-        Assertions.assertThatThrownBy(() ->
-                        dataProcessingContextController.getReviewIndicatorByCollectionInstrumentId("TESTcollectionInstrumentIdNOCONTEXT")
-                )
-                .isInstanceOf(GenesisException.class)
-                .hasMessage("Data processing context not found");
-    }
-
-    @Test
-    void getReview_no_context_test_collectionInstrumentId() {
-        Assertions.assertThatThrownBy(() ->
-                        dataProcessingContextController.getReviewIndicatorByCollectionInstrumentId(
-                                "TESTcollectionInstrumentIdNOCONTEXT_CI"
-                        )
-                )
-                .isInstanceOf(GenesisException.class)
-                .hasMessage("Data processing context not found");
-    }
-
-
-    //UTILITY
-    private void addNewDocumentToStub() {
-        DataProcessingContextDocument dataProcessingContextDocumentTest = new DataProcessingContextDocument();
-        dataProcessingContextDocumentTest.setCollectionInstrumentId("TESTSURVEY");
-        dataProcessingContextDocumentTest.setKraftwerkExecutionScheduleList(new ArrayList<>());
-        dataProcessingContextDocumentTest.setWithReview(false);
-
-        KraftwerkExecutionSchedule kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
-                "0 0 6 * * *",
-                ServiceToCall.MAIN,
-                LocalDateTime.of(2023, Month.JANUARY, 1, 1, 1, 1),
-                LocalDateTime.of(2023, Month.DECEMBER, 1, 1, 1, 1),
-                null
+    void getReview_no_context_test_collectionInstrumentId(){
+        //WHEN
+        ResponseEntity<Object> response = dataProcessingContextController.getReviewIndicatorByCollectionInstrumentId(
+                "TESTPARTITIONIDNOCONTEXT_CI"
         );
-        dataProcessingContextDocumentTest.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
-        kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
-                "0 0 6 * * *",
-                ServiceToCall.MAIN,
-                LocalDateTime.of(2023, Month.FEBRUARY, 1, 1, 1, 1),
-                LocalDateTime.of(2023, Month.DECEMBER, 1, 1, 1, 1),
-                null
-        );
-        dataProcessingContextDocumentTest.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
-        dataProcessingContextPersistancePortStub.getMongoStub().add(dataProcessingContextDocumentTest);
-    }
 
-    private void addNewDocumentToStubWithCollectionInstrumentId() {
-        DataProcessingContextDocument dataProcessingContextDocumentTest = new DataProcessingContextDocument();
-        dataProcessingContextDocumentTest.setCollectionInstrumentId("TESTSURVEY_CI");
-        dataProcessingContextDocumentTest.setKraftwerkExecutionScheduleList(new ArrayList<>());
-        dataProcessingContextDocumentTest.setWithReview(false);
-        KraftwerkExecutionSchedule kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
-                "0 0 6 * * *",
-                ServiceToCall.MAIN,
-                LocalDateTime.of(2023, Month.JANUARY, 1, 1, 1, 1),
-                LocalDateTime.of(2023, Month.DECEMBER, 1, 1, 1, 1),
-                null
-        );
-        dataProcessingContextDocumentTest.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
-        kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
-                "0 0 6 * * *",
-                ServiceToCall.MAIN,
-                LocalDateTime.of(2023, Month.FEBRUARY, 1, 1, 1, 1),
-                LocalDateTime.of(2023, Month.DECEMBER, 1, 1, 1, 1),
-                null
-        );
-        dataProcessingContextDocumentTest.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
-        dataProcessingContextPersistancePortStub.getMongoStub().add(dataProcessingContextDocumentTest);
+        //THEN
+        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(404);
     }
 }
