@@ -40,7 +40,6 @@ public class DataProcessingContextController {
             @Parameter(description = "Allow reviewing")
             @RequestParam(value = "withReview", defaultValue = "false") Boolean withReview
     ) throws GenesisException {
-        withReview = withReview != null && withReview;
         dataProcessingContextApiPort.saveContextByCollectionInstrumentId(collectionInstrumentId, withReview);
         return ResponseEntity.ok().build();
     }
@@ -61,8 +60,7 @@ public class DataProcessingContextController {
     @PreAuthorize("hasRole('USER_KRAFTWERK')")
     public ResponseEntity<Object> createScheduleV2(
             @Valid @RequestBody ScheduleRequestDto request
-    ) {
-        try {
+    ) throws GenesisException{
             TrustParameters trustParameters = null;
             if (request.isUseAsymmetricEncryption()) {
                 trustParameters = new TrustParameters(
@@ -91,9 +89,6 @@ public class DataProcessingContextController {
 
             return ResponseEntity.ok(scheduleUuid);
 
-        } catch (GenesisException e) {
-            return new ResponseEntity<>(e.getMessage(), e.getStatus());
-        }
     }
 
     @Operation(summary = "Update a Kraftwerk execution schedule V2")
@@ -103,8 +98,8 @@ public class DataProcessingContextController {
             @PathVariable("collectionInstrumentId") String collectionInstrumentId,
             @PathVariable("scheduleUuid") String scheduleUuid,
             @Valid @RequestBody ScheduleRequestDto request
-    ) {
-        try {
+    ) throws GenesisException{
+
             TrustParameters trustParameters = null;
             if (request.isUseAsymmetricEncryption()) {
                 trustParameters = new TrustParameters(
@@ -133,10 +128,6 @@ public class DataProcessingContextController {
                     .build();
 
             dataProcessingContextApiPort.updateKraftwerkExecutionSchedule(scheduleInput);
-
-        } catch (GenesisException e) {
-            return new ResponseEntity<>(e.getMessage(), e.getStatus());
-        }
 
         return ResponseEntity.ok().build();
     }
@@ -182,12 +173,10 @@ public class DataProcessingContextController {
     @PreAuthorize("hasRole('USER_KRAFTWERK')")
     public ResponseEntity<Object> deleteSchedulesV2ByCollectionInstrumentId(
             @PathVariable("collectionInstrumentId") String collectionInstrumentId
-    ){
-        try {
-            dataProcessingContextApiPort.deleteSchedulesV2ByCollectionInstrumentId(collectionInstrumentId);
-        } catch (GenesisException e) {
-            return new ResponseEntity<>(e.getMessage(), e.getStatus());
-        }
+    ) throws GenesisException{
+
+        dataProcessingContextApiPort.deleteSchedulesV2ByCollectionInstrumentId(collectionInstrumentId);
+
         log.info("All V2 schedules deleted for collection instrument {}", collectionInstrumentId);
         return ResponseEntity.ok().build();
     }
@@ -198,12 +187,10 @@ public class DataProcessingContextController {
     public ResponseEntity<Object> deleteScheduleV2(
             @PathVariable(value = "collectionInstrumentId") String collectionInstrumentId,
             @PathVariable(value = "scheduleUuid") String scheduleUuid
-    ){
-        try {
-            dataProcessingContextApiPort.deleteScheduleV2(collectionInstrumentId, scheduleUuid);
-        } catch (GenesisException e) {
-            return new ResponseEntity<>(e.getMessage(), e.getStatus());
-        }
+    ) throws GenesisException{
+
+        dataProcessingContextApiPort.deleteScheduleV2(collectionInstrumentId, scheduleUuid);
+
         log.info("V2 schedule {} deleted for collection instrument {}", scheduleUuid, collectionInstrumentId);
         return ResponseEntity.ok().build();
     }
