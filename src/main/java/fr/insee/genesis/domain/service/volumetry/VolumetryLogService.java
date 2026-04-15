@@ -2,9 +2,9 @@ package fr.insee.genesis.domain.service.volumetry;
 
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.configuration.Config;
+import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.RawResponseApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
-import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -98,7 +98,7 @@ public class VolumetryLogService {
 
         Files.writeString(
                 logFilePath,
-                "questionnaireId;%s;%s;%s;distinctInterrogationIds\n"
+                "questionnaireId;%s;%s;%s;distinctInterrogationIds%n"
                         .formatted(
                                 Constants.MONGODB_LUNATIC_RAWDATA_COLLECTION_NAME,
                                 Constants.MONGODB_RAW_RESPONSES_COLLECTION_NAME,
