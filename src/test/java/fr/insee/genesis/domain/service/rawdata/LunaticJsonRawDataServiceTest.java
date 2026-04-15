@@ -18,12 +18,7 @@ import fr.insee.genesis.domain.utils.JsonUtils;
 import fr.insee.genesis.infrastructure.mappers.DataProcessingContextMapper;
 import fr.insee.genesis.infrastructure.mappers.LunaticJsonRawDataDocumentMapper;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
-import fr.insee.genesis.stubs.ConfigStub;
-import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
-import fr.insee.genesis.stubs.LunaticJsonRawDataPersistanceStub;
-import fr.insee.genesis.stubs.QuestionnaireMetadataPersistencePortStub;
-import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
-import fr.insee.genesis.stubs.SurveyUnitQualityToolPerretAdapterStub;
+import fr.insee.genesis.stubs.*;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -692,4 +687,5 @@ class LunaticJsonRawDataServiceTest {
 
         Assertions.assertThat(getValueString(doubleObject)).isEqualTo("101010101010.111");
     }
+
 }

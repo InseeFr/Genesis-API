@@ -44,6 +44,7 @@ public class RawResponseDataPersistanceStub implements RawResponsePersistencePor
         return;
     }
 
+
     @Override
     public List<String> getUnprocessedCollectionIds() {
         return List.of();
