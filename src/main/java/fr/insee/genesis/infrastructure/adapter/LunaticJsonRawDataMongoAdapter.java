@@ -30,6 +30,7 @@ import java.util.Set;
 @Service
 @Qualifier("lunaticJsonMongoAdapter")
 public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersistencePort {
+
     private final LunaticJsonMongoDBRepository repository;
     private final MongoTemplate mongoTemplate;
 
@@ -57,12 +58,6 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
     @Override
     public Set<Mode> findModesByQuestionnaire(String questionnaireId) {
         return new HashSet<>(repository.findModesByQuestionnaireId(questionnaireId));
-    }
-
-    @Override
-    public List<LunaticJsonRawDataModel> findRawData(String campaignName, Mode mode, List<String> interrogationIdList) {
-        List<LunaticJsonRawDataDocument> rawDataDocs = repository.findByCampaignModeAndInterrogations(campaignName, mode, interrogationIdList);
-        return LunaticJsonRawDataDocumentMapper.INSTANCE.listDocumentToListModel(rawDataDocs);
     }
 
     @Override
@@ -147,4 +142,5 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
         Long count = repository.countDistinctInterrogationIdsByQuestionnaireId(questionnaireId);
         return count != null ? count : 0;
     }
+
 }

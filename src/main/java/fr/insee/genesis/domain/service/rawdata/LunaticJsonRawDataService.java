@@ -41,6 +41,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -48,6 +49,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import static fr.insee.genesis.domain.service.rawdata.RawResponseService.processCollectedVariable;
 
 @Service
@@ -98,11 +100,6 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     }
 
     @Override
-    public List<LunaticJsonRawDataModel> getRawData(String campaignName, Mode mode, List<String> interrogationIdList) {
-        return lunaticJsonRawDataPersistencePort.findRawData(campaignName, mode, interrogationIdList);
-    }
-
-    @Override
     public List<LunaticJsonRawDataModel> getRawDataByQuestionnaireId(String questionnaireId, Mode mode, List<String> interrogationIdList) {
         return lunaticJsonRawDataPersistencePort.findRawDataByQuestionnaireId(questionnaireId, mode, interrogationIdList);
     }
@@ -113,16 +110,15 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     }
 
     @Override
-    @Deprecated(since = "1.13.0")
-    public DataProcessResult processRawData(String campaignName, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException {
+    public DataProcessResult processRawDataByInterrogationIds(String questionnaireId, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException {
         int dataCount=0;
         int formattedDataCount=0;
         DataProcessingContextModel dataProcessingContext =
-                dataProcessingContextService.getContextByCollectionInstrumentId(campaignName);
-        List<Mode> modesList = controllerUtils.getModesList(campaignName, null);
+                dataProcessingContextService.getContextByCollectionInstrumentId(questionnaireId);
+        List<Mode> modesList = controllerUtils.getModesList(questionnaireId, null);
         for (Mode mode : modesList) {
             //Load and save metadata into database, throw exception if none
-            VariablesMap variablesMap = getVariablesMap(campaignName, mode, errors);
+            VariablesMap variablesMap = getVariablesMap(questionnaireId, mode, errors);
             int totalBatchs = Math.ceilDiv(interrogationIdList.size() , config.getRawDataProcessingBatchSize());
             int batchNumber = 1;
             List<String> interrogationIdListForMode = new ArrayList<>(interrogationIdList);
@@ -131,7 +127,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
                 int maxIndex = Math.min(interrogationIdListForMode.size(), config.getRawDataProcessingBatchSize());
                 List<String> interrogationIdToProcess = interrogationIdListForMode.subList(0, maxIndex);
 
-                List<LunaticJsonRawDataModel> rawData = getRawData(campaignName, mode, interrogationIdToProcess);
+                List<LunaticJsonRawDataModel> rawData = getRawDataByQuestionnaireId(questionnaireId, mode, interrogationIdToProcess);
 
                 List<SurveyUnitModel> surveyUnitModels = convertRawData(
                         rawData,
@@ -223,6 +219,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
         return new DataProcessResult(dataCount, formattedDataCount, errors);
     }
 
+
     private VariablesMap getVariablesMap(String questionnaireId, Mode mode, List<GenesisError> errors) throws GenesisException {
         VariablesMap variablesMap = metadataService.loadAndSaveIfNotExists(questionnaireId, questionnaireId, mode, fileUtils,
                 errors).getVariables();
@@ -269,6 +266,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
         );
         return processedInterrogationIdsPerQuestionnaire;
     }
+
 
     @Override
     public List<SurveyUnitModel> convertRawData(List<LunaticJsonRawDataModel> rawDataList, VariablesMap variablesMap) {
@@ -329,13 +327,13 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     private static RawDataModelType getRawDataModelType(LunaticJsonRawDataModel rawData) {
         return rawData.data().containsKey("data") ?
                 RawDataModelType.FILIERE :
-                RawDataModelType.DEFAULT;
+                RawDataModelType.LEGACY;
     }
 
     private static LocalDateTime getValidationDate(LunaticJsonRawDataModel rawData) {
         try{
             return rawData.data().get("validationDate") == null ? null :
-                LocalDateTime.parse(rawData.data().get("validationDate").toString());
+                LocalDateTime.parse(rawData.data().get("validationDate").toString(), DateTimeFormatter.ISO_OFFSET_DATE_TIME);
         }catch(Exception e){
             log.warn("Exception when parsing validation date : {}}",e.toString());
             return null;

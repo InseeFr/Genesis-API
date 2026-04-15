@@ -2,20 +2,8 @@ package fr.insee.genesis.domain.service.surveyunit;
 
 import fr.insee.bpm.metadata.model.VariableType;
 import fr.insee.bpm.metadata.model.VariablesMap;
-import fr.insee.genesis.controller.dto.CampaignWithQuestionnaire;
-import fr.insee.genesis.controller.dto.QuestionnaireWithCampaign;
-import fr.insee.genesis.controller.dto.SurveyUnitDto;
-import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
-import fr.insee.genesis.controller.dto.SurveyUnitSimplifiedDto;
-import fr.insee.genesis.controller.dto.VariableDto;
-import fr.insee.genesis.controller.dto.VariableInputDto;
-import fr.insee.genesis.controller.dto.VariableStateDto;
-import fr.insee.genesis.domain.model.surveyunit.DataState;
-import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
-import fr.insee.genesis.domain.model.surveyunit.Mode;
-import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
-import fr.insee.genesis.domain.model.surveyunit.VarIdScopeTuple;
-import fr.insee.genesis.domain.model.surveyunit.VariableModel;
+import fr.insee.genesis.controller.dto.*;
+import fr.insee.genesis.domain.model.surveyunit.*;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
 import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
@@ -30,14 +18,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -398,9 +381,18 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     }
 
     @Override
-    public List<InterrogationId> findDistinctInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(String collectionInstrumentId, LocalDateTime start, LocalDateTime end) {
+    public List<InterrogationId> findDistinctInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
+            String collectionInstrumentId,
+            Instant start,
+            Instant end
+    ) {
+
         return surveyUnitPersistencePort
-                .findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(collectionInstrumentId,start,end)
+                .findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
+                        collectionInstrumentId,
+                        start,
+                        end
+                )
                 .stream()
                 .map(su -> new InterrogationId(su.getInterrogationId()))
                 .distinct()
@@ -494,6 +486,14 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     @Override
     public Long deleteByCollectionInstrumentId(String collectionInstrumentId) {
         return surveyUnitPersistencePort.deleteByCollectionInstrumentId(collectionInstrumentId);
+    }
+
+    @Override
+    public Long deleteByQuestionnaireIdAndInterrogationIds(
+            String questionnaireId,
+            Set<String> interrogationIds
+    ) {
+        return surveyUnitPersistencePort.deleteByQuestionnaireIdAndInterrogationIds(questionnaireId, interrogationIds);
     }
 
     @Override

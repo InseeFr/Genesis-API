@@ -14,12 +14,12 @@ import java.util.Set;
 public interface LunaticJsonRawDataPersistencePort {
 
     void save(LunaticJsonRawDataModel rawData);
-    List<LunaticJsonRawDataModel> findRawData(String campaignName, Mode mode, List<String> interrogationIdList);
     List<LunaticJsonRawDataModel> findRawDataByQuestionnaireId(String questionnaireId, Mode mode, List<String> interrogationIdList);
     Page<LunaticJsonRawDataModel> findRawDataByQuestionnaireId(String questionnaireId, Pageable pageable);
     List<LunaticJsonRawDataModel> findRawDataByInterrogationID(String interrogationId);
     List<LunaticJsonRawDataModel> getAllUnprocessedData();
     void updateProcessDates(String campaignId, Set<String> interrogationIds);
+
     Set<String> findDistinctQuestionnaireIds();
     Set<String> findDistinctQuestionnaireIdsByNullProcessDate();
     Set<Mode> findModesByQuestionnaire(String questionnaireId);
@@ -31,4 +31,5 @@ public interface LunaticJsonRawDataPersistencePort {
 
     boolean existsByInterrogationId(String interrogationId);
     long countDistinctInterrogationIdsByQuestionnaireId(String questionnaireId);
+
 }

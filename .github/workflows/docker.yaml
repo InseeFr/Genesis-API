@@ -3,7 +3,8 @@ name: Build snapshot docker image
 on:
   push:
     branches-ignore:
-      - main
+      - * # main
+      # turned off for now (needs secrets renewal)
 
 jobs:
   build-snapshot:
