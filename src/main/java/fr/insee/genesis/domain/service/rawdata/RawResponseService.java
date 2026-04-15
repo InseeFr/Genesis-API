@@ -229,7 +229,9 @@ public class  RawResponseService implements RawResponseApiPort {
                     questionnaireStateEnum = RawResponseDto.QuestionnaireStateEnum.valueOf(questionnaireStateString);
                 } catch (IllegalArgumentException iae){
                     log.warn("'{}' is not a valid questionnaire state according to filiere model", questionnaireStateString);
-                } catch (NullPointerException ignored){} //WARN already done in getStringFieldInPayload
+                } catch (NullPointerException ignored){
+                    //WARN already done in getStringFieldInPayload
+                }
                 LocalDateTime validationDate = getValidationDate(rawResponseModel);
                 String usualSurveyUnitId = getStringFieldInPayload(rawResponseModel,"usualSurveyUnitId");
                 String majorModelVersion = getStringFieldInPayload(rawResponseModel, "majorModelVersion");

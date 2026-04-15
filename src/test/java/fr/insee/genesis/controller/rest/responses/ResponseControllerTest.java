@@ -123,10 +123,6 @@ class ResponseControllerTest {
         }
     }
 
-    // -------------------------------------------------------------------------
-    // GET /responses/by-interrogation-and-collection-instrument
-    // -------------------------------------------------------------------------
-
     @Nested
     @DisplayName("GET /responses/by-interrogation-and-collection-instrument tests")
     class FindResponsesByInterrogationAndCollectionInstrumentTests {
@@ -160,10 +156,6 @@ class ResponseControllerTest {
                     .andExpect(content().string("[]"));
         }
     }
-
-    // -------------------------------------------------------------------------
-    // GET /responses/by-usual-survey-unit-and-collection-instrument
-    // -------------------------------------------------------------------------
 
     @Nested
     @DisplayName("GET /responses/by-usual-survey-unit-and-collection-instrument tests")
@@ -206,6 +198,12 @@ class ResponseControllerTest {
         }
 
         @Test
+        @DisplayName("Should also allow SCHEDULER role")
+        void findLatestStates_schedulerRole_shouldReturn200() throws Exception {
+            findLatestStates_reviewEnabled_shouldReturn200();
+        }
+
+        @Test
         @DisplayName("Should return 403 with 'Review is disabled' message when context is null")
         void findLatestStates_contextNull_shouldReturn403WithMessage() throws Exception {
             // GIVEN
@@ -234,28 +232,7 @@ class ResponseControllerTest {
                     .andExpect(status().isForbidden())
                     .andExpect(content().string(containsString("Review is disabled")));
         }
-
-        @Test
-        @DisplayName("Should also allow SCHEDULER role")
-        void findLatestStates_schedulerRole_shouldReturn200() throws Exception {
-            // GIVEN
-            DataProcessingContextModel ctx = new DataProcessingContextModel();
-            ctx.setWithReview(true);
-            when(contextService.getContext("INTERRO01")).thenReturn(ctx);
-            when(surveyUnitApiPort.findLatestValuesByStateByIdAndByCollectionInstrumentId("INTERRO01", "QUEST01"))
-                    .thenReturn(getSurveyUnitDto());
-
-            // WHEN / THEN
-            mockMvc.perform(get("/responses/by-interrogation-and-collection-instrument/latest-states")
-                            .param("interrogationId", "INTERRO01")
-                            .param("collectionInstrumentId", "QUEST01"))
-                    .andExpect(status().isOk());
-        }
     }
-
-    // -------------------------------------------------------------------------
-    // GET /responses/by-ue-and-questionnaire/latest-states (deprecated)
-    // -------------------------------------------------------------------------
 
     @Nested
     @DisplayName("GET /responses/by-ue-and-questionnaire/latest-states tests (deprecated)")
@@ -292,10 +269,6 @@ class ResponseControllerTest {
         }
     }
 
-    // -------------------------------------------------------------------------
-    // GET /responses/by-interrogation-and-collection-instrument/latest
-    // -------------------------------------------------------------------------
-
     @Nested
     @DisplayName("GET /responses/by-interrogation-and-collection-instrument/latest tests")
     class GetLatestByInterrogationAndCollectionInstrumentTests {
@@ -314,10 +287,6 @@ class ResponseControllerTest {
                     .andExpect(status().isOk());
         }
     }
-
-    // -------------------------------------------------------------------------
-    // GET /responses/simplified/by-interrogation-collection-instrument-and-mode/latest (deprecated)
-    // -------------------------------------------------------------------------
 
     @Nested
     @DisplayName("GET /responses/simplified/by-interrogation-collection-instrument-and-mode/latest tests")
@@ -359,10 +328,6 @@ class ResponseControllerTest {
         }
     }
 
-    // -------------------------------------------------------------------------
-    // GET /responses/{collectionInstrumentId}/{mode}/{interrogationId}
-    // -------------------------------------------------------------------------
-
     @Nested
     @DisplayName("GET /responses/{collectionInstrumentId}/{mode}/{interrogationId} tests")
     class GetResponseByCollectionInstrumentAndInterrogationTests {
@@ -396,10 +361,6 @@ class ResponseControllerTest {
                     "QUEST01", "INTERRO01", Mode.WEB);
         }
     }
-
-    // -------------------------------------------------------------------------
-    // POST /responses/simplified/by-list-interrogation-and-collection-instrument/latest (deprecated)
-    // -------------------------------------------------------------------------
 
     @Nested
     @DisplayName("POST /responses/simplified/by-list-interrogation-and-collection-instrument/latest tests")
@@ -451,10 +412,6 @@ class ResponseControllerTest {
         }
     }
 
-    // -------------------------------------------------------------------------
-    // POST /responses/{collectionInstrumentId}
-    // -------------------------------------------------------------------------
-
     @Nested
     @DisplayName("POST /responses/{collectionInstrumentId} tests")
     class GetResponseByCollectionInstrumentAndInterrogationListTests {
@@ -494,10 +451,6 @@ class ResponseControllerTest {
                     eq("QUEST01"), any());
         }
     }
-
-    // -------------------------------------------------------------------------
-    // POST /responses/save-edited
-    // -------------------------------------------------------------------------
 
     @Nested
     @DisplayName("POST /responses/save-edited tests")
@@ -620,10 +573,6 @@ class ResponseControllerTest {
                     .andExpect(content().string(containsString("Unprocessable entity")));
         }
     }
-
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
 
     private SurveyUnitModel buildSurveyUnitModel(String interrogationId,
                                                  String collectionInstrumentId,
