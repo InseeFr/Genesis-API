@@ -57,15 +57,6 @@ class DataProcessingContextControllerTest {
     }
 
     @Test
-    void getAllSchedulesTest() {
-        //When
-        ResponseEntity<Object> response = dataProcessingContextController.getAllSchedules();
-
-        //Then
-        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-    }
-
-    @Test
     void getAllSchedulesV2Test() {
         //When
         ResponseEntity<Object> response = dataProcessingContextController.getAllSchedulesV2();
@@ -77,22 +68,22 @@ class DataProcessingContextControllerTest {
     @Test
     void addScheduleWithoutEncryptionTest() throws GenesisException {
         //When
-        String partitionId = "TESTADDSURVEY";
+        String collectionInstrumentId = "TESTADDSURVEY";
         ServiceToCall serviceToCall = ServiceToCall.MAIN;
         String frequency = "0 0 6 * * *";
         LocalDateTime scheduleBeginDate = LocalDateTime.now();
         LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
 
-        dataProcessingContextController.saveSchedule(partitionId, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate,
+        dataProcessingContextController.saveScheduleWithCollectionInstrumentId(collectionInstrumentId, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate,
                 false, "TEST", "TEST", false);
 
         //Then
         Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub()).filteredOn(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getPartitionId().equals(partitionId)
+                dataProcessingContextDocument.getCollectionInstrumentId().equals(collectionInstrumentId)
         ).isNotEmpty();
 
         List<DataProcessingContextDocument> mongoStubFiltered = dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getPartitionId().equals(partitionId)).toList();
+                dataProcessingContextDocument.getCollectionInstrumentId().equals(collectionInstrumentId)).toList();
 
         DataProcessingContextDocument dataProcessingContextDocument = mongoStubFiltered.getFirst();
 
@@ -131,22 +122,22 @@ class DataProcessingContextControllerTest {
     @Test
     void addScheduleWithoutEncryptionTest_nullServiceToCall() throws GenesisException {
         //When
-        String partitionId = "TESTADDSURVEY";
+        String collectionInstrumentId = "TESTADDSURVEY";
         ServiceToCall serviceToCall = null;
         String frequency = "0 0 6 * * *";
         LocalDateTime scheduleBeginDate = LocalDateTime.now();
         LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
 
-        dataProcessingContextController.saveSchedule(partitionId, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate,
+        dataProcessingContextController.saveScheduleWithCollectionInstrumentId(collectionInstrumentId, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate,
                 false, "TEST", "TEST", false);
 
         //Then
         Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub()).filteredOn(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getPartitionId().equals(partitionId)
+                dataProcessingContextDocument.getCollectionInstrumentId().equals(collectionInstrumentId)
         ).isNotEmpty();
 
         List<DataProcessingContextDocument> mongoStubFiltered = dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getPartitionId().equals(partitionId)).toList();
+                dataProcessingContextDocument.getCollectionInstrumentId().equals(collectionInstrumentId)).toList();
 
         DataProcessingContextDocument dataProcessingContextDocument = mongoStubFiltered.getFirst();
 
@@ -187,26 +178,26 @@ class DataProcessingContextControllerTest {
     @Test
     void addScheduleWithEncryptionTest() throws GenesisException {
         //When
-        String partitionId = "TESTADDSURVEY";
+        String collectionInstrumentId = "TESTADDSURVEY";
         ServiceToCall serviceToCall = ServiceToCall.MAIN;
         String frequency = "0 0 6 * * *";
         LocalDateTime scheduleBeginDate = LocalDateTime.now();
         LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
 
 
-        dataProcessingContextController.saveSchedule(partitionId, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate, true,
+        dataProcessingContextController.saveScheduleWithCollectionInstrumentId(collectionInstrumentId, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate, true,
                 "testvault/testkey",
-                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("OUT_ENCRYPTED").resolve(partitionId).toString(),
+                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("OUT_ENCRYPTED").resolve(collectionInstrumentId).toString(),
                 false
         );
 
         //Then
         Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub()).filteredOn(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getPartitionId().equals(partitionId)
+                dataProcessingContextDocument.getCollectionInstrumentId().equals(collectionInstrumentId)
         ).isNotEmpty();
 
         List<DataProcessingContextDocument> mongoStubFiltered = dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getPartitionId().equals(partitionId)).toList();
+                dataProcessingContextDocument.getCollectionInstrumentId().equals(collectionInstrumentId)).toList();
 
         DataProcessingContextDocument dataProcessingContextDocument = mongoStubFiltered.getFirst();
 
@@ -263,23 +254,24 @@ class DataProcessingContextControllerTest {
     @Test
     void addAdditionnalScheduleTest() throws GenesisException {
         //When
-        String partitionId = "TESTSURVEY"; //Already exists in stub
+        String collectionInstrumentId = "TESTSURVEY"; //Already exists in stub
         ServiceToCall serviceToCall = ServiceToCall.MAIN;
         String frequency = "0 0 6 * * *";
         LocalDateTime scheduleBeginDate = LocalDateTime.now();
         LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
 
 
-        dataProcessingContextController.saveSchedule(partitionId, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate,
+        dataProcessingContextController.saveScheduleWithCollectionInstrumentId(collectionInstrumentId, serviceToCall, frequency, scheduleBeginDate,
+                scheduleEndDate,
                 false, "", "", false);
 
         //Then
         Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub()).filteredOn(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getPartitionId().equals(partitionId)
+                dataProcessingContextDocument.getCollectionInstrumentId().equals(collectionInstrumentId)
         ).isNotEmpty().hasSize(1);
 
         List<DataProcessingContextDocument> mongoStubFiltered = dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getPartitionId().equals(partitionId)).toList();
+                dataProcessingContextDocument.getCollectionInstrumentId().equals(collectionInstrumentId)).toList();
 
         DataProcessingContextDocument dataProcessingContextDocument = mongoStubFiltered.getFirst();
         Assertions.assertThat(dataProcessingContextDocument.getLastExecution()).isNull();
@@ -322,22 +314,22 @@ class DataProcessingContextControllerTest {
         addNewDocumentToStub();
 
         //When
-        String partitionId = "TESTSURVEY"; //Already exists in stub
+        String collectionInstrumentId = "TESTSURVEY"; //Already exists in stub
         ServiceToCall serviceToCall = ServiceToCall.MAIN;
         String frequency = "0 0 6 * * *";
         LocalDateTime scheduleBeginDate = LocalDateTime.now();
         LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
 
 
-        dataProcessingContextController.saveSchedule(partitionId, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate,
+        dataProcessingContextController.saveScheduleWithCollectionInstrumentId(collectionInstrumentId, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate,
                 false, "", "", false);
         //Then
         Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub()).filteredOn(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getPartitionId().equals(partitionId)
+                dataProcessingContextDocument.getCollectionInstrumentId().equals(collectionInstrumentId)
         ).isNotEmpty().hasSize(1);
 
         List<DataProcessingContextDocument> mongoStubFiltered = dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getPartitionId().equals(partitionId)).toList();
+                dataProcessingContextDocument.getCollectionInstrumentId().equals(collectionInstrumentId)).toList();
 
         DataProcessingContextDocument dataProcessingContextDocument = mongoStubFiltered.getFirst();
         Assertions.assertThat(dataProcessingContextDocument.getLastExecution()).isNull();
@@ -382,11 +374,11 @@ class DataProcessingContextControllerTest {
         addNewDocumentToStub();
 
         //When
-        dataProcessingContextController.setSurveyLastExecution("TESTSURVEY", LocalDateTime.now());
+        dataProcessingContextController.setSurveyLastExecutionByCollectionInstrumentId("TESTSURVEY", LocalDateTime.now());
 
         //Then
         List<DataProcessingContextDocument> mongoStubFiltered = dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getPartitionId().equals("TESTSURVEY")).toList();
+                dataProcessingContextDocument.getCollectionInstrumentId().equals("TESTSURVEY")).toList();
         Assertions.assertThat(mongoStubFiltered.getFirst().getLastExecution()).isNotNull();
     }
 
@@ -410,11 +402,11 @@ class DataProcessingContextControllerTest {
         addNewDocumentToStub();
 
         //When
-        dataProcessingContextController.setSurveyLastExecution("TESTSURVEY", null);
+        dataProcessingContextController.setSurveyLastExecutionByCollectionInstrumentId("TESTSURVEY", null);
 
         //Then
         List<DataProcessingContextDocument> mongoStubFiltered = dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getPartitionId().equals("TESTSURVEY")).toList();
+                dataProcessingContextDocument.getCollectionInstrumentId().equals("TESTSURVEY")).toList();
         Assertions.assertThat(mongoStubFiltered.getFirst().getLastExecution()).isNull();
     }
 
@@ -439,11 +431,11 @@ class DataProcessingContextControllerTest {
         addNewDocumentToStub();
 
         //When
-        dataProcessingContextController.setSurveyLastExecution("TESTSURVEY", date);
+        dataProcessingContextController.setSurveyLastExecutionByCollectionInstrumentId("TESTSURVEY", date);
 
         //Then
         List<DataProcessingContextDocument> mongoStubFiltered = dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getPartitionId().equals("TESTSURVEY")).toList();
+                dataProcessingContextDocument.getCollectionInstrumentId().equals("TESTSURVEY")).toList();
         Assertions.assertThat(mongoStubFiltered.getFirst().getLastExecution()).isEqualTo(date);
     }
 
@@ -464,15 +456,15 @@ class DataProcessingContextControllerTest {
 
     @Test
     void wrongFrequencyTest() {
-        String partitionId = "TESTSURVEY";
+        String collectionInstrumentId = "TESTSURVEY";
         ServiceToCall serviceToCall = ServiceToCall.MAIN;
         String frequency = "ERROR";
         LocalDateTime scheduleBeginDate = LocalDateTime.now();
         LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
 
         Assertions.assertThatThrownBy(() ->
-                        dataProcessingContextController.saveSchedule(
-                                partitionId,
+                        dataProcessingContextController.saveScheduleWithCollectionInstrumentId(
+                                collectionInstrumentId,
                                 serviceToCall,
                                 frequency,
                                 scheduleBeginDate,
@@ -557,8 +549,8 @@ class DataProcessingContextControllerTest {
         //Given
         DataProcessingContextModel dataProcessingContextModel = new DataProcessingContextModel(
                 null,
-                "TESTSURVEYADDED",
                 null,
+                "TESTSURVEYADDED",
                 null,
                 new ArrayList<>(),
                 false
@@ -587,10 +579,10 @@ class DataProcessingContextControllerTest {
         //Then
         //Expired schedule deleted
         Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub()).filteredOn(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getPartitionId().equals("TESTSURVEYADDED")
+                dataProcessingContextDocument.getCollectionInstrumentId().equals("TESTSURVEYADDED")
         ).isNotEmpty();
         Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getPartitionId().equals("TESTSURVEYADDED")).toList().getFirst().getKraftwerkExecutionScheduleList()
+                dataProcessingContextDocument.getCollectionInstrumentId().equals("TESTSURVEYADDED")).toList().getFirst().getKraftwerkExecutionScheduleList()
         ).isNotEmpty().hasSize(1);
 
         //Expired schedule to log json file
@@ -683,10 +675,10 @@ class DataProcessingContextControllerTest {
         //Then
         //Expired schedule deleted
         Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub()).filteredOn(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getPartitionId().equals("TESTSURVEYADDED")
+                dataProcessingContextDocument.getCollectionInstrumentId().equals("TESTSURVEYADDED")
         ).hasSize(1);
         Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getPartitionId().equals("TESTSURVEYADDED")).toList().getFirst().getKraftwerkExecutionScheduleList()
+                dataProcessingContextDocument.getCollectionInstrumentId().equals("TESTSURVEYADDED")).toList().getFirst().getKraftwerkExecutionScheduleList()
         ).isEmpty();
 
 
@@ -791,11 +783,11 @@ class DataProcessingContextControllerTest {
         //Then
         //Expired schedules deleted
         Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub()).filteredOn(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getPartitionId().equals("TESTSURVEYADDED2")
+                dataProcessingContextDocument.getCollectionInstrumentId().equals("TESTSURVEYADDED2")
         ).isNotEmpty();
         Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
                 dataProcessingContextDocument
-                        .getPartitionId().equals("TESTSURVEYADDED2")).toList().getFirst().getKraftwerkExecutionScheduleList()
+                        .getCollectionInstrumentId().equals("TESTSURVEYADDED2")).toList().getFirst().getKraftwerkExecutionScheduleList()
         ).isNotEmpty().hasSize(1);
 
         //Expired schedules to only one log json file
@@ -868,15 +860,15 @@ class DataProcessingContextControllerTest {
     @ValueSource(booleans = {false, true})
     void getReview_test(boolean withReview) throws GenesisException {
         //GIVEN
-        String partitionId = "TESTPARTITION";
+        String collectionInstrumentId = "TESTPARTITION";
         DataProcessingContextDocument doc = new DataProcessingContextDocument();
-        doc.setPartitionId("TESTPARTITION");
+        doc.setCollectionInstrumentId("TESTPARTITION");
         doc.setKraftwerkExecutionScheduleList(new ArrayList<>());
         doc.setWithReview(withReview);
         dataProcessingContextPersistancePortStub.getMongoStub().add(doc);
 
         //WHEN
-        ResponseEntity<Object> response = dataProcessingContextController.getReviewIndicator(partitionId);
+        ResponseEntity<Object> response = dataProcessingContextController.getReviewIndicatorByCollectionInstrumentId(collectionInstrumentId);
 
         //THEN
         Assertions.assertThat(response.getStatusCode().value()).isEqualTo(200);
@@ -907,7 +899,7 @@ class DataProcessingContextControllerTest {
     @Test
     void getReview_no_context_test() {
         Assertions.assertThatThrownBy(() ->
-                        dataProcessingContextController.getReviewIndicator("TESTPARTITIONIDNOCONTEXT")
+                        dataProcessingContextController.getReviewIndicatorByCollectionInstrumentId("TESTcollectionInstrumentIdNOCONTEXT")
                 )
                 .isInstanceOf(GenesisException.class)
                 .hasMessage("Data processing context not found");
@@ -917,7 +909,7 @@ class DataProcessingContextControllerTest {
     void getReview_no_context_test_collectionInstrumentId() {
         Assertions.assertThatThrownBy(() ->
                         dataProcessingContextController.getReviewIndicatorByCollectionInstrumentId(
-                                "TESTPARTITIONIDNOCONTEXT_CI"
+                                "TESTcollectionInstrumentIdNOCONTEXT_CI"
                         )
                 )
                 .isInstanceOf(GenesisException.class)
@@ -928,7 +920,7 @@ class DataProcessingContextControllerTest {
     //UTILITY
     private void addNewDocumentToStub() {
         DataProcessingContextDocument dataProcessingContextDocumentTest = new DataProcessingContextDocument();
-        dataProcessingContextDocumentTest.setPartitionId("TESTSURVEY");
+        dataProcessingContextDocumentTest.setCollectionInstrumentId("TESTSURVEY");
         dataProcessingContextDocumentTest.setKraftwerkExecutionScheduleList(new ArrayList<>());
         dataProcessingContextDocumentTest.setWithReview(false);
 

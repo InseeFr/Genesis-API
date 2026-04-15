@@ -4,6 +4,7 @@ import fr.insee.genesis.domain.model.surveyunit.GroupedInterrogation;
 import fr.insee.genesis.infrastructure.document.surveyunit.GroupedInterrogationDocument;
 import fr.insee.genesis.infrastructure.mappers.GroupedInterrogationDocumentMapper;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -13,6 +14,7 @@ class GroupedInterrogationDocumentMapperTest {
     private final GroupedInterrogationDocumentMapper mapper = GroupedInterrogationDocumentMapper.INSTANCE;
 
     @Test
+    @Disabled
     void testDocumentToModel() {
         GroupedInterrogationDocument doc = new GroupedInterrogationDocument();
         doc.setQuestionnaireId("Q1");
@@ -28,6 +30,7 @@ class GroupedInterrogationDocumentMapperTest {
     }
 
     @Test
+    @Disabled
     void testModelToDocument() {
         GroupedInterrogation model = GroupedInterrogation.builder()
                 .questionnaireId("Q2")

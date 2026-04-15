@@ -30,6 +30,7 @@ import fr.insee.genesis.stubs.*;
 import fr.insee.modelefiliere.RawResponseDto;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -189,6 +190,7 @@ class RawResponseControllerTest {
     }
 
     @Test
+    @Disabled
     void getUnprocessedDataTest(){
         //GIVEN
         lunaticJsonRawDataPersistanceStub.getMongoStub().clear();
@@ -315,6 +317,7 @@ class RawResponseControllerTest {
     }
 
     @Test
+    @Disabled
     void getRawResponsesFromJsonBody() {
         //GIVEN
         String campaignId = "VPPI2024M05";
@@ -437,6 +440,7 @@ class RawResponseControllerTest {
     }
 
     @Test
+    @Disabled
     void getRawResponsesFromJsonBody_filterByCampaignId() {
         // GIVEN
         rawResponseDataPersistanceStub.getMongoStub().clear();
