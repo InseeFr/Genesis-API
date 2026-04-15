@@ -4,7 +4,7 @@ ENV PATH_TO_JAR /opt/app/app.jar
 WORKDIR /opt/app/
 COPY ./target/*.jar $PATH_TO_JAR
 
-ENV JAVA_TOOL_OPTIONS_DEFAULT="-XX:MaxRAMPercentage=75"
+ENV JAVA_TOOL_OPTIONS_DEFAULT "-XX:MaxRAMPercentage=75"
 
 # Setup a non-root user context (security)
 RUN if ! getent passwd 1000 >/dev/null; then \
