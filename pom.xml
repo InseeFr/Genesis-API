@@ -16,13 +16,21 @@
 
     <properties>
         <java.version>25</java.version>
+
+        <!-- (!!!) Dependency versions temporary overwritten for security reasons -->
+        <tomcat.version>11.0.21</tomcat.version>
+        <commons-lang3.version>3.20.0</commons-lang3.version>
+        <junit-jupiter.version>5.13.4</junit-jupiter.version>
+
+        <!-- Dependency versions not managed by Spring -->
+        <bpm.version>1.1.2</bpm.version>
         <springdoc.version>2.8.17</springdoc.version>
         <mapstruct.version>1.6.3</mapstruct.version>
         <cucumber.version>7.34.3</cucumber.version>
-        <junit-jupiter.version>5.13.4</junit-jupiter.version>
-        <jackson-bom.version>2.21.1</jackson-bom.version>
+        <pitest.version>1.23.0</pitest.version>
+        <pitest.junit.version>1.2.3</pitest.junit.version>
 
-        <!-- Proprietes sonar -->
+        <!-- Sonar properties -->
         <jacoco.version>0.8.14</jacoco.version>
         <sonar.core.codeCoveragePlugin>jacoco</sonar.core.codeCoveragePlugin>
         <sonar.language>java</sonar.language>
@@ -33,11 +41,8 @@
             src/main/java/fr/insee/genesis/exceptions/*.java
         </sonar.exclusions>
         <skipSurefireReport>true</skipSurefireReport>
-        <!-- Pi Test-->
-        <pitest.version>1.23.0</pitest.version>
-        <pitest.junit.version>1.2.3</pitest.junit.version>
-        <bpm.version>1.1.2</bpm.version>
     </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
