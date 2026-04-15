@@ -19,6 +19,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -158,22 +159,6 @@ public class DataProcessingContextController {
 
         log.info("Returning {} V2 schedule documents...", schedules.size());
         return ResponseEntity.ok(schedules);
-    }
-
-    @Operation(summary = "Update the date of the last extraction of data corresponding to a collection instrument")
-    @PutMapping(path = "/contexts/{collectionInstrumentId}/lastExecutionDate")
-    @PreAuthorize("hasRole('SCHEDULER')")
-    public ResponseEntity<Object> setSurveyLastExecutionByCollectionInstrumentId(
-            @PathVariable("collectionInstrumentId") @RequestBody String collectionInstrumentId,
-            @Parameter(description = "Date to save as last execution date", example = "2024-01-01T12:00:00") @RequestParam("newDate") LocalDateTime newDate
-    ) {
-        try {
-            dataProcessingContextApiPort.updateLastExecutionDateByCollectionInstrumentId(collectionInstrumentId, newDate);
-            log.info("{} last execution updated at {} !", collectionInstrumentId, newDate);
-        }catch (GenesisException e){
-            return new ResponseEntity<>(e.getMessage(), HttpStatusCode.valueOf(e.getStatus()));
-        }
-        return ResponseEntity.ok().build(); 
     }
     
     @Operation(summary = "Fetch V2 schedules by collection instrument id")

@@ -240,20 +240,6 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
     }
 
     @Override
-    public List<ScheduleDto> getAllSchedules() {
-        List<ScheduleDto> scheduleDtos = new ArrayList<>();
-
-        List<DataProcessingContextModel> dataProcessingContextModels =
-                DataProcessingContextMapper.INSTANCE.listDocumentToListModel(dataProcessingContextPersistancePort.findAll());
-
-        dataProcessingContextModels.forEach(
-                model -> scheduleDtos.add(model.toScheduleDto())
-        );
-
-        return scheduleDtos;
-    }
-
-    @Override
     public List<ScheduleResponseDto> getAllSchedulesV2() {
         List<DataProcessingContextModel> dataProcessingContextModels =
                 DataProcessingContextMapper.INSTANCE.listDocumentToListModel(

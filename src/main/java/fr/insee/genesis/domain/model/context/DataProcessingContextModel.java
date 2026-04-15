@@ -49,7 +49,7 @@ public class DataProcessingContextModel {
                 .filter(schedule -> schedule != null && schedule.getScheduleUuid() != null)
                 .map(schedule -> ScheduleResponseDto.builder()
                         .scheduleUuid(schedule.getScheduleUuid())
-                        .collectionInstrumentId(getResolvedCollectionInstrumentId())
+                        .collectionInstrumentId(collectionInstrumentId)
                         .lastExecution(lastExecution)
                         .frequency(schedule.getFrequency())
                         .exportType(schedule.getExportType())
@@ -74,11 +74,5 @@ public class DataProcessingContextModel {
                         .build()
                 )
                 .toList();
-    }
-
-    public String getResolvedCollectionInstrumentId() {
-        return collectionInstrumentId != null && !collectionInstrumentId.isBlank()
-                ? collectionInstrumentId
-                : partitionId;
     }
 }
