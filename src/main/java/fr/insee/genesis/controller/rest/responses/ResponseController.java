@@ -644,7 +644,6 @@ public class ResponseController implements CommonApiResponse {
         return variablesMap;
     }
 
-    //
     private static VariablesMap getVariablesMapWithPath(String metadataFilePath) throws GenesisException {
         if(metadataFilePath.endsWith(".xml")) {
             //Parse DDI
