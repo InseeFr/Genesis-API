@@ -263,7 +263,7 @@ public class DataVerifier {
                 break;
             case INTEGER:
                 try{
-                    Integer.parseInt(value);
+                    Long.parseLong(value);
                 }catch (NumberFormatException e){
                     return true;
                 }

@@ -12,17 +12,24 @@ import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 
 public interface RawResponseApiPort {
 
     List<RawResponseModel> getRawResponses(String collectionInstrumentId, Mode mode, List<String> interrogationIdList);
     List<RawResponseModel> getRawResponsesByInterrogationID(String interrogationId);
-    DataProcessResult processRawResponses(String collectionInstrumentId, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException;
-    DataProcessResult processRawResponses(String collectionInstrumentId) throws GenesisException;
+    DataProcessResult processRawResponsesByInterrogationIds(String collectionInstrumentId, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException;
+    DataProcessResult processRawResponsesByInterrogationIds(String collectionInstrumentId) throws GenesisException;
+
     List<SurveyUnitModel> convertRawResponse(List<RawResponseModel> rawResponses, VariablesMap variablesMap);
     List<String> getUnprocessedCollectionInstrumentIds();
     void updateProcessDates(List<SurveyUnitModel> surveyUnitModels);
     Page<RawResponseModel> findRawResponseDataByCampaignIdAndDate(String campaignId, Instant startDate, Instant endDate, Pageable pageable);
-    Page<RawResponseModel> findRawResponseDataByCollectionInstrumentId(String collectionInstrumentId, Pageable pageable);
+    long countDistinctInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId);
 
+    long countByCollectionInstrumentId(String collectionInstrumentId);
+
+    Set<String> getDistinctCollectionInstrumentIds();
+    Page<RawResponseModel> findRawResponseDataByCollectionInstrumentId(String collectionInstrumentId, Pageable pageable);
+    boolean existsByInterrogationId(String interrogationId);
 }

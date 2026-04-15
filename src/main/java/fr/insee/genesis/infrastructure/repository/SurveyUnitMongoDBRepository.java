@@ -7,6 +7,7 @@ import org.springframework.data.mongodb.repository.Query;
 import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
@@ -19,6 +20,9 @@ public interface SurveyUnitMongoDBRepository extends MongoRepository<SurveyUnitD
 
 	List<SurveyUnitDocument> findByInterrogationIdAndQuestionnaireId(String interrogationId, String questionnaireId);
 	List<SurveyUnitDocument> findByInterrogationIdAndCollectionInstrumentId(String interrogationId, String collectionInstrumentId);
+
+	List<SurveyUnitDocument> findByUsualSurveyUnitIdAndCollectionInstrumentId(String usualSurveyUnitId, String collectionInstrumentId);
+	List<SurveyUnitDocument> findByUsualSurveyUnitIdAndQuestionnaireId(String usualSurveyUnitId, String questionnaireId);
 
 	//========= OPTIMISATIONS PERFS (START) ==========
 	/**
@@ -40,13 +44,34 @@ public interface SurveyUnitMongoDBRepository extends MongoRepository<SurveyUnitD
 	@Query(value = "{ 'collectionInstrumentId' : ?0, 'recordDate': { $gte: ?1 } }", fields = "{ 'interrogationId' : 1, 'mode' :  1 }")
 	List<SurveyUnitDocument> findInterrogationIdsByCollectionInstrumentIdAndDateAfter(String collectionInstrumentId, LocalDateTime since);
 
-	//========= OPTIMISATIONS PERFS (START) ==========
-	/**
+    @Query(
+            value = "{ 'collectionInstrumentId' : ?0, 'recordDate': { $gte: ?1, $lt: ?2 } }",
+            fields = "{ 'interrogationId' : 1, 'mode' : 1 }"
+    )
+    List<SurveyUnitDocument> findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
+            String collectionInstrumentId,
+            Instant start,
+            Instant end
+    );
+
+    @Query(
+            value = "{ 'questionnaireId' : ?0, 'recordDate': { $gte: ?1, $lt: ?2 } }",
+            fields = "{ 'interrogationId' : 1, 'mode' : 1 }"
+    )
+    List<SurveyUnitDocument> findInterrogationIdsQuestionnaireIdAndRecordDateBetween(
+            String questionnaireId,
+            Instant start,
+            Instant end
+    );
+
+    /**
 	 * @author Adrien Marchal
 	 */
-	@Query(value = "{ 'questionnaireId' : ?0}", count = true)
-	long countInterrogationIdsByQuestionnaireId(String questionnaireId);
+	@Query(value = "{ 'questionnaireId' : ?0 }", count = true)
+	long countByQuestionnaireId(String questionnaireId);
 
+	@Query(value = "{ 'collectionInstrumentId' : ?0 }", count = true)
+	long countByCollectionInstrumentId(String collectionInstrumentId);
 
 	/**
 	 * @author Adrien Marchal
@@ -72,13 +97,22 @@ public interface SurveyUnitMongoDBRepository extends MongoRepository<SurveyUnitD
 			"{ '$set': { 'mode': '$_id', '_id': '$$REMOVE' } }"
 	})
 	List<SurveyUnitDocument> findModesByQuestionnaireIdV2(String campaignId);
-	//========= OPTIMISATIONS PERFS (END) ==========
 
 	@Query(value = "{ 'campaignId' : ?0 }", fields = "{ 'interrogationId' : 1, 'mode' :  1 }")
 	List<SurveyUnitDocument> findInterrogationIdsByCampaignId(String campaignId);
 
 	Long deleteByQuestionnaireId(String questionnaireId);
 	Long deleteByCollectionInstrumentId(String collectionInstrumentId);
+
+    Long deleteByCollectionInstrumentIdAndInterrogationIdIn(
+            String collectionInstrumentId,
+            Set<String> interrogationIds
+    );
+
+    Long deleteByQuestionnaireIdAndInterrogationIdIn(
+            String questionnaireId,
+            Set<String> interrogationIds
+    );
 
 	@Meta(cursorBatchSize = 20)
 	Stream<SurveyUnitDocument> findByQuestionnaireId(String questionnaireId);
@@ -105,4 +139,19 @@ public interface SurveyUnitMongoDBRepository extends MongoRepository<SurveyUnitD
 
 	@Query(value = "{ 'questionnaireId' : ?0 }", fields = "{ _id : 0, 'campaignId' : 1 }")
 	Set<String> findCampaignIdsByQuestionnaireId(String questionnaireId);
+
+
+    @Aggregation(pipeline = {
+            "{ '$match': { 'questionnaireId': ?0 } }",
+            "{ '$group': { '_id': '$interrogationId' } }",
+            "{ '$count': 'count' }"
+    })
+    Long countDistinctInterrogationIdsByQuestionnaireId(String questionnaireId);
+
+    @Aggregation(pipeline = {
+            "{ '$match': { 'collectionInstrumentId': ?0 } }",
+            "{ '$group': { '_id': '$interrogationId' } }",
+            "{ '$count': 'count' }"
+    })
+    Long countDistinctInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId);
 }

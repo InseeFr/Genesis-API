@@ -83,9 +83,30 @@ public class RawResponseMongoAdapter implements RawResponsePersistencePort {
     }
 
     @Override
+    public long countByCollectionInstrumentId(String collectionInstrumentId) {
+        return repository.countByCollectionInstrumentId(collectionInstrumentId);
+    }
+
+    @Override
+    public Set<String> findDistinctCollectionInstrumentIds() {
+        return new HashSet<>(repository.findDistinctCollectionInstrumentId());
+    }
+
+    @Override
+    public long countDistinctInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId) {
+        Long count = repository.countDistinctInterrogationIdsByCollectionInstrumentId(collectionInstrumentId);
+        return count != null ? count : 0;
+    }
+
+    @Override
     public Page<RawResponseModel> findByCollectionInstrumentId(String collectionInstrumentId, Pageable pageable) {
         Page<RawResponseDocument> rawDataDocs = repository.findByCollectionInstrumentId(collectionInstrumentId, pageable);
         List<RawResponseModel> modelList = RawResponseDocumentMapper.INSTANCE.listDocumentToListModel(rawDataDocs.getContent());
         return new PageImpl<>(modelList, rawDataDocs.getPageable(), rawDataDocs.getTotalElements());
+    }
+
+    @Override
+    public boolean existsByInterrogationId(String interrogationId) {
+        return repository.existsByInterrogationId(interrogationId);
     }
 }

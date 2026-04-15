@@ -19,10 +19,13 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+
+import static fr.insee.genesis.TestConstants.DEFAULT_INTERROGATION_ID;
 
 @Getter
 public class LunaticJsonRawDataPersistanceStub implements LunaticJsonRawDataPersistencePort {
@@ -66,23 +69,19 @@ public class LunaticJsonRawDataPersistanceStub implements LunaticJsonRawDataPers
     }
 
     @Override
-    public List<LunaticJsonRawDataModel> findRawData(String campaignName, Mode mode, List<String> interrogationIdList) {
+    public List<LunaticJsonRawDataModel> findRawDataByQuestionnaireId(String questionnaireId, Mode mode, List<String> interrogationIdList) {
         List<LunaticJsonRawDataDocument> docs = mongoStub.stream().filter(lunaticJsonRawDataDocument ->
-                lunaticJsonRawDataDocument.campaignId().equals(campaignName)
-                        && lunaticJsonRawDataDocument.mode().equals(mode)
-                        && interrogationIdList.contains(lunaticJsonRawDataDocument.interrogationId())
+                    getQuestionnaireId(lunaticJsonRawDataDocument).equals(questionnaireId)
+                            && lunaticJsonRawDataDocument.mode().equals(mode)
+                            && interrogationIdList.contains(lunaticJsonRawDataDocument.interrogationId())
         ).toList();
         return LunaticJsonRawDataDocumentMapper.INSTANCE.listDocumentToListModel(docs);
     }
-
-    @Override
-    public List<LunaticJsonRawDataModel> findRawDataByQuestionnaireId(String questionnaireId, Mode mode, List<String> interrogationIdList) {
-        List<LunaticJsonRawDataDocument> docs = mongoStub.stream().filter(lunaticJsonRawDataDocument ->
-                lunaticJsonRawDataDocument.questionnaireId().equals(questionnaireId)
-                        && lunaticJsonRawDataDocument.mode().equals(mode)
-                        && interrogationIdList.contains(lunaticJsonRawDataDocument.interrogationId())
-        ).toList();
-        return LunaticJsonRawDataDocumentMapper.INSTANCE.listDocumentToListModel(docs);    }
+    /** 'questionnaireId' is the new name of the 'campaignId' property. */
+    private static String getQuestionnaireId(LunaticJsonRawDataDocument lunaticJsonRawDataDocument) {
+        return lunaticJsonRawDataDocument.questionnaireId() !=  null ?
+                lunaticJsonRawDataDocument.questionnaireId() : lunaticJsonRawDataDocument.campaignId();
+    }
 
     @Override
     public Page<LunaticJsonRawDataModel> findRawDataByQuestionnaireId(String questionnaireId, Pageable pageable) {
@@ -147,7 +146,7 @@ public class LunaticJsonRawDataPersistanceStub implements LunaticJsonRawDataPers
     }
 
     @Override
-    public long countResponsesByQuestionnaireId(String questionnaireId) {
+    public long countRawResponsesByQuestionnaireId(String questionnaireId) {
         return mongoStub.size();
     }
 
@@ -229,8 +228,19 @@ public class LunaticJsonRawDataPersistanceStub implements LunaticJsonRawDataPers
                        lunaticJsonDataDocument -> lunaticJsonDataDocument.processDate() == null
                        && lunaticJsonDataDocument.questionnaireId().equals(collectionInstrumentId)
                ).toList();
-       Set<String> interrogationIds = new HashSet<>();
+       Set<String> interrogationIds = new LinkedHashSet<>();
        unprocessedDocuments.forEach(doc -> interrogationIds.add(doc.interrogationId()));
        return interrogationIds;
     }
+
+    @Override
+    public boolean existsByInterrogationId(String interrogationId) {
+        return DEFAULT_INTERROGATION_ID.equals(interrogationId);
+    }
+
+    @Override
+    public long countDistinctInterrogationIdsByQuestionnaireId(String questionnaireId) {
+        return 0;
+    }
+
 }

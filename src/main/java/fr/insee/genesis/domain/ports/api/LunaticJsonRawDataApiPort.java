@@ -11,8 +11,8 @@ import fr.insee.genesis.exceptions.GenesisException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import java.time.LocalDateTime;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -20,24 +20,29 @@ import java.util.Set;
 public interface LunaticJsonRawDataApiPort {
 
     void save(LunaticJsonRawDataModel rawData);
-    List<LunaticJsonRawDataModel> getRawData(String campaignName, Mode mode, List<String> interrogationIdList);
     List<LunaticJsonRawDataModel> getRawDataByQuestionnaireId(String questionnaireId, Mode mode, List<String> interrogationIdList);
     List<SurveyUnitModel> convertRawData(List<LunaticJsonRawDataModel> rawData, VariablesMap variablesMap);
+
     List<LunaticJsonRawDataUnprocessedDto> getUnprocessedDataIds();
     Set<String> getUnprocessedDataQuestionnaireIds();
     void updateProcessDates(List<SurveyUnitModel> surveyUnitModels);
     Set<String> findDistinctQuestionnaireIds();
-    long countResponsesByQuestionnaireId(String campaignId);
+    long countRawResponsesByQuestionnaireId(String campaignId);
+    long countDistinctInterrogationIdsByQuestionnaireId(String questionnaireId);
     Page<LunaticJsonRawDataModel> findRawDataByCampaignIdAndDate(String campaignId, Instant  startDt, Instant endDt, Pageable pageable);
 
     List<LunaticJsonRawDataModel> getRawDataByInterrogationId(String interrogationId);
 
-    @Deprecated(since = "1.13.0")
-    DataProcessResult processRawData(String campaignName, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException;
+    /**
+     * @deprecated Use the method with 'collectionInstrumentId' instead.
+     */
+    DataProcessResult processRawDataByInterrogationIds(String campaignName, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException;
 
     DataProcessResult processRawData(String collectionInstrumentId) throws GenesisException;
 
     Map<String, List<String>> findProcessedIdsgroupedByQuestionnaireSince(LocalDateTime since);
 
     Page<LunaticJsonRawDataModel> findRawDataByQuestionnaireId(String questionnaireId, Pageable pageable);
+
+    boolean existsByInterrogationId(String interrogationId);
 }

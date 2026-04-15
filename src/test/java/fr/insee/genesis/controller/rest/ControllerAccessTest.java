@@ -40,8 +40,6 @@ import java.util.HashMap;
 import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.oneOf;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doNothing;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpMethod.PUT;
@@ -110,7 +108,7 @@ class ControllerAccessTest {
                 Arguments.of("/questionnaires/with-campaigns"),
                 Arguments.of("/questionnaires/by-campaign?campaignId=CAMPAIGNTEST"),
                 Arguments.of("/questionnaires/"),
-                Arguments.of("/modes/by-questionnaire?questionnaireId=QUESTTEST"),
+                Arguments.of("/modes/by-questionnaire?collectionInstrumentId=QUESTTEST"),
                 Arguments.of("/modes/by-campaign?campaignId=CAMPAIGNTEST"),
                 Arguments.of("/interrogations/by-questionnaire?questionnaireId=QUESTTEST"),
                 Arguments.of("/campaigns/with-questionnaires"),
@@ -260,21 +258,6 @@ class ControllerAccessTest {
     /**
      * Test that reader can not access other schedule endpoints.
      */
-    @Test
-    @DisplayName("Reader should not access other schedule endpoints")
-    void reader_should_not_access_other_schedules_services() throws Exception {
-        doNothing().when(dataProcessingContextApiPort).deleteSchedules(anyString());
-        mockMvc.perform(
-                        delete("/context/schedules?partitionId=ENQ_TEST").with(
-                                jwt().authorities(new SimpleGrantedAuthority("ROLE_READER")))
-                )
-                .andExpect(status().isForbidden());
-    }
-
-
-    /**
-     * Test that reader can not access other schedule endpoints.
-     */
     @ParameterizedTest
     @MethodSource("responseEndpoint")
     @DisplayName("Reader should not access /responses endpoints")
@@ -323,16 +306,5 @@ class ControllerAccessTest {
         mockMvc.perform(get("/context/schedules/all").with(
                 jwt().authorities(new SimpleGrantedAuthority("ROLE_ADMIN"))))
                 .andExpect(status().is(oneOf(200, 404)));
-    }
-
-    /**
-     * Test that invalid roles can't access the schedule endpoints.
-     */
-    @Test
-    @DisplayName("Invalid roles should not access schedules service")
-    void invalid_roles_should_access_schedules_services() throws Exception {
-        mockMvc.perform(get("/context/schedules").with(
-                jwt().authorities(new SimpleGrantedAuthority("ROLE_invalid"))))
-                .andExpect(status().isForbidden());
     }
 }

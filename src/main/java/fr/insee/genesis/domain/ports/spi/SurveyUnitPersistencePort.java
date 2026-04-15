@@ -2,6 +2,7 @@ package fr.insee.genesis.domain.ports.spi;
 
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
@@ -11,7 +12,9 @@ public interface SurveyUnitPersistencePort {
 
     void saveAll(List<SurveyUnitModel> suList);
 
-    List<SurveyUnitModel> findByIds(String interrogationId, String questionnaireId);
+    List<SurveyUnitModel> findByIds(String interrogationId, String collectionInstrumentId);
+
+    List<SurveyUnitModel> findByUsualSurveyUnitAndCollectionInstrumentIds(String usualSurveyUnitId, String collectionInstrumentId);
 
     //========= OPTIMISATIONS PERFS (START) ==========
     /**
@@ -30,8 +33,14 @@ public interface SurveyUnitPersistencePort {
 
     List<SurveyUnitModel> findInterrogationIdsByQuestionnaireIdAndDateAfter(String questionnaireId, LocalDateTime since);
 
+    List<SurveyUnitModel> findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
+            String collectionInstrumentId,
+            Instant start,
+            Instant end
+    );
+
     //======== OPTIMISATIONS PERFS (START) ========
-    long countInterrogationIdsByQuestionnaireId(String questionnaireId);
+    long countByCollectionInstrumentId(String collectionInstrumentId);
 
     List<SurveyUnitModel> findPageableInterrogationIdsByQuestionnaireId(String questionnaireId, Long skip, Long limit);
 
@@ -43,6 +52,16 @@ public interface SurveyUnitPersistencePort {
     List<SurveyUnitModel> findInterrogationIdsByCampaignId(String campaignId);
 
     Long deleteByCollectionInstrumentId(String collectionInstrumentId);
+
+    Long deleteByCollectionInstrumentIdAndInterrogationIds(
+            String collectionInstrumentId,
+            Set<String> interrogationIds
+    );
+
+    Long deleteByQuestionnaireIdAndInterrogationIds(
+            String questionnaireId,
+            Set<String> interrogationIds
+    );
 
     long count();
 
@@ -59,7 +78,11 @@ public interface SurveyUnitPersistencePort {
 
     long countByCampaignId(String campaignId);
 
-    Set<String> findDistinctQuestionnaireIds();
+    Set<String> findDistinctQuestionnairesAndCollectionInstrumentIds();
 
     Set<String> findCampaignIdsByQuestionnaireId(String questionnaireId);
+
+    long countByQuestionnaireId(String questionnaireId);
+
+    long countDistinctInterrogationIdsByQuestionnaireAndCollectionInstrumentId(String id);
 }

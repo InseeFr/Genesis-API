@@ -13,8 +13,11 @@ import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import static fr.insee.genesis.TestConstants.DEFAULT_INTERROGATION_ID;
 
 @Getter
 public class RawResponseDataPersistanceStub implements RawResponsePersistencePort {
@@ -40,6 +43,7 @@ public class RawResponseDataPersistanceStub implements RawResponsePersistencePor
     public void updateProcessDates(String collectionInstrumentId, Set<String> interrogationIds) {
         return;
     }
+
 
     @Override
     public List<String> getUnprocessedCollectionIds() {
@@ -86,5 +90,24 @@ public class RawResponseDataPersistanceStub implements RawResponsePersistencePor
     @Override
     public Page<RawResponseModel> findByCollectionInstrumentId(String collectionInstrumentId, Pageable pageable) {
         return null;
+    }
+
+    @Override
+    public long countByCollectionInstrumentId(String collectionInstrumentId) {
+        return 0;
+    }
+    @Override
+    public Set<String> findDistinctCollectionInstrumentIds() {
+        return new HashSet<>();
+    }
+
+    @Override
+    public boolean existsByInterrogationId(String interrogationId) {
+        return DEFAULT_INTERROGATION_ID.equals(interrogationId);
+    }
+
+    @Override
+    public long countDistinctInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId) {
+        return 0;
     }
 }

@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -56,8 +57,16 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 		return results.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(results);
 	}
 
+    @Override
+    public List<SurveyUnitModel> findByUsualSurveyUnitAndCollectionInstrumentIds(String usualSurveyUnitId, String collectionInstrumentId) {
+        List<SurveyUnitDocument> results = new ArrayList<>();
+        results.addAll(mongoRepository.findByUsualSurveyUnitIdAndCollectionInstrumentId(usualSurveyUnitId, collectionInstrumentId));
+        // To ensure compatibility with older documents (with questionnaireId instead of collectionInstrumentId)
+        results.addAll(mongoRepository.findByUsualSurveyUnitIdAndQuestionnaireId(usualSurveyUnitId, collectionInstrumentId));
+        return results.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(results);    }
 
-	//========= OPTIMISATIONS PERFS (START) ==========
+
+    //========= OPTIMISATIONS PERFS (START) ==========
 	/**
 	 * @author Adrien Marchal
 	 */
@@ -98,6 +107,28 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 		countDeleted += mongoRepository.deleteByQuestionnaireId(collectionInstrumentId);
 		return countDeleted;
 	}
+
+    @Override
+    public Long deleteByCollectionInstrumentIdAndInterrogationIds(
+            String collectionInstrumentId,
+            Set<String> interrogationIds
+    ) {
+        return mongoRepository.deleteByCollectionInstrumentIdAndInterrogationIdIn(
+                collectionInstrumentId,
+                interrogationIds
+        );
+    }
+
+    @Override
+    public Long deleteByQuestionnaireIdAndInterrogationIds(
+            String questionnaireId,
+            Set<String> interrogationIds
+    ) {
+        return mongoRepository.deleteByQuestionnaireIdAndInterrogationIdIn(
+                questionnaireId,
+                interrogationIds
+        );
+    }
 
 	@Override
 	public long count() {
@@ -167,10 +198,18 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 		return results.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(results);
 	}
 
-	//========== OPTIMISATIONS PERFS (START) ===========
+    @Override
+    public List<SurveyUnitModel> findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(String collectionInstrumentId, Instant start, Instant end) {
+        List<SurveyUnitDocument> results =  new ArrayList<>();
+        results.addAll(mongoRepository.findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(collectionInstrumentId,start,end));
+        results.addAll(mongoRepository.findInterrogationIdsQuestionnaireIdAndRecordDateBetween(collectionInstrumentId,start,end));
+        return results.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(results);
+    }
+
+    //========== OPTIMISATIONS PERFS (START) ===========
 	@Override
-	public long countInterrogationIdsByQuestionnaireId(String questionnaireId) {
-		return mongoRepository.countInterrogationIdsByQuestionnaireId(questionnaireId);
+	public long countByCollectionInstrumentId(String collectionInstrumentId) {
+		return mongoRepository.countByCollectionInstrumentId(collectionInstrumentId);
 	}
 
 	@Override
@@ -205,7 +244,7 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 	}
 
 	@Override
-	public Set<String> findDistinctQuestionnaireIds() {
+	public Set<String> findDistinctQuestionnairesAndCollectionInstrumentIds() {
 		Set<String> questionnaireIds = new HashSet<>();
 		// Id selection is executed by mongoDB
 		MongoCollection<Document> collection = mongoTemplate.getCollection(Constants.MONGODB_RESPONSE_COLLECTION_NAME);
@@ -234,4 +273,22 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 
 		return campaignIds;
 	}
+
+	@Override
+	public long countByQuestionnaireId(String questionnaireId) {
+		return mongoRepository.countByQuestionnaireId(questionnaireId);
+	}
+
+    @Override
+    public long countDistinctInterrogationIdsByQuestionnaireAndCollectionInstrumentId(String id) {
+        Set<String> distinct = new HashSet<>();
+
+        mongoRepository.findInterrogationIdsByQuestionnaireId(id)
+                .forEach(d -> distinct.add(d.getInterrogationId()));
+
+        mongoRepository.findInterrogationIdsByCollectionInstrumentId(id)
+                .forEach(d -> distinct.add(d.getInterrogationId()));
+
+        return distinct.size();
+    }
 }

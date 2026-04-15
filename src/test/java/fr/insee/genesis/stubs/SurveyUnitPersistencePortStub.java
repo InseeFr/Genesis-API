@@ -4,7 +4,9 @@ import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
 import lombok.Getter;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -25,6 +27,17 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
         List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
         for(SurveyUnitModel SurveyUnitModel : mongoStub){
             if(SurveyUnitModel.getInterrogationId().equals(interrogationId) && SurveyUnitModel.getCollectionInstrumentId().equals(collectionInstrumentId))
+                surveyUnitModelList.add(SurveyUnitModel);
+        }
+
+        return surveyUnitModelList;
+    }
+
+    @Override
+    public List<SurveyUnitModel> findByUsualSurveyUnitAndCollectionInstrumentIds(String usualSurveyUnitId, String collectionInstrumentId) {
+        List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
+        for(SurveyUnitModel SurveyUnitModel : mongoStub){
+            if(SurveyUnitModel.getUsualSurveyUnitId().equals(usualSurveyUnitId) && SurveyUnitModel.getCollectionInstrumentId().equals(collectionInstrumentId))
                 surveyUnitModelList.add(SurveyUnitModel);
         }
 
@@ -123,18 +136,48 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
         return surveyUnitModelList;
     }
 
+    @Override
+    public List<SurveyUnitModel> findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
+            String collectionInstrumentId,
+            Instant start,
+            Instant end
+    ) {
+        List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
+        ZoneId zone = ZoneId.of("Europe/Paris");
+
+        for (SurveyUnitModel surveyUnitModel : mongoStub) {
+            Instant recordDateInstant = surveyUnitModel.getRecordDate()
+                    .atZone(zone)
+                    .toInstant();
+
+            if (surveyUnitModel.getCollectionInstrumentId().equals(collectionInstrumentId)
+                    && !recordDateInstant.isBefore(start)
+                    && recordDateInstant.isBefore(end)) {
+                surveyUnitModelList.add(
+                        new SurveyUnitModel(surveyUnitModel.getInterrogationId(), surveyUnitModel.getMode())
+                );
+            }
+        }
+
+        return surveyUnitModelList;
+    }
+
 
     //======== OPTIMISATIONS PERFS (START) ========
     /**
      * @author Adrien Marchal
      */
-    public long countInterrogationIdsByQuestionnaireId(String questionnaireId) {
-        return mongoStub.size();
+    @Override
+    public long countByCollectionInstrumentId(String collectionInstrumentId) {
+        return mongoStub.stream().filter(
+                surveyUnitModel -> surveyUnitModel.getCollectionInstrumentId().equals(collectionInstrumentId)
+        ).count();
     }
 
     /**
      * @author Adrien Marchal
      */
+    @Override
     public List<SurveyUnitModel> findPageableInterrogationIdsByQuestionnaireId(String questionnaireId, Long skip, Long limit) {
         return List.of();
     }
@@ -144,6 +187,16 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     @Override
     public Long deleteByCollectionInstrumentId(String collectionInstrumentId) {
         return (long) mongoStub.stream().filter(su -> !su.getCollectionInstrumentId().equals(collectionInstrumentId)).toList().size();
+    }
+
+    @Override
+    public Long deleteByCollectionInstrumentIdAndInterrogationIds(String collectionInstrumentId, Set<String> interrogationIds) {
+        return 0L;
+    }
+
+    @Override
+    public Long deleteByQuestionnaireIdAndInterrogationIds(String questionnaireId, Set<String> interrogationIds) {
+        return 0L;
     }
 
     @Override
@@ -186,7 +239,7 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     }
 
     @Override
-    public Set<String> findDistinctQuestionnaireIds() {
+    public Set<String> findDistinctQuestionnairesAndCollectionInstrumentIds() {
         Set<String> questionnaireIds = new HashSet<>();
         for(SurveyUnitModel SurveyUnitModel : mongoStub){
             questionnaireIds.add(SurveyUnitModel.getCollectionInstrumentId());
@@ -203,5 +256,15 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
         }
 
         return campaignIdSet;
+    }
+
+    @Override
+    public long countByQuestionnaireId(String questionnaireId) {
+        return 0;
+    }
+
+    @Override
+    public long countDistinctInterrogationIdsByQuestionnaireAndCollectionInstrumentId(String id) {
+        return 0;
     }
 }

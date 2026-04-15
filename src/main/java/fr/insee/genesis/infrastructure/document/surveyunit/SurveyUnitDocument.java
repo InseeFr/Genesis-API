@@ -55,7 +55,7 @@ public class SurveyUnitDocument {
 	private List<VariableDocument> collectedVariables;
 	private List<VariableDocument> externalVariables;
 	private String modifiedBy;
-
+    private Boolean isCapturedIndirectly;
 	private LocalDateTime validationDate;
 	private RawResponseDto.QuestionnaireStateEnum questionnaireState;
 }

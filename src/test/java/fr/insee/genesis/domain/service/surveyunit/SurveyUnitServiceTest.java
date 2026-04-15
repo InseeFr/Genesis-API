@@ -18,6 +18,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.ArrayList;
@@ -25,6 +26,7 @@ import java.util.List;
 
 import static fr.insee.genesis.TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID;
 import static fr.insee.genesis.TestConstants.DEFAULT_INTERROGATION_ID;
+import static fr.insee.genesis.TestConstants.DEFAULT_SURVEY_UNIT_ID;
 
 class SurveyUnitServiceTest {
     
@@ -80,6 +82,7 @@ class SurveyUnitServiceTest {
         surveyUnitPersistencePortStub.getMongoStub().add(SurveyUnitModel.builder()
                 .campaignId("TEST-TABLEAUX")
                 .mode(Mode.WEB)
+                .usualSurveyUnitId(DEFAULT_SURVEY_UNIT_ID)
                 .interrogationId(DEFAULT_INTERROGATION_ID)
                 .collectionInstrumentId(DEFAULT_COLLECTION_INSTRUMENT_ID)
                 .state(DataState.COLLECTED)
@@ -133,6 +136,7 @@ class SurveyUnitServiceTest {
                 SurveyUnitModel.builder()
                         .campaignId("TEST-TABLEAUX")
                         .mode(Mode.WEB)
+                        .usualSurveyUnitId(DEFAULT_SURVEY_UNIT_ID)
                         .interrogationId("TESTINTERROGATIONID2")
                         .collectionInstrumentId(DEFAULT_COLLECTION_INSTRUMENT_ID)
                         .state(DataState.COLLECTED)
@@ -171,6 +175,15 @@ class SurveyUnitServiceTest {
         Assertions.assertThat(surveyUnitServiceStatic.findByIdsInterrogationAndCollectionInstrument(DEFAULT_INTERROGATION_ID, DEFAULT_COLLECTION_INSTRUMENT_ID)).filteredOn(
                 surveyUnitModel ->
                         surveyUnitModel.getInterrogationId().equals(DEFAULT_INTERROGATION_ID)
+                        && surveyUnitModel.getCollectionInstrumentId().equals(DEFAULT_COLLECTION_INSTRUMENT_ID)
+        ).isNotEmpty();
+    }
+
+   @Test
+    void findByIdsUsualSurveyUnitAndCollectionInstrumentTest(){
+        Assertions.assertThat(surveyUnitServiceStatic.findByIdsUsualSurveyUnitAndCollectionInstrument(DEFAULT_SURVEY_UNIT_ID, DEFAULT_COLLECTION_INSTRUMENT_ID)).filteredOn(
+                surveyUnitModel ->
+                        surveyUnitModel.getUsualSurveyUnitId().equals(DEFAULT_SURVEY_UNIT_ID)
                         && surveyUnitModel.getCollectionInstrumentId().equals(DEFAULT_COLLECTION_INSTRUMENT_ID)
         ).isNotEmpty();
     }
@@ -252,6 +265,37 @@ class SurveyUnitServiceTest {
         Assertions.assertThat(surveyUnitServiceStatic.findDistinctInterrogationIdsByQuestionnaireIdAndDateAfter(DEFAULT_COLLECTION_INSTRUMENT_ID,LocalDateTime.of(2022,1,1,0,0,0))).filteredOn(
                 interrogationId -> interrogationId.getInterrogationId().equals(DEFAULT_INTERROGATION_ID)
         ).isNotEmpty().hasSize(1);
+    }
+
+    @Test
+    void findDistinctInterrogationIdsByCollectionInstrumentIdAndRecordDateBetweenTest_no_doc_in_period() {
+        addAdditionnalSurveyUnitModelToMongoStub();
+
+        Instant start = Instant.parse("2025-09-01T00:00:00Z");
+        Instant end   = Instant.parse("2025-09-02T00:00:00Z");
+
+        Assertions.assertThat(
+                        surveyUnitServiceStatic.findDistinctInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
+                                DEFAULT_COLLECTION_INSTRUMENT_ID, start, end
+                        )
+                ).filteredOn(interrogationId -> interrogationId.getInterrogationId().equals(DEFAULT_INTERROGATION_ID))
+                .isEmpty();
+    }
+
+    @Test
+    void findDistinctInterrogationIdsByCollectionInstrumentIdAndRecordDateBetweenTest_doc_in_period() {
+        addAdditionnalSurveyUnitModelToMongoStub();
+
+        Instant start = Instant.parse("2022-01-01T00:00:00Z");
+        Instant end   = Instant.parse("2026-01-01T00:00:00Z");
+
+        Assertions.assertThat(
+                        surveyUnitServiceStatic.findDistinctInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
+                                DEFAULT_COLLECTION_INSTRUMENT_ID, start, end
+                        )
+                ).filteredOn(interrogationId -> interrogationId.getInterrogationId().equals(DEFAULT_INTERROGATION_ID))
+                .isNotEmpty()
+                .hasSize(1);
     }
 
     @Test

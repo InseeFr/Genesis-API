@@ -1,6 +1,5 @@
 package fr.insee.genesis.infrastructure.repository;
 
-import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponseModel;
 import fr.insee.genesis.infrastructure.document.rawdata.RawResponseDocument;
 import fr.insee.modelefiliere.ModeDto;
 import org.springframework.data.domain.Page;
@@ -19,11 +18,29 @@ public interface RawResponseRepository extends MongoRepository<RawResponseDocume
     @Query(value = "{ 'collectionInstrumentId' : ?0, 'mode' : ?1, 'interrogationId': {$in: ?2} }")
     List<RawResponseDocument> findByCollectionInstrumentIdAndModeAndInterrogationIdList(String questionnaireId, String mode, List<String> interrogationIdList);
     @Aggregation(pipeline = {
-            "{ $match: { processDate: null } }",
+            "{ $match: { processDate: null, collectionInstrumentId: { $ne: null } } }",
             "{ $group: { _id: '$collectionInstrumentId' } }",
             "{ $project: { _id: 0, collectionInstrumentId: '$_id' } }"
     })
     List<String> findDistinctCollectionInstrumentIdByProcessDateIsNull();
+
+    @Aggregation(pipeline = {
+            "{ $match: { collectionInstrumentId: ?0, processDate: { $ne: null }, recordDate: { $gte: ?1, $lte: ?2 } } }",
+            "{ $group: { _id: '$interrogationId' } }",
+            "{ $project: { _id: 0, interrogationId: '$_id' } }"
+    })
+    List<String> findProcessedInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
+            String collectionInstrumentId,
+            Instant sinceDate,
+            Instant endDate
+    );
+
+    @Aggregation(pipeline = {
+            "{ $match: { collectionInstrumentId: ?0, processDate: { $ne: null } } }",
+            "{ $group: { _id: '$interrogationId' } }",
+            "{ $project: { _id: 0, interrogationId: '$_id' } }"
+    })
+    List<String> findProcessedInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId);
 
     @Aggregation(pipeline = {
             "{ $match: { collectionInstrumentId: ?0,processDate: null } }",
@@ -43,5 +60,23 @@ public interface RawResponseRepository extends MongoRepository<RawResponseDocume
     @Query(value = "{ 'interrogationId': ?0}")
     List<RawResponseDocument> findByInterrogationId(String interrogationId);
 
+
+    long countByCollectionInstrumentId(String collectionInstrumentId);
+
+    @Aggregation(pipeline = {
+            "{ $group: { _id: '$collectionInstrumentId' } }",
+            "{ $project: { _id: 0, collectionInstrumentId: '$_id' } }"
+    })
+    List<String> findDistinctCollectionInstrumentId();
     Page<RawResponseDocument> findByCollectionInstrumentId(String collectionInstrumentId, Pageable pageable);
+
+    boolean existsByInterrogationId(String interrogationId);
+
+    @Aggregation(pipeline = {
+            "{ '$match': { 'collectionInstrumentId': ?0 } }",
+            "{ '$group': { '_id': '$interrogationId' } }",
+            "{ '$count': 'count' }"
+    })
+    Long countDistinctInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId);
+
 }

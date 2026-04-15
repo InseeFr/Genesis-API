@@ -13,6 +13,7 @@ import org.springframework.data.repository.query.FluentQuery;
 
 import java.time.LocalDateTime;
 import java.time.Instant;
+import java.time.chrono.ChronoLocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -23,6 +24,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+
+import static fr.insee.genesis.TestConstants.DEFAULT_INTERROGATION_ID;
 
 @Getter
 public class LunaticJsonMongoDBRepositoryStub implements LunaticJsonMongoDBRepository {
@@ -85,6 +88,11 @@ public class LunaticJsonMongoDBRepositoryStub implements LunaticJsonMongoDBRepos
                         .filter(doc -> Objects.equals(doc.interrogationId(), interrogationId))
                         .toList()
         ;
+    }
+
+    @Override
+    public Long countDistinctInterrogationIdsByQuestionnaireId(String questionnaireId) {
+        return 0L;
     }
 
     @Override
@@ -182,6 +190,38 @@ public class LunaticJsonMongoDBRepositoryStub implements LunaticJsonMongoDBRepos
     @Override
     public Page<LunaticJsonRawDataDocument> findByQuestionnaireId(String questionnaireId, Pageable pageable) {
         return null;
+    }
+
+    @Override
+    public boolean existsByInterrogationId(String interrogationId) {
+        return DEFAULT_INTERROGATION_ID.equals(interrogationId);
+    }
+
+    @Override
+    public List<String> findProcessedInterrogationIdsByQuestionnaireId(String questionnaireId) {
+        return documents.stream()
+                .filter(doc -> Objects.equals(doc.questionnaireId(), questionnaireId))
+                .filter(doc -> doc.processDate() != null)
+                .map(LunaticJsonRawDataDocument::interrogationId)
+                .distinct()
+                .toList();
+    }
+
+    @Override
+    public List<String> findProcessedInterrogationIdsByQuestionnaireIdAndRecordDateBetween(
+            String questionnaireId,
+            Instant sinceDate,
+            Instant endDate
+    ) {
+        return documents.stream()
+                .filter(doc -> Objects.equals(doc.questionnaireId(), questionnaireId))
+                .filter(doc -> doc.processDate() != null)
+                .filter(doc -> doc.recordDate() != null)
+                .filter(doc -> !doc.recordDate().isBefore(ChronoLocalDateTime.from(sinceDate)))
+                .filter(doc -> !doc.recordDate().isAfter(ChronoLocalDateTime.from(endDate)))
+                .map(LunaticJsonRawDataDocument::interrogationId)
+                .distinct()
+                .toList();
     }
 
     // Implémentations vides requises par MongoRepository

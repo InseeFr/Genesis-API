@@ -1,4 +1,64 @@
 # Changelog
+
+## 2.5.0 [TODO]
+### Added
+- New schedule endpoints.
+
+## 2.4.7 [2026-04-10]
+### Added
+- Reprocess endpoints for raw responses with optional sinceDate and endDate filters
+
+## 2.4.0 [2026-03-04]
+### Added
+- Restful endpoints to get latest responses without the logic in it (not to be confused with get latest states)
+- Simplified survey units now have datastate in their variables
+- Volumetrics with distinct interrogationId
+- 
+### Changed
+- Deprecated non-restful old endpoint
+- Java 21 -> 25
+- 
+### Fixed
+- Returned null collectionInstrumentId in get unprocessed
+
+## 2.3.1 [2026-02-24]
+### Fixed
+- 500 when save edited without campaignId
+
+## 2.3.0 [2026-02-19]
+### Added
+- Get response by-collection-instrument-and-between-datetime endpoint
+### Fixed
+- Get modes by question collectionInstrumentId parameter
+
+## 2.2.3 [2026-02-12]
+### Fixed
+- Fixed INTEGER parsing to use Long instead of int to support large values
+
+## 2.2.2 [2026-02-05]
+### Fixed
+- Volumetry don't count responses with collectionInstrumentId
+
+## 2.2.1 [2026-02-05]
+### Fixed
+- Get contexts with review uses collectionInstrumentId
+
+## 2.2.0 [2026-02-05]
+### Added
+- add isCapturedIndirectly variable to responses
+### Changed
+- Volumetrics endpoint returns content of file after saving
+- Count responses now includes collection instrument id
+### Fixed
+- Raw data volumetrics with modele filiere
+
+### Updated
+- BPM 1.0.25
+## 2.1.3 [2026-02-03]
+### Fixed
+- Fixed the way we retrieve the data processing context when we process raw responses
+- Change variable reading type from int to long
+
 ## 2.1.2 [2026-01-26]
 ### Fixed
 - Fixed numbers for pairwise

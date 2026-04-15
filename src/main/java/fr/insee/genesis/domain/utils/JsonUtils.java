@@ -40,7 +40,7 @@ public class JsonUtils {
                 return jsonParser.getText();
             }
             case VALUE_NUMBER_INT -> {
-                return jsonParser.getIntValue();
+                return jsonParser.getLongValue();
             }
             case VALUE_NUMBER_FLOAT -> {
                 return jsonParser.getDoubleValue();

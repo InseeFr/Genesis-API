@@ -2,6 +2,7 @@ package fr.insee.genesis.infrastructure.document.context;
 
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionSchedule;
+import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionScheduleV2;
 import lombok.Data;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
@@ -18,10 +19,12 @@ public class DataProcessingContextDocument{
         @Id
         private ObjectId id;
         @Indexed
+        @Deprecated
         private String partitionId; //ex Survey Name, campaignId
         @Indexed
         private String collectionInstrumentId; // QuestionnaireId
         private LocalDateTime lastExecution;
         private List<KraftwerkExecutionSchedule> kraftwerkExecutionScheduleList;
+        private List<KraftwerkExecutionScheduleV2> kraftwerkExecutionScheduleV2List;
         private boolean withReview;
 }

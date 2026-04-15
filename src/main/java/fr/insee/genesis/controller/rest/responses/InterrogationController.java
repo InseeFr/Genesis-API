@@ -5,6 +5,7 @@ import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -46,17 +48,43 @@ public class InterrogationController implements CommonApiResponse {
         return ResponseEntity.ok(responses);
     }
 
+    @Operation(summary = "Retrieve interrogations recorded between two dates for a given collection instrument")
+    @GetMapping(path = "/by-collection-instrument-and-between-datetime")
+    public ResponseEntity<List<InterrogationId>> getAllInterrogationIdsByCollectionInstrumentIdAndDate(
+            @RequestParam("collectionInstrumentId") String collectionInstrumentId,
+            @RequestParam("start")
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            @Parameter(
+                    description = "sinceDate",
+                    schema = @Schema(type = "string", format = "date-time", example = "2026-01-01T00:00:00Z")
+            )
+            Instant start,
+
+            @RequestParam("end")
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            @Parameter(
+                    description = "untilDate",
+                    schema = @Schema(type = "string", format = "date-time", example = "2026-01-31T23:59:59Z")
+            )
+            Instant end) {
+        List<InterrogationId> responses = surveyUnitService.findDistinctInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(collectionInstrumentId, start,end);
+        return ResponseEntity.ok(responses);
+    }
+
+
 
     //========= OPTIMISATIONS PERFS (START) ==========
     /**
      * @author Adrien Marchal
+     * @author Alexis Szmundy
      */
-    @Operation(summary = "Retrieve number of interrogations for a given questionnaire")
+    @Operation(summary = "Retrieve number of interrogations for a given questionnaire/collection instrument")
     @GetMapping(path = "/by-questionnaire/{questionnaireId}/count")
-    public ResponseEntity<Long> countAllInterrogationIdsByQuestionnaire(
-            @Parameter(description = "questionnaireId", required = true) @PathVariable("questionnaireId") String questionnaireId
+    public ResponseEntity<Long> countAllInterrogationIdsByQuestionnaireOrCollectionInstrument(
+            @Parameter(description = "questionnaireId/collectionInstrumentId", required = true) @PathVariable("questionnaireId") String questionnaireId
     ) {
-        Long response = surveyUnitService.countInterrogationIdsByQuestionnaireId(questionnaireId);
+        long response = surveyUnitService.countResponsesByQuestionnaireId(questionnaireId);
+        response += surveyUnitService.countResponsesByCollectionInstrumentId(questionnaireId);
         return ResponseEntity.ok(response);
     }
 

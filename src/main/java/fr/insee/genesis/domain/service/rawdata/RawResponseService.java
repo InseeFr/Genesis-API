@@ -37,12 +37,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService.getValueString;
@@ -86,7 +81,7 @@ public class  RawResponseService implements RawResponseApiPort {
     }
 
     @Override
-    public DataProcessResult processRawResponses(String collectionInstrumentId, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException {
+    public DataProcessResult processRawResponsesByInterrogationIds(String collectionInstrumentId, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException {
         int dataCount=0;
         int formattedDataCount=0;
         DataProcessingContextModel dataProcessingContext =
@@ -127,6 +122,8 @@ public class  RawResponseService implements RawResponseApiPort {
                 //Send processed ids grouped by questionnaire (if review activated)
                 if(dataProcessingContext != null && dataProcessingContext.isWithReview()) {
                     sendProcessedIdsToQualityTool(surveyUnitModels);
+                } else {
+                    log.warn("Data processing context not found for collection instrument {}. Ids processed not send to quality tool.",collectionInstrumentId);
                 }
 
                 //Remove processed ids from list
@@ -139,7 +136,7 @@ public class  RawResponseService implements RawResponseApiPort {
     }
 
     @Override
-    public DataProcessResult processRawResponses(String collectionInstrumentId) throws GenesisException {
+    public DataProcessResult processRawResponsesByInterrogationIds(String collectionInstrumentId) throws GenesisException {
         int dataCount=0;
         int formattedDataCount=0;
         DataProcessingContextModel dataProcessingContext =
@@ -193,6 +190,7 @@ public class  RawResponseService implements RawResponseApiPort {
         }
         return new DataProcessResult(dataCount, formattedDataCount, errors);
     }
+
 
     private List<SurveyUnitModel> getConvertedSurveyUnits(String collectionInstrumentId, Mode mode, List<String> interrogationIdListForMode, int maxIndex, VariablesMap variablesMap) {
         List<String> interrogationIdToProcess = interrogationIdListForMode.subList(0, maxIndex);
@@ -343,6 +341,11 @@ public class  RawResponseService implements RawResponseApiPort {
                     .collect(Collectors.toSet());
             rawResponsePersistencePort.updateProcessDates(collectionInstrumentId, interrogationIds);
         }
+    }
+
+    @Override
+    public boolean existsByInterrogationId(String interrogationId) {
+        return rawResponsePersistencePort.existsByInterrogationId(interrogationId);
     }
 
     private Map<String, Set<String>> getProcessedIdsMap(List<SurveyUnitModel> surveyUnitModels) {
@@ -535,9 +538,26 @@ public class  RawResponseService implements RawResponseApiPort {
     }
 
     @Override
+    public long countDistinctInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId) {
+        return rawResponsePersistencePort.countByCollectionInstrumentId(collectionInstrumentId);
+    }
+
+    @Override
+    public long countByCollectionInstrumentId(String collectionInstrumentId) {
+        return rawResponsePersistencePort.countByCollectionInstrumentId(collectionInstrumentId);
+    }
+
+    @Override
+    public Set<String> getDistinctCollectionInstrumentIds() {
+        return new HashSet<>(rawResponsePersistencePort.findDistinctCollectionInstrumentIds());
+    }
+
+    @Override
     public Page<RawResponseModel> findRawResponseDataByCollectionInstrumentId(String collectionInstrumentId, Pageable pageable) {
         return rawResponsePersistencePort.findByCollectionInstrumentId(collectionInstrumentId, pageable);
     }
+
+
 
     @SuppressWarnings("unchecked")
     static void handlePairwiseCollectedVariable(

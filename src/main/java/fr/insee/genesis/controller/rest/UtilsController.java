@@ -1,12 +1,14 @@
 package fr.insee.genesis.controller.rest;
 
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
+import fr.insee.genesis.domain.ports.api.RawResponseApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.service.volumetry.VolumetryLogService;
 import fr.insee.genesis.domain.utils.XMLSplitter;
 import fr.insee.genesis.exceptions.GenesisException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -17,9 +19,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.xml.stream.XMLStreamException;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 @RequestMapping(path = "/")
 @Controller
+@AllArgsConstructor
 @Slf4j
 @Tag(name = "Technical services")
 public class UtilsController implements CommonApiResponse{
@@ -27,14 +32,7 @@ public class UtilsController implements CommonApiResponse{
 	private final VolumetryLogService volumetryLogService;
 	private final SurveyUnitApiPort surveyUnitService;
 	private final LunaticJsonRawDataApiPort lunaticJsonRawDataService;
-
-
-
-	public UtilsController(SurveyUnitApiPort surveyUnitService, VolumetryLogService volumetryLogService, LunaticJsonRawDataApiPort lunaticJsonRawDataService) {
-		this.surveyUnitService = surveyUnitService;
-		this.volumetryLogService = volumetryLogService;
-        this.lunaticJsonRawDataService = lunaticJsonRawDataService;
-    }
+	private final RawResponseApiPort rawResponseApiPort;
 
 
 
@@ -54,9 +52,17 @@ public class UtilsController implements CommonApiResponse{
 	@PutMapping(path = "/volumetrics/save-all-campaigns")
 	@PreAuthorize("hasRole('SCHEDULER')")
 	public ResponseEntity<Object> saveVolumetry() throws IOException {
-		volumetryLogService.writeVolumetries(surveyUnitService);
-		volumetryLogService.writeRawDataVolumetries(lunaticJsonRawDataService);
+		String responsesKeyInReturnedMap = "responsesVolumetrics";
+		String rawResponsesKeyInReturnedMap = "rawResponsesVolumetrics";
+		Map<String, Object> volumetricsMap = new HashMap<>();
+		volumetricsMap.put(
+				responsesKeyInReturnedMap,
+				volumetryLogService.writeVolumetries(surveyUnitService));
+		volumetricsMap.put(
+				rawResponsesKeyInReturnedMap,
+				volumetryLogService.writeRawDataVolumetries(lunaticJsonRawDataService, rawResponseApiPort)
+		);
 		volumetryLogService.cleanOldFiles();
-		return ResponseEntity.ok("Volumetric saved");
+		return ResponseEntity.ok(volumetricsMap);
 	}
 }

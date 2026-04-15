@@ -6,6 +6,7 @@ import lombok.Builder;
 public record VariableModel(
         String varId,
         String value,
+        DataState state,
         String scope,
         Integer iteration,
         String parentId

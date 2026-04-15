@@ -18,12 +18,7 @@ import fr.insee.genesis.domain.utils.JsonUtils;
 import fr.insee.genesis.infrastructure.mappers.DataProcessingContextMapper;
 import fr.insee.genesis.infrastructure.mappers.LunaticJsonRawDataDocumentMapper;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
-import fr.insee.genesis.stubs.ConfigStub;
-import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
-import fr.insee.genesis.stubs.LunaticJsonRawDataPersistanceStub;
-import fr.insee.genesis.stubs.QuestionnaireMetadataPersistencePortStub;
-import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
-import fr.insee.genesis.stubs.SurveyUnitQualityToolPerretAdapterStub;
+import fr.insee.genesis.stubs.*;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -468,13 +463,13 @@ class LunaticJsonRawDataServiceTest {
     void convertRawData_multipleBatchs(int rawDataSize) throws Exception {
         //GIVEN
         String campaignId = "SAMPLETEST-PARADATA-V1";
-        String questionnaireId = "TESTIDQUEST";
+        String questionnaireId = "SAMPLETEST-PARADATA-V1";
         List<String> interrogationIdList = prepareConvertTest(rawDataSize, campaignId, questionnaireId);
         //Activate review
         dataProcessingContextPersistancePortStub.getMongoStub().add(
                 DataProcessingContextMapper.INSTANCE.modelToDocument(
                         DataProcessingContextModel.builder()
-                                .partitionId(campaignId)
+                                .collectionInstrumentId(questionnaireId)
                                 .withReview(true)
                                 .kraftwerkExecutionScheduleList(new ArrayList<>())
                                 .build()
@@ -482,8 +477,7 @@ class LunaticJsonRawDataServiceTest {
         );
 
         //WHEN
-        DataProcessResult dataProcessResult = lunaticJsonRawDataService.processRawData(campaignId, interrogationIdList,
-                new ArrayList<>());
+        DataProcessResult dataProcessResult = lunaticJsonRawDataService.processRawData(questionnaireId);
 
         //THEN
         Assertions.assertThat(dataProcessResult.dataCount()).isEqualTo(rawDataSize * 2/*EDITED*/);
@@ -499,14 +493,14 @@ class LunaticJsonRawDataServiceTest {
     void convertRawData_review_desactivated() throws Exception {
         //GIVEN
         String campaignId = "SAMPLETEST-PARADATA-V1";
-        String questionnaireId = "TESTIDQUEST";
+        String questionnaireId = "SAMPLETEST-PARADATA-V1";
         List<String> interrogationIdList = prepareConvertTest(1, campaignId, questionnaireId);
 
         //Desactivate review
         dataProcessingContextPersistancePortStub.getMongoStub().add(
                 DataProcessingContextMapper.INSTANCE.modelToDocument(
                         DataProcessingContextModel.builder()
-                                .partitionId(campaignId)
+                                .collectionInstrumentId(questionnaireId)
                                 .withReview(false)
                                 .kraftwerkExecutionScheduleList(new ArrayList<>())
                                 .build()
@@ -514,8 +508,7 @@ class LunaticJsonRawDataServiceTest {
         );
 
         //WHEN
-        DataProcessResult dataProcessResult = lunaticJsonRawDataService.processRawData(campaignId, interrogationIdList,
-                new ArrayList<>());
+        DataProcessResult dataProcessResult = lunaticJsonRawDataService.processRawData(questionnaireId);
 
         //THEN
         Assertions.assertThat(dataProcessResult.dataCount()).isEqualTo(2);
@@ -694,4 +687,5 @@ class LunaticJsonRawDataServiceTest {
 
         Assertions.assertThat(getValueString(doubleObject)).isEqualTo("101010101010.111");
     }
+
 }

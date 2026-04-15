@@ -30,6 +30,7 @@ import java.util.Set;
 @Service
 @Qualifier("lunaticJsonMongoAdapter")
 public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersistencePort {
+
     private final LunaticJsonMongoDBRepository repository;
     private final MongoTemplate mongoTemplate;
 
@@ -57,12 +58,6 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
     @Override
     public Set<Mode> findModesByQuestionnaire(String questionnaireId) {
         return new HashSet<>(repository.findModesByQuestionnaireId(questionnaireId));
-    }
-
-    @Override
-    public List<LunaticJsonRawDataModel> findRawData(String campaignName, Mode mode, List<String> interrogationIdList) {
-        List<LunaticJsonRawDataDocument> rawDataDocs = repository.findByCampaignModeAndInterrogations(campaignName, mode, interrogationIdList);
-        return LunaticJsonRawDataDocumentMapper.INSTANCE.listDocumentToListModel(rawDataDocs);
     }
 
     @Override
@@ -95,14 +90,14 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
 
     @Override
     public Set<String> findDistinctQuestionnaireIds() {
-        Set<String> questionnaireIds = new HashSet<>();
-        for (String questionnaireId : mongoTemplate.getCollection(Constants.MONGODB_RAW_RESPONSES_COLLECTION_NAME).distinct(
-                "questionnaireId",
-                String.class)) {
-            questionnaireIds.add(questionnaireId);
+        List<String> ids = mongoTemplate.query(LunaticJsonRawDataDocument.class)
+                    .distinct("questionnaireId")
+                    .as(String.class)
+                    .all();
+        return ids.stream()
+                    .filter(id -> id != null && !id.isBlank())
+                    .collect(java.util.stream.Collectors.toSet());
         }
-        return questionnaireIds;
-    }
 
     @Override
     public Page<LunaticJsonRawDataModel> findByCampaignIdAndDate(String campaignId, Instant startDt, Instant  endDt, Pageable pageable) {
@@ -112,7 +107,7 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
     }
 
     @Override
-    public long countResponsesByQuestionnaireId(String questionnaireId) {
+    public long countRawResponsesByQuestionnaireId(String questionnaireId) {
         return repository.countByQuestionnaireId(questionnaireId);
     }
 
@@ -136,4 +131,16 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
 
         return interrogationIds;
     }
+
+    @Override
+    public boolean existsByInterrogationId(String interrogationId) {
+        return repository.existsByInterrogationId(interrogationId);
+    }
+
+    @Override
+    public long countDistinctInterrogationIdsByQuestionnaireId(String questionnaireId) {
+        Long count = repository.countDistinctInterrogationIdsByQuestionnaireId(questionnaireId);
+        return count != null ? count : 0;
+    }
+
 }

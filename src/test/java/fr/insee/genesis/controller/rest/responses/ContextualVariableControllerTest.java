@@ -912,9 +912,12 @@ class ContextualVariableControllerTest {
                                        String variableName,
                                        int expectedValue
     ) {
-        Assertions.assertNotNull(document.getVariables().get(variableName));
-        Assertions.assertInstanceOf(Integer.class,document.getVariables().get(variableName));
-        Assertions.assertEquals(expectedValue,document.getVariables().get(variableName));    }
+        Object actual = document.getVariables().get(variableName);
+        Assertions.assertNotNull(actual);
+
+        Assertions.assertInstanceOf(Number.class, actual, "Unexpected type, expected Number, actual: " + actual.getClass());
+
+        Assertions.assertEquals((long) expectedValue, ((Number) actual).longValue());    }
 
     private static void assertVariableNull(ContextualPreviousVariableDocument document,
                                            String variableName
@@ -948,11 +951,15 @@ class ContextualVariableControllerTest {
                                        String arrayVariableName,
                                        int index,
                                        int expectedValue
-    ) throws ClassCastException{
-        List<Object> list = (List<Object>)document.getVariables().get(arrayVariableName);
-        Assertions.assertTrue(list.size()>index);
-        Assertions.assertInstanceOf(Integer.class,list.get(index));
-        Assertions.assertEquals(expectedValue,(Integer)list.get(index));
+    ){
+        List<Object> list = (List<Object>) document.getVariables().get(arrayVariableName);
+        Assertions.assertTrue(list.size() > index);
+        Object actual = list.get(index);
+        Assertions.assertNotNull(actual);
+
+        Assertions.assertInstanceOf(Number.class, actual, "Unexpected type, expected Number, actual: " + actual.getClass());
+
+        Assertions.assertEquals((long) expectedValue, ((Number) actual).longValue());
     }
 
     private List<ContextualPreviousVariableDocument> getContextualPreviousTestDocuments() {
@@ -1116,9 +1123,10 @@ class ContextualVariableControllerTest {
                                        String variableName,
                                        int expectedValue
     ) {
-        Assertions.assertNotNull(document.getVariables().get(variableName));
-        Assertions.assertInstanceOf(Integer.class,document.getVariables().get(variableName));
-        Assertions.assertEquals(expectedValue,document.getVariables().get(variableName));
+        Object actual = document.getVariables().get(variableName);
+        Assertions.assertNotNull(actual);
+        Assertions.assertInstanceOf(Number.class, actual, "Unexpected type, expected Number, actual: " + actual.getClass());
+        Assertions.assertEquals((long) expectedValue, ((Number) actual).longValue());
     }
 
     @SuppressWarnings("unchecked")
@@ -1148,11 +1156,15 @@ class ContextualVariableControllerTest {
                                        String arrayVariableName,
                                        int index,
                                        int expectedValue
-    ) throws ClassCastException{
-        List<Object> list = (List<Object>)document.getVariables().get(arrayVariableName);
-        Assertions.assertTrue(list.size()>index);
-        Assertions.assertInstanceOf(Integer.class,list.get(index));
-        Assertions.assertEquals(expectedValue,(Integer)list.get(index));
+    ){
+        List<Object> list = (List<Object>) document.getVariables().get(arrayVariableName);
+        Assertions.assertTrue(list.size() > index);
+        Object actual = list.get(index);
+        Assertions.assertNotNull(actual);
+
+        Assertions.assertInstanceOf(Number.class, actual, "Unexpected type, expected Number, actual: " + actual.getClass());
+
+        Assertions.assertEquals((long) expectedValue, ((Number) actual).longValue());
 
     }
 }
