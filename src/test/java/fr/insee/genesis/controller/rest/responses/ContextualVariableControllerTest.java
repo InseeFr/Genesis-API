@@ -11,7 +11,7 @@ import fr.insee.genesis.domain.service.contextualvariable.ContextualVariableJson
 import fr.insee.genesis.domain.service.contextualvariable.external.ContextualExternalVariableJsonService;
 import fr.insee.genesis.domain.service.contextualvariable.previous.ContextualPreviousVariableJsonService;
 import fr.insee.genesis.exceptions.GenesisException;
-import fr.insee.genesis.exceptions.GenesisExceptionHandler;
+import fr.insee.genesis.controller.rest.exception.GenesisExceptionHandler;
 import fr.insee.genesis.exceptions.NoDataException;
 import fr.insee.genesis.exceptions.QuestionnaireNotFoundException;
 import fr.insee.genesis.exceptions.ReviewDisabledException;

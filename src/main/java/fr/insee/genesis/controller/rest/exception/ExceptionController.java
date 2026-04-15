@@ -1,4 +1,4 @@
-package fr.insee.genesis.controller.exception;
+package fr.insee.genesis.controller.rest.exception;
 
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.exceptions.InvalidDateIntervalException;

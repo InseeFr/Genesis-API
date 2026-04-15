@@ -1,5 +1,6 @@
-package fr.insee.genesis.exceptions;
+package fr.insee.genesis.controller.rest.exception;
 
+import fr.insee.genesis.exceptions.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;

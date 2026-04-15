@@ -1,4 +1,4 @@
-package fr.insee.genesis.controller.rest;
+package fr.insee.genesis.controller.rest.exception;
 
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
