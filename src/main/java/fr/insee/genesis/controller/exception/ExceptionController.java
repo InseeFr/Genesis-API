@@ -17,13 +17,13 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 @Slf4j
 public class ExceptionController {
 
-    // Note: No handler for uncaught Exception.class for now since it breaks soms tests.
+    // Note: No handler for uncaught Exception.class for now since it breaks some tests.
 
     @ExceptionHandler
     public ProblemDetail handleGenericGenesisException(GenesisException genesisException) {
         log.error("GenesisException: {}", genesisException.getMessage(), genesisException);
         return ProblemDetail.forStatusAndDetail(
-                resolveHttpCode(genesisException.getStatus()),
+                resolveHttpCode(genesisException.getStatus().value()),
                 genesisException.getMessage());
     }
 

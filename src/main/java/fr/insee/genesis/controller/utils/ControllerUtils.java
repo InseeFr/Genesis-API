@@ -43,7 +43,7 @@ public class ControllerUtils {
 		String specFolder = fileUtils.getSpecFolder(questionnaireId);
 		List<String> modeSpecFolders = fileUtils.listFolders(specFolder);
 		if (modeSpecFolders.isEmpty()) {
-            throw new SpecificationNotFoundException(campaign);
+            throw new SpecificationNotFoundException(questionnaireId);
         }
 		for(String modeSpecFolder : modeSpecFolders){
 			if(Mode.getEnumFromModeName(modeSpecFolder) == null) {
