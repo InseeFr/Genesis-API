@@ -1,6 +1,6 @@
 FROM eclipse-temurin:25.0.2_10-jre
 
-ENV PATH_TO_JAR=/opt/app/app.jar
+ENV PATH_TO_JAR /opt/app/app.jar
 WORKDIR /opt/app/
 COPY ./target/*.jar $PATH_TO_JAR
 
