@@ -24,7 +24,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Controller
@@ -153,7 +152,7 @@ public class DataProcessingContextController {
     @Operation(summary = "Fetch all schedules V2")
     @GetMapping(path = "/contexts/schedules/v2")
     @PreAuthorize("hasAnyRole('SCHEDULER','READER')")
-    public ResponseEntity<Object> getAllSchedulesV3() {
+    public ResponseEntity<Object> getAllSchedulesV2() {
         log.debug("Got GET all schedules V2 request");
 
         List<ScheduleResponseDto> schedules = dataProcessingContextApiPort.getAllSchedulesV2();
