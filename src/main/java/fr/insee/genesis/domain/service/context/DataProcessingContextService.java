@@ -148,19 +148,19 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
                 );
 
         if (dataProcessingContextModel == null) {
-            throw new GenesisException(404, "Collection instrument not found");
+            throw new GenesisException(HttpStatus.NOT_FOUND, "Collection instrument not found");
         }
 
         if (dataProcessingContextModel.getKraftwerkExecutionScheduleV2List() == null
                 || dataProcessingContextModel.getKraftwerkExecutionScheduleV2List().isEmpty()) {
-            throw new GenesisException(404, "No V2 schedule found for this collection instrument");
+            throw new GenesisException(HttpStatus.NOT_FOUND, "No V2 schedule found for this collection instrument");
         }
 
         KraftwerkExecutionScheduleV2 scheduleToUpdate = dataProcessingContextModel.getKraftwerkExecutionScheduleV2List()
                 .stream()
                 .filter(schedule -> scheduleInput.getScheduleUuid().equals(schedule.getScheduleUuid()))
                 .findFirst()
-                .orElseThrow(() -> new GenesisException(404, "V2 schedule not found"));
+                .orElseThrow(() -> new GenesisException(HttpStatus.NOT_FOUND, "V2 schedule not found"));
 
         Optional<KraftwerkExecutionScheduleV2> tripletAlreadyExists = dataProcessingContextModel.getKraftwerkExecutionScheduleV2List()
                 .stream()
@@ -205,14 +205,14 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
 
         if (dataProcessingContextModel.getKraftwerkExecutionScheduleV2List() == null
                 || dataProcessingContextModel.getKraftwerkExecutionScheduleV2List().isEmpty()) {
-            throw new GenesisException(404, "No V2 schedule found for this collection instrument");
+            throw new GenesisException(HttpStatus.NOT_FOUND, "No V2 schedule found for this collection instrument");
         }
 
         boolean removed = dataProcessingContextModel.getKraftwerkExecutionScheduleV2List()
                 .removeIf(schedule -> scheduleUuid.equals(schedule.getScheduleUuid()));
 
         if (!removed) {
-            throw new GenesisException(404, "V2 schedule not found");
+            throw new GenesisException(HttpStatus.NOT_FOUND, "V2 schedule not found");
         }
 
         dataProcessingContextPersistancePort.save(
@@ -237,7 +237,7 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
                 dataProcessingContextPersistancePort.findByCollectionInstrumentId(collectionInstrumentId);
 
         if (dataProcessingContextModel == null) {
-            throw new GenesisException(404, NOT_FOUND_MESSAGE);
+            throw new GenesisException(HttpStatus.NOT_FOUND, NOT_FOUND_MESSAGE);
         }
 
         dataProcessingContextModel.setKraftwerkExecutionScheduleV2List(new ArrayList<>());

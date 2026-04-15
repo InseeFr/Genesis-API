@@ -12,8 +12,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -94,7 +92,7 @@ public class DataProcessingContextController {
             return ResponseEntity.ok(scheduleUuid);
 
         } catch (GenesisException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatusCode.valueOf(e.getStatus()));
+            return new ResponseEntity<>(e.getMessage(), e.getStatus());
         }
     }
 
@@ -137,7 +135,7 @@ public class DataProcessingContextController {
             dataProcessingContextApiPort.updateKraftwerkExecutionSchedule(scheduleInput);
 
         } catch (GenesisException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatusCode.valueOf(e.getStatus()));
+            return new ResponseEntity<>(e.getMessage(), e.getStatus());
         }
 
         return ResponseEntity.ok().build();
@@ -188,7 +186,7 @@ public class DataProcessingContextController {
         try {
             dataProcessingContextApiPort.deleteSchedulesV2ByCollectionInstrumentId(collectionInstrumentId);
         } catch (GenesisException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatusCode.valueOf(e.getStatus()));
+            return new ResponseEntity<>(e.getMessage(), e.getStatus());
         }
         log.info("All V2 schedules deleted for collection instrument {}", collectionInstrumentId);
         return ResponseEntity.ok().build();
@@ -204,7 +202,7 @@ public class DataProcessingContextController {
         try {
             dataProcessingContextApiPort.deleteScheduleV2(collectionInstrumentId, scheduleUuid);
         } catch (GenesisException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatusCode.valueOf(e.getStatus()));
+            return new ResponseEntity<>(e.getMessage(), e.getStatus());
         }
         log.info("V2 schedule {} deleted for collection instrument {}", scheduleUuid, collectionInstrumentId);
         return ResponseEntity.ok().build();
