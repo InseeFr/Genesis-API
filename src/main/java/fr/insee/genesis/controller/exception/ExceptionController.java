@@ -30,7 +30,11 @@ public class ExceptionController {
     /** Returns the corresponding http status, or 500 if the given code does not match a http status. */
     private static HttpStatus resolveHttpCode(int statusCode) {
         HttpStatus httpStatus = HttpStatus.resolve(statusCode);
-        return httpStatus != null ? httpStatus : HttpStatus.INTERNAL_SERVER_ERROR;
+        if (httpStatus == null) {
+            log.warn("Unknown http status code '{}', 500 will be sent.", statusCode);
+            return  HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+        return httpStatus;
     }
 
     @ExceptionHandler(InvalidDateIntervalException.class)
