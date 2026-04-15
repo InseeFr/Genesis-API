@@ -76,7 +76,7 @@ public class DataProcessingContextController {
             if (request.isUseAsymmetricEncryption()) {
                 trustParameters = new TrustParameters(
                         fileUtils.getKraftwerkOutFolder(request.getCollectionInstrumentId()),
-                        "",
+                        "", // temporary folder for workflow
                         request.getEncryptionVaultPath(),
                         request.isUseSignature()
                 );
