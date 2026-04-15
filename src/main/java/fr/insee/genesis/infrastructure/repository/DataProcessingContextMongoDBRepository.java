@@ -17,6 +17,7 @@ public interface DataProcessingContextMongoDBRepository extends MongoRepository<
     @Query(value = "{ 'collectionInstrumentId' : {$in: ?0} }")
     List<DataProcessingContextDocument> findByCollectionInstrumentIdList(List<String> collectionInstrumentIds);
 
+
     @Deprecated(forRemoval = true)
     @Query(value = "{ 'partitionId' : ?0 }", delete = true)
     void deleteByPartitionId(String partitionId);

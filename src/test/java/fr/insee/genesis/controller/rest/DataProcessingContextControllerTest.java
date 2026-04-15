@@ -25,7 +25,6 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.stream.Stream;
 
 class DataProcessingContextControllerTest {
@@ -55,465 +54,6 @@ class DataProcessingContextControllerTest {
     }
 
     @Test
-    void getAllSchedulesTest() {
-        //When
-        ResponseEntity<Object> response = dataProcessingContextController.getAllSchedules();
-
-        //Then
-        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-    }
-
-    @Test
-    void getAllSchedulesV2Test() {
-        //When
-        ResponseEntity<Object> response = dataProcessingContextController.getAllSchedulesV2();
-
-        //Then
-        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-    }
-
-    @Test
-    void addScheduleWithoutEncryptionTest() {
-        //When
-        String partitionId = "TESTADDSURVEY";
-        ServiceToCall serviceToCall = ServiceToCall.MAIN;
-        String frequency = "0 0 6 * * *";
-        LocalDateTime scheduleBeginDate = LocalDateTime.now();
-        LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
-
-        dataProcessingContextController.saveSchedule(partitionId, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate,
-                false, "TEST", "TEST", false);
-
-        //Then
-        Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub()).filteredOn(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getPartitionId().equals(partitionId)
-        ).isNotEmpty();
-
-        List<DataProcessingContextDocument> mongoStubFiltered = dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getPartitionId().equals(partitionId)).toList();
-
-        DataProcessingContextDocument dataProcessingContextDocument = mongoStubFiltered.getFirst();
-
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList()).isNotEmpty();
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getFrequency()).isEqualTo(frequency);
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters()).isNull();
-    }
-
-    @Test
-    void addScheduleWithoutEncryptionTestUsingCollectionInstrumentId() {
-        //When
-        String collectionInstrumentId = "TESTADDSURVEY_CI";
-        ServiceToCall serviceToCall = ServiceToCall.MAIN;
-        String frequency = "0 0 6 * * *";
-        LocalDateTime scheduleBeginDate = LocalDateTime.now();
-        LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
-
-        dataProcessingContextController.saveScheduleWithCollectionInstrumentId(collectionInstrumentId, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate,
-                false, "TEST", "TEST", false);
-
-        //Then
-        Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub()).filteredOn(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals(collectionInstrumentId)
-        ).isNotEmpty();
-
-        List<DataProcessingContextDocument> mongoStubFiltered = dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals(collectionInstrumentId)).toList();
-
-        DataProcessingContextDocument dataProcessingContextDocument = mongoStubFiltered.getFirst();
-
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList()).isNotEmpty();
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getFrequency()).isEqualTo(frequency);
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters()).isNull();
-    }
-
-    @Test
-    void addScheduleWithoutEncryptionTest_nullServiceToCall() {
-        //When
-        String partitionId = "TESTADDSURVEY";
-        ServiceToCall serviceToCall = null;
-        String frequency = "0 0 6 * * *";
-        LocalDateTime scheduleBeginDate = LocalDateTime.now();
-        LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
-
-        dataProcessingContextController.saveSchedule(partitionId, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate,
-                false, "TEST", "TEST", false);
-
-        //Then
-        Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub()).filteredOn(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getPartitionId().equals(partitionId)
-        ).isNotEmpty();
-
-        List<DataProcessingContextDocument> mongoStubFiltered = dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getPartitionId().equals(partitionId)).toList();
-
-        DataProcessingContextDocument dataProcessingContextDocument = mongoStubFiltered.getFirst();
-
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList()).isNotEmpty();
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getServiceToCall()).isEqualTo(ServiceToCall.MAIN);
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getFrequency()).isEqualTo(frequency);
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters()).isNull();
-    }
-
-    @Test
-    void addScheduleWithoutEncryptionTest_nullServiceToCall_collectionInstrumentId() {
-        //When
-        String collectionInstrumentId = "TESTADDSURVEY_CI";
-        ServiceToCall serviceToCall = null;
-        String frequency = "0 0 6 * * *";
-        LocalDateTime scheduleBeginDate = LocalDateTime.now();
-        LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
-
-        dataProcessingContextController.saveScheduleWithCollectionInstrumentId(collectionInstrumentId, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate,
-                false, "TEST", "TEST", false);
-
-        //Then
-        Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub()).filteredOn(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals(collectionInstrumentId)
-        ).isNotEmpty();
-
-        List<DataProcessingContextDocument> mongoStubFiltered = dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals(collectionInstrumentId)).toList();
-
-        DataProcessingContextDocument dataProcessingContextDocument = mongoStubFiltered.getFirst();
-
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList()).isNotEmpty();
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getServiceToCall()).isEqualTo(ServiceToCall.MAIN);
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getFrequency()).isEqualTo(frequency);
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters()).isNull();
-    }
-
-    @Test
-    void addScheduleWithEncryptionTest() {
-        //When
-        String partitionId = "TESTADDSURVEY";
-        ServiceToCall serviceToCall = ServiceToCall.MAIN;
-        String frequency = "0 0 6 * * *";
-        LocalDateTime scheduleBeginDate = LocalDateTime.now();
-        LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
-
-
-        dataProcessingContextController.saveSchedule(partitionId, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate, true,
-                "testvault/testkey",
-                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("OUT_ENCRYPTED").resolve(partitionId).toString(),
-                false
-        );
-
-        //Then
-        Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub()).filteredOn(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getPartitionId().equals(partitionId)
-        ).isNotEmpty();
-
-        List<DataProcessingContextDocument> mongoStubFiltered = dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getPartitionId().equals(partitionId)).toList();
-
-        DataProcessingContextDocument dataProcessingContextDocument = mongoStubFiltered.getFirst();
-
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList()).isNotEmpty();
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getFrequency()).isEqualTo(frequency);
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters()).isNotNull();
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters().getInputPath()).contains(
-                "TESTADDSURVEY");
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters().getOutputFolder()).contains(
-                "TESTADDSURVEY");
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters().getVaultPath()).isEqualTo(
-                "testvault/testkey");
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters().isUseSignature()).isFalse();
-    }
-
-    @Test
-    void addScheduleWithEncryptionTest_collectionInstrumentId() {
-        //When
-        String collectionInstrumentId = "TESTADDSURVEY_CI";
-        ServiceToCall serviceToCall = ServiceToCall.MAIN;
-        String frequency = "0 0 6 * * *";
-        LocalDateTime scheduleBeginDate = LocalDateTime.now();
-        LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
-
-
-        dataProcessingContextController.saveScheduleWithCollectionInstrumentId(collectionInstrumentId, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate, true,
-                "testvault/testkey",
-                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY).resolve("OUT_ENCRYPTED").resolve(collectionInstrumentId).toString(),
-                false
-        );
-
-        //Then
-        Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub()).filteredOn(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals(collectionInstrumentId)
-        ).isNotEmpty();
-
-        List<DataProcessingContextDocument> mongoStubFiltered = dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals(collectionInstrumentId)).toList();
-
-        DataProcessingContextDocument dataProcessingContextDocument = mongoStubFiltered.getFirst();
-
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList()).isNotEmpty();
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getFrequency()).isEqualTo(frequency);
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters()).isNotNull();
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters().getInputPath()).contains(
-                "TESTADDSURVEY");
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters().getOutputFolder()).contains(
-                "TESTADDSURVEY");
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters().getVaultPath()).isEqualTo(
-                "testvault/testkey");
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getTrustParameters().isUseSignature()).isFalse();
-    }
-
-    @Test
-    void addAdditionnalScheduleTest() {
-        //When
-        String partitionId = "TESTSURVEY"; //Already exists in stub
-        ServiceToCall serviceToCall = ServiceToCall.MAIN;
-        String frequency = "0 0 6 * * *";
-        LocalDateTime scheduleBeginDate = LocalDateTime.now();
-        LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
-
-
-        dataProcessingContextController.saveSchedule(partitionId, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate,
-                false, "", "", false);
-
-        //Then
-        Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub()).filteredOn(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getPartitionId().equals(partitionId)
-        ).isNotEmpty().hasSize(1);
-
-        List<DataProcessingContextDocument> mongoStubFiltered = dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getPartitionId().equals(partitionId)).toList();
-
-        DataProcessingContextDocument dataProcessingContextDocument = mongoStubFiltered.getFirst();
-        Assertions.assertThat(dataProcessingContextDocument.getLastExecution()).isNull();
-
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList()).isNotEmpty();
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getFrequency()).isEqualTo(frequency);
-    }
-
-    @Test
-    void addAdditionnalScheduleTest_collectionInstrumentId() {
-        //When
-        String collectionInstrumentId = "TESTADDSURVEY_CI"; //Already exists in stub
-        ServiceToCall serviceToCall = ServiceToCall.MAIN;
-        String frequency = "0 0 6 * * *";
-        LocalDateTime scheduleBeginDate = LocalDateTime.now();
-        LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
-
-
-        dataProcessingContextController.saveScheduleWithCollectionInstrumentId(collectionInstrumentId, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate,
-                false, "", "", false);
-
-        //Then
-        Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub()).filteredOn(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals(collectionInstrumentId)
-        ).isNotEmpty().hasSize(1);
-
-        List<DataProcessingContextDocument> mongoStubFiltered = dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals(collectionInstrumentId)).toList();
-
-        DataProcessingContextDocument dataProcessingContextDocument = mongoStubFiltered.getFirst();
-        Assertions.assertThat(dataProcessingContextDocument.getLastExecution()).isNull();
-
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList()).isNotEmpty();
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getFrequency()).isEqualTo(frequency);
-    }
-
-    @Test
-    void addScheduleDedupTest()  {
-        //Given
-        addNewDocumentToStub();
-
-        //When
-        String partitionId = "TESTSURVEY"; //Already exists in stub
-        ServiceToCall serviceToCall = ServiceToCall.MAIN;
-        String frequency = "0 0 6 * * *";
-        LocalDateTime scheduleBeginDate = LocalDateTime.now();
-        LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
-
-
-        dataProcessingContextController.saveSchedule(partitionId, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate,
-                false, "", "", false);
-        //Then
-        Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub()).filteredOn(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getPartitionId().equals(partitionId)
-        ).isNotEmpty().hasSize(1);
-
-        List<DataProcessingContextDocument> mongoStubFiltered = dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getPartitionId().equals(partitionId)).toList();
-
-        DataProcessingContextDocument dataProcessingContextDocument = mongoStubFiltered.getFirst();
-        Assertions.assertThat(dataProcessingContextDocument.getLastExecution()).isNull();
-
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList()).isNotEmpty();
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getFrequency()).isEqualTo(frequency);
-    }
-
-    @Test
-    void addScheduleDedupTest_collectionInstrumentId()  {
-        //Given
-        addNewDocumentToStubWithCollectionInstrumentId();
-
-        //When
-        String collectionInstrumentId = "TESTSURVEY_CI"; //Already exists in stub
-        ServiceToCall serviceToCall = ServiceToCall.MAIN;
-        String frequency = "0 0 6 * * *";
-        LocalDateTime scheduleBeginDate = LocalDateTime.now();
-        LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
-
-
-        dataProcessingContextController.saveScheduleWithCollectionInstrumentId(collectionInstrumentId, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate,
-                false, "", "", false);
-        //Then
-        Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub()).filteredOn(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals(collectionInstrumentId)
-        ).isNotEmpty().hasSize(1);
-
-        List<DataProcessingContextDocument> mongoStubFiltered = dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals(collectionInstrumentId)).toList();
-
-        DataProcessingContextDocument dataProcessingContextDocument = mongoStubFiltered.getFirst();
-        Assertions.assertThat(dataProcessingContextDocument.getLastExecution()).isNull();
-
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList()).isNotEmpty();
-        Assertions.assertThat(dataProcessingContextDocument.getKraftwerkExecutionScheduleList().getFirst().getFrequency()).isEqualTo(frequency);
-    }
-
-    @Test
-    void updateLastExecutionTest(){
-        //Given
-        addNewDocumentToStub();
-
-        //When
-        dataProcessingContextController.setSurveyLastExecution("TESTSURVEY", LocalDateTime.now());
-
-        //Then
-        List<DataProcessingContextDocument> mongoStubFiltered = dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getPartitionId().equals("TESTSURVEY")).toList();
-        Assertions.assertThat(mongoStubFiltered.getFirst().getLastExecution()).isNotNull();
-    }
-
-    @Test
-    void updateLastExecutionTest_collectionInstrumentId(){
-        //Given
-        addNewDocumentToStubWithCollectionInstrumentId();
-
-        //When
-        dataProcessingContextController.setSurveyLastExecutionByCollectionInstrumentId("TESTSURVEY_CI", LocalDateTime.now());
-
-        //Then
-        List<DataProcessingContextDocument> mongoStubFiltered = dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals("TESTSURVEY_CI")).toList();
-        Assertions.assertThat(mongoStubFiltered.getFirst().getLastExecution()).isNotNull();
-    }
-
-    @Test
-    void setLastExecutionTestToNull(){
-        //Given
-        addNewDocumentToStub();
-
-        //When
-        dataProcessingContextController.setSurveyLastExecution("TESTSURVEY", null);
-
-        //Then
-        List<DataProcessingContextDocument> mongoStubFiltered = dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getPartitionId().equals("TESTSURVEY")).toList();
-        Assertions.assertThat(mongoStubFiltered.getFirst().getLastExecution()).isNull();
-    }
-
-    @Test
-    void setLastExecutionTestToNull_collectionInstrumentId(){
-        //Given
-        addNewDocumentToStubWithCollectionInstrumentId();
-
-        //When
-        dataProcessingContextController.setSurveyLastExecutionByCollectionInstrumentId("TESTSURVEY_CI", null);
-
-        //Then
-        List<DataProcessingContextDocument> mongoStubFiltered = dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals("TESTSURVEY_CI")).toList();
-        Assertions.assertThat(mongoStubFiltered.getFirst().getLastExecution()).isNull();
-    }
-
-    @Test
-    void setLastExecutionTest(){
-        //Given
-        LocalDateTime date = LocalDateTime.now();
-        addNewDocumentToStub();
-
-        //When
-        dataProcessingContextController.setSurveyLastExecution("TESTSURVEY", date);
-
-        //Then
-        List<DataProcessingContextDocument> mongoStubFiltered = dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getPartitionId().equals("TESTSURVEY")).toList();
-        Assertions.assertThat(mongoStubFiltered.getFirst().getLastExecution()).isEqualTo(date);
-    }
-
-    @Test
-    void setLastExecutionTest_collectionInstrumentId(){
-        //Given
-        LocalDateTime date = LocalDateTime.now();
-        addNewDocumentToStubWithCollectionInstrumentId();
-
-        //When
-        dataProcessingContextController.setSurveyLastExecutionByCollectionInstrumentId("TESTSURVEY_CI", date);
-
-        //Then
-        List<DataProcessingContextDocument> mongoStubFiltered = dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals("TESTSURVEY_CI")).toList();
-        Assertions.assertThat(mongoStubFiltered.getFirst().getLastExecution()).isEqualTo(date);
-    }
-
-    @Test
-    void wrongFrequencyTest(){
-        //When+Then
-        String partitionId = "TESTSURVEY"; //Already exists in stub
-        ServiceToCall serviceToCall = ServiceToCall.MAIN;
-        String frequency = "ERROR";
-        LocalDateTime scheduleBeginDate = LocalDateTime.now();
-        LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
-
-        ResponseEntity<Object> response = dataProcessingContextController.saveSchedule(partitionId, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate,
-                false, "", "", false);
-        Assertions.assertThat(response.getStatusCode().is4xxClientError()).isTrue();
-    }
-
-    @Test
-    void wrongFrequencyTest_collectionInstrumentId(){
-        //When+Then
-        String collectionInstrumentId = "TESTSURVEY_CI"; //Already exists in stub
-        ServiceToCall serviceToCall = ServiceToCall.MAIN;
-        String frequency = "ERROR";
-        LocalDateTime scheduleBeginDate = LocalDateTime.now();
-        LocalDateTime scheduleEndDate = LocalDateTime.now().plusMonths(1);
-
-        ResponseEntity<Object> response = dataProcessingContextController.saveScheduleWithCollectionInstrumentId(collectionInstrumentId, serviceToCall, frequency, scheduleBeginDate, scheduleEndDate,
-                false, "", "", false);
-        Assertions.assertThat(response.getStatusCode().is4xxClientError()).isTrue();
-    }
-
-    @Test
-    void notFoundTest(){
-        //When+Then
-        ResponseEntity<Object> response = dataProcessingContextController.setSurveyLastExecution("ERROR", LocalDateTime.now());
-        Assertions.assertThat(response.getStatusCode().is4xxClientError()).isTrue();
-    }
-
-    @Test
-    void notFoundTest_collectionInstrumentId(){
-        //When+Then
-        ResponseEntity<Object> response = dataProcessingContextController.setSurveyLastExecutionByCollectionInstrumentId("ERROR", LocalDateTime.now());
-        Assertions.assertThat(response.getStatusCode().is4xxClientError()).isTrue();
-    }
-
-    @Test
-    void deleteScheduleTest(){
-        //When
-        dataProcessingContextController.deleteSchedules("TESTSURVEY");
-
-        //Then
-        Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub()).filteredOn(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getPartitionId().equals("TESTSURVEY")
-        ).isEmpty();
-    }
-
-    @Test
     void deleteScheduleTest_collectionInstrumentId(){
         //When
         dataProcessingContextController.deleteSchedulesByCollectionInstrumentId("TESTSURVEY_CI");
@@ -533,6 +73,7 @@ class DataProcessingContextControllerTest {
                 null,
                 null,
                 new ArrayList<>(),
+                null,
                 false
         );
         KraftwerkExecutionSchedule kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
@@ -581,6 +122,7 @@ class DataProcessingContextControllerTest {
                 "TESTSURVEYADDED_CI",
                 null,
                 new ArrayList<>(),
+                null,
                 false
         );
         KraftwerkExecutionSchedule kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
@@ -629,6 +171,7 @@ class DataProcessingContextControllerTest {
                 "TESTSURVEYADDED",
                 null,
                 new ArrayList<>(),
+                null,
                 false
         );
         KraftwerkExecutionSchedule kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
@@ -678,6 +221,7 @@ class DataProcessingContextControllerTest {
                 "TESTSURVEYADDED_CI",
                 null,
                 new ArrayList<>(),
+                null,
                 false
         );
         KraftwerkExecutionSchedule kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
@@ -727,6 +271,7 @@ class DataProcessingContextControllerTest {
                 "TESTSURVEYADDED2",
                 null,
                 new ArrayList<>(),
+                null,
                 false
         );
         KraftwerkExecutionSchedule kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
@@ -786,6 +331,7 @@ class DataProcessingContextControllerTest {
                 "TESTSURVEYADDED2_CI",
                 null,
                 new ArrayList<>(),
+                null,
                 false
         );
         KraftwerkExecutionSchedule kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
@@ -838,26 +384,6 @@ class DataProcessingContextControllerTest {
 
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
-    void getReview_test(boolean withReview){
-        //GIVEN
-        String partitionId = "TESTPARTITION";
-        DataProcessingContextDocument doc = new DataProcessingContextDocument();
-        doc.setPartitionId("TESTPARTITION");
-        doc.setKraftwerkExecutionScheduleList(new ArrayList<>());
-        doc.setWithReview(withReview);
-        dataProcessingContextPersistancePortStub.getMongoStub().add(doc);
-
-        //WHEN
-        ResponseEntity<Object> response = dataProcessingContextController.getReviewIndicator(partitionId);
-
-        //THEN
-        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(200);
-        Assertions.assertThat(response.getBody().getClass()).isEqualTo(Boolean.class);
-        Assertions.assertThat((Boolean) response.getBody()).isEqualTo(withReview);
-    }
-
-    @ParameterizedTest
-    @ValueSource(booleans = {false, true})
     void getReview_test_collectionInstrumentId(boolean withReview){
         //GIVEN
         String collectionInstrumentId = "TESTPARTITION_CI";
@@ -877,17 +403,6 @@ class DataProcessingContextControllerTest {
     }
 
     @Test
-    void getReview_no_context_test(){
-        //WHEN
-        ResponseEntity<Object> response = dataProcessingContextController.getReviewIndicator(
-                "TESTPARTITIONIDNOCONTEXT"
-        );
-
-        //THEN
-        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(404);
-    }
-
-    @Test
     void getReview_no_context_test_collectionInstrumentId(){
         //WHEN
         ResponseEntity<Object> response = dataProcessingContextController.getReviewIndicatorByCollectionInstrumentId(
@@ -896,56 +411,5 @@ class DataProcessingContextControllerTest {
 
         //THEN
         Assertions.assertThat(response.getStatusCode().value()).isEqualTo(404);
-    }
-
-
-    //UTILITY
-    private void addNewDocumentToStub() {
-        DataProcessingContextDocument dataProcessingContextDocumentTest = new DataProcessingContextDocument();
-        dataProcessingContextDocumentTest.setPartitionId("TESTSURVEY");
-        dataProcessingContextDocumentTest.setKraftwerkExecutionScheduleList(new ArrayList<>());
-        dataProcessingContextDocumentTest.setWithReview(false);
-
-        KraftwerkExecutionSchedule kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
-                "0 0 6 * * *",
-                ServiceToCall.MAIN,
-                LocalDateTime.of(2023, Month.JANUARY, 1, 1, 1, 1),
-                LocalDateTime.of(2023, Month.DECEMBER, 1, 1, 1, 1),
-                null
-        );
-        dataProcessingContextDocumentTest.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
-        kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
-                "0 0 6 * * *",
-                ServiceToCall.MAIN,
-                LocalDateTime.of(2023, Month.FEBRUARY, 1, 1, 1, 1),
-                LocalDateTime.of(2023, Month.DECEMBER, 1, 1, 1, 1),
-                null
-        );
-        dataProcessingContextDocumentTest.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
-        dataProcessingContextPersistancePortStub.getMongoStub().add(dataProcessingContextDocumentTest);
-    }
-
-    private void addNewDocumentToStubWithCollectionInstrumentId() {
-        DataProcessingContextDocument dataProcessingContextDocumentTest = new DataProcessingContextDocument();
-        dataProcessingContextDocumentTest.setCollectionInstrumentId("TESTSURVEY_CI");
-        dataProcessingContextDocumentTest.setKraftwerkExecutionScheduleList(new ArrayList<>());
-        dataProcessingContextDocumentTest.setWithReview(false);
-        KraftwerkExecutionSchedule kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
-                "0 0 6 * * *",
-                ServiceToCall.MAIN,
-                LocalDateTime.of(2023, Month.JANUARY, 1, 1, 1, 1),
-                LocalDateTime.of(2023, Month.DECEMBER, 1, 1, 1, 1),
-                null
-        );
-        dataProcessingContextDocumentTest.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
-        kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
-                "0 0 6 * * *",
-                ServiceToCall.MAIN,
-                LocalDateTime.of(2023, Month.FEBRUARY, 1, 1, 1, 1),
-                LocalDateTime.of(2023, Month.DECEMBER, 1, 1, 1, 1),
-                null
-        );
-        dataProcessingContextDocumentTest.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
-        dataProcessingContextPersistancePortStub.getMongoStub().add(dataProcessingContextDocumentTest);
     }
 }

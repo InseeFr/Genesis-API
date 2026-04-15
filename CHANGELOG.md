@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.0 [TODO]
+### Added
+- New schedule endpoints.
+
 ## 2.4.7 [2026-04-10]
 ### Added
 - Reprocess endpoints for raw responses with optional sinceDate and endDate filters
