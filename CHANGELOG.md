@@ -1,9 +1,11 @@
 # Changelog
 
-## 2.5.0 [TODO]
+## 2.5.0 [2026-04-16]
 ### Added
 - New schedule endpoints.
 
+### Updated
+- BPM 1.1.3
 ## 2.4.7 [2026-04-10]
 ### Added
 - Reprocess endpoints for raw responses with optional sinceDate and endDate filters
