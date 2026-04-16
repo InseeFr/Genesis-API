@@ -21,7 +21,6 @@ import java.util.Map;
 @Slf4j
 public class RestExceptionHandler {
 
-
     @ExceptionHandler(GenesisException.class)
     public ProblemDetail handleGenesis(GenesisException genesisException) {
         log.error("Genesis error (Type: {}) : {}",
@@ -32,6 +31,16 @@ public class RestExceptionHandler {
         return ProblemDetail.forStatusAndDetail(
                 resolveHttpCode(genesisException.getStatus().value()),
                 genesisException.getMessage());
+    }
+
+    /** Returns the corresponding http status, or 500 if the given code does not match an http status. */
+    private static HttpStatus resolveHttpCode(int statusCode) {
+        HttpStatus httpStatus = HttpStatus.resolve(statusCode);
+        if (httpStatus == null) {
+            log.warn("Unknown http status code '{}', 500 will be sent.", statusCode);
+            return  HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+        return httpStatus;
     }
 
     @ExceptionHandler(QuestionnaireNotFoundException.class)
@@ -112,16 +121,6 @@ public class RestExceptionHandler {
         problemDetail.setProperty("errors", errors);
 
         return problemDetail;
-    }
-
-    /** Returns the corresponding http status, or 500 if the given code does not match an http status. */
-    private static HttpStatus resolveHttpCode(int statusCode) {
-        HttpStatus httpStatus = HttpStatus.resolve(statusCode);
-        if (httpStatus == null) {
-            log.warn("Unknown http status code '{}', 500 will be sent.", statusCode);
-            return  HttpStatus.INTERNAL_SERVER_ERROR;
-        }
-        return httpStatus;
     }
 
 }
