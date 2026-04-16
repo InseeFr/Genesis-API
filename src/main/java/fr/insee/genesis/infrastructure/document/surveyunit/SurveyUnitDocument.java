@@ -33,9 +33,11 @@ public class SurveyUnitDocument {
 	/**
 	 * @deprecated It will be replaced by collectionInstrumentId
 	 */
-	@Deprecated(forRemoval = true, since ="2026-01-01")
+	@Deprecated(since ="2026-01-01")
+	@Indexed
 	private String questionnaireId;
 
+	@Indexed
 	private String collectionInstrumentId;
 
 	private String majorModelVersion;
