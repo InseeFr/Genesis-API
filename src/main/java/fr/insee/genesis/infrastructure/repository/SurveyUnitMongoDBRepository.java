@@ -57,25 +57,17 @@ public interface SurveyUnitMongoDBRepository extends MongoRepository<SurveyUnitD
 	)
 	List<SurveyUnitInterrogationProjection> findProjectedByCollectionInstrumentIdAndSince(String collectionInstrumentId, Instant since);
 
-    @Query(
-            value = "{ 'collectionInstrumentId' : ?0, 'recordDate': { $gte: ?1, $lt: ?2 } }",
-            fields = "{ 'interrogationId' : 1, 'mode' : 1 }"
-    )
-    List<SurveyUnitDocument> findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
-            String collectionInstrumentId,
-            Instant start,
-            Instant end
-    );
+	@Query(
+			value = "{ 'collectionInstrumentId' : ?0, 'recordDate': { $lte: ?1 } }",
+			fields = "{ 'interrogationId' : 1, 'mode' : 1, 'recordDate' : 1, '_id': 0 }"
+	)
+	List<SurveyUnitInterrogationProjection> findProjectedByCollectionInstrumentIdAndUntil(String collectionInstrumentId, Instant until);
 
-    @Query(
-            value = "{ 'questionnaireId' : ?0, 'recordDate': { $gte: ?1, $lt: ?2 } }",
-            fields = "{ 'interrogationId' : 1, 'mode' : 1 }"
-    )
-    List<SurveyUnitDocument> findInterrogationIdsQuestionnaireIdAndRecordDateBetween(
-            String questionnaireId,
-            Instant start,
-            Instant end
-    );
+	@Query(
+			value = "{ 'collectionInstrumentId' : ?0, 'recordDate': { $gt: ?1, $lte: ?2 } }",
+			fields = "{ 'interrogationId' : 1, 'mode' : 1, 'recordDate' : 1, '_id': 0 }"
+	)
+	List<SurveyUnitInterrogationProjection> findProjectedByCollectionInstrumentIdAndBetween(String collectionInstrumentId, Instant since, Instant until);
 
     /**
 	 * @author Adrien Marchal

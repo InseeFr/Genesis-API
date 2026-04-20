@@ -35,6 +35,7 @@ import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.modelefiliere.RawResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -413,8 +414,8 @@ public class ResponseController implements CommonApiResponse {
     public ResponseEntity<List<SurveyUnitSimplifiedDto>> searchResponses(
             @PathVariable("collectionInstrumentId") String collectionInstrumentId,
             @Parameter(
-                    description = "Filter responses to those recorded strictly before the given timestamp (ISO-8601 UTC format).",
-                    example = "2026-01-15T10:15:30Z"
+                    description = "Filter responses to those recorded before or at the same time of the given timestamp (ISO-8601 UTC format).",
+                    schema = @Schema(type = "string", format = "date-time", example = "2026-01-01T00:00:00Z")
             )
             @RequestParam(value = "recordedBefore", required = false) Instant recordedBefore,
             @RequestBody List<InterrogationId> interrogationIds)

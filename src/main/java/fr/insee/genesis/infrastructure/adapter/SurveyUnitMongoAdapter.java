@@ -9,6 +9,7 @@ import fr.insee.genesis.domain.model.surveyunit.InterrogationInfo;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
 import fr.insee.genesis.infrastructure.document.surveyunit.SurveyUnitDocument;
+import fr.insee.genesis.infrastructure.document.surveyunit.SurveyUnitInterrogationProjection;
 import fr.insee.genesis.infrastructure.mappers.SurveyUnitDocumentMapper;
 import fr.insee.genesis.infrastructure.repository.SurveyUnitMongoDBRepository;
 import jakarta.validation.constraints.NotNull;
@@ -208,20 +209,23 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 	}
 
 	@Override
-	public List<InterrogationInfo> findInterrogationInfoByCollectionInstrumentIdAndSince(String collectionInstrumentId, Instant since) {
-		return mongoRepository.findProjectedByCollectionInstrumentIdAndSince(collectionInstrumentId, since)
-				.stream()
+	public List<InterrogationInfo> searchInterrogations(String collectionInstrumentId, Instant start, Instant end) {
+		List<SurveyUnitInterrogationProjection> projections;
+		if (start != null && end != null){
+			projections = mongoRepository.findProjectedByCollectionInstrumentIdAndBetween(collectionInstrumentId, start, end);
+		}
+		else if (start != null){
+			projections = mongoRepository.findProjectedByCollectionInstrumentIdAndSince(collectionInstrumentId, start);
+		}
+		else if (end != null){
+			projections = mongoRepository.findProjectedByCollectionInstrumentIdAndUntil(collectionInstrumentId, end);
+		} else {
+			projections = mongoRepository.findProjectedByCollectionInstrumentId(collectionInstrumentId);
+		}
+		return projections.stream()
 				.map(proj -> new InterrogationInfo(proj.getInterrogationId(), proj.getRecordDate()))
 				.toList();
 	}
-
-    @Override
-    public List<SurveyUnitModel> findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(String collectionInstrumentId, Instant start, Instant end) {
-        List<SurveyUnitDocument> results =  new ArrayList<>();
-        results.addAll(mongoRepository.findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(collectionInstrumentId,start,end));
-        results.addAll(mongoRepository.findInterrogationIdsQuestionnaireIdAndRecordDateBetween(collectionInstrumentId,start,end));
-        return results.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(results);
-    }
 
     //========== OPTIMISATIONS PERFS (START) ===========
 	@Override

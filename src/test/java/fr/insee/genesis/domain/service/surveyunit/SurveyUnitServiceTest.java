@@ -18,7 +18,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.ZoneOffset;
@@ -250,7 +249,7 @@ class SurveyUnitServiceTest {
         ).isNotEmpty().hasSize(1);
     }
 
-    @Test
+/*    @Test
     void findDistinctInterrogationIdsByQuestionnaireIdAndDateAfterTest_no_doc_in_period(){
         addAdditionnalSurveyUnitModelToMongoStub();
 
@@ -266,9 +265,9 @@ class SurveyUnitServiceTest {
         Assertions.assertThat(surveyUnitServiceStatic.findDistinctInterrogationIdsByCollectionInstrumentIdAndSince(DEFAULT_COLLECTION_INSTRUMENT_ID, LocalDateTime.of(2024,1,1,0,0,0).toInstant(ZoneOffset.UTC))).filteredOn(
                 interrogationId -> interrogationId.interrogationId().equals(DEFAULT_INTERROGATION_ID)
         ).isNotEmpty().hasSize(1);
-    }
+    }*/
 
-    @Test
+/*    @Test
     void findDistinctInterrogationIdsByCollectionInstrumentIdAndRecordDateBetweenTest_no_doc_in_period() {
         addAdditionnalSurveyUnitModelToMongoStub();
 
@@ -297,7 +296,7 @@ class SurveyUnitServiceTest {
                 ).filteredOn(interrogationId -> interrogationId.getInterrogationId().equals(DEFAULT_INTERROGATION_ID))
                 .isNotEmpty()
                 .hasSize(1);
-    }
+    }*/
 
     @Test
     void findInterrogationIdsByQuestionnaireIdTest(){

@@ -36,13 +36,7 @@ public interface SurveyUnitPersistencePort {
 
     List<InterrogationInfo> findInterrogationInfoByCollectionInstrumentId(String collectionInstrumentId);
 
-    List<InterrogationInfo> findInterrogationInfoByCollectionInstrumentIdAndSince(String collectionInstrumentId, Instant since);
-
-    List<SurveyUnitModel> findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
-            String collectionInstrumentId,
-            Instant start,
-            Instant end
-    );
+    List<InterrogationInfo> searchInterrogations(String collectionInstrumentId, Instant start, Instant end);
 
     //======== OPTIMISATIONS PERFS (START) ========
     long countByCollectionInstrumentId(String collectionInstrumentId);
@@ -90,4 +84,5 @@ public interface SurveyUnitPersistencePort {
     long countByQuestionnaireId(String questionnaireId);
 
     long countDistinctInterrogationIdsByQuestionnaireAndCollectionInstrumentId(String id);
+
 }

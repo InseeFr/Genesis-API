@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -55,8 +54,20 @@ public class InterrogationController implements CommonApiResponse {
     @GetMapping(path = "collection-instruments/{collectionInstrumentId}/interrogations")
     public ResponseEntity<InterrogationBatchResponse> getAllInterrogationIdsByQuestionnaire(
             @PathVariable String collectionInstrumentId,
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant since) {
-        List<InterrogationInfo> idsInfo = surveyUnitService.findDistinctInterrogationIdsByCollectionInstrumentIdAndSince(collectionInstrumentId, since);
+            @Parameter(
+                    description = "Filter interrogations to those recorded strictly after the given timestamp (ISO-8601 UTC format).",
+                    schema = @Schema(type = "string", format = "date-time", example = "2026-01-01T00:00:00Z")
+            )
+            @RequestParam(value = "since", required = false)
+            Instant since,
+            @RequestParam(value = "until")
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            @Parameter(
+                    description = "Filter interrogations to those recorded before the given timestamp or at the same time (ISO-8601 UTC format).",
+                    schema = @Schema(type = "string", format = "date-time", example = "2026-01-31T23:59:59Z")
+            )
+            Instant until) {
+        List<InterrogationInfo> idsInfo = surveyUnitService.searchInterrogations(collectionInstrumentId, since, until);
         InterrogationBatchResponse response = buildInterrogationBatchResponse(idsInfo);
         return ResponseEntity.ok(response);
     }
@@ -76,31 +87,6 @@ public class InterrogationController implements CommonApiResponse {
         }
         return response;
     }
-
-    @Operation(summary = "Retrieve interrogations recorded between two dates for a given collection instrument")
-    @GetMapping(path = "interrogations/by-collection-instrument-and-between-datetime")
-    public ResponseEntity<List<InterrogationId>> getAllInterrogationIdsByCollectionInstrumentIdAndDate(
-            @RequestParam("collectionInstrumentId") String collectionInstrumentId,
-            @RequestParam("start")
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-            @Parameter(
-                    description = "sinceDate",
-                    schema = @Schema(type = "string", format = "date-time", example = "2026-01-01T00:00:00Z")
-            )
-            Instant start,
-
-            @RequestParam("end")
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-            @Parameter(
-                    description = "untilDate",
-                    schema = @Schema(type = "string", format = "date-time", example = "2026-01-31T23:59:59Z")
-            )
-            Instant end) {
-        List<InterrogationId> responses = surveyUnitService.findDistinctInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(collectionInstrumentId, start,end);
-        return ResponseEntity.ok(responses);
-    }
-
-
 
     //========= OPTIMISATIONS PERFS (START) ==========
     /**

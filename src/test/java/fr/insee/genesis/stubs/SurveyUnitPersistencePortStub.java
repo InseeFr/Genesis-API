@@ -8,7 +8,6 @@ import lombok.Getter;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -144,44 +143,18 @@ public class SurveyUnitPersistencePortStub implements SurveyUnitPersistencePort 
     }
 
     @Override
-    public List<InterrogationInfo> findInterrogationInfoByCollectionInstrumentIdAndSince(String collectionInstrumentId, Instant since) {
+    public List<InterrogationInfo> searchInterrogations(String collectionInstrumentId, Instant start, Instant end) {
         List<InterrogationInfo> ids = new ArrayList<>();
         for(SurveyUnitModel surveyUnitModel : mongoStub){
             if(surveyUnitModel.getCollectionInstrumentId().equals(collectionInstrumentId)
-                    && surveyUnitModel.getRecordDate().isAfter(since))
+                    && surveyUnitModel.getRecordDate().isAfter(start)
+                    && !surveyUnitModel.getRecordDate().isAfter(end))
                 ids.add(
                         new InterrogationInfo(surveyUnitModel.getInterrogationId(), surveyUnitModel.getRecordDate())
                 );
         }
         return ids;
     }
-
-    @Override
-    public List<SurveyUnitModel> findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
-            String collectionInstrumentId,
-            Instant start,
-            Instant end
-    ) {
-        List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
-        ZoneId zone = ZoneId.of("Europe/Paris");
-
-        for (SurveyUnitModel surveyUnitModel : mongoStub) {
-            Instant recordDateInstant = surveyUnitModel.getRecordDate()
-                    .atZone(zone)
-                    .toInstant();
-
-            if (surveyUnitModel.getCollectionInstrumentId().equals(collectionInstrumentId)
-                    && !recordDateInstant.isBefore(start)
-                    && recordDateInstant.isBefore(end)) {
-                surveyUnitModelList.add(
-                        new SurveyUnitModel(surveyUnitModel.getInterrogationId(), surveyUnitModel.getMode())
-                );
-            }
-        }
-
-        return surveyUnitModelList;
-    }
-
 
     //======== OPTIMISATIONS PERFS (START) ========
     /**

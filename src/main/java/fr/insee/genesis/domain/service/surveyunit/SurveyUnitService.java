@@ -406,27 +406,8 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     }
 
     @Override
-    public List<InterrogationInfo> findDistinctInterrogationIdsByCollectionInstrumentIdAndSince(String collectionInstrumentId, Instant since) {
-        return surveyUnitPersistencePort.findInterrogationInfoByCollectionInstrumentIdAndSince(collectionInstrumentId, since);
-    }
-
-    @Override
-    public List<InterrogationId> findDistinctInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
-            String collectionInstrumentId,
-            Instant start,
-            Instant end
-    ) {
-
-        return surveyUnitPersistencePort
-                .findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
-                        collectionInstrumentId,
-                        start,
-                        end
-                )
-                .stream()
-                .map(su -> new InterrogationId(su.getInterrogationId()))
-                .distinct()
-                .toList();
+    public List<InterrogationInfo> searchInterrogations(String collectionInstrumentId, Instant start, Instant end) {
+        return surveyUnitPersistencePort.searchInterrogations(collectionInstrumentId, start, end);
     }
 
     //============ OPTIMISATIONS PERFS (START) ============
