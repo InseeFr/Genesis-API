@@ -16,14 +16,12 @@ class GroupedInterrogationDocumentMapperTest {
     void testDocumentToModel() {
         GroupedInterrogationDocument doc = new GroupedInterrogationDocument();
         doc.setQuestionnaireId("Q1");
-        doc.setPartitionOrCampaignId("CAMP1");
         doc.setInterrogationIds(List.of("I1", "I2"));
 
         GroupedInterrogation model = mapper.documentToModel(doc);
 
         Assertions.assertThat(model).isNotNull();
         Assertions.assertThat(model.questionnaireId()).isEqualTo("Q1");
-        Assertions.assertThat(model.partitionOrCampaignId()).isEqualTo("CAMP1");
         Assertions.assertThat(model.interrogationIds()).isEqualTo(List.of("I1", "I2"));
     }
 
@@ -31,7 +29,6 @@ class GroupedInterrogationDocumentMapperTest {
     void testModelToDocument() {
         GroupedInterrogation model = GroupedInterrogation.builder()
                 .questionnaireId("Q2")
-                .partitionOrCampaignId("CAMP2")
                 .interrogationIds(List.of("I3", "I4"))
                 .build();
 
@@ -39,7 +36,6 @@ class GroupedInterrogationDocumentMapperTest {
 
         Assertions.assertThat(doc).isNotNull();
         Assertions.assertThat(doc.getQuestionnaireId()).isEqualTo("Q2");
-        Assertions.assertThat(doc.getPartitionOrCampaignId()).isEqualTo("CAMP2");
         Assertions.assertThat(doc.getInterrogationIds()).isEqualTo(List.of("I3", "I4"));
     }
 
@@ -47,12 +43,10 @@ class GroupedInterrogationDocumentMapperTest {
     void testListDocumentToListModel() {
         GroupedInterrogationDocument doc1 = new GroupedInterrogationDocument();
         doc1.setQuestionnaireId("Q1");
-        doc1.setPartitionOrCampaignId("C1");
         doc1.setInterrogationIds(List.of("I1"));
 
         GroupedInterrogationDocument doc2 = new GroupedInterrogationDocument();
         doc2.setQuestionnaireId("Q2");
-        doc2.setPartitionOrCampaignId("C2");
         doc2.setInterrogationIds(List.of("I2"));
 
         List<GroupedInterrogation> models = mapper.listDocumentToListModel(List.of(doc1, doc2));
@@ -66,13 +60,11 @@ class GroupedInterrogationDocumentMapperTest {
     void testListModelToListDocument() {
         GroupedInterrogation model1 = GroupedInterrogation.builder()
                 .questionnaireId("Q3")
-                .partitionOrCampaignId("C3")
                 .interrogationIds(List.of("I3"))
                 .build();
 
         GroupedInterrogation model2 = GroupedInterrogation.builder()
                 .questionnaireId("Q4")
-                .partitionOrCampaignId("C4")
                 .interrogationIds(List.of("I4"))
                 .build();
 

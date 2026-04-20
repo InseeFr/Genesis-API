@@ -30,7 +30,6 @@ class SurveyUnitDocumentMapperImplTest {
     public static final String VAR_ID = "TESTVARID";
 
     //Deprecated format
-    public static final String CAMPAIGN_ID = "TESTCAMPAIGNID";
     public static final String ID_UE = "TESTIDUE";
     public static final String QUESTIONNAIRE_ID = "TESTQUESTIONNAIREID";
 
@@ -84,7 +83,6 @@ class SurveyUnitDocumentMapperImplTest {
 
         //TODO deprecated document
         deprecatedSurveyUnitDocumentStatic = new SurveyUnitDocument();
-        deprecatedSurveyUnitDocumentStatic.setCampaignId(CAMPAIGN_ID);
         deprecatedSurveyUnitDocumentStatic.setQuestionnaireId(QUESTIONNAIRE_ID);
         deprecatedSurveyUnitDocumentStatic.setMode(MODE);
         deprecatedSurveyUnitDocumentStatic.setIdUE(ID_UE);

@@ -1,7 +1,6 @@
 package fr.insee.genesis.domain.ports.api;
 
 import fr.insee.genesis.controller.dto.KraftwerkExecutionScheduleInput;
-import fr.insee.genesis.controller.dto.ScheduleDto;
 import fr.insee.genesis.controller.dto.rawdata.ScheduleResponseDto;
 import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
 import fr.insee.genesis.exceptions.GenesisException;
@@ -9,9 +8,8 @@ import fr.insee.genesis.exceptions.GenesisException;
 import java.util.List;
 
 public interface DataProcessingContextApiPort {
-    void saveContext(String partitionId, Boolean withReview) throws GenesisException;
     void saveContextByCollectionInstrumentId(String collectionInstrumentID, Boolean withReview) throws GenesisException;
-
+    
     String createKraftwerkExecutionSchedule(KraftwerkExecutionScheduleInput scheduleInput) throws GenesisException;
 
     void updateKraftwerkExecutionSchedule(KraftwerkExecutionScheduleInput scheduleInput) throws GenesisException;
@@ -24,13 +22,11 @@ public interface DataProcessingContextApiPort {
 
     List<ScheduleResponseDto> getSchedulesV2ByCollectionInstrumentId(String collectionInstrumentId);
 
-    List<ScheduleDto> getAllSchedules();
-
     List<ScheduleResponseDto> getAllSchedulesV2();
 
     void deleteExpiredSchedules(String logFolder) throws GenesisException;
 
-    long countSchedules();
+    long countContexts();
 
     DataProcessingContextModel getContext(String interrogationId) throws GenesisException;
 

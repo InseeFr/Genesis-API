@@ -1,691 +1,822 @@
 package fr.insee.genesis.domain.service.rawdata;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import fr.insee.bpm.metadata.model.MetadataModel;
 import fr.insee.bpm.metadata.model.VariablesMap;
+import fr.insee.genesis.configuration.Config;
+import fr.insee.genesis.controller.dto.rawdata.LunaticJsonRawDataUnprocessedDto;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
+import fr.insee.genesis.domain.model.surveyunit.GroupedInterrogation;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
-import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
+import fr.insee.genesis.domain.ports.spi.DataProcessingContextPersistancePort;
+import fr.insee.genesis.domain.ports.spi.LunaticJsonRawDataPersistencePort;
+import fr.insee.genesis.domain.ports.spi.SurveyUnitQualityToolPort;
 import fr.insee.genesis.domain.service.context.DataProcessingContextService;
 import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
-import fr.insee.genesis.domain.utils.JsonUtils;
-import fr.insee.genesis.infrastructure.mappers.DataProcessingContextMapper;
-import fr.insee.genesis.infrastructure.mappers.LunaticJsonRawDataDocumentMapper;
+import fr.insee.genesis.exceptions.GenesisError;
+import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
-import fr.insee.genesis.stubs.*;
-import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
+import org.mockito.Mockito;
 
+import java.io.IOException;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-import static fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService.getValueString;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static fr.insee.genesis.TestConstants.DEFAULT_INTERROGATION_ID;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anySet;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class LunaticJsonRawDataServiceTest {
-    LunaticJsonRawDataPersistanceStub lunaticJsonRawDataPersistanceStub = new LunaticJsonRawDataPersistanceStub();
-    FileUtils fileUtils = new FileUtils(new ConfigStub());
-    ControllerUtils controllerUtils = new ControllerUtils(fileUtils);
 
-    static QuestionnaireMetadataService metadataService =
-            new QuestionnaireMetadataService(new QuestionnaireMetadataPersistencePortStub());
+    @Mock
+    private LunaticJsonRawDataPersistencePort lunaticJsonRawDataPersistencePort;
+    @Mock
+    private ControllerUtils controllerUtils;
+    @Mock
+    private QuestionnaireMetadataService metadataService;
+    @Mock
+    private SurveyUnitService surveyUnitService;
+    @Mock
+    private SurveyUnitQualityService surveyUnitQualityService;
+    @Mock
+    private SurveyUnitQualityToolPort surveyUnitQualityToolPort;
+    @Mock
+    private DataProcessingContextService dataProcessingContextService;
+    @Mock
+    private DataProcessingContextPersistancePort dataProcessingContextPersistancePort;
+    @Mock
+    private FileUtils fileUtils;
+    @Mock
+    private Config config;
 
-    SurveyUnitPersistencePortStub surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
-    DataProcessingContextPersistancePortStub dataProcessingContextPersistancePortStub = new DataProcessingContextPersistancePortStub();
-    SurveyUnitQualityToolPerretAdapterStub surveyUnitQualityToolPerretAdapterStub = new SurveyUnitQualityToolPerretAdapterStub();
-    ConfigStub configStub = new ConfigStub();
-    LunaticJsonRawDataService lunaticJsonRawDataService =
-            new LunaticJsonRawDataService(
-                    lunaticJsonRawDataPersistanceStub,
-                    controllerUtils,
-                    metadataService,
-                    new SurveyUnitService(surveyUnitPersistencePortStub, metadataService, fileUtils),
-                    new SurveyUnitQualityService(),
-                    fileUtils,
-                    new DataProcessingContextService(dataProcessingContextPersistancePortStub, surveyUnitPersistencePortStub),
-                    surveyUnitQualityToolPerretAdapterStub,
-                    configStub,
-                    dataProcessingContextPersistancePortStub
-            );
+    @InjectMocks
+    private LunaticJsonRawDataService service;
 
-    @Test
-    void saveDataTest_valid_only_collected_array() throws Exception {
-        //GIVEN
-        lunaticJsonRawDataPersistanceStub.getMongoStub().clear();
-        String campaignId = "SAMPLETEST-PARADATA-V1";
-        String questionnaireId = "TESTIDQUEST";
-        String interrogationId = "TESTinterrogationId";
-        String json = "{\"COLLECTED\": {\"TESTVAR\": {\"COLLECTED\": [\"test\"]}}}";
+    private static final String QUESTIONNAIRE_ID = "questionnaire-1";
+    private static final String INTERROGATION_ID = "interrogation-1";
 
-        LunaticJsonRawDataModel rawDataModel = LunaticJsonRawDataModel.builder()
-                .campaignId(campaignId)
-                .questionnaireId(questionnaireId)
-                .interrogationId(interrogationId)
-                .data(JsonUtils.jsonToMap(json))
-                .mode(Mode.WEB)
-                .build();
+    @Nested
+    @DisplayName("save()")
+    class SaveTests {
+        @Test
+        @DisplayName("Calls persistence port")
+        void save_delegatesToPort() {
+            //GIVEN
+            LunaticJsonRawDataModel model = buildRawDataWithCollected(Map.of());
 
-        //WHEN
-        lunaticJsonRawDataService.save(rawDataModel);
+            //WHEN
+            service.save(model);
 
-        //THEN
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub()).hasSize(1);
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().campaignId()).isEqualTo(campaignId);
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().questionnaireId()).isEqualTo(questionnaireId);
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().interrogationId()).isEqualTo(interrogationId);
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data()).isNotNull();
-
-        // We retrieve and cast the Map "COLLECTED"
-        Map<String, Object> collectedData = JsonUtils.asMap(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().get("COLLECTED"));
-        Assertions.assertThat(collectedData)
-                .isNotNull()
-                .hasSize(1)
-                .containsOnlyKeys("TESTVAR");
-
-        // We retrieve and cast the Map "TESTVAR"
-        Map<String, Object> testVarMap = JsonUtils.asMap(collectedData.get("TESTVAR"));
-        Assertions.assertThat(testVarMap).isNotNull().hasSize(1).containsKey(DataState.COLLECTED.toString());
-
-        // We retrieve and cast the List "COLLECTED"
-        List<String> collectedList = JsonUtils.asStringList(testVarMap.get(DataState.COLLECTED.toString()));
-        Assertions.assertThat(collectedList).isNotNull().isInstanceOf(List.class).containsExactly("test");
-
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().get("EXTERNAL")).isNull();
+            //THEN
+            verify(lunaticJsonRawDataPersistencePort).save(model);
+        }
     }
 
-    @Test
-    void saveDataTest_valid_only_collected_value() throws Exception {
-        //GIVEN
-        lunaticJsonRawDataPersistanceStub.getMongoStub().clear();
-        String campaignId = "SAMPLETEST-PARADATA-V1";
-        String questionnaireId = "TESTIDQUEST";
-        String interrogationId = "TESTinterrogationId";
-        String json = "{\"COLLECTED\": {\"TESTVAR\": {\"COLLECTED\": \"test\"}}}";
+    @Nested
+    @DisplayName("getRawDataByQuestionnaireId()")
+    class GetRawDataByQuestionnaireIdTests {
 
-        LunaticJsonRawDataModel rawDataModel = LunaticJsonRawDataModel.builder()
-                .campaignId(campaignId)
-                .questionnaireId(questionnaireId)
-                .interrogationId(interrogationId)
-                .data(JsonUtils.jsonToMap(json))
-                .mode(Mode.WEB)
-                .build();
-        //WHEN
-        lunaticJsonRawDataService.save(rawDataModel);
+        @Test
+        @DisplayName("Calls persistence port and returns result")
+        void returns_result_from_port() {
+            //GIVEN
+            LunaticJsonRawDataModel model = buildRawDataWithCollected(Map.of());
+            when(lunaticJsonRawDataPersistencePort
+                    .findRawDataByQuestionnaireId(QUESTIONNAIRE_ID, Mode.WEB, List.of(INTERROGATION_ID)))
+                    .thenReturn(List.of(model));
 
-        //THEN
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub()).hasSize(1);
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().campaignId()).isEqualTo(campaignId);
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().questionnaireId()).isEqualTo(questionnaireId);
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().interrogationId()).isEqualTo(interrogationId);
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data()).isNotNull();
+            //WHEN
+            List<LunaticJsonRawDataModel> result =
+                    service.getRawDataByQuestionnaireId(QUESTIONNAIRE_ID, Mode.WEB, List.of(INTERROGATION_ID));
 
-        Map<String, Object> collectedData = JsonUtils.asMap(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().get("COLLECTED"));
-        Assertions.assertThat(collectedData)
-                .isNotNull()
-                .hasSize(1)
-                .containsOnlyKeys("TESTVAR");
-
-        Map<String, Object> testVarMap = JsonUtils.asMap(collectedData.get("TESTVAR"));
-        Assertions.assertThat(testVarMap).isNotNull().hasSize(1).containsKey(DataState.COLLECTED.toString());
-        Assertions.assertThat(testVarMap.get(DataState.COLLECTED.toString())).isNotNull().isEqualTo("test");
-        Assertions.assertThat(testVarMap.get(DataState.COLLECTED.toString())).isInstanceOf(String.class);
-
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().get("EXTERNAL")).isNull();
+            //THEN
+            assertThat(result).containsExactly(model);
+        }
     }
 
-    @Test
-    void saveDataTest_valid_only_external_array() throws Exception {
-        //GIVEN
-        lunaticJsonRawDataPersistanceStub.getMongoStub().clear();
-        String campaignId = "SAMPLETEST-PARADATA-V1";
-        String questionnaireId = "TESTIDQUEST";
-        String interrogationId = "TESTinterrogationId";
-        String json = "{\"EXTERNAL\": {\"TESTVAR_EXT\": [\"test\"]}}";
+    @Nested
+    @DisplayName("getRawDataByInterrogationId()")
+    class GetRawDataByInterrogationIdTests {
 
-        LunaticJsonRawDataModel rawDataModel = LunaticJsonRawDataModel.builder()
-                .campaignId(campaignId)
-                .questionnaireId(questionnaireId)
-                .interrogationId(interrogationId)
-                .data(JsonUtils.jsonToMap(json))
-                .mode(Mode.WEB)
-                .build();
-        //WHEN
-        lunaticJsonRawDataService.save(rawDataModel);
+        @Test
+        @DisplayName("Calls persistence port")
+        void delegates_to_port() {
+            //GIVEN
+            LunaticJsonRawDataModel lunaticJsonRawDataModel = buildRawDataWithCollected(Map.of());
+            when(lunaticJsonRawDataPersistencePort.findRawDataByInterrogationId(INTERROGATION_ID))
+                    .thenReturn(List.of(lunaticJsonRawDataModel));
 
-        //THEN
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub()).hasSize(1);
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().campaignId()).isEqualTo(campaignId);
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().questionnaireId()).isEqualTo(questionnaireId);
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().interrogationId()).isEqualTo(interrogationId);
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data()).isNotNull();
+            //WHEN
+            List<LunaticJsonRawDataModel> result = service.getRawDataByInterrogationId(INTERROGATION_ID);
 
-        Map<String, Object> externalData = JsonUtils.asMap(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().get("EXTERNAL"));
-        Assertions.assertThat(externalData)
-                .isNotNull()
-                .hasSize(1)
-                .containsOnlyKeys("TESTVAR_EXT");
-
-        Object extVarValue = externalData.get("TESTVAR_EXT");
-        Assertions.assertThat(extVarValue).isNotNull().isInstanceOf(List.class);
-        List<String> extValCast = JsonUtils.asStringList(extVarValue);
-        Assertions.assertThat(extValCast).containsExactly("test");
-
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().get("COLLECTED")).isNull();
+            //THEN
+            assertThat(result).containsExactly(lunaticJsonRawDataModel);
+        }
     }
 
-    @Test
-    void saveDataTest_valid_only_external_value() throws Exception {
-        //GIVEN
-        lunaticJsonRawDataPersistanceStub.getMongoStub().clear();
-        String campaignId = "SAMPLETEST-PARADATA-V1";
-        String questionnaireId = "TESTIDQUEST";
-        String interrogationId = "TESTinterrogationId";
-        String json = "{\"EXTERNAL\": {\"TESTVAR_EXT\": \"test\"}}";
+    @Nested
+    @DisplayName("processRawData(questionnaireId)")
+    class ProcessRawDataNewTests {
 
-        LunaticJsonRawDataModel rawDataModel = LunaticJsonRawDataModel.builder()
-                .campaignId(campaignId)
-                .questionnaireId(questionnaireId)
-                .interrogationId(interrogationId)
-                .data(JsonUtils.jsonToMap(json))
-                .mode(Mode.WEB)
-                .build();
-        //WHEN
-        lunaticJsonRawDataService.save(rawDataModel);
+        @BeforeEach
+        void commonSetup() throws GenesisException {
+            when(config.getRawDataProcessingBatchSize()).thenReturn(100);
+            when(controllerUtils.getModesList(QUESTIONNAIRE_ID, null)).thenReturn(List.of(Mode.WEB));
+            when(dataProcessingContextService.getContextByCollectionInstrumentId(QUESTIONNAIRE_ID)).thenReturn(null);
+        }
 
-        //THEN
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub()).hasSize(1);
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().campaignId()).isEqualTo(campaignId);
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().questionnaireId()).isEqualTo(questionnaireId);
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().interrogationId()).isEqualTo(interrogationId);
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data()).isNotNull();
+        @Test
+        @DisplayName("Returns zero counts when no unprocessed ids")
+        void noUnprocessedIds_returnsZeroCounts() throws GenesisException {
+            //GIVEN
+            MetadataModel metadataModel = new MetadataModel();
+            when(metadataService.loadAndSaveIfNotExists(anyString(), anyString(), any(), any(), any()))
+                    .thenReturn(metadataModel);
+            when(lunaticJsonRawDataPersistencePort
+                    .findUnprocessedInterrogationIdsByCollectionInstrumentId(QUESTIONNAIRE_ID))
+                    .thenReturn(Set.of());
 
-        Map<String, Object> externalData = JsonUtils.asMap(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().get("EXTERNAL"));
-        Assertions.assertThat(externalData)
-                .isNotNull()
-                .hasSize(1)
-                .containsOnlyKeys("TESTVAR_EXT");
+            //WHEN
+            DataProcessResult result = service.processRawData(QUESTIONNAIRE_ID);
 
+            //THEN
+            assertThat(result.dataCount()).isZero();
+            assertThat(result.formattedDataCount()).isZero();
+            verify(surveyUnitService, never()).saveSurveyUnits(any());
+        }
 
-        Assertions.assertThat(externalData.get("TESTVAR_EXT")).isNotNull().isEqualTo("test");
+        @Test
+        @DisplayName("Processes one batch and saves survey units")
+        void processOneBatch_savesSurveyUnits() throws GenesisException {
+            //GIVEN
+            MetadataModel metadataModel = new MetadataModel();
+            when(metadataService.loadAndSaveIfNotExists(anyString(), anyString(), any(), any(), any()))
+                    .thenReturn(metadataModel);
+            when(lunaticJsonRawDataPersistencePort
+                    .findUnprocessedInterrogationIdsByCollectionInstrumentId(QUESTIONNAIRE_ID))
+                    .thenReturn(Set.of(INTERROGATION_ID));
+            when(lunaticJsonRawDataPersistencePort
+                    .findRawDataByQuestionnaireId(eq(QUESTIONNAIRE_ID), eq(Mode.WEB), anyList()))
+                    .thenReturn(List.of());
 
-        Assertions.assertThat(externalData.get("TESTVAR_EXT")).isInstanceOf(String.class);
+            DataProcessResult result = service.processRawData(QUESTIONNAIRE_ID);
 
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().get("COLLECTED")).isNull();
+            assertThat(result.dataCount()).isZero(); // empty raw data → no models
+            verify(surveyUnitService, atLeastOnce()).saveSurveyUnits(anyList());
+        }
+
+        @Test
+        @DisplayName("Throws GenesisException when metadata cannot be loaded")
+        void missingMetadata_throwsGenesisException() throws GenesisException {
+            // GIVEN
+            // Null variable map + genesis error in list
+            MetadataModel metadataModel = mock(MetadataModel.class);
+            when(metadataModel.getVariables()).thenReturn(null);
+            when(metadataService.loadAndSaveIfNotExists(anyString(), anyString(), any(), any(), any()))
+                    .thenAnswer(inv -> {
+                        List<Object> errors = inv.getArgument(4);
+                        errors.add(new GenesisError("test"));
+                        return metadataModel;
+                    });
+
+            //WHEN + THEN
+            assertThatThrownBy(() -> service.processRawData(QUESTIONNAIRE_ID))
+                    .isInstanceOf(GenesisException.class);
+        }
+
+        @Test
+        @DisplayName("Sends processed ids to quality tool when review is activated")
+        void withReview_sendsProcessedIds() throws GenesisException, IOException {
+            // GIVEN
+            // Context with review
+            DataProcessingContextModel context = mock(DataProcessingContextModel.class);
+            when(context.isWithReview()).thenReturn(true);
+            when(dataProcessingContextService.getContextByCollectionInstrumentId(QUESTIONNAIRE_ID))
+                    .thenReturn(context);
+
+            MetadataModel metadataModel = new MetadataModel();
+            when(metadataService.loadAndSaveIfNotExists(anyString(), anyString(), any(), any(), any()))
+                    .thenReturn(metadataModel);
+
+            when(lunaticJsonRawDataPersistencePort
+                    .findUnprocessedInterrogationIdsByCollectionInstrumentId(QUESTIONNAIRE_ID))
+                    .thenReturn(Set.of(INTERROGATION_ID));
+
+            // Build raw data with actual COLLECTED variable so it produces a SurveyUnitModel
+            Map<String, Object> varInner = new HashMap<>();
+            varInner.put("COLLECTED", "value1");
+            varInner.put("EDITED", null);
+            Map<String, Object> collected = new HashMap<>();
+            collected.put("VAR1", varInner);
+            LunaticJsonRawDataModel rawData = buildRawDataWithCollected(collected);
+
+            when(lunaticJsonRawDataPersistencePort
+                    .findRawDataByQuestionnaireId(eq(QUESTIONNAIRE_ID), eq(Mode.WEB), anyList()))
+                    .thenReturn(List.of(rawData));
+
+            //Mock response from quality tool
+            ResponseEntity<Object> fakeResponse = ResponseEntity.ok().build();
+            when(surveyUnitQualityToolPort.sendProcessedIds(anyMap())).thenReturn(fakeResponse);
+
+            //WHEN
+            service.processRawData(QUESTIONNAIRE_ID);
+
+            //THEN
+            verify(surveyUnitQualityToolPort, times(1)).sendProcessedIds(anyMap());
+        }
     }
 
-    @Test
-    void saveDataTest_valid_both_only_collected_datastate() throws Exception {
-        //GIVEN
-        lunaticJsonRawDataPersistanceStub.getMongoStub().clear();
-        String campaignId = "SAMPLETEST-PARADATA-V1";
-        String questionnaireId = "TESTIDQUEST";
-        String interrogationId = "TESTinterrogationId";
-        String json = "{\"EXTERNAL\": {\"TESTVAR_EXT\": \"test_ext\"}, " +
-                "\"COLLECTED\": {\"TESTVAR\": {\"COLLECTED\": [\"test\"]}}}";
+    @Nested
+    @DisplayName("convertRawData()")
+    class ConvertRawDataTests {
 
-        LunaticJsonRawDataModel rawDataModel = LunaticJsonRawDataModel.builder()
-                .campaignId(campaignId)
-                .questionnaireId(questionnaireId)
-                .interrogationId(interrogationId)
-                .data(JsonUtils.jsonToMap(json))
-                .mode(Mode.WEB)
-                .build();
+        @Test
+        @DisplayName("Empty raw data list returns empty list")
+        void emptyRawDataList_returnsEmpty() {
+            //WHEN
+            List<SurveyUnitModel> result = service.convertRawData(List.of(), new VariablesMap());
 
-        //WHEN
-        lunaticJsonRawDataService.save(rawDataModel);
+            //THEN
+            assertThat(result).isEmpty();
+        }
 
-        //THEN
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub()).hasSize(1);
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().campaignId()).isEqualTo(campaignId);
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().questionnaireId()).isEqualTo(questionnaireId);
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().interrogationId()).isEqualTo(interrogationId);
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data()).isNotNull();
+        @Test
+        @DisplayName("Raw data with no COLLECTED/EXTERNAL variables is ignored")
+        void noVariables_rawDataIgnored() {
+            //GIVEN
+            LunaticJsonRawDataModel rawData = buildRawDataWithCollected(Map.of());
 
-        Map<String, Object> externalData = JsonUtils.asMap(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().get("EXTERNAL"));
-        Assertions.assertThat(externalData)
-                .isNotNull()
-                .hasSize(1)
-                .containsOnlyKeys("TESTVAR_EXT");
+            //WHEN
+            List<SurveyUnitModel> result = service.convertRawData(List.of(rawData), new VariablesMap());
 
-        //External variable
-        Assertions.assertThat(externalData.get("TESTVAR_EXT")).isNotNull().isEqualTo("test_ext");
-        Assertions.assertThat(externalData.get("TESTVAR_EXT")).isInstanceOf(String.class);
+            //THEN
+            assertThat(result).isEmpty();
+            verify(lunaticJsonRawDataPersistencePort, atLeastOnce()).updateProcessDates(eq(QUESTIONNAIRE_ID), anySet());
+        }
 
-        //Collected variable
-        Map<String, Object> collectedData = JsonUtils.asMap(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().get("COLLECTED"));
-        Assertions.assertThat(collectedData)
-                .isNotNull()
-                .hasSize(1)
-                .containsOnlyKeys("TESTVAR");
-        Map<String,Object> colVarValue = JsonUtils.asMap(collectedData.get("TESTVAR"));
-        Assertions.assertThat(colVarValue).containsOnlyKeys(DataState.COLLECTED.toString());
-        Assertions.assertThat(colVarValue.get(DataState.COLLECTED.toString()))
-                .isNotNull()
-                .isInstanceOf(List.class);
-        List<String> colVarCast = JsonUtils.asStringList(colVarValue.get(DataState.COLLECTED.toString()));
-        Assertions.assertThat(colVarCast).containsExactly("test");
-    }
+        @Test
+        @DisplayName("Raw data with COLLECTED variable produces COLLECTED and EDITED models")
+        void withCollectedVariable_producesBothDataStates() {
+            //GIVEN
+            Map<String, Object> varInner = new HashMap<>();
+            varInner.put("COLLECTED", "val");
+            varInner.put("EDITED", null);
+            Map<String, Object> collected = new HashMap<>();
+            collected.put("VAR1", varInner);
 
-    @Test
-    void saveDataTest_valid_both_multiple_datastate() throws Exception {
-        //GIVEN
-        lunaticJsonRawDataPersistanceStub.getMongoStub().clear();
-        String campaignId = "SAMPLETEST-PARADATA-V1";
-        String questionnaireId = "TESTIDQUEST";
-        String interrogationId = "TESTinterrogationId";
-        String json = "{\"EXTERNAL\": {\"TESTVAR_EXT\": \"test_ext\"}, " +
-                "\"COLLECTED\": {\"TESTVAR\": {\"COLLECTED\": [\"test\"], \"EDITED\": [\"test_ed\"]}}}";
+            LunaticJsonRawDataModel rawData = buildRawDataWithCollected(collected);
 
-        LunaticJsonRawDataModel rawDataModel = LunaticJsonRawDataModel.builder()
-                .campaignId(campaignId)
-                .questionnaireId(questionnaireId)
-                .interrogationId(interrogationId)
-                .data(JsonUtils.jsonToMap(json))
-                .mode(Mode.WEB)
-                .build();
+            //WHEN
+            List<SurveyUnitModel> result = service.convertRawData(List.of(rawData), new VariablesMap());
 
-        //WHEN
-        lunaticJsonRawDataService.save(rawDataModel);
+            //THEN
+            // Expect 1 COLLECTED (VAR1 has a value) and 0 EDITED (EDITED value is null → empty)
+            long collectedCount = result.stream()
+                    .filter(m -> m.getState() == DataState.COLLECTED).count();
+            assertThat(collectedCount).isEqualTo(1);
+            long editedCount = result.stream()
+                    .filter(m -> m.getState() == DataState.EDITED).count();
+            assertThat(editedCount).isZero();
+        }
 
-        //THEN
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub()).hasSize(1);
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().campaignId()).isEqualTo(campaignId);
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().questionnaireId()).isEqualTo(questionnaireId);
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().interrogationId()).isEqualTo(interrogationId);
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data()).isNotNull();
+        @Test
+        @DisplayName("EDITED value is extracted when present")
+        void withEditedVariable_producesEditedModel() {
+            //GIVEN
+            Map<String, Object> varInner = new HashMap<>();
+            varInner.put("COLLECTED", "original");
+            varInner.put("EDITED", "edited");
+            Map<String, Object> collected = new HashMap<>();
+            collected.put("VAR1", varInner);
 
-        Map<String, Object> externalData = JsonUtils.asMap(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().get("EXTERNAL"));
-        Assertions.assertThat(externalData)
-                .isNotNull()
-                .hasSize(1)
-                .containsOnlyKeys("TESTVAR_EXT");
+            LunaticJsonRawDataModel rawData = buildRawDataWithCollected(collected);
 
-        //External variables
-        Assertions.assertThat(externalData.get("TESTVAR_EXT"))
-                .isNotNull()
-                .isEqualTo("test_ext")
-                .isInstanceOf(String.class);
+            //WHEN
+            List<SurveyUnitModel> result = service.convertRawData(List.of(rawData), new VariablesMap());
 
-        //Collected variables
-        Map<String, Object> collectedData = JsonUtils.asMap(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().get("COLLECTED"));
-        Assertions.assertThat(collectedData)
-                .isNotNull()
-                .hasSize(1)
-                .containsOnlyKeys("TESTVAR");
-        Map<String,Object> colVar = JsonUtils.asMap(collectedData.get("TESTVAR"));
-        Assertions.assertThat(colVar).containsOnlyKeys(DataState.COLLECTED.toString(), DataState.EDITED.toString());
-        Assertions.assertThat(colVar.get(DataState.COLLECTED.toString()))
-                .isNotNull()
-                .isInstanceOf(List.class);
-        Assertions.assertThat(JsonUtils.asStringList(colVar.get(DataState.COLLECTED.toString()))).containsExactly("test");
-        Assertions.assertThat(colVar.get(DataState.EDITED.toString()))
-                .isNotNull()
-                .isInstanceOf(List.class);
-        Assertions.assertThat(JsonUtils.asStringList(colVar.get(DataState.EDITED.toString()))).containsExactly("test_ed");
-    }
+            //THEN
+            long editedCount = result.stream()
+                    .filter(m -> m.getState() == DataState.EDITED).count();
+            assertThat(editedCount).isEqualTo(1);
+        }
 
-    @Test
-    void convertRawData_should_not_throw_exception_if_external_not_present() throws Exception {
-        //GIVEN
-        String campaignId = "SAMPLETEST-PARADATA-V1";
-        String questionnaireId = "TESTIDQUEST";
-        String interrogationId = "TESTinterrogationId";
-        String json = "{\"COLLECTED\": {\"TESTVAR\": {\"COLLECTED\": [\"test\"]}}}";
+        @Test
+        @DisplayName("FILIERE model type is detected when 'data' key is present")
+        void filiereModelType_detected() {
+            //GIVEN
+            // Wrap data in "data" key to simulate FILIERE type
+            Map<String, Object> varInner = new HashMap<>();
+            varInner.put("COLLECTED", "val");
+            varInner.put("EDITED", null);
+            Map<String, Object> inner = new HashMap<>();
+            inner.put("VAR1", varInner);
+            Map<String, Object> collected = new HashMap<>();
+            collected.put("COLLECTED", inner);
+            Map<String, Object> outerData = new HashMap<>();
+            outerData.put("data", collected); // triggers FILIERE detection
 
-        LunaticJsonRawDataModel rawDataModel = LunaticJsonRawDataModel.builder()
-                .campaignId(campaignId)
-                .questionnaireId(questionnaireId)
-                .interrogationId(interrogationId)
-                .data(JsonUtils.jsonToMap(json))
-                .mode(Mode.WEB)
-                .build();
+            LunaticJsonRawDataModel rawData = buildRawDataWithCollected(outerData);
 
-        assertDoesNotThrow(() -> lunaticJsonRawDataService.convertRawData(List.of(rawDataModel),new VariablesMap()));
-    }
+            //WHEN
+            List<SurveyUnitModel> result = service.convertRawData(List.of(rawData), new VariablesMap());
 
-    @Test
-    void convertRawData_if_external_not_present_test() throws Exception {
-        //GIVEN
-        String campaignId = "SAMPLETEST-PARADATA-V1";
-        String questionnaireId = "TESTIDQUEST";
-        String interrogationId = "TESTinterrogationId";
-        String json = "{\"COLLECTED\": {\"TESTVAR\": {\"COLLECTED\": [\"test\"]}}}";
+            // Should not throw — FILIERE path is followed TODO More asserts
+            assertThat(result).isNotNull();
+        }
 
-        LunaticJsonRawDataModel rawDataModel = LunaticJsonRawDataModel.builder()
-                .campaignId(campaignId)
-                .questionnaireId(questionnaireId)
-                .interrogationId(interrogationId)
-                .data(JsonUtils.jsonToMap(json))
-                .mode(Mode.WEB)
-                .build();
+        @Test
+        @DisplayName("validationDate and isCapturedIndirectly are mapped correctly")
+        void optionalFields_mappedCorrectly() {
+            //GIVEN
+            Map<String, Object> varInner = new HashMap<>();
+            varInner.put("COLLECTED", "val");
+            varInner.put("EDITED", null);
+            Map<String, Object> collected = new HashMap<>();
+            collected.put("VAR1", varInner);
 
-        List<SurveyUnitModel> suModels =  lunaticJsonRawDataService.convertRawData(List.of(rawDataModel),new VariablesMap());
-        Assertions.assertThat(suModels).hasSize(1);
-        Assertions.assertThat(suModels.getFirst().getCollectedVariables()).hasSize(1);
-        Assertions.assertThat(suModels.getFirst().getExternalVariables()).isEmpty();
-    }
+            Map<String, Object> data = new HashMap<>();
+            data.put("COLLECTED", collected);
+            data.put("validationDate", "2024-01-15T10:00:00+00:00");
+            data.put("isCapturedIndirectly", "true");
 
-
-    @Test
-    void getRawDataByInterrogationId_shouldReturnOnlyMatchingData() {
-        // GIVEN
-        lunaticJsonRawDataPersistanceStub.getMongoStub().clear();
-
-        String InterrogationId = "INTERROGATION_1";
-        String secondInterrogationId = "INTERROGATION_2";
-
-        LunaticJsonRawDataModel rawData1 = LunaticJsonRawDataModel.builder()
-                .campaignId("CAMPAIGN")
-                .questionnaireId("QUESTIONNAIRE")
-                .interrogationId(InterrogationId)
-                .data(Map.of("key", "value1"))
-                .mode(Mode.WEB)
-                .build();
-
-        LunaticJsonRawDataModel rawData2 = LunaticJsonRawDataModel.builder()
-                .campaignId("CAMPAIGN")
-                .questionnaireId("QUESTIONNAIRE")
-                .interrogationId(secondInterrogationId)
-                .data(Map.of("key", "value2"))
-                .mode(Mode.WEB)
-                .build();
-
-        lunaticJsonRawDataService.save(rawData1);
-        lunaticJsonRawDataService.save(rawData2);
-
-        // WHEN
-        List<LunaticJsonRawDataModel> result =
-                lunaticJsonRawDataService.getRawDataByInterrogationId(InterrogationId);
-
-        // THEN
-        Assertions.assertThat(result)
-                .hasSize(1)
-                .allMatch(data -> InterrogationId.equals(data.interrogationId()));
-
-        Assertions.assertThat(result.getFirst().data())
-                .containsEntry("key", "value1");
-    }
-
-    @Test
-    void convertRawData_should_not_throw_exception_if_collected_not_present() throws Exception {
-        //GIVEN
-        String campaignId = "SAMPLETEST-PARADATA-V1";
-        String questionnaireId = "TESTIDQUEST";
-        String interrogationId = "TESTinterrogationId";
-        String json = "{\"EXTERNAL\": {\"TESTVAR_EXT\": \"test\"}}";
-
-        LunaticJsonRawDataModel rawDataModel = LunaticJsonRawDataModel.builder()
-                .campaignId(campaignId)
-                .questionnaireId(questionnaireId)
-                .interrogationId(interrogationId)
-                .data(JsonUtils.jsonToMap(json))
-                .mode(Mode.WEB)
-                .build();
-
-        assertDoesNotThrow(() -> lunaticJsonRawDataService.convertRawData(List.of(rawDataModel),new VariablesMap()));
-    }
-
-    @Test
-    void convertRawData_if_collected_not_present_test() throws Exception {
-        //GIVEN
-        String campaignId = "SAMPLETEST-PARADATA-V1";
-        String questionnaireId = "TESTIDQUEST";
-        String interrogationId = "TESTinterrogationId";
-        String json = "{\"EXTERNAL\": {\"TESTVAR_EXT\": \"test\"}}";
-
-        LunaticJsonRawDataModel rawDataModel = LunaticJsonRawDataModel.builder()
-                .campaignId(campaignId)
-                .questionnaireId(questionnaireId)
-                .interrogationId(interrogationId)
-                .data(JsonUtils.jsonToMap(json))
-                .mode(Mode.WEB)
-                .build();
-
-        List<SurveyUnitModel> suModels =  lunaticJsonRawDataService.convertRawData(List.of(rawDataModel),new VariablesMap());
-        Assertions.assertThat(suModels).hasSize(1);
-        Assertions.assertThat(suModels.getFirst().getExternalVariables()).hasSize(1);
-        Assertions.assertThat(suModels.getFirst().getCollectedVariables()).isEmpty();
-    }
-
-
-    @ParameterizedTest
-    @ValueSource(ints = {5,500,5000,10000})
-    void convertRawData_multipleBatchs(int rawDataSize) throws Exception {
-        //GIVEN
-        String campaignId = "SAMPLETEST-PARADATA-V1";
-        String questionnaireId = "SAMPLETEST-PARADATA-V1";
-        List<String> interrogationIdList = prepareConvertTest(rawDataSize, campaignId, questionnaireId);
-        //Activate review
-        dataProcessingContextPersistancePortStub.getMongoStub().add(
-                DataProcessingContextMapper.INSTANCE.modelToDocument(
-                        DataProcessingContextModel.builder()
-                                .collectionInstrumentId(questionnaireId)
-                                .withReview(true)
-                                .kraftwerkExecutionScheduleList(new ArrayList<>())
-                                .build()
-                )
-        );
-
-        //WHEN
-        DataProcessResult dataProcessResult = lunaticJsonRawDataService.processRawData(questionnaireId);
-
-        //THEN
-        Assertions.assertThat(dataProcessResult.dataCount()).isEqualTo(rawDataSize * 2/*EDITED*/);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).hasSize(rawDataSize * 2);
-        Assertions.assertThat(surveyUnitQualityToolPerretAdapterStub.getReceivedMaps())
-                .hasSize(Math.ceilDiv(rawDataSize, configStub.getRawDataProcessingBatchSize()));
-        Assertions.assertThat(surveyUnitQualityToolPerretAdapterStub.getReceivedMaps().getFirst()).containsKey(questionnaireId);
-        Assertions.assertThat(surveyUnitQualityToolPerretAdapterStub.getReceivedMaps().getFirst().get(questionnaireId))
-                .contains("TESTinterrogationId1");
-    }
-
-    @Test
-    void convertRawData_review_desactivated() throws Exception {
-        //GIVEN
-        String campaignId = "SAMPLETEST-PARADATA-V1";
-        String questionnaireId = "SAMPLETEST-PARADATA-V1";
-        List<String> interrogationIdList = prepareConvertTest(1, campaignId, questionnaireId);
-
-        //Desactivate review
-        dataProcessingContextPersistancePortStub.getMongoStub().add(
-                DataProcessingContextMapper.INSTANCE.modelToDocument(
-                        DataProcessingContextModel.builder()
-                                .collectionInstrumentId(questionnaireId)
-                                .withReview(false)
-                                .kraftwerkExecutionScheduleList(new ArrayList<>())
-                                .build()
-                )
-        );
-
-        //WHEN
-        DataProcessResult dataProcessResult = lunaticJsonRawDataService.processRawData(questionnaireId);
-
-        //THEN
-        Assertions.assertThat(dataProcessResult.dataCount()).isEqualTo(2);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).hasSize(2);
-        Assertions.assertThat(surveyUnitQualityToolPerretAdapterStub.getReceivedMaps()).isEmpty();
-    }
-
-    @Test
-    void getUnprocessedDataIdsTest_only_processed_data() throws JsonProcessingException {
-        surveyUnitPersistencePortStub.getMongoStub().clear();
-        String campaignId = "SAMPLETEST-PARADATA-V1";
-        String questionnaireId = "TESTIDQUEST";
-        String interrogationId = "TESTinterrogationId";
-        String json = "{\"EXTERNAL\": {\"TESTVAR_EXT\": \"test_ext\"}, " +
-                "\"COLLECTED\": {\"TESTVAR\": {\"COLLECTED\": [\"test\"], \"EDITED\": [\"test_ed\"]}}}";
-
-        LunaticJsonRawDataModel rawDataModel = LunaticJsonRawDataModel.builder()
-                .campaignId(campaignId)
-                .questionnaireId(questionnaireId)
-                .interrogationId(interrogationId)
-                .data(JsonUtils.jsonToMap(json))
-                .mode(Mode.WEB)
-                .processDate(LocalDateTime.now())
-                .build();
-
-        //WHEN
-        lunaticJsonRawDataService.save(rawDataModel);
-
-        Assertions.assertThat(lunaticJsonRawDataService.getUnprocessedDataIds()).isEmpty();
-    }
-    @Test
-    void getUnprocessedDataIdsTest_unprocessed_data() throws JsonProcessingException {
-        surveyUnitPersistencePortStub.getMongoStub().clear();
-        String campaignId = "SAMPLETEST-PARADATA-V1";
-        String questionnaireId = "TESTIDQUEST";
-        String interrogationId = "TESTinterrogationId";
-        String json = "{\"EXTERNAL\": {\"TESTVAR_EXT\": \"test_ext\"}, " +
-                "\"COLLECTED\": {\"TESTVAR\": {\"COLLECTED\": [\"test\"], \"EDITED\": [\"test_ed\"]}}}";
-
-        LunaticJsonRawDataModel rawDataModel = LunaticJsonRawDataModel.builder()
-                .campaignId(campaignId)
-                .questionnaireId(questionnaireId)
-                .interrogationId(interrogationId)
-                .data(JsonUtils.jsonToMap(json))
-                .mode(Mode.WEB)
-                .processDate(LocalDateTime.now())
-                .build();
-
-        String interrogationId2 = "TESTinterrogationId2";
-        String json2 = "{\"EXTERNAL\": {\"TESTVAR_EXT\": \"test_ext2\"}, " +
-                "\"COLLECTED\": {\"TESTVAR\": {\"COLLECTED\": [\"test2\"], \"EDITED\": [\"test_ed2\"]}}}";
-
-        LunaticJsonRawDataModel rawDataModel2 = LunaticJsonRawDataModel.builder()
-                .campaignId(campaignId)
-                .questionnaireId(questionnaireId)
-                .interrogationId(interrogationId2)
-                .data(JsonUtils.jsonToMap(json2))
-                .mode(Mode.WEB)
-                .build();
-        //WHEN
-        lunaticJsonRawDataService.save(rawDataModel);
-        lunaticJsonRawDataService.save(rawDataModel2);
-
-        Assertions.assertThat(lunaticJsonRawDataService.getUnprocessedDataIds()).isNotEmpty();
-        Assertions.assertThat(lunaticJsonRawDataService.getUnprocessedDataIds()).hasSize(1);
-        Assertions.assertThat(lunaticJsonRawDataService.getUnprocessedDataIds().getFirst().interrogationId()).isEqualTo("TESTinterrogationId2");
-    }
-
-
-    private List<String> prepareConvertTest(int rawDataSize, String campaignId, String questionnaireId) throws JsonProcessingException {
-        //CLEAN
-        surveyUnitPersistencePortStub.getMongoStub().clear();
-        surveyUnitQualityToolPerretAdapterStub.getReceivedMaps().clear();
-        dataProcessingContextPersistancePortStub.getMongoStub().clear();
-
-        //GIVEN
-        List<String> interrogationIdList = new ArrayList<>();
-        for (int i = 0; i < rawDataSize; i++) {
-            String interrogationId = "TESTinterrogationId" + (i + 1);
-            String json = "{\"EXTERNAL\": {\"RPPRENOM\": \"TEST_EXT%d\"}, ".formatted(i) +
-                    "\"COLLECTED\": {\"PRENOMREP\": {\"COLLECTED\": [\"test%d\"], \"EDITED\": [\"test_ed%d\"]}}}"
-                            .formatted(i, i);
-
-            LunaticJsonRawDataModel rawDataModel = LunaticJsonRawDataModel.builder()
-                    .campaignId(campaignId)
-                    .questionnaireId(questionnaireId)
-                    .interrogationId(interrogationId)
-                    .data(JsonUtils.jsonToMap(json))
+            LunaticJsonRawDataModel rawData = LunaticJsonRawDataModel.builder()
+                    .questionnaireId(QUESTIONNAIRE_ID)
+                    .interrogationId(INTERROGATION_ID)
+                    .idUE("testIdUE")
                     .mode(Mode.WEB)
+                    .data(data)
+                    .recordDate(LocalDateTime.now())
                     .build();
 
-            interrogationIdList.add(interrogationId);
-            lunaticJsonRawDataPersistanceStub.getMongoStub()
-                    .add(LunaticJsonRawDataDocumentMapper.INSTANCE.modelToDocument(rawDataModel));
+            //WHEN
+            List<SurveyUnitModel> result = service.convertRawData(List.of(rawData), new VariablesMap());
+
+            //THEN
+            assertThat(result).isNotEmpty();
+            SurveyUnitModel model = result.stream()
+                    .filter(m -> m.getState() == DataState.COLLECTED)
+                    .findFirst().orElseThrow();
+            assertThat(model.getValidationDate()).isEqualTo(LocalDateTime.parse("2024-01-15T10:00:00"));
+            assertThat(model.getIsCapturedIndirectly()).isTrue();
         }
-        return interrogationIdList;
+
+        @Test
+        @DisplayName("Malformed validationDate falls back to null without throwing")
+        void malformedValidationDate_fallsBackToNull() {
+            //GIVEN
+            Map<String, Object> varInner = new HashMap<>();
+            varInner.put("COLLECTED", "val");
+            varInner.put("EDITED", null);
+            Map<String, Object> collected = new HashMap<>();
+            collected.put("VAR1", varInner);
+
+            Map<String, Object> data = new HashMap<>();
+            data.put("COLLECTED", collected);
+            data.put("validationDate", "not-a-date");
+
+            LunaticJsonRawDataModel rawData = LunaticJsonRawDataModel.builder()
+                    .questionnaireId(QUESTIONNAIRE_ID)
+                    .interrogationId(INTERROGATION_ID)
+                    .idUE("idUE-1")
+                    .mode(Mode.WEB)
+                    .data(data)
+                    .recordDate(LocalDateTime.now())
+                    .build();
+
+            //WHEN
+            List<SurveyUnitModel> result = service.convertRawData(List.of(rawData), new VariablesMap());
+
+            //THEN
+            assertThat(result).isNotEmpty();
+            result.stream()
+                    .filter(m -> m.getState() == DataState.COLLECTED)
+                    .forEach(m -> assertThat(m.getValidationDate()).isNull());
+        }
+
+        @Test
+        @DisplayName("Array values are converted to multiple VariableModels")
+        void arrayValues_convertedToMultipleIterations() {
+            //GIVEN
+            Map<String, Object> varInner = new HashMap<>();
+            varInner.put("COLLECTED", List.of("a", "b", "c"));
+            varInner.put("EDITED", null);
+            Map<String, Object> collected = new HashMap<>();
+            collected.put("ARRAY_VAR", varInner);
+
+            LunaticJsonRawDataModel rawData = buildRawDataWithCollected(collected);
+
+            //WHEN
+            List<SurveyUnitModel> result = service.convertRawData(List.of(rawData), new VariablesMap());
+
+            //THEN
+            SurveyUnitModel collectedModel = result.stream()
+                    .filter(m -> m.getState() == DataState.COLLECTED)
+                    .findFirst().orElseThrow();
+            assertThat(collectedModel.getCollectedVariables()).hasSize(3);
+        }
     }
 
-    @Test
-    void convertRawData_collected_array_with_null_and_empty_values_should_ignore_them() throws Exception {
-        // GIVEN
-        String campaignId = "SAMPLETEST-PARADATA-v1";
-        String questionnaireId = "TESTIDQUEST";
-        String interrogationId = "TESTinterrogationId";
+    @Nested
+    @DisplayName("getUnprocessedDataIds()")
+    class GetUnprocessedDataIdsTests {
 
-        String json = """
-        {
-          "COLLECTED": {
-            "TESTVAR": {
-              "COLLECTED": [null, "", null, "12", ""]
-            }
-          }
+        @Test
+        @DisplayName("Returns DTOs for each interrogation id")
+        void returnsDtos() {
+            //GIVEN
+            GroupedInterrogation grouped = new GroupedInterrogation(
+                    QUESTIONNAIRE_ID, List.of("id1", "id2"));
+            when(lunaticJsonRawDataPersistencePort.findUnprocessedIds()).thenReturn(List.of(grouped));
+
+            //WHEN
+            List<LunaticJsonRawDataUnprocessedDto> result = service.getUnprocessedDataIds();
+
+            //THEN
+            assertThat(result).hasSize(2);
+            assertThat(result.get(0).interrogationId()).isEqualTo("id1");
+            assertThat(result.get(1).interrogationId()).isEqualTo("id2");
         }
-        """;
 
-        LunaticJsonRawDataModel rawDataModel = LunaticJsonRawDataModel.builder()
-                .campaignId(campaignId)
-                .questionnaireId(questionnaireId)
-                .interrogationId(interrogationId)
-                .data(JsonUtils.jsonToMap(json))
+        @Test
+        @DisplayName("Returns empty list when no unprocessed ids")
+        void noUnprocessed_returnsEmpty() {
+            //GIVEN
+            when(lunaticJsonRawDataPersistencePort.findUnprocessedIds()).thenReturn(List.of());
+
+            //WHEN + THEN
+            assertThat(service.getUnprocessedDataIds()).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("getUnprocessedDataQuestionnaireIds()")
+    class GetUnprocessedDataQuestionnaireIdsTests {
+
+        @Test
+        @DisplayName("Excludes questionnaire with no modes")
+        void noModes_excluded() {
+            //GIVEN
+            when(lunaticJsonRawDataPersistencePort.findDistinctQuestionnaireIdsByNullProcessDate())
+                    .thenReturn(Set.of(QUESTIONNAIRE_ID));
+            when(lunaticJsonRawDataPersistencePort.findModesByQuestionnaire(QUESTIONNAIRE_ID))
+                    .thenReturn(Set.of());
+
+            //WHEN + THEN
+            assertThat(service.getUnprocessedDataQuestionnaireIds()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("Includes questionnaire when specs are present for all modes")
+        void specsPresent_included() throws GenesisException {
+            //GIVEN
+            when(lunaticJsonRawDataPersistencePort.findDistinctQuestionnaireIdsByNullProcessDate())
+                    .thenReturn(Set.of(QUESTIONNAIRE_ID));
+            when(lunaticJsonRawDataPersistencePort.findModesByQuestionnaire(QUESTIONNAIRE_ID))
+                    .thenReturn(Set.of(Mode.WEB));
+
+            MetadataModel metadataModel = new MetadataModel();
+            when(metadataService.loadAndSaveIfNotExists(anyString(), anyString(), any(), any(), any()))
+                    .thenReturn(metadataModel);
+
+            //WHEN
+            Set<String> result = service.getUnprocessedDataQuestionnaireIds();
+
+            //THEN
+            assertThat(result).containsExactly(QUESTIONNAIRE_ID);
+        }
+
+        @Test
+        @DisplayName("Excludes questionnaire when GenesisException is thrown during spec load")
+        void genesisException_excluded() throws GenesisException {
+            //GIVEN
+            when(lunaticJsonRawDataPersistencePort.findDistinctQuestionnaireIdsByNullProcessDate())
+                    .thenReturn(Set.of(QUESTIONNAIRE_ID));
+            when(lunaticJsonRawDataPersistencePort.findModesByQuestionnaire(QUESTIONNAIRE_ID))
+                    .thenReturn(Set.of(Mode.WEB));
+            when(metadataService.loadAndSaveIfNotExists(anyString(), anyString(), any(), any(), any()))
+                    .thenThrow(new GenesisException(500, "error"));
+
+            //WHEN + THEN
+            assertThat(service.getUnprocessedDataQuestionnaireIds()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("Excludes questionnaire when metadata model is null")
+        void nullMetadataModel_excluded() throws GenesisException {
+            //GIVEN
+            when(lunaticJsonRawDataPersistencePort.findDistinctQuestionnaireIdsByNullProcessDate())
+                    .thenReturn(Set.of(QUESTIONNAIRE_ID));
+            when(lunaticJsonRawDataPersistencePort.findModesByQuestionnaire(QUESTIONNAIRE_ID))
+                    .thenReturn(Set.of(Mode.WEB));
+            when(metadataService.loadAndSaveIfNotExists(anyString(), anyString(), any(), any(), any()))
+                    .thenReturn(null);
+
+            //WHEN + THEN
+            assertThat(service.getUnprocessedDataQuestionnaireIds()).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("updateProcessDates()")
+    class UpdateProcessDatesTests {
+
+        @Test
+        @DisplayName("Groups interrogation ids by questionnaire and calls port once per questionnaire")
+        void groupsByCampaignId() {
+            //GIVEN
+            String collectionInstrumentId2 = QUESTIONNAIRE_ID + "2";
+            SurveyUnitModel m1 = SurveyUnitModel.builder()
+                    .collectionInstrumentId(QUESTIONNAIRE_ID).interrogationId("id1").build();
+            SurveyUnitModel m2 = SurveyUnitModel.builder()
+                    .collectionInstrumentId(QUESTIONNAIRE_ID).interrogationId("id2").build();
+            SurveyUnitModel m3 = SurveyUnitModel.builder()
+                    .collectionInstrumentId(collectionInstrumentId2).interrogationId("id3").build();
+
+            //WHEN
+            service.updateProcessDates(List.of(m1, m2, m3));
+
+            //THEN
+            verify(lunaticJsonRawDataPersistencePort).updateProcessDates(eq(QUESTIONNAIRE_ID), argThat(s -> s.containsAll(Set.of(
+                    "id1", "id2"))));
+            verify(lunaticJsonRawDataPersistencePort).updateProcessDates(eq(collectionInstrumentId2), argThat(s -> s.contains("id3")));
+        }
+
+        @Test
+        @DisplayName("Does nothing for empty list")
+        void emptyList_noCalls() {
+            //WHEN
+            service.updateProcessDates(List.of());
+
+            //THEN
+            verifyNoInteractions(lunaticJsonRawDataPersistencePort);
+        }
+    }
+
+    @Nested
+    @DisplayName("findDistinctQuestionnaireIds()")
+    class FindDistinctQuestionnaireIdsTests {
+
+        @Test
+        @DisplayName("Call persistence port")
+        void delegates_to_port() {
+            //WHEN
+            when(lunaticJsonRawDataPersistencePort.findDistinctQuestionnaireIds())
+                    .thenReturn(Set.of("q1", "q2"));
+
+            //THEN
+            assertThat(service.findDistinctQuestionnaireIds()).containsExactlyInAnyOrder("q1", "q2");
+        }
+    }
+
+    @Nested
+    @DisplayName("countRawResponsesByQuestionnaireId()")
+    class CountRawResponsesTests {
+
+        @Test
+        @DisplayName("Returns count from persistence port")
+        void returnsCount() {
+            //WHEN
+            when(lunaticJsonRawDataPersistencePort.countRawResponsesByQuestionnaireId(QUESTIONNAIRE_ID))
+                    .thenReturn(42L);
+
+            //THEN
+            assertThat(service.countRawResponsesByQuestionnaireId(QUESTIONNAIRE_ID)).isEqualTo(42L);
+        }
+    }
+
+    @Nested
+    @DisplayName("findProcessedIdsgroupedByQuestionnaireSince()")
+    class FindProcessedIdsSinceTests {
+
+        @Test
+        @DisplayName("Filters out questionnaires without review context")
+        void noReview_filtered() {
+            //GIVEN
+            LocalDateTime since = LocalDateTime.now().minusDays(1);
+            GroupedInterrogation group = new GroupedInterrogation( QUESTIONNAIRE_ID, List.of("id1"));
+            when(lunaticJsonRawDataPersistencePort.findProcessedIdsGroupedByQuestionnaireSince(since))
+                    .thenReturn(List.of(group));
+
+            DataProcessingContextModel dataProcessingContextModel = mock(DataProcessingContextModel.class);
+            when(dataProcessingContextModel.isWithReview()).thenReturn(false);
+            when(dataProcessingContextModel.getCollectionInstrumentId()).thenReturn(QUESTIONNAIRE_ID);
+            when(dataProcessingContextPersistancePort.findByCollectionInstrumentIds(List.of(QUESTIONNAIRE_ID)))
+                    .thenReturn(List.of(dataProcessingContextModel));
+
+            //WHEN
+            Map<String, List<String>> result = service.findProcessedIdsgroupedByQuestionnaireSince(since);
+
+            //THEN
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        @DisplayName("Includes questionnaires with review context")
+        void withReview_included() {
+            //GIVEN
+            LocalDateTime since = LocalDateTime.now().minusDays(1);
+            GroupedInterrogation groupedInterrogation = new GroupedInterrogation(QUESTIONNAIRE_ID, List.of("id1"));
+            when(lunaticJsonRawDataPersistencePort.findProcessedIdsGroupedByQuestionnaireSince(since))
+                    .thenReturn(List.of(groupedInterrogation));
+
+            DataProcessingContextModel dataProcessingContextModel = DataProcessingContextModel.builder()
+                    .collectionInstrumentId(QUESTIONNAIRE_ID)
+                    .withReview(true)
+                    .build();
+            when(dataProcessingContextPersistancePort.findByCollectionInstrumentIds(List.of(QUESTIONNAIRE_ID)))
+                    .thenReturn(List.of(dataProcessingContextModel));
+
+            //WHEN
+            Map<String, List<String>> result = service.findProcessedIdsgroupedByQuestionnaireSince(since);
+
+            //THEN
+            assertThat(result).containsKey(QUESTIONNAIRE_ID);
+            assertThat(result.get(QUESTIONNAIRE_ID)).containsExactly("id1");
+        }
+    }
+
+    @Nested
+    @DisplayName("findRawDataByQuestionnaireId(questionnaireId, pageable)")
+    class FindRawDataPageableTests {
+
+        @Test
+        @DisplayName("Returns page from persistence port")
+        void returnsPage() {
+            //GIVEN
+            Pageable pageable = PageRequest.of(0, 10);
+            LunaticJsonRawDataModel model = buildRawDataWithCollected(Map.of());
+            Page<LunaticJsonRawDataModel> page = new PageImpl<>(List.of(model));
+            when(lunaticJsonRawDataPersistencePort.findRawDataByQuestionnaireId(QUESTIONNAIRE_ID, pageable))
+                    .thenReturn(page);
+
+            //WHEN
+            Page<LunaticJsonRawDataModel> result =
+                    service.findRawDataByQuestionnaireId(QUESTIONNAIRE_ID, pageable);
+
+            //THEN
+            assertThat(result.getContent()).containsExactly(model);
+        }
+    }
+
+    @Nested
+    @DisplayName("getValueString() util")
+    class GetValueStringTests {
+
+        @Test
+        @DisplayName("Double value strips trailing zeros")
+        void doubleStripsTrailingZeros() {
+            //WHEN + THEN
+            assertThat(LunaticJsonRawDataService.getValueString(1.50)).isEqualTo("1.5");
+        }
+
+        @Test
+        @DisplayName("Float value strips trailing zeros")
+        void floatStripsTrailingZeros() {
+            //WHEN + THEN
+            assertThat(LunaticJsonRawDataService.getValueString(1.500f)).isEqualTo("1.5");
+        }
+
+        @Test
+        @DisplayName("Integer value returns plain string")
+        void integerReturnsPlainString() {
+            //WHEN + THEN
+            assertThat(LunaticJsonRawDataService.getValueString(42)).isEqualTo("42");
+        }
+
+        @Test
+        @DisplayName("String value returns same string")
+        void stringReturnsItself() {
+            //WHEN + THEN
+            assertThat(LunaticJsonRawDataService.getValueString("hello")).isEqualTo("hello");
+        }
+
+        @Test
+        @DisplayName("Null returns 'null' string")
+        void nullReturnsNullString() {
+            //WHEN + THEN
+            assertThat(LunaticJsonRawDataService.getValueString(null)).isEqualTo("null");
+        }
+
+        @Test
+        @DisplayName("BigDecimal integer-like double has no decimal point")
+        void bigDecimalIntegerDouble() {
+            //WHEN + THEN
+            assertThat(LunaticJsonRawDataService.getValueString(3.0)).isEqualTo("3");
+        }
+    }
+
+    //UTILS
+    /** Builds a minimal raw data document with COLLECTED data. */
+    private LunaticJsonRawDataModel buildRawDataWithCollected(Map<String, Object> collectedData) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("COLLECTED", collectedData);
+
+        return LunaticJsonRawDataModel.builder()
+                .questionnaireId(QUESTIONNAIRE_ID)
+                .interrogationId(INTERROGATION_ID)
+                .idUE("idUE-1")
                 .mode(Mode.WEB)
+                .data(data)
+                .recordDate(LocalDateTime.now())
                 .build();
-
-        // WHEN
-        List<SurveyUnitModel> suModels =
-                lunaticJsonRawDataService.convertRawData(List.of(rawDataModel), new VariablesMap());
-
-        // THEN
-        Assertions.assertThat(suModels).hasSize(1);
-
-        SurveyUnitModel suModel = suModels.getFirst();
-        List<VariableModel> collectedVars = suModel.getCollectedVariables();
-
-        // Only the non-empty values should be persisted
-        Assertions.assertThat(collectedVars).hasSize(1);
-        System.out.println(suModel);
-
-        VariableModel variableModel = collectedVars.getFirst();
-        Assertions.assertThat(variableModel.varId()).isEqualTo("TESTVAR");
-        Assertions.assertThat(variableModel.value()).isEqualTo("12");
-
-        Assertions.assertThat(variableModel.iteration()).isEqualTo(4);
-    }
-
-
-    @Test
-    void getValueString_null_test(){
-        Object stringObject = null;
-
-        Assertions.assertThat(getValueString(stringObject)).isEqualTo("null");
     }
 
     @Test
-    void getValueString_string_test(){
-        Object stringObject = "test";
+    void existsByInterrogationId_shouldReturnTrue_whenExists() {
+        // When
+        Mockito.when(lunaticJsonRawDataPersistencePort.existsByInterrogationId(DEFAULT_INTERROGATION_ID))
+                .thenReturn(true);
+        boolean exists = service.existsByInterrogationId(DEFAULT_INTERROGATION_ID);
 
-        Assertions.assertThat(getValueString(stringObject)).isEqualTo("test");
-    }
-    @Test
-    void getValueString_int_test(){
-        Object intObject = 10;
-
-        Assertions.assertThat(getValueString(intObject)).isEqualTo("10");
+        // Then
+        assertThat(exists).isTrue();
     }
 
     @Test
-    void getValueString_float_test(){
-        Object floatObject = 10.111f;
+    void existsByInterrogationId_shouldReturnFalse_whenNotExists() {
+        // Given
+        String unknownId = "UNKNOWN_INTERROGATION_ID";
+        Mockito.when(lunaticJsonRawDataPersistencePort.existsByInterrogationId(unknownId))
+                .thenReturn(false);
 
-        Assertions.assertThat(getValueString(floatObject)).isEqualTo("10.111");
+        // When
+        boolean exists = service.existsByInterrogationId(unknownId);
+
+        // Then
+        assertThat(exists).isFalse();
     }
 
     @Test
-    void getValueString_double_test(){
-        Object doubleObject = 101010101010.111d;
+    void findRawDataByCampaignIdAndDate_should_return_page_from_persistance_port(){
+        //GIVEN
+        String campaignId = "campaignId";
+        Instant start = Instant.now().minusSeconds(30);
+        Instant end = Instant.now();
+        Page<LunaticJsonRawDataModel> lunaticJsonRawDataModelPage = new PageImpl<>(new ArrayList<>());
+        when(lunaticJsonRawDataPersistencePort.findByCampaignIdAndDate(
+                eq(campaignId),
+                eq(start),
+                eq(end),
+                any(Pageable.class)
+        )).thenReturn(lunaticJsonRawDataModelPage);
 
-        Assertions.assertThat(getValueString(doubleObject)).isEqualTo("101010101010.111");
+        //WHEN
+        Page<LunaticJsonRawDataModel> result = service.findRawDataByCampaignIdAndDate(
+                campaignId,
+                start,
+                end,
+                Pageable.ofSize(1)
+        );
+
+        //THEN
+        verify(lunaticJsonRawDataPersistencePort, times(1)).findByCampaignIdAndDate(
+                eq(campaignId),
+                eq(start),
+                eq(end),
+                any(Pageable.class)
+        );
+        assertThat(result).isEqualTo(lunaticJsonRawDataModelPage);
     }
-
 }

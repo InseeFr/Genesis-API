@@ -1,86 +1,59 @@
 package fr.insee.genesis.controller.rest.responses;
 
+import fr.insee.genesis.TestConstants;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
-import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
-import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
-import fr.insee.genesis.infrastructure.utils.FileUtils;
-import fr.insee.genesis.stubs.ConfigStub;
-import fr.insee.genesis.stubs.QuestionnaireMetadataPersistencePortStub;
-import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
+import fr.insee.genesis.exceptions.QuestionnaireNotFoundException;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.io.IOException;
 import java.util.List;
 
-import static fr.insee.genesis.TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
+@ExtendWith(MockitoExtension.class)
 class ModeControllerTest {
-    public static final String CAMPAIGN_ID = "TEST-TABLEAUX";
-    //Given
-    static ModeController modeControllerStatic;
-    static SurveyUnitPersistencePortStub surveyUnitPersistencePortStub;
+    @Mock
+    private SurveyUnitApiPort surveyUnitApiPort;
 
-    @BeforeAll
-    static void init() {
-        surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
-        SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(
-                surveyUnitPersistencePortStub,
-                new QuestionnaireMetadataService(new QuestionnaireMetadataPersistencePortStub()),
-                new FileUtils(new ConfigStub())
+    @InjectMocks
+    private ModeController modeController;
+
+    @Test
+    void getModesByQuestionnaire() {
+        //GIVEN
+        List<Mode> modes = List.of(Mode.WEB, Mode.F2F);
+        doReturn(modes).when(surveyUnitApiPort).findModesByCollectionInstrumentId(any());
+
+        //WHEN
+        ResponseEntity<List<Mode>> response = modeController.getModesByQuestionnaire(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID);
+
+        //THEN
+        verify(surveyUnitApiPort, times(1)).findModesByCollectionInstrumentId(
+                TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID
         );
-
-        modeControllerStatic = new ModeController( surveyUnitApiPort );
-
-    }
-
-    @BeforeEach
-    void reset() throws IOException {
-        Utils.reset(surveyUnitPersistencePortStub);
-    }
-
-
-    //When + Then
-    @Test
-    void getModesByQuestionnaireTest() {
-        ResponseEntity<List<Mode>> response = modeControllerStatic.getModesByQuestionnaire(DEFAULT_COLLECTION_INSTRUMENT_ID);
-
-        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().hasSize(1);
-        Assertions.assertThat(response.getBody().getFirst()).isEqualTo(Mode.WEB);
+        Assertions.assertThat(response.getBody()).isEqualTo(modes);
     }
 
     @Test
-    void getModesByCampaignTest() {
-        ResponseEntity<List<Mode>> response = modeControllerStatic.getModesByCampaign(CAMPAIGN_ID);
+    void getModesByQuestionnaire_not_found() {
+        //GIVEN
+        doThrow(QuestionnaireNotFoundException.class).when(surveyUnitApiPort).findModesByCollectionInstrumentId(any());
 
-        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().hasSize(1);
-        Assertions.assertThat(response.getBody().getFirst()).isEqualTo(Mode.WEB);
+        //WHEN
+        ResponseEntity<List<Mode>> response = modeController.getModesByQuestionnaire(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID);
+
+        //THEN
+        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(HttpStatus.NOT_FOUND.value());
     }
-
-    //========= OPTIMISATIONS PERFS (START) ==========
-    @Test
-    void getModesByQuestionnaireV2Test() {
-        ResponseEntity<List<Mode>> response = modeControllerStatic.getModesByQuestionnaireV2(DEFAULT_COLLECTION_INSTRUMENT_ID);
-
-        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().hasSize(1);
-        Assertions.assertThat(response.getBody().getFirst()).isEqualTo(Mode.WEB);
-    }
-
-    @Test
-    void getModesByCampaignV2Test() {
-        ResponseEntity<List<Mode>> response = modeControllerStatic.getModesByCampaignV2(CAMPAIGN_ID);
-
-        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty().hasSize(1);
-        Assertions.assertThat(response.getBody().getFirst()).isEqualTo(Mode.WEB);
-    }
-    //========= OPTIMISATIONS PERFS (END) ==========
-
 }

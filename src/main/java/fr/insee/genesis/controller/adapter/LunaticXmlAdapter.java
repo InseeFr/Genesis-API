@@ -23,34 +23,33 @@ public class LunaticXmlAdapter {
      * Convert a Lunatic XML survey unit into a genesis survey unit model
      * @param su Lunatic XML survey unit to convert
      * @param variablesMap variable definitions (used for loops)
-     * @param campaignId survey id
      * @return Genesis SurveyUnitModels for each data state
      */
-    public static List<SurveyUnitModel> convert(LunaticXmlSurveyUnit su, VariablesMap variablesMap, String campaignId, Mode mode){
+    public static List<SurveyUnitModel> convert(LunaticXmlSurveyUnit su, VariablesMap variablesMap, Mode mode){
         //Get COLLECTED Data and external variables
         List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
-        SurveyUnitModel surveyUnitModel = getStateDataFromSurveyUnit(su, variablesMap, campaignId, DataState.COLLECTED, mode);
+        SurveyUnitModel surveyUnitModel = getStateDataFromSurveyUnit(su, variablesMap, DataState.COLLECTED, mode);
         getExternalDataFromSurveyUnit(su, surveyUnitModel, variablesMap);
 
         surveyUnitModelList.add(surveyUnitModel);
 
         //Get data from other states
-        SurveyUnitModel editedSurveyUnitModel = getStateDataFromSurveyUnit(su, variablesMap, campaignId, DataState.EDITED,mode);
+        SurveyUnitModel editedSurveyUnitModel = getStateDataFromSurveyUnit(su, variablesMap, DataState.EDITED,mode);
         if(editedSurveyUnitModel != null){
             surveyUnitModelList.add(editedSurveyUnitModel);
         }
 
-        SurveyUnitModel inputedSurveyUnitModel = getStateDataFromSurveyUnit(su, variablesMap, campaignId, DataState.INPUTED,mode);
+        SurveyUnitModel inputedSurveyUnitModel = getStateDataFromSurveyUnit(su, variablesMap, DataState.INPUTED,mode);
         if(inputedSurveyUnitModel != null){
             surveyUnitModelList.add(inputedSurveyUnitModel);
         }
 
-        SurveyUnitModel forcedSurveyUnitModel = getStateDataFromSurveyUnit(su, variablesMap, campaignId, DataState.FORCED,mode);
+        SurveyUnitModel forcedSurveyUnitModel = getStateDataFromSurveyUnit(su, variablesMap, DataState.FORCED,mode);
         if(forcedSurveyUnitModel != null){
             surveyUnitModelList.add(forcedSurveyUnitModel);
         }
 
-        SurveyUnitModel previousSurveyUnitModel = getStateDataFromSurveyUnit(su, variablesMap, campaignId, DataState.PREVIOUS,mode);
+        SurveyUnitModel previousSurveyUnitModel = getStateDataFromSurveyUnit(su, variablesMap, DataState.PREVIOUS,mode);
         if(previousSurveyUnitModel != null){
             surveyUnitModelList.add(previousSurveyUnitModel);
         }
@@ -63,14 +62,12 @@ public class LunaticXmlAdapter {
      * Collects data from XML survey unit depending on the data state
      * @param su source XML Survey Unit
      * @param variablesMap variable definitions (used for loops)
-     * @param campaignId survey id
      * @param dataState state of the SurveyUnitModel to generate
      * @return SurveyUnitModel with a specific state
      */
-    private static SurveyUnitModel getStateDataFromSurveyUnit(LunaticXmlSurveyUnit su, VariablesMap variablesMap, String campaignId, DataState dataState, Mode mode) {
+    private static SurveyUnitModel getStateDataFromSurveyUnit(LunaticXmlSurveyUnit su, VariablesMap variablesMap, DataState dataState, Mode mode) {
         SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
                 .collectionInstrumentId(su.getQuestionnaireModelId().toUpperCase())
-                .campaignId(campaignId)
                 .interrogationId(su.getId())
                 .state(dataState)
                 .mode(mode)
