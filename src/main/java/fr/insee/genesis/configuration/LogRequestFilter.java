@@ -37,8 +37,7 @@ public class LogRequestFilter extends OncePerRequestFilter {
         ContentCachingRequestWrapper req = new ContentCachingRequestWrapper(request);
         ContentCachingResponseWrapper resp = new ContentCachingResponseWrapper(response);
 
-        //Debug: Already in access_log
-        log.debug(REQUEST_MESSAGE_FORMAT,
+        log.info(REQUEST_MESSAGE_FORMAT,
         		req.getMethod(), req.getRequestURI(),
         	//	req.getContentType(),
             //    new ServletServerHttpRequest(req).getHeaders(), //Headers
@@ -47,9 +46,8 @@ public class LogRequestFilter extends OncePerRequestFilter {
 
         // Execution request chain
         filterChain.doFilter(req, resp);
-               
 
-        log.debug(RESPONSE_MESSAGE_FORMAT,
+        log.info(RESPONSE_MESSAGE_FORMAT,
         		req.getMethod(), req.getRequestURI(),
         		resp.getStatus()); //Body
         

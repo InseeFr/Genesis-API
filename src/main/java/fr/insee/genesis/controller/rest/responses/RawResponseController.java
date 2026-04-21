@@ -159,7 +159,7 @@ public class RawResponseController {
     @GetMapping(path = "/responses/raw/lunatic-json/get/unprocessed/questionnaireIds")
     @PreAuthorize("hasRole('SCHEDULER')")
     public ResponseEntity<Set<String>> getUnprocessedJsonRawDataQuestionnairesIds() {
-        log.info("Try to get unprocessed raw JSON datas questionniares...");
+        log.info("Try to get unprocessed raw JSON datas questionnaires...");
         return ResponseEntity.ok(lunaticJsonRawDataApiPort.getUnprocessedDataQuestionnaireIds());
     }
 
