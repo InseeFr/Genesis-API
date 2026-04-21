@@ -22,10 +22,7 @@ public class DataProcessingContextModel {
     @Id
     private ObjectId id; // Used to remove warning
 
-    @Deprecated(forRemoval = true)
-    private String partitionId;
-
-    private String collectionInstrumentId; // QuestionnaireId
+    private String collectionInstrumentId; //QuestionnaireId
 
     private LocalDateTime lastExecution;
 
@@ -37,7 +34,6 @@ public class DataProcessingContextModel {
 
     public ScheduleDto toScheduleDto() {
         return ScheduleDto.builder()
-                .surveyName(partitionId)
                 .collectionInstrumentId(collectionInstrumentId)
                 .lastExecution(lastExecution)
                 .kraftwerkExecutionScheduleList(kraftwerkExecutionScheduleList)
@@ -53,7 +49,7 @@ public class DataProcessingContextModel {
                 .filter(schedule -> schedule != null && schedule.getScheduleUuid() != null)
                 .map(schedule -> ScheduleResponseDto.builder()
                         .scheduleUuid(schedule.getScheduleUuid())
-                        .collectionInstrumentId(getResolvedCollectionInstrumentId())
+                        .collectionInstrumentId(collectionInstrumentId)
                         .lastExecution(lastExecution)
                         .frequency(schedule.getFrequency())
                         .exportType(schedule.getExportType())
@@ -78,11 +74,5 @@ public class DataProcessingContextModel {
                         .build()
                 )
                 .toList();
-    }
-
-    public String getResolvedCollectionInstrumentId() {
-        return collectionInstrumentId != null && !collectionInstrumentId.isBlank()
-                ? collectionInstrumentId
-                : partitionId;
     }
 }

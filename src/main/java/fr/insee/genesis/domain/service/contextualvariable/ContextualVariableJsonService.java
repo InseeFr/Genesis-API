@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -137,7 +137,7 @@ public class ContextualVariableJsonService implements ContextualVariableApiPort 
                         .state(DataState.COLLECTED)
                         .active(true)
                         .value(variable)
-                        .date(LocalDateTime.now())
+                        .date(Instant.now())
                         .build()
         );
         return variableQualityToolDto;

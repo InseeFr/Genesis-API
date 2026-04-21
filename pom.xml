@@ -21,12 +21,12 @@
         <tomcat.version>11.0.21</tomcat.version>
         <commons-lang3.version>3.20.0</commons-lang3.version>
         <junit-jupiter.version>5.13.4</junit-jupiter.version>
+        <jackson-bom.version>2.21.1</jackson-bom.version>
 
         <!-- Dependency versions not managed by Spring -->
         <bpm.version>1.1.3</bpm.version>
         <springdoc.version>2.8.17</springdoc.version>
         <mapstruct.version>1.6.3</mapstruct.version>
-        <cucumber.version>7.34.3</cucumber.version>
         <pitest.version>1.23.0</pitest.version>
         <pitest.junit.version>1.2.3</pitest.junit.version>
 
@@ -41,8 +41,8 @@
             src/main/java/fr/insee/genesis/exceptions/*.java
         </sonar.exclusions>
         <skipSurefireReport>true</skipSurefireReport>
-    </properties>
 
+    </properties>
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -128,32 +128,6 @@
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
             <version>${mapstruct.version}</version>
-        </dependency>
-
-        <!-- Cucumber -->
-        <dependency>
-            <groupId>io.cucumber</groupId>
-            <artifactId>cucumber-java</artifactId>
-            <version>${cucumber.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.cucumber</groupId>
-            <artifactId>cucumber-junit</artifactId>
-            <version>${cucumber.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.cucumber</groupId>
-            <artifactId>cucumber-junit-platform-engine</artifactId>
-            <version>${cucumber.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.cucumber</groupId>
-            <artifactId>cucumber-spring</artifactId>
-            <version>${cucumber.version}</version>
-            <scope>test</scope>
         </dependency>
 
 
@@ -270,13 +244,46 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>properties</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <printSummary>true</printSummary>
                     <includes>
-                        <include>**/*FT.java</include>
                         <include>**/*Test.java</include>
                         <include>**/*Tests.java</include>
+                    </includes>
+                    <excludes>
+                        <exclude>**/*IT.java</exclude>
+                    </excludes>
+                    <parallel>methods</parallel>
+                    <threadCount>4</threadCount>
+                    <argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar}</argLine>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <includes>
+                        <include>**/*IT.java</include>
                     </includes>
                 </configuration>
             </plugin>
@@ -286,10 +293,10 @@
                 <version>${pitest.version}</version>
                 <configuration>
                     <targetClasses>
-                        <param>fr.insee.kraftwerk.*</param>
+                        <param>fr.insee.genesis.*</param>
                     </targetClasses>
                     <targetTests>
-                        <param>fr.insee.kraftwerk.*</param>
+                        <param>fr.insee.genesis.*</param>
                     </targetTests>
                     <mutators>
                         <mutator>STRONGER</mutator>

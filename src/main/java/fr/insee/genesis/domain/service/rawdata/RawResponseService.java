@@ -230,6 +230,8 @@ public class  RawResponseService implements RawResponseApiPort {
                     questionnaireStateEnum = RawResponseDto.QuestionnaireStateEnum.valueOf(questionnaireStateString);
                 } catch (IllegalArgumentException iae){
                     log.warn("'{}' is not a valid questionnaire state according to filiere model", questionnaireStateString);
+                } catch (NullPointerException ignored){
+                    //WARN already done in getStringFieldInPayload
                 }
                 LocalDateTime validationDate = getValidationDate(rawResponseModel);
                 String usualSurveyUnitId = getStringFieldInPayload(rawResponseModel,"usualSurveyUnitId");
@@ -246,7 +248,7 @@ public class  RawResponseService implements RawResponseApiPort {
                         .isCapturedIndirectly(isCapturedIndirectly)
                         .state(dataState)
                         .fileDate(rawResponseModel.recordDate())
-                        .recordDate(LocalDateTime.now())
+                        .recordDate(Instant.now())
                         .collectedVariables(new ArrayList<>())
                         .externalVariables(new ArrayList<>())
                         .build();

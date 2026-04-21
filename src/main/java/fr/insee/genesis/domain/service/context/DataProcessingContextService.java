@@ -17,7 +17,6 @@ import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.mappers.DataProcessingContextMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
@@ -44,23 +43,6 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
                                         SurveyUnitPersistencePort surveyUnitPersistencePort) {
         this.dataProcessingContextPersistancePort = dataProcessingContextPersistancePort;
         this.surveyUnitPersistencePort = surveyUnitPersistencePort;
-    }
-
-    @Override
-    public void saveContext(String partitionId, Boolean withReview) throws GenesisException {
-
-        DataProcessingContextModel dataProcessingContextModel =
-                DataProcessingContextMapper.INSTANCE.documentToModel(dataProcessingContextPersistancePort.findByPartitionId(partitionId));
-        if(dataProcessingContextModel == null){
-            //Create if not exist
-            dataProcessingContextModel = DataProcessingContextModel.builder()
-                    .partitionId(partitionId)
-                    .kraftwerkExecutionScheduleList(new ArrayList<>())
-                    .build();
-        }
-        dataProcessingContextModel.setWithReview(withReview);
-
-        dataProcessingContextPersistancePort.save(DataProcessingContextMapper.INSTANCE.modelToDocument(dataProcessingContextModel));
     }
 
     @Override
@@ -258,20 +240,6 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
     }
 
     @Override
-    public List<ScheduleDto> getAllSchedules() {
-        List<ScheduleDto> scheduleDtos = new ArrayList<>();
-
-        List<DataProcessingContextModel> dataProcessingContextModels =
-                DataProcessingContextMapper.INSTANCE.listDocumentToListModel(dataProcessingContextPersistancePort.findAll());
-
-        dataProcessingContextModels.forEach(
-                model -> scheduleDtos.add(model.toScheduleDto())
-        );
-
-        return scheduleDtos;
-    }
-
-    @Override
     public List<ScheduleResponseDto> getAllSchedulesV2() {
         List<DataProcessingContextModel> dataProcessingContextModels =
                 DataProcessingContextMapper.INSTANCE.listDocumentToListModel(
@@ -292,8 +260,7 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
                 List<KraftwerkExecutionSchedule> deletedKraftwerkExecutionSchedules = dataProcessingContextPersistancePort.removeExpiredSchedules(context);
                 //Save in JSON log
                 if(!deletedKraftwerkExecutionSchedules.isEmpty()) {
-                    String scheduleName = context.getCollectionInstrumentId()==null ?
-                            context.getPartitionId() : context.getCollectionInstrumentId();
+                    String scheduleName = context.getCollectionInstrumentId();
                     Path jsonLogPath = Path.of(logFolder, Constants.SCHEDULE_ARCHIVE_FOLDER_NAME,
                             scheduleName + ".json");
                     ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
@@ -319,7 +286,7 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
     }
 
     @Override
-    public long countSchedules() {
+    public long countContexts() {
         return dataProcessingContextPersistancePort.count();
     }
 
