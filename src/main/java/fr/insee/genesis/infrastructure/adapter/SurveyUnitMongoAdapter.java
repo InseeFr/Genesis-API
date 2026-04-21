@@ -171,14 +171,6 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 	}
 
 	@Override
-	public List<InterrogationInfo> findInterrogationInfoByCollectionInstrumentId(String collectionInstrumentId) {
-		return mongoRepository.findProjectedByCollectionInstrumentId(collectionInstrumentId)
-				.stream()
-				.map(proj -> new InterrogationInfo(proj.getInterrogationId(), proj.getRecordDate()))
-				.toList();
-	}
-
-	@Override
 	public List<InterrogationInfo> searchInterrogations(String collectionInstrumentId, Instant start, Instant end) {
 		List<SurveyUnitInterrogationProjection> projections;
 		if (start != null && end != null){

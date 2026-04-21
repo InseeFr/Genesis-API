@@ -45,7 +45,7 @@ public class InterrogationController implements CommonApiResponse {
     @GetMapping(path = "collection-instruments/{collectionInstrumentId}/interrogations/all")
     public ResponseEntity<InterrogationBatchResponse> getAllInterrogationIdsByCollectionInstrumentId(
             @PathVariable String collectionInstrumentId) {
-        List<InterrogationInfo> idsInfo = surveyUnitService.findDistinctInterrogationIdsByCollectionInstrumentId(collectionInstrumentId);
+        List<InterrogationInfo> idsInfo = surveyUnitService.searchInterrogations(collectionInstrumentId, null, null);
         InterrogationBatchResponse response = buildInterrogationBatchResponse(idsInfo);
         return ResponseEntity.ok(response);
     }

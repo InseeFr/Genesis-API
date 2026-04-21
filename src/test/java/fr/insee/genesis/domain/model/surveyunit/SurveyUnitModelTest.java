@@ -9,6 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -91,7 +92,7 @@ class SurveyUnitModelTest {
                     true,
                     RawResponseDto.QuestionnaireStateEnum.FINISHED,
                     now,
-                    now,
+                    now.toInstant(ZoneOffset.UTC),
                     now,
                     collected,
                     external,
@@ -108,7 +109,7 @@ class SurveyUnitModelTest {
             assertThat(model.getIsCapturedIndirectly()).isTrue();
             assertThat(model.getQuestionnaireState()).isEqualTo(RawResponseDto.QuestionnaireStateEnum.FINISHED);
             assertThat(model.getValidationDate()).isEqualTo(now);
-            assertThat(model.getRecordDate()).isEqualTo(now);
+            assertThat(model.getRecordDate()).isEqualTo(now.toInstant(ZoneOffset.UTC));
             assertThat(model.getFileDate()).isEqualTo(now);
             assertThat(model.getCollectedVariables()).isEqualTo(collected);
             assertThat(model.getExternalVariables()).isEqualTo(external);
@@ -141,7 +142,7 @@ class SurveyUnitModelTest {
                     .isCapturedIndirectly(false)
                     .questionnaireState(RawResponseDto.QuestionnaireStateEnum.FINISHED)
                     .validationDate(now)
-                    .recordDate(now)
+                    .recordDate(now.toInstant(ZoneOffset.UTC))
                     .fileDate(now)
                     .collectedVariables(collected)
                     .externalVariables(external)
@@ -158,7 +159,7 @@ class SurveyUnitModelTest {
             assertThat(model.getIsCapturedIndirectly()).isFalse();
             assertThat(model.getQuestionnaireState()).isEqualTo(RawResponseDto.QuestionnaireStateEnum.FINISHED);
             assertThat(model.getValidationDate()).isEqualTo(now);
-            assertThat(model.getRecordDate()).isEqualTo(now);
+            assertThat(model.getRecordDate()).isEqualTo(now.toInstant(ZoneOffset.UTC));
             assertThat(model.getFileDate()).isEqualTo(now);
             assertThat(model.getCollectedVariables()).isEqualTo(collected);
             assertThat(model.getExternalVariables()).isEqualTo(external);

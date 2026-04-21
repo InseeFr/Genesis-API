@@ -34,8 +34,6 @@ public interface SurveyUnitPersistencePort {
 
     List<SurveyUnitModel> findInterrogationIdsByQuestionnaireIdAndDateAfter(String questionnaireId, LocalDateTime since);
 
-    List<InterrogationInfo> findInterrogationInfoByCollectionInstrumentId(String collectionInstrumentId);
-
     List<InterrogationInfo> searchInterrogations(String collectionInstrumentId, Instant start, Instant end);
 
     //======== OPTIMISATIONS PERFS (START) ========

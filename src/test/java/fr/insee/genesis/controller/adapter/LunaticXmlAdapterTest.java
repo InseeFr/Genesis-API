@@ -13,6 +13,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -235,13 +236,13 @@ class LunaticXmlAdapterTest {
         void convert_shouldSetRecordDateCloseToNow() {
             // GIVEN
             LunaticXmlSurveyUnit su = buildSurveyUnit(List.of(collectedDataWithValue("VAR1", "val")));
-            LocalDateTime before = LocalDateTime.now();
+            Instant before = Instant.now();
 
             // WHEN
             SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE));
 
             // THEN
-            LocalDateTime after = LocalDateTime.now();
+            Instant after = Instant.now();
             assertThat(collected.getRecordDate())
                     .isNotNull()
                     .isAfterOrEqualTo(before)

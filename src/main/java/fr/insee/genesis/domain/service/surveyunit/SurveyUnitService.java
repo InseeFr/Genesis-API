@@ -10,6 +10,7 @@ import fr.insee.genesis.controller.dto.VariableInputDto;
 import fr.insee.genesis.controller.dto.VariableStateDto;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
+import fr.insee.genesis.domain.model.surveyunit.InterrogationInfo;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VarIdScopeTuple;
@@ -190,7 +191,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
      * @return a SurveyUnitSimplifiedDto of the interrogation
      */
     @Override
-    public SurveyUnitSimplifiedDto findSimplifiedByCollectionInstrumentIdAndInterrogationId(
+    public SurveyUnitSimplifiedDto findSimplified(
             String collectionInstrumentId,
             String interrogationId,
             Mode mode,
@@ -410,13 +411,8 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     }
 
     @Override
-    public List<InterrogationInfo> findDistinctInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId) {
-        return surveyUnitPersistencePort.findInterrogationInfoByCollectionInstrumentId(collectionInstrumentId);
-    }
-
-    @Override
     public List<InterrogationInfo> searchInterrogations(String collectionInstrumentId, Instant start, Instant end) {
-        return surveyUnitPersistencePort.searchInterrogations(collectionInstrumentId, start, end);
+        return surveyUnitPersistencePort.searchInterrogations(collectionInstrumentId, start, end).stream().distinct().toList();
     }
 
     //============ OPTIMISATIONS PERFS (START) ============
