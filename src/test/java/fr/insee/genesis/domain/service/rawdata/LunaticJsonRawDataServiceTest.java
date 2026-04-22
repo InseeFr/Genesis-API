@@ -91,7 +91,7 @@ class LunaticJsonRawDataServiceTest {
     class SaveTests {
         @Test
         @DisplayName("Calls persistence port")
-        void save_delegatesToPort() {
+        void save_delegatesToPort() throws GenesisException {
             //GIVEN
             LunaticJsonRawDataModel model = buildRawDataWithCollected(Map.of());
 

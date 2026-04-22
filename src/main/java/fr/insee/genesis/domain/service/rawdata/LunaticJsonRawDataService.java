@@ -31,6 +31,7 @@ import fr.insee.genesis.infrastructure.utils.FileUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -95,8 +96,14 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     }
 
     @Override
-    public void save(LunaticJsonRawDataModel rawData) {
-        lunaticJsonRawDataPersistencePort.save(rawData);
+    public void save(LunaticJsonRawDataModel rawData) throws GenesisException {
+        try {
+            lunaticJsonRawDataPersistencePort.save(rawData);
+        } catch (DataAccessException e) {
+            throw new GenesisException(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error");
+        } catch (IllegalArgumentException e) {
+            throw new GenesisException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
     }
 
     @Override

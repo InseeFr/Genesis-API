@@ -63,7 +63,7 @@ public class RawResponseController {
             @RequestParam(value = "surveyUnitId", required = false) String idUE,
             @RequestParam(value = "mode") Mode modeSpecified,
             @RequestBody Map<String, Object> dataJson
-    ) {
+    ) throws GenesisException{
         log.info("Try to save interrogationId {} for campaign {}", interrogationId, campaignName);
         LunaticJsonRawDataModel rawData = LunaticJsonRawDataModel.builder()
                 .campaignId(campaignName)
@@ -74,11 +74,9 @@ public class RawResponseController {
                 .data(dataJson)
                 .recordDate(LocalDateTime.now())
                 .build();
-        try {
-            lunaticJsonRawDataApiPort.save(rawData);
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body("Unexpected error");
-        }
+
+        lunaticJsonRawDataApiPort.save(rawData);
+
         log.info("Data saved for interrogationId {} and campaign {}", interrogationId, campaignName);
         // Collect platform prefer code 201 in case of success
         return ResponseEntity.status(201).body(String.format(SUCCESS_MESSAGE, interrogationId));

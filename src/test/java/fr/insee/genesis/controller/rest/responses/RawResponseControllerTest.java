@@ -117,7 +117,7 @@ class RawResponseControllerTest {
 
         @Test
         @DisplayName("Should propagate exception when port throws an exception")
-        void save_portThrows_shouldThrowException() {
+        void save_portThrows_shouldThrowException() throws GenesisException {
             // GIVEN
             doThrow(new RuntimeException("DB error")).when(lunaticJsonRawDataApiPort).save(any());
 
