@@ -677,7 +677,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
 
     private Object getValueWithType(String variableName, String value, VariablesMap variablesMap) {
         if(!variablesMap.hasVariable(variableName)){
-            log.warn("Variable {} not found in variableMap", variableName);
+            log.debug("Variable {} not found in variableMap", variableName);
             return value;
         }
         if(value == null) return null;

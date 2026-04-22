@@ -54,13 +54,10 @@ public class JsonExtractionController {
     @PreAuthorize("hasAnyRole('USER_KRAFTWERK','SCHEDULER')")
     public ResponseEntity<LastExtractionResponseDto> getLastJsonExtractionDate(
             @PathVariable String collectionInstrumentId,
-            @RequestParam(value = "mode", required = false) Mode mode){
-        try{
-            LastJsonExtractionModel lastJsonExtraction = lastJsonExtractionApiPort.getLastExtractionDate(collectionInstrumentId,mode);
-            return ResponseEntity.ok(new LastExtractionResponseDto(lastJsonExtraction.getLastExtractionDate()));
-        } catch (GenesisException e){
-            return ResponseEntity.notFound().build();
-        }
+            @RequestParam(value = "mode", required = false) Mode mode) throws GenesisException{
+
+        LastJsonExtractionModel lastJsonExtraction = lastJsonExtractionApiPort.getLastExtractionDate(collectionInstrumentId,mode);
+        return ResponseEntity.ok(new LastExtractionResponseDto(lastJsonExtraction.getLastExtractionDate()));
     }
 
     @Operation(summary = "Reset latest JSON data extraction")
@@ -68,13 +65,10 @@ public class JsonExtractionController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Object> deleteJsonExtractionDate(
             @PathVariable String collectionInstrumentId,
-            @RequestParam(value = "mode", required = false) Mode mode){
-        try {
-            lastJsonExtractionApiPort.delete(collectionInstrumentId, mode);
-            return ResponseEntity.ok().build();
-        } catch (GenesisException e){
-            return ResponseEntity.status(e.getStatus()).build();
-        }
+            @RequestParam(value = "mode", required = false) Mode mode) throws GenesisException{
+
+        lastJsonExtractionApiPort.delete(collectionInstrumentId, mode);
+        return ResponseEntity.ok().build();
     }
 
 }

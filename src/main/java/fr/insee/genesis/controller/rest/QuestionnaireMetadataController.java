@@ -6,7 +6,6 @@ import fr.insee.genesis.domain.ports.api.QuestionnaireMetadataApiPort;
 import fr.insee.genesis.exceptions.QuestionnaireNotFoundException;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;

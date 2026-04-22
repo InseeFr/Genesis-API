@@ -269,11 +269,8 @@ public class ResponseController implements CommonApiResponse {
         //TODO move logic to service
         DataProcessingContextModel dataProcessingContextModel;
         //Check context
-        try {
-            dataProcessingContextModel = contextService.getContext(interrogationId);
-        }catch (GenesisException e){
-            return ResponseEntity.internalServerError().body(e.getMessage());
-        }
+        dataProcessingContextModel = contextService.getContext(interrogationId);
+
 
         if(dataProcessingContextModel == null || !dataProcessingContextModel.isWithReview()){
             throw new ReviewDisabledException();
@@ -340,20 +337,15 @@ public class ResponseController implements CommonApiResponse {
     public ResponseEntity<SurveyUnitSimplifiedDto> getResponseByCollectionInstrumentAndInterrogation(
             @PathVariable("collectionInstrumentId") String collectionInstrumentId,
             @PathVariable("interrogationId") String interrogationId,
-            @PathVariable("mode") Mode mode){
-        try {
-            return ResponseEntity.ok(
-                    surveyUnitService.findSimplified(
-                            collectionInstrumentId,
-                            interrogationId,
-                            mode,
-                            null
-                    )
-            );
-        } catch (NoDataException e){
-            log.error(e.getMessage());
-            return ResponseEntity.notFound().build();
-        }
+            @PathVariable("mode") Mode mode) throws NoDataException {
+        return ResponseEntity.ok(
+                surveyUnitService.findSimplified(
+                        collectionInstrumentId,
+                        interrogationId,
+                        mode,
+                        null
+                )
+        );
     }
 
     /**
