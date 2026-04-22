@@ -4,6 +4,7 @@ import fr.insee.bpm.metadata.model.MetadataModel;
 import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.configuration.Config;
+import fr.insee.genesis.controller.dto.rawdata.LunaticJsonRawDataUnprocessedDto;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
 import fr.insee.genesis.domain.model.surveyunit.DataState;

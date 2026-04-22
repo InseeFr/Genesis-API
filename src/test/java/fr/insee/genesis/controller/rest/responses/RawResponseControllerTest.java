@@ -3,12 +3,14 @@ package fr.insee.genesis.controller.rest.responses;
 import fr.insee.genesis.configuration.auth.security.DefaultSecurityConfig;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
+import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponseModel;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.RawResponseApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.repository.RawResponseInputRepository;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -23,6 +25,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -503,6 +506,51 @@ class RawResponseControllerTest {
             mockMvc.perform(get("/responses/raw/lunatic-json/processed/ids")
                             .param("questionnaireId", "QUEST01"))
                     .andExpect(status().isOk());
+        }
+    }
+
+    @Nested
+    @DisplayName("GET raw responses and lunatic json admin endpoints tests")
+    class GetRawTests{
+        @Test
+        @DisplayName("Should call lunaticjsondata api port and return 200 with lunaticJsonRawData model")
+        @SneakyThrows
+        void getLunaticJsonRawData_call_port(){
+            //GIVEN
+            String questionnaireId = "quest";
+            Mode mode = Mode.WEB;
+            String interrogationId = "interro";
+            LunaticJsonRawDataModel lunaticJsonRawDataModel =
+                    LunaticJsonRawDataModel.builder().interrogationId(interrogationId).build();
+            when(lunaticJsonRawDataApiPort.getRawDataByQuestionnaireId(eq(questionnaireId), eq(mode), anyList()))
+                    .thenReturn(List.of(lunaticJsonRawDataModel));
+
+            //WHEN + THEN
+            mockMvc.perform(get("/responses/raw/lunatic-json/%s/%s/%s".formatted(
+                            questionnaireId, mode.getModeName(), interrogationId
+                    )))
+                    .andExpect(status().isOk())
+                    .andExpect(content().string(containsString(interrogationId)));
+        }
+
+        @Test
+        @DisplayName("Should call raw response api port and return 200 with raw response model")
+        @SneakyThrows
+        void getRawResponse_call_port(){
+            //GIVEN
+            String collectionInstrumentId = "collectionInstrumentId";
+            Mode mode = Mode.WEB;
+            String interrogationId = "interro";
+            RawResponseModel rawResponseModel = RawResponseModel.builder().interrogationId(interrogationId).build();
+            when(rawResponseApiPort.getRawResponses(eq(collectionInstrumentId), eq(mode), anyList()))
+                    .thenReturn(List.of(rawResponseModel));
+
+            //WHEN + THEN
+            mockMvc.perform(get("/raw-responses/%s/%s/%s".formatted(
+                            collectionInstrumentId, mode.getModeName(), interrogationId
+                    )))
+                    .andExpect(status().isOk())
+                    .andExpect(content().string(containsString(interrogationId)));
         }
     }
 }

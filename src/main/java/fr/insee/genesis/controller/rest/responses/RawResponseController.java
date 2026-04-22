@@ -1,6 +1,5 @@
 package fr.insee.genesis.controller.rest.responses;
 
-import fr.insee.genesis.controller.dto.rawdata.LunaticJsonRawDataUnprocessedDto;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
@@ -11,6 +10,7 @@ import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.repository.RawResponseInputRepository;
 import fr.insee.modelefiliere.RawResponseDto;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
@@ -266,5 +266,36 @@ public class RawResponseController {
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.notFound().build();
+    }
+
+    //Debug admin endpoints
+    @Operation(summary = "Get lunatic json raw data")
+    @GetMapping(path = "/responses/raw/lunatic-json/{collectionInstrumentId}/{mode}/{interrogationId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<LunaticJsonRawDataModel>> getJsonRawData(
+            @PathVariable("collectionInstrumentId") String collectionInstrumentId,
+            @PathVariable("mode") Mode mode,
+            @PathVariable(INTERROGATION_ID) String interrogationId
+    ) {
+        return ResponseEntity.ok(lunaticJsonRawDataApiPort.getRawDataByQuestionnaireId(
+                collectionInstrumentId,
+                mode,
+                List.of(interrogationId)
+        ));
+    }
+
+    @Operation(summary = "Get raw response")
+    @GetMapping(path = "/raw-responses/{collectionInstrumentId}/{mode}/{interrogationId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<RawResponseModel>> getRawResponses(
+            @PathVariable("collectionInstrumentId") String collectionInstrumentId,
+            @PathVariable("mode") Mode mode,
+            @PathVariable(INTERROGATION_ID) String interrogationId
+    ) {
+        return ResponseEntity.ok(rawResponseApiPort.getRawResponses(
+                collectionInstrumentId,
+                mode,
+                List.of(interrogationId)
+        ));
     }
 }
