@@ -4,6 +4,7 @@ import fr.insee.genesis.Constants;
 import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
+import fr.insee.genesis.exceptions.GenesisException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -16,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Stream;
@@ -282,7 +284,7 @@ class FileUtilsTest {
 
 			// WHEN / THEN
 			assertThatThrownBy(() -> fileUtils.findFile(dirString, ".*\\.xml"))
-					.isInstanceOf(RuntimeException.class)
+					.isInstanceOf(NoSuchFileException.class)
 					.hasMessageContaining("No file");
 		}
 
@@ -577,7 +579,7 @@ class FileUtilsTest {
 
 		@Test
 		@DisplayName("Should create the contextual folder when it does not exist")
-		void ensureContextualFolder_missing_shouldCreateFolder() throws IOException {
+		void ensureContextualFolder_missing_shouldCreateFolder() throws IOException, GenesisException {
 			// GIVEN
 			String questionnaireId = "questionnaire-123";
 			Mode mode = Mode.WEB;

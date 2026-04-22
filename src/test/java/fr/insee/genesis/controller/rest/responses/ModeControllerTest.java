@@ -10,7 +10,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
@@ -48,12 +47,13 @@ class ModeControllerTest {
     @Test
     void getModesByQuestionnaire_not_found() {
         //GIVEN
-        doThrow(QuestionnaireNotFoundException.class).when(surveyUnitApiPort).findModesByCollectionInstrumentId(any());
+        doThrow(new QuestionnaireNotFoundException("")).when(surveyUnitApiPort).findModesByCollectionInstrumentId(any());
 
-        //WHEN
-        ResponseEntity<List<Mode>> response = modeController.getModesByQuestionnaire(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID);
+        // WHEN / THEN
+        Assertions.assertThatThrownBy(() ->
+                        modeController.getModesByQuestionnaire(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID))
+                .isInstanceOf(QuestionnaireNotFoundException.class);
 
-        //THEN
-        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(HttpStatus.NOT_FOUND.value());
+
     }
 }

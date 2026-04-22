@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 
 import java.nio.file.Path;
 
@@ -105,7 +106,7 @@ class ContextualPreviousVariableJsonServiceTest {
             );
             Assertions.fail();
         }catch (GenesisException ge){
-            Assertions.assertThat(ge.getStatus()).isEqualTo(400);
+            Assertions.assertThat(ge.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
             verifyNoInteractions(contextualPreviousVariablePersistancePort);
         }
     }
@@ -130,7 +131,7 @@ class ContextualPreviousVariableJsonServiceTest {
             );
             Assertions.fail();
         }catch (GenesisException ge){
-            Assertions.assertThat(ge.getStatus()).isEqualTo(400);
+            Assertions.assertThat(ge.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
             verify(contextualPreviousVariablePersistancePort, times(1)).backup(collectionInstrumentId);
             verify(contextualPreviousVariablePersistancePort, times(1)).delete(collectionInstrumentId);
             verify(contextualPreviousVariablePersistancePort, times(1)).restoreBackup(collectionInstrumentId);
@@ -158,7 +159,7 @@ class ContextualPreviousVariableJsonServiceTest {
             );
             Assertions.fail();
         }catch (GenesisException ge){
-            Assertions.assertThat(ge.getStatus()).isEqualTo(500);
+            Assertions.assertThat(ge.getStatus()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
             verify(contextualPreviousVariablePersistancePort, never()).saveAll(anyList());
             verify(contextualPreviousVariablePersistancePort, times(1)).restoreBackup(collectionInstrumentId);
         }

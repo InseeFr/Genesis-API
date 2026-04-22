@@ -22,6 +22,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
@@ -215,7 +216,7 @@ class RawResponseControllerTest {
         void process_genesisException_shouldReturnExceptionStatus() throws Exception {
             // GIVEN
             when(rawResponseApiPort.processRawResponsesByInterrogationIds(anyString(), anyList(), anyList()))
-                    .thenThrow(new GenesisException(404, "Not found"));
+                    .thenThrow(new GenesisException(HttpStatus.NOT_FOUND, "Not found"));
 
             // WHEN / THEN
             mockMvc.perform(post("/raw-responses/process")
@@ -251,7 +252,7 @@ class RawResponseControllerTest {
         void processByCollectionInstrumentId_genesisException_shouldReturnExceptionStatus() throws Exception {
             // GIVEN
             when(rawResponseApiPort.processRawResponsesByInterrogationIds(anyString()))
-                    .thenThrow(new GenesisException(422, "Unprocessable"));
+                    .thenThrow(new GenesisException(HttpStatus.UNPROCESSABLE_ENTITY, "Unprocessable"));
 
             // WHEN / THEN
             mockMvc.perform(post("/raw-responses/QUEST01/process")
@@ -336,7 +337,7 @@ class RawResponseControllerTest {
         void processByQuestionnaireId_genesisException_shouldReturnExceptionStatus() throws Exception {
             // GIVEN
             when(lunaticJsonRawDataApiPort.processRawData(anyString()))
-                    .thenThrow(new GenesisException(404, "Questionnaire not found"));
+                    .thenThrow(new GenesisException(HttpStatus.NOT_FOUND, "Questionnaire not found"));
 
             // WHEN / THEN
             mockMvc.perform(post("/responses/raw/lunatic-json/QUEST01/process")

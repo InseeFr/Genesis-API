@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -36,8 +37,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -48,23 +49,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static fr.insee.genesis.TestConstants.DEFAULT_INTERROGATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static fr.insee.genesis.TestConstants.DEFAULT_INTERROGATION_ID;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyMap;
-import static org.mockito.ArgumentMatchers.anySet;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -536,7 +525,7 @@ class LunaticJsonRawDataServiceTest {
             when(lunaticJsonRawDataPersistencePort.findModesByQuestionnaire(QUESTIONNAIRE_ID))
                     .thenReturn(Set.of(Mode.WEB));
             when(metadataService.loadAndSaveIfNotExists(anyString(), anyString(), any(), any(), any()))
-                    .thenThrow(new GenesisException(500, "error"));
+                    .thenThrow(new GenesisException(HttpStatus.INTERNAL_SERVER_ERROR, "error"));
 
             //WHEN + THEN
             assertThat(service.getUnprocessedDataQuestionnaireIds()).isEmpty();

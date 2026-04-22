@@ -7,6 +7,7 @@ import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.ports.api.ContextualExternalVariableApiPort;
 import fr.insee.genesis.domain.ports.api.ContextualPreviousVariableApiPort;
 import fr.insee.genesis.domain.ports.api.ContextualVariableApiPort;
+import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
@@ -18,6 +19,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.http.ResponseEntity;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -92,19 +96,29 @@ class ContextualVariableControllerTest {
     @Test
     @SneakyThrows
     void readContextualPreviousJson() {
-        //GIVEN
+        // GIVEN
         FileUtils fileUtils = new FileUtils(TestConstants.getConfigStub());
+
+        String dataFolder = fileUtils.getDataFolder(
+                TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
+                Mode.WEB.getFolder(),
+                null
+        );
+
         String expectedFilePath = "%s%s/%s".formatted(
-                fileUtils.getDataFolder(
-                        TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
-                        Mode.WEB.getFolder(),
-                        null
-                ),
+                dataFolder,
                 Constants.CONTEXTUAL_FOLDER,
                 "ok.json"
         );
 
-        //WHEN
+        Path sourceFile = Path.of(expectedFilePath);
+        Files.createDirectories(sourceFile.getParent());
+        Files.writeString(sourceFile, "{}");
+
+        // si moveFile déplace vers un dossier done, il faut peut-être aussi créer ce dossier
+        Files.createDirectories(sourceFile.getParent().resolve("done"));
+
+        // WHEN
         contextualVariableController.readContextualPreviousJson(
                 TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
                 Mode.WEB,
@@ -112,27 +126,26 @@ class ContextualVariableControllerTest {
                 "ok.json"
         );
 
-        //THEN
-        verify(contextualPreviousVariableApiPort, times(1)).readContextualPreviousFile(
-                eq(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID),
+        // THEN
+        verify(contextualPreviousVariableApiPort).readContextualPreviousFile(
+                eq(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID.toUpperCase()),
                 any(),
                 eq(expectedFilePath)
         );
     }
 
     @Test
-    void readContextualPreviousJson_notJson() {
-        //WHEN
-        ResponseEntity<Object> response = contextualVariableController.readContextualPreviousJson(
-                TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
-                Mode.WEB,
-                null,
-                "ok.xml"
-        );
+    void readContextualPreviousJson_notJson() throws GenesisException {
+        Assertions.assertThatThrownBy(() -> contextualVariableController.readContextualPreviousJson(
+                        TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
+                        Mode.WEB,
+                        null,
+                        "ok.xml"
+                ))
+                .isInstanceOf(GenesisException.class)
+                .hasMessage("File must be a JSON file !");
 
-        //THEN
         verifyNoInteractions(contextualPreviousVariableApiPort);
-        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(400);
     }
 
     @Test
@@ -140,15 +153,24 @@ class ContextualVariableControllerTest {
     void readContextualExternalJson() {
         //GIVEN
         FileUtils fileUtils = new FileUtils(TestConstants.getConfigStub());
+        String dataFolder = fileUtils.getDataFolder(
+                TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
+                Mode.WEB.getFolder(),
+                null
+        );
+
         String expectedFilePath = "%s%s/%s".formatted(
-                fileUtils.getDataFolder(
-                        TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
-                        Mode.WEB.getFolder(),
-                        null
-                ),
+                dataFolder,
                 Constants.CONTEXTUAL_FOLDER,
                 "ok.json"
         );
+
+        Path sourceFile = Path.of(expectedFilePath);
+        Files.createDirectories(sourceFile.getParent());
+        Files.writeString(sourceFile, "{}");
+
+        // si moveFile déplace vers un dossier done, il faut peut-être aussi créer ce dossier
+        Files.createDirectories(sourceFile.getParent().resolve("done"));
 
         //WHEN
         contextualVariableController.readContextualExternalJson(
@@ -158,23 +180,23 @@ class ContextualVariableControllerTest {
         );
 
         //THEN
-        verify(contextualExternalVariableApiPort, times(1)).readContextualExternalFile(
-                TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
-                expectedFilePath
+        verify(contextualExternalVariableApiPort).readContextualExternalFile(
+                eq(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID.toUpperCase()),
+                eq(expectedFilePath)
         );
     }
 
     @Test
-    void readContextualExternalJson_notJson() {
-        //WHEN
-        ResponseEntity<Object> response = contextualVariableController.readContextualExternalJson(
-                TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
-                Mode.WEB,
-                "ok.xml"
-        );
+    void readContextualExternalJson_notJson() throws GenesisException {
 
-        //THEN
+        Assertions.assertThatThrownBy(() -> contextualVariableController.readContextualExternalJson(
+                        TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
+                        Mode.WEB,
+                        "ok.xml"
+                ))
+                .isInstanceOf(GenesisException.class)
+                .hasMessage("File must be a JSON file !");
+
         verifyNoInteractions(contextualExternalVariableApiPort);
-        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(400);
     }
 }

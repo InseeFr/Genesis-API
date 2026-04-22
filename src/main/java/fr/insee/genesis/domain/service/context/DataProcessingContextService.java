@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.dto.KraftwerkExecutionScheduleInput;
-import fr.insee.genesis.controller.dto.ScheduleDto;
 import fr.insee.genesis.controller.dto.rawdata.ScheduleResponseDto;
 import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
 import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionSchedule;
@@ -18,6 +17,7 @@ import fr.insee.genesis.infrastructure.mappers.DataProcessingContextMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -279,7 +279,7 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
                     }
                 }
             } catch (IOException _) {
-                String name = context.getCollectionInstrumentId()!=null?context.getCollectionInstrumentId() :context.getPartitionId();
+                String name =  context.getCollectionInstrumentId();
                 throw new GenesisException(HttpStatus.INTERNAL_SERVER_ERROR,String.format("An error occured trying to delete expired schedules for %s",name));
             }
         }

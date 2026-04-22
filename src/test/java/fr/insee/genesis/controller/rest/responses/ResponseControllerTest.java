@@ -30,6 +30,7 @@ import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
@@ -562,7 +563,7 @@ class ResponseControllerTest {
                     .thenReturn(List.of());
             when(authUtils.getIDEP()).thenReturn("user-idep");
             when(surveyUnitApiPort.parseEditedVariables(any(), anyString(), any()))
-                    .thenThrow(new GenesisException(422, "Unprocessable entity"));
+                    .thenThrow(new GenesisException(HttpStatus.UNPROCESSABLE_ENTITY, "Unprocessable entity"));
 
             // WHEN / THEN
             mockMvc.perform(post("/responses/save-edited")
