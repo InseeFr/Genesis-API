@@ -269,6 +269,7 @@ public class RawResponseController {
     }
 
     //Debug admin endpoints
+    @Hidden
     @Operation(summary = "Get lunatic json raw data")
     @GetMapping(path = "/responses/raw/lunatic-json/{collectionInstrumentId}/{mode}/{interrogationId}")
     @PreAuthorize("hasRole('ADMIN')")
@@ -284,6 +285,7 @@ public class RawResponseController {
         ));
     }
 
+    @Hidden
     @Operation(summary = "Get raw response")
     @GetMapping(path = "/raw-responses/{collectionInstrumentId}/{mode}/{interrogationId}")
     @PreAuthorize("hasRole('ADMIN')")
