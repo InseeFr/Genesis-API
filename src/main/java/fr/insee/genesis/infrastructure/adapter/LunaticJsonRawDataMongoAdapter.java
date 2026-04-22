@@ -30,6 +30,7 @@ import java.util.Set;
 @Service
 @Qualifier("lunaticJsonMongoAdapter")
 public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersistencePort {
+
     private final LunaticJsonMongoDBRepository repository;
     private final MongoTemplate mongoTemplate;
 
@@ -136,4 +137,5 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
         Long count = repository.countDistinctInterrogationIdsByQuestionnaireId(questionnaireId);
         return count != null ? count : 0;
     }
+
 }

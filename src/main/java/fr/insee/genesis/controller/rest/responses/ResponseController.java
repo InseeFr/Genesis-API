@@ -577,7 +577,7 @@ public class ResponseController implements CommonApiResponse {
             if(variablesMap == null){
                 variablesMap = getVariablesMap(modeSpecified, su, campaign, metadataFilePath);
             }
-            surveyUnitModels.addAll(LunaticXmlAdapter.convert(su, variablesMap, campaign.getCampaignId(), modeSpecified));
+            surveyUnitModels.addAll(LunaticXmlAdapter.convert(su, variablesMap, modeSpecified));
         }
         surveyUnitQualityService.verifySurveyUnits(surveyUnitModels, variablesMap);
 
@@ -609,7 +609,7 @@ public class ResponseController implements CommonApiResponse {
                 if(variablesMap == null){
                     variablesMap = getVariablesMap(modeSpecified, su, campaign, metadataFilePath);
                 }
-                List<SurveyUnitModel> surveyUnitModels = new ArrayList<>(LunaticXmlAdapter.convert(su, variablesMap, campaign.getCampaignId(), modeSpecified));
+                List<SurveyUnitModel> surveyUnitModels = new ArrayList<>(LunaticXmlAdapter.convert(su, variablesMap, modeSpecified));
 
                 surveyUnitQualityService.verifySurveyUnits(surveyUnitModels, variablesMap);
                 surveyUnitService.saveSurveyUnits(surveyUnitModels);

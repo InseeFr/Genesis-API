@@ -1,29 +1,29 @@
 package fr.insee.genesis.controller.rest;
 
-import fr.insee.genesis.Constants;
-import fr.insee.genesis.controller.dto.ScheduleDto;
-import fr.insee.genesis.domain.model.context.schedule.ServiceToCall;
+import fr.insee.genesis.controller.dto.KraftwerkExecutionScheduleInput;
+import fr.insee.genesis.controller.dto.ScheduleRequestDto;
+import fr.insee.genesis.controller.dto.rawdata.ScheduleResponseDto;
 import fr.insee.genesis.domain.model.context.schedule.TrustParameters;
 import fr.insee.genesis.domain.ports.api.DataProcessingContextApiPort;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.support.CronExpression;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Controller
@@ -64,94 +64,113 @@ public class DataProcessingContextController {
         }
     }
 
-    // Should be refactored to make it restfull
-    @Operation(summary = "Schedule a Kraftwerk execution using the collection instrument")
-    @PutMapping(path = "/contexts/schedules")
+    @Operation(summary = "Create a Kraftwerk execution schedule V2")
+    @PostMapping(path = "/contexts/schedules/v2")
     @PreAuthorize("hasRole('USER_KRAFTWERK')")
-    public ResponseEntity<Object> saveScheduleWithCollectionInstrumentId(
-            @Parameter(description = "Collection instrument to call Kraftwerk on") @RequestParam("collectionInstrumentId") String collectionInstrumentId,
-            @Parameter(description = "Kraftwerk endpoint") @RequestParam(value = "serviceTocall", defaultValue = Constants.KRAFTWERK_MAIN_ENDPOINT) ServiceToCall serviceToCall,
-            @Parameter(description = "Frequency in Spring cron format (6 inputs, go to https://crontab.cronhub.io/ for generator)  \n Example : 0 0 6 * * *") @RequestParam("frequency") String frequency,
-            @Parameter(description = "Schedule effective date and time", example = "2024-01-01T12:00:00") @RequestParam("scheduleBeginDate") LocalDateTime scheduleBeginDate,
-            @Parameter(description = "Schedule end date and time", example = "2024-01-01T12:00:00") @RequestParam("scheduleEndDate") LocalDateTime scheduleEndDate,
-            @Parameter(description = "Encrypt after process ? Ignore next parameters if false") @RequestParam(value =
-                    "useEncryption",
-                    defaultValue = "false") boolean useEncryption,
-            @Parameter(description = "(Encryption) vault path") @RequestParam(value = "encryptionVaultPath", defaultValue = "") String encryptionVaultPath,
-            @Parameter(description = "(Encryption) output folder") @RequestParam(value = "encryptionOutputFolder",
-                    defaultValue = "") String encryptionOutputFolder,
-            @Parameter(description = "(Encryption) Use signature system") @RequestParam(value = "useSignature", defaultValue = "false") boolean useSignature
+    public ResponseEntity<Object> createScheduleV2(
+            @Valid @RequestBody ScheduleRequestDto request
     ) {
         try {
-            //Check frequency
-            if(!CronExpression.isValidExpression(frequency)) {
-                log.warn("Returned error for wrong frequency : {}", frequency);
-                throw new GenesisException(400, "Wrong frequency syntax");
-            }
-
             TrustParameters trustParameters = null;
-            if(useEncryption) {
+            if (request.isUseAsymmetricEncryption()) {
                 trustParameters = new TrustParameters(
-                        fileUtils.getKraftwerkOutFolder(collectionInstrumentId),
-                        encryptionOutputFolder,
-                        encryptionVaultPath,
-                        useSignature
+                        fileUtils.getKraftwerkOutFolder(request.getCollectionInstrumentId()),
+                        "", // temporary folder for workflow
+                        request.getEncryptionVaultPath(),
+                        request.isUseSignature()
                 );
             }
-            dataProcessingContextApiPort.saveKraftwerkExecutionScheduleByCollectionInstrumentId(
-                    collectionInstrumentId,
-                    serviceToCall == null ? ServiceToCall.MAIN : serviceToCall,
-                    frequency,
-                    scheduleBeginDate,
-                    scheduleEndDate,
-                    trustParameters
-            );
-        }catch (GenesisException e){
+
+            KraftwerkExecutionScheduleInput scheduleInput = KraftwerkExecutionScheduleInput.builder()
+                    .collectionInstrumentId(request.getCollectionInstrumentId())
+                    .exportType(request.getExportType())
+                    .frequency(request.getFrequency())
+                    .startDate(request.getScheduleBeginDate())
+                    .endDate(request.getScheduleEndDate())
+                    .mode(request.getMode())
+                    .destinationType(request.getDestinationType())
+                    .addStates(request.isAddStates())
+                    .destinationFolder(request.getDestinationFolder())
+                    .trustParameters(trustParameters)
+                    .batchSize(request.getBatchSize())
+                    .build();
+
+            String scheduleUuid = dataProcessingContextApiPort.createKraftwerkExecutionSchedule(scheduleInput);
+
+            return ResponseEntity.ok(scheduleUuid);
+
+        } catch (GenesisException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatusCode.valueOf(e.getStatus()));
         }
-        return ResponseEntity.ok().build();
     }
 
-    @Deprecated(forRemoval = true)
-    @Operation(summary = "Fetch all schedules")
-    @GetMapping(path = "/context/schedules")
-    @PreAuthorize("hasAnyRole('SCHEDULER','READER')")
-    public ResponseEntity<Object> getAllSchedules() {
-        log.debug("Got GET all schedules request");
-
-        List<ScheduleDto> surveyScheduleDocumentModels = dataProcessingContextApiPort.getAllSchedules();
-
-        log.info("Returning {} schedule documents...", surveyScheduleDocumentModels.size());
-        return ResponseEntity.ok(surveyScheduleDocumentModels);
-    }
-
-    //It is just a change of path in the url
-    @Operation(summary = "Fetch all schedules")
-    @GetMapping(path = "/contexts/schedules")
-    @PreAuthorize("hasAnyRole('SCHEDULER','READER')")
-    public ResponseEntity<Object> getAllSchedulesV2() {
-        log.debug("Got GET all schedules request");
-
-        List<ScheduleDto> surveyScheduleDocumentModels = dataProcessingContextApiPort.getAllSchedules();
-
-        log.info("Returning {} schedule documents...", surveyScheduleDocumentModels.size());
-        return ResponseEntity.ok(surveyScheduleDocumentModels);
-    }
-
-    @Operation(summary = "Update the date of the last extraction of data corresponding to a collection instrument")
-    @PutMapping(path = "/contexts/{collectionInstrumentId}/lastExecutionDate")
-    @PreAuthorize("hasRole('SCHEDULER')")
-    public ResponseEntity<Object> setSurveyLastExecutionByCollectionInstrumentId(
-            @PathVariable("collectionInstrumentId") @RequestBody String collectionInstrumentId,
-            @Parameter(description = "Date to save as last execution date", example = "2024-01-01T12:00:00") @RequestParam("newDate") LocalDateTime newDate
+    @Operation(summary = "Update a Kraftwerk execution schedule V2")
+    @PutMapping(path = "/contexts/{collectionInstrumentId}/schedules/v2/{scheduleUuid}")
+    @PreAuthorize("hasRole('USER_KRAFTWERK')")
+    public ResponseEntity<Object> updateScheduleV2(
+            @PathVariable("collectionInstrumentId") String collectionInstrumentId,
+            @PathVariable("scheduleUuid") String scheduleUuid,
+            @Valid @RequestBody ScheduleRequestDto request
     ) {
         try {
-            dataProcessingContextApiPort.updateLastExecutionDateByCollectionInstrumentId(collectionInstrumentId, newDate);
-            log.info("{} last execution updated at {} !", collectionInstrumentId, newDate);
-        }catch (GenesisException e){
+            TrustParameters trustParameters = null;
+            if (request.isUseAsymmetricEncryption()) {
+                trustParameters = new TrustParameters(
+                        fileUtils.getKraftwerkOutFolder(collectionInstrumentId),
+                        "",
+                        request.getEncryptionVaultPath(),
+                        request.isUseSignature()
+                );
+            }
+
+            KraftwerkExecutionScheduleInput scheduleInput = KraftwerkExecutionScheduleInput.builder()
+                    .collectionInstrumentId(collectionInstrumentId)
+                    .scheduleUuid(scheduleUuid)
+                    .exportType(request.getExportType())
+                    .frequency(request.getFrequency())
+                    .startDate(request.getScheduleBeginDate())
+                    .endDate(request.getScheduleEndDate())
+                    .mode(request.getMode())
+                    .destinationType(request.getDestinationType())
+                    .addStates(request.isAddStates())
+                    .destinationFolder(request.getDestinationFolder())
+                    .useAsymmetricEncryption(request.isUseAsymmetricEncryption())
+                    .useSymmetricEncryption(request.isUseSymmetricEncryption())
+                    .trustParameters(trustParameters)
+                    .batchSize(request.getBatchSize())
+                    .build();
+
+            dataProcessingContextApiPort.updateKraftwerkExecutionSchedule(scheduleInput);
+
+        } catch (GenesisException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatusCode.valueOf(e.getStatus()));
         }
+
         return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Fetch all schedules V2")
+    @GetMapping(path = "/contexts/schedules/v2")
+    @PreAuthorize("hasAnyRole('SCHEDULER','READER')")
+    public ResponseEntity<Object> getAllSchedulesV2() {
+        log.debug("Got GET all schedules V2 request");
+
+        List<ScheduleResponseDto> schedules = dataProcessingContextApiPort.getAllSchedulesV2();
+
+        log.info("Returning {} V2 schedule documents...", schedules.size());
+        return ResponseEntity.ok(schedules);
+    }
+    
+    @Operation(summary = "Fetch V2 schedules by collection instrument id")
+    @GetMapping(path = "/contexts/{collectionInstrumentId}/schedules/v2")
+    @PreAuthorize("hasAnyRole('SCHEDULER','READER')")
+    public ResponseEntity<Object> getSchedulesV2ByCollectionInstrumentId(
+            @PathVariable("collectionInstrumentId") String collectionInstrumentId
+    ) {
+        List<ScheduleResponseDto> schedules =
+                dataProcessingContextApiPort.getSchedulesV2ByCollectionInstrumentId(collectionInstrumentId);
+
+        return ResponseEntity.ok(schedules);
     }
 
     @Operation(summary = "Delete the Kraftwerk execution schedules of a collection instrument id")
@@ -166,6 +185,37 @@ public class DataProcessingContextController {
             return new ResponseEntity<>(e.getMessage(), HttpStatusCode.valueOf(e.getStatus()));
         }
         log.info("Schedule deleted for survey {}", collectionInstrumentId);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Delete all V2 Kraftwerk execution schedules of a collection instrument id")
+    @DeleteMapping(path = "/contexts/{collectionInstrumentId}/schedules/v2")
+    @PreAuthorize("hasRole('USER_KRAFTWERK')")
+    public ResponseEntity<Object> deleteSchedulesV2ByCollectionInstrumentId(
+            @PathVariable("collectionInstrumentId") String collectionInstrumentId
+    ){
+        try {
+            dataProcessingContextApiPort.deleteSchedulesV2ByCollectionInstrumentId(collectionInstrumentId);
+        } catch (GenesisException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatusCode.valueOf(e.getStatus()));
+        }
+        log.info("All V2 schedules deleted for collection instrument {}", collectionInstrumentId);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Delete a V2 Kraftwerk execution schedule")
+    @DeleteMapping(path = "/contexts/{collectionInstrumentId}/schedules/v2/{scheduleUuid}")
+    @PreAuthorize("hasRole('USER_KRAFTWERK')")
+    public ResponseEntity<Object> deleteScheduleV2(
+            @PathVariable(value = "collectionInstrumentId") String collectionInstrumentId,
+            @PathVariable(value = "scheduleUuid") String scheduleUuid
+    ){
+        try {
+            dataProcessingContextApiPort.deleteScheduleV2(collectionInstrumentId, scheduleUuid);
+        } catch (GenesisException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatusCode.valueOf(e.getStatus()));
+        }
+        log.info("V2 schedule {} deleted for collection instrument {}", scheduleUuid, collectionInstrumentId);
         return ResponseEntity.ok().build();
     }
 

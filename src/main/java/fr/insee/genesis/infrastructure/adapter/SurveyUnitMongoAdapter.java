@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -107,32 +108,34 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 		return countDeleted;
 	}
 
+    @Override
+    public Long deleteByCollectionInstrumentIdAndInterrogationIds(
+            String collectionInstrumentId,
+            Set<String> interrogationIds
+    ) {
+        return mongoRepository.deleteByCollectionInstrumentIdAndInterrogationIdIn(
+                collectionInstrumentId,
+                interrogationIds
+        );
+    }
+
+    @Override
+    public Long deleteByQuestionnaireIdAndInterrogationIds(
+            String questionnaireId,
+            Set<String> interrogationIds
+    ) {
+        return mongoRepository.deleteByQuestionnaireIdAndInterrogationIdIn(
+                questionnaireId,
+                interrogationIds
+        );
+    }
+
 	@Override
 	public long count() {
 		return mongoRepository.count();
 	}
 
-	@Override
-	public Set<String> findQuestionnaireIdsByCampaignId(String campaignId){
-		Set<String> mongoResponse =
-				mongoRepository.findQuestionnaireIdsByCampaignId(campaignId);
-
-		//Extract questionnaireIds from JSON response
-        return extractQuestionnaireIdsFromJson(mongoResponse);
-	}
-
 	//========= OPTIMISATIONS PERFS (START) ==========
-	/**
-	 * @author Adrien Marchal
-	 */
-	@Override
-	public Set<String> findQuestionnaireIdsByCampaignIdV2(String campaignId){
-		Set<String> mongoResponse =
-				mongoRepository.findQuestionnaireIdsByCampaignIdV2(campaignId);
-
-		//Extract questionnaireIds from JSON response
-        return extractQuestionnaireIdsFromJson(mongoResponse);
-	}
 
     private static @NotNull Set<String> extractQuestionnaireIdsFromJson(Set<String> mongoResponse) {
         Set<String> questionnaireIds = new HashSet<>();
@@ -148,16 +151,6 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
         return questionnaireIds;
     }
     //========= OPTIMISATIONS PERFS (END) ==========
-
-	@Override
-	public Set<String> findDistinctCampaignIds() {
-		Set<String> campaignIds = new HashSet<>();
-		for(String campaignId : mongoTemplate.getCollection(Constants.MONGODB_RESPONSE_COLLECTION_NAME).distinct("campaignId",
-				String.class)){
-			campaignIds.add(campaignId);
-		}
-		return campaignIds;
-	}
 
 	@Override
 	public List<SurveyUnitModel> findInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId) {
@@ -176,7 +169,7 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 	}
 
     @Override
-    public List<SurveyUnitModel> findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(String collectionInstrumentId, LocalDateTime start, LocalDateTime end) {
+    public List<SurveyUnitModel> findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(String collectionInstrumentId, Instant start, Instant end) {
         List<SurveyUnitDocument> results =  new ArrayList<>();
         results.addAll(mongoRepository.findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(collectionInstrumentId,start,end));
         results.addAll(mongoRepository.findInterrogationIdsQuestionnaireIdAndRecordDateBetween(collectionInstrumentId,start,end));
@@ -196,29 +189,11 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 	}
 
 	@Override
-	public List<SurveyUnitModel> findModesByCampaignIdV2(String campaignId) {
-		List<SurveyUnitDocument> surveyUnits = mongoRepository.findModesByCampaignIdV2(campaignId);
-		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnits);
-
-	}
-
-	@Override
 	public List<SurveyUnitModel> findModesByQuestionnaireIdV2(String questionnaireId) {
 		List<SurveyUnitDocument> surveyUnits = mongoRepository.findModesByQuestionnaireIdV2(questionnaireId);
 		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnits);
 	}
 	//========== OPTIMISATIONS PERFS (END) ============
-
-	@Override
-	public List<SurveyUnitModel> findInterrogationIdsByCampaignId(String campaignId) {
-		List<SurveyUnitDocument> surveyUnits = mongoRepository.findInterrogationIdsByCampaignId(campaignId);
-		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnits);
-
-	}
-
-	public long countByCampaignId(String campaignId){
-		return mongoRepository.countByCampaignId(campaignId);
-	}
 
 	@Override
 	public Set<String> findDistinctQuestionnairesAndCollectionInstrumentIds() {
@@ -229,26 +204,6 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 		collection.distinct("collectionInstrumentId", String.class).into(questionnaireIds);
 		questionnaireIds.remove(null);
 		return questionnaireIds;
-	}
-
-	@Override
-	public Set<String> findCampaignIdsByQuestionnaireId(String questionnaireId) {
-		List<String> mongoResponse =
-				mongoRepository.findCampaignIdsByQuestionnaireId(questionnaireId).stream().distinct().toList();
-
-		//Extract idCampaigns from JSON response
-		Set<String> campaignIds = new HashSet<>();
-		for(String line : mongoResponse){
-			ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
-			try{
-				JsonNode jsonNode = objectMapper.readTree(line);
-				campaignIds.add(jsonNode.get("campaignId").asText());
-			}catch (JsonProcessingException e){
-				log.error(e.getMessage());
-			}
-		}
-
-		return campaignIds;
 	}
 
 	@Override

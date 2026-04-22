@@ -177,7 +177,7 @@ class RawResponseControllerTest {
         @DisplayName("Should return 200 with count message when no formatted data")
         void process_noFormatted_shouldReturnCountMessage() throws Exception {
             // GIVEN
-            when(rawResponseApiPort.processRawResponses(eq("QUEST01"), anyList(), anyList()))
+            when(rawResponseApiPort.processRawResponsesByInterrogationIds(eq("QUEST01"), anyList(), anyList()))
                     .thenReturn(new DataProcessResult(10, 0, new ArrayList<>()));
 
             // WHEN / THEN
@@ -195,7 +195,7 @@ class RawResponseControllerTest {
         @DisplayName("Should return 200 with formatted count message when formatted data present")
         void process_withFormatted_shouldReturnFormattedCountMessage() throws Exception {
             // GIVEN
-            when(rawResponseApiPort.processRawResponses(eq("QUEST01"), anyList(), anyList()))
+            when(rawResponseApiPort.processRawResponsesByInterrogationIds(eq("QUEST01"), anyList(), anyList()))
                     .thenReturn(new DataProcessResult(10, 3, new ArrayList<>()));
 
             // WHEN / THEN
@@ -214,7 +214,7 @@ class RawResponseControllerTest {
         @DisplayName("Should return GenesisException status when port throws")
         void process_genesisException_shouldReturnExceptionStatus() throws Exception {
             // GIVEN
-            when(rawResponseApiPort.processRawResponses(anyString(), anyList(), anyList()))
+            when(rawResponseApiPort.processRawResponsesByInterrogationIds(anyString(), anyList(), anyList()))
                     .thenThrow(new GenesisException(404, "Not found"));
 
             // WHEN / THEN
@@ -236,7 +236,7 @@ class RawResponseControllerTest {
         @DisplayName("Should return 200 with count message")
         void processByCollectionInstrumentId_shouldReturn200() throws Exception {
             // GIVEN
-            when(rawResponseApiPort.processRawResponses("QUEST01"))
+            when(rawResponseApiPort.processRawResponsesByInterrogationIds("QUEST01"))
                     .thenReturn(new DataProcessResult(5, 0, new ArrayList<>()));
 
             // WHEN / THEN
@@ -250,7 +250,7 @@ class RawResponseControllerTest {
         @DisplayName("Should return GenesisException status when port throws")
         void processByCollectionInstrumentId_genesisException_shouldReturnExceptionStatus() throws Exception {
             // GIVEN
-            when(rawResponseApiPort.processRawResponses(anyString()))
+            when(rawResponseApiPort.processRawResponsesByInterrogationIds(anyString()))
                     .thenThrow(new GenesisException(422, "Unprocessable"));
 
             // WHEN / THEN

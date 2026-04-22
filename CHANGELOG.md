@@ -1,4 +1,15 @@
 # Changelog
+
+## 2.5.0 [2026-04-16]
+### Added
+- New schedule endpoints.
+
+### Updated
+- BPM 1.1.3
+## 2.4.7 [2026-04-10]
+### Added
+- Reprocess endpoints for raw responses with optional sinceDate and endDate filters
+
 ## 2.4.0 [2026-03-04]
 ### Added
 - Restful endpoints to get latest responses without the logic in it (not to be confused with get latest states)

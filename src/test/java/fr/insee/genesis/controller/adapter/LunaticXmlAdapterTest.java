@@ -21,7 +21,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DisplayName("LunaticXmlAdapter tests")
 class LunaticXmlAdapterTest {
 
-    private static final String CAMPAIGN_ID = "campaign-2024";
     private static final String QUESTIONNAIRE_ID = "questionnaire-abc";
     private static final String INTERROGATION_ID = "interrogation-123";
     private static final Mode MODE = Mode.WEB;
@@ -42,7 +41,7 @@ class LunaticXmlAdapterTest {
             LunaticXmlSurveyUnit su = buildSurveyUnit(List.of(collectedDataWithValue("VAR1", "val")));
 
             // WHEN
-            List<SurveyUnitModel> result = LunaticXmlAdapter.convert(su, VARIABLES_MAP, CAMPAIGN_ID, MODE);
+            List<SurveyUnitModel> result = LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE);
 
             // THEN
             assertThat(result).extracting(SurveyUnitModel::getState)
@@ -56,7 +55,7 @@ class LunaticXmlAdapterTest {
             LunaticXmlSurveyUnit su = buildSurveyUnit(List.of(collectedDataWithValue("VAR1", "val")));
 
             // WHEN
-            List<SurveyUnitModel> result = LunaticXmlAdapter.convert(su, VARIABLES_MAP, CAMPAIGN_ID, MODE);
+            List<SurveyUnitModel> result = LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE);
 
             // THEN
             assertThat(result).hasSize(1);
@@ -75,7 +74,7 @@ class LunaticXmlAdapterTest {
             LunaticXmlSurveyUnit su = buildSurveyUnit(List.of(data));
 
             // WHEN
-            List<SurveyUnitModel> result = LunaticXmlAdapter.convert(su, VARIABLES_MAP, CAMPAIGN_ID, MODE);
+            List<SurveyUnitModel> result = LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE);
 
             // THEN
             assertThat(result).extracting(SurveyUnitModel::getState)
@@ -94,7 +93,7 @@ class LunaticXmlAdapterTest {
             LunaticXmlSurveyUnit su = buildSurveyUnit(List.of(data));
 
             // WHEN
-            List<SurveyUnitModel> result = LunaticXmlAdapter.convert(su, VARIABLES_MAP, CAMPAIGN_ID, MODE);
+            List<SurveyUnitModel> result = LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE);
 
             // THEN
             assertThat(result).extracting(SurveyUnitModel::getState)
@@ -113,7 +112,7 @@ class LunaticXmlAdapterTest {
             LunaticXmlSurveyUnit su = buildSurveyUnit(List.of(data));
 
             // WHEN
-            List<SurveyUnitModel> result = LunaticXmlAdapter.convert(su, VARIABLES_MAP, CAMPAIGN_ID, MODE);
+            List<SurveyUnitModel> result = LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE);
 
             // THEN
             assertThat(result).extracting(SurveyUnitModel::getState)
@@ -132,7 +131,7 @@ class LunaticXmlAdapterTest {
             LunaticXmlSurveyUnit su = buildSurveyUnit(List.of(data));
 
             // WHEN
-            List<SurveyUnitModel> result = LunaticXmlAdapter.convert(su, VARIABLES_MAP, CAMPAIGN_ID, MODE);
+            List<SurveyUnitModel> result = LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE);
 
             // THEN
             assertThat(result).extracting(SurveyUnitModel::getState)
@@ -154,7 +153,7 @@ class LunaticXmlAdapterTest {
             LunaticXmlSurveyUnit su = buildSurveyUnit(List.of(data));
 
             // WHEN
-            List<SurveyUnitModel> result = LunaticXmlAdapter.convert(su, VARIABLES_MAP, CAMPAIGN_ID, MODE);
+            List<SurveyUnitModel> result = LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE);
 
             // THEN
             assertThat(result).hasSize(5);
@@ -176,7 +175,7 @@ class LunaticXmlAdapterTest {
             LunaticXmlSurveyUnit su = buildSurveyUnit(List.of(data));
 
             // WHEN
-            List<SurveyUnitModel> result = LunaticXmlAdapter.convert(su, VARIABLES_MAP, CAMPAIGN_ID, MODE);
+            List<SurveyUnitModel> result = LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE);
 
             // THEN
             assertThat(result).extracting(SurveyUnitModel::getState).isNotEmpty()
@@ -199,7 +198,7 @@ class LunaticXmlAdapterTest {
             LunaticXmlSurveyUnit su = buildSurveyUnit(List.of(collectedDataWithValue("VAR1", "val")));
 
             // WHEN
-            SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, CAMPAIGN_ID, MODE));
+            SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE));
 
             // THEN
             assertThat(collected.getCollectionInstrumentId()).isEqualTo(QUESTIONNAIRE_ID.toUpperCase());
@@ -212,7 +211,7 @@ class LunaticXmlAdapterTest {
             LunaticXmlSurveyUnit su = buildSurveyUnit(List.of(collectedDataWithValue("VAR1", "val")));
 
             // WHEN
-            SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, CAMPAIGN_ID, MODE));
+            SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE));
 
             // THEN
             assertThat(collected.getInterrogationId()).isEqualTo(INTERROGATION_ID);
@@ -225,7 +224,7 @@ class LunaticXmlAdapterTest {
             LunaticXmlSurveyUnit su = buildSurveyUnit(List.of(collectedDataWithValue("VAR1", "val")));
 
             // WHEN
-            SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, CAMPAIGN_ID, MODE));
+            SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE));
 
             // THEN
             assertThat(collected.getMode()).isEqualTo(MODE);
@@ -239,7 +238,7 @@ class LunaticXmlAdapterTest {
             LocalDateTime before = LocalDateTime.now();
 
             // WHEN
-            SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, CAMPAIGN_ID, MODE));
+            SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE));
 
             // THEN
             LocalDateTime after = LocalDateTime.now();
@@ -258,7 +257,7 @@ class LunaticXmlAdapterTest {
             su.setFileDate(fileDate);
 
             // WHEN
-            SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, CAMPAIGN_ID, MODE));
+            SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE));
 
             // THEN
             assertThat(collected.getFileDate()).isEqualTo(fileDate);
@@ -282,7 +281,7 @@ class LunaticXmlAdapterTest {
             ));
 
             // WHEN
-            SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, CAMPAIGN_ID, MODE));
+            SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE));
 
             // THEN
             assertThat(collected.getCollectedVariables()).hasSize(1);
@@ -301,7 +300,7 @@ class LunaticXmlAdapterTest {
             LunaticXmlSurveyUnit su = buildSurveyUnit(List.of(data));
 
             // WHEN
-            SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, CAMPAIGN_ID, MODE));
+            SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE));
 
             // THEN
             assertThat(collected.getCollectedVariables()).hasSize(2);
@@ -320,7 +319,7 @@ class LunaticXmlAdapterTest {
             LunaticXmlSurveyUnit su = buildSurveyUnit(List.of(data));
 
             // WHEN
-            SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, CAMPAIGN_ID, MODE));
+            SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE));
 
             // THEN
             assertThat(collected.getCollectedVariables()).hasSize(1);
@@ -338,7 +337,7 @@ class LunaticXmlAdapterTest {
             LunaticXmlSurveyUnit su = buildSurveyUnit(List.of(data));
 
             // WHEN
-            SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, CAMPAIGN_ID, MODE));
+            SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE));
 
             // THEN
             assertThat(collected.getCollectedVariables()).isEmpty();
@@ -354,7 +353,7 @@ class LunaticXmlAdapterTest {
             ));
 
             // WHEN
-            SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, CAMPAIGN_ID, MODE));
+            SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE));
 
             // THEN
             assertThat(collected.getCollectedVariables()).hasSize(2);
@@ -386,7 +385,7 @@ class LunaticXmlAdapterTest {
             );
 
             // WHEN
-            SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, CAMPAIGN_ID, MODE));
+            SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE));
 
             // THEN
             assertThat(collected.getExternalVariables()).hasSize(1);
@@ -408,7 +407,7 @@ class LunaticXmlAdapterTest {
             );
 
             // WHEN
-            SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, CAMPAIGN_ID, MODE));
+            SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE));
 
             // THEN
             assertThat(collected.getExternalVariables()).isEmpty();
@@ -428,7 +427,7 @@ class LunaticXmlAdapterTest {
             );
 
             // WHEN
-            SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, CAMPAIGN_ID, MODE));
+            SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE));
 
             // THEN
             assertThat(collected.getExternalVariables()).isEmpty();
@@ -448,7 +447,7 @@ class LunaticXmlAdapterTest {
             );
 
             // WHEN
-            SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, CAMPAIGN_ID, MODE));
+            SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE));
 
             // THEN
             assertThat(collected.getExternalVariables()).hasSize(2);

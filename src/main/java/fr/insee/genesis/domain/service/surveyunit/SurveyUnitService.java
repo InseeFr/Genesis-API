@@ -28,7 +28,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -36,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -407,9 +410,18 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     }
 
     @Override
-    public List<InterrogationId> findDistinctInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(String collectionInstrumentId, LocalDateTime start, LocalDateTime end) {
+    public List<InterrogationId> findDistinctInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
+            String collectionInstrumentId,
+            Instant start,
+            Instant end
+    ) {
+
         return surveyUnitPersistencePort
-                .findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(collectionInstrumentId,start,end)
+                .findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
+                        collectionInstrumentId,
+                        start,
+                        end
+                )
                 .stream()
                 .map(su -> new InterrogationId(su.getInterrogationId()))
                 .distinct()
@@ -488,6 +500,14 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     @Override
     public Long deleteByCollectionInstrumentId(String collectionInstrumentId) {
         return surveyUnitPersistencePort.deleteByCollectionInstrumentId(collectionInstrumentId);
+    }
+
+    @Override
+    public Long deleteByQuestionnaireIdAndInterrogationIds(
+            String questionnaireId,
+            Set<String> interrogationIds
+    ) {
+        return surveyUnitPersistencePort.deleteByQuestionnaireIdAndInterrogationIds(questionnaireId, interrogationIds);
     }
 
     @Override
