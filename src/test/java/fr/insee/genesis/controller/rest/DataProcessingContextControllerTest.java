@@ -312,6 +312,47 @@ class DataProcessingContextControllerTest {
     }
 
     @Nested
+    @DisplayName("GET /contexts/schedules/v1")
+    class GetAllSchedulesV1 {
+
+        @Test
+        @WithMockUser(roles = "SCHEDULER")
+        @DisplayName("Should return 200 with list of all schedules")
+        void givenExistingSchedules_whenGetAllSchedules_thenReturns200WithList() throws Exception {
+            // GIVEN
+            List<ScheduleResponseDto> schedules = List.of(
+                    buildScheduleResponseDto("INSTRUMENT_A"),
+                    buildScheduleResponseDto("INSTRUMENT_B")
+            );
+            when(dataProcessingContextApiPort.getAllSchedulesV1()).thenReturn(schedules);
+
+            // WHEN
+            var result = mockMvc.perform(get("/contexts/schedules/v1"));
+
+            // THEN
+            var response = result.andExpect(status().isOk())
+                    .andReturn().getResponse().getContentAsString();
+
+            assertThat(response).contains("INSTRUMENT_A", "INSTRUMENT_B");
+        }
+
+        @Test
+        @WithMockUser(roles = "READER")
+        @DisplayName("Should return empty list if no schedule")
+        void givenNoSchedules_whenGetAllSchedules_thenReturns200WithEmptyList() throws Exception {
+            // GIVEN
+            when(dataProcessingContextApiPort.getAllSchedulesV1()).thenReturn(List.of());
+
+            // WHEN
+            var result = mockMvc.perform(get("/contexts/schedules/v1"));
+
+            // THEN
+            result.andExpect(status().isOk())
+                    .andExpect(content().json("[]"));
+        }
+    }
+
+    @Nested
     @DisplayName("GET /contexts/schedules/v2")
     class GetAllSchedulesV2 {
 

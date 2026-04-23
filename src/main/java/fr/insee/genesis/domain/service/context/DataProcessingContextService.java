@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.dto.KraftwerkExecutionScheduleInput;
-import fr.insee.genesis.controller.dto.ScheduleDto;
 import fr.insee.genesis.controller.dto.rawdata.ScheduleResponseDto;
 import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
 import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionSchedule;
@@ -235,7 +234,19 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
                 dataProcessingContextPersistancePort.findByCollectionInstrumentIds(List.of(collectionInstrumentId));
 
         return dataProcessingContextModels.stream()
-                .flatMap(model -> model.toScheduleResponseDtos().stream())
+                .flatMap(model -> model.toScheduleV2ResponseDtos().stream())
+                .toList();
+    }
+
+    @Override
+    public List<ScheduleResponseDto> getAllSchedulesV1() {
+        List<DataProcessingContextModel> dataProcessingContextModels =
+                DataProcessingContextMapper.INSTANCE.listDocumentToListModel(
+                        dataProcessingContextPersistancePort.findAll()
+                );
+
+        return dataProcessingContextModels.stream()
+                .flatMap(model -> model.toScheduleV1ResponseDtos().stream())
                 .toList();
     }
 
@@ -247,7 +258,7 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
                 );
 
         return dataProcessingContextModels.stream()
-                .flatMap(model -> model.toScheduleResponseDtos().stream())
+                .flatMap(model -> model.toScheduleV2ResponseDtos().stream())
                 .toList();
     }
 

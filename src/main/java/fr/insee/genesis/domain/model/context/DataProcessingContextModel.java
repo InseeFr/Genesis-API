@@ -1,7 +1,7 @@
 package fr.insee.genesis.domain.model.context;
 
-import fr.insee.genesis.controller.dto.ScheduleDto;
 import fr.insee.genesis.controller.dto.rawdata.ScheduleResponseDto;
+import fr.insee.genesis.controller.utils.ExportType;
 import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionSchedule;
 import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionScheduleV2;
 import lombok.AllArgsConstructor;
@@ -32,15 +32,37 @@ public class DataProcessingContextModel {
 
     private boolean withReview;
 
-    public ScheduleDto toScheduleDto() {
-        return ScheduleDto.builder()
-                .collectionInstrumentId(collectionInstrumentId)
-                .lastExecution(lastExecution)
-                .kraftwerkExecutionScheduleList(kraftwerkExecutionScheduleList)
-                .build();
+    public List<ScheduleResponseDto> toScheduleV1ResponseDtos() {
+        if (kraftwerkExecutionScheduleList == null || kraftwerkExecutionScheduleList.isEmpty()) {
+            return List.of();
+        }
+
+        return kraftwerkExecutionScheduleList.stream()
+                .filter(schedule -> schedule != null && schedule.getPartitionId() != null)
+                .map(schedule -> ScheduleResponseDto.builder()
+                        .collectionInstrumentId(schedule.getPartitionId())
+                        .lastExecution(lastExecution)
+                        .frequency(schedule.getFrequency())
+                        .scheduleBeginDate(schedule.getScheduleBeginDate())
+                        .scheduleEndDate(schedule.getScheduleEndDate())
+                        .exportType(ExportType.CSV_PARQUET)
+                        .useSymmetricEncryption(false)
+                        .useAsymmetricEncryption(schedule.getTrustParameters() != null)
+                        .encryptionVaultPath(
+                                schedule.getTrustParameters() != null
+                                        ? schedule.getTrustParameters().getVaultPath()
+                                        : null
+                        )
+                        .useSignature(
+                                schedule.getTrustParameters() != null
+                                        && schedule.getTrustParameters().isUseSignature()
+                        )
+                        .build()
+                )
+                .toList();
     }
 
-    public List<ScheduleResponseDto> toScheduleResponseDtos() {
+    public List<ScheduleResponseDto> toScheduleV2ResponseDtos() {
         if (kraftwerkExecutionScheduleV2List == null || kraftwerkExecutionScheduleV2List.isEmpty()) {
             return List.of();
         }

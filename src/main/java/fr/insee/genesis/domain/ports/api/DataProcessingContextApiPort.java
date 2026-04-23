@@ -22,6 +22,7 @@ public interface DataProcessingContextApiPort {
 
     List<ScheduleResponseDto> getSchedulesV2ByCollectionInstrumentId(String collectionInstrumentId);
 
+    List<ScheduleResponseDto> getAllSchedulesV1();
     List<ScheduleResponseDto> getAllSchedulesV2();
 
     void deleteExpiredSchedules(String logFolder) throws GenesisException;
@@ -35,6 +36,5 @@ public interface DataProcessingContextApiPort {
     List<String> getCollectionInstrumentIds(boolean withReview);
 
     boolean getReviewByCollectionInstrumentId(String collectionInstrumentId) throws GenesisException;
-
 
 }
