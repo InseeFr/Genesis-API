@@ -9,7 +9,6 @@ import fr.insee.genesis.Constants;
 import fr.insee.genesis.TestConstants;
 import fr.insee.genesis.controller.IntegrationTestAbstract;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
-import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponseModel;
 import fr.insee.genesis.infrastructure.adapter.LunaticJsonRawDataMongoAdapter;
 import fr.insee.genesis.infrastructure.adapter.RawResponseMongoAdapter;
 import fr.insee.genesis.infrastructure.document.context.DataProcessingContextDocument;
