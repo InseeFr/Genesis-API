@@ -46,23 +46,6 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
     }
 
     @Override
-    public void saveContext(String partitionId, Boolean withReview) throws GenesisException {
-
-        DataProcessingContextModel dataProcessingContextModel =
-                DataProcessingContextMapper.INSTANCE.documentToModel(dataProcessingContextPersistancePort.findByPartitionId(partitionId));
-        if(dataProcessingContextModel == null){
-            //Create if not exist
-            dataProcessingContextModel = DataProcessingContextModel.builder()
-                    .partitionId(partitionId)
-                    .kraftwerkExecutionScheduleList(new ArrayList<>())
-                    .build();
-        }
-        dataProcessingContextModel.setWithReview(withReview);
-
-        dataProcessingContextPersistancePort.save(DataProcessingContextMapper.INSTANCE.modelToDocument(dataProcessingContextModel));
-    }
-
-    @Override
     public void saveContextByCollectionInstrumentId(String collectionInstrumentId, Boolean withReview) throws GenesisException {
         DataProcessingContextModel dataProcessingContextModel = dataProcessingContextPersistancePort.findByCollectionInstrumentId(collectionInstrumentId);
         if(dataProcessingContextModel == null){
@@ -76,7 +59,7 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
 
         dataProcessingContextPersistancePort.save(DataProcessingContextMapper.INSTANCE.modelToDocument(dataProcessingContextModel));
     }
-
+    
     @Override
     public String createKraftwerkExecutionSchedule(KraftwerkExecutionScheduleInput scheduleInput) {
 
@@ -257,20 +240,6 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
     }
 
     @Override
-    public List<ScheduleDto> getAllSchedules() {
-        List<ScheduleDto> scheduleDtos = new ArrayList<>();
-
-        List<DataProcessingContextModel> dataProcessingContextModels =
-                DataProcessingContextMapper.INSTANCE.listDocumentToListModel(dataProcessingContextPersistancePort.findAll());
-
-        dataProcessingContextModels.forEach(
-                model -> scheduleDtos.add(model.toScheduleDto())
-        );
-
-        return scheduleDtos;
-    }
-
-    @Override
     public List<ScheduleResponseDto> getAllSchedulesV2() {
         List<DataProcessingContextModel> dataProcessingContextModels =
                 DataProcessingContextMapper.INSTANCE.listDocumentToListModel(
@@ -291,8 +260,7 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
                 List<KraftwerkExecutionSchedule> deletedKraftwerkExecutionSchedules = dataProcessingContextPersistancePort.removeExpiredSchedules(context);
                 //Save in JSON log
                 if(!deletedKraftwerkExecutionSchedules.isEmpty()) {
-                    String scheduleName = context.getCollectionInstrumentId()==null ?
-                            context.getPartitionId() : context.getCollectionInstrumentId();
+                    String scheduleName = context.getCollectionInstrumentId();
                     Path jsonLogPath = Path.of(logFolder, Constants.SCHEDULE_ARCHIVE_FOLDER_NAME,
                             scheduleName + ".json");
                     ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
@@ -310,18 +278,19 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
                         Files.write(jsonLogPath, jsonToWrite.getBytes());
                     }
                 }
-            } catch (IOException _) {
-                String name = context.getCollectionInstrumentId()!=null?context.getCollectionInstrumentId() :context.getPartitionId();
+            } catch (IOException e) {
+                String name = context.getCollectionInstrumentId();
                 throw new GenesisException(500,String.format("An error occured trying to delete expired schedules for %s",name));
             }
         }
     }
 
     @Override
-    public long countSchedules() {
+    public long countContexts() {
         return dataProcessingContextPersistancePort.count();
     }
 
+    //TODO get context by collectionInstrumentId
     @Override
     public DataProcessingContextModel getContext(String interrogationId) throws GenesisException {
         List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findByInterrogationId(interrogationId);
@@ -345,6 +314,7 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
         }
 
         return dataProcessingContextPersistancePort.findByCollectionInstrumentId(collectionInstrumentIds.stream().toList().getFirst());
+        //TODO if multiple contexts, priorize withReview false
     }
 
     @Override

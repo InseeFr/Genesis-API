@@ -160,7 +160,7 @@ public class DataProcessingContextController {
         log.info("Returning {} V2 schedule documents...", schedules.size());
         return ResponseEntity.ok(schedules);
     }
-
+    
     @Operation(summary = "Fetch V2 schedules by collection instrument id")
     @GetMapping(path = "/contexts/{collectionInstrumentId}/schedules/v2")
     @PreAuthorize("hasAnyRole('SCHEDULER','READER')")

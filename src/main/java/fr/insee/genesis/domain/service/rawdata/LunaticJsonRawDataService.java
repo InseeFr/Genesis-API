@@ -105,7 +105,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
 
     @Override    
     public List<LunaticJsonRawDataModel> getRawDataByInterrogationId(String interrogationId) {
-        return lunaticJsonRawDataPersistencePort.findRawDataByInterrogationID(interrogationId);
+        return lunaticJsonRawDataPersistencePort.findRawDataByInterrogationId(interrogationId);
     }
 
     @Override
@@ -282,7 +282,6 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
                 LocalDateTime validationDate = getValidationDate(rawData);
 
                 SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
-                        .campaignId(rawData.campaignId())
                         .collectionInstrumentId(rawData.questionnaireId())
                         .mode(rawData.mode())
                         .interrogationId(rawData.interrogationId())
@@ -348,23 +347,6 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
             return Boolean.FALSE;
         }
 
-    }
-
-    @Override
-    public List<LunaticJsonRawDataUnprocessedDto> getUnprocessedDataIds() {
-        List<LunaticJsonRawDataUnprocessedDto> dtos = new ArrayList<>();
-
-        for (GroupedInterrogation groupedInterrogation : lunaticJsonRawDataPersistencePort.findUnprocessedIds()) {
-            for (String interrogationId : groupedInterrogation.interrogationIds()){
-                dtos.add(LunaticJsonRawDataUnprocessedDto.builder()
-                        .campaignId(groupedInterrogation.partitionOrCampaignId())
-                        .questionnaireId(groupedInterrogation.questionnaireId())
-                        .interrogationId(interrogationId)
-                        .build()
-                );
-            }
-        }
-        return dtos;
     }
 
     @Override
@@ -519,20 +501,22 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
 
     @Override
     public void updateProcessDates(List<SurveyUnitModel> surveyUnitModels) {
-        Set<String> campaignIds = new HashSet<>();
+        Set<String> collectionInstrumentIds = new HashSet<>();
         for (SurveyUnitModel surveyUnitModel : surveyUnitModels) {
-            campaignIds.add(surveyUnitModel.getCampaignId());
+            if(surveyUnitModel.getCollectionInstrumentId() != null) {
+                collectionInstrumentIds.add(surveyUnitModel.getCollectionInstrumentId());
+            }
         }
 
-        for (String campaignId : campaignIds) {
+        for (String collectionInstrumentId : collectionInstrumentIds) {
             Set<String> interrogationIds = new HashSet<>();
             for (SurveyUnitModel surveyUnitModel :
                     surveyUnitModels.stream().filter(
-                            surveyUnitModel -> surveyUnitModel.getCampaignId().equals(campaignId)
+                            surveyUnitModel -> surveyUnitModel.getCollectionInstrumentId().equals(collectionInstrumentId)
                     ).toList()) {
                 interrogationIds.add(surveyUnitModel.getInterrogationId());
             }
-            lunaticJsonRawDataPersistencePort.updateProcessDates(campaignId, interrogationIds);
+            lunaticJsonRawDataPersistencePort.updateProcessDates(collectionInstrumentId, interrogationIds);
         }
     }
     
@@ -542,8 +526,8 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     }
 
     @Override
-    public long countRawResponsesByQuestionnaireId(String campaignId) {
-        return lunaticJsonRawDataPersistencePort.countRawResponsesByQuestionnaireId(campaignId);
+    public long countRawResponsesByQuestionnaireId(String questionnaireId) {
+        return lunaticJsonRawDataPersistencePort.countRawResponsesByQuestionnaireId(questionnaireId);
     }
 
     @Override
@@ -554,10 +538,10 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     @Override
     public Map<String, List<String>> findProcessedIdsgroupedByQuestionnaireSince(LocalDateTime since) {
         List<GroupedInterrogation> idsByQuestionnaire = lunaticJsonRawDataPersistencePort.findProcessedIdsGroupedByQuestionnaireSince(since);
-        List<String> partitionIds = idsByQuestionnaire.stream().map(GroupedInterrogation::partitionOrCampaignId).toList();
-        List<DataProcessingContextModel> contexts = dataProcessingContextPersistancePort.findByPartitionIds(partitionIds);
-        List<String> partitionIdsWithReview = contexts.stream().filter(DataProcessingContextModel::isWithReview).map(DataProcessingContextModel::getPartitionId).toList();
-        return idsByQuestionnaire.stream().filter(groupedInterrogation -> partitionIdsWithReview.contains(groupedInterrogation.partitionOrCampaignId()))
+        List<String> collectionInstrumentIds = idsByQuestionnaire.stream().map(GroupedInterrogation::questionnaireId).toList();
+        List<DataProcessingContextModel> contexts = dataProcessingContextPersistancePort.findByCollectionInstrumentIds(collectionInstrumentIds);
+        List<String> collectionInstrumentIdsWithReview = contexts.stream().filter(DataProcessingContextModel::isWithReview).map(DataProcessingContextModel::getCollectionInstrumentId).toList();
+        return idsByQuestionnaire.stream().filter(groupedInterrogation -> collectionInstrumentIdsWithReview.contains(groupedInterrogation.questionnaireId()))
                 .collect(Collectors.toMap(
                 GroupedInterrogation::questionnaireId,
                 GroupedInterrogation::interrogationIds
@@ -577,7 +561,6 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     @Override
     public Page<LunaticJsonRawDataModel> findRawDataByCampaignIdAndDate(String campaignId, Instant startDt, Instant endDt, Pageable pageable){
         return lunaticJsonRawDataPersistencePort.findByCampaignIdAndDate(campaignId,startDt, endDt,pageable);
-
     }
 
     //Utils

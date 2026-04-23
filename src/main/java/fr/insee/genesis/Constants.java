@@ -37,6 +37,8 @@ public class Constants {
     public static final String SCHEDULE_ARCHIVE_FOLDER_NAME = "genesis_deleted_schedules";
     public static final String SAME_AXIS_VALUE = "0";
 
+    public static final String VARIABLE_STATE_DTO_DATE_FORMAT = "dd/MM/yyyy HH:mm:ss.SSS";
+
 
    // XML sequential reading parameters
     public static final int MAX_FILE_SIZE_UNTIL_SEQUENTIAL = 200; // In megabytes

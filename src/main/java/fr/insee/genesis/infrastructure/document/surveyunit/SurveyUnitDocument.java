@@ -13,20 +13,12 @@ import java.util.List;
 
 @Data
 @Document(collection = Constants.MONGODB_RESPONSE_COLLECTION_NAME)
-@CompoundIndex(name = "campaignId_1_questionnaireId_1", def = "{'campaignId': 1, 'questionnaireId': 1}") //1 = ascending, -1 = descending
-@CompoundIndex(name = "questionnaireId_1_campaignId_1", def = "{'questionnaireId': 1, 'campaignId': 1}")
 @CompoundIndex(name = "questionnaireId_1_interrogationId_1", def = "{'questionnaireId': 1, 'interrogationId': 1}")
 @CompoundIndex(name = "interrogationId_1_questionnaireId_1", def = "{'interrogationId': 1, 'questionnaireId': 1}")
 @CompoundIndex(name = "collectionInstrumentId_1_interrogationId_1", def = "{'collectionInstrumentId': 1, 'interrogationId': 1}")
 @CompoundIndex(name = "interrogationId_1_collectionInstrumentId_1", def = "{'interrogationId': 1, 'collectionInstrumentId': 1}")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SurveyUnitDocument {
-
-	/**
-	 * @deprecated This piece of information will not be available anymore in the raw responses
-	 */
-	@Deprecated(forRemoval = true, since ="2026-01-01")
-	private String campaignId;
 	@Indexed
 	private String interrogationId;
 

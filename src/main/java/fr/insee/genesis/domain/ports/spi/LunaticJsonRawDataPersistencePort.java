@@ -16,8 +16,7 @@ public interface LunaticJsonRawDataPersistencePort {
     void save(LunaticJsonRawDataModel rawData);
     List<LunaticJsonRawDataModel> findRawDataByQuestionnaireId(String questionnaireId, Mode mode, List<String> interrogationIdList);
     Page<LunaticJsonRawDataModel> findRawDataByQuestionnaireId(String questionnaireId, Pageable pageable);
-    List<LunaticJsonRawDataModel> findRawDataByInterrogationID(String interrogationId);
-    List<LunaticJsonRawDataModel> getAllUnprocessedData();
+    List<LunaticJsonRawDataModel> findRawDataByInterrogationId(String interrogationId);
     void updateProcessDates(String campaignId, Set<String> interrogationIds);
 
     Set<String> findDistinctQuestionnaireIds();

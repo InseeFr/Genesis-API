@@ -263,8 +263,14 @@ public class ResponseController implements CommonApiResponse {
     public ResponseEntity<Object> findResponsesByInterrogationAndCollectionInstrumentLatestStates(
             @RequestParam("interrogationId") String interrogationId,
             @RequestParam("collectionInstrumentId") String collectionInstrumentId) throws GenesisException {
+        //TODO move logic to service
+        DataProcessingContextModel dataProcessingContextModel;
         //Check context
-        DataProcessingContextModel dataProcessingContextModel = contextService.getContext(interrogationId);
+        try {
+            dataProcessingContextModel = contextService.getContext(interrogationId);
+        }catch (GenesisException e){
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
 
         if(dataProcessingContextModel == null || !dataProcessingContextModel.isWithReview()){
             return ResponseEntity.status(403).body(new ApiError("Review is disabled for that partition"));
@@ -301,6 +307,7 @@ public class ResponseController implements CommonApiResponse {
         LocalDateTime validationDate = null;
         for (SurveyUnitModel response :
                 responses.stream().filter(rep -> rep.getMode().equals(mode)).toList()){
+            //Keep last not null questionnaireState/validationDate
             questionnaireState = response.getQuestionnaireState() != null ?
                     response.getQuestionnaireState()
                     : questionnaireState;
@@ -313,7 +320,6 @@ public class ResponseController implements CommonApiResponse {
         }
         return ResponseEntity.ok(SurveyUnitSimplifiedDto.builder()
                 .collectionInstrumentId(responses.getFirst().getCollectionInstrumentId())
-                .campaignId(responses.getFirst().getCampaignId())
                 .interrogationId(responses.getFirst().getInterrogationId())
                 .mode(mode)
                 .usualSurveyUnitId(responses.getFirst().getUsualSurveyUnitId())
@@ -331,7 +337,8 @@ public class ResponseController implements CommonApiResponse {
     public ResponseEntity<SurveyUnitSimplifiedDto> getResponseByCollectionInstrumentAndInterrogation(
             @PathVariable("collectionInstrumentId") String collectionInstrumentId,
             @PathVariable("interrogationId") String interrogationId,
-            @RequestParam("mode") Mode mode) {
+            @PathVariable("mode") Mode mode){
+        try {
             return ResponseEntity.ok(
                     surveyUnitService.findSimplifiedByCollectionInstrumentIdAndInterrogationId(
                             collectionInstrumentId,
@@ -339,6 +346,10 @@ public class ResponseController implements CommonApiResponse {
                             mode
                     )
             );
+        } catch (NoDataException e){
+            log.error(e.getMessage());
+            return ResponseEntity.notFound().build();
+        }
     }
 
     /**
@@ -385,7 +396,6 @@ public class ResponseController implements CommonApiResponse {
                 if (!outputVariables.isEmpty() || !outputExternalVariables.isEmpty()) {
                     results.add(SurveyUnitSimplifiedDto.builder()
                             .collectionInstrumentId(responses.getFirst().getCollectionInstrumentId())
-                            .campaignId(responses.getFirst().getCampaignId())
                             .interrogationId(interrogationId.getInterrogationId())
                             .usualSurveyUnitId(!usualSurveyUnitIds.isEmpty() ? usualSurveyUnitIds.getFirst() : null)
                             .mode(mode)
@@ -427,7 +437,7 @@ public class ResponseController implements CommonApiResponse {
     ) {
         try {
             log.debug("Received in save edited : {}", surveyUnitInputDto.toString());
-            //Code quality : we need to put all that logic out of this controller
+            //TODO Code quality : we need to put all that logic out of this controller
             //Parse metadata
             //Try to look for DDI first, if no DDI found looks for lunatic components
             List<GenesisError> errors = new ArrayList<>();
@@ -505,7 +515,7 @@ public class ResponseController implements CommonApiResponse {
 
         //Create context if not exist
         if(contextService.getContextByCollectionInstrumentId(campaignName) == null){
-            contextService.saveContext(campaignName, false);
+            contextService.saveContextByCollectionInstrumentId(campaignName, false);
         }
 
     }
@@ -567,7 +577,7 @@ public class ResponseController implements CommonApiResponse {
             if(variablesMap == null){
                 variablesMap = getVariablesMap(modeSpecified, su, campaign, metadataFilePath);
             }
-            surveyUnitModels.addAll(LunaticXmlAdapter.convert(su, variablesMap, campaign.getCampaignId(), modeSpecified));
+            surveyUnitModels.addAll(LunaticXmlAdapter.convert(su, variablesMap, modeSpecified));
         }
         surveyUnitQualityService.verifySurveyUnits(surveyUnitModels, variablesMap);
 
@@ -593,13 +603,13 @@ public class ResponseController implements CommonApiResponse {
 
             campaign = parser.getCampaign();
             LunaticXmlSurveyUnit su = parser.readNextSurveyUnit();
-            contextService.saveContext(campaign.getCampaignId(), false);
+            contextService.saveContextByCollectionInstrumentId(campaign.getCampaignId(), false);
             VariablesMap variablesMap = null;
             while (su != null) {
                 if(variablesMap == null){
                     variablesMap = getVariablesMap(modeSpecified, su, campaign, metadataFilePath);
                 }
-                List<SurveyUnitModel> surveyUnitModels = new ArrayList<>(LunaticXmlAdapter.convert(su, variablesMap, campaign.getCampaignId(), modeSpecified));
+                List<SurveyUnitModel> surveyUnitModels = new ArrayList<>(LunaticXmlAdapter.convert(su, variablesMap, modeSpecified));
 
                 surveyUnitQualityService.verifySurveyUnits(surveyUnitModels, variablesMap);
                 surveyUnitService.saveSurveyUnits(surveyUnitModels);
@@ -738,7 +748,6 @@ public class ResponseController implements CommonApiResponse {
 
             simplifiedResponse = SurveyUnitSimplifiedDto.builder()
                     .collectionInstrumentId(responsesForSingleInterrId.getFirst().getCollectionInstrumentId())
-                    .campaignId(responsesForSingleInterrId.getFirst().getCampaignId())
                     .interrogationId(responsesForSingleInterrId.getFirst().getInterrogationId())
                     .mode(modeWrapped)
                     .validationDate(responsesForSingleInterrId.getFirst().getValidationDate())

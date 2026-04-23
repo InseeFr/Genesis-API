@@ -1,415 +1,586 @@
 package fr.insee.genesis.controller.rest;
 
-import fr.insee.genesis.Constants;
-import fr.insee.genesis.TestConstants;
-import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
-import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionSchedule;
-import fr.insee.genesis.domain.model.context.schedule.ServiceToCall;
-import fr.insee.genesis.domain.service.context.DataProcessingContextService;
-import fr.insee.genesis.infrastructure.document.context.DataProcessingContextDocument;
-import fr.insee.genesis.infrastructure.mappers.DataProcessingContextMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import fr.insee.genesis.controller.dto.KraftwerkExecutionScheduleInput;
+import fr.insee.genesis.controller.dto.ScheduleRequestDto;
+import fr.insee.genesis.controller.dto.rawdata.ScheduleResponseDto;
+import fr.insee.genesis.controller.utils.ExportType;
+import fr.insee.genesis.domain.model.context.schedule.DestinationType;
+import fr.insee.genesis.domain.model.surveyunit.Mode;
+import fr.insee.genesis.domain.ports.api.DataProcessingContextApiPort;
+import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
-import fr.insee.genesis.stubs.ConfigStub;
-import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
-import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.http.ResponseEntity;
+import org.mockito.ArgumentCaptor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.LocalDateTime;
-import java.time.Month;
-import java.util.ArrayList;
-import java.util.stream.Stream;
+import java.util.List;
+import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@WebMvcTest(DataProcessingContextController.class)
 class DataProcessingContextControllerTest {
-    //Given
-    private static SurveyUnitPersistencePortStub surveyUnitPersistencePortStub;
-    private static DataProcessingContextPersistancePortStub dataProcessingContextPersistancePortStub;
-    private static DataProcessingContextController dataProcessingContextController;
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockitoBean
+    private DataProcessingContextApiPort dataProcessingContextApiPort;
+
+    @MockitoBean
+    private FileUtils fileUtils;
+
+    private ObjectMapper objectMapper;
+
+    private static final String COLLECTION_INSTRUMENT_ID = "INSTRUMENT_001";
+    private static final String SCHEDULE_UUID = UUID.randomUUID().toString();
 
     @BeforeEach
-    void clean() throws IOException {
-        dataProcessingContextPersistancePortStub = new DataProcessingContextPersistancePortStub();
-        surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
-        dataProcessingContextController = new DataProcessingContextController(
-                new DataProcessingContextService(dataProcessingContextPersistancePortStub, surveyUnitPersistencePortStub),
-                new FileUtils(new ConfigStub())
-        );
-        //Clean genesis_deleted_schedules log folder
-        if(Files.exists(Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
-                .resolve(Constants.SCHEDULE_ARCHIVE_FOLDER_NAME))) {
-            try(Stream<Path> files = Files.list(Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
-                    .resolve(Constants.SCHEDULE_ARCHIVE_FOLDER_NAME))){
-                for (Path filePath : files.toList()) {
-                    Files.deleteIfExists(filePath);
-                }
-            }
+    void setUp() {
+        objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+    }
+
+    @Nested
+    @DisplayName("PUT /contexts/{collectionInstrumentId}/review")
+    class SaveContextWithCollectionInstrumentId {
+
+        @Test
+        @WithMockUser(roles = "USER_PLATINE")
+        @DisplayName("Should return 200 OK when context saved")
+        void givenValidInstrument_whenSaveContext_thenReturns200() throws Exception {
+            // GIVEN
+            doNothing().when(dataProcessingContextApiPort)
+                    .saveContextByCollectionInstrumentId(COLLECTION_INSTRUMENT_ID, true);
+
+            // WHEN
+            var result = mockMvc.perform(put("/contexts/{id}/review", COLLECTION_INSTRUMENT_ID)
+                    .param("withReview", "true")
+                    .with(csrf()));
+
+            // THEN
+            result.andExpect(status().isOk());
+            verify(dataProcessingContextApiPort)
+                    .saveContextByCollectionInstrumentId(COLLECTION_INSTRUMENT_ID, true);
+        }
+
+        @Test
+        @WithMockUser(roles = "USER_BACK_OFFICE")
+        @DisplayName("WithReview forced to false if null")
+        void givenNullWithReview_whenSaveContext_thenWithReviewFalse() throws Exception {
+            // GIVEN
+            doNothing().when(dataProcessingContextApiPort)
+                    .saveContextByCollectionInstrumentId(anyString(), eq(false));
+
+            // WHEN
+            var result = mockMvc.perform(put("/contexts/{id}/review", COLLECTION_INSTRUMENT_ID)
+                    .with(csrf()));
+
+            // THEN
+            result.andExpect(status().isOk());
+            verify(dataProcessingContextApiPort)
+                    .saveContextByCollectionInstrumentId(COLLECTION_INSTRUMENT_ID, false);
+        }
+
+        @Test
+        @WithMockUser(roles = "USER_PLATINE")
+        @DisplayName("Return genesis exception message and status")
+        void givenGenesisException_whenSaveContext_thenReturnsExceptionStatus() throws Exception {
+            // GIVEN
+            doThrow(new GenesisException(404, "Context not found"))
+                    .when(dataProcessingContextApiPort)
+                    .saveContextByCollectionInstrumentId(anyString(), any(Boolean.class));
+
+            // WHEN
+            var result = mockMvc.perform(put("/contexts/{id}/review", COLLECTION_INSTRUMENT_ID)
+                    .with(csrf()));
+
+            // THEN
+            result.andExpect(status().isNotFound())
+                    .andExpect(content().string("Context not found"));
         }
     }
 
-    @Test
-    void deleteScheduleTest_collectionInstrumentId(){
-        //When
-        dataProcessingContextController.deleteSchedulesByCollectionInstrumentId("TESTSURVEY_CI");
+    @Nested
+    @DisplayName("GET /contexts/{collectionInstrumentId}/review")
+    class GetReviewIndicatorByCollectionInstrumentId {
 
-        //Then
-        Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub()).filteredOn(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getPartitionId().equals("TESTSURVEY_CI")
-        ).isEmpty();
+        @ParameterizedTest
+        @ValueSource(booleans = {false, true})
+        @WithMockUser(roles = "USER_BACK_OFFICE")
+        @DisplayName("Should return 200 with review indicator")
+        void givenValidInstrument_whenGetReviewIndicator_thenReturns200WithTrue(boolean withReview) throws Exception {
+            // GIVEN
+            when(dataProcessingContextApiPort.getReviewByCollectionInstrumentId(COLLECTION_INSTRUMENT_ID))
+                    .thenReturn(withReview);
+
+            // WHEN
+            var result = mockMvc.perform(get("/contexts/{id}/review", COLLECTION_INSTRUMENT_ID));
+
+            // THEN
+            result.andExpect(status().isOk())
+                    .andExpect(content().string(Boolean.toString(withReview)));
+        }
+
+        @Test
+        @WithMockUser(roles = "USER_PLATINE")
+        @DisplayName("Return genesis exception message and status")
+        void givenGenesisException_whenGetReviewIndicator_thenReturnsExceptionStatus() throws Exception {
+            // GIVEN
+            when(dataProcessingContextApiPort.getReviewByCollectionInstrumentId(anyString()))
+                    .thenThrow(new GenesisException(404, "Instrument not found"));
+
+            // WHEN
+            var result = mockMvc.perform(get("/contexts/{id}/review", COLLECTION_INSTRUMENT_ID));
+
+            // THEN
+            result.andExpect(status().isNotFound())
+                    .andExpect(content().string("Instrument not found"));
+        }
     }
 
-    @Test
-    void deleteExpiredScheduleTest_execution() {
-        //Given
-        DataProcessingContextModel dataProcessingContextModel = new DataProcessingContextModel(
-                null,
-                "TESTSURVEYADDED",
-                null,
-                null,
-                new ArrayList<>(),
-                null,
-                false
-        );
-        KraftwerkExecutionSchedule kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
-                "0 0 6 * * *",
-                ServiceToCall.MAIN,
-                LocalDateTime.of(2000, Month.JANUARY, 1, 1, 1, 1),
-                LocalDateTime.of(2000, Month.DECEMBER, 1, 1, 1, 1),
-                null
-        );
-        dataProcessingContextModel.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
-        kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
-                "0 0 6 * * *",
-                ServiceToCall.MAIN,
-                LocalDateTime.of(2023, Month.FEBRUARY, 1, 1, 1, 1),
-                LocalDateTime.of(5023, Month.DECEMBER, 1, 1, 1, 1),
-                null
-        );
-        dataProcessingContextModel.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
-        dataProcessingContextPersistancePortStub.getMongoStub().add(DataProcessingContextMapper.INSTANCE.modelToDocument(dataProcessingContextModel));
+    @Nested
+    @DisplayName("POST /contexts/schedules/v2")
+    class CreateScheduleV2 {
 
-        //When
-        dataProcessingContextController.deleteExpiredSchedules();
+        @Test
+        @WithMockUser(roles = "USER_KRAFTWERK")
+        @DisplayName("Should return 200 with schedule UUID")
+        void givenScheduleWithoutEncryption_whenCreateSchedule_thenReturns200WithUuid() throws Exception {
+            // GIVEN
+            ScheduleRequestDto request = buildScheduleRequestDto(false);
+            when(dataProcessingContextApiPort.createKraftwerkExecutionSchedule(any()))
+                    .thenReturn(SCHEDULE_UUID);
 
-        //Then
-        //Expired schedule deleted
-        Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub()).filteredOn(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getPartitionId().equals("TESTSURVEYADDED")
-        ).isNotEmpty();
-        Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getPartitionId().equals("TESTSURVEYADDED")).toList().getFirst().getKraftwerkExecutionScheduleList()
-        ).isNotEmpty().hasSize(1);
+            // WHEN
+            var result = mockMvc.perform(post("/contexts/schedules/v2")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+                    .with(csrf()));
 
-        //Expired schedule to log json file
-        Assertions.assertThat(Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
-                .resolve(Constants.SCHEDULE_ARCHIVE_FOLDER_NAME)
-                .resolve("TESTSURVEYADDED.json")
-                .toFile()).exists().content().isNotEmpty().contains("2000").doesNotContain("5023");
+            // THEN
+            result.andExpect(status().isOk())
+                    .andExpect(content().string(SCHEDULE_UUID));
+            verify(dataProcessingContextApiPort).createKraftwerkExecutionSchedule(any());
+        }
+
+        @Test
+        @WithMockUser(roles = "USER_KRAFTWERK")
+        @DisplayName("TrustParameters should be built if useAsymmetricEncryption true")
+        void givenScheduleWithAsymmetricEncryption_whenCreateSchedule_thenTrustParametersBuilt() throws Exception {
+            // GIVEN
+            ScheduleRequestDto request = buildScheduleRequestDto(true);
+            String outputFolder = "/output/path";
+            when(fileUtils.getKraftwerkOutFolder(COLLECTION_INSTRUMENT_ID)).thenReturn(outputFolder);
+            when(dataProcessingContextApiPort.createKraftwerkExecutionSchedule(any()))
+                    .thenReturn(SCHEDULE_UUID);
+
+            // WHEN
+            var result = mockMvc.perform(post("/contexts/schedules/v2")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+                    .with(csrf()));
+
+            // THEN
+            result.andExpect(status().isOk());
+
+            ArgumentCaptor<KraftwerkExecutionScheduleInput> argumentCaptor =
+                    ArgumentCaptor.forClass(KraftwerkExecutionScheduleInput.class);
+            verify(dataProcessingContextApiPort, times(1))
+                    .createKraftwerkExecutionSchedule(argumentCaptor.capture());
+            KraftwerkExecutionScheduleInput kraftwerkExecutionScheduleInput = argumentCaptor.getValue();
+            Assertions.assertThat(kraftwerkExecutionScheduleInput).isNotNull();
+            Assertions.assertThat(kraftwerkExecutionScheduleInput.getTrustParameters()).isNotNull();
+            Assertions.assertThat(kraftwerkExecutionScheduleInput.getTrustParameters().getInputPath())
+                    .isEqualTo(outputFolder);
+        }
+
+        @Test
+        @WithMockUser(roles = "USER_KRAFTWERK")
+        @DisplayName("Should return genesis exception status and message")
+        void givenGenesisException_whenCreateSchedule_thenReturnsExceptionStatus() throws Exception {
+            // GIVEN
+            ScheduleRequestDto request = buildScheduleRequestDto(false);
+            when(dataProcessingContextApiPort.createKraftwerkExecutionSchedule(any()))
+                    .thenThrow(new GenesisException(400, "Invalid schedule"));
+
+            // WHEN
+            var result = mockMvc.perform(post("/contexts/schedules/v2")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+                    .with(csrf()));
+
+            // THEN
+            result.andExpect(status().isBadRequest())
+                    .andExpect(content().string("Invalid schedule"));
+        }
     }
 
-    @Test
-    void deleteExpiredScheduleTest_execution_collectionInstrumentId() {
-        //Given
-        DataProcessingContextModel dataProcessingContextModel = new DataProcessingContextModel(
-                null,
-                null,
-                "TESTSURVEYADDED_CI",
-                null,
-                new ArrayList<>(),
-                null,
-                false
-        );
-        KraftwerkExecutionSchedule kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
-                "0 0 6 * * *",
-                ServiceToCall.MAIN,
-                LocalDateTime.of(2000, Month.JANUARY, 1, 1, 1, 1),
-                LocalDateTime.of(2000, Month.DECEMBER, 1, 1, 1, 1),
-                null
-        );
-        dataProcessingContextModel.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
-        kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
-                "0 0 6 * * *",
-                ServiceToCall.MAIN,
-                LocalDateTime.of(2023, Month.FEBRUARY, 1, 1, 1, 1),
-                LocalDateTime.of(5023, Month.DECEMBER, 1, 1, 1, 1),
-                null
-        );
-        dataProcessingContextModel.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
-        dataProcessingContextPersistancePortStub.getMongoStub().add(DataProcessingContextMapper.INSTANCE.modelToDocument(dataProcessingContextModel));
+    @Nested
+    @DisplayName("PUT /contexts/{collectionInstrumentId}/schedules/v2/{scheduleUuid}")
+    class UpdateScheduleV2 {
 
-        //When
-        dataProcessingContextController.deleteExpiredSchedules();
+        @Test
+        @WithMockUser(roles = "USER_KRAFTWERK")
+        @DisplayName("Should return 200 and call update schedule in service")
+        void givenValidSchedule_whenUpdateSchedule_thenReturns200() throws Exception {
+            // GIVEN
+            ScheduleRequestDto request = buildScheduleRequestDto(false);
+            doNothing().when(dataProcessingContextApiPort).updateKraftwerkExecutionSchedule(any());
 
-        //Then
-        //Expired schedule deleted
-        Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub()).filteredOn(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals("TESTSURVEYADDED_CI")
-        ).isNotEmpty();
-        Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals("TESTSURVEYADDED_CI")).toList().getFirst().getKraftwerkExecutionScheduleList()
-        ).isNotEmpty().hasSize(1);
+            // WHEN
+            var result = mockMvc.perform(put("/contexts/{id}/schedules/v2/{uuid}",
+                    COLLECTION_INSTRUMENT_ID, SCHEDULE_UUID)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+                    .with(csrf()));
 
-        //Expired schedule to log json file
-        Assertions.assertThat(Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
-                .resolve(Constants.SCHEDULE_ARCHIVE_FOLDER_NAME)
-                .resolve("TESTSURVEYADDED_CI.json")
-                .toFile()).exists().content().isNotEmpty().contains("2000").doesNotContain("5023");
+            // THEN
+            result.andExpect(status().isOk());
+            verify(dataProcessingContextApiPort).updateKraftwerkExecutionSchedule(any());
+        }
+
+        @Test
+        @WithMockUser(roles = "USER_KRAFTWERK")
+        @DisplayName("getKraftwerkOutFolder should be called if use encryption true")
+        void givenAsymmetricEncryption_whenUpdateSchedule_thenOutFolderCalledWithInstrumentId() throws Exception {
+            // GIVEN
+            ScheduleRequestDto request = buildScheduleRequestDto(true);
+            when(fileUtils.getKraftwerkOutFolder(COLLECTION_INSTRUMENT_ID)).thenReturn("/output/path");
+            doNothing().when(dataProcessingContextApiPort).updateKraftwerkExecutionSchedule(any());
+
+            // WHEN
+            mockMvc.perform(put("/contexts/{id}/schedules/v2/{uuid}",
+                    COLLECTION_INSTRUMENT_ID, SCHEDULE_UUID)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+                    .with(csrf()));
+
+            // THEN
+            verify(fileUtils).getKraftwerkOutFolder(COLLECTION_INSTRUMENT_ID);
+        }
+
+        @Test
+        @WithMockUser(roles = "USER_KRAFTWERK")
+        @DisplayName("Should return genesis exception status and message")
+        void givenGenesisException_whenUpdateSchedule_thenReturnsExceptionStatus() throws Exception {
+            // GIVEN
+            ScheduleRequestDto request = buildScheduleRequestDto(false);
+            doThrow(new GenesisException(404, "Schedule not found"))
+                    .when(dataProcessingContextApiPort).updateKraftwerkExecutionSchedule(any());
+
+            // WHEN
+            var result = mockMvc.perform(put("/contexts/{id}/schedules/v2/{uuid}",
+                    COLLECTION_INSTRUMENT_ID, SCHEDULE_UUID)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+                    .with(csrf()));
+
+            // THEN
+            result.andExpect(status().isNotFound())
+                    .andExpect(content().string("Schedule not found"));
+        }
     }
 
-    @Test
-    void deleteExpiredScheduleTest_wholeSurvey() {
-        //Given
-        DataProcessingContextModel dataProcessingContextModel = new DataProcessingContextModel(
-                null,
-                "TESTSURVEYADDED",
-                "TESTSURVEYADDED",
-                null,
-                new ArrayList<>(),
-                null,
-                false
-        );
-        KraftwerkExecutionSchedule kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
-                "0 0 6 * * *",
-                ServiceToCall.MAIN,
-                LocalDateTime.of(2001, Month.JANUARY, 1, 1, 1, 1),
-                LocalDateTime.of(2001, Month.DECEMBER, 1, 1, 1, 1),
-                null
-        );
-        dataProcessingContextModel.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
-        kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
-                "0 0 6 * * *",
-                ServiceToCall.MAIN,
-                LocalDateTime.of(2002, Month.FEBRUARY, 1, 1, 1, 1),
-                LocalDateTime.of(2002, Month.DECEMBER, 1, 1, 1, 1),
-                null
-        );
-        dataProcessingContextModel.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
-        dataProcessingContextPersistancePortStub.getMongoStub().add(DataProcessingContextMapper.INSTANCE.modelToDocument(dataProcessingContextModel));
+    @Nested
+    @DisplayName("GET /contexts/schedules/v2")
+    class GetAllSchedulesV2 {
 
-        //When
-        dataProcessingContextController.deleteExpiredSchedules();
+        @Test
+        @WithMockUser(roles = "SCHEDULER")
+        @DisplayName("Should return 200 with list of all schedules")
+        void givenExistingSchedules_whenGetAllSchedules_thenReturns200WithList() throws Exception {
+            // GIVEN
+            List<ScheduleResponseDto> schedules = List.of(
+                    buildScheduleResponseDto("INSTRUMENT_A"),
+                    buildScheduleResponseDto("INSTRUMENT_B")
+            );
+            when(dataProcessingContextApiPort.getAllSchedulesV2()).thenReturn(schedules);
 
-        //Then
-        //Expired schedule deleted
-        Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub()).filteredOn(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getPartitionId().equals("TESTSURVEYADDED")
-        ).hasSize(1);
-        Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getPartitionId().equals("TESTSURVEYADDED")).toList().getFirst().getKraftwerkExecutionScheduleList()
-        ).isEmpty();
+            // WHEN
+            var result = mockMvc.perform(get("/contexts/schedules/v2"));
 
+            // THEN
+            var response = result.andExpect(status().isOk())
+                    .andReturn().getResponse().getContentAsString();
 
-        //Expired schedule to log json file
-        Assertions.assertThat(Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
-                .resolve(Constants.SCHEDULE_ARCHIVE_FOLDER_NAME)
-                .resolve("TESTSURVEYADDED.json")
-                .toFile()).exists().content().isNotEmpty().contains("2001","2002");
+            assertThat(response).contains("INSTRUMENT_A", "INSTRUMENT_B");
+        }
+
+        @Test
+        @WithMockUser(roles = "READER")
+        @DisplayName("Should return empty list if no schedule")
+        void givenNoSchedules_whenGetAllSchedules_thenReturns200WithEmptyList() throws Exception {
+            // GIVEN
+            when(dataProcessingContextApiPort.getAllSchedulesV2()).thenReturn(List.of());
+
+            // WHEN
+            var result = mockMvc.perform(get("/contexts/schedules/v2"));
+
+            // THEN
+            result.andExpect(status().isOk())
+                    .andExpect(content().json("[]"));
+        }
     }
 
-    @Test
-    void deleteExpiredScheduleTest_wholeSurvey_collectionInstrumentId() {
-        //Given
-        DataProcessingContextModel dataProcessingContextModel = new DataProcessingContextModel(
-                null,
-                null,
-                "TESTSURVEYADDED_CI",
-                null,
-                new ArrayList<>(),
-                null,
-                false
-        );
-        KraftwerkExecutionSchedule kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
-                "0 0 6 * * *",
-                ServiceToCall.MAIN,
-                LocalDateTime.of(2001, Month.JANUARY, 1, 1, 1, 1),
-                LocalDateTime.of(2001, Month.DECEMBER, 1, 1, 1, 1),
-                null
-        );
-        dataProcessingContextModel.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
-        kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
-                "0 0 6 * * *",
-                ServiceToCall.MAIN,
-                LocalDateTime.of(2002, Month.FEBRUARY, 1, 1, 1, 1),
-                LocalDateTime.of(2002, Month.DECEMBER, 1, 1, 1, 1),
-                null
-        );
-        dataProcessingContextModel.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
-        dataProcessingContextPersistancePortStub.getMongoStub().add(DataProcessingContextMapper.INSTANCE.modelToDocument(dataProcessingContextModel));
+    @Nested
+    @DisplayName("GET /contexts/{collectionInstrumentId}/schedules/v2")
+    class GetSchedulesV2ByCollectionInstrumentId {
 
-        //When
-        dataProcessingContextController.deleteExpiredSchedules();
+        @Test
+        @WithMockUser(roles = "SCHEDULER")
+        @DisplayName("Should return 200 with list of schedules for a specific collection instrument id")
+        void givenInstrumentWithSchedules_whenGetSchedules_thenReturns200WithList() throws Exception {
+            // GIVEN
+            List<ScheduleResponseDto> schedules = List.of(buildScheduleResponseDto(COLLECTION_INSTRUMENT_ID));
+            when(dataProcessingContextApiPort.getSchedulesV2ByCollectionInstrumentId(COLLECTION_INSTRUMENT_ID))
+                    .thenReturn(schedules);
 
-        //Then
-        //Expired schedule deleted
-        Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub()).filteredOn(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals("TESTSURVEYADDED_CI")
-        ).hasSize(1);
-        Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals("TESTSURVEYADDED_CI")).toList().getFirst().getKraftwerkExecutionScheduleList()
-        ).isEmpty();
+            // WHEN
+            var result = mockMvc.perform(get("/contexts/{id}/schedules/v2", COLLECTION_INSTRUMENT_ID));
 
+            // THEN
+            result.andExpect(status().isOk());
+            verify(dataProcessingContextApiPort)
+                    .getSchedulesV2ByCollectionInstrumentId(COLLECTION_INSTRUMENT_ID);
+        }
 
-        //Expired schedule to log json file
-        Assertions.assertThat(Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
-                .resolve(Constants.SCHEDULE_ARCHIVE_FOLDER_NAME)
-                .resolve("TESTSURVEYADDED_CI.json")
-                .toFile()).exists().content().isNotEmpty().contains("2001","2002");
+        @Test
+        @WithMockUser(roles = "READER")
+        @DisplayName("Should return empty list if no schedule")
+        void givenInstrumentWithoutSchedules_whenGetSchedules_thenReturns200WithEmptyList() throws Exception {
+            // GIVEN
+            when(dataProcessingContextApiPort.getSchedulesV2ByCollectionInstrumentId(COLLECTION_INSTRUMENT_ID))
+                    .thenReturn(List.of());
+
+            // WHEN
+            var result = mockMvc.perform(get("/contexts/{id}/schedules/v2", COLLECTION_INSTRUMENT_ID));
+
+            // THEN
+            result.andExpect(status().isOk())
+                    .andExpect(content().json("[]"));
+        }
     }
 
-    @Test
-    void deleteExpiredScheduleTest_appendLog() {
-        //Given
-        DataProcessingContextModel dataProcessingContextModel = new DataProcessingContextModel(
-                null,
-                "TESTSURVEYADDED2",
-                "TESTSURVEYADDED2",
-                null,
-                new ArrayList<>(),
-                null,
-                false
-        );
-        KraftwerkExecutionSchedule kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
-                "0 0 6 * * *",
-                ServiceToCall.MAIN,
-                LocalDateTime.of(2000, Month.JANUARY, 1, 1, 1, 1),
-                LocalDateTime.of(2000, Month.DECEMBER, 1, 1, 1, 1),
-                null
-        );
-        dataProcessingContextModel.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
-        kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
-                "0 0 6 * * *",
-                ServiceToCall.MAIN,
-                LocalDateTime.of(2023, Month.FEBRUARY, 1, 1, 1, 1),
-                LocalDateTime.of(5023, Month.DECEMBER, 1, 1, 1, 1),
-                null
-        );
-        dataProcessingContextModel.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
-        dataProcessingContextPersistancePortStub.getMongoStub().add(DataProcessingContextMapper.INSTANCE.modelToDocument(dataProcessingContextModel));
+    @Nested
+    @DisplayName("DELETE /context/{collectionInstrumentId}/schedules")
+    class DeleteSchedulesByCollectionInstrumentId {
 
-        //When
-        dataProcessingContextController.deleteExpiredSchedules();
-        kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
-                "0 0 6 * * *",
-                ServiceToCall.MAIN,
-                LocalDateTime.of(2001, Month.FEBRUARY, 1, 1, 1, 1),
-                LocalDateTime.of(2001, Month.DECEMBER, 1, 1, 1, 1),
-                null
-        );
-        dataProcessingContextModel.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
-        dataProcessingContextPersistancePortStub.getMongoStub().add(DataProcessingContextMapper.INSTANCE.modelToDocument(dataProcessingContextModel));
-        dataProcessingContextController.deleteExpiredSchedules();
+        @Test
+        @WithMockUser(roles = "USER_KRAFTWERK")
+        @DisplayName("Should call delete schedule in service and return 200")
+        void givenValidInstrument_whenDeleteSchedules_thenReturns200() throws Exception {
+            // GIVEN
+            doNothing().when(dataProcessingContextApiPort)
+                    .deleteSchedulesByCollectionInstrumentId(COLLECTION_INSTRUMENT_ID);
 
-        //Then
-        //Expired schedules deleted
-        Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub()).filteredOn(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getPartitionId().equals("TESTSURVEYADDED2")
-        ).isNotEmpty();
-        Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument
-                        .getPartitionId().equals("TESTSURVEYADDED2")).toList().getFirst().getKraftwerkExecutionScheduleList()
-        ).isNotEmpty().hasSize(1);
+            // WHEN
+            var result = mockMvc.perform(delete("/context/{id}/schedules", COLLECTION_INSTRUMENT_ID)
+                    .with(csrf()));
 
-        //Expired schedules to only one log json file
-        Assertions.assertThat(Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
-                .resolve(Constants.SCHEDULE_ARCHIVE_FOLDER_NAME)
-                .resolve("TESTSURVEYADDED2.json")
-                .toFile()).exists().content().isNotEmpty().contains("2000","2001");
+            // THEN
+            result.andExpect(status().isOk());
+            verify(dataProcessingContextApiPort)
+                    .deleteSchedulesByCollectionInstrumentId(COLLECTION_INSTRUMENT_ID);
+        }
+
+        @Test
+        @WithMockUser(roles = "USER_KRAFTWERK")
+        @DisplayName("Should return GenesisException code and message")
+        void givenGenesisException_whenDeleteSchedules_thenReturnsExceptionStatus() throws Exception {
+            // GIVEN
+            doThrow(new GenesisException(500, "Deletion error"))
+                    .when(dataProcessingContextApiPort)
+                    .deleteSchedulesByCollectionInstrumentId(anyString());
+
+            // WHEN
+            var result = mockMvc.perform(delete("/context/{id}/schedules", COLLECTION_INSTRUMENT_ID)
+                    .with(csrf()));
+
+            // THEN
+            result.andExpect(status().isInternalServerError())
+                    .andExpect(content().string("Deletion error"));
+        }
     }
 
-    @Test
-    void deleteExpiredScheduleTest_appendLog_collectionInstrumentId() {
-        //Given
-        DataProcessingContextModel dataProcessingContextModel = new DataProcessingContextModel(
-                null,
-                null,
-                "TESTSURVEYADDED2_CI",
-                null,
-                new ArrayList<>(),
-                null,
-                false
-        );
-        KraftwerkExecutionSchedule kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
-                "0 0 6 * * *",
-                ServiceToCall.MAIN,
-                LocalDateTime.of(2000, Month.JANUARY, 1, 1, 1, 1),
-                LocalDateTime.of(2000, Month.DECEMBER, 1, 1, 1, 1),
-                null
-        );
-        dataProcessingContextModel.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
-        kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
-                "0 0 6 * * *",
-                ServiceToCall.MAIN,
-                LocalDateTime.of(2023, Month.FEBRUARY, 1, 1, 1, 1),
-                LocalDateTime.of(5023, Month.DECEMBER, 1, 1, 1, 1),
-                null
-        );
-        dataProcessingContextModel.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
-        dataProcessingContextPersistancePortStub.getMongoStub().add(DataProcessingContextMapper.INSTANCE.modelToDocument(dataProcessingContextModel));
+    @Nested
+    @DisplayName("DELETE /contexts/{collectionInstrumentId}/schedules/v2")
+    class DeleteSchedulesV2ByCollectionInstrumentId {
 
-        //When
-        dataProcessingContextController.deleteExpiredSchedules();
-        kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
-                "0 0 6 * * *",
-                ServiceToCall.MAIN,
-                LocalDateTime.of(2001, Month.FEBRUARY, 1, 1, 1, 1),
-                LocalDateTime.of(2001, Month.DECEMBER, 1, 1, 1, 1),
-                null
-        );
-        dataProcessingContextModel.getKraftwerkExecutionScheduleList().add(kraftwerkExecutionSchedule);
-        dataProcessingContextPersistancePortStub.getMongoStub().add(DataProcessingContextMapper.INSTANCE.modelToDocument(dataProcessingContextModel));
-        dataProcessingContextController.deleteExpiredSchedules();
+        @Test
+        @WithMockUser(roles = "USER_KRAFTWERK")
+        @DisplayName("Should delete all schedules for a specific collectionInstrumentId and return 200")
+        void givenValidInstrument_whenDeleteAllV2Schedules_thenReturns200() throws Exception {
+            // GIVEN
+            doNothing().when(dataProcessingContextApiPort)
+                    .deleteSchedulesV2ByCollectionInstrumentId(COLLECTION_INSTRUMENT_ID);
 
-        //Then
-        //Expired schedules deleted
-        Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub()).filteredOn(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getCollectionInstrumentId().equals("TESTSURVEYADDED2_CI")
-        ).isNotEmpty();
-        Assertions.assertThat(dataProcessingContextPersistancePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument
-                        .getCollectionInstrumentId().equals("TESTSURVEYADDED2_CI")).toList().getFirst().getKraftwerkExecutionScheduleList()
-        ).isNotEmpty().hasSize(1);
+            // WHEN
+            var result = mockMvc.perform(delete("/contexts/{id}/schedules/v2", COLLECTION_INSTRUMENT_ID)
+                    .with(csrf()));
 
-        //Expired schedules to only one log json file
-        Assertions.assertThat(Path.of(TestConstants.TEST_RESOURCES_DIRECTORY)
-                .resolve(Constants.SCHEDULE_ARCHIVE_FOLDER_NAME)
-                .resolve("TESTSURVEYADDED2_CI.json")
-                .toFile()).exists().content().isNotEmpty().contains("2000","2001");
+            // THEN
+            result.andExpect(status().isOk());
+            verify(dataProcessingContextApiPort)
+                    .deleteSchedulesV2ByCollectionInstrumentId(COLLECTION_INSTRUMENT_ID);
+        }
+
+        @Test
+        @WithMockUser(roles = "USER_KRAFTWERK")
+        @DisplayName("Should return GenesisException code and message")
+        void givenGenesisException_whenDeleteAllV2Schedules_thenReturnsExceptionStatus() throws Exception {
+            // GIVEN
+            doThrow(new GenesisException(404, "No schedule found"))
+                    .when(dataProcessingContextApiPort)
+                    .deleteSchedulesV2ByCollectionInstrumentId(anyString());
+
+            // WHEN
+            var result = mockMvc.perform(delete("/contexts/{id}/schedules/v2", COLLECTION_INSTRUMENT_ID)
+                    .with(csrf()));
+
+            // THEN
+            result.andExpect(status().isNotFound())
+                    .andExpect(content().string("No schedule found"));
+        }
     }
 
-    @ParameterizedTest
-    @ValueSource(booleans = {false, true})
-    void getReview_test_collectionInstrumentId(boolean withReview){
-        //GIVEN
-        String collectionInstrumentId = "TESTPARTITION_CI";
-        DataProcessingContextDocument doc = new DataProcessingContextDocument();
-        doc.setCollectionInstrumentId("TESTPARTITION_CI");
-        doc.setKraftwerkExecutionScheduleList(new ArrayList<>());
-        doc.setWithReview(withReview);
-        dataProcessingContextPersistancePortStub.getMongoStub().add(doc);
+    @Nested
+    @DisplayName("DELETE /contexts/{collectionInstrumentId}/schedules/v2/{scheduleUuid}")
+    class DeleteScheduleV2 {
 
-        //WHEN
-        ResponseEntity<Object> response = dataProcessingContextController.getReviewIndicatorByCollectionInstrumentId(collectionInstrumentId);
+        @Test
+        @WithMockUser(roles = "USER_KRAFTWERK")
+        @DisplayName("Should delete all schedules for a specific schedule UUID and return 200")
+        void givenValidInstrumentAndUuid_whenDeleteScheduleV2_thenReturns200() throws Exception {
+            // GIVEN
+            doNothing().when(dataProcessingContextApiPort)
+                    .deleteScheduleV2(COLLECTION_INSTRUMENT_ID, SCHEDULE_UUID);
 
-        //THEN
-        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(200);
-        Assertions.assertThat(response.getBody().getClass()).isEqualTo(Boolean.class);
-        Assertions.assertThat((Boolean) response.getBody()).isEqualTo(withReview);
+            // WHEN
+            var result = mockMvc.perform(delete("/contexts/{id}/schedules/v2/{uuid}",
+                    COLLECTION_INSTRUMENT_ID, SCHEDULE_UUID)
+                    .with(csrf()));
+
+            // THEN
+            result.andExpect(status().isOk());
+            verify(dataProcessingContextApiPort)
+                    .deleteScheduleV2(COLLECTION_INSTRUMENT_ID, SCHEDULE_UUID);
+        }
+
+        @Test
+        @WithMockUser(roles = "USER_KRAFTWERK")
+        @DisplayName("Should return GenesisException code and message")
+        void givenGenesisException_whenDeleteScheduleV2_thenReturnsExceptionStatus() throws Exception {
+            // GIVEN
+            doThrow(new GenesisException(404, "Schedule UUID not found"))
+                    .when(dataProcessingContextApiPort)
+                    .deleteScheduleV2(anyString(), anyString());
+
+            // WHEN
+            var result = mockMvc.perform(delete("/contexts/{id}/schedules/v2/{uuid}",
+                    COLLECTION_INSTRUMENT_ID, SCHEDULE_UUID)
+                    .with(csrf()));
+
+            // THEN
+            result.andExpect(status().isNotFound())
+                    .andExpect(content().string("Schedule UUID not found"));
+        }
     }
 
-    @Test
-    void getReview_no_context_test_collectionInstrumentId(){
-        //WHEN
-        ResponseEntity<Object> response = dataProcessingContextController.getReviewIndicatorByCollectionInstrumentId(
-                "TESTPARTITIONIDNOCONTEXT_CI"
-        );
+    @Nested
+    @DisplayName("DELETE /context/schedules/expired-schedules")
+    class DeleteExpiredSchedules {
 
-        //THEN
-        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(404);
+        @Test
+        @WithMockUser(roles = "SCHEDULER")
+        @DisplayName("Should call delete expired schedules in service and return 200")
+        void givenExpiredSchedules_whenDeleteExpiredSchedules_thenReturns200() throws Exception {
+            // GIVEN
+            when(fileUtils.getLogFolder()).thenReturn("/log/path");
+            doNothing().when(dataProcessingContextApiPort).deleteExpiredSchedules("/log/path");
+
+            // WHEN
+            var result = mockMvc.perform(delete("/context/schedules/expired-schedules")
+                    .with(csrf()));
+
+            // THEN
+            result.andExpect(status().isOk());
+            verify(fileUtils).getLogFolder();
+            verify(dataProcessingContextApiPort).deleteExpiredSchedules("/log/path");
+        }
+
+        @Test
+        @WithMockUser(roles = "SCHEDULER")
+        @DisplayName("Should return GenesisException code and message")
+        void givenGenesisException_whenDeleteExpiredSchedules_thenReturnsExceptionStatus() throws Exception {
+            // GIVEN
+            when(fileUtils.getLogFolder()).thenReturn("/log/path");
+            doThrow(new GenesisException(500, "Purge failed"))
+                    .when(dataProcessingContextApiPort).deleteExpiredSchedules(anyString());
+
+            // WHEN
+            var result = mockMvc.perform(delete("/context/schedules/expired-schedules")
+                    .with(csrf()));
+
+            // THEN
+            result.andExpect(status().isInternalServerError())
+                    .andExpect(content().string("Purge failed"));
+        }
+    }
+
+    // UTILS
+    private ScheduleRequestDto buildScheduleRequestDto(boolean useAsymmetricEncryption) {
+        return ScheduleRequestDto.builder()
+                .collectionInstrumentId(COLLECTION_INSTRUMENT_ID)
+                .exportType(ExportType.CSV_PARQUET)
+                .frequency("0 6 * * *")
+                .scheduleBeginDate(LocalDateTime.now())
+                .scheduleEndDate(LocalDateTime.now().plusMonths(3))
+                .mode(Mode.WEB)
+                .destinationType(DestinationType.APPLISHARE)
+                .addStates(false)
+                .destinationFolder("/destination")
+                .useAsymmetricEncryption(useAsymmetricEncryption)
+                .useSymmetricEncryption(false)
+                .encryptionVaultPath("/vault/path")
+                .useSignature(false)
+                .batchSize(100)
+                .build();
+    }
+
+    private ScheduleResponseDto buildScheduleResponseDto(String collectionInstrumentId) {
+        return ScheduleResponseDto.builder()
+                .collectionInstrumentId(collectionInstrumentId)
+                .scheduleUuid(UUID.randomUUID().toString())
+                .build();
     }
 }

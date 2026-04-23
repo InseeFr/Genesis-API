@@ -1,6 +1,5 @@
 package fr.insee.genesis.controller.rest.responses;
 
-import fr.insee.genesis.controller.dto.rawdata.LunaticJsonRawDataUnprocessedDto;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
@@ -58,7 +57,6 @@ public class RawResponseController {
     @PutMapping(path = "/responses/raw/lunatic-json/save")
     @PreAuthorize("hasRole('COLLECT_PLATFORM')")
     public ResponseEntity<String> saveRawResponsesFromJsonBody(
-
             @RequestParam("campaignName") String campaignName,
             @RequestParam("questionnaireId") String questionnaireId,
             @RequestParam(INTERROGATION_ID) String interrogationId,
@@ -93,7 +91,7 @@ public class RawResponseController {
     public ResponseEntity<String> saveRawResponsesFromRawResponseDto(
             @Valid @RequestBody RawResponseDto dto
     ) {
-        rawRepository.saveAsRawJson(dto);
+        rawRepository.saveAsRawJson(dto); //TODO put in service, repository is infra layer
         return ResponseEntity.status(201).body(String.format(SUCCESS_MESSAGE, dto.getInterrogationId()));
     }
 
@@ -148,14 +146,6 @@ public class RawResponseController {
 
     //GET unprocessed
     @Operation(summary = "Get campaign id and interrogationId from all unprocessed raw json data")
-    @GetMapping(path = "/responses/raw/lunatic-json/get/unprocessed")
-    @PreAuthorize("hasRole('SCHEDULER')")
-    public ResponseEntity<List<LunaticJsonRawDataUnprocessedDto>> getUnprocessedJsonRawData() {
-        log.info("Try to get unprocessed raw JSON datas...");
-        return ResponseEntity.ok(lunaticJsonRawDataApiPort.getUnprocessedDataIds());
-    }
-
-    @Operation(summary = "Get campaign id and interrogationId from all unprocessed raw json data")
     @GetMapping(path = "/responses/raw/lunatic-json/get/unprocessed/questionnaireIds")
     @PreAuthorize("hasRole('SCHEDULER')")
     public ResponseEntity<Set<String>> getUnprocessedJsonRawDataQuestionnairesIds() {
@@ -163,42 +153,7 @@ public class RawResponseController {
         return ResponseEntity.ok(lunaticJsonRawDataApiPort.getUnprocessedDataQuestionnaireIds());
     }
 
-    @Hidden
-    @GetMapping(path = "/responses/raw/lunatic-json/get/by-interrogation-mode-and-campaign")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<LunaticJsonRawDataModel> getJsonRawData(
-            @RequestParam(INTERROGATION_ID) String interrogationId,
-            @RequestParam("campaignName") String campaignName,
-            @RequestParam(value = "mode") Mode modeSpecified
-    ) {
-        List<LunaticJsonRawDataModel> data = lunaticJsonRawDataApiPort.getRawDataByQuestionnaireId(campaignName, modeSpecified, List.of(interrogationId));
-        return ResponseEntity.ok(data.getFirst());
-    }
-
     //PROCESS
-    @Operation(summary = "Process raw data of a campaign")
-    @PostMapping(path = "/responses/raw/lunatic-json/process")
-    @PreAuthorize("hasRole('SCHEDULER')")
-    @Deprecated(since = "1.13.0")
-    public ResponseEntity<String> processJsonRawData(
-            @RequestParam("campaignName") String campaignName,
-            @RequestParam("questionnaireId") String questionnaireId,
-            @RequestBody List<String> interrogationIdList
-    ) {
-        log.info("Try to process raw JSON datas for campaign {} and {} interrogationIds", campaignName, interrogationIdList.size());
-        List<GenesisError> errors = new ArrayList<>();
-
-        try {
-            DataProcessResult result = lunaticJsonRawDataApiPort.processRawDataByInterrogationIds(campaignName, interrogationIdList, errors);
-            return result.formattedDataCount() == 0 ?
-                    ResponseEntity.ok("%d document(s) processed".formatted(result.dataCount()))
-                    : ResponseEntity.ok("%d document(s) processed, including %d FORMATTED after data verification"
-                    .formatted(result.dataCount(), result.formattedDataCount()));
-        } catch (GenesisException e) {
-            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
-        }
-    }
-
     @Operation(summary = "Process raw data of a questionnaire (old raw model)")
     @PostMapping(path = "/responses/raw/lunatic-json/{questionnaireId}/process")
     @PreAuthorize("hasRole('SCHEDULER')")
@@ -311,5 +266,38 @@ public class RawResponseController {
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.notFound().build();
+    }
+
+    //Debug admin endpoints
+    @Hidden
+    @Operation(summary = "Get lunatic json raw data")
+    @GetMapping(path = "/responses/raw/lunatic-json/{collectionInstrumentId}/{mode}/{interrogationId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<LunaticJsonRawDataModel>> getJsonRawData(
+            @PathVariable("collectionInstrumentId") String collectionInstrumentId,
+            @PathVariable("mode") Mode mode,
+            @PathVariable(INTERROGATION_ID) String interrogationId
+    ) {
+        return ResponseEntity.ok(lunaticJsonRawDataApiPort.getRawDataByQuestionnaireId(
+                collectionInstrumentId,
+                mode,
+                List.of(interrogationId)
+        ));
+    }
+
+    @Hidden
+    @Operation(summary = "Get raw response")
+    @GetMapping(path = "/raw-responses/{collectionInstrumentId}/{mode}/{interrogationId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<RawResponseModel>> getRawResponses(
+            @PathVariable("collectionInstrumentId") String collectionInstrumentId,
+            @PathVariable("mode") Mode mode,
+            @PathVariable(INTERROGATION_ID) String interrogationId
+    ) {
+        return ResponseEntity.ok(rawResponseApiPort.getRawResponses(
+                collectionInstrumentId,
+                mode,
+                List.of(interrogationId)
+        ));
     }
 }
