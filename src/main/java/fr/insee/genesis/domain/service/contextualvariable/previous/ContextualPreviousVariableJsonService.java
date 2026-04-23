@@ -39,12 +39,14 @@ public class ContextualPreviousVariableJsonService implements ContextualPrevious
                                               String filePath) throws GenesisException {
         try(FileInputStream inputStream = new FileInputStream(filePath)){
             checkSourceStateLength(sourceState);
-            moveCollectionToBackup(collectionInstrumentId);
 
             JsonFactory jsonFactory = new JsonFactory();
             try (JsonParser jsonParser = jsonFactory.createParser(inputStream)) {
+                if (!goToEditedPreviousToken(jsonParser)) {
+                    log.warn("No EditedPrevious part found in file {}", filePath);                    return false;
+                }
+                moveCollectionToBackup(collectionInstrumentId);
                 List<ContextualPreviousVariableModel> toSave = new ArrayList<>();
-                goToEditedPreviousToken(jsonParser);
                 long savedCount = 0;
                 Set<String> savedInterrogationIds = new HashSet<>();
                 if (jsonParser.nextToken() == null) { //skip field name, stop if end of file
@@ -109,19 +111,14 @@ public class ContextualPreviousVariableJsonService implements ContextualPrevious
         }
     }
 
-    private static void goToEditedPreviousToken(JsonParser jsonParser) throws IOException{
-        boolean isTokenFound = false;
-        while (!isTokenFound){
-            jsonParser.nextToken();
-            if(jsonParser.currentToken() == null){
-                return;
-            }
-            if(jsonParser.currentToken().equals(JsonToken.FIELD_NAME)
-                    && jsonParser.currentName() != null
-                    && jsonParser.currentName().equals("editedPrevious")) {
-                    isTokenFound = true;
+    private boolean goToEditedPreviousToken(JsonParser jsonParser) throws IOException {
+        while (jsonParser.nextToken() != null) {
+            if (jsonParser.currentToken() == JsonToken.FIELD_NAME
+                    && "EditedPrevious".equals(jsonParser.getCurrentName())) {
+                return true;
             }
         }
+        return false;
     }
 
     private ContextualPreviousVariableModel readNextContextualPrevious(JsonParser jsonParser,
