@@ -39,16 +39,17 @@ public class ContextualExternalVariableJsonService implements ContextualExternal
             JsonFactory jsonFactory = new JsonFactory();
             try(JsonParser jsonParser = jsonFactory.createParser(inputStream)){
                 if (!goToContextualExternalToken(jsonParser)) {
-                    log.warn("No contextualExternal part found in file {}", filePath);                    return false;
+                    log.warn("No contextualExternal part found in file {}", filePath);
+                    return false;
+                }
+                if(jsonParser.nextToken() == null){ //skip field name, stop if end of file
+                    log.warn("Reached end of file, found no contextualExternal part.");
+                    return false;
                 }
                 moveCollectionToBackup(collectionInstrumentId);
                 List<ContextualExternalVariableModel> toSave = new ArrayList<>();
                 long savedCount = 0;
                 Set<String> savedInterrogationIds = new HashSet<>();
-                if(jsonParser.nextToken() == null){ //skip field name, stop if end of file
-                    log.warn("Reached end of file, found no contextualExternal part.");
-                    return false;
-                }
                 jsonParser.nextToken(); //skip [
                 while (jsonParser.currentToken() != JsonToken.END_ARRAY) {
                     ContextualExternalVariableModel contextualExternalVariableModel = readNextContextualExternal(

@@ -43,16 +43,18 @@ public class ContextualPreviousVariableJsonService implements ContextualPrevious
             JsonFactory jsonFactory = new JsonFactory();
             try (JsonParser jsonParser = jsonFactory.createParser(inputStream)) {
                 if (!goToEditedPreviousToken(jsonParser)) {
-                    log.warn("No EditedPrevious part found in file {}", filePath);                    return false;
+                    log.warn("No EditedPrevious part found in file {}", filePath);
+                    return false;
+                }
+                if (jsonParser.nextToken() == null) { //skip field name, stop if end of file
+                    log.warn("Reached end of file, found no EditedPrevious part.");
+                    return false;
                 }
                 moveCollectionToBackup(collectionInstrumentId);
                 List<ContextualPreviousVariableModel> toSave = new ArrayList<>();
                 long savedCount = 0;
                 Set<String> savedInterrogationIds = new HashSet<>();
-                if (jsonParser.nextToken() == null) { //skip field name, stop if end of file
-                    log.warn("Reached end of file, found no EditedPrevious part.");
-                    return false;
-                }
+
                 jsonParser.nextToken(); //skip [
                 while (jsonParser.currentToken() != JsonToken.END_ARRAY) {
                     ContextualPreviousVariableModel contextualPreviousVariableModel = readNextContextualPrevious(
@@ -114,7 +116,7 @@ public class ContextualPreviousVariableJsonService implements ContextualPrevious
     private boolean goToEditedPreviousToken(JsonParser jsonParser) throws IOException {
         while (jsonParser.nextToken() != null) {
             if (jsonParser.currentToken() == JsonToken.FIELD_NAME
-                    && "EditedPrevious".equals(jsonParser.getCurrentName())) {
+                    && "editedPrevious".equals(jsonParser.getCurrentName())) {
                 return true;
             }
         }
