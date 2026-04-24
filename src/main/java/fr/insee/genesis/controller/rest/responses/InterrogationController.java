@@ -60,7 +60,7 @@ public class InterrogationController implements CommonApiResponse {
             )
             @RequestParam(value = "since", required = false)
             Instant since,
-            @RequestParam(value = "until")
+            @RequestParam(value = "until") //FIXME Required false
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
             @Parameter(
                     description = "Filter interrogations to those recorded before the given timestamp or at the same time (ISO-8601 UTC format).",
