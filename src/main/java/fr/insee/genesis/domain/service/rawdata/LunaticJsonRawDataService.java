@@ -578,6 +578,11 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     }
 
     @Override
+    public LunaticJsonRawDataModel getLunaticJsonDataByQuestionnaireIdAndInterrogationId(String questionnaireId, String interrogationId) {
+        return lunaticJsonRawDataPersistencePort.findLunaticJsonDataByQuestionnaireIdAndInterrogationId(questionnaireId, interrogationId);
+    }
+
+    @Override
     public boolean existsByInterrogationId(String interrogationId) {
         return lunaticJsonRawDataPersistencePort.existsByInterrogationId(interrogationId);
     }

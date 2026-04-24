@@ -93,6 +93,16 @@ public class RawResponseController {
         return ResponseEntity.status(201).body(String.format(SUCCESS_MESSAGE, dto.getInterrogationId()));
     }
 
+    @Operation(summary = "Get raw response")
+    @GetMapping("/raw-responses/{interrogationId}/collection-instruments/{collectionInstrumentId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<RawResponseModel> getRawResponse(
+            @PathVariable String interrogationId,
+            @PathVariable String collectionInstrumentId
+    ) {
+        return ResponseEntity.ok(rawResponseApiPort.getRawResponseByCollectionInstrumentIdAndInterrogationId(interrogationId, collectionInstrumentId));
+    }
+
     //PROCESS
     @Operation(summary = "Process raw data for a list of interrogations")
     @PostMapping(path = "/raw-responses/process")
@@ -215,6 +225,21 @@ public class RawResponseController {
         return ResponseEntity.status(HttpStatus.OK).body(new PagedModel<>(rawResponses));
     }
 
+    @Operation(summary = "Get lunatic json data")
+    @GetMapping("/responses/raw/lunatic-json/{interrogationId}/by-questionnaire/{questionnaireId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<LunaticJsonRawDataModel> getLunaticJsonData(
+            @PathVariable String interrogationId,
+            @PathVariable String questionnaireId
+    ) {
+        return ResponseEntity.ok(
+                lunaticJsonRawDataApiPort.getLunaticJsonDataByQuestionnaireIdAndInterrogationId(
+                        questionnaireId,
+                        interrogationId
+                )
+        );
+    }
+
     @Operation(summary = "Check existence of an interrogation")
     @RequestMapping(value = "/responses/raw/lunatic-json/{interrogationId}", method = RequestMethod.HEAD)
     @PreAuthorize("hasRole('ADMIN')")
@@ -266,4 +291,7 @@ public class RawResponseController {
         }
         return ResponseEntity.notFound().build();
     }
+
+
+
 }

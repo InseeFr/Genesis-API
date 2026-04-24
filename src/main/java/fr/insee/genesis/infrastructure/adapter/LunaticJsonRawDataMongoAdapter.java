@@ -89,6 +89,12 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
     }
 
     @Override
+    public LunaticJsonRawDataModel findLunaticJsonDataByQuestionnaireIdAndInterrogationId(String questionnaireId, String interrogationId) {
+        LunaticJsonRawDataDocument lunaticJsonRawDataDocument = repository.findByQuestionnaireIdAndInterrogationId(questionnaireId, interrogationId);
+        return LunaticJsonRawDataDocumentMapper.INSTANCE.documentToModel(lunaticJsonRawDataDocument);
+    }
+
+    @Override
     public Set<String> findDistinctQuestionnaireIds() {
         List<String> ids = mongoTemplate.query(LunaticJsonRawDataDocument.class)
                     .distinct("questionnaireId")

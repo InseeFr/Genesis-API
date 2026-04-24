@@ -18,6 +18,7 @@ public interface RawResponseApiPort {
 
     List<RawResponseModel> getRawResponses(String collectionInstrumentId, Mode mode, List<String> interrogationIdList);
     List<RawResponseModel> getRawResponsesByInterrogationID(String interrogationId);
+    RawResponseModel getRawResponseByCollectionInstrumentIdAndInterrogationId(String collectionInstrumentId, String interrogationId);
     DataProcessResult processRawResponsesByInterrogationIds(String collectionInstrumentId, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException;
     DataProcessResult processRawResponsesByInterrogationIds(String collectionInstrumentId) throws GenesisException;
 

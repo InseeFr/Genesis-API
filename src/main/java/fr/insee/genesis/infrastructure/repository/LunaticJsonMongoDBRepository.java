@@ -112,6 +112,7 @@ public interface LunaticJsonMongoDBRepository extends MongoRepository<LunaticJso
 
     boolean existsByInterrogationId(String interrogationId);
 
+    LunaticJsonRawDataDocument findByQuestionnaireIdAndInterrogationId(String questionnaireId, String interrogationId);
 
     @Aggregation(pipeline = {
             "{ $match: { questionnaireId: ?0, processDate: { $ne: null }, recordDate: { $gte: ?1, $lte: ?2 } } }",

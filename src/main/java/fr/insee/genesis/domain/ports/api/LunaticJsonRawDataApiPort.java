@@ -22,7 +22,7 @@ public interface LunaticJsonRawDataApiPort {
     void save(LunaticJsonRawDataModel rawData) throws GenesisException;
     List<LunaticJsonRawDataModel> getRawDataByQuestionnaireId(String questionnaireId, Mode mode, List<String> interrogationIdList);
     List<SurveyUnitModel> convertRawData(List<LunaticJsonRawDataModel> rawData, VariablesMap variablesMap);
-
+    LunaticJsonRawDataModel getLunaticJsonDataByQuestionnaireIdAndInterrogationId(String questionnaireId, String interrogationId);
     List<LunaticJsonRawDataUnprocessedDto> getUnprocessedDataIds();
     Set<String> getUnprocessedDataQuestionnaireIds();
     void updateProcessDates(List<SurveyUnitModel> surveyUnitModels);

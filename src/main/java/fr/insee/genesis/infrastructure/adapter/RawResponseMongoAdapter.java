@@ -51,6 +51,13 @@ public class RawResponseMongoAdapter implements RawResponsePersistencePort {
     }
 
     @Override
+    public RawResponseModel findRawResponseByCollectionInstrumentIdAndInterrogationId(String collectionInstrumentId, String interrogationId) {
+        RawResponseDocument rawResponseDocument = repository.findByCollectionInstrumentIdAndInterrogationId(collectionInstrumentId, interrogationId);
+        return RawResponseDocumentMapper.INSTANCE.documentToModel(rawResponseDocument);
+    }
+
+
+    @Override
     public void updateProcessDates(String collectionInstrumentId, Set<String> interrogationIds) {
         mongoTemplate.updateMulti(
                 Query.query(Criteria.where("collectionInstrumentId").is(collectionInstrumentId).and("interrogationId").in(interrogationIds))
