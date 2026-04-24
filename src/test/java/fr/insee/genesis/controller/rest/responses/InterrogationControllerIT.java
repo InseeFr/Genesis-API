@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
@@ -37,13 +38,17 @@ class InterrogationControllerIT extends IntegrationTestAbstract {
             String collectionInstrumentId = "collectionInstrumentId";
             String interrogationId1 = "interrogationId1";
             String interrogationId2 = "interrogationId2";
+            Instant recordDate = Instant.now();
 
             SurveyUnitInterrogationProjection surveyUnitInterrogationProjection1 =
                     mock(SurveyUnitInterrogationProjection.class);
             when(surveyUnitInterrogationProjection1.getInterrogationId()).thenReturn(interrogationId1);
+            when(surveyUnitInterrogationProjection1.getRecordDate()).thenReturn(recordDate);
+
             SurveyUnitInterrogationProjection surveyUnitInterrogationProjection2 =
                     mock(SurveyUnitInterrogationProjection.class);
             when(surveyUnitInterrogationProjection2.getInterrogationId()).thenReturn(interrogationId2);
+            when(surveyUnitInterrogationProjection2.getRecordDate()).thenReturn(recordDate);
 
             List<SurveyUnitInterrogationProjection> surveyUnitInterrogationProjectionList =
                     List.of(surveyUnitInterrogationProjection1,
@@ -167,8 +172,8 @@ class InterrogationControllerIT extends IntegrationTestAbstract {
 
             when(surveyUnitMongoDBRepository.findProjectedByCollectionInstrumentIdAndBetween(
                     collectionInstrumentId,
-                    until.atZone(ZoneId.systemDefault()).toInstant(),
-                    since.atZone(ZoneId.systemDefault()).toInstant()
+                    since.atZone(ZoneId.systemDefault()).toInstant(),
+                    until.atZone(ZoneId.systemDefault()).toInstant()
             )).thenReturn(surveyUnitInterrogationProjectionList);
 
             //WHEN + THEN
