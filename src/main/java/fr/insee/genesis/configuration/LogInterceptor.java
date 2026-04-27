@@ -23,11 +23,16 @@ public class LogInterceptor implements HandlerInterceptor {
         String method = request.getMethod();
         String operationPath = request.getRequestURI();
         Authentication authentication = getCurrentUser();
-        ThreadContext.put("user", authentication.getName().toUpperCase());
+        String username = "anonymous";
+        if (authentication != null && authentication.isAuthenticated()) {
+            username = authentication.getName();
+        }
+
+        ThreadContext.put("user", username.toUpperCase());
         ThreadContext.put("id", fishTag);
         ThreadContext.put("path", operationPath);
         ThreadContext.put("method", method);
-        log.info("[" + authentication.getName().toUpperCase() + "] - [" + method + "] - [" + operationPath + "]");
+        log.info("[" + username.toUpperCase() + "] - [" + method + "] - [" + operationPath + "]");
         return true;
     }
     @Override
