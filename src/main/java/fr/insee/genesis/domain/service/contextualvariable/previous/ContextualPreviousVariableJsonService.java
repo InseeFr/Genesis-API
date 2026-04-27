@@ -11,6 +11,7 @@ import fr.insee.genesis.domain.utils.JsonUtils;
 import fr.insee.genesis.exceptions.GenesisException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.io.FileInputStream;
@@ -39,18 +40,22 @@ public class ContextualPreviousVariableJsonService implements ContextualPrevious
                                               String filePath) throws GenesisException {
         try(FileInputStream inputStream = new FileInputStream(filePath)){
             checkSourceStateLength(sourceState);
-            moveCollectionToBackup(collectionInstrumentId);
 
             JsonFactory jsonFactory = new JsonFactory();
             try (JsonParser jsonParser = jsonFactory.createParser(inputStream)) {
-                List<ContextualPreviousVariableModel> toSave = new ArrayList<>();
-                goToEditedPreviousToken(jsonParser);
-                long savedCount = 0;
-                Set<String> savedInterrogationIds = new HashSet<>();
+                if (!goToEditedPreviousToken(jsonParser)) {
+                    log.warn("No EditedPrevious part found in file {}", filePath);
+                    return false;
+                }
                 if (jsonParser.nextToken() == null) { //skip field name, stop if end of file
                     log.warn("Reached end of file, found no EditedPrevious part.");
                     return false;
                 }
+                moveCollectionToBackup(collectionInstrumentId);
+                List<ContextualPreviousVariableModel> toSave = new ArrayList<>();
+                long savedCount = 0;
+                Set<String> savedInterrogationIds = new HashSet<>();
+
                 jsonParser.nextToken(); //skip [
                 while (jsonParser.currentToken() != JsonToken.END_ARRAY) {
                     ContextualPreviousVariableModel contextualPreviousVariableModel = readNextContextualPrevious(
@@ -76,10 +81,10 @@ public class ContextualPreviousVariableJsonService implements ContextualPrevious
             }
         }catch (JsonParseException jpe){
             contextualPreviousVariablePersistancePort.restoreBackup(collectionInstrumentId);
-            throw new GenesisException(400, "JSON Parsing exception : %s".formatted(jpe.toString()));
-        }catch (IOException ioe){
+            throw new GenesisException(HttpStatus.BAD_REQUEST, "JSON Parsing exception : %s".formatted(jpe.toString()));
+        }catch (IOException _){
             contextualPreviousVariablePersistancePort.restoreBackup(collectionInstrumentId);
-            throw new GenesisException(500, ioe.toString());
+            throw new GenesisException(HttpStatus.INTERNAL_SERVER_ERROR, "I/O error while processing contextual previous file");
         }
     }
 
@@ -105,23 +110,18 @@ public class ContextualPreviousVariableJsonService implements ContextualPrevious
 
     private static void checkSourceStateLength(String sourceState) throws GenesisException {
         if(sourceState != null && sourceState.length() > 15){
-            throw new GenesisException(400, "Source state is too long (>15 characters)");
+            throw new GenesisException(HttpStatus.BAD_REQUEST, "Source state is too long (>15 characters)");
         }
     }
 
-    private static void goToEditedPreviousToken(JsonParser jsonParser) throws IOException{
-        boolean isTokenFound = false;
-        while (!isTokenFound){
-            jsonParser.nextToken();
-            if(jsonParser.currentToken() == null){
-                return;
-            }
-            if(jsonParser.currentToken().equals(JsonToken.FIELD_NAME)
-                    && jsonParser.currentName() != null
-                    && jsonParser.currentName().equals("editedPrevious")) {
-                    isTokenFound = true;
+    private boolean goToEditedPreviousToken(JsonParser jsonParser) throws IOException {
+        while (jsonParser.nextToken() != null) {
+            if (jsonParser.currentToken() == JsonToken.FIELD_NAME
+                    && "editedPrevious".equals(jsonParser.getCurrentName())) {
+                return true;
             }
         }
+        return false;
     }
 
     private ContextualPreviousVariableModel readNextContextualPrevious(JsonParser jsonParser,
@@ -192,13 +192,13 @@ public class ContextualPreviousVariableJsonService implements ContextualPrevious
 
     private static void checkModel(ContextualPreviousVariableModel contextualPreviousVariableModel, JsonParser jsonParser, Set<String> savedInterrogationIds) throws GenesisException {
         if(contextualPreviousVariableModel.getInterrogationId() == null){
-            throw new GenesisException(400,
+            throw new GenesisException(HttpStatus.BAD_REQUEST,
                     "Missing interrogationId on the object that ends on line %d"
                             .formatted(jsonParser.currentLocation().getLineNr())
             );
         }
         if(savedInterrogationIds.contains(contextualPreviousVariableModel.getInterrogationId())){
-            throw new GenesisException(400,
+            throw new GenesisException(HttpStatus.BAD_REQUEST,
                     "Double interrogationId : %s".formatted(contextualPreviousVariableModel.getInterrogationId()));
         }
     }

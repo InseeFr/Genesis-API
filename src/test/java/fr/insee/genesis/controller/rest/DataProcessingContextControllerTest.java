@@ -21,6 +21,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -45,6 +46,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(DataProcessingContextController.class)
@@ -116,7 +118,7 @@ class DataProcessingContextControllerTest {
         @DisplayName("Return genesis exception message and status")
         void givenGenesisException_whenSaveContext_thenReturnsExceptionStatus() throws Exception {
             // GIVEN
-            doThrow(new GenesisException(404, "Context not found"))
+            doThrow(new GenesisException(HttpStatus.NOT_FOUND, "Context not found"))
                     .when(dataProcessingContextApiPort)
                     .saveContextByCollectionInstrumentId(anyString(), any(Boolean.class));
 
@@ -126,7 +128,9 @@ class DataProcessingContextControllerTest {
 
             // THEN
             result.andExpect(status().isNotFound())
-                    .andExpect(content().string("Context not found"));
+                    .andExpect(jsonPath("$.title").value("Not Found"))
+                    .andExpect(jsonPath("$.status").value(404))
+                    .andExpect(jsonPath("$.detail").value("Context not found"));
         }
     }
 
@@ -157,14 +161,16 @@ class DataProcessingContextControllerTest {
         void givenGenesisException_whenGetReviewIndicator_thenReturnsExceptionStatus() throws Exception {
             // GIVEN
             when(dataProcessingContextApiPort.getReviewByCollectionInstrumentId(anyString()))
-                    .thenThrow(new GenesisException(404, "Instrument not found"));
+                    .thenThrow(new GenesisException(HttpStatus.NOT_FOUND, "Instrument not found"));
 
             // WHEN
             var result = mockMvc.perform(get("/contexts/{id}/review", COLLECTION_INSTRUMENT_ID));
 
             // THEN
             result.andExpect(status().isNotFound())
-                    .andExpect(content().string("Instrument not found"));
+                    .andExpect(jsonPath("$.title").value("Not Found"))
+                    .andExpect(jsonPath("$.status").value(404))
+                    .andExpect(jsonPath("$.detail").value("Instrument not found"));
         }
     }
 
@@ -231,7 +237,7 @@ class DataProcessingContextControllerTest {
             // GIVEN
             ScheduleRequestDto request = buildScheduleRequestDto(false);
             when(dataProcessingContextApiPort.createKraftwerkExecutionSchedule(any()))
-                    .thenThrow(new GenesisException(400, "Invalid schedule"));
+                    .thenThrow(new GenesisException(HttpStatus.BAD_REQUEST, "Invalid schedule"));
 
             // WHEN
             var result = mockMvc.perform(post("/contexts/schedules/v2")
@@ -241,7 +247,9 @@ class DataProcessingContextControllerTest {
 
             // THEN
             result.andExpect(status().isBadRequest())
-                    .andExpect(content().string("Invalid schedule"));
+                    .andExpect(jsonPath("$.title").value("Bad Request"))
+                    .andExpect(jsonPath("$.status").value(400))
+                    .andExpect(jsonPath("$.detail").value("Invalid schedule"));
         }
     }
 
@@ -295,7 +303,7 @@ class DataProcessingContextControllerTest {
         void givenGenesisException_whenUpdateSchedule_thenReturnsExceptionStatus() throws Exception {
             // GIVEN
             ScheduleRequestDto request = buildScheduleRequestDto(false);
-            doThrow(new GenesisException(404, "Schedule not found"))
+            doThrow(new GenesisException(HttpStatus.NOT_FOUND, "Schedule not found"))
                     .when(dataProcessingContextApiPort).updateKraftwerkExecutionSchedule(any());
 
             // WHEN
@@ -307,7 +315,9 @@ class DataProcessingContextControllerTest {
 
             // THEN
             result.andExpect(status().isNotFound())
-                    .andExpect(content().string("Schedule not found"));
+                    .andExpect(jsonPath("$.title").value("Not Found"))
+                    .andExpect(jsonPath("$.status").value(404))
+                    .andExpect(jsonPath("$.detail").value("Schedule not found"));
         }
     }
 
@@ -418,7 +428,7 @@ class DataProcessingContextControllerTest {
         @DisplayName("Should return GenesisException code and message")
         void givenGenesisException_whenDeleteSchedules_thenReturnsExceptionStatus() throws Exception {
             // GIVEN
-            doThrow(new GenesisException(500, "Deletion error"))
+            doThrow(new GenesisException(HttpStatus.INTERNAL_SERVER_ERROR, "Deletion error"))
                     .when(dataProcessingContextApiPort)
                     .deleteSchedulesByCollectionInstrumentId(anyString());
 
@@ -428,7 +438,9 @@ class DataProcessingContextControllerTest {
 
             // THEN
             result.andExpect(status().isInternalServerError())
-                    .andExpect(content().string("Deletion error"));
+                    .andExpect(jsonPath("$.title").value("Internal Server Error"))
+                    .andExpect(jsonPath("$.status").value(500))
+                    .andExpect(jsonPath("$.detail").value("Deletion error"));
         }
     }
 
@@ -459,7 +471,7 @@ class DataProcessingContextControllerTest {
         @DisplayName("Should return GenesisException code and message")
         void givenGenesisException_whenDeleteAllV2Schedules_thenReturnsExceptionStatus() throws Exception {
             // GIVEN
-            doThrow(new GenesisException(404, "No schedule found"))
+            doThrow(new GenesisException(HttpStatus.NOT_FOUND, "No schedule found"))
                     .when(dataProcessingContextApiPort)
                     .deleteSchedulesV2ByCollectionInstrumentId(anyString());
 
@@ -469,7 +481,9 @@ class DataProcessingContextControllerTest {
 
             // THEN
             result.andExpect(status().isNotFound())
-                    .andExpect(content().string("No schedule found"));
+                    .andExpect(jsonPath("$.title").value("Not Found"))
+                    .andExpect(jsonPath("$.status").value(404))
+                    .andExpect(jsonPath("$.detail").value("No schedule found"));
         }
     }
 
@@ -501,7 +515,7 @@ class DataProcessingContextControllerTest {
         @DisplayName("Should return GenesisException code and message")
         void givenGenesisException_whenDeleteScheduleV2_thenReturnsExceptionStatus() throws Exception {
             // GIVEN
-            doThrow(new GenesisException(404, "Schedule UUID not found"))
+            doThrow(new GenesisException(HttpStatus.NOT_FOUND, "Schedule UUID not found"))
                     .when(dataProcessingContextApiPort)
                     .deleteScheduleV2(anyString(), anyString());
 
@@ -512,7 +526,9 @@ class DataProcessingContextControllerTest {
 
             // THEN
             result.andExpect(status().isNotFound())
-                    .andExpect(content().string("Schedule UUID not found"));
+                    .andExpect(jsonPath("$.title").value("Not Found"))
+                    .andExpect(jsonPath("$.status").value(404))
+                    .andExpect(jsonPath("$.detail").value("Schedule UUID not found"));
         }
     }
 
@@ -544,7 +560,7 @@ class DataProcessingContextControllerTest {
         void givenGenesisException_whenDeleteExpiredSchedules_thenReturnsExceptionStatus() throws Exception {
             // GIVEN
             when(fileUtils.getLogFolder()).thenReturn("/log/path");
-            doThrow(new GenesisException(500, "Purge failed"))
+            doThrow(new GenesisException(HttpStatus.INTERNAL_SERVER_ERROR, "Purge failed"))
                     .when(dataProcessingContextApiPort).deleteExpiredSchedules(anyString());
 
             // WHEN
@@ -553,7 +569,9 @@ class DataProcessingContextControllerTest {
 
             // THEN
             result.andExpect(status().isInternalServerError())
-                    .andExpect(content().string("Purge failed"));
+                    .andExpect(jsonPath("$.title").value("Internal Server Error"))
+                    .andExpect(jsonPath("$.status").value(500))
+                    .andExpect(jsonPath("$.detail").value("Purge failed"));
         }
     }
 

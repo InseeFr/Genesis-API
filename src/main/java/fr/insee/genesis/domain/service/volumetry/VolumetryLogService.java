@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -110,6 +111,7 @@ public class VolumetryLogService {
         Set<String> lunaticQuestionnaires = lunaticJsonRawDataApiPort.findDistinctQuestionnaireIds();
         Set<String> rawQuestionnaires = new HashSet<>(rawResponseApiPort.getDistinctCollectionInstrumentIds());
         rawQuestionnaires.addAll(lunaticQuestionnaires);
+        rawQuestionnaires.removeIf(Objects::isNull);
 
         List<String> sortedQuestionnaires = new ArrayList<>(rawQuestionnaires);
         Collections.sort(sortedQuestionnaires);

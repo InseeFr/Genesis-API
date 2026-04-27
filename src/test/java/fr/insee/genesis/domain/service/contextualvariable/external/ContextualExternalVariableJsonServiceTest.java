@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 
 import java.nio.file.Path;
 
@@ -75,8 +76,8 @@ class ContextualExternalVariableJsonServiceTest {
 
         //THEN
         Assertions.assertThat(isOK).isFalse();
-        verify(contextualExternalVariablePersistancePort, times(1)).backup(collectionInstrumentId);
-        verify(contextualExternalVariablePersistancePort, times(1)).delete(collectionInstrumentId);
+        verify(contextualExternalVariablePersistancePort, times(0)).backup(collectionInstrumentId);
+        verify(contextualExternalVariablePersistancePort, times(0)).delete(collectionInstrumentId);
         verify(contextualExternalVariablePersistancePort, never()).saveAll(anyList());
     }
 
@@ -99,7 +100,7 @@ class ContextualExternalVariableJsonServiceTest {
             );
             Assertions.fail();
         }catch (GenesisException ge){
-            Assertions.assertThat(ge.getStatus()).isEqualTo(400);
+            Assertions.assertThat(ge.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
             verify(contextualExternalVariablePersistancePort, times(1)).backup(collectionInstrumentId);
             verify(contextualExternalVariablePersistancePort, times(1)).delete(collectionInstrumentId);
             verify(contextualExternalVariablePersistancePort, times(1)).restoreBackup(collectionInstrumentId);
@@ -126,7 +127,7 @@ class ContextualExternalVariableJsonServiceTest {
             );
             Assertions.fail();
         }catch (GenesisException ge){
-            Assertions.assertThat(ge.getStatus()).isEqualTo(500);
+            Assertions.assertThat(ge.getStatus()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
             verify(contextualExternalVariablePersistancePort, never()).saveAll(anyList());
             verify(contextualExternalVariablePersistancePort, times(1)).restoreBackup(collectionInstrumentId);
         }

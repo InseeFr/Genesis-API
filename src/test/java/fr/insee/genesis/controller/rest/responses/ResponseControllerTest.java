@@ -30,13 +30,14 @@ import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
@@ -336,8 +337,8 @@ class ResponseControllerTest {
         @DisplayName("Should return 200 with simplified dto")
         void getResponse_shouldReturn200() throws Exception {
             // GIVEN
-            when(surveyUnitApiPort.findSimplifiedByCollectionInstrumentIdAndInterrogationId(
-                    "QUEST01", "INTERRO01", Mode.WEB))
+            when(surveyUnitApiPort.findSimplified(
+                    "QUEST01", "INTERRO01", Mode.WEB, Instant.now()))
                     .thenReturn(SurveyUnitSimplifiedDto.builder().build());
 
             // WHEN / THEN
@@ -349,16 +350,16 @@ class ResponseControllerTest {
         @DisplayName("Should pass collectionInstrumentId, interrogationId and mode to service")
         void getResponse_shouldDelegateCorrectlyToService() throws Exception {
             // GIVEN
-            when(surveyUnitApiPort.findSimplifiedByCollectionInstrumentIdAndInterrogationId(
-                    anyString(), anyString(), any()))
+            when(surveyUnitApiPort.findSimplified(
+                    anyString(), anyString(), any(), any()))
                     .thenReturn(SurveyUnitSimplifiedDto.builder().build());
 
             // WHEN
             mockMvc.perform(get("/responses/QUEST01/WEB/INTERRO01"));
 
             // THEN
-            verify(surveyUnitApiPort).findSimplifiedByCollectionInstrumentIdAndInterrogationId(
-                    "QUEST01", "INTERRO01", Mode.WEB);
+            verify(surveyUnitApiPort).findSimplified(
+                    "QUEST01", "INTERRO01", Mode.WEB, null);
         }
     }
 
@@ -420,8 +421,8 @@ class ResponseControllerTest {
         @DisplayName("Should return 200 with list of simplified dtos")
         void getResponseList_shouldReturn200() throws Exception {
             // GIVEN
-            when(surveyUnitApiPort.findSimplifiedByCollectionInstrumentIdAndInterrogationIdList(
-                    eq("QUEST01"), any()))
+            when(surveyUnitApiPort.findSimplifiedList(
+                    eq("QUEST01"), any(), any()))
                     .thenReturn(List.of());
 
             // WHEN / THEN
@@ -436,8 +437,8 @@ class ResponseControllerTest {
         @DisplayName("Should delegate to service with correct collectionInstrumentId")
         void getResponseList_shouldDelegateToService() throws Exception {
             // GIVEN
-            when(surveyUnitApiPort.findSimplifiedByCollectionInstrumentIdAndInterrogationIdList(
-                    anyString(), any()))
+            when(surveyUnitApiPort.findSimplifiedList(
+                    anyString(), any(), any()))
                     .thenReturn(List.of());
 
             // WHEN
@@ -447,8 +448,8 @@ class ResponseControllerTest {
                     .content("[{\"interrogationId\":\"INTERRO01\"}]"));
 
             // THEN
-            verify(surveyUnitApiPort).findSimplifiedByCollectionInstrumentIdAndInterrogationIdList(
-                    eq("QUEST01"), any());
+            verify(surveyUnitApiPort).findSimplifiedList(
+                    eq("QUEST01"), any(), any());
         }
     }
 
@@ -562,7 +563,7 @@ class ResponseControllerTest {
                     .thenReturn(List.of());
             when(authUtils.getIDEP()).thenReturn("user-idep");
             when(surveyUnitApiPort.parseEditedVariables(any(), anyString(), any()))
-                    .thenThrow(new GenesisException(422, "Unprocessable entity"));
+                    .thenThrow(new GenesisException(HttpStatus.UNPROCESSABLE_ENTITY, "Unprocessable entity"));
 
             // WHEN / THEN
             mockMvc.perform(post("/responses/save-edited")
@@ -583,7 +584,7 @@ class ResponseControllerTest {
                 .collectionInstrumentId(collectionInstrumentId)
                 .mode(mode)
                 .state(state)
-                .recordDate(LocalDateTime.now())
+                .recordDate(Instant.now())
                 .collectedVariables(List.of())
                 .externalVariables(List.of())
                 .build();

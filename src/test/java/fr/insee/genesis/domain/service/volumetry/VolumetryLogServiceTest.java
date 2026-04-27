@@ -21,6 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -31,7 +32,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
-class VolumetryLogServiceUnitTest {
+class VolumetryLogServiceTest {
 
     private static VolumetryLogService volumetryLogService;
     private static final Config config = TestConstants.getConfigStub();
@@ -70,7 +71,7 @@ class VolumetryLogServiceUnitTest {
         SurveyUnitApiPort surveyUnitApiPort = mock(SurveyUnitApiPort.class);
         long exampleResponseCount = 5;
         long exampleResponseWithQuestionnaireIdCount = 3;
-        doReturn(Set.of(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID))
+        doReturn(Set.of(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID), (Object) null)
                 .when(surveyUnitApiPort).findDistinctQuestionnairesAndCollectionInstrumentIds();
         doReturn(exampleResponseCount).when(surveyUnitApiPort).countResponsesByCollectionInstrumentId(any());
         doReturn(exampleResponseWithQuestionnaireIdCount).when(surveyUnitApiPort).countResponsesByQuestionnaireId(any());
@@ -132,6 +133,69 @@ class VolumetryLogServiceUnitTest {
             Assertions.assertThat(responseVolumetricsMap.get(Constants.VOLUMETRY_RAW_TOTAL))
                     .doesNotContainKey(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID);
         }
+    }
+
+    @Test
+    @SneakyThrows
+    void writeRawDataVolumetries_collectionInstrumentId_null_test() {
+        LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort = mock(LunaticJsonRawDataApiPort.class);
+        doReturn(0L).when(lunaticJsonRawDataApiPort).countRawResponsesByQuestionnaireId(any());
+
+        RawResponseApiPort rawResponseApiPort = mock(RawResponseApiPort.class);
+        Set<String> collectionInstrumentIds = new HashSet<>();
+        collectionInstrumentIds.add(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID);
+        collectionInstrumentIds.add(null);
+
+        doReturn(collectionInstrumentIds).when(rawResponseApiPort).getDistinctCollectionInstrumentIds();
+        doReturn(3L).when(rawResponseApiPort).countByCollectionInstrumentId(any());
+
+        Map<String, Map<String, Long>> responseVolumetricsMap = volumetryLogService.writeRawDataVolumetries(
+                lunaticJsonRawDataApiPort, rawResponseApiPort
+        );
+
+        Assertions.assertThat(Files.list(logFilePath)).hasSize(1);
+        Assertions.assertThat(responseVolumetricsMap)
+                .containsOnlyKeys(
+                        Constants.MONGODB_LUNATIC_RAWDATA_COLLECTION_NAME,
+                        Constants.MONGODB_RAW_RESPONSES_COLLECTION_NAME,
+                        Constants.VOLUMETRY_RAW_TOTAL
+                );
+        Assertions.assertThat(responseVolumetricsMap.get(Constants.MONGODB_RAW_RESPONSES_COLLECTION_NAME))
+                .containsEntry(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID, 3L);
+
+        Assertions.assertThat(responseVolumetricsMap.get(Constants.VOLUMETRY_RAW_TOTAL))
+                .containsEntry(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID, 3L);
+    }
+
+    @Test
+    @SneakyThrows
+    void writeRawDataVolumetries_questionnaireId_null_test() {
+        RawResponseApiPort rawResponseApiPort = mock(RawResponseApiPort.class);
+        doReturn(0L).when(rawResponseApiPort).countByCollectionInstrumentId(any());
+
+        LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort = mock(LunaticJsonRawDataApiPort.class);
+        Set<String> questionnaireIds = new HashSet<>();
+        questionnaireIds.add(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID);
+        questionnaireIds.add(null);
+        doReturn(questionnaireIds).when(lunaticJsonRawDataApiPort).findDistinctQuestionnaireIds();
+        doReturn(5L).when(lunaticJsonRawDataApiPort).countRawResponsesByQuestionnaireId(any());
+
+        Map<String, Map<String, Long>> responseVolumetricsMap = volumetryLogService.writeRawDataVolumetries(
+                lunaticJsonRawDataApiPort, rawResponseApiPort
+        );
+
+        Assertions.assertThat(Files.list(logFilePath)).hasSize(1);
+        Assertions.assertThat(responseVolumetricsMap)
+                .containsOnlyKeys(
+                        Constants.MONGODB_LUNATIC_RAWDATA_COLLECTION_NAME,
+                        Constants.MONGODB_RAW_RESPONSES_COLLECTION_NAME,
+                        Constants.VOLUMETRY_RAW_TOTAL
+                );
+        Assertions.assertThat(responseVolumetricsMap.get(Constants.MONGODB_LUNATIC_RAWDATA_COLLECTION_NAME))
+                .containsEntry(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID, 5L);
+
+        Assertions.assertThat(responseVolumetricsMap.get(Constants.VOLUMETRY_RAW_TOTAL))
+                .containsEntry(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID, 5L);
     }
 
     @ParameterizedTest

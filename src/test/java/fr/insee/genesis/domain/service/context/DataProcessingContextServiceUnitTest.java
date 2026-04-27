@@ -16,6 +16,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -221,12 +222,10 @@ class DataProcessingContextServiceUnitTest {
 
     @Test
     void getReviewByCollectionInstrumentId_not_found_test() {
-        //WHEN + THEN
-        try{
-            dataProcessingContextService.getReviewByCollectionInstrumentId("collectionInstrumentId");
-            Assertions.fail();
-        }catch (GenesisException ge){
-            Assertions.assertThat(ge.getStatus()).isEqualTo(404);
-        }
+        Assertions.assertThatThrownBy(() ->
+                        dataProcessingContextService.getReviewByCollectionInstrumentId("collectionInstrumentId"))
+                .isInstanceOf(GenesisException.class)
+                .extracting(ex -> ((GenesisException) ex).getStatus())
+                .isEqualTo(HttpStatus.NOT_FOUND);
     }
 }

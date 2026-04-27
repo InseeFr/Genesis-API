@@ -8,7 +8,7 @@ import fr.insee.genesis.domain.model.metadata.QuestionnaireMetadataModel;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.ports.spi.QuestionnaireMetadataPersistencePort;
 import fr.insee.genesis.exceptions.GenesisError;
-import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.exceptions.QuestionnaireNotFoundException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
@@ -70,19 +70,13 @@ class QuestionnaireMetadataServiceTest {
 
     @Test
     void find_not_found_test() {
-        //GIVEN
-        doReturn(new ArrayList<>()).when(questionnaireMetadataPersistencePort).find(
-                any(), any()
-        );
+        // GIVEN
+        doReturn(List.of()).when(questionnaireMetadataPersistencePort).find(any(), any());
 
-        try{
-            //WHEN
-            questionnaireMetadataService.find("test", Mode.WEB);
-            Assertions.fail();
-        }catch (GenesisException ge){
-            //THEN
-            Assertions.assertThat(ge.getStatus()).isEqualTo(404);
-        }
+        // WHEN / THEN
+        Assertions.assertThatThrownBy(() -> questionnaireMetadataService.find("test", Mode.WEB))
+                .isInstanceOf(QuestionnaireNotFoundException.class)
+                .hasMessage("No questionnaire found with id: test");
     }
 
     @Test

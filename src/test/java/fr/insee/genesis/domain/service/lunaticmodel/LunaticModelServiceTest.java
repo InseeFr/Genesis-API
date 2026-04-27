@@ -2,7 +2,7 @@ package fr.insee.genesis.domain.service.lunaticmodel;
 
 import fr.insee.genesis.domain.model.lunaticmodel.LunaticModelModel;
 import fr.insee.genesis.domain.ports.spi.LunaticModelPersistancePort;
-import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.exceptions.QuestionnaireNotFoundException;
 import fr.insee.genesis.infrastructure.document.lunaticmodel.LunaticModelDocument;
 import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
@@ -89,15 +89,12 @@ class LunaticModelServiceTest {
 
     @Test
     void get_not_found_test() {
-        //GIVEN
+        // GIVEN
         doReturn(new ArrayList<>()).when(lunaticModelPersistancePort).find(any());
 
-        //WHEN + THEN
-        try{
-            lunaticModelService.get("test");
-            Assertions.fail();
-        }catch (GenesisException ge){
-            Assertions.assertThat(ge.getStatus()).isEqualTo(404);
-        }
+        // WHEN / THEN
+        Assertions.assertThatExceptionOfType(QuestionnaireNotFoundException.class)
+                .isThrownBy(() -> lunaticModelService.get("test"))
+                .withMessage("No questionnaire found with id: test");
     }
 }
