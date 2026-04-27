@@ -5,6 +5,11 @@
 - Prevent missing contextual external or previous files from clearing existing contextual data.
 - Endpoint to get data by dates
 
+### Added
+- Endpoint to retrieve raw response by collectionInstrumentId and interrogationId
+- Endpoint to retrieve lunatic JSON data by questionnaireId and interrogationId
+- Endpoint to retrieve raw/lunatic data identifiers by collectionInstrumentId
+
 ### Changed
 - Refactor all tests
 - Begin to handle exceptions
