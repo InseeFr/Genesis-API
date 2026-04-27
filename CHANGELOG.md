@@ -1,8 +1,14 @@
 # Changelog
 
-## 2.5.2 [TODO]
+## 2.6.0 [2026-04-27]
 ### Fixed
 - Prevent missing contextual external or previous files from clearing existing contextual data.
+- Endpoint to get data by dates
+
+### Changed
+- Refactor all tests
+- Begin to handle exceptions
+- Log interceptor with user
 
 ## 2.5.0 [2026-04-16]
 ### Added
