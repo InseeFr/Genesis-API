@@ -45,7 +45,7 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
     }
 
     @Override
-    public void saveContextByCollectionInstrumentId(String collectionInstrumentId, Boolean withReview) throws GenesisException {
+    public void saveContextByCollectionInstrumentId(String collectionInstrumentId, Boolean withReview)  {
         DataProcessingContextModel dataProcessingContextModel = dataProcessingContextPersistancePort.findByCollectionInstrumentId(collectionInstrumentId);
         if(dataProcessingContextModel == null){
             //Create if not exist
@@ -289,9 +289,9 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
                         Files.write(jsonLogPath, jsonToWrite.getBytes());
                     }
                 }
-            } catch (IOException e) {
+            } catch (IOException _) {
                 String name = context.getCollectionInstrumentId();
-                throw new GenesisException(500,String.format("An error occured trying to delete expired schedules for %s",name));
+                throw new GenesisException(500,String.format("An error occurred trying to delete expired schedules for %s",name));
             }
         }
     }
