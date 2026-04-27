@@ -76,8 +76,8 @@ class ContextualExternalVariableJsonServiceTest {
 
         //THEN
         Assertions.assertThat(isOK).isFalse();
-        verify(contextualExternalVariablePersistancePort, times(1)).backup(collectionInstrumentId);
-        verify(contextualExternalVariablePersistancePort, times(1)).delete(collectionInstrumentId);
+        verify(contextualExternalVariablePersistancePort, times(0)).backup(collectionInstrumentId);
+        verify(contextualExternalVariablePersistancePort, times(0)).delete(collectionInstrumentId);
         verify(contextualExternalVariablePersistancePort, never()).saveAll(anyList());
     }
 
