@@ -37,16 +37,19 @@ public class ContextualExternalVariableJsonService implements ContextualExternal
     public boolean readContextualExternalFile(String collectionInstrumentId, String filePath) throws GenesisException {
         try(FileInputStream inputStream = new FileInputStream(filePath)){
             JsonFactory jsonFactory = new JsonFactory();
-            moveCollectionToBackup(collectionInstrumentId);
             try(JsonParser jsonParser = jsonFactory.createParser(inputStream)){
-                List<ContextualExternalVariableModel> toSave = new ArrayList<>();
-                goToContextualExternalToken(jsonParser);
-                long savedCount = 0;
-                Set<String> savedInterrogationIds = new HashSet<>();
+                if (!goToContextualExternalToken(jsonParser)) {
+                    log.warn("No contextualExternal part found in file {}", filePath);
+                    return false;
+                }
                 if(jsonParser.nextToken() == null){ //skip field name, stop if end of file
                     log.warn("Reached end of file, found no contextualExternal part.");
                     return false;
                 }
+                moveCollectionToBackup(collectionInstrumentId);
+                List<ContextualExternalVariableModel> toSave = new ArrayList<>();
+                long savedCount = 0;
+                Set<String> savedInterrogationIds = new HashSet<>();
                 jsonParser.nextToken(); //skip [
                 while (jsonParser.currentToken() != JsonToken.END_ARRAY) {
                     ContextualExternalVariableModel contextualExternalVariableModel = readNextContextualExternal(
@@ -84,19 +87,14 @@ public class ContextualExternalVariableJsonService implements ContextualExternal
         return contextualExternalVariablePersistancePort.findByCollectionInstrumentIdAndInterrogationId(collectionInstrumentId, interrogationId);
     }
 
-    private static void goToContextualExternalToken(JsonParser jsonParser) throws IOException{
-        boolean isTokenFound = false;
-        while (!isTokenFound){
-            jsonParser.nextToken();
-            if(jsonParser.currentToken() == null){
-                return;
-            }
-            if(jsonParser.currentToken().equals(JsonToken.FIELD_NAME)
-                    && jsonParser.currentName() != null
-                    && jsonParser.currentName().equals("editedExternal")) {
-                    isTokenFound = true;
+    private static boolean goToContextualExternalToken(JsonParser jsonParser) throws IOException {
+        while (jsonParser.nextToken() != null) {
+            if (jsonParser.currentToken() == JsonToken.FIELD_NAME
+                    && "editedExternal".equals(jsonParser.currentName())) {
+                return true;
             }
         }
+        return false;
     }
 
     private void moveCollectionToBackup(String collectionInstrumentId) {
