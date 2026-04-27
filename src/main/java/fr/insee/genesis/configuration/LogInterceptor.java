@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.ThreadContext;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
@@ -25,7 +26,9 @@ public class LogInterceptor implements HandlerInterceptor {
         Authentication authentication = getCurrentUser();
         String username = "anonymous";
         if (authentication != null && authentication.isAuthenticated()) {
-            username = authentication.getName();
+            if (authentication instanceof JwtAuthenticationToken jwtAuth) {
+                username = jwtAuth.getToken().getClaimAsString("preferred_username");
+            }
         }
 
         ThreadContext.put("user", username.toUpperCase());
