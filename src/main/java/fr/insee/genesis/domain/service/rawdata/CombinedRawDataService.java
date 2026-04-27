@@ -4,6 +4,7 @@ import fr.insee.genesis.controller.dto.rawdata.CombinedRawDataDto;
 import fr.insee.genesis.controller.dto.rawdata.RawDataIdentifiersDto;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponseModel;
+import fr.insee.genesis.domain.ports.api.CombinedRawDataApiPort;
 import fr.insee.genesis.domain.ports.spi.LunaticJsonRawDataPersistencePort;
 import fr.insee.genesis.domain.ports.spi.RawResponsePersistencePort;
 import fr.insee.genesis.exceptions.NoDataException;
@@ -17,8 +18,7 @@ import java.util.List;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-//TODO create API port interface
-public class CombinedRawDataService {
+public class CombinedRawDataService implements CombinedRawDataApiPort {
 
     @Qualifier("lunaticJsonMongoAdapter")
     private final LunaticJsonRawDataPersistencePort lunaticJsonRawDataPersistencePort;
