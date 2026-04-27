@@ -31,11 +31,11 @@ public class LogInterceptor implements HandlerInterceptor {
             }
         }
 
-        ThreadContext.put("user", username.toUpperCase());
+        ThreadContext.put("user", username);
         ThreadContext.put("id", fishTag);
         ThreadContext.put("path", operationPath);
         ThreadContext.put("method", method);
-        log.info("[" + username.toUpperCase() + "] - [" + method + "] - [" + operationPath + "]");
+        log.info("[{}] - [{}] - [{}]", username, method, operationPath);
         return true;
     }
     @Override
