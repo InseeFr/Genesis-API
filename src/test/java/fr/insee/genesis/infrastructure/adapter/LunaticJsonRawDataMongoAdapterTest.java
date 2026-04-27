@@ -722,4 +722,35 @@ class LunaticJsonRawDataMongoAdapterTest {
                 LocalDateTime.now()
         );
     }
+
+    @Nested
+    @DisplayName("findLunaticJsonDataByQuestionnaireIdAndInterrogationId() tests")
+    class FindRawDataByQuestionnaireIdAndInterrogationIdTests {
+
+        @Test
+        @DisplayName("Should delegate to repository and return mapped model")
+        void findRawData_shouldReturnMappedModel() {
+            //GIVEN
+            when(repository.findByQuestionnaireIdAndInterrogationId(QUESTIONNAIRE_ID,INTERROGATION_ID))
+                    .thenReturn(getDocument());
+
+            //WHEN
+            LunaticJsonRawDataModel result = adapter.findLunaticJsonDataByQuestionnaireIdAndInterrogationId(QUESTIONNAIRE_ID,INTERROGATION_ID);
+
+            //THEN
+            assertThat(result).isNotNull();
+            verify(repository).findByQuestionnaireIdAndInterrogationId(QUESTIONNAIRE_ID,INTERROGATION_ID);
+        }
+
+        @Test
+        @DisplayName("Should return null when no document found")
+        void findRawData_noDocument_shouldReturnNull() {
+            //GIVEN
+            when(repository.findByQuestionnaireIdAndInterrogationId(QUESTIONNAIRE_ID, INTERROGATION_ID)).thenReturn(null);
+
+            //WHEN + THEN
+            assertThat(adapter.findLunaticJsonDataByQuestionnaireIdAndInterrogationId(QUESTIONNAIRE_ID, INTERROGATION_ID)).isNull();
+        }
+    }
+
 }

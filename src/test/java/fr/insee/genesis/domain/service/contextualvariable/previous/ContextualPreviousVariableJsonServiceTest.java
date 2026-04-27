@@ -80,8 +80,8 @@ class ContextualPreviousVariableJsonServiceTest {
 
         //THEN
         Assertions.assertThat(isOK).isFalse();
-        verify(contextualPreviousVariablePersistancePort, times(1)).backup(collectionInstrumentId);
-        verify(contextualPreviousVariablePersistancePort, times(1)).delete(collectionInstrumentId);
+        verify(contextualPreviousVariablePersistancePort, never()).backup(collectionInstrumentId);
+        verify(contextualPreviousVariablePersistancePort, never()).delete(collectionInstrumentId);
         verify(contextualPreviousVariablePersistancePort, never()).saveAll(anyList());
     }
 

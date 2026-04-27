@@ -1,11 +1,14 @@
 package fr.insee.genesis.domain.service.rawdata;
 
 import fr.insee.genesis.controller.dto.rawdata.CombinedRawDataDto;
+import fr.insee.genesis.controller.dto.rawdata.RawDataIdentifierDto;
+import fr.insee.genesis.controller.dto.rawdata.RawDataIdentifiersDto;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponseModel;
 import fr.insee.genesis.domain.ports.spi.LunaticJsonRawDataPersistencePort;
 import fr.insee.genesis.domain.ports.spi.RawResponsePersistencePort;
+import fr.insee.genesis.exceptions.NoDataException;
 import org.assertj.core.api.Assertions;
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.Test;
@@ -90,6 +93,51 @@ class CombinedRawDataServiceTest {
         //THEN
         Assertions.assertThat(result.rawResponseModels()).isEmpty();
         Assertions.assertThat(result.lunaticRawDataModels()).isEmpty();
+    }
+
+    @Test
+    void getRawDataIdentifiersByCollectionInstrumentId_shouldReturnRawResponseIdentifiers() throws NoDataException, NoDataException {
+        // GIVEN
+        String collectionInstrumentId = "COLLECTION_1";
+
+        RawDataIdentifiersDto rawResult = new RawDataIdentifiersDto(
+                null,
+                List.of(new RawDataIdentifierDto(
+                        "INTERROGATION_1",
+                        "SURVEY_UNIT_1",
+                        LocalDateTime.now(),
+                        null
+                ))
+        );
+
+        Mockito.when(rawResponsePersistencePort.findRawResponseIdentifiersByCollectionInstrumentId(collectionInstrumentId))
+                .thenReturn(rawResult);
+
+        // WHEN
+        RawDataIdentifiersDto result =
+                combinedRawDataService.getRawDataIdentifiersByCollectionInstrumentId(collectionInstrumentId);
+
+        // THEN
+        Assertions.assertThat(result).isEqualTo(rawResult);
+        Mockito.verify(lunaticJsonRawDataPersistencePort, Mockito.never())
+                .findLunaticJsonRawDataIdentifiersByQuestionnaireId(Mockito.anyString());
+    }
+
+    @Test
+    void getRawDataIdentifiersByCollectionInstrumentId_shouldThrowNoDataExceptionWhenNoDataFound() {
+        // GIVEN
+        String collectionInstrumentId = "UNKNOWN";
+
+        Mockito.when(rawResponsePersistencePort.findRawResponseIdentifiersByCollectionInstrumentId(collectionInstrumentId))
+                .thenReturn(null);
+
+        Mockito.when(lunaticJsonRawDataPersistencePort.findLunaticJsonRawDataIdentifiersByQuestionnaireId(collectionInstrumentId))
+                .thenReturn(null);
+
+        // WHEN + THEN
+        Assertions.assertThatThrownBy(() ->
+                combinedRawDataService.getRawDataIdentifiersByCollectionInstrumentId(collectionInstrumentId)
+        ).isInstanceOf(NoDataException.class);
     }
 
 }
