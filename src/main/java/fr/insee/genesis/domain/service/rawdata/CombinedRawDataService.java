@@ -1,10 +1,12 @@
 package fr.insee.genesis.domain.service.rawdata;
 
 import fr.insee.genesis.controller.dto.rawdata.CombinedRawDataDto;
+import fr.insee.genesis.controller.dto.rawdata.RawDataIdentifiersDto;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponseModel;
 import fr.insee.genesis.domain.ports.spi.LunaticJsonRawDataPersistencePort;
 import fr.insee.genesis.domain.ports.spi.RawResponsePersistencePort;
+import fr.insee.genesis.exceptions.NoDataException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -37,5 +39,31 @@ public class CombinedRawDataService {
         );
     }
 
+    public RawDataIdentifiersDto getRawDataIdentifiersByCollectionInstrumentId(
+            String collectionInstrumentId
+    ) throws NoDataException {
+
+        RawDataIdentifiersDto rawResult =
+                rawResponsePersistencePort.findRawResponseIdentifiersByCollectionInstrumentId(
+                        collectionInstrumentId
+                );
+
+        if (rawResult != null) {
+            return rawResult;
+        }
+
+        RawDataIdentifiersDto lunaticResult =
+                lunaticJsonRawDataPersistencePort.findLunaticJsonRawDataIdentifiersByQuestionnaireId(
+                        collectionInstrumentId
+                );
+
+        if (lunaticResult != null) {
+            return lunaticResult;
+        }
+
+        throw new NoDataException(
+                "No raw data found for collectionInstrumentId=%s".formatted(collectionInstrumentId)
+        );
+    }
 
 }

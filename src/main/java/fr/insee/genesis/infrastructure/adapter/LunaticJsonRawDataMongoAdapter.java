@@ -1,6 +1,8 @@
 package fr.insee.genesis.infrastructure.adapter;
 
 import fr.insee.genesis.Constants;
+import fr.insee.genesis.controller.dto.rawdata.RawDataIdentifierDto;
+import fr.insee.genesis.controller.dto.rawdata.RawDataIdentifiersDto;
 import fr.insee.genesis.domain.model.surveyunit.GroupedInterrogation;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
@@ -71,6 +73,27 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
         Page<LunaticJsonRawDataDocument> rawDataDocsPage =  repository.findByQuestionnaireId(questionnaireId, pageable);
         List<LunaticJsonRawDataModel> modelList = LunaticJsonRawDataDocumentMapper.INSTANCE.listDocumentToListModel(rawDataDocsPage.getContent());
         return new PageImpl<>(modelList, rawDataDocsPage.getPageable(), rawDataDocsPage.getTotalElements());
+    }
+
+    @Override
+    public RawDataIdentifiersDto findLunaticJsonRawDataIdentifiersByQuestionnaireId(
+            String questionnaireId
+    ) {
+        List<LunaticJsonRawDataDocument> lunaticJsonRawDataDocumentList =
+                repository.findByQuestionnaireId(questionnaireId);
+
+        if (lunaticJsonRawDataDocumentList.isEmpty()) {
+            return null;
+        }
+
+        String campaignId = lunaticJsonRawDataDocumentList.getFirst().campaignId();
+
+        List<RawDataIdentifierDto> identifiers = lunaticJsonRawDataDocumentList
+                .stream()
+                .map(LunaticJsonRawDataDocumentMapper.INSTANCE::documentToRawDataIdentifierDto)
+                .toList();
+
+        return new RawDataIdentifiersDto(campaignId, identifiers);
     }
 
     @Override

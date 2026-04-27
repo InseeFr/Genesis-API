@@ -76,6 +76,8 @@ public interface RawResponseRepository extends MongoRepository<RawResponseDocume
     List<String> findDistinctCollectionInstrumentId();
     Page<RawResponseDocument> findByCollectionInstrumentId(String collectionInstrumentId, Pageable pageable);
 
+    List<RawResponseDocument> findByCollectionInstrumentId(String collectionInstrumentId);
+
     boolean existsByInterrogationId(String interrogationId);
 
     @Aggregation(pipeline = {

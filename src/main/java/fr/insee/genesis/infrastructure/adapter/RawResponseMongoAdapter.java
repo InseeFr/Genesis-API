@@ -1,6 +1,8 @@
 package fr.insee.genesis.infrastructure.adapter;
 
 import fr.insee.genesis.Constants;
+import fr.insee.genesis.controller.dto.rawdata.RawDataIdentifierDto;
+import fr.insee.genesis.controller.dto.rawdata.RawDataIdentifiersDto;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponseModel;
 import fr.insee.genesis.domain.ports.spi.RawResponsePersistencePort;
@@ -56,6 +58,22 @@ public class RawResponseMongoAdapter implements RawResponsePersistencePort {
         return RawResponseDocumentMapper.INSTANCE.documentToModel(rawResponseDocument);
     }
 
+    @Override
+    public RawDataIdentifiersDto findRawResponseIdentifiersByCollectionInstrumentId(
+            String collectionInstrumentId
+    ) {
+        List<RawResponseDocument> rawResponseDocumentList =
+                repository.findByCollectionInstrumentId(collectionInstrumentId);
+
+        if (rawResponseDocumentList.isEmpty()){
+            return null;
+        }
+
+        List<RawDataIdentifierDto> rawDataIdentifierDtoList = rawResponseDocumentList.stream().
+        map(RawResponseDocumentMapper.INSTANCE::documentToRawDataIdentifierDto)
+                .toList();
+        return new RawDataIdentifiersDto(null,rawDataIdentifierDtoList);
+    }
 
     @Override
     public void updateProcessDates(String collectionInstrumentId, Set<String> interrogationIds) {

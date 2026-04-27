@@ -1,5 +1,6 @@
 package fr.insee.genesis.domain.ports.spi;
 
+import fr.insee.genesis.controller.dto.rawdata.RawDataIdentifiersDto;
 import fr.insee.genesis.domain.model.surveyunit.GroupedInterrogation;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
@@ -16,6 +17,11 @@ public interface LunaticJsonRawDataPersistencePort {
     void save(LunaticJsonRawDataModel rawData);
     List<LunaticJsonRawDataModel> findRawDataByQuestionnaireId(String questionnaireId, Mode mode, List<String> interrogationIdList);
     Page<LunaticJsonRawDataModel> findRawDataByQuestionnaireId(String questionnaireId, Pageable pageable);
+
+    RawDataIdentifiersDto findLunaticJsonRawDataIdentifiersByQuestionnaireId(
+            String questionnaireId
+    );
+
     List<LunaticJsonRawDataModel> findRawDataByInterrogationId(String interrogationId);
     List<LunaticJsonRawDataModel> getAllUnprocessedData();
     void updateProcessDates(String campaignId, Set<String> interrogationIds);

@@ -9,6 +9,7 @@ import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.RawResponseApiPort;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.exceptions.NoDataException;
 import fr.insee.genesis.infrastructure.repository.RawResponseInputRepository;
 import fr.insee.modelefiliere.RawResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
@@ -93,14 +94,14 @@ public class RawResponseController {
         return ResponseEntity.status(201).body(String.format(SUCCESS_MESSAGE, dto.getInterrogationId()));
     }
 
-    @Operation(summary = "Get raw response")
-    @GetMapping("/raw-responses/{interrogationId}/collection-instruments/{collectionInstrumentId}")
+    @Operation(summary = "Get a raw response by collection instrument ID and interrogation ID")
+    @GetMapping("/raw-responses/collection-instruments/{collectionInstrumentId}/interrogations/{interrogationId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<RawResponseModel> getRawResponse(
-            @PathVariable String interrogationId,
-            @PathVariable String collectionInstrumentId
-    ) {
-        return ResponseEntity.ok(rawResponseApiPort.getRawResponseByCollectionInstrumentIdAndInterrogationId(interrogationId, collectionInstrumentId));
+            @PathVariable String collectionInstrumentId,
+            @PathVariable String interrogationId
+            ) throws NoDataException {
+        return ResponseEntity.ok(rawResponseApiPort.getRawResponseByCollectionInstrumentIdAndInterrogationId(collectionInstrumentId, interrogationId));
     }
 
     //PROCESS
@@ -225,13 +226,13 @@ public class RawResponseController {
         return ResponseEntity.status(HttpStatus.OK).body(new PagedModel<>(rawResponses));
     }
 
-    @Operation(summary = "Get lunatic json data")
-    @GetMapping("/responses/raw/lunatic-json/{interrogationId}/by-questionnaire/{questionnaireId}")
+    @Operation(summary = "Get lunatic json data by questionnaire ID and interrogation ID")
+    @GetMapping("/responses/raw/lunatic-json/collection-instruments/{collectionInstrumentId}/interrogations/{interrogationId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<LunaticJsonRawDataModel> getLunaticJsonData(
-            @PathVariable String interrogationId,
-            @PathVariable String questionnaireId
-    ) {
+            @PathVariable String questionnaireId,
+            @PathVariable String interrogationId
+            ) throws NoDataException{
         return ResponseEntity.ok(
                 lunaticJsonRawDataApiPort.getLunaticJsonDataByQuestionnaireIdAndInterrogationId(
                         questionnaireId,
