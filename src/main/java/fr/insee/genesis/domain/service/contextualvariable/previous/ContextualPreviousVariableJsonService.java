@@ -11,6 +11,7 @@ import fr.insee.genesis.domain.utils.JsonUtils;
 import fr.insee.genesis.exceptions.GenesisException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.io.FileInputStream;
@@ -80,10 +81,10 @@ public class ContextualPreviousVariableJsonService implements ContextualPrevious
             }
         }catch (JsonParseException jpe){
             contextualPreviousVariablePersistancePort.restoreBackup(collectionInstrumentId);
-            throw new GenesisException(400, "JSON Parsing exception : %s".formatted(jpe.toString()));
-        }catch (IOException ioe){
+            throw new GenesisException(HttpStatus.BAD_REQUEST, "JSON Parsing exception : %s".formatted(jpe.toString()));
+        }catch (IOException _){
             contextualPreviousVariablePersistancePort.restoreBackup(collectionInstrumentId);
-            throw new GenesisException(500, ioe.toString());
+            throw new GenesisException(HttpStatus.INTERNAL_SERVER_ERROR, "I/O error while processing contextual previous file");
         }
     }
 
@@ -109,7 +110,7 @@ public class ContextualPreviousVariableJsonService implements ContextualPrevious
 
     private static void checkSourceStateLength(String sourceState) throws GenesisException {
         if(sourceState != null && sourceState.length() > 15){
-            throw new GenesisException(400, "Source state is too long (>15 characters)");
+            throw new GenesisException(HttpStatus.BAD_REQUEST, "Source state is too long (>15 characters)");
         }
     }
 
@@ -191,13 +192,13 @@ public class ContextualPreviousVariableJsonService implements ContextualPrevious
 
     private static void checkModel(ContextualPreviousVariableModel contextualPreviousVariableModel, JsonParser jsonParser, Set<String> savedInterrogationIds) throws GenesisException {
         if(contextualPreviousVariableModel.getInterrogationId() == null){
-            throw new GenesisException(400,
+            throw new GenesisException(HttpStatus.BAD_REQUEST,
                     "Missing interrogationId on the object that ends on line %d"
                             .formatted(jsonParser.currentLocation().getLineNr())
             );
         }
         if(savedInterrogationIds.contains(contextualPreviousVariableModel.getInterrogationId())){
-            throw new GenesisException(400,
+            throw new GenesisException(HttpStatus.BAD_REQUEST,
                     "Double interrogationId : %s".formatted(contextualPreviousVariableModel.getInterrogationId()));
         }
     }

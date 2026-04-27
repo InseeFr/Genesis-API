@@ -1,490 +1,527 @@
 package fr.insee.genesis.controller.rest.responses;
 
-
-import fr.insee.bpm.metadata.model.VariablesMap;
-import fr.insee.genesis.controller.dto.rawdata.LunaticJsonRawDataUnprocessedDto;
-import fr.insee.genesis.controller.utils.ControllerUtils;
-import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
-import fr.insee.genesis.domain.model.surveyunit.DataState;
+import fr.insee.genesis.configuration.auth.security.DefaultSecurityConfig;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
-import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
-import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponseModel;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.RawResponseApiPort;
-import fr.insee.genesis.domain.service.context.DataProcessingContextService;
-import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
-import fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService;
-import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
-import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
-import fr.insee.genesis.domain.utils.JsonUtils;
-import fr.insee.genesis.exceptions.GenesisError;
+import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.exceptions.GenesisException;
-import fr.insee.genesis.infrastructure.document.rawdata.LunaticJsonRawDataDocument;
-import fr.insee.genesis.infrastructure.document.rawdata.RawResponseDocument;
-import fr.insee.genesis.infrastructure.mappers.DataProcessingContextMapper;
 import fr.insee.genesis.infrastructure.repository.RawResponseInputRepository;
-import fr.insee.genesis.infrastructure.utils.FileUtils;
-import fr.insee.genesis.stubs.*;
-import fr.insee.modelefiliere.RawResponseDto;
-import lombok.extern.slf4j.Slf4j;
-import org.assertj.core.api.Assertions;
+import jakarta.servlet.ServletException;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PagedModel;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration;
+import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static fr.insee.genesis.TestConstants.DEFAULT_INTERROGATION_ID;
+import static org.hamcrest.Matchers.containsString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpMethod.HEAD;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.request;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@Slf4j
+@WebMvcTest(RawResponseController.class)
+//Disable OIDC
+@TestPropertySource(properties = {
+        "fr.insee.genesis.authentication=NONE"
+})
+@Import({DefaultSecurityConfig.class})
+@ActiveProfiles("test")
+@AutoConfigureMockMvc
+@EnableAutoConfiguration(exclude = {MongoAutoConfiguration.class, MongoDataAutoConfiguration.class})
 class RawResponseControllerTest {
-    private final FileUtils fileUtils = new FileUtils(new ConfigStub());
-    private final LunaticJsonRawDataPersistanceStub lunaticJsonRawDataPersistanceStub = new LunaticJsonRawDataPersistanceStub();
-    private final RawResponseDataPersistanceStub rawResponseDataPersistanceStub = new RawResponseDataPersistanceStub();
-    private final SurveyUnitPersistencePortStub surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
-    private final SurveyUnitQualityToolPerretAdapterStub surveyUnitQualityToolPerretAdapterStub = new SurveyUnitQualityToolPerretAdapterStub();
-    private final DataProcessingContextPersistancePortStub dataProcessingContextPersistancePortStub =
-            new DataProcessingContextPersistancePortStub();
-    private static final QuestionnaireMetadataPersistencePortStub questionnaireMetadataPersistencePortStub =
-            new QuestionnaireMetadataPersistencePortStub();
 
+    @Autowired
+    private MockMvc mockMvc; // Simulates HTTP requests to the REST endpoints
 
-    private final LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort = new LunaticJsonRawDataService(lunaticJsonRawDataPersistanceStub,
-            new ControllerUtils(fileUtils),
-            new QuestionnaireMetadataService(questionnaireMetadataPersistencePortStub),
-            new SurveyUnitService(surveyUnitPersistencePortStub, new QuestionnaireMetadataService(questionnaireMetadataPersistencePortStub), fileUtils),
-            new SurveyUnitQualityService(),
-            fileUtils,
-            new DataProcessingContextService(dataProcessingContextPersistancePortStub, surveyUnitPersistencePortStub),
-            surveyUnitQualityToolPerretAdapterStub,
-            new ConfigStub(),
-            new DataProcessingContextPersistancePortStub()
-    );
+    @MockitoBean
+    private MongoTemplate mongoTemplate;
+    @MockitoBean
+    private SurveyUnitApiPort surveyUnitApiPort;
+    @MockitoBean
+    private LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort;
+    @MockitoBean
+    private RawResponseApiPort rawResponseApiPort;
+    @MockitoBean
+    private RawResponseInputRepository rawRepository;
 
-    // TODO: change this
-    RawResponseInputRepository rawResponseInputRepositoryStub = new RawResponseInputRepository(null, null) {
-        @Override
-        public void saveAsRawJson(RawResponseDto dto) {
-            // Ne rien faire — stub pour les tests
-        }
-    };
+    @Nested
+    @DisplayName("PUT /responses/raw/lunatic-json/save tests")
+    class SaveRawResponsesFromJsonBodyTests {
 
-    RawResponseApiPort rawResponseApiPortStub = new RawResponseApiPort() {
-        @Override
-        public List<RawResponseModel> getRawResponses(String questionnaireModelId, Mode mode, List<String> interrogationIdList) {
-            return List.of();
+        @Test
+        @DisplayName("Should return 201 on success")
+        void save_shouldReturn201() throws Exception {
+            // WHEN / THEN
+            mockMvc.perform(put("/responses/raw/lunatic-json/save")
+                            .with(csrf())
+                            .param("campaignName", "CAMPAIGN")
+                            .param("questionnaireId", "QUEST01")
+                            .param("interrogationId", "INTERRO01")
+                            .param("mode", Mode.WEB.name())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{}"))
+                    .andExpect(status().isCreated());
         }
 
-        @Override
-        public List<RawResponseModel> getRawResponsesByInterrogationID(String interrogationId) {
-            return List.of();
+        @Test
+        @DisplayName("Should return success message with interrogationId")
+        void save_shouldReturnSuccessMessage() throws Exception {
+            // GIVEN
+
+            // WHEN / THEN
+            mockMvc.perform(put("/responses/raw/lunatic-json/save")
+                            .with(csrf())
+                            .param("campaignName", "CAMPAIGN")
+                            .param("questionnaireId", "QUEST01")
+                            .param("interrogationId", "INTERRO01")
+                            .param("mode", Mode.WEB.name())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{}"))
+                    .andExpect(content().string(containsString("INTERRO01")));
         }
 
-        @Override
-        public DataProcessResult processRawResponsesByInterrogationIds(String questionnaireId, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException {
-            return null;
+        @Test
+        @DisplayName("Should propagate exception when port throws an exception")
+        void save_portThrows_shouldThrowException() throws GenesisException {
+            // GIVEN
+            doThrow(new RuntimeException("DB error")).when(lunaticJsonRawDataApiPort).save(any());
+
+            // WHEN / THEN
+            Assertions.assertThrows(ServletException.class, () ->
+                    mockMvc.perform(put("/responses/raw/lunatic-json/save")
+                            .with(csrf())
+                            .param("campaignName", "CAMPAIGN")
+                            .param("questionnaireId", "QUEST01")
+                            .param("interrogationId", "INTERRO01")
+                            .param("mode", Mode.WEB.name())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{}"))
+            );
         }
 
-        @Override
-        public DataProcessResult processRawResponsesByInterrogationIds(String collectionInstrumentId) throws GenesisException {
-            return null;
+        @Nested
+        @DisplayName("POST /raw-responses tests")
+        class SaveRawResponsesFromDtoTests {
+
+            @Test
+            @DisplayName("Should return 201 and call repository")
+            void saveDto_shouldReturn201AndCallRepository() throws Exception {
+                // GIVEN
+                String body = getFiliereModelRawResponseBody();
+
+                // WHEN / THEN
+                mockMvc.perform(post("/raw-responses")
+                                .with(csrf())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(body))
+                        .andExpect(status().isCreated())
+                        .andExpect(content().string(containsString("INTERRO01")));
+
+                verify(rawRepository).saveAsRawJson(any());
+            }
+
+            private String getFiliereModelRawResponseBody() {
+                return """
+                        {
+                              "partitionId": "RAWDATATESTCAMPAIGN",
+                              "collectionInstrumentId": "TESTQUEST",
+                              "usualSurveyUnitId": "TESTUE00001",
+                              "interrogationId": "INTERRO01",
+                              "mode": "CAWI",
+                              "isCapturedIndirectly": true,
+                              "questionnaireState": "FINISHED",
+                              "data": {}
+                        }
+                        """;
+            }
         }
 
-        @Override
-        public List<SurveyUnitModel> convertRawResponse(List<RawResponseModel> rawResponsModels, VariablesMap variablesMap) {
-            return List.of();
+        @Nested
+        @DisplayName("POST /raw-responses/process tests")
+        class ProcessRawResponsesTests {
+
+            @Test
+            @DisplayName("Should return 200 with count message when no formatted data")
+            void process_noFormatted_shouldReturnCountMessage() throws Exception {
+                // GIVEN
+                when(rawResponseApiPort.processRawResponsesByInterrogationIds(eq("QUEST01"), anyList(), anyList()))
+                        .thenReturn(new DataProcessResult(10, 0, new ArrayList<>()));
+
+                // WHEN / THEN
+                mockMvc.perform(post("/raw-responses/process")
+                                .with(csrf())
+                                .param("collectionInstrumentId", "QUEST01")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("[\"i1\",\"i2\"]"))
+                        .andExpect(status().isOk())
+                        .andExpect(content().string(containsString("10")))
+                        .andExpect(content().string(containsString("QUEST01")));
+            }
+
+            @Test
+            @DisplayName("Should return 200 with formatted count message when formatted data present")
+            void process_withFormatted_shouldReturnFormattedCountMessage() throws Exception {
+                // GIVEN
+                when(rawResponseApiPort.processRawResponsesByInterrogationIds(eq("QUEST01"), anyList(), anyList()))
+                        .thenReturn(new DataProcessResult(10, 3, new ArrayList<>()));
+
+                // WHEN / THEN
+                mockMvc.perform(post("/raw-responses/process")
+                                .with(csrf())
+                                .param("collectionInstrumentId", "QUEST01")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("[\"i1\"]"))
+                        .andExpect(status().isOk())
+                        .andExpect(content().string(containsString("10")))
+                        .andExpect(content().string(containsString("3")))
+                        .andExpect(content().string(containsString("FORMATTED")));
+            }
+
+            @Test
+            @DisplayName("Should return GenesisException status when port throws")
+            void process_genesisException_shouldReturnExceptionStatus() throws Exception {
+                // GIVEN
+                when(rawResponseApiPort.processRawResponsesByInterrogationIds(anyString(), anyList(), anyList()))
+                        .thenThrow(new GenesisException(HttpStatus.NOT_FOUND, "Not found"));
+
+                // WHEN / THEN
+                mockMvc.perform(post("/raw-responses/process")
+                                .with(csrf())
+                                .param("collectionInstrumentId", "QUEST01")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("[\"i1\"]"))
+                        .andExpect(status().isNotFound())
+                        .andExpect(content().string(containsString("Not found")));
+            }
         }
 
-        @Override
-        public List<String> getUnprocessedCollectionInstrumentIds() {
-            return List.of();
+        @Nested
+        @DisplayName("POST /raw-responses/{collectionInstrumentId}/process tests")
+        class ProcessRawResponsesByCollectionInstrumentIdTests {
+
+            @Test
+            @DisplayName("Should return 200 with count message")
+            void processByCollectionInstrumentId_shouldReturn200() throws Exception {
+                // GIVEN
+                when(rawResponseApiPort.processRawResponsesByInterrogationIds("QUEST01"))
+                        .thenReturn(new DataProcessResult(5, 0, new ArrayList<>()));
+
+                // WHEN / THEN
+                mockMvc.perform(post("/raw-responses/QUEST01/process")
+                                .with(csrf()))
+                        .andExpect(status().isOk())
+                        .andExpect(content().string(containsString("5")));
+            }
+
+            @Test
+            @DisplayName("Should return GenesisException status when port throws")
+            void processByCollectionInstrumentId_genesisException_shouldReturnExceptionStatus() throws Exception {
+                // GIVEN
+                when(rawResponseApiPort.processRawResponsesByInterrogationIds(anyString()))
+                        .thenThrow(new GenesisException(HttpStatus.UNPROCESSABLE_ENTITY, "Unprocessable"));
+
+                // WHEN / THEN
+                mockMvc.perform(post("/raw-responses/QUEST01/process")
+                                .with(csrf()))
+                        .andExpect(status().isUnprocessableEntity())
+                        .andExpect(content().string(containsString("Unprocessable")));
+            }
         }
 
-        @Override
-        public void updateProcessDates(List<SurveyUnitModel> surveyUnitModels) {
+        @Nested
+        @DisplayName("GET /raw-responses/unprocessed/collection-instrument-ids tests")
+        class GetUnprocessedCollectionInstrumentTests {
 
-        }
-        @Override
-        public Page<RawResponseModel> findRawResponseDataByCampaignIdAndDate(String campaignId, Instant startDate, Instant endDate, Pageable pageable) {
-            return rawResponseDataPersistanceStub.findByCampaignIdAndDate(campaignId, startDate, endDate, pageable);
-        }
+            @Test
+            @DisplayName("Should return 200 with list of collection instrument ids")
+            void getUnprocessed_shouldReturn200WithIds() throws Exception {
+                // GIVEN
+                when(rawResponseApiPort.getUnprocessedCollectionInstrumentIds())
+                        .thenReturn(List.of("QUEST01", "QUEST02"));
 
-        @Override
-        public long countDistinctInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId) {
-            return 0;
-        }
-
-        @Override
-        public long countByCollectionInstrumentId(String collectionInstrumentId) {
-            return 0;
-        }
-
-        @Override
-        public Set<String> getDistinctCollectionInstrumentIds() {
-            return Set.of();
-        }
-        
-        @Override
-        public Page<RawResponseModel> findRawResponseDataByCollectionInstrumentId(String collectionInstrumentId, Pageable pageable) {
-            return null;
+                // WHEN / THEN
+                mockMvc.perform(get("/raw-responses/unprocessed/collection-instrument-ids"))
+                        .andExpect(status().isOk())
+                        .andExpect(content().string(containsString("QUEST01")));
+            }
         }
 
-        @Override
-        public boolean existsByInterrogationId(String interrogationId) {
-            return DEFAULT_INTERROGATION_ID.equals(interrogationId);
+        @Nested
+        @DisplayName("GET /responses/raw/lunatic-json/get/unprocessed tests")
+        class GetUnprocessedJsonRawDataTests {
+
+            @Test
+            @DisplayName("Should return 200 with unprocessed data ids")
+            void getUnprocessedJson_shouldReturn200() throws Exception {
+                // GIVEN
+                when(lunaticJsonRawDataApiPort.getUnprocessedDataIds()).thenReturn(List.of());
+
+                // WHEN / THEN
+                mockMvc.perform(get("/responses/raw/lunatic-json/get/unprocessed"))
+                        .andExpect(status().isOk());
+            }
         }
-    };
 
-    private final RawResponseController rawResponseController = new RawResponseController(lunaticJsonRawDataApiPort,  rawResponseApiPortStub, rawResponseInputRepositoryStub);
+        @Nested
+        @DisplayName("GET /responses/raw/lunatic-json/get/unprocessed/questionnaireIds tests")
+        class GetUnprocessedJsonRawDataQuestionnairesIdsTests {
 
+            @Test
+            @DisplayName("Should return 200 with questionnaire ids set")
+            void getUnprocessedQuestionnaireIds_shouldReturn200() throws Exception {
+                // GIVEN
+                when(lunaticJsonRawDataApiPort.getUnprocessedDataQuestionnaireIds())
+                        .thenReturn(Set.of("QUEST01", "QUEST02"));
 
-    @Test
-    void saveJsonRawDataFromStringTest() throws Exception {
-        //GIVEN
-        lunaticJsonRawDataPersistanceStub.getMongoStub().clear();
-        String campaignId = "SAMPLETEST-PARADATA-V1";
-        String questionnaireId = "testIdQuest".toUpperCase();
-        String interrogationId = "testinterrogationId";
-        String idUE = "testIdUE";
-        Map<String,Object> json = JsonUtils.jsonToMap("{\"COLLECTED\": {\"testdata\": {\"COLLECTED\": [\"test\"]}}}");
-
-        //WHEN
-        ResponseEntity<String> response = rawResponseController.saveRawResponsesFromJsonBody(
-                campaignId
-                , questionnaireId
-                , interrogationId
-                , idUE
-                , Mode.WEB
-                , json
-        );
-
-        //THEN
-        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub()).isNotEmpty().hasSize(1);
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().campaignId()).isNotNull().isEqualTo(campaignId);
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().questionnaireId()).isNotNull().isEqualTo(questionnaireId);
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().idUE()).isNotNull().isEqualTo(idUE);
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().interrogationId()).isNotNull().isEqualTo(interrogationId);
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().mode()).isEqualTo(Mode.WEB);
-
-        Map<String, Object> collectedVar = JsonUtils.asMap(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().data().get("COLLECTED"));
-        Assertions.assertThat(collectedVar.get("testdata")).isNotNull();
-
-        Object value = JsonUtils.asMap(collectedVar.get("testdata")).get(DataState.COLLECTED.toString());
-        Assertions.assertThat(value).isNotNull().isInstanceOf(List.class);
-        List<?> list = (List<?>) value;
-        Assertions.assertThat(list).hasSize(1);
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().recordDate()).isNotNull();
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().processDate()).isNull();
-    }
-
-    @Test
-    void getUnprocessedDataTest(){
-        //GIVEN
-        lunaticJsonRawDataPersistanceStub.getMongoStub().clear();
-        String campaignId = "SAMPLETEST1";
-        String questionnaireId = "QUEST1";
-        String interrogationId = "testinterrogationId1";
-        addJsonRawDataDocumentToStub(campaignId, questionnaireId, interrogationId, null);
-
-        //WHEN
-        List<LunaticJsonRawDataUnprocessedDto> dtos = rawResponseController.getUnprocessedJsonRawData().getBody();
-
-        //THEN
-        Assertions.assertThat(dtos).isNotNull().isNotEmpty().hasSize(1);
-        Assertions.assertThat(dtos.getFirst().campaignId()).isEqualTo(campaignId);
-        Assertions.assertThat(dtos.getFirst().questionnaireId()).isEqualTo(questionnaireId);
-        Assertions.assertThat(dtos.getFirst().interrogationId()).isEqualTo(interrogationId);
-    }
-
-    @Test
-    void getUnprocessedDataTest_processDate_present(){
-        //GIVEN
-        lunaticJsonRawDataPersistanceStub.getMongoStub().clear();
-        String campaignId = "SAMPLETEST2";
-        String questionnaireId = "QUEST2";
-        String interrogationId = "testinterrogationId2";
-        addJsonRawDataDocumentToStub(campaignId, questionnaireId, interrogationId, LocalDateTime.now());
-
-        //WHEN
-        List<LunaticJsonRawDataUnprocessedDto> dtos = rawResponseController.getUnprocessedJsonRawData().getBody();
-
-        //THEN
-        Assertions.assertThat(dtos).isNotNull().isEmpty();
-    }
-
-    //raw data process
-    //json
-    @Test
-    void processJsonRawDataTest(){
-        //GIVEN
-        lunaticJsonRawDataPersistanceStub.getMongoStub().clear();
-        surveyUnitPersistencePortStub.getMongoStub().clear();
-        surveyUnitQualityToolPerretAdapterStub.getReceivedMaps().clear();
-        String questionnaireId = "SAMPLETEST-PARADATA-V2";
-        String interrogationId = "testinterrogationId1";
-        String idUE = "testIdUE1";
-        String varName = "AVIS_MAIL";
-        String varValue = "TEST";
-        addJsonRawDataDocumentToStub(questionnaireId, questionnaireId, interrogationId, idUE, null, LocalDateTime.now(),varName
-                , varValue);
-
-        dataProcessingContextPersistancePortStub.getMongoStub().add(
-                DataProcessingContextMapper.INSTANCE.modelToDocument(
-                        DataProcessingContextModel.builder()
-                                .partitionId(questionnaireId)
-                                .collectionInstrumentId(questionnaireId)
-                                .kraftwerkExecutionScheduleList(new ArrayList<>())
-                                .withReview(true)
-                                .build()
-                )
-        );
-
-        //WHEN
-        ResponseEntity response = rawResponseController.processJsonRawData(questionnaireId);
-
-
-        //THEN
-        if(!response.getStatusCode().is2xxSuccessful()){
-            log.error(response.getBody().toString());
+                // WHEN / THEN
+                mockMvc.perform(get("/responses/raw/lunatic-json/get/unprocessed/questionnaireIds"))
+                        .andExpect(status().isOk())
+                        .andExpect(content().string(containsString("QUEST01")));
+            }
         }
-        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
 
-        //Genesis model survey unit created successfully
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).isNotNull().isNotEmpty().hasSize(1);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst()).isNotNull();
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCampaignId()).isEqualTo(questionnaireId);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectionInstrumentId()).isNotNull().isEqualTo(questionnaireId);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getMode()).isNotNull().isEqualTo(Mode.WEB);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getInterrogationId()).isEqualTo(interrogationId);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getUsualSurveyUnitId()).isEqualTo(idUE);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getFileDate()).isNotNull();
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getRecordDate()).isNotNull();
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables()).isNotNull().isNotEmpty().hasSize(1);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst()).isNotNull();
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst().varId()).isNotNull().isEqualTo(varName);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getFirst().getCollectedVariables().getFirst().value()).isNotNull().isEqualTo(varValue);
+        @Nested
+        @DisplayName("POST /responses/raw/lunatic-json/{questionnaireId}/process tests")
+        class ProcessJsonRawDataByQuestionnaireIdTests {
 
-        //Process date check
-        Assertions.assertThat(lunaticJsonRawDataPersistanceStub.getMongoStub().getFirst().processDate()).isNotNull();
+            @Test
+            @DisplayName("Should return 200 with count message")
+            void processByQuestionnaireId_shouldReturn200() throws Exception {
+                // GIVEN
+                when(lunaticJsonRawDataApiPort.processRawData("QUEST01"))
+                        .thenReturn(new DataProcessResult(8, 0, new ArrayList<>()));
 
-        //Perret call check
-        Assertions.assertThat(surveyUnitQualityToolPerretAdapterStub.getReceivedMaps())
-                .hasSize(1);
-        Assertions.assertThat(surveyUnitQualityToolPerretAdapterStub.getReceivedMaps().getFirst()).containsKey(questionnaireId);
-        Assertions.assertThat(surveyUnitQualityToolPerretAdapterStub.getReceivedMaps().getFirst().get(questionnaireId))
-                .contains(interrogationId);
-    }
+                // WHEN / THEN
+                mockMvc.perform(post("/responses/raw/lunatic-json/QUEST01/process")
+                                .with(csrf()))
+                        .andExpect(status().isOk())
+                        .andExpect(content().string(containsString("8")));
+            }
 
-    @Test
-    void getLunaticJsonRawDataModelFromJsonBody() {
-        //GIVEN
-        String campaignId = "getLunaticJsonRawDataModelFromJsonBody";
-        String questionnaireId = campaignId + "_quest";
-        String interrogationId = "getRawResponsesFromJsonBody_id1";
-        String varName = "VARName1";
-        String varValue = "TEST";
-        Instant recordDate = Instant.parse("2025-01-01T01:00:00.000Z");
-        Instant processDate = Instant.parse("2025-01-02T01:00:00.000Z");
+            @Test
+            @DisplayName("Should return GenesisException status when port throws")
+            void processByQuestionnaireId_genesisException_shouldReturnExceptionStatus() throws Exception {
+                // GIVEN
+                when(lunaticJsonRawDataApiPort.processRawData(anyString()))
+                        .thenThrow(new GenesisException(HttpStatus.NOT_FOUND, "Questionnaire not found"));
 
-        addJsonRawDataDocumentToStub(campaignId, questionnaireId, interrogationId, null,
-                LocalDateTime.ofInstant(processDate, ZoneOffset.UTC),
-                LocalDateTime.ofInstant(recordDate, ZoneOffset.UTC),
-                varName, varValue);
+                // WHEN / THEN
+                mockMvc.perform(post("/responses/raw/lunatic-json/QUEST01/process")
+                                .with(csrf()))
+                        .andExpect(status().isNotFound())
+                        .andExpect(content().string(containsString("Questionnaire not found")));
+            }
+        }
 
-        Instant starDate= recordDate.minusSeconds(86400),endDate = recordDate.plusSeconds(86400);
-        int page=0, size= 10;
+        @Nested
+        @DisplayName("GET /responses/raw/lunatic-json/{campaignId} tests")
+        class GetLunaticJsonRawDataTests {
 
-        //WHEN
-        ResponseEntity<PagedModel<LunaticJsonRawDataModel>> response = rawResponseController.getLunaticJsonRawDataModelFromJsonBody(campaignId, starDate, endDate, page, size);
+            @Test
+            @DisplayName("Should return 200 with paged model")
+            void getLunaticJson_shouldReturn200() throws Exception {
+                // GIVEN
+                when(lunaticJsonRawDataApiPort.findRawDataByCampaignIdAndDate(
+                        eq("CAMPAIGN"), any(), any(), any()))
+                        .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 1000), 0));
 
-        //THEN
-        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(response.getBody()).isNotNull();
-        Assertions.assertThat(response.getBody().getContent()).hasSize(1);
-    }
+                // WHEN / THEN
+                mockMvc.perform(get("/responses/raw/lunatic-json/CAMPAIGN"))
+                        .andExpect(status().isOk());
+            }
 
-    @Test
-    void getRawResponsesFromJsonBody() {
-        //GIVEN
-        String campaignId = "VPPI2024M05";
-        String questionnaireId = campaignId + "_quest";
-        String interrogationId = "getRawResponsesFromJsonBody_id1";
-        Instant recordDate = Instant.parse("2025-01-01T01:00:00.000Z");
+            @Test
+            @DisplayName("Should accept optional startDate and endDate query params")
+            void getLunaticJson_withDates_shouldReturn200() throws Exception {
+                // GIVEN
+                when(lunaticJsonRawDataApiPort.findRawDataByCampaignIdAndDate(
+                        anyString(), any(Instant.class), any(Instant.class), any()))
+                        .thenReturn(new PageImpl<>(List.of()));
 
-        addJsonRawResponseDataDocumentToStub(campaignId, questionnaireId, interrogationId);
+                // WHEN / THEN
+                mockMvc.perform(get("/responses/raw/lunatic-json/CAMPAIGN")
+                                .param("startDate", "2024-01-01T00:00:00Z")
+                                .param("endDate", "2024-12-31T23:59:59Z"))
+                        .andExpect(status().isOk());
+            }
+        }
 
-        Instant starDate= recordDate.minusSeconds(86400),endDate = recordDate.plusSeconds(86400);
-        int page=0, size= 10;
+        @Nested
+        @DisplayName("GET /responses/raw/lunatic-json/by-questionnaire/{questionnaireId} tests")
+        class GetLunaticJsonByQuestionnaireTests {
 
-        //WHEN
-        ResponseEntity<PagedModel<RawResponseModel>> response = rawResponseController.getRawResponsesFromJsonBody(campaignId, starDate, endDate, page, size);
+            @Test
+            @DisplayName("Should return 200 with paged model")
+            void getByQuestionnaire_shouldReturn200() throws Exception {
+                // GIVEN
+                when(lunaticJsonRawDataApiPort.findRawDataByQuestionnaireId(eq("QUEST01"), any()))
+                        .thenReturn(new PageImpl<>(List.of()));
 
-        //THEN
-        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        org.junit.jupiter.api.Assertions.assertNotNull(response.getBody());
-        Assertions.assertThat(response.getBody().getContent()).hasSize(1);
-    }
+                // WHEN / THEN
+                mockMvc.perform(get("/responses/raw/lunatic-json/by-questionnaire/QUEST01"))
+                        .andExpect(status().isOk());
+            }
+        }
 
-    @Test
-    void existsRawResponseInterrogation_shouldReturn404_whenNotExists() {
-        // Given
-        String unknownId = "UNKNOWN_INTERROGATION_ID";
+        @Nested
+        @DisplayName("HEAD /responses/raw/lunatic-json/{interrogationId} tests")
+        class ExistsLunaticJsonByInterrogationIdTests {
 
-        // When
-        ResponseEntity<Void> response = rawResponseController.exists(unknownId);
+            @Test
+            @DisplayName("Should return 200 when interrogation exists")
+            void existsLunaticJson_exists_shouldReturn200() throws Exception {
+                // GIVEN
+                when(lunaticJsonRawDataApiPort.existsByInterrogationId("INTERRO01")).thenReturn(true);
 
-        // Then
-        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(404);
-        Assertions.assertThat(response.getBody()).isNull();
-    }
+                // WHEN / THEN
+                mockMvc.perform(request(HEAD, "/responses/raw/lunatic-json/INTERRO01"))
+                        .andExpect(status().isOk());
+            }
 
-    @Test
-    void existsRawResponseInterrogation_shouldReturn200_whenExists() {
-        // When
-        ResponseEntity<Void> response = rawResponseController.exists(DEFAULT_INTERROGATION_ID);
+            @Test
+            @DisplayName("Should return 404 when interrogation does not exist")
+            void existsLunaticJson_notFound_shouldReturn404() throws Exception {
+                // GIVEN
+                when(lunaticJsonRawDataApiPort.existsByInterrogationId("INTERRO01")).thenReturn(false);
 
-        // Then
-        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(response.getBody()).isNull();
-    }
+                // WHEN / THEN
+                mockMvc.perform(request(HEAD, "/responses/raw/lunatic-json/INTERRO01"))
+                        .andExpect(status().isNotFound());
+            }
+        }
 
-    @Test
-    void existsLunaticJsonInterrogation_shouldReturn200_whenExists() {
-        // When
-        ResponseEntity<Void> response = rawResponseController.existsLunaticJsonByInterrogationId(DEFAULT_INTERROGATION_ID);
+        @Nested
+        @DisplayName("GET /raw-responses/{campaignId} tests")
+        class GetRawResponsesByCampaignTests {
 
-        // Then
-        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(response.getBody()).isNull();
-    }
+            @Test
+            @DisplayName("Should return 200 with paged model")
+            void getRawResponses_shouldReturn200() throws Exception {
+                // GIVEN
+                when(rawResponseApiPort.findRawResponseDataByCampaignIdAndDate(
+                        eq("CAMPAIGN"), any(), any(), any()))
+                        .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 1000), 0));
 
-    @Test
-    void existsLunaticJsonInterrogation_shouldReturn404_whenNotExists() {
-        // Given
-        String unknownId = "UNKNOWN_INTERROGATION_ID";
+                // WHEN / THEN
+                mockMvc.perform(get("/raw-responses/CAMPAIGN"))
+                        .andExpect(status().isOk());
+            }
+        }
 
-        // When
-        ResponseEntity<Void> response = rawResponseController.existsLunaticJsonByInterrogationId(unknownId);
+        @Nested
+        @DisplayName("GET /raw-responses/by-collection-instrument/{collectionInstrumentId} tests")
+        class GetRawResponsesByCollectionInstrumentTests {
 
-        // Then
-        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(404);
-        Assertions.assertThat(response.getBody()).isNull();
-    }
-
-    //Utils
-    private void addJsonRawDataDocumentToStub(String campaignId, String questionnaireId, String interrogationId,
-                                                     LocalDateTime processDate) {
-        LunaticJsonRawDataDocument lunaticJsonDataDocument = LunaticJsonRawDataDocument.builder()
-                .campaignId(campaignId)
-                .mode(Mode.WEB)
-                .interrogationId(interrogationId)
-                .questionnaireId(questionnaireId)
-                .recordDate(LocalDateTime.now())
-                .processDate(processDate)
-                .build();
-
-        lunaticJsonRawDataPersistanceStub.getMongoStub().add(lunaticJsonDataDocument);
-    }
-
-    private void addJsonRawDataDocumentToStub(String campaignId,
-                                              String questionnaireId,
-                                              String interrogationId,
-                                              String idUE,
-                                              LocalDateTime processDate,
-                                              LocalDateTime recordDate,
-                                              String variableName,
-                                              String variableValue)
-    {
-        Map<String, Object> jsonMap = Map.of(
-                "COLLECTED", Map.of(variableName, Map.of("COLLECTED", variableValue)),
-                "EXTERNAL", Map.of(variableName + "_EXTERNAL", variableValue + "_EXTERNAL")
-        );
-
-        LunaticJsonRawDataDocument lunaticJsonDataDocument = LunaticJsonRawDataDocument.builder()
-                .campaignId(campaignId)
-                .questionnaireId(questionnaireId)
-                .mode(Mode.WEB)
-                .interrogationId(interrogationId)
-                .idUE(idUE)
-                .recordDate(recordDate)
-                .processDate(processDate)
-                .data(jsonMap)
-                .build();
-
-        lunaticJsonRawDataPersistanceStub.getMongoStub().add(lunaticJsonDataDocument);
-    }
-
-    private void addJsonRawResponseDataDocumentToStub(String campaignId, String questionnaireId, String interrogationId) {
-        RawResponseDocument rawResponseDocument = RawResponseDocument.builder()
-                .collectionInstrumentId(questionnaireId)
-                .interrogationId(interrogationId)
-                .recordDate(LocalDateTime.now())
-                .payload(Map.of("campaignId", campaignId))
-                .build();
-
-        rawResponseDataPersistanceStub.getMongoStub().add(rawResponseDocument);
-    }
-
-    @Test
-    void getRawResponsesFromJsonBody_filterByCampaignId() {
-        // GIVEN
-        rawResponseDataPersistanceStub.getMongoStub().clear();
-
-        String campaignId = "CAMPAIGN_OK";
-        String questionnaireId = campaignId + "_QUEST";
-        String interrogationId1 = "INT_1";
-        String interrogationId2 = "INT_2";
-
-        // document with the wanted campaignId
-        RawResponseDocument rawResponseDocument = RawResponseDocument.builder()
-                .collectionInstrumentId(questionnaireId)
-                .interrogationId(interrogationId1)
-                .recordDate(LocalDateTime.now())
-                .payload(Map.of("campaignId", campaignId))
-                .build();
-
-        // document with another campaignId
-        RawResponseDocument rawResponseDocument1 = RawResponseDocument.builder()
-                .collectionInstrumentId("OTHER_QUEST")
-                .interrogationId(interrogationId2)
-                .recordDate(LocalDateTime.now())
-                .payload(Map.of("campaignId", "OTHER_CAMPAIGN"))
-                .build();
-
-        rawResponseDataPersistanceStub.getMongoStub().addAll(List.of(rawResponseDocument, rawResponseDocument1));
-
-        Instant startDate = Instant.now().minusSeconds(3600);
-        Instant endDate = Instant.now().plusSeconds(3600);
-
-        // WHEN
-        ResponseEntity<PagedModel<RawResponseModel>> response =
-                rawResponseController.getRawResponsesFromJsonBody(
-                        campaignId,
-                        startDate,
-                        endDate,
-                        0,
-                        10
+            @Test
+            @DisplayName("Should return 200 with paged model")
+            void getByCollectionInstrument_shouldReturn200() throws Exception {
+                // GIVEN
+                // All nulls as we only test status
+                RawResponseModel rawResponseModel = new RawResponseModel(
+                        null, null, null, null, null, null, null
                 );
 
-        // THEN
-        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(response.getBody()).isNotNull();
-        Assertions.assertThat(response.getBody().getContent()).hasSize(1);
+                when(rawResponseApiPort.findRawResponseDataByCollectionInstrumentId(eq("QUEST01"), any()))
+                        .thenReturn(new PageImpl<>(List.of(rawResponseModel), PageRequest.of(0, 1000), 1));
 
-        RawResponseModel result = response.getBody().getContent().getFirst();
-        Assertions.assertThat(result.interrogationId()).isEqualTo(interrogationId1);
-        Assertions.assertThat(result.payload().get("campaignId")).isEqualTo(campaignId);
+                // WHEN / THEN
+                mockMvc.perform(get("/raw-responses/by-collection-instrument/QUEST01"))
+                        .andExpect(status().isOk());
+            }
+        }
+
+        @Nested
+        @DisplayName("HEAD /raw-responses/{interrogationId} tests")
+        class ExistsByInterrogationIdTests {
+
+            @Test
+            @DisplayName("Should return 200 when interrogation exists")
+            void exists_found_shouldReturn200() throws Exception {
+                // GIVEN
+                when(rawResponseApiPort.existsByInterrogationId("INTERRO01")).thenReturn(true);
+
+                // WHEN / THEN
+                mockMvc.perform(request(HEAD, "/raw-responses/INTERRO01"))
+                        .andExpect(status().isOk());
+            }
+
+            @Test
+            @DisplayName("Should return 404 when interrogation does not exist")
+            void exists_notFound_shouldReturn404() throws Exception {
+                // GIVEN
+                when(rawResponseApiPort.existsByInterrogationId("INTERRO01")).thenReturn(false);
+
+                // WHEN / THEN
+                mockMvc.perform(request(HEAD, "/raw-responses/INTERRO01"))
+                        .andExpect(status().isNotFound());
+            }
+        }
+
+        @Nested
+        @DisplayName("GET /responses/raw/lunatic-json/processed/ids tests")
+        class GetProcessedDataIdsSinceHoursTests {
+
+            @Test
+            @DisplayName("Should return 200 with processed ids map")
+            void getProcessedIds_shouldReturn200() throws Exception {
+                // GIVEN
+                when(lunaticJsonRawDataApiPort.findProcessedIdsgroupedByQuestionnaireSince(any()))
+                        .thenReturn(Map.of("QUEST01", List.of("i1", "i2")));
+
+                // WHEN / THEN
+                mockMvc.perform(get("/responses/raw/lunatic-json/processed/ids")
+                                .param("questionnaireId", "QUEST01"))
+                        .andExpect(status().isOk())
+                        .andExpect(content().string(containsString("QUEST01")));
+            }
+
+            @Test
+            @DisplayName("Should use default sinceHours=24 when not specified")
+            void getProcessedIds_defaultHours_shouldReturn200() throws Exception {
+                // GIVEN
+                when(lunaticJsonRawDataApiPort.findProcessedIdsgroupedByQuestionnaireSince(any()))
+                        .thenReturn(Map.of());
+
+                // WHEN / THEN
+                mockMvc.perform(get("/responses/raw/lunatic-json/processed/ids")
+                                .param("questionnaireId", "QUEST01"))
+                        .andExpect(status().isOk());
+            }
+        }
     }
-
 }

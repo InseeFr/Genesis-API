@@ -14,13 +14,14 @@ import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -104,7 +105,7 @@ public class ContextualVariableJsonService implements ContextualVariableApiPort 
         try {
             fileUtils.moveFiles(Path.of(filePath), fileUtils.getDoneFolder(collectionInstrumentId, mode.getFolder()));
         } catch (IOException e) {
-            throw new GenesisException(500, "Error while moving file to done : %s".formatted(e.toString()));
+            throw new GenesisException(HttpStatus.INTERNAL_SERVER_ERROR, "Error while moving file to done : %s".formatted(e.toString()));
         }
     }
 
@@ -136,7 +137,7 @@ public class ContextualVariableJsonService implements ContextualVariableApiPort 
                         .state(DataState.COLLECTED)
                         .active(true)
                         .value(variable)
-                        .date(LocalDateTime.now())
+                        .date(Instant.now())
                         .build()
         );
         return variableQualityToolDto;

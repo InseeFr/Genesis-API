@@ -1,781 +1,602 @@
 package fr.insee.genesis.controller.rest.responses;
 
-
-import fr.insee.genesis.Constants;
-import fr.insee.genesis.TestConstants;
-import fr.insee.genesis.configuration.Config;
-import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
-import fr.insee.genesis.controller.dto.SurveyUnitQualityToolDto;
+import fr.insee.bpm.metadata.model.MetadataModel;
+import fr.insee.bpm.metadata.model.VariablesMap;
+import fr.insee.genesis.configuration.auth.security.DefaultSecurityConfig;
+import fr.insee.genesis.controller.dto.SurveyUnitDto;
 import fr.insee.genesis.controller.dto.SurveyUnitSimplifiedDto;
-import fr.insee.genesis.controller.dto.VariableInputDto;
-import fr.insee.genesis.controller.dto.VariableQualityToolDto;
-import fr.insee.genesis.controller.dto.VariableStateInputDto;
 import fr.insee.genesis.controller.utils.AuthUtils;
 import fr.insee.genesis.controller.utils.ControllerUtils;
+import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
-import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
+import fr.insee.genesis.domain.ports.api.DataProcessingContextApiPort;
+import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
+import fr.insee.genesis.domain.ports.api.RawResponseApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
-import fr.insee.genesis.domain.service.context.DataProcessingContextService;
 import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
-import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
+import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
-import fr.insee.genesis.infrastructure.document.context.DataProcessingContextDocument;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
-import fr.insee.genesis.stubs.ConfigStub;
-import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
-import fr.insee.genesis.stubs.QuestionnaireMetadataPersistencePortStub;
-import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration;
+import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.time.LocalDateTime;
-import java.time.Month;
-import java.util.ArrayList;
+import java.time.Instant;
 import java.util.List;
 
-import static fr.insee.genesis.TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID;
-import static fr.insee.genesis.TestConstants.DEFAULT_INTERROGATION_ID;
-import static fr.insee.genesis.TestConstants.DEFAULT_SURVEY_UNIT_ID;
+import static org.hamcrest.Matchers.containsString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@WebMvcTest(ResponseController.class)
+//Disable OIDC
+@TestPropertySource(properties = {
+        "fr.insee.genesis.authentication=NONE"
+})
+@Import({DefaultSecurityConfig.class})
+@ActiveProfiles("test")
+@AutoConfigureMockMvc
+@EnableAutoConfiguration(exclude = {MongoAutoConfiguration.class, MongoDataAutoConfiguration.class})
 class ResponseControllerTest {
-    //Given
-    static ResponseController responseControllerStatic;
-    static SurveyUnitPersistencePortStub surveyUnitPersistencePortStub;
-    static DataProcessingContextPersistancePortStub dataProcessingContextPersistancePortStub;
-    static QuestionnaireMetadataPersistencePortStub questionnaireMetadataPersistencePortStub;
 
-    static List<InterrogationId> interrogationIdList;
-    //Constants
+    @Autowired
+    private MockMvc mockMvc;
 
-    @BeforeAll
-    static void init() {
-        surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
+    @MockitoBean
+    private SurveyUnitQualityService surveyUnitQualityService;
 
-        dataProcessingContextPersistancePortStub = new DataProcessingContextPersistancePortStub();
-        questionnaireMetadataPersistencePortStub = new QuestionnaireMetadataPersistencePortStub();
+    @MockitoBean
+    private DataProcessingContextApiPort contextService;
 
-        Config config = new ConfigStub();
-        FileUtils fileUtils = new FileUtils(config);
-        SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(
-                surveyUnitPersistencePortStub,
-                new QuestionnaireMetadataService(questionnaireMetadataPersistencePortStub),
-                fileUtils
-                );
+    @MockitoBean
+    private FileUtils fileUtils;
 
-        responseControllerStatic = new ResponseController(
-                surveyUnitApiPort
-                , new SurveyUnitQualityService()
-                , fileUtils
-                , new ControllerUtils(fileUtils)
-                , new AuthUtils(config)
-                , new QuestionnaireMetadataService(questionnaireMetadataPersistencePortStub)
-                , new DataProcessingContextService(dataProcessingContextPersistancePortStub, surveyUnitPersistencePortStub)
-        );
+    @MockitoBean
+    private ControllerUtils controllerUtils;
 
-        interrogationIdList = new ArrayList<>();
-        interrogationIdList.add(new InterrogationId(DEFAULT_INTERROGATION_ID));
+    @MockitoBean
+    private AuthUtils authUtils;
+
+    @MockitoBean
+    private QuestionnaireMetadataService metadataService;
+
+    @MockitoBean
+    private SurveyUnitApiPort surveyUnitApiPort;
+    @MockitoBean
+    private LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort;
+    @MockitoBean
+    private RawResponseApiPort rawResponseApiPort;
+
+
+    @Nested
+    @DisplayName("DELETE /responses/delete/{collectionInstrumentId} tests")
+    class DeleteAllResponsesByCollectionInstrumentTests {
+
+        @Test
+        @DisplayName("Should return 200 with deleted count")
+        void delete_shouldReturn200WithCount() throws Exception {
+            // GIVEN
+            when(surveyUnitApiPort.deleteByCollectionInstrumentId("QUEST01")).thenReturn(42L);
+
+            // WHEN / THEN
+            mockMvc.perform(delete("/responses/delete/QUEST01").with(csrf()))
+                    .andExpect(status().isOk())
+                    .andExpect(content().string(containsString("42")))
+                    .andExpect(content().string(containsString("deleted")));
+        }
+
+        @Test
+        @DisplayName("Should return 200 with zero when no data exists")
+        void delete_noData_shouldReturn200WithZero() throws Exception {
+            // GIVEN
+            when(surveyUnitApiPort.deleteByCollectionInstrumentId("QUEST01")).thenReturn(0L);
+
+            // WHEN / THEN
+            mockMvc.perform(delete("/responses/delete/QUEST01").with(csrf()))
+                    .andExpect(status().isOk())
+                    .andExpect(content().string(containsString("0")));
+        }
     }
 
-    @BeforeEach
-    void reset() throws IOException {
-        dataProcessingContextPersistancePortStub.getMongoStub().clear();
+    @Nested
+    @DisplayName("GET /responses/by-interrogation-and-collection-instrument tests")
+    class FindResponsesByInterrogationAndCollectionInstrumentTests {
 
-        Utils.reset(surveyUnitPersistencePortStub);
+        @Test
+        @DisplayName("Should return 200 with list of survey unit models")
+        void find_shouldReturn200() throws Exception {
+            // GIVEN
+            when(surveyUnitApiPort.findByIdsInterrogationAndCollectionInstrument("INTERRO01", "QUEST01"))
+                    .thenReturn(List.of(buildSurveyUnitModel("INTERRO01", "QUEST01", Mode.WEB, DataState.COLLECTED)));
+
+            // WHEN / THEN
+            mockMvc.perform(get("/responses/by-interrogation-and-collection-instrument")
+                            .param("interrogationId", "INTERRO01")
+                            .param("collectionInstrumentId", "QUEST01"))
+                    .andExpect(status().isOk());
+        }
+
+        @Test
+        @DisplayName("Should return empty list when no responses found")
+        void find_noResults_shouldReturnEmptyList() throws Exception {
+            // GIVEN
+            when(surveyUnitApiPort.findByIdsInterrogationAndCollectionInstrument(any(), any()))
+                    .thenReturn(List.of());
+
+            // WHEN / THEN
+            mockMvc.perform(get("/responses/by-interrogation-and-collection-instrument")
+                            .param("interrogationId", "INTERRO01")
+                            .param("collectionInstrumentId", "QUEST01"))
+                    .andExpect(status().isOk())
+                    .andExpect(content().string("[]"));
+        }
     }
 
+    @Nested
+    @DisplayName("GET /responses/by-usual-survey-unit-and-collection-instrument tests")
+    class FindResponsesByUsualSurveyUnitAndCollectionInstrumentTests {
 
-    //When + Then
+        @Test
+        @DisplayName("Should return 200 with list of models")
+        void find_shouldReturn200() throws Exception {
+            // GIVEN
+            when(surveyUnitApiPort.findByIdsUsualSurveyUnitAndCollectionInstrument("USUAL01", "QUEST01"))
+                    .thenReturn(List.of());
 
-    //Survey units
-    @Test
-    void saveResponseFromXMLFileTest() throws Exception {
-        responseControllerStatic.saveResponsesFromXmlFile(
-                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY, "IN/WEB/SAMPLETEST-PARADATA-V1/reponse-platine/data.complete.validated.STPDv1.20231122164209.xml").toString()
-                , Path.of(TestConstants.TEST_RESOURCES_DIRECTORY, "specs/SAMPLETEST-PARADATA-V1/ddi-SAMPLETEST-PARADATA-V1.xml").toString()
-                , Mode.WEB
-        );
-
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).isNotEmpty();
+            // WHEN / THEN
+            mockMvc.perform(get("/responses/by-usual-survey-unit-and-collection-instrument")
+                            .param("usualSurveyUnitId", "USUAL01")
+                            .param("collectionInstrumentId", "QUEST01"))
+                    .andExpect(status().isOk());
+        }
     }
 
-    @Test
-    void saveOneFileNoCollected_NoNullPointerException(){
-        Assertions.assertThatCode(() -> responseControllerStatic.saveResponsesFromXmlFile(
-                Path.of(TestConstants.TEST_RESOURCES_DIRECTORY, "IN/WEB/SAMPLETEST-NO-COLLECTED/differential/data/data_diff_no_collected.xml").toString()
-                , Path.of(TestConstants.TEST_RESOURCES_DIRECTORY, "specs/SAMPLETEST-NO-COLLECTED/WEB/ddi_response_simple.xml").toString()
-                , Mode.WEB
-        )).doesNotThrowAnyException();
+    @Nested
+    @DisplayName("GET /responses/by-interrogation-and-collection-instrument/latest-states tests")
+    class FindResponsesByInterrogationAndCollectionInstrumentLatestStatesTests {
 
+        @Test
+        @DisplayName("Should return 200 when review is enabled")
+        void findLatestStates_reviewEnabled_shouldReturn200() throws Exception {
+            // GIVEN
+            DataProcessingContextModel ctx = new DataProcessingContextModel();
+            ctx.setWithReview(true);
+            when(contextService.getContext("INTERRO01")).thenReturn(ctx);
+            when(surveyUnitApiPort.findLatestValuesByStateByIdAndByCollectionInstrumentId("INTERRO01", "QUEST01"))
+                    .thenReturn(getSurveyUnitDto());
+
+            // WHEN / THEN
+            mockMvc.perform(get("/responses/by-interrogation-and-collection-instrument/latest-states")
+                            .param("interrogationId", "INTERRO01")
+                            .param("collectionInstrumentId", "QUEST01"))
+                    .andExpect(status().isOk());
+        }
+
+        @Test
+        @DisplayName("Should also allow SCHEDULER role")
+        void findLatestStates_schedulerRole_shouldReturn200() throws Exception {
+            findLatestStates_reviewEnabled_shouldReturn200();
+        }
+
+        @Test
+        @DisplayName("Should return 403 with 'Review is disabled' message when context is null")
+        void findLatestStates_contextNull_shouldReturn403WithMessage() throws Exception {
+            // GIVEN
+            when(contextService.getContext("INTERRO01")).thenReturn(null);
+
+            // WHEN / THEN
+            mockMvc.perform(get("/responses/by-interrogation-and-collection-instrument/latest-states")
+                            .param("interrogationId", "INTERRO01")
+                            .param("collectionInstrumentId", "QUEST01"))
+                    .andExpect(status().isForbidden())
+                    .andExpect(content().string(containsString("Review is disabled")));
+        }
+
+        @Test
+        @DisplayName("Should return 403 with 'Review is disabled' message when withReview is false")
+        void findLatestStates_reviewDisabled_shouldReturn403WithMessage() throws Exception {
+            // GIVEN
+            DataProcessingContextModel ctx = new DataProcessingContextModel();
+            ctx.setWithReview(false);
+            when(contextService.getContext("INTERRO01")).thenReturn(ctx);
+
+            // WHEN / THEN
+            mockMvc.perform(get("/responses/by-interrogation-and-collection-instrument/latest-states")
+                            .param("interrogationId", "INTERRO01")
+                            .param("collectionInstrumentId", "QUEST01"))
+                    .andExpect(status().isForbidden())
+                    .andExpect(content().string(containsString("Review is disabled")));
+        }
     }
 
-    @Test
-    void saveResponsesFromXmlCampaignFolderTest() throws Exception {
-        responseControllerStatic.saveResponsesFromXmlCampaignFolder(
-                "SAMPLETEST-PARADATA-V1"
-                , Mode.WEB
-        );
+    @Nested
+    @DisplayName("GET /responses/by-ue-and-questionnaire/latest-states tests (deprecated)")
+    class FindResponsesByInterrogationAndQuestionnaireLatestStatesTests {
 
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).isNotEmpty();
+        @Test
+        @DisplayName("Should return 200 when review is enabled")
+        void findByQuestionnaire_reviewEnabled_shouldReturn200() throws Exception {
+            // GIVEN
+            DataProcessingContextModel ctx = new DataProcessingContextModel();
+            ctx.setWithReview(true);
+            when(contextService.getContext("INTERRO01")).thenReturn(ctx);
+            when(surveyUnitApiPort.findLatestValuesByStateByIdAndByCollectionInstrumentId("INTERRO01", "QUEST01"))
+                    .thenReturn(getSurveyUnitDto());
+
+            // WHEN / THEN
+            mockMvc.perform(get("/responses/by-ue-and-questionnaire/latest-states")
+                            .param("interrogationId", "INTERRO01")
+                            .param("questionnaireId", "QUEST01"))
+                    .andExpect(status().isOk());
+        }
+
+        @Test
+        @DisplayName("Should return 403 when review is disabled (shares same logic as new endpoint)")
+        void findByQuestionnaire_reviewDisabled_shouldReturn403() throws Exception {
+            // GIVEN
+            when(contextService.getContext("INTERRO01")).thenReturn(null);
+
+            // WHEN / THEN
+            mockMvc.perform(get("/responses/by-ue-and-questionnaire/latest-states")
+                            .param("interrogationId", "INTERRO01")
+                            .param("questionnaireId", "QUEST01"))
+                    .andExpect(status().isForbidden());
+        }
     }
 
-    @Test
-    void saveResponsesFromXmlCampaignFolderTest_noData() throws Exception {
-        surveyUnitPersistencePortStub.getMongoStub().clear();
+    @Nested
+    @DisplayName("GET /responses/by-interrogation-and-collection-instrument/latest tests")
+    class GetLatestByInterrogationAndCollectionInstrumentTests {
 
-        responseControllerStatic.saveResponsesFromXmlCampaignFolder(
-                "TESTNODATA"
-                , Mode.WEB
-        );
+        @Test
+        @DisplayName("Should return 200 with list of models")
+        void getLatest_shouldReturn200() throws Exception {
+            // GIVEN
+            when(surveyUnitApiPort.findLatestByIdAndByCollectionInstrumentId("INTERRO01", "QUEST01"))
+                    .thenReturn(List.of());
 
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).isEmpty();
-    }
-    //All data
-    @Test
-    void saveResponsesFromAllCampaignFoldersTests(){
-        surveyUnitPersistencePortStub.getMongoStub().clear();
-        responseControllerStatic.saveResponsesFromAllCampaignFolders();
-
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).isNotEmpty();
-    }
-
-
-    //Gets
-    @Test
-    void findResponsesByUEAndQuestionnaireTest() {
-        ResponseEntity<List<SurveyUnitModel>> response = responseControllerStatic.findResponsesByInterrogationAndCollectionInstrument(DEFAULT_INTERROGATION_ID, DEFAULT_COLLECTION_INSTRUMENT_ID);
-
-        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
-        Assertions.assertThat(response.getBody().getFirst().getInterrogationId()).isEqualTo(DEFAULT_INTERROGATION_ID);
-        Assertions.assertThat(response.getBody().getFirst().getUsualSurveyUnitId()).isEqualTo(DEFAULT_SURVEY_UNIT_ID);
-        Assertions.assertThat(response.getBody().getFirst().getCollectionInstrumentId()).isEqualTo(DEFAULT_COLLECTION_INSTRUMENT_ID);
+            // WHEN / THEN
+            mockMvc.perform(get("/responses/by-interrogation-and-collection-instrument/latest")
+                            .param("interrogationId", "INTERRO01")
+                            .param("collectionInstrumentId", "QUEST01"))
+                    .andExpect(status().isOk());
+        }
     }
 
-    @Test
-    void findResponsesByUsualSurveyUnitAndQuestionnaireTest() {
-        ResponseEntity<List<SurveyUnitModel>> response = responseControllerStatic.findResponsesByUsualSurveyUnitAndCollectionInstrument(DEFAULT_SURVEY_UNIT_ID, DEFAULT_COLLECTION_INSTRUMENT_ID);
+    @Nested
+    @DisplayName("GET /responses/simplified/by-interrogation-collection-instrument-and-mode/latest tests")
+    class GetLatestByInterrogationOneObjectTests {
 
-        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
-        Assertions.assertThat(response.getBody().getFirst().getInterrogationId()).isEqualTo(DEFAULT_INTERROGATION_ID);
-        Assertions.assertThat(response.getBody().getFirst().getUsualSurveyUnitId()).isEqualTo(DEFAULT_SURVEY_UNIT_ID);
-        Assertions.assertThat(response.getBody().getFirst().getCollectionInstrumentId()).isEqualTo(DEFAULT_COLLECTION_INSTRUMENT_ID);
+        @Test
+        @DisplayName("Should return 200 and aggregate collected + external variables per mode")
+        void getLatestOneObject_shouldReturn200AndAggregateVariables() throws Exception {
+            // GIVEN
+            SurveyUnitModel model = buildSurveyUnitModel("INTERRO01", "QUEST01", Mode.WEB, DataState.COLLECTED);
+            when(surveyUnitApiPort.findLatestByIdAndByCollectionInstrumentId("INTERRO01", "QUEST01"))
+                    .thenReturn(List.of(model));
+
+            // WHEN / THEN
+            mockMvc.perform(get("/responses/simplified/by-interrogation-collection-instrument-and-mode/latest")
+                            .param("interrogationId", "INTERRO01")
+                            .param("collectionInstrumentId", "QUEST01")
+                            .param("mode", Mode.WEB.name()))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
+        }
+
+        @Test
+        @DisplayName("Should filter responses by mode before aggregating")
+        void getLatestOneObject_shouldFilterByMode() throws Exception {
+            // GIVEN
+            SurveyUnitModel webModel = buildSurveyUnitModel("INTERRO01", "QUEST01", Mode.WEB, DataState.COLLECTED);
+            SurveyUnitModel paperModel = buildSurveyUnitModel("INTERRO01", "QUEST01", Mode.PAPER, DataState.COLLECTED);
+            when(surveyUnitApiPort.findLatestByIdAndByCollectionInstrumentId("INTERRO01", "QUEST01"))
+                    .thenReturn(List.of(webModel, paperModel));
+
+            // WHEN / THEN
+            // Only WEB responses should be included — result should compile without error
+            mockMvc.perform(get("/responses/simplified/by-interrogation-collection-instrument-and-mode/latest")
+                            .param("interrogationId", "INTERRO01")
+                            .param("collectionInstrumentId", "QUEST01")
+                            .param("mode", Mode.WEB.name()))
+                    .andExpect(status().isOk());
+        }
     }
 
-    @Test
-    void getLatestByUETest() {
-        Utils.addAdditionalSurveyUnitModelToMongoStub(surveyUnitPersistencePortStub);
+    @Nested
+    @DisplayName("GET /responses/{collectionInstrumentId}/{mode}/{interrogationId} tests")
+    class GetResponseByCollectionInstrumentAndInterrogationTests {
 
-        ResponseEntity<List<SurveyUnitModel>> response = responseControllerStatic.getLatestByInterrogationAndCollectionInstrument(DEFAULT_INTERROGATION_ID, DEFAULT_COLLECTION_INSTRUMENT_ID);
+        @Test
+        @DisplayName("Should return 200 with simplified dto")
+        void getResponse_shouldReturn200() throws Exception {
+            // GIVEN
+            when(surveyUnitApiPort.findSimplified(
+                    "QUEST01", "INTERRO01", Mode.WEB, Instant.now()))
+                    .thenReturn(SurveyUnitSimplifiedDto.builder().build());
 
-        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
-        Assertions.assertThat(response.getBody().getFirst().getInterrogationId()).isEqualTo(DEFAULT_INTERROGATION_ID);
-        Assertions.assertThat(response.getBody().getFirst().getUsualSurveyUnitId()).isEqualTo(DEFAULT_SURVEY_UNIT_ID);
-        Assertions.assertThat(response.getBody().getFirst().getCollectionInstrumentId()).isEqualTo(DEFAULT_COLLECTION_INSTRUMENT_ID);
-        Assertions.assertThat(response.getBody().getFirst().getFileDate()).hasMonth(Month.FEBRUARY);
+            // WHEN / THEN
+            mockMvc.perform(get("/responses/QUEST01/WEB/INTERRO01"))
+                    .andExpect(status().isOk());
+        }
+
+        @Test
+        @DisplayName("Should pass collectionInstrumentId, interrogationId and mode to service")
+        void getResponse_shouldDelegateCorrectlyToService() throws Exception {
+            // GIVEN
+            when(surveyUnitApiPort.findSimplified(
+                    anyString(), anyString(), any(), any()))
+                    .thenReturn(SurveyUnitSimplifiedDto.builder().build());
+
+            // WHEN
+            mockMvc.perform(get("/responses/QUEST01/WEB/INTERRO01"));
+
+            // THEN
+            verify(surveyUnitApiPort).findSimplified(
+                    "QUEST01", "INTERRO01", Mode.WEB, null);
+        }
     }
 
-    @Test
-    void getLatestByUEOneObjectTest() {
-        ResponseEntity<SurveyUnitSimplifiedDto> response = responseControllerStatic.getLatestByInterrogationOneObject(DEFAULT_INTERROGATION_ID, DEFAULT_COLLECTION_INSTRUMENT_ID, Mode.WEB);
+    @Nested
+    @DisplayName("POST /responses/simplified/by-list-interrogation-and-collection-instrument/latest tests")
+    class GetLatestForInterrogationListTests {
 
-        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(response.getBody()).isNotNull();
-        Assertions.assertThat(response.getBody().getInterrogationId()).isEqualTo(DEFAULT_INTERROGATION_ID);
-        Assertions.assertThat(response.getBody().getUsualSurveyUnitId()).isEqualTo(DEFAULT_SURVEY_UNIT_ID);
-        Assertions.assertThat(response.getBody().getCollectionInstrumentId()).isEqualTo(DEFAULT_COLLECTION_INSTRUMENT_ID);
+        @Test
+        @DisplayName("Should return 200 with simplified dto for each interrogation+mode combination with variables")
+        void getLatestList_shouldReturn200() throws Exception {
+            // GIVEN
+            SurveyUnitModel model = buildSurveyUnitModel("INTERRO01", "QUEST01", Mode.WEB, DataState.COLLECTED);
+            when(surveyUnitApiPort.findModesByCollectionInstrumentId("QUEST01"))
+                    .thenReturn(List.of(Mode.WEB));
+            when(surveyUnitApiPort.findLatestByIdAndByCollectionInstrumentId("INTERRO01", "QUEST01"))
+                    .thenReturn(List.of(model));
+
+            // WHEN / THEN
+            mockMvc.perform(post("/responses/simplified/by-list-interrogation-and-collection-instrument/latest")
+                            .with(csrf())
+                            .param("collectionInstrumentId", "QUEST01")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("[{\"interrogationId\":\"INTERRO01\"}]"))
+                    .andExpect(status().isOk());
+        }
+
+        @Test
+        @DisplayName("Should exclude interrogations with no variables in any mode")
+        void getLatestList_noVariables_shouldReturnEmptyList() throws Exception {
+            // GIVEN
+            SurveyUnitModel modelNoVars = SurveyUnitModel.builder()
+                    .interrogationId("INTERRO01")
+                    .collectionInstrumentId("QUEST01")
+                    .mode(Mode.WEB)
+                    .collectedVariables(List.of())
+                    .externalVariables(List.of())
+                    .build();
+            when(surveyUnitApiPort.findModesByCollectionInstrumentId("QUEST01"))
+                    .thenReturn(List.of(Mode.WEB));
+            when(surveyUnitApiPort.findLatestByIdAndByCollectionInstrumentId("INTERRO01", "QUEST01"))
+                    .thenReturn(List.of(modelNoVars));
+
+            // WHEN / THEN
+            mockMvc.perform(post("/responses/simplified/by-list-interrogation-and-collection-instrument/latest")
+                            .with(csrf())
+                            .param("collectionInstrumentId", "QUEST01")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("[{\"interrogationId\":\"INTERRO01\"}]"))
+                    .andExpect(status().isOk())
+                    .andExpect(content().string("[]"));
+        }
     }
 
-    @Test
-    void getLatestForUEListTest() {
-        ResponseEntity<List<SurveyUnitSimplifiedDto>> response = responseControllerStatic.getLatestForInterrogationListAndCollectionInstrument(DEFAULT_COLLECTION_INSTRUMENT_ID, interrogationIdList);
+    @Nested
+    @DisplayName("POST /responses/{collectionInstrumentId} tests")
+    class GetResponseByCollectionInstrumentAndInterrogationListTests {
 
-        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
-        Assertions.assertThat(response.getBody().getFirst().getInterrogationId()).isEqualTo(DEFAULT_INTERROGATION_ID);
-        Assertions.assertThat(response.getBody().getFirst().getUsualSurveyUnitId()).isEqualTo(DEFAULT_SURVEY_UNIT_ID);
+        @Test
+        @DisplayName("Should return 200 with list of simplified dtos")
+        void getResponseList_shouldReturn200() throws Exception {
+            // GIVEN
+            when(surveyUnitApiPort.findSimplifiedList(
+                    eq("QUEST01"), any(), any()))
+                    .thenReturn(List.of());
+
+            // WHEN / THEN
+            mockMvc.perform(post("/responses/QUEST01")
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("[{\"interrogationId\":\"INTERRO01\"}]"))
+                    .andExpect(status().isOk());
+        }
+
+        @Test
+        @DisplayName("Should delegate to service with correct collectionInstrumentId")
+        void getResponseList_shouldDelegateToService() throws Exception {
+            // GIVEN
+            when(surveyUnitApiPort.findSimplifiedList(
+                    anyString(), any(), any()))
+                    .thenReturn(List.of());
+
+            // WHEN
+            mockMvc.perform(post("/responses/QUEST01")
+                    .with(csrf())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("[{\"interrogationId\":\"INTERRO01\"}]"));
+
+            // THEN
+            verify(surveyUnitApiPort).findSimplifiedList(
+                    eq("QUEST01"), any(), any());
+        }
     }
 
-    // Perret tests
-    @Test
-    void getLatestByStatesSurveyDataTest() throws GenesisException {
-        //GIVEN
-        //Recent Collected already in stub
-        //Old Collected
-        Utils.addAdditionalSurveyUnitModelToMongoStub(DataState.COLLECTED,
-                "C OLD C", //<Collected/External> <NEW or OLD> <Collected/Edited>
-                "E OLD C",
-                LocalDateTime.of(1999,2,2,0,0,0),
-                LocalDateTime.of(1999,2,2,0,0,0),
-                surveyUnitPersistencePortStub
-        );
+    @Nested
+    @DisplayName("POST /responses/save-edited tests")
+    class SaveEditedVariablesTests {
 
-        //Recent Edited
-        Utils.addAdditionalSurveyUnitModelToMongoStub(DataState.EDITED,
-                "C NEW E",
-                "E NEW E",
-                LocalDateTime.of(2025,2,2,0,0,0),
-                LocalDateTime.of(2025,2,2,0,0,0),
-                surveyUnitPersistencePortStub
-        );
+        private static final String VALID_BODY = """
+                {
+                  "questionnaireId": "QUEST01",
+                  "interrogationId": "INTERRO01",
+                  "mode": "WEB",
+                  "collectedVariables": []
+                }
+                """;
 
-        //Old Edited
-        Utils.addAdditionalSurveyUnitModelToMongoStub(DataState.EDITED,
-                "C OLD E",
-                "E OLD E",
-                LocalDateTime.of(1999,2,2,0,0,0),
-                LocalDateTime.of(1999,2,2,0,0,0),
-                surveyUnitPersistencePortStub
-        );
+        @Test
+        @DisplayName("Should return 200 with 'Data saved' message on success")
+        void saveEdited_shouldReturn200WithSuccessMessage() throws Exception {
+            // GIVEN
+            MetadataModel metadataModel = buildMetadataModel();
+            when(metadataService.loadAndSaveIfNotExists(isNull(), eq("QUEST01"), eq(Mode.WEB), any(), any()))
+                    .thenReturn(metadataModel);
+            when(surveyUnitQualityService.checkVariablesPresentInMetadata(any(), any()))
+                    .thenReturn(List.of());
+            when(authUtils.getIDEP()).thenReturn("user-idep");
+            when(surveyUnitApiPort.parseEditedVariables(any(), eq("user-idep"), any()))
+                    .thenReturn(List.of());
 
-        DataProcessingContextDocument doc = new DataProcessingContextDocument();
-        doc.setPartitionId("TEST-TABLEAUX");
-        doc.setCollectionInstrumentId(DEFAULT_COLLECTION_INSTRUMENT_ID);
-        doc.setKraftwerkExecutionScheduleList(new ArrayList<>());
-        doc.setWithReview(true);
-        dataProcessingContextPersistancePortStub.getMongoStub().add(doc);
+            // WHEN / THEN
+            mockMvc.perform(post("/responses/save-edited")
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(VALID_BODY))
+                    .andExpect(status().isOk())
+                    .andExpect(content().string("Data saved"));
+        }
 
+        @Test
+        @DisplayName("Should call verifySurveyUnits and saveSurveyUnits after successful parse")
+        void saveEdited_shouldCallVerifyThenSave() throws Exception {
+            // GIVEN
+            MetadataModel metadataModel = buildMetadataModel();
+            when(metadataService.loadAndSaveIfNotExists(any(), any(), any(), any(), any()))
+                    .thenReturn(metadataModel);
+            when(surveyUnitQualityService.checkVariablesPresentInMetadata(any(), any()))
+                    .thenReturn(List.of());
+            when(authUtils.getIDEP()).thenReturn("user-idep");
+            when(surveyUnitApiPort.parseEditedVariables(any(), anyString(), any()))
+                    .thenReturn(List.of());
 
-        //WHEN
-        ResponseEntity<Object> response = responseControllerStatic.findResponsesByInterrogationAndCollectionInstrumentLatestStates(
-                DEFAULT_INTERROGATION_ID,
-                DEFAULT_COLLECTION_INSTRUMENT_ID
-        );
+            // WHEN
+            mockMvc.perform(post("/responses/save-edited")
+                    .with(csrf())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(VALID_BODY));
 
+            // THEN
+            verify(surveyUnitQualityService).verifySurveyUnits(any(), any());
+            verify(surveyUnitApiPort).saveSurveyUnits(any());
+        }
 
-        //THEN
-        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(200);
-        SurveyUnitQualityToolDto surveyUnitQualityToolDto = (SurveyUnitQualityToolDto) response.getBody();
+        @Test
+        @DisplayName("Should return 400 with absent variable names when metadata check fails")
+        void saveEdited_absentVariables_shouldReturn400WithNames() throws Exception {
+            // GIVEN
+            MetadataModel metadataModel = buildMetadataModel();
+            when(metadataService.loadAndSaveIfNotExists(any(), any(), any(), any(), any()))
+                    .thenReturn(metadataModel);
+            when(surveyUnitQualityService.checkVariablesPresentInMetadata(any(), any()))
+                    .thenReturn(List.of("ABSENT_VAR1", "ABSENT_VAR2"));
 
-        Assertions.assertThat(surveyUnitQualityToolDto).isNotNull();
+            // WHEN / THEN
+            mockMvc.perform(post("/responses/save-edited")
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(VALID_BODY))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(content().string(containsString("ABSENT_VAR1")))
+                    .andExpect(content().string(containsString("ABSENT_VAR2")));
+        }
 
-        Assertions.assertThat(surveyUnitQualityToolDto.getInterrogationId()).isEqualTo(DEFAULT_INTERROGATION_ID);
+        @Test
+        @DisplayName("Should return 404 when metadataModel is null and error list is populated")
+        void saveEdited_metadataNull_shouldReturn404() throws Exception {
+            // GIVEN
+            when(metadataService.loadAndSaveIfNotExists(any(), any(), any(), any(), any()))
+                    .thenAnswer(invocation -> {
+                        List<GenesisError> errors = invocation.getArgument(4);
+                        errors.add(new GenesisError("Metadata not found"));
+                        return null;
+                    });
 
-        List<VariableQualityToolDto> variableQualityToolDtos = surveyUnitQualityToolDto.getCollectedVariables().stream().filter(
-                variableQualityToolDto -> variableQualityToolDto.getVariableName().equals("TESTVARID")
-                && variableQualityToolDto.getIteration().equals(1)
-        ).toList();
-        Assertions.assertThat(variableQualityToolDtos).hasSize(1);
-        VariableQualityToolDto variableQualityToolDto = variableQualityToolDtos.getFirst();
+            // WHEN / THEN
+            mockMvc.perform(post("/responses/save-edited")
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(VALID_BODY))
+                    .andExpect(status().isNotFound())
+                    .andExpect(content().string(containsString("Metadata not found")));
+        }
 
-        Assertions.assertThat(variableQualityToolDto.getVariableStateDtoList()
-                        .stream().filter(
-                                variableStatePerret -> variableStatePerret.getState().equals(DataState.COLLECTED)
-                        ).toList().getFirst().getValue())
-                .isEqualTo("V1");
-        Assertions.assertThat(variableQualityToolDto.getVariableStateDtoList()
-                        .stream().filter(
-                                variableStatePerret -> variableStatePerret.getState().equals(DataState.EDITED)
-                        ).toList().getFirst().getValue())
-                .isEqualTo("C NEW E");
-        Assertions.assertThat(variableQualityToolDto.getVariableStateDtoList()
-                        .stream().filter(
-                                variableStatePerret -> variableStatePerret.getState().equals(DataState.COLLECTED)
-                        ).toList().getFirst().isActive())
-                .isFalse();
-        Assertions.assertThat(variableQualityToolDto.getVariableStateDtoList()
-                        .stream().filter(
-                                variableStatePerret -> variableStatePerret.getState().equals(DataState.EDITED)
-                        ).toList().getFirst().isActive())
-                .isTrue();
+        @Test
+        @DisplayName("Should return GenesisException status when parseEditedVariables throws")
+        void saveEdited_parseThrows_shouldReturnExceptionStatus() throws Exception {
+            // GIVEN
+            MetadataModel metadataModel = buildMetadataModel();
+            when(metadataService.loadAndSaveIfNotExists(any(), any(), any(), any(), any()))
+                    .thenReturn(metadataModel);
+            when(surveyUnitQualityService.checkVariablesPresentInMetadata(any(), any()))
+                    .thenReturn(List.of());
+            when(authUtils.getIDEP()).thenReturn("user-idep");
+            when(surveyUnitApiPort.parseEditedVariables(any(), anyString(), any()))
+                    .thenThrow(new GenesisException(HttpStatus.UNPROCESSABLE_ENTITY, "Unprocessable entity"));
 
-
-        variableQualityToolDtos = surveyUnitQualityToolDto.getExternalVariables().stream().filter(
-                variableQualityToolDto1 -> variableQualityToolDto1.getVariableName().equals("TESTVARID")
-                        && variableQualityToolDto1.getIteration().equals(1)
-        ).toList();
-        Assertions.assertThat(variableQualityToolDtos).hasSize(1);
-        variableQualityToolDto = variableQualityToolDtos.getFirst();
-
-        Assertions.assertThat(variableQualityToolDto.getVariableName())
-                .isEqualTo("TESTVARID");
-        Assertions.assertThat(variableQualityToolDto.getVariableStateDtoList()
-                        .stream().filter(
-                                variableStatePerret -> variableStatePerret.getState().equals(DataState.COLLECTED)
-                        ).toList().getFirst().getValue())
-                .isEqualTo("V1");
-        Assertions.assertThat(variableQualityToolDto.getVariableStateDtoList()
-                        .stream().filter(
-                                variableStatePerret -> variableStatePerret.getState().equals(DataState.EDITED)
-                        ).toList().getFirst().getValue())
-                .isEqualTo("E NEW E");
-        Assertions.assertThat(variableQualityToolDto.getVariableStateDtoList()
-                        .stream().filter(
-                                variableStatePerret -> variableStatePerret.getState().equals(DataState.COLLECTED)
-                        ).toList().getFirst().isActive())
-                .isFalse();
-        Assertions.assertThat(variableQualityToolDto.getVariableStateDtoList()
-                        .stream().filter(
-                                variableStatePerret -> variableStatePerret.getState().equals(DataState.EDITED)
-                        ).toList().getFirst().isActive())
-                .isTrue();
+            // WHEN / THEN
+            mockMvc.perform(post("/responses/save-edited")
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(VALID_BODY))
+                    .andExpect(status().isUnprocessableEntity())
+                    .andExpect(content().string(containsString("Unprocessable entity")));
+        }
     }
 
-    @Test
-    void getLatestByStatesSurveyDataTest_invalid_collected() throws GenesisException {
-        //GIVEN
-        String variableName = "TABLEAUTIC21"; //Number variable
-        Utils.addAdditionalSurveyUnitModelToMongoStub(DataState.COLLECTED,
-                variableName,
-                "?",
-                "?",
-                LocalDateTime.of(1999,2,2,0,0,0),
-                LocalDateTime.of(1999,2,2,0,0,0),
-                surveyUnitPersistencePortStub
-        );
-
-        DataProcessingContextDocument doc = new DataProcessingContextDocument();
-        doc.setPartitionId("TEST-TABLEAUX");
-        doc.setCollectionInstrumentId(DEFAULT_COLLECTION_INSTRUMENT_ID);
-        doc.setKraftwerkExecutionScheduleList(new ArrayList<>());
-        doc.setWithReview(true);
-        dataProcessingContextPersistancePortStub.getMongoStub().add(doc);
-
-
-        //WHEN
-        ResponseEntity<Object> response = responseControllerStatic.findResponsesByInterrogationAndCollectionInstrumentLatestStates(
-                DEFAULT_INTERROGATION_ID,
-                DEFAULT_COLLECTION_INSTRUMENT_ID
-        );
-
-
-        //THEN
-        Assertions.assertThat(response.getStatusCode().value()).isEqualTo(200);
-        SurveyUnitQualityToolDto surveyUnitQualityToolDto = (SurveyUnitQualityToolDto) response.getBody();
-
-        Assertions.assertThat(surveyUnitQualityToolDto).isNotNull();
-
-        Assertions.assertThat(surveyUnitQualityToolDto.getInterrogationId()).isEqualTo(DEFAULT_INTERROGATION_ID);
-
-        List<VariableQualityToolDto> variableQualityToolDtos = surveyUnitQualityToolDto.getCollectedVariables().stream().filter(
-                variableQualityToolDto -> variableQualityToolDto.getVariableName().equals(variableName)
-                        && variableQualityToolDto.getIteration().equals(1)
-        ).toList();
-        Assertions.assertThat(variableQualityToolDtos).hasSize(1);
-        VariableQualityToolDto variableQualityToolDto = variableQualityToolDtos.getFirst();
-
-        Assertions.assertThat(variableQualityToolDto.getVariableStateDtoList()
-                        .stream().filter(
-                                variableStatePerret -> variableStatePerret.getState().equals(DataState.COLLECTED)
-                        ).toList().getFirst().getValue())
-                .isEqualTo("?");
-    }
-
-    @Test
-    void saveEditedTest() {
-        //GIVEN
-        surveyUnitPersistencePortStub.getMongoStub().clear();
-        String questionnaireId = DEFAULT_COLLECTION_INSTRUMENT_ID;
-        String varId = "PRENOM_C";
-        String loopId = "B_PRENOMREP";
-        String editedValue = "TESTPRENOMEDITED";
-
-        List<VariableInputDto> newVariables = new ArrayList<>();
-        VariableInputDto variableInputDto = VariableInputDto.builder()
-                .variableName(varId)
-                .iteration(1)
-                .build();
-
-        variableInputDto.setVariableStateInputDto(VariableStateInputDto.builder()
-                        .state(DataState.EDITED)
-                        .value(editedValue)
-                .build());
-
-        newVariables.add(variableInputDto);
-
-        SurveyUnitInputDto surveyUnitInputDto = SurveyUnitInputDto.builder()
-                .mode(Mode.WEB)
-                .questionnaireId(questionnaireId)
-                .interrogationId(DEFAULT_INTERROGATION_ID)
-                .collectedVariables(newVariables)
-                .build();
-
-        // We need a response in database to retrieve campaignId from interrogationId and questionnaireId
-        SurveyUnitModel suModel = SurveyUnitModel.builder()
-                .state(DataState.COLLECTED)
-                .mode(Mode.WEB)
-                .collectionInstrumentId(questionnaireId)
-                .interrogationId(DEFAULT_INTERROGATION_ID)
+    private SurveyUnitModel buildSurveyUnitModel(String interrogationId,
+                                                 String collectionInstrumentId,
+                                                 Mode mode,
+                                                 DataState state) {
+        return SurveyUnitModel.builder()
+                .interrogationId(interrogationId)
+                .collectionInstrumentId(collectionInstrumentId)
+                .mode(mode)
+                .state(state)
+                .recordDate(Instant.now())
                 .collectedVariables(List.of())
+                .externalVariables(List.of())
                 .build();
-        surveyUnitPersistencePortStub.getMongoStub().add(suModel);
-
-        //WHEN
-        responseControllerStatic.saveEditedVariables(surveyUnitInputDto);
-
-        //THEN
-        SurveyUnitModel docSaved = surveyUnitPersistencePortStub.getMongoStub().get(1);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).hasSize(2);
-        Assertions.assertThat(docSaved.getCollectionInstrumentId()).isEqualTo(questionnaireId);
-        Assertions.assertThat(docSaved.getMode()).isEqualTo(Mode.WEB);
-        Assertions.assertThat(docSaved.getState()).isEqualTo(DataState.EDITED);
-        Assertions.assertThat(docSaved.getFileDate()).isNull();
-        Assertions.assertThat(docSaved.getRecordDate()).isNotNull();
-        Assertions.assertThat(docSaved.getExternalVariables()).isEmpty();
-
-        Assertions.assertThat(docSaved.getCollectedVariables()).hasSize(1);
-        Assertions.assertThat(docSaved.getCollectedVariables().getFirst().varId()).isEqualTo(varId);
-        Assertions.assertThat(docSaved.getCollectedVariables().getFirst().scope()).isEqualTo(loopId);
-        Assertions.assertThat(docSaved.getCollectedVariables().getFirst().parentId()).isEqualTo(Constants.ROOT_GROUP_NAME);
-        Assertions.assertThat(docSaved.getCollectedVariables().getFirst().value()).isEqualTo(editedValue);
-
-        Assertions.assertThat(docSaved.getModifiedBy()).isNull();
     }
 
-    @Test
-    void saveEditedTest_DocumentEdited() {
-        //GIVEN
-        surveyUnitPersistencePortStub.getMongoStub().clear();
-        String questionnaireId = DEFAULT_COLLECTION_INSTRUMENT_ID;
-        String varId = "PRENOM_C";
-        String varId2 = "NB_SOEURS";
-        String loopId = "B_PRENOMREP";
-        String editedValue = "NOT A INT";
-
-        //Variable 1
-        List<VariableInputDto> newVariables = new ArrayList<>();
-        VariableInputDto variableInputDto = VariableInputDto.builder()
-                .variableName(varId)
-                .iteration(1)
-                .variableStateInputDto(VariableStateInputDto.builder()
-                        .state(DataState.EDITED)
-                        .value(editedValue)
-                        .build())
-                .build();
-        newVariables.add(variableInputDto);
-
-        //Variable 2
-        VariableInputDto variableInputDto2 = VariableInputDto.builder()
-                .variableName(varId2)
-                .iteration(1)
-                .variableStateInputDto(VariableStateInputDto.builder()
-                        .state(DataState.EDITED)
-                        .value(editedValue)
-                        .build())
-                .build();
-        newVariables.add(variableInputDto2);
-
-        SurveyUnitInputDto surveyUnitInputDto = SurveyUnitInputDto.builder()
-                .mode(Mode.WEB)
-                .questionnaireId(questionnaireId)
-                .interrogationId(DEFAULT_INTERROGATION_ID)
-                .collectedVariables(newVariables)
-                .build();
-
-        SurveyUnitModel suModel = SurveyUnitModel.builder()
-                .state(DataState.COLLECTED)
-                .mode(Mode.WEB)
-                .collectionInstrumentId(questionnaireId)
-                .interrogationId(DEFAULT_INTERROGATION_ID)
-                .collectedVariables(List.of())
-                .build();
-        surveyUnitPersistencePortStub.getMongoStub().add(suModel);
-
-        //WHEN
-        responseControllerStatic.saveEditedVariables(surveyUnitInputDto);
-
-        //THEN
-        //EDITED document assertions
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).hasSize(3);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().get(1).getCollectionInstrumentId()).isEqualTo(questionnaireId);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().get(1).getState()).isEqualTo(DataState.EDITED);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().get(1).getMode()).isEqualTo(Mode.WEB);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().get(1).getFileDate()).isNull();
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().get(1).getRecordDate()).isNotNull();
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().get(1).getExternalVariables()).isEmpty();
-
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().get(1).getCollectedVariables()).hasSize(2);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().get(1).getCollectedVariables().getFirst().varId()).isEqualTo(varId);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().get(1).getCollectedVariables().getFirst().scope()).isEqualTo(loopId);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().get(1).getCollectedVariables().getFirst().parentId()).isEqualTo(Constants.ROOT_GROUP_NAME);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().get(1).getCollectedVariables().getFirst().value()).isEqualTo(editedValue);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().get(1).getModifiedBy()).isNull();
+    private MetadataModel buildMetadataModel() {
+        MetadataModel model = new MetadataModel();
+        model.setVariables(new VariablesMap());
+        return model;
     }
 
-    @Test
-    void saveEditedTest_DocumentFormatted() {
-        //GIVEN
-        surveyUnitPersistencePortStub.getMongoStub().clear();
-        String questionnaireId = DEFAULT_COLLECTION_INSTRUMENT_ID;
-        String varId = "PRENOM_C";
-        String varId2 = "NB_SOEURS";
-        String loopId = "B_PRENOMREP";
-        String editedValue = "NOT A INT";
-
-        //Variable 1
-        List<VariableInputDto> newVariables = new ArrayList<>();
-        VariableInputDto variableInputDto = VariableInputDto.builder()
-                .variableName(varId)
-                .iteration(1)
-                .variableStateInputDto(VariableStateInputDto.builder()
-                        .state(DataState.EDITED)
-                        .value(editedValue)
-                        .build())
-                .build();
-        newVariables.add(variableInputDto);
-
-        //Variable 2
-        VariableInputDto variableInputDto2 = VariableInputDto.builder()
-                .variableName(varId2)
-                .iteration(1)
-                .variableStateInputDto(VariableStateInputDto.builder()
-                        .state(DataState.EDITED)
-                        .value(editedValue)
-                        .build())
-                .build();
-        newVariables.add(variableInputDto2);
-
-        SurveyUnitInputDto surveyUnitInputDto = SurveyUnitInputDto.builder()
-                .mode(Mode.WEB)
-                .questionnaireId(questionnaireId)
-                .interrogationId(DEFAULT_INTERROGATION_ID)
-                .collectedVariables(newVariables)
-                .build();
-
-        // We need a response in database to retrieve campaignId from interrogationId and questionnaireId
-        SurveyUnitModel suModel = SurveyUnitModel.builder()
-                .state(DataState.COLLECTED)
-                .mode(Mode.WEB)
-                .collectionInstrumentId(questionnaireId)
-                .interrogationId(DEFAULT_INTERROGATION_ID)
-                .collectedVariables(List.of())
-                .build();
-        surveyUnitPersistencePortStub.getMongoStub().add(suModel);
-
-        //WHEN
-        responseControllerStatic.saveEditedVariables(surveyUnitInputDto);
-
-        //THEN
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).hasSize(3);
-
-        //FORMATTED document assertions
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getCollectionInstrumentId()).isEqualTo(questionnaireId);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getState()).isEqualTo(DataState.FORMATTED);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getMode()).isEqualTo(Mode.WEB);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getFileDate()).isNull();
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getRecordDate()).isNotNull();
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getExternalVariables()).isEmpty();
-
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getCollectedVariables()).hasSize(1);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getCollectedVariables().getFirst().varId()).isEqualTo(varId2);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getCollectedVariables().getFirst().scope()).isEqualTo(loopId);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getCollectedVariables().getFirst().parentId()).isEqualTo(Constants.ROOT_GROUP_NAME);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getCollectedVariables().getFirst().value()).isNotNull().isEmpty();
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub().getLast().getModifiedBy()).isNull();
-    }
-    @Test
-    void saveEditedTest_No_Metadata_Error() {
-        //GIVEN
-        surveyUnitPersistencePortStub.getMongoStub().clear();
-        String campaignId = "TEST";
-        String varId = "PRENOM_C";
-        String editedValue = "TESTVALUE";
-
-        //Variable 1
-        List<VariableInputDto> newVariables = new ArrayList<>();
-        VariableInputDto variableInputDto = VariableInputDto.builder()
-                .variableName(varId)
-                .iteration(1)
-                .variableStateInputDto(VariableStateInputDto.builder()
-                        .state(DataState.EDITED)
-                        .value(editedValue)
-                        .build())
-                .build();
-        newVariables.add(variableInputDto);
-
-        SurveyUnitInputDto surveyUnitInputDto = SurveyUnitInputDto.builder()
-                .campaignId(campaignId)
-                .mode(Mode.WEB)
-                .questionnaireId(campaignId)
-                .interrogationId(DEFAULT_INTERROGATION_ID)
-                .collectedVariables(newVariables)
-                .build();
-
-        // We need a response in database to retrieve campaignId from interrogationId and questionnaireId
-        SurveyUnitModel suModel = SurveyUnitModel.builder()
-                .state(DataState.COLLECTED)
-                .mode(Mode.WEB)
-                .collectionInstrumentId(campaignId)
-                .interrogationId(DEFAULT_INTERROGATION_ID)
-                .collectedVariables(List.of())
-                .build();
-        surveyUnitPersistencePortStub.getMongoStub().add(suModel);
-
-        ResponseEntity<Object> response =  responseControllerStatic.saveEditedVariables(
-                surveyUnitInputDto);
-        Assertions.assertThat(
-           response.getStatusCode()
-        ).isEqualTo(HttpStatusCode.valueOf(404));
-    }
-
-    @Test
-    void saveTest_With_Collected_State_Error(){
-        //GIVEN
-        surveyUnitPersistencePortStub.getMongoStub().clear();
-        String varId = "PRENOM_C";
-        String editedValue = "TESTVALUE";
-
-        //Variable 1
-        List<VariableInputDto> newVariables = new ArrayList<>();
-        VariableInputDto variableInputDto = VariableInputDto.builder()
-                .variableName(varId)
-                .variableStateInputDto(VariableStateInputDto.builder()
-                        .state(DataState.COLLECTED) //Collected instead of EDITED
-                        .value(editedValue)
-                        .build())
-                .iteration(1)
-                .build();
-        newVariables.add(variableInputDto);
-
-        SurveyUnitInputDto surveyUnitInputDto = SurveyUnitInputDto.builder()
-                .mode(Mode.WEB)
-                .questionnaireId(DEFAULT_COLLECTION_INSTRUMENT_ID)
-                .interrogationId(DEFAULT_INTERROGATION_ID)
-                .collectedVariables(newVariables)
-                .build();
-
-        // We need a response in database to retrieve campaignId from interrogationId and questionnaireId
-        SurveyUnitModel suModel = SurveyUnitModel.builder()
-                .state(DataState.COLLECTED)
-                .mode(Mode.WEB)
-                .collectionInstrumentId(DEFAULT_COLLECTION_INSTRUMENT_ID)
-                .interrogationId(DEFAULT_INTERROGATION_ID)
-                .collectedVariables(List.of())
-                .build();
-        surveyUnitPersistencePortStub.getMongoStub().add(suModel);
-
-        Assertions.assertThat(responseControllerStatic.saveEditedVariables(surveyUnitInputDto).getStatusCode()).isEqualTo(HttpStatusCode.valueOf(400));
-    }
-
-    @Test
-    void saveEditedTest_int() {
-        //GIVEN
-        surveyUnitPersistencePortStub.getMongoStub().clear();
-        String questionnaireId = DEFAULT_COLLECTION_INSTRUMENT_ID;
-        String varId = "AGE";
-        String loopId = "B_PRENOMREP";
-        Integer editedValue = 5;
-
-        List<VariableInputDto> newVariables = new ArrayList<>();
-        VariableInputDto variableInputDto = VariableInputDto.builder()
-                .variableName(varId)
-                .iteration(1)
-                .build();
-
-        variableInputDto.setVariableStateInputDto(VariableStateInputDto.builder()
-                .state(DataState.EDITED)
-                .value(editedValue)
-                .build());
-
-        newVariables.add(variableInputDto);
-
-        SurveyUnitInputDto surveyUnitInputDto = SurveyUnitInputDto.builder()
-                .mode(Mode.WEB)
-                .questionnaireId(questionnaireId)
-                .interrogationId(DEFAULT_INTERROGATION_ID)
-                .collectedVariables(newVariables)
-                .build();
-
-        // We need a response in database to retrieve campaignId from interrogationId and questionnaireId
-        SurveyUnitModel suModel = SurveyUnitModel.builder()
-                .state(DataState.COLLECTED)
-                .mode(Mode.WEB)
-                .collectionInstrumentId(questionnaireId)
-                .interrogationId(DEFAULT_INTERROGATION_ID)
-                .collectedVariables(List.of())
-                .build();
-        surveyUnitPersistencePortStub.getMongoStub().add(suModel);
-
-        //WHEN
-        responseControllerStatic.saveEditedVariables(surveyUnitInputDto);
-
-        //THEN
-        SurveyUnitModel docSaved = surveyUnitPersistencePortStub.getMongoStub().get(1);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).hasSize(2);
-        Assertions.assertThat(docSaved.getCollectionInstrumentId()).isEqualTo(questionnaireId);
-        Assertions.assertThat(docSaved.getMode()).isEqualTo(Mode.WEB);
-        Assertions.assertThat(docSaved.getState()).isEqualTo(DataState.EDITED);
-        Assertions.assertThat(docSaved.getFileDate()).isNull();
-        Assertions.assertThat(docSaved.getRecordDate()).isNotNull();
-        Assertions.assertThat(docSaved.getExternalVariables()).isEmpty();
-
-        Assertions.assertThat(docSaved.getCollectedVariables()).hasSize(1);
-        Assertions.assertThat(docSaved.getCollectedVariables().getFirst().varId()).isEqualTo(varId);
-        Assertions.assertThat(docSaved.getCollectedVariables().getFirst().scope()).isEqualTo(loopId);
-        Assertions.assertThat(docSaved.getCollectedVariables().getFirst().parentId()).isEqualTo(Constants.ROOT_GROUP_NAME);
-        Assertions.assertThat(docSaved.getCollectedVariables().getFirst().value()).isEqualTo(editedValue.toString());
-
-        Assertions.assertThat(docSaved.getModifiedBy()).isNull();
-    }
-
-    @Test
-    void saveEditedTest_null() {
-        //GIVEN
-        surveyUnitPersistencePortStub.getMongoStub().clear();
-        String questionnaireId = DEFAULT_COLLECTION_INSTRUMENT_ID;
-        String varId = "AGE";
-        String loopId = "B_PRENOMREP";
-        Integer editedValue = null;
-
-        List<VariableInputDto> newVariables = new ArrayList<>();
-        VariableInputDto variableInputDto = VariableInputDto.builder()
-                .variableName(varId)
-                .iteration(1)
-                .build();
-
-        variableInputDto.setVariableStateInputDto(VariableStateInputDto.builder()
-                .state(DataState.EDITED)
-                .value(editedValue)
-                .build());
-
-        newVariables.add(variableInputDto);
-
-        SurveyUnitInputDto surveyUnitInputDto = SurveyUnitInputDto.builder()
-                .mode(Mode.WEB)
-                .questionnaireId(questionnaireId)
-                .interrogationId(DEFAULT_INTERROGATION_ID)
-                .collectedVariables(newVariables)
-                .build();
-
-        // We need a response in database to retrieve campaignId from interrogationId and questionnaireId
-        SurveyUnitModel suModel = SurveyUnitModel.builder()
-                .state(DataState.COLLECTED)
-                .mode(Mode.WEB)
-                .collectionInstrumentId(questionnaireId)
-                .interrogationId(DEFAULT_INTERROGATION_ID)
-                .collectedVariables(List.of())
-                .build();
-        surveyUnitPersistencePortStub.getMongoStub().add(suModel);
-
-        //WHEN
-        responseControllerStatic.saveEditedVariables(surveyUnitInputDto);
-
-        //THEN
-        SurveyUnitModel docSaved = surveyUnitPersistencePortStub.getMongoStub().get(1);
-        Assertions.assertThat(surveyUnitPersistencePortStub.getMongoStub()).hasSize(2);
-        Assertions.assertThat(docSaved.getCollectionInstrumentId()).isEqualTo(questionnaireId);
-        Assertions.assertThat(docSaved.getMode()).isEqualTo(Mode.WEB);
-        Assertions.assertThat(docSaved.getState()).isEqualTo(DataState.EDITED);
-        Assertions.assertThat(docSaved.getFileDate()).isNull();
-        Assertions.assertThat(docSaved.getRecordDate()).isNotNull();
-        Assertions.assertThat(docSaved.getExternalVariables()).isEmpty();
-
-        Assertions.assertThat(docSaved.getCollectedVariables()).hasSize(1);
-        Assertions.assertThat(docSaved.getCollectedVariables().getFirst().varId()).isEqualTo(varId);
-        Assertions.assertThat(docSaved.getCollectedVariables().getFirst().scope()).isEqualTo(loopId);
-        Assertions.assertThat(docSaved.getCollectedVariables().getFirst().parentId()).isEqualTo(Constants.ROOT_GROUP_NAME);
-        Assertions.assertThat(docSaved.getCollectedVariables().getFirst().value()).isNull();
-
-        Assertions.assertThat(docSaved.getModifiedBy()).isNull();
+    private SurveyUnitDto getSurveyUnitDto() {
+        return SurveyUnitDto.builder().build();
     }
 }

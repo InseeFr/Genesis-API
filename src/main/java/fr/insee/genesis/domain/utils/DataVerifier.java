@@ -1,15 +1,15 @@
 package fr.insee.genesis.domain.utils;
 
+import fr.insee.bpm.metadata.model.VariableType;
+import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
-import fr.insee.bpm.metadata.model.VariableType;
-import fr.insee.bpm.metadata.model.VariablesMap;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumMap;
@@ -74,12 +74,11 @@ public class DataVerifier {
         SurveyUnitModel sampleSurveyUnitModel = surveyUnitModelsList.stream().filter(element -> element.getInterrogationId().equals(interrogationId)).toList().getFirst();
         SurveyUnitModel newFormattedSurveyUnitModel = SurveyUnitModel.builder()
                 .collectionInstrumentId(sampleSurveyUnitModel.getCollectionInstrumentId())
-                .campaignId(sampleSurveyUnitModel.getCampaignId())
                 .interrogationId(interrogationId)
                 .usualSurveyUnitId(sampleSurveyUnitModel.getUsualSurveyUnitId())
                 .state(DataState.FORMATTED)
                 .mode(sampleSurveyUnitModel.getMode())
-                .recordDate(LocalDateTime.now().plusSeconds(1)) // Add 1 second to avoid same recordDate as COLLECTED
+                .recordDate(Instant.now().plusSeconds(1)) // Add 1 second to avoid same recordDate as COLLECTED
                 .fileDate(sampleSurveyUnitModel.getFileDate())
                 .collectedVariables(new ArrayList<>())
                 .externalVariables(new ArrayList<>())

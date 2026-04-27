@@ -11,6 +11,7 @@ import fr.insee.genesis.domain.utils.JsonUtils;
 import fr.insee.genesis.exceptions.GenesisException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.io.FileInputStream;
@@ -75,10 +76,10 @@ public class ContextualExternalVariableJsonService implements ContextualExternal
             }
         }catch (JsonParseException jpe){
             contextualExternalVariablePersistancePort.restoreBackup(collectionInstrumentId);
-            throw new GenesisException(400, "JSON Parsing exception : %s".formatted(jpe.toString()));
+            throw new GenesisException(HttpStatus.BAD_REQUEST, "JSON Parsing exception : %s".formatted(jpe.toString()));
         }catch (IOException ioe){
             contextualExternalVariablePersistancePort.restoreBackup(collectionInstrumentId);
-            throw new GenesisException(500, ioe.toString());
+            throw new GenesisException(HttpStatus.INTERNAL_SERVER_ERROR, ioe.toString());
         }
     }
 
@@ -111,13 +112,13 @@ public class ContextualExternalVariableJsonService implements ContextualExternal
 
     private static void checkModel(ContextualExternalVariableModel contextualExternalVariableModel, JsonParser jsonParser, Set<String> savedInterrogationIds) throws GenesisException {
         if(contextualExternalVariableModel.getInterrogationId() == null){
-            throw new GenesisException(400,
+            throw new GenesisException(HttpStatus.BAD_REQUEST,
                     "Missing interrogationId on the object that ends on line %d"
                             .formatted(jsonParser.currentLocation().getLineNr())
             );
         }
         if(savedInterrogationIds.contains(contextualExternalVariableModel.getInterrogationId())){
-            throw new GenesisException(400,
+            throw new GenesisException(HttpStatus.BAD_REQUEST,
                     "Double interrogationId : %s".formatted(contextualExternalVariableModel.getInterrogationId()));
         }
     }

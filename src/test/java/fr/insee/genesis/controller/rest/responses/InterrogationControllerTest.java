@@ -1,68 +1,132 @@
 package fr.insee.genesis.controller.rest.responses;
 
+import fr.insee.genesis.TestConstants;
+import fr.insee.genesis.controller.dto.InterrogationBatchResponse;
 import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
+import fr.insee.genesis.domain.model.surveyunit.InterrogationInfo;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
-import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
-import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
-import fr.insee.genesis.infrastructure.utils.FileUtils;
-import fr.insee.genesis.stubs.ConfigStub;
-import fr.insee.genesis.stubs.QuestionnaireMetadataPersistencePortStub;
-import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 
-import java.io.IOException;
+import java.time.Instant;
 import java.util.List;
 
-import static fr.insee.genesis.TestConstants.DEFAULT_INTERROGATION_ID;
-import static fr.insee.genesis.TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
+@ExtendWith(MockitoExtension.class)
 class InterrogationControllerTest {
-    //Given
-    static InterrogationController interrogationControllerStatic;
-    static SurveyUnitPersistencePortStub surveyUnitPersistencePortStub;
+    @Mock
+    private SurveyUnitApiPort surveyUnitApiPort;
 
-    @BeforeAll
-    static void init() {
-        surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
-        SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(
-                surveyUnitPersistencePortStub,
-                new QuestionnaireMetadataService(new QuestionnaireMetadataPersistencePortStub()),
-                new FileUtils(new ConfigStub())
+    @InjectMocks
+    private InterrogationController interrogationController;
+
+    @Test
+    void getAllInterrogationIdsByQuestionnaire_test() {
+        //GIVEN
+        List<InterrogationId> interrogationIds = List.of(
+                new InterrogationId("test"),
+                new InterrogationId("test2"));
+        doReturn(interrogationIds).when(surveyUnitApiPort).findDistinctInterrogationIdsByQuestionnaireId(any());
+
+        //WHEN
+        ResponseEntity<List<InterrogationId>> response =
+                interrogationController.getAllInterrogationIdsByQuestionnaire(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID);
+
+        //THEN
+        verify(surveyUnitApiPort, times(1)).findDistinctInterrogationIdsByQuestionnaireId(
+                TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID
+        );
+        Assertions.assertThat(response.getBody()).isEqualTo(interrogationIds);
+    }
+
+    @Test
+    void getAllInterrogationIdsByQuestionnaire_date_test() {
+        //GIVEN
+        Instant since = Instant.now();
+        List<InterrogationInfo> interrogationInfos = List.of(
+                new InterrogationInfo("test", Instant.now()));
+        doReturn(interrogationInfos).when(surveyUnitApiPort).searchInterrogations(
+                any(),
+                any(),
+                any()
         );
 
-        interrogationControllerStatic = new InterrogationController( surveyUnitApiPort );
 
-    }
+        //WHEN
+        ResponseEntity<InterrogationBatchResponse> response =
+            interrogationController.getAllInterrogationIdsByQuestionnaire(
+                    TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
+                    since,
+                    null
+            );
 
-    @BeforeEach
-    void reset() throws IOException {
-       Utils.reset(surveyUnitPersistencePortStub);
-    }
-
-
-    //When + Then
-    @Test
-    void getAllInterrogationIdsByQuestionnaireTest() {
-        ResponseEntity<List<InterrogationId>> response = interrogationControllerStatic.getAllInterrogationIdsByQuestionnaire(DEFAULT_COLLECTION_INSTRUMENT_ID);
-
-        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(response.getBody()).isNotNull().isNotEmpty();
-        Assertions.assertThat(response.getBody().getFirst().getInterrogationId()).isEqualTo(DEFAULT_INTERROGATION_ID);
+        //THEN
+        verify(surveyUnitApiPort, times(1)).searchInterrogations(
+                TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
+                since,
+                null
+        );
+        Assertions.assertThat(response.getBody().getInterrogationIds().getFirst().getInterrogationId()).isEqualTo(interrogationInfos.getFirst().interrogationId());
     }
 
     @Test
-    void countAllInterrogationIdsByQuestionnaireOrCollectionInstrumentTest() {
-        ResponseEntity<Long> response = interrogationControllerStatic.countAllInterrogationIdsByQuestionnaireOrCollectionInstrument(DEFAULT_COLLECTION_INSTRUMENT_ID);
+    void countAllInterrogationIdsByQuestionnaireOrCollectionInstrument() {
+        //GIVEN
+        long questionnaireCount = 2;
+        long collectionInstrumentCount = 3;
+        doReturn(questionnaireCount).when(surveyUnitApiPort).countResponsesByQuestionnaireId(any());
+        doReturn(collectionInstrumentCount).when(surveyUnitApiPort).countResponsesByCollectionInstrumentId(any());
 
-        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        Assertions.assertThat(response.getBody()).isNotNull();
-        Assertions.assertThat(response.getBody()).isEqualTo(1L);
+        //WHEN
+        ResponseEntity<Long> response = interrogationController.countAllInterrogationIdsByQuestionnaireOrCollectionInstrument(
+                TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID
+        );
+
+        //THEN
+        verify(surveyUnitApiPort, times(1)).countResponsesByQuestionnaireId(
+                TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID
+        );
+        verify(surveyUnitApiPort, times(1)).countResponsesByCollectionInstrumentId(
+                TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID
+        );
+        Assertions.assertThat(response.getBody()).isEqualTo(collectionInstrumentCount + questionnaireCount);
     }
 
+    @Test
+    void getPaginatedInterrogationIdsByQuestionnaire_test() {
+        //GIVEN
+        List<InterrogationId> interrogationIds = List.of(
+                new InterrogationId("test"),
+                new InterrogationId("test2"));
+        doReturn(interrogationIds).when(surveyUnitApiPort).findDistinctPageableInterrogationIdsByQuestionnaireId(
+                any(), anyLong(), anyLong(), anyLong()
+        );
 
+        //WHEN
+        ResponseEntity<List<InterrogationId>> response = interrogationController.getPaginatedInterrogationIdsByQuestionnaire(
+                TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
+                0,
+                1000,
+                0
+        );
 
+        //THEN
+        verify(surveyUnitApiPort, times(1)).findDistinctPageableInterrogationIdsByQuestionnaireId(
+                TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
+                0,
+                1000,
+                0
+        );
+        Assertions.assertThat(response.getBody()).isEqualTo(interrogationIds);
+    }
 }

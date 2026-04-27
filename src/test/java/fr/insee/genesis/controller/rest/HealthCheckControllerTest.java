@@ -1,95 +1,173 @@
 package fr.insee.genesis.controller.rest;
 
-import fr.insee.genesis.domain.model.surveyunit.DataState;
-import fr.insee.genesis.domain.model.surveyunit.Mode;
-import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
-import fr.insee.genesis.domain.model.surveyunit.VariableModel;
+import fr.insee.genesis.domain.ports.api.DataProcessingContextApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
-import fr.insee.genesis.domain.service.context.DataProcessingContextService;
-import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
-import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
-import fr.insee.genesis.infrastructure.utils.FileUtils;
-import fr.insee.genesis.stubs.ConfigStub;
-import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
-import fr.insee.genesis.stubs.QuestionnaireMetadataPersistencePortStub;
-import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
-import lombok.extern.slf4j.Slf4j;
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import static org.hamcrest.Matchers.containsString;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@Slf4j
+@WebMvcTest(HealthCheckController.class)
+@TestPropertySource(properties = "fr.insee.genesis.version=1.2.3-test")
 class HealthCheckControllerTest {
-    static HealthCheckController healthCheckController;
 
-    static SurveyUnitPersistencePortStub surveyUnitPersistencePortStub;
+    @Autowired
+    private MockMvc mockMvc;
 
-    @BeforeAll
-    static void init() {
-        surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
-        SurveyUnitApiPort surveyUnitApiPort = new SurveyUnitService(
-                surveyUnitPersistencePortStub,
-                new QuestionnaireMetadataService(new QuestionnaireMetadataPersistencePortStub()),
-                new FileUtils(new ConfigStub())
-        );
-        List<VariableModel> externalVariableList = new ArrayList<>();
-        VariableModel variable = VariableModel.builder()
-                .varId("TESTVARID")
-                .value("V1")
-                .iteration(1)
-                .build();
-        externalVariableList.add(variable);
-        variable = VariableModel.builder()
-                .varId("TESTVARID")
-                .value("V2")
-                .iteration(2)
-                .build();
-        externalVariableList.add(variable);
+    @MockitoBean
+    private SurveyUnitApiPort surveyUnitApiPort;
 
-        List<VariableModel> collectedVariableList = new ArrayList<>();
-        VariableModel collectedVariable = VariableModel.builder()
-                .varId("TESTVARID")
-                .value("V1")
-                .scope("TESTSCOPE")
-                .iteration(1)
-                .parentId("TESTPARENTID")
-                .build();
-        collectedVariableList.add(collectedVariable);
-        collectedVariable = VariableModel.builder()
-                .varId("TESTVARID")
-                .value("V2")
-                .scope("TESTSCOPE")
-                .iteration(2)
-                .parentId("TESTPARENTID")
-                .build();
-        collectedVariableList.add(collectedVariable);
-        surveyUnitPersistencePortStub.getMongoStub().add(SurveyUnitModel.builder()
-                .campaignId("TESTCAMPAIGNID")
-                .mode(Mode.WEB)
-                .interrogationId("TESTINTERROGATIONID")
-                .collectionInstrumentId("TESTQUESTIONNAIREID")
-                .state(DataState.COLLECTED)
-                .fileDate(LocalDateTime.of(2023, 1, 1, 0, 0 , 0))
-                .recordDate(LocalDateTime.of(2024, 1, 1, 0, 0, 0))
-                .externalVariables(externalVariableList)
-                .collectedVariables(collectedVariableList)
-                .build());
+    @MockitoBean
+    private DataProcessingContextApiPort dataProcessingContextApiPort;
 
-        healthCheckController = new HealthCheckController(
-                surveyUnitApiPort,
-                new DataProcessingContextService(new DataProcessingContextPersistancePortStub(), new SurveyUnitPersistencePortStub())
-        );
+    // -------------------------------------------------------------------------
+    // GET /health-check
+    // -------------------------------------------------------------------------
+
+    @Nested
+    @DisplayName("GET /health-check tests")
+    class HealthcheckTests {
+
+        @Test
+        @WithMockUser(username = "test-user")
+        @DisplayName("Should return 200 OK")
+        void healthcheck_shouldReturn200() throws Exception {
+            // GIVEN
+
+            // WHEN / THEN
+            mockMvc.perform(get("/health-check"))
+                    .andExpect(status().isOk());
+        }
+
+        @Test
+        @WithMockUser(username = "test-user")
+        @DisplayName("Should include 'OK' in response body")
+        void healthcheck_shouldContainOk() throws Exception {
+            // GIVEN
+
+            // WHEN / THEN
+            mockMvc.perform(get("/health-check"))
+                    .andExpect(content().string(containsString("OK")));
+        }
+
+        @Test
+        @WithMockUser(username = "test-user")
+        @DisplayName("Should include the project version in response body")
+        void healthcheck_shouldContainVersion() throws Exception {
+            // GIVEN
+
+            // WHEN / THEN
+            mockMvc.perform(get("/health-check"))
+                    .andExpect(content().string(containsString("1.2.3-test")));
+        }
+
+        @Test
+        @WithMockUser(username = "test-user")
+        @DisplayName("Should include the authenticated username in response body")
+        void healthcheck_shouldContainUsername() throws Exception {
+            // GIVEN
+
+            // WHEN / THEN
+            mockMvc.perform(get("/health-check"))
+                    .andExpect(content().string(containsString("test-user")));
+        }
     }
 
-    @Test
-    void mongoCountTest() {
-        ResponseEntity<String> response = healthCheckController.healthcheckMongo();
-        log.info(response.getBody());
-        Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+    // -------------------------------------------------------------------------
+    // GET /health-check/mongoDb
+    // -------------------------------------------------------------------------
+
+    @Nested
+    @DisplayName("GET /health-check/mongoDb tests")
+    class HealthcheckMongoTests {
+
+        @Test
+        @WithMockUser
+        @DisplayName("Should return 200 OK")
+        void healthcheckMongo_shouldReturn200() throws Exception {
+            // GIVEN
+            when(surveyUnitApiPort.countResponses()).thenReturn(42L);
+            when(dataProcessingContextApiPort.countContexts()).thenReturn(7L);
+
+            // WHEN / THEN
+            mockMvc.perform(get("/health-check/mongoDb"))
+                    .andExpect(status().isOk());
+        }
+
+        @Test
+        @WithMockUser
+        @DisplayName("Should include 'MongoDB OK' in response body")
+        void healthcheckMongo_shouldContainMongoDbOk() throws Exception {
+            // GIVEN
+            when(surveyUnitApiPort.countResponses()).thenReturn(0L);
+            when(dataProcessingContextApiPort.countContexts()).thenReturn(0L);
+
+            // WHEN / THEN
+            mockMvc.perform(get("/health-check/mongoDb"))
+                    .andExpect(content().string(containsString("MongoDB OK")));
+        }
+
+        @Test
+        @WithMockUser
+        @DisplayName("Should include the response count from surveyUnitApiPort")
+        void healthcheckMongo_shouldContainResponseCount() throws Exception {
+            // GIVEN
+            when(surveyUnitApiPort.countResponses()).thenReturn(42L);
+            when(dataProcessingContextApiPort.countContexts()).thenReturn(0L);
+
+            // WHEN / THEN
+            mockMvc.perform(get("/health-check/mongoDb"))
+                    .andExpect(content().string(containsString("42")));
+        }
+
+        @Test
+        @WithMockUser
+        @DisplayName("Should include the context count from dataProcessingContextApiPort")
+        void healthcheckMongo_shouldContainContextCount() throws Exception {
+            // GIVEN
+            when(surveyUnitApiPort.countResponses()).thenReturn(0L);
+            when(dataProcessingContextApiPort.countContexts()).thenReturn(7L);
+
+            // WHEN / THEN
+            mockMvc.perform(get("/health-check/mongoDb"))
+                    .andExpect(content().string(containsString("7")));
+        }
+
+        @Test
+        @WithMockUser
+        @DisplayName("Should include 'Responses' label in response body")
+        void healthcheckMongo_shouldContainResponsesLabel() throws Exception {
+            // GIVEN
+            when(surveyUnitApiPort.countResponses()).thenReturn(0L);
+            when(dataProcessingContextApiPort.countContexts()).thenReturn(0L);
+
+            // WHEN / THEN
+            mockMvc.perform(get("/health-check/mongoDb"))
+                    .andExpect(content().string(containsString("Responses")));
+        }
+
+        @Test
+        @WithMockUser
+        @DisplayName("Should include 'Contexts' label in response body")
+        void healthcheckMongo_shouldContainContextsLabel() throws Exception {
+            // GIVEN
+            when(surveyUnitApiPort.countResponses()).thenReturn(0L);
+            when(dataProcessingContextApiPort.countContexts()).thenReturn(0L);
+
+            // WHEN / THEN
+            mockMvc.perform(get("/health-check/mongoDb"))
+                    .andExpect(content().string(containsString("Contexts")));
+        }
     }
 }
