@@ -132,6 +132,18 @@ public class DataProcessingContextController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Fetch all schedules V1")
+    @GetMapping(path = "/contexts/schedules/v1")
+    @PreAuthorize("hasAnyRole('SCHEDULER','READER')")
+    public ResponseEntity<Object> getAllSchedulesV1() {
+        log.debug("Got GET all schedules V1 request");
+
+        List<ScheduleResponseDto> schedules = dataProcessingContextApiPort.getAllSchedulesV1();
+
+        log.info("Returning {} V1 schedule documents...", schedules.size());
+        return ResponseEntity.ok(schedules);
+    }
+
     @Operation(summary = "Fetch all schedules V2")
     @GetMapping(path = "/contexts/schedules/v2")
     @PreAuthorize("hasAnyRole('SCHEDULER','READER')")

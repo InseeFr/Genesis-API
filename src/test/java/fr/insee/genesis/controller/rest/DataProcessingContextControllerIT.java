@@ -3,6 +3,7 @@ package fr.insee.genesis.controller.rest;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.IntegrationTestAbstract;
 import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionSchedule;
+import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionScheduleV2;
 import fr.insee.genesis.domain.model.context.schedule.ServiceToCall;
 import fr.insee.genesis.infrastructure.document.context.DataProcessingContextDocument;
 import lombok.SneakyThrows;
@@ -24,7 +25,9 @@ import org.springframework.security.test.context.support.WithMockUser;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
@@ -32,7 +35,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class DataProcessingContextControllerIT extends IntegrationTestAbstract {
@@ -87,6 +92,7 @@ public class DataProcessingContextControllerIT extends IntegrationTestAbstract {
             String frequency = "0 0 0 0 0 0";
             ServiceToCall serviceToCall = ServiceToCall.GENESIS;
             KraftwerkExecutionSchedule kraftwerkExecutionSchedule = new KraftwerkExecutionSchedule(
+                    null,
                     frequency,
                     serviceToCall,
                     start,
@@ -171,6 +177,118 @@ public class DataProcessingContextControllerIT extends IntegrationTestAbstract {
     }
 
     @Nested
+    @DisplayName("Get schedules tests")
+    class GetSchedulesTests{
+        //HAPPY PATHS
+        @Test
+        @WithMockUser(roles = "USER_KRAFTWERK")
+        @DisplayName("Get schedules V1 test")
+        @SneakyThrows
+        void get_schedulesV1_test(){
+            //GIVEN
+            String collectionInstrumentId = "collectionInstrumentId";
+            ObjectId objectId = new ObjectId();
+            String frequency1 = "0 0 0 0 0 0";
+            String frequency2 = "0 0 0 0 0 1";
+
+            DataProcessingContextDocument dataProcessingContextDocument = new DataProcessingContextDocument();
+            dataProcessingContextDocument.setId(objectId);
+            dataProcessingContextDocument.setPartitionId(collectionInstrumentId);
+            dataProcessingContextDocument.setKraftwerkExecutionScheduleList(new ArrayList<>());
+            dataProcessingContextDocument.getKraftwerkExecutionScheduleList().add(new KraftwerkExecutionSchedule(
+                    collectionInstrumentId,
+                    frequency1,
+                    null,
+                    null,
+                    null,
+                    null
+            ));
+            dataProcessingContextDocument.getKraftwerkExecutionScheduleList().add(new KraftwerkExecutionSchedule(
+                    collectionInstrumentId,
+                    frequency2,
+                    null,
+                    null,
+                    null,
+                    null
+            ));
+            when(dataProcessingContextMongoDBRepository.findAll()).thenReturn(List.of(dataProcessingContextDocument));
+
+            //WHEN
+            mockMvc.perform(get("/contexts/schedules/v1")
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON))
+                    //THEN
+                    .andExpect(status().isOk())
+                    .andExpect(content().string(containsString(collectionInstrumentId)))
+                    .andExpect(content().string(containsString(frequency1)))
+                    .andExpect(content().string(containsString(frequency2)));
+
+            verify(dataProcessingContextMongoDBRepository, times(1))
+                    .findAll();
+        }
+
+        @Test
+        @WithMockUser(roles = "USER_KRAFTWERK")
+        @DisplayName("Get schedules V2 test")
+        @SneakyThrows
+        void get_schedulesV2_test(){
+            //GIVEN
+            String collectionInstrumentId = "collectionInstrumentId";
+            ObjectId objectId = new ObjectId();
+            String frequency1 = "0 0 0 0 0 0";
+            String frequency2 = "0 0 0 0 0 1";
+
+            DataProcessingContextDocument dataProcessingContextDocument = new DataProcessingContextDocument();
+            dataProcessingContextDocument.setId(objectId);
+            dataProcessingContextDocument.setPartitionId(collectionInstrumentId);
+            dataProcessingContextDocument.setKraftwerkExecutionScheduleV2List(new ArrayList<>());
+            dataProcessingContextDocument.getKraftwerkExecutionScheduleV2List().add(new KraftwerkExecutionScheduleV2(
+                    UUID.randomUUID().toString(),
+                    frequency1,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    false,
+                    null,
+                    false,
+                    null,
+                    null
+            ));
+            dataProcessingContextDocument.getKraftwerkExecutionScheduleV2List().add(new KraftwerkExecutionScheduleV2(
+                    collectionInstrumentId,
+                    frequency2,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    false,
+                    null,
+                    false,
+                    null,
+                    null
+            ));
+            when(dataProcessingContextMongoDBRepository.findAll()).thenReturn(List.of(dataProcessingContextDocument));
+
+            //WHEN
+            mockMvc.perform(get("/contexts/schedules/v2")
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON))
+                    //THEN
+                    .andExpect(status().isOk())
+                    .andExpect(content().string(containsString(collectionInstrumentId)))
+                    .andExpect(content().string(containsString(frequency1)))
+                    .andExpect(content().string(containsString(frequency2)));
+
+            verify(dataProcessingContextMongoDBRepository, times(1))
+                    .findAll();
+        }
+
+    }
+
+    @Nested
     @DisplayName("Schedule deleting tests")
     class DeleteSchedulesTests{
         //HAPPY PATHS
@@ -188,6 +306,7 @@ public class DataProcessingContextControllerIT extends IntegrationTestAbstract {
             dataProcessingContextDocument.setCollectionInstrumentId(collectionInstrumentId);
             dataProcessingContextDocument.setKraftwerkExecutionScheduleList(new ArrayList<>());
             dataProcessingContextDocument.getKraftwerkExecutionScheduleList().add(new KraftwerkExecutionSchedule(
+                    null,
                     null,
                     null,
                     null,
@@ -234,6 +353,7 @@ public class DataProcessingContextControllerIT extends IntegrationTestAbstract {
             String expiredFrequency = "0 0 0 0 0 0";
             LocalDateTime expiredDate = LocalDateTime.now().minusDays(3);
             dataProcessingContextDocument.getKraftwerkExecutionScheduleList().add(new KraftwerkExecutionSchedule(
+                    null,
                     expiredFrequency,
                     null,
                     LocalDateTime.now().minusDays(7),

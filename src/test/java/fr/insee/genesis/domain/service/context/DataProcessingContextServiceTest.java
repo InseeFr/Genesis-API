@@ -1,7 +1,14 @@
 package fr.insee.genesis.domain.service.context;
 
 import fr.insee.genesis.TestConstants;
+import fr.insee.genesis.controller.dto.rawdata.ScheduleResponseDto;
+import fr.insee.genesis.controller.utils.ExportType;
 import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
+import fr.insee.genesis.domain.model.context.schedule.DestinationType;
+import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionSchedule;
+import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionScheduleV2;
+import fr.insee.genesis.domain.model.context.schedule.ServiceToCall;
+import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.ports.spi.DataProcessingContextPersistancePort;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
@@ -18,18 +25,21 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class DataProcessingContextServiceUnitTest {
+class DataProcessingContextServiceTest {
     @Mock
     private DataProcessingContextPersistancePort dataProcessingContextPersistancePort;
 
@@ -198,5 +208,125 @@ class DataProcessingContextServiceUnitTest {
 
         //THEN
         Assertions.assertThat(collectionInstrumentIds).containsExactly(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID);
+    }
+
+    @Test
+    @SneakyThrows
+    void getReviewByCollectionInstrumentId_test() {
+        //GIVEN
+        String collectionInstrumentId = "test";
+        boolean withReview = true;
+        DataProcessingContextModel dataProcessingContextModel = DataProcessingContextModel.builder()
+                .collectionInstrumentId(collectionInstrumentId)
+                .withReview(withReview)
+                .build();
+        doReturn(dataProcessingContextModel).when(dataProcessingContextPersistancePort).findByCollectionInstrumentId(any());
+
+        //WHEN
+        boolean actual = dataProcessingContextService.getReviewByCollectionInstrumentId(collectionInstrumentId);
+
+        //THEN
+        verify(dataProcessingContextPersistancePort, times(1)).findByCollectionInstrumentId(collectionInstrumentId);
+        Assertions.assertThat(actual).isEqualTo(withReview);
+    }
+
+    @Test
+    void getReviewByCollectionInstrumentId_not_found_test() {
+        //WHEN + THEN
+        try{
+            dataProcessingContextService.getReviewByCollectionInstrumentId("collectionInstrumentId");
+            Assertions.fail();
+        }catch (GenesisException ge){
+            Assertions.assertThat(ge.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @Test
+    @SneakyThrows
+    void getSchedulesV1_test() {
+        //GIVEN
+        String collectionInstrumentId = "test";
+        String frequency = "0 0 0 0 0 0";
+        ServiceToCall serviceToCall = ServiceToCall.GENESIS;
+        LocalDateTime start = LocalDateTime.now();
+        LocalDateTime end = LocalDateTime.now().plusDays(1);
+        List<KraftwerkExecutionSchedule> kraftwerkExecutionScheduleList = List.of(
+                new KraftwerkExecutionSchedule(
+                        collectionInstrumentId,
+                        frequency,
+                        serviceToCall,
+                        start,
+                        end,
+                        null
+                )
+        );
+
+        DataProcessingContextDocument dataProcessingContextDocument = new DataProcessingContextDocument();
+        dataProcessingContextDocument.setPartitionId(collectionInstrumentId);
+        dataProcessingContextDocument.setKraftwerkExecutionScheduleList(kraftwerkExecutionScheduleList);
+        when(dataProcessingContextPersistancePort.findAll()).thenReturn(List.of(dataProcessingContextDocument));
+
+        //WHEN
+        List<ScheduleResponseDto> scheduleResponseDtos = dataProcessingContextService.getAllSchedulesV1();
+
+        //THEN
+        verify(dataProcessingContextPersistancePort, times(1)).findAll();
+        Assertions.assertThat(scheduleResponseDtos).hasSize(1);
+        Assertions.assertThat(scheduleResponseDtos.getFirst().getCollectionInstrumentId())
+                .isEqualTo(collectionInstrumentId);
+        Assertions.assertThat(scheduleResponseDtos.getFirst().getFrequency())
+                .isEqualTo(frequency);
+        Assertions.assertThat(scheduleResponseDtos.getFirst().getExportType())
+                .isEqualTo(ExportType.CSV_PARQUET);
+        Assertions.assertThat(scheduleResponseDtos.getFirst().getScheduleBeginDate()).isEqualTo(start);
+        Assertions.assertThat(scheduleResponseDtos.getFirst().getScheduleEndDate()).isEqualTo(end);
+    }
+
+    @Test
+    @SneakyThrows
+    void getSchedulesV2_test() {
+        //GIVEN
+        String collectionInstrumentId = "collectionInstrumentId";
+        String frequency = "0 0 0 0 0";
+        LocalDateTime start = LocalDateTime.now();
+        LocalDateTime end = LocalDateTime.now().plusDays(1);
+        ExportType exportType = ExportType.JSON;
+        Mode mode = Mode.WEB;
+        List<KraftwerkExecutionScheduleV2> kraftwerkExecutionScheduleV2List = List.of(
+                new KraftwerkExecutionScheduleV2(
+                        UUID.randomUUID().toString(),
+                        frequency,
+                        exportType,
+                        start,
+                        end,
+                        mode,
+                        DestinationType.APPLISHARE,
+                        true,
+                        "test",
+                        false,
+                        null,
+                        100
+                )
+        );
+
+        DataProcessingContextDocument dataProcessingContextDocument = new DataProcessingContextDocument();
+        dataProcessingContextDocument.setCollectionInstrumentId(collectionInstrumentId);
+        dataProcessingContextDocument.setKraftwerkExecutionScheduleV2List(kraftwerkExecutionScheduleV2List);
+        when(dataProcessingContextPersistancePort.findAll()).thenReturn(List.of(dataProcessingContextDocument));
+
+        //WHEN
+        List<ScheduleResponseDto> scheduleResponseDtos = dataProcessingContextService.getAllSchedulesV2();
+
+        //THEN
+        verify(dataProcessingContextPersistancePort, times(1)).findAll();
+        Assertions.assertThat(scheduleResponseDtos).hasSize(1);
+        Assertions.assertThat(scheduleResponseDtos.getFirst().getCollectionInstrumentId())
+                .isEqualTo(collectionInstrumentId);
+        Assertions.assertThat(scheduleResponseDtos.getFirst().getFrequency())
+                .isEqualTo(frequency);
+        Assertions.assertThat(scheduleResponseDtos.getFirst().getExportType())
+                .isEqualTo(exportType);
+        Assertions.assertThat(scheduleResponseDtos.getFirst().getScheduleBeginDate()).isEqualTo(start);
+        Assertions.assertThat(scheduleResponseDtos.getFirst().getScheduleEndDate()).isEqualTo(end);
     }
 }
