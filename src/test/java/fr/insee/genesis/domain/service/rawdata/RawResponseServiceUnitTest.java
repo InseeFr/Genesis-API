@@ -14,7 +14,9 @@ import fr.insee.genesis.domain.ports.spi.SurveyUnitQualityToolPort;
 import fr.insee.genesis.domain.service.context.DataProcessingContextService;
 import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
+import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityToolService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
+import fr.insee.genesis.domain.utils.RawResponseConverter;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.modelefiliere.ModeDto;
@@ -55,16 +57,22 @@ import static org.mockito.Mockito.verify;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class RawResponseServiceUnitTest {
 
-    static RawResponseService rawResponseService;
+    private RawResponseService rawResponseService;
 
     @Mock
-    static RawResponsePersistencePort rawResponsePersistencePort;
+    private RawResponsePersistencePort rawResponsePersistencePort;
     @Mock
-    static ControllerUtils controllerUtils;
+    private ControllerUtils controllerUtils;
     @Mock
-    static QuestionnaireMetadataService metadataService;
+    private QuestionnaireMetadataService metadataService;
     @Mock
-    static SurveyUnitService surveyUnitService;
+    private SurveyUnitService surveyUnitService;
+    @Mock
+    private SurveyUnitQualityService surveyUnitQualityService;
+    @Mock
+    private SurveyUnitQualityToolService surveyUnitQualityToolService;
+    @Mock
+    private RawResponseConverter rawResponseConverter;
 
     @Captor
     private ArgumentCaptor<List<SurveyUnitModel>> surveyUnitModelsCaptor;
@@ -77,11 +85,11 @@ class RawResponseServiceUnitTest {
                 controllerUtils,
                 metadataService,
                 surveyUnitService,
-                mock(SurveyUnitQualityService.class),
-                mock(SurveyUnitQualityToolPort.class),
-                mock(DataProcessingContextService.class),
+                surveyUnitQualityService,
+                surveyUnitQualityToolService,
                 new FileUtils(TestConstants.getConfigStub()),
                 TestConstants.getConfigStub(),
+                rawResponseConverter,
                 rawResponsePersistencePort
         );
     }
@@ -117,14 +125,14 @@ class RawResponseServiceUnitTest {
                 mock(QuestionnaireMetadataPersistencePort.class)
         );
         rawResponseService = new RawResponseService(
-                new ControllerUtils(new FileUtils(TestConstants.getConfigStub())),
+                controllerUtils,
                 metadataService,
-                mock(SurveyUnitService.class),
-                mock(SurveyUnitQualityService.class),
-                mock(SurveyUnitQualityToolPort.class),
-                mock(DataProcessingContextService.class),
+                surveyUnitService,
+                surveyUnitQualityService,
+                surveyUnitQualityToolService,
                 new FileUtils(TestConstants.getConfigStub()),
                 TestConstants.getConfigStub(),
+                rawResponseConverter,
                 rawResponsePersistencePort
         );
 
@@ -438,7 +446,7 @@ class RawResponseServiceUnitTest {
             List<RawResponseModel> rawResponses = List.of(rawResponse);
 
             // WHEN
-            List<SurveyUnitModel> result = rawResponseService.convertRawResponse(rawResponses, variablesMap);
+            List<SurveyUnitModel> result = rawResponseConverter.convertRawResponse(rawResponses, variablesMap);
 
             // THEN
             Assertions.assertThat(result).hasSize(1); // only COLLECTED state (EDITED has no data)
@@ -455,7 +463,7 @@ class RawResponseServiceUnitTest {
             List<RawResponseModel> rawResponses = List.of(rawResponse);
 
             // WHEN
-            List<SurveyUnitModel> result = rawResponseService.convertRawResponse(rawResponses, variablesMap);
+            List<SurveyUnitModel> result = rawResponseConverter.convertRawResponse(rawResponses, variablesMap);
 
             // THEN
             // On attend 1 modèle EDITED avec des variables
@@ -475,7 +483,7 @@ class RawResponseServiceUnitTest {
             List<RawResponseModel> rawResponses = List.of(rawResponse);
 
             // WHEN
-            List<SurveyUnitModel> result = rawResponseService.convertRawResponse(rawResponses, variablesMap);
+            List<SurveyUnitModel> result = rawResponseConverter.convertRawResponse(rawResponses, variablesMap);
 
             // THEN
             List<SurveyUnitModel> collectedModels = result.stream()
@@ -494,7 +502,7 @@ class RawResponseServiceUnitTest {
             List<RawResponseModel> rawResponses = List.of(rawResponse);
 
             // WHEN
-            List<SurveyUnitModel> result = rawResponseService.convertRawResponse(rawResponses, variablesMap);
+            List<SurveyUnitModel> result = rawResponseConverter.convertRawResponse(rawResponses, variablesMap);
 
             // THEN
             Assertions.assertThat(result).isEmpty();
@@ -508,7 +516,7 @@ class RawResponseServiceUnitTest {
             List<RawResponseModel> rawResponses = List.of(rawResponse);
 
             // WHEN
-            List<SurveyUnitModel> result = rawResponseService.convertRawResponse(rawResponses, variablesMap);
+            List<SurveyUnitModel> result = rawResponseConverter.convertRawResponse(rawResponses, variablesMap);
 
             // THEN
             List<SurveyUnitModel> collectedModels = result.stream()
@@ -530,7 +538,7 @@ class RawResponseServiceUnitTest {
             List<RawResponseModel> rawResponses = List.of(rawResponse);
 
             // WHEN
-            List<SurveyUnitModel> result = rawResponseService.convertRawResponse(rawResponses, variablesMap);
+            List<SurveyUnitModel> result = rawResponseConverter.convertRawResponse(rawResponses, variablesMap);
 
             // THEN
             List<SurveyUnitModel> collectedModels = result.stream()

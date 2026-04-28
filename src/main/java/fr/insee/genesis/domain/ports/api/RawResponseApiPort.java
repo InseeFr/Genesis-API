@@ -21,7 +21,6 @@ public interface RawResponseApiPort {
     DataProcessResult processRawResponsesByInterrogationIds(String collectionInstrumentId, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException;
     DataProcessResult processRawResponsesByInterrogationIds(String collectionInstrumentId) throws GenesisException;
 
-    List<SurveyUnitModel> convertRawResponse(List<RawResponseModel> rawResponses, VariablesMap variablesMap);
     List<String> getUnprocessedCollectionInstrumentIds();
     void updateProcessDates(List<SurveyUnitModel> surveyUnitModels);
     Page<RawResponseModel> findRawResponseDataByCampaignIdAndDate(String campaignId, Instant startDate, Instant endDate, Pageable pageable);

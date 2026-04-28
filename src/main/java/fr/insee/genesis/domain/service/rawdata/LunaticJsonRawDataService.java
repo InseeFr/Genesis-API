@@ -51,7 +51,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static fr.insee.genesis.domain.service.rawdata.RawResponseService.processCollectedVariable;
+import static fr.insee.genesis.domain.utils.RawResponseConverter.processCollectedVariable;
+
 
 @Service
 @Slf4j
@@ -588,7 +589,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     }
 
     //Utils
-    protected static String getValueString(Object value) {
+    public static String getValueString(Object value) {
         if (value instanceof Double || value instanceof Float) {
             BigDecimal bd = new BigDecimal(value.toString());
             return bd.stripTrailingZeros().toPlainString();
