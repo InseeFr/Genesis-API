@@ -46,7 +46,7 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
     }
 
     @Override
-    public void saveContextByCollectionInstrumentId(String collectionInstrumentId, Boolean withReview) throws GenesisException {
+    public void saveContextByCollectionInstrumentId(String collectionInstrumentId, Boolean withReview)  {
         DataProcessingContextModel dataProcessingContextModel = dataProcessingContextPersistancePort.findByCollectionInstrumentId(collectionInstrumentId);
         if(dataProcessingContextModel == null){
             //Create if not exist
@@ -235,7 +235,19 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
                 dataProcessingContextPersistancePort.findByCollectionInstrumentIds(List.of(collectionInstrumentId));
 
         return dataProcessingContextModels.stream()
-                .flatMap(model -> model.toScheduleResponseDtos().stream())
+                .flatMap(model -> model.toScheduleV2ResponseDtos().stream())
+                .toList();
+    }
+
+    @Override
+    public List<ScheduleResponseDto> getAllSchedulesV1() {
+        List<DataProcessingContextModel> dataProcessingContextModels =
+                DataProcessingContextMapper.INSTANCE.listDocumentToListModel(
+                        dataProcessingContextPersistancePort.findAll()
+                );
+
+        return dataProcessingContextModels.stream()
+                .flatMap(model -> model.toScheduleV1ResponseDtos().stream())
                 .toList();
     }
 
@@ -247,7 +259,7 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
                 );
 
         return dataProcessingContextModels.stream()
-                .flatMap(model -> model.toScheduleResponseDtos().stream())
+                .flatMap(model -> model.toScheduleV2ResponseDtos().stream())
                 .toList();
     }
 
