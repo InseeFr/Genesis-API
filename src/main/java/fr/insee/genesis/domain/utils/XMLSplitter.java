@@ -2,6 +2,7 @@ package fr.insee.genesis.domain.utils;
 
 import fr.insee.genesis.exceptions.GenesisException;
 import lombok.experimental.UtilityClass;
+import org.springframework.http.HttpStatus;
 
 import javax.xml.XMLConstants;
 import javax.xml.stream.XMLEventFactory;
@@ -133,7 +134,7 @@ public class XMLSplitter {
             }
             xer.close();
         } catch (IOException e) {
-            throw new GenesisException(500,e.getMessage());
+            throw new GenesisException(HttpStatus.INTERNAL_SERVER_ERROR,e.getMessage());
         }
         return List.of();
 	}

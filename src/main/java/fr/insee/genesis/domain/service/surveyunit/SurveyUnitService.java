@@ -10,6 +10,7 @@ import fr.insee.genesis.controller.dto.VariableInputDto;
 import fr.insee.genesis.controller.dto.VariableStateDto;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
+import fr.insee.genesis.domain.model.surveyunit.InterrogationInfo;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VarIdScopeTuple;
@@ -26,11 +27,11 @@ import fr.insee.modelefiliere.RawResponseDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -38,7 +39,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -192,10 +192,11 @@ public class SurveyUnitService implements SurveyUnitApiPort {
      * @return a SurveyUnitSimplifiedDto of the interrogation
      */
     @Override
-    public SurveyUnitSimplifiedDto findSimplifiedByCollectionInstrumentIdAndInterrogationId(
+    public SurveyUnitSimplifiedDto findSimplified(
             String collectionInstrumentId,
             String interrogationId,
-            Mode mode) throws NoDataException {
+            Mode mode,
+            Instant recordedBefore) throws NoDataException {
         List<SurveyUnitModel> responses = findLatestByIdAndByCollectionInstrumentId(interrogationId, collectionInstrumentId);
 
         if(responses.isEmpty()){
@@ -204,12 +205,17 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             throw new NoDataException(errorMessage);
         }
 
+        // We keep only the survey unit recorded in the collection before the time stamp 'recordedBefore'
+        List<SurveyUnitModel> filteredResponses = responses.stream()
+                .filter(su -> su.getRecordDate() != null)
+                .filter(su -> recordedBefore == null || !su.getRecordDate().isAfter(recordedBefore))
+                .toList();
         List<VariableModel> outputVariables = new ArrayList<>();
         List<VariableModel> outputExternalVariables = new ArrayList<>();
         RawResponseDto.QuestionnaireStateEnum questionnaireState = null;
         LocalDateTime validationDate = null;
 
-        for (SurveyUnitModel response : responses) {
+        for (SurveyUnitModel response : filteredResponses) {
             if (!mode.equals(response.getMode())) {
                 continue;
             }
@@ -223,7 +229,11 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             outputExternalVariables.addAll(response.getExternalVariables());
         }
 
-        SurveyUnitModel first = responses.getFirst();
+        if (filteredResponses.isEmpty()){
+            return null;
+        }
+
+        SurveyUnitModel first = filteredResponses.getFirst();
         return SurveyUnitSimplifiedDto.builder()
                 .collectionInstrumentId(first.getCollectionInstrumentId())
                 .interrogationId(first.getInterrogationId())
@@ -242,19 +252,21 @@ public class SurveyUnitService implements SurveyUnitApiPort {
      * @return a SurveyUnitSimplifiedDto list, 1 DTO / Interrogation
      */
     @Override
-    public List<SurveyUnitSimplifiedDto> findSimplifiedByCollectionInstrumentIdAndInterrogationIdList(
+    public List<SurveyUnitSimplifiedDto> findSimplifiedList(
             String collectionInstrumentId,
-            List<InterrogationId> interrogationIds
+            List<InterrogationId> interrogationIds,
+            Instant recordedBefore
     ) {
         List<Mode> modes = findModesByCollectionInstrumentId(collectionInstrumentId);
         return interrogationIds.stream()
                 .flatMap(interrogationId -> modes.stream()
                         .map(mode -> {
                             try {
-                                return findSimplifiedByCollectionInstrumentIdAndInterrogationId(
+                                return findSimplified(
                                         collectionInstrumentId,
                                         interrogationId.getInterrogationId(),
-                                        mode
+                                        mode,
+                                        recordedBefore
                                 );
                             } catch (NoDataException e) {
                                 log.debug(e.getMessage());
@@ -400,32 +412,8 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     }
 
     @Override
-    public List<InterrogationId> findDistinctInterrogationIdsByQuestionnaireIdAndDateAfter(String questionnaireId, LocalDateTime since) {
-        return  surveyUnitPersistencePort
-                .findInterrogationIdsByQuestionnaireIdAndDateAfter(questionnaireId, since)
-                .stream()
-                .map(su -> new InterrogationId(su.getInterrogationId()))
-                .distinct()
-                .toList();
-    }
-
-    @Override
-    public List<InterrogationId> findDistinctInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
-            String collectionInstrumentId,
-            Instant start,
-            Instant end
-    ) {
-
-        return surveyUnitPersistencePort
-                .findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
-                        collectionInstrumentId,
-                        start,
-                        end
-                )
-                .stream()
-                .map(su -> new InterrogationId(su.getInterrogationId()))
-                .distinct()
-                .toList();
+    public List<InterrogationInfo> searchInterrogations(String collectionInstrumentId, Instant start, Instant end) {
+        return surveyUnitPersistencePort.searchInterrogations(collectionInstrumentId, start, end).stream().distinct().toList();
     }
 
     //============ OPTIMISATIONS PERFS (START) ============
@@ -480,7 +468,6 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     public List<Mode> findModesByCollectionInstrumentId(String collectionInstrumentId) {
         List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findInterrogationIdsByCollectionInstrumentId(collectionInstrumentId);
         if (surveyUnitModels == null || surveyUnitModels.isEmpty()) {
-            log.warn("No collectionInstrument found with id: {}", collectionInstrumentId);
             throw new QuestionnaireNotFoundException(collectionInstrumentId);
         }
         List<Mode> sources =  surveyUnitModels.stream().map(SurveyUnitModel::getMode).distinct().toList();
@@ -533,7 +520,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                 .toList();
 
         if (statesReceived.contains(DataState.COLLECTED)){
-            throw new GenesisException(400,"You can not persist in database a new value with the state COLLECTED");
+            throw new GenesisException(HttpStatus.BAD_REQUEST,"You can not persist in database a new value with the state COLLECTED");
         }
 
         List<SurveyUnitModel> surveyUnitModels = new ArrayList<>();
@@ -544,7 +531,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                     .collectionInstrumentId(surveyUnitInputDto.getQuestionnaireId().toUpperCase())
                     .interrogationId(surveyUnitInputDto.getInterrogationId())
                     .state(state)
-                    .recordDate(LocalDateTime.now())
+                    .recordDate(Instant.now())
                     .collectedVariables(new ArrayList<>())
                     .externalVariables(new ArrayList<>())
                     .modifiedBy(userIdentifier)
@@ -580,17 +567,20 @@ public class SurveyUnitService implements SurveyUnitApiPort {
     public String findQuestionnaireIdByInterrogationId(String interrogationId) throws GenesisException {
         List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findByInterrogationId(interrogationId);
         if (surveyUnitModels.isEmpty()){
-            throw new GenesisException(404,String.format("The interrogationId %s is not in database",interrogationId));
+            throw new GenesisException(HttpStatus.NOT_FOUND,String.format("The interrogationId %s is not in database",interrogationId));
         }
         Set<String> questionnaireIds = new HashSet<>();
         for(SurveyUnitModel surveyUnitModel : surveyUnitModels){
             questionnaireIds.add(surveyUnitModel.getCollectionInstrumentId());
         }
         if(questionnaireIds.size() > 1){
-            throw new GenesisException(207,String.format("Multiple questionnaires for %s :%n%s",
-                    interrogationId,
-                    String.join("\n", questionnaireIds)
-            ));
+            throw new GenesisException(
+                    HttpStatus.CONFLICT,
+                    "Multiple questionnaires for %s:%n%s".formatted(
+                            interrogationId,
+                            String.join("\n", questionnaireIds)
+                    )
+            );
         }
 
         return questionnaireIds.iterator().next(); //Return first (and supposed only) element of set
@@ -687,7 +677,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
 
     private Object getValueWithType(String variableName, String value, VariablesMap variablesMap) {
         if(!variablesMap.hasVariable(variableName)){
-            log.warn("Variable {} not found in variableMap", variableName);
+            log.debug("Variable {} not found in variableMap", variableName);
             return value;
         }
         if(value == null) return null;
@@ -731,7 +721,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             //Variable doesn't contain state
             return true;
         }
-        LocalDateTime mostRecentStateDateTime = variableStatesSameState.getFirst().getDate();
+        Instant mostRecentStateDateTime = variableStatesSameState.getFirst().getDate();
         return mostRecentStateDateTime.isBefore(surveyUnitModel.getRecordDate());
     }
 

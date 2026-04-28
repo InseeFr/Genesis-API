@@ -45,13 +45,10 @@ public class LunaticModelController implements CommonApiResponse{
     @PreAuthorize("hasRole('READER')")
     public ResponseEntity<String> getLunaticModelFromQuestionnaireId(
             @RequestParam("questionnaireId") String questionnaireId
-    ) throws JsonProcessingException {
-        try {
-            LunaticModelModel lunaticModelModel = lunaticModelApiPort.get(questionnaireId);
-            ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
-            return ResponseEntity.ok(objectMapper.writeValueAsString(lunaticModelModel.lunaticModel()));
-        } catch (GenesisException e) {
-            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
-        }
+    ) throws JsonProcessingException, GenesisException {
+
+        LunaticModelModel lunaticModelModel = lunaticModelApiPort.get(questionnaireId);
+        ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
+        return ResponseEntity.ok(objectMapper.writeValueAsString(lunaticModelModel.lunaticModel()));
     }
 }

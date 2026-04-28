@@ -17,6 +17,7 @@ import fr.insee.genesis.infrastructure.mappers.DataProcessingContextMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -58,7 +59,7 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
 
         dataProcessingContextPersistancePort.save(DataProcessingContextMapper.INSTANCE.modelToDocument(dataProcessingContextModel));
     }
-    
+
     @Override
     public String createKraftwerkExecutionSchedule(KraftwerkExecutionScheduleInput scheduleInput) {
 
@@ -129,19 +130,19 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
                 );
 
         if (dataProcessingContextModel == null) {
-            throw new GenesisException(404, "Collection instrument not found");
+            throw new GenesisException(HttpStatus.NOT_FOUND, "Collection instrument not found");
         }
 
         if (dataProcessingContextModel.getKraftwerkExecutionScheduleV2List() == null
                 || dataProcessingContextModel.getKraftwerkExecutionScheduleV2List().isEmpty()) {
-            throw new GenesisException(404, "No V2 schedule found for this collection instrument");
+            throw new GenesisException(HttpStatus.NOT_FOUND, "No V2 schedule found for this collection instrument");
         }
 
         KraftwerkExecutionScheduleV2 scheduleToUpdate = dataProcessingContextModel.getKraftwerkExecutionScheduleV2List()
                 .stream()
                 .filter(schedule -> scheduleInput.getScheduleUuid().equals(schedule.getScheduleUuid()))
                 .findFirst()
-                .orElseThrow(() -> new GenesisException(404, "V2 schedule not found"));
+                .orElseThrow(() -> new GenesisException(HttpStatus.NOT_FOUND, "V2 schedule not found"));
 
         Optional<KraftwerkExecutionScheduleV2> tripletAlreadyExists = dataProcessingContextModel.getKraftwerkExecutionScheduleV2List()
                 .stream()
@@ -181,19 +182,19 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
         DataProcessingContextModel dataProcessingContextModel =
                 dataProcessingContextPersistancePort.findByCollectionInstrumentId(collectionInstrumentId);
         if (dataProcessingContextModel == null) {
-            throw new GenesisException(404, NOT_FOUND_MESSAGE);
+            throw new GenesisException(HttpStatus.NOT_FOUND, NOT_FOUND_MESSAGE);
         }
 
         if (dataProcessingContextModel.getKraftwerkExecutionScheduleV2List() == null
                 || dataProcessingContextModel.getKraftwerkExecutionScheduleV2List().isEmpty()) {
-            throw new GenesisException(404, "No V2 schedule found for this collection instrument");
+            throw new GenesisException(HttpStatus.NOT_FOUND, "No V2 schedule found for this collection instrument");
         }
 
         boolean removed = dataProcessingContextModel.getKraftwerkExecutionScheduleV2List()
                 .removeIf(schedule -> scheduleUuid.equals(schedule.getScheduleUuid()));
 
         if (!removed) {
-            throw new GenesisException(404, "V2 schedule not found");
+            throw new GenesisException(HttpStatus.NOT_FOUND, "V2 schedule not found");
         }
 
         dataProcessingContextPersistancePort.save(
@@ -206,7 +207,7 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
         DataProcessingContextModel dataProcessingContextModel =
                         dataProcessingContextPersistancePort.findByCollectionInstrumentId(collectionInstrumentId);
         if (dataProcessingContextModel == null) {
-            throw new GenesisException(404, NOT_FOUND_MESSAGE);
+            throw new GenesisException(HttpStatus.NOT_FOUND, NOT_FOUND_MESSAGE);
         }
         dataProcessingContextModel.setKraftwerkExecutionScheduleList(new ArrayList<>());
         dataProcessingContextPersistancePort.save(DataProcessingContextMapper.INSTANCE.modelToDocument(dataProcessingContextModel));
@@ -218,7 +219,7 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
                 dataProcessingContextPersistancePort.findByCollectionInstrumentId(collectionInstrumentId);
 
         if (dataProcessingContextModel == null) {
-            throw new GenesisException(404, NOT_FOUND_MESSAGE);
+            throw new GenesisException(HttpStatus.NOT_FOUND, NOT_FOUND_MESSAGE);
         }
 
         dataProcessingContextModel.setKraftwerkExecutionScheduleV2List(new ArrayList<>());
@@ -290,8 +291,8 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
                     }
                 }
             } catch (IOException _) {
-                String name = context.getCollectionInstrumentId();
-                throw new GenesisException(500,String.format("An error occurred trying to delete expired schedules for %s",name));
+                String name =  context.getCollectionInstrumentId();
+                throw new GenesisException(HttpStatus.INTERNAL_SERVER_ERROR,String.format("An error occured trying to delete expired schedules for %s",name));
             }
         }
     }
@@ -306,7 +307,7 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
     public DataProcessingContextModel getContext(String interrogationId) throws GenesisException {
         List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findByInterrogationId(interrogationId);
         if(surveyUnitModels.isEmpty()){
-            throw new GenesisException(404, "No interrogation in database with id %s".formatted(interrogationId));
+            throw new GenesisException(HttpStatus.NOT_FOUND, "No interrogation in database with id %s".formatted(interrogationId));
         }
         Set<String> collectionInstrumentIds = new HashSet<>();
 
@@ -317,11 +318,11 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
         }
 
         if(collectionInstrumentIds.size() > 1){
-            throw new GenesisException(500,"Multiple collection instruments for interrogation %s".formatted(interrogationId));
+            throw new GenesisException(HttpStatus.INTERNAL_SERVER_ERROR,"Multiple collection instruments for interrogation %s".formatted(interrogationId));
         }
 
         if(collectionInstrumentIds.isEmpty()){
-            throw new GenesisException(404,"No collection instrument found for interrogation %s".formatted(interrogationId));
+            throw new GenesisException(HttpStatus.NOT_FOUND,"No collection instrument found for interrogation %s".formatted(interrogationId));
         }
 
         return dataProcessingContextPersistancePort.findByCollectionInstrumentId(collectionInstrumentIds.stream().toList().getFirst());
@@ -352,7 +353,7 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
         DataProcessingContextModel dataProcessingContextModel =
                 dataProcessingContextPersistancePort.findByCollectionInstrumentId(collectionInstrumentId);
         if(dataProcessingContextModel == null){
-            throw new GenesisException(404, "Data processing context not found");
+            throw new GenesisException(HttpStatus.NOT_FOUND, "Data processing context not found");
         }
         return dataProcessingContextModel.isWithReview();
     }

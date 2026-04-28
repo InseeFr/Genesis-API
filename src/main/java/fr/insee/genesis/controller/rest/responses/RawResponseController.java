@@ -63,7 +63,7 @@ public class RawResponseController {
             @RequestParam(value = "surveyUnitId", required = false) String idUE,
             @RequestParam(value = "mode") Mode modeSpecified,
             @RequestBody Map<String, Object> dataJson
-    ) {
+    ) throws GenesisException{
         log.info("Try to save interrogationId {} for campaign {}", interrogationId, campaignName);
         LunaticJsonRawDataModel rawData = LunaticJsonRawDataModel.builder()
                 .campaignId(campaignName)
@@ -74,11 +74,9 @@ public class RawResponseController {
                 .data(dataJson)
                 .recordDate(LocalDateTime.now())
                 .build();
-        try {
-            lunaticJsonRawDataApiPort.save(rawData);
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body("Unexpected error");
-        }
+
+        lunaticJsonRawDataApiPort.save(rawData);
+
         log.info("Data saved for interrogationId {} and campaign {}", interrogationId, campaignName);
         // Collect platform prefer code 201 in case of success
         return ResponseEntity.status(201).body(String.format(SUCCESS_MESSAGE, interrogationId));
@@ -106,15 +104,15 @@ public class RawResponseController {
             )
             @RequestParam("collectionInstrumentId") String collectionInstrumentId,
             @RequestBody List<String> interrogationIdList
-    ) {
-        log.info("Try to process raw responses for collectionInstrumentId {} and {} interrogationIds", collectionInstrumentId, interrogationIdList.size());
+    ) throws GenesisException{
+        log.info("Try to process raw responses for collectionInstrumentId {} and {} interrogationIds",
+                collectionInstrumentId, interrogationIdList.size());
+
         List<GenesisError> errors = new ArrayList<>();
-        try {
-            DataProcessResult result = rawResponseApiPort.processRawResponsesByInterrogationIds(collectionInstrumentId, interrogationIdList, errors);
-            return ResponseEntity.ok(result.message(collectionInstrumentId));
-        } catch (GenesisException e) {
-            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
-        }
+        DataProcessResult result = rawResponseApiPort.processRawResponsesByInterrogationIds(
+                collectionInstrumentId, interrogationIdList, errors
+        );
+        return ResponseEntity.ok(result.message(collectionInstrumentId));
     }
 
     @Operation(summary = "Process raw data for all data of an collection instrument")
@@ -126,14 +124,10 @@ public class RawResponseController {
                     example = "ENQTEST2025X00"
             )
             @PathVariable("collectionInstrumentId") String collectionInstrumentId
-    ) {
+    ) throws GenesisException{
         log.info("Try to process raw responses for collectionInstrumentId {}", collectionInstrumentId);
-        try {
-            DataProcessResult result = rawResponseApiPort.processRawResponsesByInterrogationIds(collectionInstrumentId);
-            return ResponseEntity.ok(result.message(collectionInstrumentId));
-        } catch (GenesisException e) {
-            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
-        }
+        DataProcessResult result = rawResponseApiPort.processRawResponsesByInterrogationIds(collectionInstrumentId);
+        return ResponseEntity.ok(result.message(collectionInstrumentId));
     }
 
     @Operation(summary = "Get the list of collection instruments containing unprocessed interrogations")
@@ -157,7 +151,7 @@ public class RawResponseController {
     @GetMapping(path = "/responses/raw/lunatic-json/get/unprocessed/questionnaireIds")
     @PreAuthorize("hasRole('SCHEDULER')")
     public ResponseEntity<Set<String>> getUnprocessedJsonRawDataQuestionnairesIds() {
-        log.info("Try to get unprocessed raw JSON datas questionniares...");
+        log.info("Try to get unprocessed raw JSON datas questionnaires...");
         return ResponseEntity.ok(lunaticJsonRawDataApiPort.getUnprocessedDataQuestionnaireIds());
     }
 
@@ -167,17 +161,14 @@ public class RawResponseController {
     @PreAuthorize("hasRole('SCHEDULER')")
     public ResponseEntity<String> processJsonRawData(
             @PathVariable String questionnaireId
-    ) {
+    ) throws GenesisException{
         log.info("Try to process raw JSON datas for questionnaire {}",questionnaireId);
-        try {
-            DataProcessResult result = lunaticJsonRawDataApiPort.processRawData(questionnaireId);
-            return result.formattedDataCount() == 0 ?
-                    ResponseEntity.ok("%d document(s) processed".formatted(result.dataCount()))
-                    : ResponseEntity.ok("%d document(s) processed, including %d FORMATTED after data verification"
-                    .formatted(result.dataCount(), result.formattedDataCount()));
-        } catch (GenesisException e) {
-            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
-        }
+
+        DataProcessResult result = lunaticJsonRawDataApiPort.processRawData(questionnaireId);
+        return result.formattedDataCount() == 0 ?
+                ResponseEntity.ok("%d document(s) processed".formatted(result.dataCount()))
+                : ResponseEntity.ok("%d document(s) processed, including %d FORMATTED after data verification"
+                .formatted(result.dataCount(), result.formattedDataCount()));
     }
 
     @Operation(summary = "Get processed data ids from last n hours (default 24h)")

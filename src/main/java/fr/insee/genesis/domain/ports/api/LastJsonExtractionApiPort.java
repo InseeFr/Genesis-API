@@ -5,6 +5,7 @@ import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.exceptions.GenesisException;
 
 public interface LastJsonExtractionApiPort {
+
     void recordDate(LastJsonExtractionModel extraction);
 
     LastJsonExtractionModel getLastExtractionDate(String collectionInstrumentId, Mode mode) throws GenesisException;
