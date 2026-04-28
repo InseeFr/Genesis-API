@@ -23,6 +23,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -236,7 +237,7 @@ class DataProcessingContextServiceTest {
             dataProcessingContextService.getReviewByCollectionInstrumentId("collectionInstrumentId");
             Assertions.fail();
         }catch (GenesisException ge){
-            Assertions.assertThat(ge.getStatus()).isEqualTo(404);
+            Assertions.assertThat(ge.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
         }
     }
 
