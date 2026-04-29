@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.6.1 [TODO]
+## 2.6.1 [2026-04-29]
 ### Fixed
 - Fixed V1 schedules endpoint returning an empty list when V1 schedules have a null `partitionId`.
 
