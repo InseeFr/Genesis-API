@@ -1,6 +1,10 @@
 # Changelog
 
-## 2.6.0 [TODO]
+## 2.6.1 [2026-04-29]
+### Fixed
+- Fixed V1 schedules endpoint returning an empty list when V1 schedules have a null `partitionId`.
+
+## 2.6.0 [2026-04-29]
 ### Fixed
 - Prevent missing contextual external or previous files from clearing existing contextual data.
 - Endpoint to get data by dates
