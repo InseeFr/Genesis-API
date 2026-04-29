@@ -577,4 +577,35 @@ class RawResponseMongoAdapterTest {
 				LocalDateTime.now()
 		);
 	}
+
+    @Nested
+    @DisplayName("findRawResponseByCollectionInstrumentIdAndInterrogationId() tests")
+    class FindRawResponseByCollectionInstrumentIdAndInterrogationIdTests {
+
+        @Test
+        @DisplayName("Should delegate to repository and return mapped model")
+        void findRawData_shouldReturnMappedModel() {
+            //GIVEN
+            when(repository.findByCollectionInstrumentIdAndInterrogationId(COLLECTION_INSTRUMENT_ID, INTERROGATION_ID))
+                    .thenReturn(getDocument());
+
+            //WHEN
+            RawResponseModel result = adapter.findRawResponseByCollectionInstrumentIdAndInterrogationId(COLLECTION_INSTRUMENT_ID, INTERROGATION_ID);
+
+            //THEN
+            assertThat(result).isNotNull();
+            verify(repository).findByCollectionInstrumentIdAndInterrogationId(COLLECTION_INSTRUMENT_ID, INTERROGATION_ID);
+        }
+
+        @Test
+        @DisplayName("Should return null when no document found")
+        void findRawData_noDocument_shouldReturnNull() {
+            //GIVEN
+            when(repository.findByCollectionInstrumentIdAndInterrogationId(COLLECTION_INSTRUMENT_ID, INTERROGATION_ID)).thenReturn(null);
+
+            //WHEN + THEN
+            assertThat(adapter.findRawResponseByCollectionInstrumentIdAndInterrogationId(COLLECTION_INSTRUMENT_ID, INTERROGATION_ID)).isNull();
+        }
+    }
+
 }

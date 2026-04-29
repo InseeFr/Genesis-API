@@ -1,5 +1,6 @@
 package fr.insee.genesis.domain.ports.spi;
 
+import fr.insee.genesis.controller.dto.rawdata.RawDataIdentifiersDto;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponseModel;
 import fr.insee.modelefiliere.ModeDto;
@@ -14,6 +15,12 @@ public interface RawResponsePersistencePort {
 
     List<RawResponseModel> findRawResponses(String collectionInstrumentId, Mode mode, List<String> interrogationIdList);
     List<RawResponseModel> findRawResponsesByInterrogationID(String interrogationId);
+    RawResponseModel findRawResponseByCollectionInstrumentIdAndInterrogationId(String collectionInstrumentId, String interrogationId);
+
+    RawDataIdentifiersDto findRawResponseIdentifiersByCollectionInstrumentId(
+            String collectionInstrumentId
+    );
+
     void updateProcessDates(String collectionInstrumentId, Set<String> interrogationIds);
     List<String> getUnprocessedCollectionIds();
     Set<String> findUnprocessedInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId);

@@ -1,8 +1,10 @@
 package fr.insee.genesis.infrastructure.mappers;
 
+import fr.insee.genesis.controller.dto.rawdata.RawDataIdentifierDto;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
 import fr.insee.genesis.infrastructure.document.rawdata.LunaticJsonRawDataDocument;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 import java.util.List;
@@ -19,4 +21,8 @@ public interface LunaticJsonRawDataDocumentMapper {
     List<LunaticJsonRawDataModel> listDocumentToListModel(List<LunaticJsonRawDataDocument> rawDataDocumentList);
 
     List<LunaticJsonRawDataDocument> listModelToListDocument(List<LunaticJsonRawDataModel> rawDataModelList);
+
+    @Mapping(target = "usualSurveyUnitId", source = "idUE")
+    RawDataIdentifierDto documentToRawDataIdentifierDto(LunaticJsonRawDataDocument document);
+
 }

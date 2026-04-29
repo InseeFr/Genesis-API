@@ -1,6 +1,8 @@
 package fr.insee.genesis.infrastructure.adapter;
 
 import fr.insee.genesis.Constants;
+import fr.insee.genesis.controller.dto.rawdata.RawDataIdentifierDto;
+import fr.insee.genesis.controller.dto.rawdata.RawDataIdentifiersDto;
 import fr.insee.genesis.domain.model.surveyunit.GroupedInterrogation;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
@@ -74,6 +76,27 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
     }
 
     @Override
+    public RawDataIdentifiersDto findLunaticJsonRawDataIdentifiersByQuestionnaireId(
+            String questionnaireId
+    ) {
+        List<LunaticJsonRawDataDocument> lunaticJsonRawDataDocumentList =
+                repository.findByQuestionnaireId(questionnaireId);
+
+        if (lunaticJsonRawDataDocumentList.isEmpty()) {
+            return null;
+        }
+
+        String campaignId = lunaticJsonRawDataDocumentList.getFirst().campaignId();
+
+        List<RawDataIdentifierDto> identifiers = lunaticJsonRawDataDocumentList
+                .stream()
+                .map(LunaticJsonRawDataDocumentMapper.INSTANCE::documentToRawDataIdentifierDto)
+                .toList();
+
+        return new RawDataIdentifiersDto(campaignId, identifiers);
+    }
+
+    @Override
     public List<LunaticJsonRawDataModel> findRawDataByInterrogationId(String interrogationId) {
         List<LunaticJsonRawDataDocument> rawDataDocs = repository.findByInterrogationId(interrogationId);
         return LunaticJsonRawDataDocumentMapper.INSTANCE.listDocumentToListModel(rawDataDocs);
@@ -86,6 +109,12 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
                 , new Update().set("processDate", LocalDateTime.now())
                 , Constants.MONGODB_LUNATIC_RAWDATA_COLLECTION_NAME
         );
+    }
+
+    @Override
+    public LunaticJsonRawDataModel findLunaticJsonDataByQuestionnaireIdAndInterrogationId(String questionnaireId, String interrogationId) {
+        LunaticJsonRawDataDocument lunaticJsonRawDataDocument = repository.findByQuestionnaireIdAndInterrogationId(questionnaireId, interrogationId);
+        return LunaticJsonRawDataDocumentMapper.INSTANCE.documentToModel(lunaticJsonRawDataDocument);
     }
 
     @Override

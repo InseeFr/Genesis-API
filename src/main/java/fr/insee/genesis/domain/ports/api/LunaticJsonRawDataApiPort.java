@@ -8,6 +8,7 @@ import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.exceptions.NoDataException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -22,7 +23,7 @@ public interface LunaticJsonRawDataApiPort {
     void save(LunaticJsonRawDataModel rawData) throws GenesisException;
     List<LunaticJsonRawDataModel> getRawDataByQuestionnaireId(String questionnaireId, Mode mode, List<String> interrogationIdList);
     List<SurveyUnitModel> convertRawData(List<LunaticJsonRawDataModel> rawData, VariablesMap variablesMap);
-
+    LunaticJsonRawDataModel getLunaticJsonDataByQuestionnaireIdAndInterrogationId(String questionnaireId, String interrogationId) throws NoDataException;
     List<LunaticJsonRawDataUnprocessedDto> getUnprocessedDataIds();
     Set<String> getUnprocessedDataQuestionnaireIds();
     void updateProcessDates(List<SurveyUnitModel> surveyUnitModels);

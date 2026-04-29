@@ -2,6 +2,7 @@ package fr.insee.genesis.domain.service.rawdata;
 
 import fr.insee.bpm.metadata.model.MetadataModel;
 import fr.insee.bpm.metadata.model.VariablesMap;
+import fr.insee.genesis.TestConstants;
 import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.controller.dto.rawdata.LunaticJsonRawDataUnprocessedDto;
 import fr.insee.genesis.controller.utils.ControllerUtils;
@@ -21,7 +22,9 @@ import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.exceptions.NoDataException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -49,6 +52,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static fr.insee.genesis.TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID;
 import static fr.insee.genesis.TestConstants.DEFAULT_INTERROGATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -807,5 +811,41 @@ class LunaticJsonRawDataServiceTest {
                 any(Pageable.class)
         );
         assertThat(result).isEqualTo(lunaticJsonRawDataModelPage);
+    }
+
+    @Test
+    @DisplayName("getLunaticJsonDataByQuestionnaireIdAndInterrogationId must call persistence port")
+    void getLunaticJsonDataByQuestionnaireIdAndInterrogationId_shouldDelegateToPersistencePort() throws NoDataException {
+        // GIVEN
+        String interrogationId = TestConstants.DEFAULT_INTERROGATION_ID;
+        String collectionInstrumentId = DEFAULT_COLLECTION_INSTRUMENT_ID;
+        LunaticJsonRawDataModel expected = mock(LunaticJsonRawDataModel.class);
+        doReturn(expected).when(lunaticJsonRawDataPersistencePort).findLunaticJsonDataByQuestionnaireIdAndInterrogationId(collectionInstrumentId, interrogationId);
+
+        // WHEN
+        LunaticJsonRawDataModel result = service.getLunaticJsonDataByQuestionnaireIdAndInterrogationId(collectionInstrumentId, interrogationId);
+
+        // THEN
+        Assertions.assertThat(result).isEqualTo(expected);
+    }
+
+    @Test
+    @DisplayName("getLunaticJsonDataByQuestionnaireIdAndInterrogationId must throw NoDataException when no lunaticJson data found")
+    void getLunaticJsonDataByQuestionnaireIdAndInterrogationId_noData_shouldThrowNoDataException() {
+        // GIVEN
+        String interrogationId = TestConstants.DEFAULT_INTERROGATION_ID;
+        String collectionInstrumentId = DEFAULT_COLLECTION_INSTRUMENT_ID;
+
+        doReturn(null)
+                .when(lunaticJsonRawDataPersistencePort)
+                .findLunaticJsonDataByQuestionnaireIdAndInterrogationId(collectionInstrumentId, interrogationId);
+
+        // WHEN + THEN
+        assertThatThrownBy(() ->
+                service.getLunaticJsonDataByQuestionnaireIdAndInterrogationId(
+                        collectionInstrumentId,
+                        interrogationId
+                )
+        ).isInstanceOf(NoDataException.class);
     }
 }

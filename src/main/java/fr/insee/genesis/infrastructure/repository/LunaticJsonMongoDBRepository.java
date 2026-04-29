@@ -52,7 +52,7 @@ public interface LunaticJsonMongoDBRepository extends MongoRepository<LunaticJso
     })
     Long countDistinctInterrogationIdsByQuestionnaireId(String questionnaireId);
 
-    Page<LunaticJsonRawDataDocument> findByCampaignIdAndRecordDateBetween(String campagneId, Instant start, Instant  end, Pageable pageable);
+    Page<LunaticJsonRawDataDocument> findByCampaignIdAndRecordDateBetween(String campaignId, Instant start, Instant  end, Pageable pageable);
     long countByQuestionnaireId(String questionnaireId);
     @Aggregation(pipeline = {
             "{ '$match': { 'processDate': { '$gte': ?0 } } }",
@@ -110,8 +110,11 @@ public interface LunaticJsonMongoDBRepository extends MongoRepository<LunaticJso
 
     Page<LunaticJsonRawDataDocument> findByQuestionnaireId(String questionnaireId, Pageable pageable);
 
+    List<LunaticJsonRawDataDocument> findByQuestionnaireId(String questionnaireId);
+
     boolean existsByInterrogationId(String interrogationId);
 
+    LunaticJsonRawDataDocument findByQuestionnaireIdAndInterrogationId(String questionnaireId, String interrogationId);
 
     @Aggregation(pipeline = {
             "{ $match: { questionnaireId: ?0, processDate: { $ne: null }, recordDate: { $gte: ?1, $lte: ?2 } } }",
