@@ -263,6 +263,7 @@ class DataProcessingContextServiceTest {
 
         DataProcessingContextDocument dataProcessingContextDocument = new DataProcessingContextDocument();
         dataProcessingContextDocument.setPartitionId(collectionInstrumentId);
+        dataProcessingContextDocument.setCollectionInstrumentId(collectionInstrumentId);
         dataProcessingContextDocument.setKraftwerkExecutionScheduleList(kraftwerkExecutionScheduleList);
         when(dataProcessingContextPersistancePort.findAll()).thenReturn(List.of(dataProcessingContextDocument));
 

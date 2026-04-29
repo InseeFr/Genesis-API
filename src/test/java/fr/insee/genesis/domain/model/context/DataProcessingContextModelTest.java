@@ -194,7 +194,7 @@ class DataProcessingContextModelTest {
         }
 
         @Test
-        void toScheduleV1ResponseDtos_no_partitionId_schedule_ignored_test() {
+        void toScheduleV1ResponseDtos_no_partitionId_schedule_not_ignored_test() {
             //GIVEN
             String collectionInstrumentId = "test";
             String frequency = "0 0 0 0 0 0";
@@ -231,7 +231,7 @@ class DataProcessingContextModelTest {
             List<ScheduleResponseDto> scheduleResponseDtoList = dataProcessingContextModel.toScheduleV1ResponseDtos();
 
             //THEN
-            Assertions.assertThat(scheduleResponseDtoList).hasSize(1);
+            Assertions.assertThat(scheduleResponseDtoList).hasSize(2);
         }
     }
 

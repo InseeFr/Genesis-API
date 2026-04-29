@@ -13,6 +13,7 @@ import org.springframework.data.annotation.Id;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 @Data
 @Builder
@@ -38,9 +39,9 @@ public class DataProcessingContextModel {
         }
 
         return kraftwerkExecutionScheduleList.stream()
-                .filter(schedule -> schedule != null && schedule.getPartitionId() != null)
+                .filter(Objects::nonNull)
                 .map(schedule -> ScheduleResponseDto.builder()
-                        .collectionInstrumentId(schedule.getPartitionId())
+                        .collectionInstrumentId(collectionInstrumentId)
                         .lastExecution(lastExecution)
                         .frequency(schedule.getFrequency())
                         .scheduleBeginDate(schedule.getScheduleBeginDate())
