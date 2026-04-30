@@ -143,12 +143,18 @@ public class RawResponseService implements RawResponseApiPort {
         List<RawResponseModel> rawResponseModels =
                 rawResponsePersistencePort.findRawResponses(collectionInstrumentId, mode, interrogationIds);
 
+        List<SurveyUnitModel> emptySurveyUnitModels = new ArrayList<>();
         List<SurveyUnitModel> surveyUnitModels =
-                rawResponseConverter.convertRawResponse(rawResponseModels, variablesMap);
+                rawResponseConverter.convertRawResponse(rawResponseModels, variablesMap, emptySurveyUnitModels);
 
         surveyUnitQualityService.verifySurveyUnits(surveyUnitModels, variablesMap);
         surveyUnitService.saveSurveyUnits(surveyUnitModels);
+
         updateProcessDates(surveyUnitModels);
+
+        if (!emptySurveyUnitModels.isEmpty()) {
+            updateProcessDates(emptySurveyUnitModels);
+        }
 
         if (shouldUseQualityTool) {
             surveyUnitQualityToolService.sendProcessedIdsToQualityTool(surveyUnitModels);

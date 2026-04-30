@@ -29,8 +29,15 @@ public class RawResponseConverter {
             List<RawResponseModel> rawResponseModels,
             VariablesMap variablesMap
     ) {
+        return convertRawResponse(rawResponseModels, variablesMap, new ArrayList<>());
+    }
+
+    public List<SurveyUnitModel> convertRawResponse(
+            List<RawResponseModel> rawResponseModels,
+            VariablesMap variablesMap,
+            List<SurveyUnitModel> emptySurveyUnitModels
+    ) {
         List<SurveyUnitModel> surveyUnitModels = new ArrayList<>();
-        List<SurveyUnitModel> emptySurveyUnitModels = new ArrayList<>();
 
         for (DataState dataState : List.of(DataState.COLLECTED, DataState.EDITED)) {
             for (RawResponseModel rawResponseModel : rawResponseModels) {
