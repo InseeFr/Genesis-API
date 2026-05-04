@@ -15,6 +15,7 @@ import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityToolService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
+import fr.insee.genesis.domain.utils.ProcessingResult;
 import fr.insee.genesis.domain.utils.RawResponseConverter;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
@@ -113,7 +114,7 @@ public class RawResponseService implements RawResponseApiPort {
                 int maxIndex = Math.min(remainingInterrogationIds.size(), batchSize);
                 List<String> batch = remainingInterrogationIds.subList(0, maxIndex);
 
-                BatchProcessingResult result = processBatch(
+                ProcessingResult result = processRawResponsesForMode(
                         collectionInstrumentId,
                         mode,
                         batch,
@@ -133,7 +134,7 @@ public class RawResponseService implements RawResponseApiPort {
         return new DataProcessResult(dataCount, formattedDataCount, errors);
     }
 
-    private BatchProcessingResult processBatch(
+    private ProcessingResult processRawResponsesForMode(
             String collectionInstrumentId,
             Mode mode,
             List<String> interrogationIds,
@@ -164,7 +165,7 @@ public class RawResponseService implements RawResponseApiPort {
                 .filter(surveyUnitModel -> surveyUnitModel.getState() == DataState.FORMATTED)
                 .count();
 
-        return new BatchProcessingResult(surveyUnitModels.size(), formattedDataCount);
+        return new ProcessingResult(surveyUnitModels.size(), formattedDataCount);
     }
 
     private VariablesMap getVariablesMap(
@@ -308,5 +309,4 @@ public class RawResponseService implements RawResponseApiPort {
         return rawResponsePersistencePort.findByCollectionInstrumentId(collectionInstrumentId, pageable);
     }
 
-    private record BatchProcessingResult(int dataCount, int formattedDataCount) {}
 }
