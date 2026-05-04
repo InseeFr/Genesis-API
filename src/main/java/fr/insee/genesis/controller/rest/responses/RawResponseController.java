@@ -227,7 +227,7 @@ public class RawResponseController {
     }
 
     @Operation(summary = "Get lunatic json data by questionnaire ID and interrogation ID")
-    @GetMapping("/responses/raw/lunatic-json/collection-instruments/{collectionInstrumentId}/interrogations/{interrogationId}")
+    @GetMapping("/responses/raw/lunatic-json/collection-instruments/{questionnaireId}/interrogations/{interrogationId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<LunaticJsonRawDataModel> getLunaticJsonData(
             @PathVariable String questionnaireId,
