@@ -14,6 +14,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -125,7 +126,7 @@ class SurveyUnitDocumentMapperImplTest {
                 .collectionInstrumentId(COLLECTION_INSTRUMENT_ID)
                 .state(DataState.COLLECTED)
                 .fileDate(LocalDateTime.of(2023,1,1,0,0,0))
-                .recordDate(LocalDateTime.of(2024,1,1,0,0,0))
+                .recordDate(LocalDateTime.of(2024,1,1,0,0,0).toInstant(ZoneOffset.UTC))
                 .externalVariables(externalVariableModelList)
                 .collectedVariables(collectedVariableList)
                 .build();

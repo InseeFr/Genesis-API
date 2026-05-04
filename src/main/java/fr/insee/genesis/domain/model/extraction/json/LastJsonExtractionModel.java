@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Data
 @Builder
@@ -18,5 +18,5 @@ public class LastJsonExtractionModel {
         private String id; //Used to remove warning
         String collectionInstrumentId;
         Mode mode;
-        LocalDateTime lastExtractionDate;
+        Instant lastExtractionDate;
 }

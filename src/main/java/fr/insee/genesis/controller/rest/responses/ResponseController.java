@@ -31,9 +31,12 @@ import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.exceptions.NoDataException;
+import fr.insee.genesis.exceptions.ReviewDisabledException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.modelefiliere.RawResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -63,6 +66,7 @@ import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -126,30 +130,29 @@ public class ResponseController implements CommonApiResponse {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Object> saveResponsesFromXmlCampaignFolder(@RequestParam("campaignName") String campaignName,
                                                                      @RequestParam(value = "mode", required = false) Mode modeSpecified
-    )throws Exception {
-        List<GenesisError> errors = new ArrayList<>();
+    )throws GenesisException {
         boolean isAnyDataSaved = false;
 
         log.info("Try to import XML data for campaign: {}", campaignName);
 
         List<Mode> modesList = controllerUtils.getModesList(campaignName, modeSpecified);
         for (Mode currentMode : modesList) {
+            log.info("Processing campaign {} with mode {}", campaignName, currentMode);
             try {
                 processCampaignWithMode(campaignName, currentMode, null);
                 isAnyDataSaved = true;
             }catch (NoDataException nde){
                 //Don't stop if NoDataError thrown
-                log.warn(nde.getMessage());
-            }catch (Exception e){
-                log.error(CAMPAIGN_ERROR, campaignName, e.toString());
-                return ResponseEntity.status(500).body(e.getMessage());
-            }
+                log.warn("No data for campaign {} mode {} : {}", campaignName, currentMode, nde.getMessage());
+            } catch (Exception e) {
+                log.warn("Error while processing campaign {} mode {} : {}",
+                        campaignName,
+                        currentMode,
+                        e.getMessage());        }
         }
 
-        if (errors.isEmpty()){
-            return ResponseEntity.ok(getSuccessMessage(isAnyDataSaved));
-        }
-        return ResponseEntity.internalServerError().body(errors.getFirst().getMessage());
+        return ResponseEntity.ok(getSuccessMessage(isAnyDataSaved));
+
     }
 
     //SAVE ALL
@@ -248,7 +251,7 @@ public class ResponseController implements CommonApiResponse {
                 contextService.getContext(interrogationId);
 
         if(dataProcessingContextModel == null || !dataProcessingContextModel.isWithReview()){
-            return ResponseEntity.status(403).body(new ApiError("Review is disabled for that partition"));
+            throw new ReviewDisabledException();
         }
 
         SurveyUnitDto response = surveyUnitService.findLatestValuesByStateByIdAndByCollectionInstrumentId(interrogationId, questionnaireId);
@@ -266,14 +269,11 @@ public class ResponseController implements CommonApiResponse {
         //TODO move logic to service
         DataProcessingContextModel dataProcessingContextModel;
         //Check context
-        try {
-            dataProcessingContextModel = contextService.getContext(interrogationId);
-        }catch (GenesisException e){
-            return ResponseEntity.internalServerError().body(e.getMessage());
-        }
+        dataProcessingContextModel = contextService.getContext(interrogationId);
+
 
         if(dataProcessingContextModel == null || !dataProcessingContextModel.isWithReview()){
-            return ResponseEntity.status(403).body(new ApiError("Review is disabled for that partition"));
+            throw new ReviewDisabledException();
         }
 
         SurveyUnitDto response = surveyUnitService.findLatestValuesByStateByIdAndByCollectionInstrumentId(interrogationId, collectionInstrumentId);
@@ -337,19 +337,15 @@ public class ResponseController implements CommonApiResponse {
     public ResponseEntity<SurveyUnitSimplifiedDto> getResponseByCollectionInstrumentAndInterrogation(
             @PathVariable("collectionInstrumentId") String collectionInstrumentId,
             @PathVariable("interrogationId") String interrogationId,
-            @PathVariable("mode") Mode mode){
-        try {
-            return ResponseEntity.ok(
-                    surveyUnitService.findSimplifiedByCollectionInstrumentIdAndInterrogationId(
-                            collectionInstrumentId,
-                            interrogationId,
-                            mode
-                    )
-            );
-        } catch (NoDataException e){
-            log.error(e.getMessage());
-            return ResponseEntity.notFound().build();
-        }
+            @PathVariable("mode") Mode mode) throws NoDataException {
+        return ResponseEntity.ok(
+                surveyUnitService.findSimplified(
+                        collectionInstrumentId,
+                        interrogationId,
+                        mode,
+                        null
+                )
+        );
     }
 
     /**
@@ -411,19 +407,26 @@ public class ResponseController implements CommonApiResponse {
         return ResponseEntity.ok(results);
     }
 
-    @Operation(summary = "Retrieve all responses for a collection instrument and a list of interrogations",
+    @Operation(summary = "Retrieve responses for a collection instrument and a list of interrogations",
             description = "Return the latest state for each variable for the given interrogationIds and a given collection instrument (formerly questionnaire).<br>" +
-                    "For a given id, the endpoint returns a document by collection mode (if there is more than one).")
+                    "For a given id, the endpoint returns a document by collection mode (if there is more than one)<br>" +
+                    "If the 'recordedBefore' parameter is provided, only responses recorded before this timestamp will be returned.")
     @PostMapping(path = "/{collectionInstrumentId}")
     @PreAuthorize("hasRole('USER_KRAFTWERK')")
-    public ResponseEntity<List<SurveyUnitSimplifiedDto>> getResponseByCollectionInstrumentAndInterrogationList(
+    public ResponseEntity<List<SurveyUnitSimplifiedDto>> searchResponses(
             @PathVariable("collectionInstrumentId") String collectionInstrumentId,
+            @Parameter(
+                    description = "Filter responses to those recorded before or at the same time of the given timestamp (ISO-8601 UTC format).",
+                    schema = @Schema(type = "string", format = "date-time", example = "2026-01-01T00:00:00Z")
+            )
+            @RequestParam(value = "recordedBefore", required = false) Instant recordedBefore,
             @RequestBody List<InterrogationId> interrogationIds)
     {
         return ResponseEntity.ok(
-                surveyUnitService.findSimplifiedByCollectionInstrumentIdAndInterrogationIdList(
+                surveyUnitService.findSimplifiedList(
                         collectionInstrumentId,
-                        interrogationIds
+                        interrogationIds,
+                        recordedBefore
                 )
         );
     }
@@ -434,8 +437,7 @@ public class ResponseController implements CommonApiResponse {
     @PreAuthorize("hasRole('USER_PLATINE')")
     public ResponseEntity<Object> saveEditedVariables(
             @RequestBody SurveyUnitInputDto surveyUnitInputDto
-    ) {
-        try {
+    ) throws GenesisException {
             log.debug("Received in save edited : {}", surveyUnitInputDto.toString());
             //TODO Code quality : we need to put all that logic out of this controller
             //Parse metadata
@@ -449,8 +451,13 @@ public class ResponseController implements CommonApiResponse {
                     fileUtils,
                     errors);
             if(metadataModel == null){
-                throw new GenesisException(404, errors.getLast().getMessage());
-            }
+                    String msg = errors.isEmpty()
+                            ? "Empty metadataModel for questionnaireId=%s, mode=%s"
+                            .formatted(surveyUnitInputDto.getQuestionnaireId(), surveyUnitInputDto.getMode())
+                            : errors.getLast().getMessage();
+
+                    throw new GenesisException(HttpStatus.NOT_FOUND, msg);
+                }
 
             //Check if input edited variables are in metadatas
             List<String> absentCollectedVariableNames =
@@ -482,9 +489,6 @@ public class ResponseController implements CommonApiResponse {
             //Save documents
             surveyUnitService.saveSurveyUnits(surveyUnitModels);
             return ResponseEntity.ok(SUCCESS_MESSAGE);
-        } catch (GenesisException ge) {
-            return ResponseEntity.status(ge.getStatus()).body(ge.getMessage());
-        }
     }
 
 
@@ -496,26 +500,36 @@ public class ResponseController implements CommonApiResponse {
      * @param mode mode of collected data
      */
     private void processCampaignWithMode(String campaignName, Mode mode, String rootDataFolder)
-            throws IOException, ParserConfigurationException, SAXException, XMLStreamException, NoDataException, GenesisException {
-        log.info("Starting data import for mode: {}", mode.getModeName());
+            throws NoDataException, GenesisException {
 
-        String dataFolder = rootDataFolder == null ?
-                fileUtils.getDataFolder(campaignName, mode.getFolder(), null)
-                : fileUtils.getDataFolder(campaignName, mode.getFolder(), rootDataFolder);
-        List<String> dataFiles = fileUtils.listFiles(dataFolder);
-        log.info("Number of files to load in folder {} : {}", dataFolder, dataFiles.size());
-        if (dataFiles.isEmpty()) {
-            throw new NoDataException("No data file found in folder %s".formatted(dataFolder));
-        }
+        try {
+            log.info("Starting data import for mode: {}", mode.getModeName());
 
-        //For each XML data file
-        for (String fileName : dataFiles.stream().filter(s -> s.endsWith(".xml")).toList()) {
-            processOneXmlFileForCampaign(campaignName, mode, fileName, dataFolder);
-        }
+            String dataFolder = rootDataFolder == null ?
+                    fileUtils.getDataFolder(campaignName, mode.getFolder(), null)
+                    : fileUtils.getDataFolder(campaignName, mode.getFolder(), rootDataFolder);
+            List<String> dataFiles = fileUtils.listFiles(dataFolder);
+            log.info("Number of files to load in folder {} : {}", dataFolder, dataFiles.size());
+            if (dataFiles.isEmpty()) {
+                throw new NoDataException("No data file found in folder %s".formatted(dataFolder));
+            }
 
-        //Create context if not exist
-        if(contextService.getContextByCollectionInstrumentId(campaignName) == null){
-            contextService.saveContextByCollectionInstrumentId(campaignName, false);
+            //For each XML data file
+            for (String fileName : dataFiles.stream().filter(s -> s.endsWith(".xml")).toList()) {
+                processOneXmlFileForCampaign(campaignName, mode, fileName, dataFolder);
+            }
+
+            //Create context if not exist
+            if(contextService.getContextByCollectionInstrumentId(campaignName) == null){
+                contextService.saveContextByCollectionInstrumentId(campaignName, false);
+            }
+        } catch (IOException | ParserConfigurationException | SAXException | XMLStreamException _) {
+
+            throw new GenesisException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Error while importing campaign %s (mode %s)"
+                            .formatted(campaignName, mode.getModeName())
+            );
         }
 
     }
@@ -545,8 +559,8 @@ public class ResponseController implements CommonApiResponse {
             fileUtils.moveDataFile(campaignName, mode.getFolder(),filepath);
             return;
         }
-        log.error("Error {} on file {} : {}", response.getStatusCode(), fileName,  response.getBody());
-
+        log.error("Failed to process file {} for campaign {} mode {} (HTTP: {})",
+                fileName, campaignName, mode.getModeName(), response.getStatusCode());
     }
 
     private static long getFileSizeInMB(Path filepath) {
@@ -564,12 +578,8 @@ public class ResponseController implements CommonApiResponse {
         LunaticXmlCampaign campaign;
         // DOM method
         LunaticXmlDataParser parser = new LunaticXmlDataParser();
-        try {
+
             campaign = parser.parseDataFile(filepath);
-        } catch (GenesisException e) {
-            log.error(e.toString());
-            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
-        }
 
         List<SurveyUnitModel> surveyUnitModels = new ArrayList<>();
         VariablesMap variablesMap = null;
@@ -641,7 +651,7 @@ public class ResponseController implements CommonApiResponse {
                 genesisErrors
         );
         if(!genesisErrors.isEmpty()){
-            throw new GenesisException(400,genesisErrors.getLast().getMessage());
+            throw new GenesisException(HttpStatus.BAD_REQUEST,genesisErrors.getLast().getMessage());
         }
         variablesMap = metadataModel.getVariables();
         return variablesMap;
@@ -656,11 +666,11 @@ public class ResponseController implements CommonApiResponse {
                 return ReaderUtils.getMetadataFromDDIAndLunatic(Path.of(metadataFilePath).toFile().toURI().toURL().toString(),
                         metadataInputStream,metadataInputStream).getVariables();
             } catch (MetadataParserException e) {
-                throw new GenesisException(500, e.getMessage());
+                throw new GenesisException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
             } catch (FileNotFoundException fnfe){
-                throw new GenesisException(404, fnfe.toString());
+                throw new GenesisException(HttpStatus.NOT_FOUND, fnfe.toString());
             } catch (MalformedURLException mue){
-                throw new GenesisException(400, mue.toString());
+                throw new GenesisException(HttpStatus.BAD_REQUEST, mue.toString());
             }
         }else{
             //Parse Lunatic
@@ -668,7 +678,7 @@ public class ResponseController implements CommonApiResponse {
             try {
                 return LunaticReader.getMetadataFromLunatic(new FileInputStream(metadataFilePath)).getVariables();
             } catch (FileNotFoundException fnfe){
-                throw new GenesisException(404, fnfe.toString());
+                throw new GenesisException(HttpStatus.NOT_FOUND, fnfe.toString());
             }
         }
     }

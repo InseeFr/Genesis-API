@@ -31,8 +31,10 @@ import fr.insee.genesis.infrastructure.utils.FileUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -94,8 +96,14 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     }
 
     @Override
-    public void save(LunaticJsonRawDataModel rawData) {
-        lunaticJsonRawDataPersistencePort.save(rawData);
+    public void save(LunaticJsonRawDataModel rawData) throws GenesisException {
+        try {
+            lunaticJsonRawDataPersistencePort.save(rawData);
+        } catch (DataAccessException e) {
+            throw new GenesisException(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error");
+        } catch (IllegalArgumentException e) {
+            throw new GenesisException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
     }
 
     @Override
@@ -223,7 +231,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
         VariablesMap variablesMap = metadataService.loadAndSaveIfNotExists(questionnaireId, questionnaireId, mode, fileUtils,
                 errors).getVariables();
         if (variablesMap == null) {
-            throw new GenesisException(400,
+            throw new GenesisException(HttpStatus.BAD_REQUEST,
                     "Error during metadata parsing for mode %s :%n%s"
                             .formatted(mode, errors.getLast().getMessage())
             );
@@ -290,7 +298,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
                         .isCapturedIndirectly(isCapturedIndirectly)
                         .state(dataState)
                         .fileDate(rawData.recordDate())
-                        .recordDate(LocalDateTime.now())
+                        .recordDate(Instant.now())
                         .collectedVariables(new ArrayList<>())
                         .externalVariables(new ArrayList<>())
                         .build();

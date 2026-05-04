@@ -15,9 +15,10 @@ import java.util.List;
 @Data
 @Document(collection = Constants.MONGODB_CONTEXT_COLLECTION_NAME)
 public class DataProcessingContextDocument{
-
         @Id
         private ObjectId id;
+
+        private String partitionId; //Old id
         @Indexed
         private String collectionInstrumentId; // QuestionnaireId
         private LocalDateTime lastExecution;

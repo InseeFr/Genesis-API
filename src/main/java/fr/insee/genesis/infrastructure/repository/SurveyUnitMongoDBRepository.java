@@ -1,6 +1,7 @@
 package fr.insee.genesis.infrastructure.repository;
 
 import fr.insee.genesis.infrastructure.document.surveyunit.SurveyUnitDocument;
+import fr.insee.genesis.infrastructure.document.surveyunit.SurveyUnitInterrogationProjection;
 import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.Meta;
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -44,25 +45,29 @@ public interface SurveyUnitMongoDBRepository extends MongoRepository<SurveyUnitD
 	@Query(value = "{ 'collectionInstrumentId' : ?0, 'recordDate': { $gte: ?1 } }", fields = "{ 'interrogationId' : 1, 'mode' :  1 }")
 	List<SurveyUnitDocument> findInterrogationIdsByCollectionInstrumentIdAndDateAfter(String collectionInstrumentId, LocalDateTime since);
 
-    @Query(
-            value = "{ 'collectionInstrumentId' : ?0, 'recordDate': { $gte: ?1, $lt: ?2 } }",
-            fields = "{ 'interrogationId' : 1, 'mode' : 1 }"
-    )
-    List<SurveyUnitDocument> findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
-            String collectionInstrumentId,
-            Instant start,
-            Instant end
-    );
+	@Query(
+			value = "{ 'collectionInstrumentId' : ?0 }",
+			fields = "{ 'interrogationId' : 1, 'mode' : 1, 'recordDate' : 1, '_id': 0 }"
+	)
+	List<SurveyUnitInterrogationProjection> findProjectedByCollectionInstrumentId(String collectionInstrumentId);
 
-    @Query(
-            value = "{ 'questionnaireId' : ?0, 'recordDate': { $gte: ?1, $lt: ?2 } }",
-            fields = "{ 'interrogationId' : 1, 'mode' : 1 }"
-    )
-    List<SurveyUnitDocument> findInterrogationIdsQuestionnaireIdAndRecordDateBetween(
-            String questionnaireId,
-            Instant start,
-            Instant end
-    );
+	@Query(
+			value = "{ 'collectionInstrumentId' : ?0, 'recordDate': { $gt: ?1 } }",
+			fields = "{ 'interrogationId' : 1, 'mode' : 1, 'recordDate' : 1, '_id': 0 }"
+	)
+	List<SurveyUnitInterrogationProjection> findProjectedByCollectionInstrumentIdAndSince(String collectionInstrumentId, Instant since);
+
+	@Query(
+			value = "{ 'collectionInstrumentId' : ?0, 'recordDate': { $lte: ?1 } }",
+			fields = "{ 'interrogationId' : 1, 'mode' : 1, 'recordDate' : 1, '_id': 0 }"
+	)
+	List<SurveyUnitInterrogationProjection> findProjectedByCollectionInstrumentIdAndUntil(String collectionInstrumentId, Instant until);
+
+	@Query(
+			value = "{ 'collectionInstrumentId' : ?0, 'recordDate': { $gt: ?1, $lte: ?2 } }",
+			fields = "{ 'interrogationId' : 1, 'mode' : 1, 'recordDate' : 1, '_id': 0 }"
+	)
+	List<SurveyUnitInterrogationProjection> findProjectedByCollectionInstrumentIdAndBetween(String collectionInstrumentId, Instant since, Instant until);
 
     /**
 	 * @author Adrien Marchal

@@ -16,6 +16,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -197,36 +198,5 @@ class DataProcessingContextServiceUnitTest {
 
         //THEN
         Assertions.assertThat(collectionInstrumentIds).containsExactly(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID);
-    }
-
-    @Test
-    @SneakyThrows
-    void getReviewByCollectionInstrumentId_test() {
-        //GIVEN
-        String collectionInstrumentId = "test";
-        boolean withReview = true;
-        DataProcessingContextModel dataProcessingContextModel = DataProcessingContextModel.builder()
-                .collectionInstrumentId(collectionInstrumentId)
-                .withReview(withReview)
-                .build();
-        doReturn(dataProcessingContextModel).when(dataProcessingContextPersistancePort).findByCollectionInstrumentId(any());
-
-        //WHEN
-        boolean actual = dataProcessingContextService.getReviewByCollectionInstrumentId(collectionInstrumentId);
-
-        //THEN
-        verify(dataProcessingContextPersistancePort, times(1)).findByCollectionInstrumentId(collectionInstrumentId);
-        Assertions.assertThat(actual).isEqualTo(withReview);
-    }
-
-    @Test
-    void getReviewByCollectionInstrumentId_not_found_test() {
-        //WHEN + THEN
-        try{
-            dataProcessingContextService.getReviewByCollectionInstrumentId("collectionInstrumentId");
-            Assertions.fail();
-        }catch (GenesisException ge){
-            Assertions.assertThat(ge.getStatus()).isEqualTo(404);
-        }
     }
 }

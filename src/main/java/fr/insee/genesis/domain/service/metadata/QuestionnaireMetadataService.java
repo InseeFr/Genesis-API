@@ -13,19 +13,22 @@ import fr.insee.genesis.domain.ports.api.QuestionnaireMetadataApiPort;
 import fr.insee.genesis.domain.ports.spi.QuestionnaireMetadataPersistencePort;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.exceptions.QuestionnaireNotFoundException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.List;
 
 @Service
- @AllArgsConstructor
+@AllArgsConstructor
 @Slf4j
 public class QuestionnaireMetadataService implements QuestionnaireMetadataApiPort {
     private static final String DDI_FILE_PATTERN = "ddi[\\w,\\s-]+\\.xml";
@@ -35,11 +38,11 @@ public class QuestionnaireMetadataService implements QuestionnaireMetadataApiPor
 
 
     @Override
-    public MetadataModel find(String collectionInstrumentId, Mode mode) throws GenesisException {
+    public MetadataModel find(String collectionInstrumentId, Mode mode) {
         List<QuestionnaireMetadataModel> questionnaireMetadataModels =
                 questionnaireMetadataPersistencePort.find(collectionInstrumentId, mode);
         if(questionnaireMetadataModels.isEmpty()){
-            throw new GenesisException(404, "Collection instrument metadata not found");
+            throw new QuestionnaireNotFoundException(collectionInstrumentId);
         }
         return questionnaireMetadataModels.getFirst().metadataModel();
     }
@@ -80,7 +83,7 @@ public class QuestionnaireMetadataService implements QuestionnaireMetadataApiPor
      * @return VariablesMap or null if parsing fails
      */
     private MetadataModel readMetadatas(String campaignName, String modeName, FileUtils fileUtils,
-                                  List<GenesisError> errors) throws GenesisException{
+                                        List<GenesisError> errors) throws GenesisException{
 
         Path ddiFilePath;
         Path lunaticFilePath;
@@ -89,18 +92,21 @@ public class QuestionnaireMetadataService implements QuestionnaireMetadataApiPor
             ddiFilePath = fileUtils.findFile(String.format("%s/%s", fileUtils.getSpecFolder(campaignName), modeName), DDI_FILE_PATTERN);
             lunaticFilePath = fileUtils.findFile(String.format("%s/%s", fileUtils.getSpecFolder(campaignName), modeName), LUNATIC_FILE_PATTERN);
             metadataModel = parseMetadata(lunaticFilePath, ddiFilePath);
-        } catch (RuntimeException e) {
+        } catch (NoSuchFileException _) {
+            log.debug("Specification file missing for campaign={}, mode={}", campaignName, modeName);
             //DDI file not found and already log - Go to next step
-        } catch (IOException e) {
+        } catch (IOException _) {
             log.warn("No DDI File found for {}, {} mode. Will try to use Lunatic...", campaignName, modeName);
         }
         if(metadataModel == null ){
-            log.warn("DDI not found or error occurred. Trying Lunatic metadata...for {}, {} mode", campaignName, modeName);
+            log.debug("DDI not found or error occurred. Trying Lunatic metadata...for {}, {} mode", campaignName, modeName);
             try {
                 lunaticFilePath = fileUtils.findFile(String.format("%s/%s", fileUtils.getSpecFolder(campaignName), modeName), LUNATIC_FILE_PATTERN);
                 return parseMetadata(lunaticFilePath, null);
-            } //TODO remove error if java.nio.file.NoSuchFileException to avoid log spam
-            catch (Exception ex) {
+            } catch (NoSuchFileException _) {
+                log.debug("No Lunatic specification file found for campaign={}, mode={}", campaignName, modeName);
+                return null;
+            } catch (Exception ex) {
                 log.error("Error reading Lunatic metadata file", ex);
                 errors.add(new GenesisError(ex.toString()));
                 return null;
@@ -108,7 +114,7 @@ public class QuestionnaireMetadataService implements QuestionnaireMetadataApiPor
         }
 
         if(!errors.isEmpty()){
-            throw new GenesisException(404, errors.getLast().getMessage());
+            throw new GenesisException(HttpStatus.NOT_FOUND, errors.getLast().getMessage());
         }
         return metadataModel;
     }

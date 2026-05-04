@@ -88,7 +88,6 @@ class QuestionnaireControllerIT extends IntegrationTestAbstract {
             mockMvc.perform(get("/questionnaires/by-interrogation")
                             .with(csrf())
                             .param("interrogationId", interrogationId))
-                    .andExpect(status().isMultiStatus());
-        }
+                    .andExpect(status().isConflict());        }
     }
 }
