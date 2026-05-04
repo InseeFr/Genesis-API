@@ -194,11 +194,11 @@ public class RawResponseService implements RawResponseApiPort {
     @Override
     public List<String> getUnprocessedCollectionInstrumentIds() {
         List<String> unprocessedCollectionInstrumentIds = rawResponsePersistencePort.getUnprocessedCollectionIds();
-        List<String> eligibleCollectionInstrumentIds = new ArrayList<>();
+        List<String> unprocessedCollectionInstrumentIdsWithSpecs = new ArrayList<>();
 
-        for (String collectionInstrumentId : unprocessedCollectionInstrumentIds) {
+        for (String unprocessedCollectionInstrumentId : unprocessedCollectionInstrumentIds) {
             Set<ModeDto> modes = new HashSet<>(
-                    rawResponsePersistencePort.findModesByCollectionInstrument(collectionInstrumentId)
+                    rawResponsePersistencePort.findModesByCollectionInstrument(unprocessedCollectionInstrumentId)
             );
 
             if (modes.isEmpty()) {
@@ -217,27 +217,27 @@ public class RawResponseService implements RawResponseApiPort {
                 }
 
                 Mode mode = Mode.getEnumFromJsonName(modeDto.toString());
-                if (!isSpecsPresentForCollectionInstrumentAndMode(collectionInstrumentId, mode)) {
+                if (!isSpecsPresentForCollectionInstrumentAndMode(unprocessedCollectionInstrumentId, mode)) {
                     areAllSpecsOK = false;
                 }
             }
 
             if (areAllSpecsOK) {
-                eligibleCollectionInstrumentIds.add(collectionInstrumentId);
+                unprocessedCollectionInstrumentIdsWithSpecs .add(unprocessedCollectionInstrumentId);
             }
         }
 
-        return eligibleCollectionInstrumentIds;
+        return unprocessedCollectionInstrumentIdsWithSpecs ;
     }
 
-    private boolean isSpecsPresentForCollectionInstrumentAndMode(String collectionInstrumentId, Mode mode) {
+    private boolean isSpecsPresentForCollectionInstrumentAndMode(String unprocessedCollectionInstrumentId, Mode mode) {
         List<GenesisError> genesisErrors = new ArrayList<>();
         MetadataModel metadataModel;
 
         try {
             metadataModel = metadataService.loadAndSaveIfNotExists(
-                    collectionInstrumentId,
-                    collectionInstrumentId,
+                    unprocessedCollectionInstrumentId,
+                    unprocessedCollectionInstrumentId,
                     mode,
                     fileUtils,
                     genesisErrors
@@ -245,7 +245,7 @@ public class RawResponseService implements RawResponseApiPort {
         } catch (GenesisException ge) {
             log.warn(
                     "Genesis exception thrown for collection instrument {} and mode {}, excluding from get collection instrument ids...",
-                    collectionInstrumentId,
+                    unprocessedCollectionInstrumentId,
                     mode
             );
             return false;
