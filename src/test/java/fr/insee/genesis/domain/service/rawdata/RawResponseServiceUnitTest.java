@@ -370,7 +370,7 @@ class RawResponseServiceUnitTest {
 
         //WHENS
         private List<SurveyUnitModel> whenProcessByCollectionInstrumentIdAndInterrogationIdList() throws GenesisException {
-            rawResponseService.processRawResponsesByInterrogationIds(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID);
+            rawResponseService.processRawResponsesByCollectionInstrumentId(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID);
             verify(surveyUnitService).saveSurveyUnits(surveyUnitModelsCaptor.capture());
             return surveyUnitModelsCaptor.getValue();
         }

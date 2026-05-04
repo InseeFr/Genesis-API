@@ -238,7 +238,7 @@ class RawResponseControllerTest {
             @DisplayName("Should return 200 with count message")
             void processByCollectionInstrumentId_shouldReturn200() throws Exception {
                 // GIVEN
-                when(rawResponseApiPort.processRawResponsesByInterrogationIds("QUEST01"))
+                when(rawResponseApiPort.processRawResponsesByCollectionInstrumentId("QUEST01"))
                         .thenReturn(new DataProcessResult(5, 0, new ArrayList<>()));
 
                 // WHEN / THEN
@@ -252,7 +252,7 @@ class RawResponseControllerTest {
             @DisplayName("Should return GenesisException status when port throws")
             void processByCollectionInstrumentId_genesisException_shouldReturnExceptionStatus() throws Exception {
                 // GIVEN
-                when(rawResponseApiPort.processRawResponsesByInterrogationIds(anyString()))
+                when(rawResponseApiPort.processRawResponsesByCollectionInstrumentId(anyString()))
                         .thenThrow(new GenesisException(HttpStatus.UNPROCESSABLE_ENTITY, "Unprocessable"));
 
                 // WHEN / THEN

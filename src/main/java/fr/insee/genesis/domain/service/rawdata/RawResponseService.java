@@ -67,8 +67,7 @@ public class RawResponseService implements RawResponseApiPort {
         return rawResponsePersistencePort.findRawResponsesByInterrogationID(interrogationId);
     }
 
-    @Override
-    public DataProcessResult processRawResponsesByInterrogationIds(String collectionInstrumentId) throws GenesisException {
+    public DataProcessResult processRawResponsesByCollectionInstrumentId(String collectionInstrumentId) throws GenesisException {
         List<String> interrogationIds = rawResponsePersistencePort
                 .findUnprocessedInterrogationIdsByCollectionInstrumentId(collectionInstrumentId)
                 .stream()
