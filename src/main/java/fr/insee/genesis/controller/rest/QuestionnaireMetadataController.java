@@ -3,7 +3,7 @@ package fr.insee.genesis.controller.rest;
 import fr.insee.bpm.metadata.model.MetadataModel;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.ports.api.QuestionnaireMetadataApiPort;
-import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.exceptions.QuestionnaireNotFoundException;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,12 +24,9 @@ public class QuestionnaireMetadataController {
     public ResponseEntity<Object> getMetadata(
             @RequestParam("questionnaireId") String questionnaireId,
             @RequestParam("mode") Mode mode
-    ){
-        try {
+    ) throws QuestionnaireNotFoundException{
+
             return ResponseEntity.ok().body(questionnaireMetadataApiPort.find(questionnaireId, mode));
-        } catch (GenesisException e) {
-            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
-        }
     }
 
     @Operation(summary = "Save questionnaire metadata into database")

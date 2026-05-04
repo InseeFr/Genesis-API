@@ -405,6 +405,7 @@ class DataProcessingContextMongoAdapterTest {
     //UTILS
     private KraftwerkExecutionSchedule buildSchedule(LocalDateTime endDate) {
         return new KraftwerkExecutionSchedule(
+                null,
                 "0 10 * * *",
                 ServiceToCall.GENESIS,
                 LocalDateTime.now(),

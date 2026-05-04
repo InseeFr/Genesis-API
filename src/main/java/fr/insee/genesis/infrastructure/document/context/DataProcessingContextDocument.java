@@ -2,6 +2,7 @@ package fr.insee.genesis.infrastructure.document.context;
 
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionSchedule;
+import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionScheduleV2;
 import lombok.Data;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
@@ -14,12 +15,14 @@ import java.util.List;
 @Data
 @Document(collection = Constants.MONGODB_CONTEXT_COLLECTION_NAME)
 public class DataProcessingContextDocument{
-
         @Id
         private ObjectId id;
+
+        private String partitionId; //Old id
         @Indexed
         private String collectionInstrumentId; // QuestionnaireId
         private LocalDateTime lastExecution;
         private List<KraftwerkExecutionSchedule> kraftwerkExecutionScheduleList;
+        private List<KraftwerkExecutionScheduleV2> kraftwerkExecutionScheduleV2List;
         private boolean withReview;
 }

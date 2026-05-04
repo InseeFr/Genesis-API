@@ -11,6 +11,7 @@ import fr.insee.genesis.controller.dto.VariableInputDto;
 import fr.insee.genesis.controller.dto.VariableStateInputDto;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
+import fr.insee.genesis.domain.model.surveyunit.InterrogationInfo;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
@@ -30,7 +31,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -43,7 +46,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-class SurveyUnitServiceUnitTest {
+class SurveyUnitServiceTest {
 
     static SurveyUnitService surveyUnitService;
     static SurveyUnitPersistencePort surveyUnitPersistencePortStub;
@@ -159,7 +162,7 @@ class SurveyUnitServiceUnitTest {
         surveyUnitDocument.setMode(String.valueOf(Mode.WEB));
         surveyUnitDocument.setUsualSurveyUnitId(usualSurveyUnitId);
         surveyUnitDocument.setState(DataState.COLLECTED.toString());
-        surveyUnitDocument.setRecordDate(LocalDateTime.now().minusMinutes(1));
+        surveyUnitDocument.setRecordDate(Instant.now().minusSeconds(60));
         surveyUnitDocument.setCollectedVariables(new ArrayList<>());
         surveyUnitDocument.getCollectedVariables().add(new VariableDocument());
         surveyUnitDocument.getCollectedVariables().getFirst().setVarId("VAR1");
@@ -170,7 +173,7 @@ class SurveyUnitServiceUnitTest {
         surveyUnitDocument = new SurveyUnitDocument();
         surveyUnitDocument.setMode(String.valueOf(Mode.WEB));
         surveyUnitDocument.setState(DataState.EDITED.toString());
-        surveyUnitDocument.setRecordDate(LocalDateTime.now());
+        surveyUnitDocument.setRecordDate(Instant.now());
         surveyUnitDocument.setCollectedVariables(new ArrayList<>());
         surveyUnitDocument.getCollectedVariables().add(new VariableDocument());
         surveyUnitDocument.getCollectedVariables().getFirst().setVarId("VAR1");
@@ -182,10 +185,11 @@ class SurveyUnitServiceUnitTest {
                 .when(surveyUnitPersistencePortStub).findByIds(any(), any());
 
         //WHEN
-        SurveyUnitSimplifiedDto surveyUnitSimplifiedDto = surveyUnitService.findSimplifiedByCollectionInstrumentIdAndInterrogationId(
+        SurveyUnitSimplifiedDto surveyUnitSimplifiedDto = surveyUnitService.findSimplified(
                 "test",
                 "testInterrogation",
-                Mode.WEB
+                Mode.WEB,
+                Instant.now()
         );
 
         //THEN
@@ -202,7 +206,7 @@ class SurveyUnitServiceUnitTest {
         SurveyUnitDocument surveyUnitDocument = new SurveyUnitDocument();
         surveyUnitDocument.setMode(String.valueOf(Mode.WEB));
         surveyUnitDocument.setState(DataState.COLLECTED.toString());
-        surveyUnitDocument.setRecordDate(LocalDateTime.now().minusMinutes(1));
+        surveyUnitDocument.setRecordDate(Instant.now().minusSeconds(60));
         surveyUnitDocument.setCollectedVariables(new ArrayList<>());
         surveyUnitDocument.getCollectedVariables().add(new VariableDocument());
         surveyUnitDocument.getCollectedVariables().getFirst().setVarId("VAR1");
@@ -213,7 +217,7 @@ class SurveyUnitServiceUnitTest {
         surveyUnitDocument = new SurveyUnitDocument();
         surveyUnitDocument.setMode(String.valueOf(Mode.WEB));
         surveyUnitDocument.setState(DataState.EDITED.toString());
-        surveyUnitDocument.setRecordDate(LocalDateTime.now());
+        surveyUnitDocument.setRecordDate(Instant.now());
         surveyUnitDocument.setCollectedVariables(new ArrayList<>());
         surveyUnitDocument.getCollectedVariables().add(new VariableDocument());
         surveyUnitDocument.getCollectedVariables().getFirst().setVarId("VAR1");
@@ -225,10 +229,11 @@ class SurveyUnitServiceUnitTest {
                 .when(surveyUnitPersistencePortStub).findByIds(any(), any());
 
         //WHEN
-        SurveyUnitSimplifiedDto surveyUnitSimplifiedDto = surveyUnitService.findSimplifiedByCollectionInstrumentIdAndInterrogationId(
+        SurveyUnitSimplifiedDto surveyUnitSimplifiedDto = surveyUnitService.findSimplified(
                 "test",
                 "testInterrogation",
-                Mode.WEB
+                Mode.WEB,
+                Instant.now()
         );
 
         //THEN
@@ -247,7 +252,7 @@ class SurveyUnitServiceUnitTest {
         SurveyUnitDocument surveyUnitDocument = new SurveyUnitDocument();
         surveyUnitDocument.setMode(String.valueOf(Mode.WEB));
         surveyUnitDocument.setState(DataState.COLLECTED.toString());
-        surveyUnitDocument.setRecordDate(LocalDateTime.now().minusMinutes(1));
+        surveyUnitDocument.setRecordDate(Instant.now().minusSeconds(60));
         surveyUnitDocument.setExternalVariables(new ArrayList<>());
         surveyUnitDocument.getExternalVariables().add(new VariableDocument());
         surveyUnitDocument.getExternalVariables().getFirst().setVarId("VAR1");
@@ -258,7 +263,7 @@ class SurveyUnitServiceUnitTest {
         surveyUnitDocument = new SurveyUnitDocument();
         surveyUnitDocument.setMode(String.valueOf(Mode.WEB));
         surveyUnitDocument.setState(DataState.FORCED.toString());
-        surveyUnitDocument.setRecordDate(LocalDateTime.now());
+        surveyUnitDocument.setRecordDate(Instant.now());
         surveyUnitDocument.setExternalVariables(new ArrayList<>());
         surveyUnitDocument.getExternalVariables().add(new VariableDocument());
         surveyUnitDocument.getExternalVariables().getFirst().setVarId("VAR1");
@@ -270,10 +275,11 @@ class SurveyUnitServiceUnitTest {
                 .when(surveyUnitPersistencePortStub).findByIds(any(), any());
 
         //WHEN
-        SurveyUnitSimplifiedDto surveyUnitSimplifiedDto = surveyUnitService.findSimplifiedByCollectionInstrumentIdAndInterrogationId(
+        SurveyUnitSimplifiedDto surveyUnitSimplifiedDto = surveyUnitService.findSimplified(
                 "test",
                 "testInterrogation",
-                Mode.WEB
+                Mode.WEB,
+                Instant.now()
         );
 
         //THEN
@@ -286,10 +292,11 @@ class SurveyUnitServiceUnitTest {
     @Test
     void get_simplified_should_throw_genesis_exception_if_not_found(){
         try {
-            surveyUnitService.findSimplifiedByCollectionInstrumentIdAndInterrogationId(
+            surveyUnitService.findSimplified(
                     "test",
                     "testInterrogation",
-                    Mode.WEB
+                    Mode.WEB,
+                    Instant.now()
             );
             Assertions.fail();
         }catch (NoDataException e){
@@ -328,7 +335,7 @@ class SurveyUnitServiceUnitTest {
         surveyUnitDocument.setMode(String.valueOf(Mode.WEB));
         surveyUnitDocument.setIdUE(TestConstants.DEFAULT_SURVEY_UNIT_ID);
         surveyUnitDocument.setState(DataState.COLLECTED.toString());
-        surveyUnitDocument.setRecordDate(LocalDateTime.now().minusMinutes(1));
+        surveyUnitDocument.setRecordDate(LocalDateTime.now().minusMinutes(1).toInstant(ZoneOffset.UTC));
         surveyUnitDocument.setCollectedVariables(new ArrayList<>());
         surveyUnitDocument.getCollectedVariables().add(new VariableDocument());
         surveyUnitDocument.getCollectedVariables().getFirst().setVarId("VAR1");
@@ -339,7 +346,7 @@ class SurveyUnitServiceUnitTest {
         surveyUnitDocument = new SurveyUnitDocument();
         surveyUnitDocument.setMode(String.valueOf(Mode.WEB));
         surveyUnitDocument.setState(DataState.EDITED.toString());
-        surveyUnitDocument.setRecordDate(LocalDateTime.now());
+        surveyUnitDocument.setRecordDate(Instant.now());
         surveyUnitDocument.setCollectedVariables(new ArrayList<>());
         surveyUnitDocument.getCollectedVariables().add(new VariableDocument());
         surveyUnitDocument.getCollectedVariables().getFirst().setVarId("VAR2");
@@ -422,47 +429,25 @@ class SurveyUnitServiceUnitTest {
         }
 
         @Test
-        @DisplayName("findDistinctInterrogationIdsByQuestionnaireIdAndDateAfter should return distinct ids after date")
-        void findDistinctInterrogationIdsByQuestionnaireIdAndDateAfter_shouldReturnDistinctIds() {
+        @DisplayName("searchInterrogations should return distinct ids")
+        void searchInterrogations_shouldReturnDistinctIds() {
             // GIVEN
-            LocalDateTime since = LocalDateTime.now().minusDays(1);
-            SurveyUnitDocument doc1 = buildDoc("INTERRO1", Mode.WEB);
-            SurveyUnitDocument doc2 = buildDoc("INTERRO1", Mode.WEB); // doublon
-            doReturn(SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(List.of(doc1, doc2)))
-                    .when(surveyUnitPersistencePortStub).findInterrogationIdsByQuestionnaireIdAndDateAfter(any(), any());
+            Instant since = Instant.now().minusSeconds(86400); //Minus one day
+            InterrogationInfo info1 = new InterrogationInfo("INTERRO1",Instant.parse("2025-04-20T10:15:30Z"));
+            InterrogationInfo info2 = new InterrogationInfo("INTERRO1", Instant.parse("2025-04-20T10:15:30Z")); // doublon
+            doReturn(List.of(info1, info2)).when(surveyUnitPersistencePortStub).searchInterrogations(any(), any(), any());
 
             // WHEN
-            List<InterrogationId> result = surveyUnitService.findDistinctInterrogationIdsByQuestionnaireIdAndDateAfter(
-                    TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID, since
+            List<InterrogationInfo> result = surveyUnitService.searchInterrogations(
+                    TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID, since, null
             );
 
             // THEN
             assertThat(result).hasSize(1)
-                    .extracting(InterrogationId::getInterrogationId)
+                    .extracting(InterrogationInfo::interrogationId)
                     .containsExactly("INTERRO1");
         }
 
-        @Test
-        @DisplayName("findDistinctInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween should return distinct" +
-                " ids between dates")
-        void findDistinctByCollectionInstrumentIdAndRecordDateBetween_shouldReturnDistinctIds() {
-            // GIVEN
-            LocalDateTime start = LocalDateTime.now().minusDays(7);
-            LocalDateTime end = LocalDateTime.now();
-            SurveyUnitDocument doc = buildDoc("INTERRO1", Mode.WEB);
-            doReturn(SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(List.of(doc)))
-                    .when(surveyUnitPersistencePortStub).findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(any(), any(), any());
-
-            // WHEN
-            List<InterrogationId> result = surveyUnitService.findDistinctInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
-                    TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID, start, end
-            );
-
-            // THEN
-            assertThat(result).hasSize(1)
-                    .extracting(InterrogationId::getInterrogationId)
-                    .containsExactly("INTERRO1");
-        }
     }
 
     @Nested
@@ -805,7 +790,7 @@ class SurveyUnitServiceUnitTest {
         doc.setQuestionnaireId(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID);
         doc.setCollectedVariables(new ArrayList<>());
         doc.setExternalVariables(new ArrayList<>());
-        doc.setRecordDate(LocalDateTime.now());
+        doc.setRecordDate(Instant.now());
         return doc;
     }
 }

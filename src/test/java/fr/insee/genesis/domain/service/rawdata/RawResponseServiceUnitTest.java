@@ -31,10 +31,10 @@ import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.mockito.Mockito;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -360,12 +360,12 @@ class RawResponseServiceUnitTest {
 
         //WHENS
         private List<SurveyUnitModel> whenProcessByCollectionInstrumentIdAndInterrogationIdList() throws GenesisException {
-            rawResponseService.processRawResponses(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID);
+            rawResponseService.processRawResponsesByInterrogationIds(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID);
             verify(surveyUnitService).saveSurveyUnits(surveyUnitModelsCaptor.capture());
             return surveyUnitModelsCaptor.getValue();
         }
         private List<SurveyUnitModel> whenProcessRawResponsesCollectionInstrumentId() throws GenesisException {
-            rawResponseService.processRawResponses(
+            rawResponseService.processRawResponsesByInterrogationIds(
                     TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
                     Collections.singletonList(TestConstants.DEFAULT_INTERROGATION_ID),
                     new ArrayList<>()

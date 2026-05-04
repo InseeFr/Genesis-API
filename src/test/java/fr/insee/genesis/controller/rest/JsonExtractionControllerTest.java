@@ -1,5 +1,6 @@
 package fr.insee.genesis.controller.rest;
 
+import fr.insee.genesis.controller.dto.LastExtractionRequest;
 import fr.insee.genesis.controller.dto.LastExtractionResponseDto;
 import fr.insee.genesis.domain.model.extraction.json.LastJsonExtractionModel;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
@@ -15,7 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
@@ -39,9 +40,11 @@ class JsonExtractionControllerTest {
         //GIVEN
         String collectionInstrumentId = "test";
         Mode mode = Mode.WEB;
+        LastExtractionRequest request = new LastExtractionRequest();
+        request.setLastExtractionDate(Instant.now());
 
         //WHEN
-        jsonExtractionController.saveLastJsonExtractionDate(collectionInstrumentId, mode);
+        jsonExtractionController.saveLastJsonExtractionDate(collectionInstrumentId, mode, request);
 
         //THEN
         verify(lastJsonExtractionApiPort, times(1))
@@ -58,7 +61,7 @@ class JsonExtractionControllerTest {
         //GIVEN
         String collectionInstrumentId = "test";
         Mode mode = Mode.WEB;
-        LocalDateTime lastExtractionDate = LocalDateTime.now();
+        Instant lastExtractionDate = Instant.now();
 
         LastJsonExtractionModel lastJsonExtractionModel = LastJsonExtractionModel.builder()
                 .collectionInstrumentId(collectionInstrumentId)
