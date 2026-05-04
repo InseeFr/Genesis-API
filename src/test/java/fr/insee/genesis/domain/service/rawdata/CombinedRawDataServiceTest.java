@@ -96,7 +96,7 @@ class CombinedRawDataServiceTest {
     }
 
     @Test
-    void getRawDataIdentifiersByCollectionInstrumentId_shouldReturnRawResponseIdentifiers() throws NoDataException, NoDataException {
+    void getRawDataIdentifiersByCollectionInstrumentId_shouldReturnRawResponseIdentifiers() throws NoDataException {
         // GIVEN
         String collectionInstrumentId = "COLLECTION_1";
 
