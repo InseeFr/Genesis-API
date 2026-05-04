@@ -48,8 +48,6 @@ public interface SurveyUnitApiPort {
 
     SurveyUnitDto findLatestValuesByStateByIdAndByCollectionInstrumentId(String interrogationId, String collectionInstrumentId) throws GenesisException;
 
-    List<SurveyUnitModel> findInterrogationIdsAndModesByQuestionnaireId(String questionnaireId);
-
     List<InterrogationId> findDistinctInterrogationIdsByQuestionnaireId(String questionnaireId);
 
     List<InterrogationInfo> searchInterrogations(String collectionInstrumentId, Instant start, Instant end);

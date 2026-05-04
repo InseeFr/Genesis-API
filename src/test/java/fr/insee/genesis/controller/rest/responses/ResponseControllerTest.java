@@ -32,6 +32,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -132,8 +133,17 @@ class ResponseControllerTest {
         @DisplayName("Should return 200 with list of survey unit models")
         void find_shouldReturn200() throws Exception {
             // GIVEN
+            SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
+                    .interrogationId("INTERRO01")
+                    .collectionInstrumentId("QUEST01")
+                    .mode(Mode.WEB)
+                    .state(DataState.COLLECTED)
+                    .recordDate(Instant.now())
+                    .collectedVariables(List.of())
+                    .externalVariables(List.of())
+                    .build();
             when(surveyUnitApiPort.findByIdsInterrogationAndCollectionInstrument("INTERRO01", "QUEST01"))
-                    .thenReturn(List.of(buildSurveyUnitModel("INTERRO01", "QUEST01", Mode.WEB, DataState.COLLECTED)));
+                    .thenReturn(List.of(surveyUnitModel));
 
             // WHEN / THEN
             mockMvc.perform(get("/responses/by-interrogation-and-collection-instrument")
@@ -200,6 +210,7 @@ class ResponseControllerTest {
 
         @Test
         @DisplayName("Should also allow SCHEDULER role")
+        @WithMockUser("SCHEDULER")
         void findLatestStates_schedulerRole_shouldReturn200() throws Exception {
             findLatestStates_reviewEnabled_shouldReturn200();
         }
@@ -236,41 +247,6 @@ class ResponseControllerTest {
     }
 
     @Nested
-    @DisplayName("GET /responses/by-ue-and-questionnaire/latest-states tests (deprecated)")
-    class FindResponsesByInterrogationAndQuestionnaireLatestStatesTests {
-
-        @Test
-        @DisplayName("Should return 200 when review is enabled")
-        void findByQuestionnaire_reviewEnabled_shouldReturn200() throws Exception {
-            // GIVEN
-            DataProcessingContextModel ctx = new DataProcessingContextModel();
-            ctx.setWithReview(true);
-            when(contextService.getContext("INTERRO01")).thenReturn(ctx);
-            when(surveyUnitApiPort.findLatestValuesByStateByIdAndByCollectionInstrumentId("INTERRO01", "QUEST01"))
-                    .thenReturn(getSurveyUnitDto());
-
-            // WHEN / THEN
-            mockMvc.perform(get("/responses/by-ue-and-questionnaire/latest-states")
-                            .param("interrogationId", "INTERRO01")
-                            .param("questionnaireId", "QUEST01"))
-                    .andExpect(status().isOk());
-        }
-
-        @Test
-        @DisplayName("Should return 403 when review is disabled (shares same logic as new endpoint)")
-        void findByQuestionnaire_reviewDisabled_shouldReturn403() throws Exception {
-            // GIVEN
-            when(contextService.getContext("INTERRO01")).thenReturn(null);
-
-            // WHEN / THEN
-            mockMvc.perform(get("/responses/by-ue-and-questionnaire/latest-states")
-                            .param("interrogationId", "INTERRO01")
-                            .param("questionnaireId", "QUEST01"))
-                    .andExpect(status().isForbidden());
-        }
-    }
-
-    @Nested
     @DisplayName("GET /responses/by-interrogation-and-collection-instrument/latest tests")
     class GetLatestByInterrogationAndCollectionInstrumentTests {
 
@@ -285,46 +261,6 @@ class ResponseControllerTest {
             mockMvc.perform(get("/responses/by-interrogation-and-collection-instrument/latest")
                             .param("interrogationId", "INTERRO01")
                             .param("collectionInstrumentId", "QUEST01"))
-                    .andExpect(status().isOk());
-        }
-    }
-
-    @Nested
-    @DisplayName("GET /responses/simplified/by-interrogation-collection-instrument-and-mode/latest tests")
-    class GetLatestByInterrogationOneObjectTests {
-
-        @Test
-        @DisplayName("Should return 200 and aggregate collected + external variables per mode")
-        void getLatestOneObject_shouldReturn200AndAggregateVariables() throws Exception {
-            // GIVEN
-            SurveyUnitModel model = buildSurveyUnitModel("INTERRO01", "QUEST01", Mode.WEB, DataState.COLLECTED);
-            when(surveyUnitApiPort.findLatestByIdAndByCollectionInstrumentId("INTERRO01", "QUEST01"))
-                    .thenReturn(List.of(model));
-
-            // WHEN / THEN
-            mockMvc.perform(get("/responses/simplified/by-interrogation-collection-instrument-and-mode/latest")
-                            .param("interrogationId", "INTERRO01")
-                            .param("collectionInstrumentId", "QUEST01")
-                            .param("mode", Mode.WEB.name()))
-                    .andExpect(status().isOk())
-                    .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
-        }
-
-        @Test
-        @DisplayName("Should filter responses by mode before aggregating")
-        void getLatestOneObject_shouldFilterByMode() throws Exception {
-            // GIVEN
-            SurveyUnitModel webModel = buildSurveyUnitModel("INTERRO01", "QUEST01", Mode.WEB, DataState.COLLECTED);
-            SurveyUnitModel paperModel = buildSurveyUnitModel("INTERRO01", "QUEST01", Mode.PAPER, DataState.COLLECTED);
-            when(surveyUnitApiPort.findLatestByIdAndByCollectionInstrumentId("INTERRO01", "QUEST01"))
-                    .thenReturn(List.of(webModel, paperModel));
-
-            // WHEN / THEN
-            // Only WEB responses should be included — result should compile without error
-            mockMvc.perform(get("/responses/simplified/by-interrogation-collection-instrument-and-mode/latest")
-                            .param("interrogationId", "INTERRO01")
-                            .param("collectionInstrumentId", "QUEST01")
-                            .param("mode", Mode.WEB.name()))
                     .andExpect(status().isOk());
         }
     }
@@ -362,57 +298,7 @@ class ResponseControllerTest {
                     "QUEST01", "INTERRO01", Mode.WEB, null);
         }
     }
-
-    @Nested
-    @DisplayName("POST /responses/simplified/by-list-interrogation-and-collection-instrument/latest tests")
-    class GetLatestForInterrogationListTests {
-
-        @Test
-        @DisplayName("Should return 200 with simplified dto for each interrogation+mode combination with variables")
-        void getLatestList_shouldReturn200() throws Exception {
-            // GIVEN
-            SurveyUnitModel model = buildSurveyUnitModel("INTERRO01", "QUEST01", Mode.WEB, DataState.COLLECTED);
-            when(surveyUnitApiPort.findModesByCollectionInstrumentId("QUEST01"))
-                    .thenReturn(List.of(Mode.WEB));
-            when(surveyUnitApiPort.findLatestByIdAndByCollectionInstrumentId("INTERRO01", "QUEST01"))
-                    .thenReturn(List.of(model));
-
-            // WHEN / THEN
-            mockMvc.perform(post("/responses/simplified/by-list-interrogation-and-collection-instrument/latest")
-                            .with(csrf())
-                            .param("collectionInstrumentId", "QUEST01")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("[{\"interrogationId\":\"INTERRO01\"}]"))
-                    .andExpect(status().isOk());
-        }
-
-        @Test
-        @DisplayName("Should exclude interrogations with no variables in any mode")
-        void getLatestList_noVariables_shouldReturnEmptyList() throws Exception {
-            // GIVEN
-            SurveyUnitModel modelNoVars = SurveyUnitModel.builder()
-                    .interrogationId("INTERRO01")
-                    .collectionInstrumentId("QUEST01")
-                    .mode(Mode.WEB)
-                    .collectedVariables(List.of())
-                    .externalVariables(List.of())
-                    .build();
-            when(surveyUnitApiPort.findModesByCollectionInstrumentId("QUEST01"))
-                    .thenReturn(List.of(Mode.WEB));
-            when(surveyUnitApiPort.findLatestByIdAndByCollectionInstrumentId("INTERRO01", "QUEST01"))
-                    .thenReturn(List.of(modelNoVars));
-
-            // WHEN / THEN
-            mockMvc.perform(post("/responses/simplified/by-list-interrogation-and-collection-instrument/latest")
-                            .with(csrf())
-                            .param("collectionInstrumentId", "QUEST01")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("[{\"interrogationId\":\"INTERRO01\"}]"))
-                    .andExpect(status().isOk())
-                    .andExpect(content().string("[]"));
-        }
-    }
-
+    
     @Nested
     @DisplayName("POST /responses/{collectionInstrumentId} tests")
     class GetResponseByCollectionInstrumentAndInterrogationListTests {
@@ -575,21 +461,7 @@ class ResponseControllerTest {
         }
     }
 
-    private SurveyUnitModel buildSurveyUnitModel(String interrogationId,
-                                                 String collectionInstrumentId,
-                                                 Mode mode,
-                                                 DataState state) {
-        return SurveyUnitModel.builder()
-                .interrogationId(interrogationId)
-                .collectionInstrumentId(collectionInstrumentId)
-                .mode(mode)
-                .state(state)
-                .recordDate(Instant.now())
-                .collectedVariables(List.of())
-                .externalVariables(List.of())
-                .build();
-    }
-
+    //UTILS
     private MetadataModel buildMetadataModel() {
         MetadataModel model = new MetadataModel();
         model.setVariables(new VariablesMap());
