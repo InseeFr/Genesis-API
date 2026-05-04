@@ -5,14 +5,14 @@ import fr.insee.genesis.controller.sources.xml.LunaticXmlCollectedData;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlOtherData;
 import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
 import fr.insee.genesis.controller.sources.xml.ValueType;
-import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
-import fr.insee.genesis.domain.utils.GroupUtils;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
+import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
+import fr.insee.genesis.domain.utils.GroupUtils;
 import lombok.experimental.UtilityClass;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,10 +23,9 @@ public class LunaticXmlAdapter {
      * Convert a Lunatic XML survey unit into a genesis survey unit model
      * @param su Lunatic XML survey unit to convert
      * @param variablesMap variable definitions (used for loops)
-     * @param campaignId survey id
      * @return Genesis SurveyUnitModels for each data state
      */
-    public static List<SurveyUnitModel> convert(LunaticXmlSurveyUnit su, VariablesMap variablesMap, String campaignId, Mode mode){
+    public static List<SurveyUnitModel> convert(LunaticXmlSurveyUnit su, VariablesMap variablesMap, Mode mode){
         //Get COLLECTED Data and external variables
         List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
         SurveyUnitModel surveyUnitModel = getStateDataFromSurveyUnit(su, variablesMap, DataState.COLLECTED, mode);
@@ -72,7 +71,7 @@ public class LunaticXmlAdapter {
                 .interrogationId(su.getId())
                 .state(dataState)
                 .mode(mode)
-                .recordDate(LocalDateTime.now())
+                .recordDate(Instant.now())
                 .fileDate(su.getFileDate())
                 .build();
 

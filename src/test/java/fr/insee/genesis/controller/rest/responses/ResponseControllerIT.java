@@ -20,7 +20,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.security.test.context.support.WithMockUser;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -62,6 +64,7 @@ class ResponseControllerIT extends IntegrationTestAbstract {
             surveyUnitDocument.setValidationDate(validationDate);
             surveyUnitDocument.setCollectedVariables(new ArrayList<>());
             surveyUnitDocument.setExternalVariables(new ArrayList<>());
+            surveyUnitDocument.setRecordDate(Instant.now().minusSeconds(60));
 
             String collectedVariableName = "var1";
             String collectedVariableValue = "value1";
@@ -80,6 +83,7 @@ class ResponseControllerIT extends IntegrationTestAbstract {
             externalVariableDocument.setIteration(1);
             externalVariableDocument.setScope(Constants.ROOT_GROUP_NAME);
             surveyUnitDocument.getExternalVariables().add(externalVariableDocument);
+
 
             Mockito.when(surveyUnitMongoDBRepository.findByInterrogationIdAndCollectionInstrumentId(
                     interrogationId, collectionInstrumentId
@@ -138,7 +142,7 @@ class ResponseControllerIT extends IntegrationTestAbstract {
             surveyUnitDocument.setValidationDate(validationDate);
             surveyUnitDocument.setCollectedVariables(new ArrayList<>());
             surveyUnitDocument.setExternalVariables(new ArrayList<>());
-            surveyUnitDocument.setRecordDate(LocalDateTime.now().minusMinutes(1));
+            surveyUnitDocument.setRecordDate(Instant.now().minusSeconds(60));
 
             String collectedVariableName = "var1";
             String collectedVariableValue = "value1";
@@ -169,7 +173,7 @@ class ResponseControllerIT extends IntegrationTestAbstract {
             editedSurveyUnitDocument.setValidationDate(validationDate);
             editedSurveyUnitDocument.setCollectedVariables(new ArrayList<>());
             editedSurveyUnitDocument.setExternalVariables(new ArrayList<>());
-            editedSurveyUnitDocument.setRecordDate(LocalDateTime.now());
+            editedSurveyUnitDocument.setRecordDate(Instant.now());
 
             String editedCollectedVariableValue = "editedvalue1";
             VariableDocument editedCollectedVariableDocument = new VariableDocument();
@@ -249,8 +253,11 @@ class ResponseControllerIT extends IntegrationTestAbstract {
             String interrogationId = "interrogationId";
             String usualSurveyUnitId = "usualSurveyUnitId";
             Mode mode = Mode.WEB;
-            LocalDateTime collectedDate = LocalDateTime.now().minusDays(1);
-            LocalDateTime editedDate = LocalDateTime.now();
+            Instant collectedDate = LocalDateTime.now().minusDays(1).toInstant(ZoneOffset.UTC);
+            Instant editedDate = Instant.now();
+            DateTimeFormatter formatter =
+                    DateTimeFormatter.ofPattern(Constants.VARIABLE_STATE_DTO_DATE_FORMAT)
+                            .withZone(ZoneOffset.UTC);
 
 
             //Context
@@ -355,7 +362,7 @@ class ResponseControllerIT extends IntegrationTestAbstract {
                     .andExpect(jsonPath("$.collectedVariables[0].variableStates[0].value")
                             .value(editedCollectedVariableValue))
                     .andExpect(jsonPath("$.collectedVariables[0].variableStates[0].date")
-                            .value(editedDate.format(DateTimeFormatter.ofPattern(Constants.VARIABLE_STATE_DTO_DATE_FORMAT))))
+                            .value(formatter.format(editedDate)))
 
                     .andExpect(jsonPath("$.collectedVariables[0].variableStates[1].state")
                             .value(DataState.COLLECTED.name()))
@@ -364,7 +371,7 @@ class ResponseControllerIT extends IntegrationTestAbstract {
                     .andExpect(jsonPath("$.collectedVariables[0].variableStates[1].value")
                             .value(collectedVariableValue))
                     .andExpect(jsonPath("$.collectedVariables[0].variableStates[1].date")
-                            .value(collectedDate.format(DateTimeFormatter.ofPattern(Constants.VARIABLE_STATE_DTO_DATE_FORMAT))))
+                            .value(formatter.format(collectedDate)))
 
 
                     //External variable from COLLECTED (not present in EDITED)
@@ -377,7 +384,7 @@ class ResponseControllerIT extends IntegrationTestAbstract {
                     .andExpect(jsonPath("$.externalVariables[0].variableStates[0].value")
                             .value(externalVariableValue))
                     .andExpect(jsonPath("$.externalVariables[0].variableStates[0].date")
-                            .value(collectedDate.format(DateTimeFormatter.ofPattern(Constants.VARIABLE_STATE_DTO_DATE_FORMAT))));
+                            .value(formatter.format(collectedDate)));
         }
 
 

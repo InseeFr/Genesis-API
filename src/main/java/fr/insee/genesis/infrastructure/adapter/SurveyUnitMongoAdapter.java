@@ -5,9 +5,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.client.MongoCollection;
 import fr.insee.genesis.Constants;
+import fr.insee.genesis.domain.model.surveyunit.InterrogationInfo;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
 import fr.insee.genesis.infrastructure.document.surveyunit.SurveyUnitDocument;
+import fr.insee.genesis.infrastructure.document.surveyunit.SurveyUnitInterrogationProjection;
 import fr.insee.genesis.infrastructure.mappers.SurveyUnitDocumentMapper;
 import fr.insee.genesis.infrastructure.repository.SurveyUnitMongoDBRepository;
 import jakarta.validation.constraints.NotNull;
@@ -18,6 +20,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -107,32 +110,34 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 		return countDeleted;
 	}
 
+    @Override
+    public Long deleteByCollectionInstrumentIdAndInterrogationIds(
+            String collectionInstrumentId,
+            Set<String> interrogationIds
+    ) {
+        return mongoRepository.deleteByCollectionInstrumentIdAndInterrogationIdIn(
+                collectionInstrumentId,
+                interrogationIds
+        );
+    }
+
+    @Override
+    public Long deleteByQuestionnaireIdAndInterrogationIds(
+            String questionnaireId,
+            Set<String> interrogationIds
+    ) {
+        return mongoRepository.deleteByQuestionnaireIdAndInterrogationIdIn(
+                questionnaireId,
+                interrogationIds
+        );
+    }
+
 	@Override
 	public long count() {
 		return mongoRepository.count();
 	}
 
-	@Override
-	public Set<String> findQuestionnaireIdsByCampaignId(String campaignId){
-		Set<String> mongoResponse =
-				mongoRepository.findQuestionnaireIdsByCampaignId(campaignId);
-
-		//Extract questionnaireIds from JSON response
-        return extractQuestionnaireIdsFromJson(mongoResponse);
-	}
-
 	//========= OPTIMISATIONS PERFS (START) ==========
-	/**
-	 * @author Adrien Marchal
-	 */
-	@Override
-	public Set<String> findQuestionnaireIdsByCampaignIdV2(String campaignId){
-		Set<String> mongoResponse =
-				mongoRepository.findQuestionnaireIdsByCampaignIdV2(campaignId);
-
-		//Extract questionnaireIds from JSON response
-        return extractQuestionnaireIdsFromJson(mongoResponse);
-	}
 
     private static @NotNull Set<String> extractQuestionnaireIdsFromJson(Set<String> mongoResponse) {
         Set<String> questionnaireIds = new HashSet<>();
@@ -150,16 +155,6 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
     //========= OPTIMISATIONS PERFS (END) ==========
 
 	@Override
-	public Set<String> findDistinctCampaignIds() {
-		Set<String> campaignIds = new HashSet<>();
-		for(String campaignId : mongoTemplate.getCollection(Constants.MONGODB_RESPONSE_COLLECTION_NAME).distinct("campaignId",
-				String.class)){
-			campaignIds.add(campaignId);
-		}
-		return campaignIds;
-	}
-
-	@Override
 	public List<SurveyUnitModel> findInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId) {
 		List<SurveyUnitDocument> results =  new ArrayList<>();
 		results.addAll(mongoRepository.findInterrogationIdsByCollectionInstrumentId(collectionInstrumentId));
@@ -175,13 +170,24 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 		return results.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(results);
 	}
 
-    @Override
-    public List<SurveyUnitModel> findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(String collectionInstrumentId, LocalDateTime start, LocalDateTime end) {
-        List<SurveyUnitDocument> results =  new ArrayList<>();
-        results.addAll(mongoRepository.findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(collectionInstrumentId,start,end));
-        results.addAll(mongoRepository.findInterrogationIdsQuestionnaireIdAndRecordDateBetween(collectionInstrumentId,start,end));
-        return results.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(results);
-    }
+	@Override
+	public List<InterrogationInfo> searchInterrogations(String collectionInstrumentId, Instant start, Instant end) {
+		List<SurveyUnitInterrogationProjection> projections;
+		if (start != null && end != null){
+			projections = mongoRepository.findProjectedByCollectionInstrumentIdAndBetween(collectionInstrumentId, start, end);
+		}
+		else if (start != null){
+			projections = mongoRepository.findProjectedByCollectionInstrumentIdAndSince(collectionInstrumentId, start);
+		}
+		else if (end != null){
+			projections = mongoRepository.findProjectedByCollectionInstrumentIdAndUntil(collectionInstrumentId, end);
+		} else {
+			projections = mongoRepository.findProjectedByCollectionInstrumentId(collectionInstrumentId);
+		}
+		return projections.stream()
+				.map(proj -> new InterrogationInfo(proj.getInterrogationId(), proj.getRecordDate()))
+				.toList();
+	}
 
     //========== OPTIMISATIONS PERFS (START) ===========
 	@Override
@@ -196,29 +202,11 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 	}
 
 	@Override
-	public List<SurveyUnitModel> findModesByCampaignIdV2(String campaignId) {
-		List<SurveyUnitDocument> surveyUnits = mongoRepository.findModesByCampaignIdV2(campaignId);
-		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnits);
-
-	}
-
-	@Override
 	public List<SurveyUnitModel> findModesByQuestionnaireIdV2(String questionnaireId) {
 		List<SurveyUnitDocument> surveyUnits = mongoRepository.findModesByQuestionnaireIdV2(questionnaireId);
 		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnits);
 	}
 	//========== OPTIMISATIONS PERFS (END) ============
-
-	@Override
-	public List<SurveyUnitModel> findInterrogationIdsByCampaignId(String campaignId) {
-		List<SurveyUnitDocument> surveyUnits = mongoRepository.findInterrogationIdsByCampaignId(campaignId);
-		return surveyUnits.isEmpty() ? Collections.emptyList() : SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnits);
-
-	}
-
-	public long countByCampaignId(String campaignId){
-		return mongoRepository.countByCampaignId(campaignId);
-	}
 
 	@Override
 	public Set<String> findDistinctQuestionnairesAndCollectionInstrumentIds() {
@@ -229,26 +217,6 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 		collection.distinct("collectionInstrumentId", String.class).into(questionnaireIds);
 		questionnaireIds.remove(null);
 		return questionnaireIds;
-	}
-
-	@Override
-	public Set<String> findCampaignIdsByQuestionnaireId(String questionnaireId) {
-		List<String> mongoResponse =
-				mongoRepository.findCampaignIdsByQuestionnaireId(questionnaireId).stream().distinct().toList();
-
-		//Extract idCampaigns from JSON response
-		Set<String> campaignIds = new HashSet<>();
-		for(String line : mongoResponse){
-			ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
-			try{
-				JsonNode jsonNode = objectMapper.readTree(line);
-				campaignIds.add(jsonNode.get("campaignId").asText());
-			}catch (JsonProcessingException e){
-				log.error(e.getMessage());
-			}
-		}
-
-		return campaignIds;
 	}
 
 	@Override

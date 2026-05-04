@@ -13,6 +13,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 
 import java.util.Optional;
 
@@ -102,7 +103,7 @@ class LastJsonExtractionMongoAdapterTest {
                     .isInstanceOf(GenesisException.class)
                     .satisfies(ex -> {
                         GenesisException genesisException = (GenesisException) ex;
-                        assertThat(genesisException.getStatus()).isEqualTo(404);
+                        assertThat(genesisException.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
                     });
         }
 
@@ -156,7 +157,7 @@ class LastJsonExtractionMongoAdapterTest {
             //WHEN + THEN
             assertThatThrownBy(() -> adapter.getLastExecutionDate(COLLECTION_INSTRUMENT_ID, null))
                     .isInstanceOf(GenesisException.class)
-                    .satisfies(ex -> assertThat(((GenesisException) ex).getStatus()).isEqualTo(404));
+                    .satisfies(ex -> assertThat(((GenesisException) ex).getStatus()).isEqualTo(HttpStatus.NOT_FOUND));
 
             verify(extractionRepository).findById(expectedIdWithNullMode);
         }

@@ -6,7 +6,7 @@ import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Data
 @Document(collection = Constants.MONGODB_EXTRACTION_JSON_COLLECTION_NAME)
@@ -16,6 +16,6 @@ public class LastJsonExtractionDocument {
     private String id;
     private String collectionInstrumentId;
     private Mode mode;
-    private LocalDateTime lastExtractionDate;
+    private Instant lastExtractionDate;
 
 }

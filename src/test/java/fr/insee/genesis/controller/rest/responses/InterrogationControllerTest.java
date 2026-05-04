@@ -1,7 +1,9 @@
 package fr.insee.genesis.controller.rest.responses;
 
 import fr.insee.genesis.TestConstants;
+import fr.insee.genesis.controller.dto.InterrogationBatchResponse;
 import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
+import fr.insee.genesis.domain.model.surveyunit.InterrogationInfo;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -11,7 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -50,28 +52,31 @@ class InterrogationControllerTest {
     @Test
     void getAllInterrogationIdsByQuestionnaire_date_test() {
         //GIVEN
-        LocalDateTime since = LocalDateTime.now();
-        List<InterrogationId> interrogationIds = List.of(
-                new InterrogationId("test"));
-        doReturn(interrogationIds).when(surveyUnitApiPort).findDistinctInterrogationIdsByQuestionnaireIdAndDateAfter(
+        Instant since = Instant.now();
+        List<InterrogationInfo> interrogationInfos = List.of(
+                new InterrogationInfo("test", Instant.now()));
+        doReturn(interrogationInfos).when(surveyUnitApiPort).searchInterrogations(
+                any(),
                 any(),
                 any()
         );
 
 
         //WHEN
-        ResponseEntity<List<InterrogationId>> response =
+        ResponseEntity<InterrogationBatchResponse> response =
             interrogationController.getAllInterrogationIdsByQuestionnaire(
                     TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
-                    since
+                    since,
+                    null
             );
 
         //THEN
-        verify(surveyUnitApiPort, times(1)).findDistinctInterrogationIdsByQuestionnaireIdAndDateAfter(
+        verify(surveyUnitApiPort, times(1)).searchInterrogations(
                 TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
-                since
+                since,
+                null
         );
-        Assertions.assertThat(response.getBody()).isEqualTo(interrogationIds);
+        Assertions.assertThat(response.getBody().getInterrogationIds().getFirst().getInterrogationId()).isEqualTo(interrogationInfos.getFirst().interrogationId());
     }
 
     @Test

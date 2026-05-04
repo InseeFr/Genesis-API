@@ -5,12 +5,13 @@ import fr.insee.genesis.controller.dto.SurveyUnitDto;
 import fr.insee.genesis.controller.dto.SurveyUnitInputDto;
 import fr.insee.genesis.controller.dto.SurveyUnitSimplifiedDto;
 import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
+import fr.insee.genesis.domain.model.surveyunit.InterrogationInfo;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.exceptions.NoDataException;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 
@@ -27,15 +28,17 @@ public interface SurveyUnitApiPort {
 
     List<SurveyUnitModel> findLatestByIdAndByCollectionInstrumentId(String interrogationId, String collectionInstrumentId);
 
-    SurveyUnitSimplifiedDto findSimplifiedByCollectionInstrumentIdAndInterrogationId(
+    SurveyUnitSimplifiedDto findSimplified(
             String collectionInstrumentId,
             String interrogationId,
-            Mode mode
+            Mode mode,
+            Instant recordedBefore
     ) throws NoDataException;
 
-    List<SurveyUnitSimplifiedDto> findSimplifiedByCollectionInstrumentIdAndInterrogationIdList(
+    List<SurveyUnitSimplifiedDto> findSimplifiedList(
             String collectionInstrumentId,
-            List<InterrogationId> interrogationIds
+            List<InterrogationId> interrogationIds,
+            Instant before
     );
 
 
@@ -47,9 +50,7 @@ public interface SurveyUnitApiPort {
 
     List<InterrogationId> findDistinctInterrogationIdsByQuestionnaireId(String questionnaireId);
 
-    List<InterrogationId> findDistinctInterrogationIdsByQuestionnaireIdAndDateAfter(String questionnaireId, LocalDateTime since);
-
-    List<InterrogationId> findDistinctInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(String collectionInstrumentId, LocalDateTime start, LocalDateTime end);
+    List<InterrogationInfo> searchInterrogations(String collectionInstrumentId, Instant start, Instant end);
 
     //========= OPTIMISATIONS PERFS (START) ==========
     long countResponsesByCollectionInstrumentId(String questionnaireId);
@@ -63,6 +64,11 @@ public interface SurveyUnitApiPort {
     List<Mode> findModesByCollectionInstrumentId(String collectionInstrumentId);
 
     Long deleteByCollectionInstrumentId(String collectionInstrumentId);
+
+    Long deleteByQuestionnaireIdAndInterrogationIds(
+            String questionnaireId,
+            Set<String> interrogationIds
+    );
 
     long countResponses();
 

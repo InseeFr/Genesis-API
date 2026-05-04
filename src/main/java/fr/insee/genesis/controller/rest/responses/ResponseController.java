@@ -20,9 +20,12 @@ import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.exceptions.NoDataException;
+import fr.insee.genesis.exceptions.ReviewDisabledException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -37,6 +40,19 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.stream.XMLStreamException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -116,14 +132,11 @@ public class ResponseController implements CommonApiResponse {
         //TODO move logic to service
         DataProcessingContextModel dataProcessingContextModel;
         //Check context
-        try {
-            dataProcessingContextModel = contextService.getContext(interrogationId);
-        }catch (GenesisException e){
-            return ResponseEntity.internalServerError().body(e.getMessage());
-        }
+        dataProcessingContextModel = contextService.getContext(interrogationId);
+
 
         if(dataProcessingContextModel == null || !dataProcessingContextModel.isWithReview()){
-            return ResponseEntity.status(403).body(new ApiError("Review is disabled for that partition"));
+            throw new ReviewDisabledException();
         }
 
         SurveyUnitDto response = surveyUnitService.findLatestValuesByStateByIdAndByCollectionInstrumentId(interrogationId, collectionInstrumentId);
@@ -147,34 +160,37 @@ public class ResponseController implements CommonApiResponse {
     public ResponseEntity<SurveyUnitSimplifiedDto> getResponseByCollectionInstrumentAndInterrogation(
             @PathVariable("collectionInstrumentId") String collectionInstrumentId,
             @PathVariable("interrogationId") String interrogationId,
-            @PathVariable("mode") Mode mode){
-        try {
-            return ResponseEntity.ok(
-                    surveyUnitService.findSimplifiedByCollectionInstrumentIdAndInterrogationId(
-                            collectionInstrumentId,
-                            interrogationId,
-                            mode
-                    )
-            );
-        } catch (NoDataException e){
-            log.error(e.getMessage());
-            return ResponseEntity.notFound().build();
-        }
+            @PathVariable("mode") Mode mode) throws NoDataException {
+        return ResponseEntity.ok(
+                surveyUnitService.findSimplified(
+                        collectionInstrumentId,
+                        interrogationId,
+                        mode,
+                        null
+                )
+        );
     }
 
     @Operation(summary = "Retrieve all responses for a collection instrument and a list of interrogations",
             description = "Return the latest state for each variable for the given interrogationIds and a given collection instrument (formerly questionnaire).<br>" +
-                    "For a given id, the endpoint returns a document by collection mode (if there is more than one).")
+                    "For a given id, the endpoint returns a document by collection mode (if there is more than one)<br>" +
+                    "If the 'recordedBefore' parameter is provided, only responses recorded before this timestamp will be returned.")
     @PostMapping(path = "/{collectionInstrumentId}")
     @PreAuthorize("hasRole('USER_KRAFTWERK')")
-    public ResponseEntity<List<SurveyUnitSimplifiedDto>> getResponseByCollectionInstrumentAndInterrogationList(
+    public ResponseEntity<List<SurveyUnitSimplifiedDto>> searchResponses(
             @PathVariable("collectionInstrumentId") String collectionInstrumentId,
+            @Parameter(
+                    description = "Filter responses to those recorded before or at the same time of the given timestamp (ISO-8601 UTC format).",
+                    schema = @Schema(type = "string", format = "date-time", example = "2026-01-01T00:00:00Z")
+            )
+            @RequestParam(value = "recordedBefore", required = false) Instant recordedBefore,
             @RequestBody List<InterrogationId> interrogationIds)
     {
         return ResponseEntity.ok(
-                surveyUnitService.findSimplifiedByCollectionInstrumentIdAndInterrogationIdList(
+                surveyUnitService.findSimplifiedList(
                         collectionInstrumentId,
-                        interrogationIds
+                        interrogationIds,
+                        recordedBefore
                 )
         );
     }
@@ -185,8 +201,7 @@ public class ResponseController implements CommonApiResponse {
     @PreAuthorize("hasRole('USER_PLATINE')")
     public ResponseEntity<Object> saveEditedVariables(
             @RequestBody SurveyUnitInputDto surveyUnitInputDto
-    ) {
-        try {
+    ) throws GenesisException {
             log.debug("Received in save edited : {}", surveyUnitInputDto.toString());
             //TODO Code quality : we need to put all that logic out of this controller
             //Parse metadata
@@ -200,8 +215,13 @@ public class ResponseController implements CommonApiResponse {
                     fileUtils,
                     errors);
             if(metadataModel == null){
-                throw new GenesisException(404, errors.getLast().getMessage());
-            }
+                    String msg = errors.isEmpty()
+                            ? "Empty metadataModel for questionnaireId=%s, mode=%s"
+                            .formatted(surveyUnitInputDto.getQuestionnaireId(), surveyUnitInputDto.getMode())
+                            : errors.getLast().getMessage();
+
+                    throw new GenesisException(HttpStatus.NOT_FOUND, msg);
+                }
 
             //Check if input edited variables are in metadatas
             List<String> absentCollectedVariableNames =
@@ -233,9 +253,6 @@ public class ResponseController implements CommonApiResponse {
             //Save documents
             surveyUnitService.saveSurveyUnits(surveyUnitModels);
             return ResponseEntity.ok(SUCCESS_MESSAGE);
-        } catch (GenesisException ge) {
-            return ResponseEntity.status(ge.getStatus()).body(ge.getMessage());
-        }
     }
 
     //SPRING/SUMMER 2025
