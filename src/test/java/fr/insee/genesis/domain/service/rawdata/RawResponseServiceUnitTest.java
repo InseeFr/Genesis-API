@@ -15,6 +15,7 @@ import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityToolService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.domain.utils.RawResponseConverter;
+import fr.insee.genesis.domain.utils.RawResponsePayloadParser;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.modelefiliere.ModeDto;
@@ -69,7 +70,7 @@ class RawResponseServiceUnitTest {
     private SurveyUnitQualityService surveyUnitQualityService;
     @Mock
     private SurveyUnitQualityToolService surveyUnitQualityToolService;
-    @Mock
+
     private RawResponseConverter rawResponseConverter;
 
     @Captor
@@ -79,6 +80,8 @@ class RawResponseServiceUnitTest {
 
     @BeforeEach
     void init() {
+        rawResponseConverter = new RawResponseConverter(new RawResponsePayloadParser());
+
         rawResponseService = new RawResponseService(
                 controllerUtils,
                 metadataService,
@@ -281,6 +284,7 @@ class RawResponseServiceUnitTest {
             rawResponse.payload().put("questionnaireState", questionnaireState);
             rawResponse.payload().put("usualSurveyUnitId", TestConstants.DEFAULT_SURVEY_UNIT_ID);
             rawResponse.payload().put("majorModelVersion", 2);
+
             Map<String, Map<String, Map<String, String>>> dataMap = new HashMap<>();
             dataMap.put("COLLECTED", new HashMap<>());
             dataMap.get("COLLECTED").put("VAR1", new HashMap<>());
