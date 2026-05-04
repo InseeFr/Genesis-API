@@ -358,22 +358,6 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     }
 
     @Override
-    public List<LunaticJsonRawDataUnprocessedDto> getUnprocessedDataIds() {
-        List<LunaticJsonRawDataUnprocessedDto> dtos = new ArrayList<>();
-
-        for (GroupedInterrogation groupedInterrogation : lunaticJsonRawDataPersistencePort.findUnprocessedIds()) {
-            for (String interrogationId : groupedInterrogation.interrogationIds()){
-                dtos.add(LunaticJsonRawDataUnprocessedDto.builder()
-                        .questionnaireId(groupedInterrogation.questionnaireId())
-                        .interrogationId(interrogationId)
-                        .build()
-                );
-            }
-        }
-        return dtos;
-    }
-
-    @Override
     public Set<String> getUnprocessedDataQuestionnaireIds() {
         Set<String> unprocessedQuestionnaireIds = lunaticJsonRawDataPersistencePort.findDistinctQuestionnaireIdsByNullProcessDate();
         Set<String> unprocessedQuestionnaireIdsWithSpecs = new HashSet<>();

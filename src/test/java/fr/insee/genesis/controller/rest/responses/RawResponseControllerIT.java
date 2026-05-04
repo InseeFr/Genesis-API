@@ -44,6 +44,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static fr.insee.genesis.domain.utils.JsonUtils.jsonToMap;
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -53,8 +54,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Slf4j
@@ -877,6 +880,60 @@ class RawResponseControllerIT extends IntegrationTestAbstract {
                     eq(mode),
                     argThat(argument -> argument.containsAll(interrogationIds)) //Any order
             )).thenReturn(lunaticJsonRawDataDocuments);
+        }
+    }
+
+    @Nested
+    @DisplayName("GET raw responses and lunatic json admin endpoints tests")
+    class GetRawTests{
+        @Test
+        @DisplayName("GET lunatic json Should return 200 with lunaticJsonRawData model")
+        @WithMockUser(roles = "ADMIN")
+        @SneakyThrows
+        void getLunaticJsonRawData_test(){
+            //GIVEN
+            String questionnaireId = "quest";
+            Mode mode = Mode.WEB;
+            String interrogationId = "interro";
+            LunaticJsonRawDataDocument lunaticJsonRawDataDocument = LunaticJsonRawDataDocument.builder()
+                    .interrogationId(interrogationId).build();
+            when(lunaticJsonMongoDBRepository.findByQuestionnaireModeAndInterrogations(
+                    eq(questionnaireId),
+                    eq(mode),
+                    anyList()
+                    )).thenReturn(List.of(lunaticJsonRawDataDocument));
+
+            //WHEN + THEN
+            mockMvc.perform(get("/responses/raw/lunatic-json/%s/%s/%s".formatted(
+                            questionnaireId, mode.getModeName(), interrogationId
+                    )))
+                    .andExpect(status().isOk())
+                    .andExpect(content().string(containsString(interrogationId)));
+        }
+
+        @Test
+        @DisplayName("GET Raw Response should return 200 with raw response model")
+        @WithMockUser(roles = "ADMIN")
+        @SneakyThrows
+        void getRawResponse_test(){
+            //GIVEN
+            String collectionInstrumentId = "collectionInstrumentId";
+            Mode mode = Mode.WEB;
+            String interrogationId = "interro";
+            RawResponseDocument rawResponseDocument = RawResponseDocument.builder().interrogationId(interrogationId)
+                            .build();
+            when(rawResponseRepository.findByCollectionInstrumentIdAndModeAndInterrogationIdList(
+                    eq(collectionInstrumentId),
+                    eq(mode.getJsonName()),
+                    anyList()
+            )).thenReturn(List.of(rawResponseDocument));
+
+            //WHEN + THEN
+            mockMvc.perform(get("/raw-responses/%s/%s/%s".formatted(
+                            collectionInstrumentId, mode.toString(), interrogationId
+                    )))
+                    .andExpect(status().isOk())
+                    .andExpect(content().string(containsString(interrogationId)));
         }
     }
 
