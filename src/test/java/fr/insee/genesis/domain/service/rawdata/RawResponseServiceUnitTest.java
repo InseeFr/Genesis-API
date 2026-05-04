@@ -671,11 +671,11 @@ class RawResponseServiceUnitTest {
         // GIVEN
         String interrogationId = TestConstants.DEFAULT_INTERROGATION_ID;
         String collectionInstrumentId = DEFAULT_COLLECTION_INSTRUMENT_ID;
-        RawResponseModel expected = mock(RawResponseModel.class);
+        List<RawResponseModel> expected = List.of(mock(RawResponseModel.class));
         doReturn(expected).when(rawResponsePersistencePort).findRawResponseByCollectionInstrumentIdAndInterrogationId(collectionInstrumentId, interrogationId);
 
         // WHEN
-        RawResponseModel result = rawResponseService.getRawResponseByCollectionInstrumentIdAndInterrogationId(collectionInstrumentId, interrogationId);
+        List<RawResponseModel> result = rawResponseService.getRawResponseByCollectionInstrumentIdAndInterrogationId(collectionInstrumentId, interrogationId);
 
         // THEN
         Assertions.assertThat(result).isEqualTo(expected);
@@ -688,7 +688,7 @@ class RawResponseServiceUnitTest {
         String interrogationId = TestConstants.DEFAULT_INTERROGATION_ID;
         String collectionInstrumentId = DEFAULT_COLLECTION_INSTRUMENT_ID;
 
-        doReturn(null)
+        doReturn(List.of())
                 .when(rawResponsePersistencePort)
                 .findRawResponseByCollectionInstrumentIdAndInterrogationId(collectionInstrumentId, interrogationId);
 

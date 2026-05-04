@@ -112,9 +112,9 @@ public class LunaticJsonRawDataMongoAdapter implements LunaticJsonRawDataPersist
     }
 
     @Override
-    public LunaticJsonRawDataModel findLunaticJsonDataByQuestionnaireIdAndInterrogationId(String questionnaireId, String interrogationId) {
-        LunaticJsonRawDataDocument lunaticJsonRawDataDocument = repository.findByQuestionnaireIdAndInterrogationId(questionnaireId, interrogationId);
-        return LunaticJsonRawDataDocumentMapper.INSTANCE.documentToModel(lunaticJsonRawDataDocument);
+    public List<LunaticJsonRawDataModel> findLunaticJsonDataByQuestionnaireIdAndInterrogationId(String questionnaireId, String interrogationId) {
+        List<LunaticJsonRawDataDocument> lunaticJsonRawDataDocuments = repository.findByQuestionnaireIdAndInterrogationId(questionnaireId, interrogationId);
+        return LunaticJsonRawDataDocumentMapper.INSTANCE.listDocumentToListModel(lunaticJsonRawDataDocuments);
     }
 
     @Override

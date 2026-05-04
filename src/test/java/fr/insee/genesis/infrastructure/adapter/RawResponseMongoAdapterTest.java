@@ -587,13 +587,13 @@ class RawResponseMongoAdapterTest {
         void findRawData_shouldReturnMappedModel() {
             //GIVEN
             when(repository.findByCollectionInstrumentIdAndInterrogationId(COLLECTION_INSTRUMENT_ID, INTERROGATION_ID))
-                    .thenReturn(getDocument());
+                    .thenReturn(List.of(getDocument()));
 
             //WHEN
-            RawResponseModel result = adapter.findRawResponseByCollectionInstrumentIdAndInterrogationId(COLLECTION_INSTRUMENT_ID, INTERROGATION_ID);
+            List<RawResponseModel> result = adapter.findRawResponseByCollectionInstrumentIdAndInterrogationId(COLLECTION_INSTRUMENT_ID, INTERROGATION_ID);
 
             //THEN
-            assertThat(result).isNotNull();
+            assertThat(result).isNotEmpty();
             verify(repository).findByCollectionInstrumentIdAndInterrogationId(COLLECTION_INSTRUMENT_ID, INTERROGATION_ID);
         }
 

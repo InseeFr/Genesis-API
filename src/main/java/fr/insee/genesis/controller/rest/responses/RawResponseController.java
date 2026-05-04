@@ -97,7 +97,7 @@ public class RawResponseController {
     @Operation(summary = "Get a raw response by collection instrument ID and interrogation ID")
     @GetMapping("/raw-responses/collection-instruments/{collectionInstrumentId}/interrogations/{interrogationId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<RawResponseModel> getRawResponse(
+    public ResponseEntity<List<RawResponseModel>> getRawResponse(
             @PathVariable String collectionInstrumentId,
             @PathVariable String interrogationId
             ) throws NoDataException {
@@ -229,7 +229,7 @@ public class RawResponseController {
     @Operation(summary = "Get lunatic json data by questionnaire ID and interrogation ID")
     @GetMapping("/responses/raw/lunatic-json/questionnaireIds/{questionnaireId}/interrogations/{interrogationId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<LunaticJsonRawDataModel> getLunaticJsonData(
+    public ResponseEntity<List<LunaticJsonRawDataModel>> getLunaticJsonData(
             @PathVariable String questionnaireId,
             @PathVariable String interrogationId
             ) throws NoDataException{

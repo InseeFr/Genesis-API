@@ -815,37 +815,41 @@ class LunaticJsonRawDataServiceTest {
 
     @Test
     @DisplayName("getLunaticJsonDataByQuestionnaireIdAndInterrogationId must call persistence port")
-    void getLunaticJsonDataByQuestionnaireIdAndInterrogationId_shouldDelegateToPersistencePort() throws NoDataException {
+    void getLunaticJsonDataByQuestionnaireIdAndInterrogationId_shouldDelegateToPersistencePort()
+            throws NoDataException {
         // GIVEN
         String interrogationId = TestConstants.DEFAULT_INTERROGATION_ID;
-        String collectionInstrumentId = DEFAULT_COLLECTION_INSTRUMENT_ID;
+        String questionnaireId = DEFAULT_COLLECTION_INSTRUMENT_ID;
+
         LunaticJsonRawDataModel expected = mock(LunaticJsonRawDataModel.class);
-        doReturn(expected).when(lunaticJsonRawDataPersistencePort).findLunaticJsonDataByQuestionnaireIdAndInterrogationId(collectionInstrumentId, interrogationId);
+        List<LunaticJsonRawDataModel> expectedList = List.of(expected);
+
+        doReturn(expectedList)
+                .when(lunaticJsonRawDataPersistencePort)
+                .findLunaticJsonDataByQuestionnaireIdAndInterrogationId(questionnaireId, interrogationId);
 
         // WHEN
-        LunaticJsonRawDataModel result = service.getLunaticJsonDataByQuestionnaireIdAndInterrogationId(collectionInstrumentId, interrogationId);
+        List<LunaticJsonRawDataModel> result =
+                service.getLunaticJsonDataByQuestionnaireIdAndInterrogationId(questionnaireId, interrogationId);
 
         // THEN
-        Assertions.assertThat(result).isEqualTo(expected);
+        Assertions.assertThat(result).isEqualTo(expectedList);
     }
 
     @Test
-    @DisplayName("getLunaticJsonDataByQuestionnaireIdAndInterrogationId must throw NoDataException when no lunaticJson data found")
+    @DisplayName("getLunaticJsonDataByQuestionnaireIdAndInterrogationId must throw NoDataException when no data found")
     void getLunaticJsonDataByQuestionnaireIdAndInterrogationId_noData_shouldThrowNoDataException() {
         // GIVEN
         String interrogationId = TestConstants.DEFAULT_INTERROGATION_ID;
-        String collectionInstrumentId = DEFAULT_COLLECTION_INSTRUMENT_ID;
+        String questionnaireId = DEFAULT_COLLECTION_INSTRUMENT_ID;
 
-        doReturn(null)
+        doReturn(List.of())
                 .when(lunaticJsonRawDataPersistencePort)
-                .findLunaticJsonDataByQuestionnaireIdAndInterrogationId(collectionInstrumentId, interrogationId);
+                .findLunaticJsonDataByQuestionnaireIdAndInterrogationId(questionnaireId, interrogationId);
 
         // WHEN + THEN
-        assertThatThrownBy(() ->
-                service.getLunaticJsonDataByQuestionnaireIdAndInterrogationId(
-                        collectionInstrumentId,
-                        interrogationId
-                )
+        Assertions.assertThatThrownBy(() ->
+                service.getLunaticJsonDataByQuestionnaireIdAndInterrogationId(questionnaireId, interrogationId)
         ).isInstanceOf(NoDataException.class);
     }
 }

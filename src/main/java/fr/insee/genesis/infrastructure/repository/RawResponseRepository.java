@@ -18,7 +18,7 @@ public interface RawResponseRepository extends MongoRepository<RawResponseDocume
     @Query(value = "{ 'collectionInstrumentId' : ?0, 'mode' : ?1, 'interrogationId': {$in: ?2} }")
     List<RawResponseDocument> findByCollectionInstrumentIdAndModeAndInterrogationIdList(String questionnaireId, String mode, List<String> interrogationIdList);
 
-    RawResponseDocument findByCollectionInstrumentIdAndInterrogationId(
+    List<RawResponseDocument> findByCollectionInstrumentIdAndInterrogationId(
             String collectionInstrumentId,
             String interrogationId
     );

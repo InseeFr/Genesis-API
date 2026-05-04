@@ -579,16 +579,16 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     }
 
     @Override
-    public LunaticJsonRawDataModel getLunaticJsonDataByQuestionnaireIdAndInterrogationId(String questionnaireId, String interrogationId) throws NoDataException {
+    public List<LunaticJsonRawDataModel> getLunaticJsonDataByQuestionnaireIdAndInterrogationId(String questionnaireId, String interrogationId) throws NoDataException {
 
-        LunaticJsonRawDataModel lunaticJsonRawDataModel = lunaticJsonRawDataPersistencePort.findLunaticJsonDataByQuestionnaireIdAndInterrogationId(questionnaireId, interrogationId);
-        if(lunaticJsonRawDataModel == null){
+        List<LunaticJsonRawDataModel> lunaticJsonRawDataModels = lunaticJsonRawDataPersistencePort.findLunaticJsonDataByQuestionnaireIdAndInterrogationId(questionnaireId, interrogationId);
+        if(lunaticJsonRawDataModels.isEmpty()){
             throw new NoDataException(
                     "No lunatic JSON data found for questionnaireId=%s and interrogationId=%s"
                             .formatted(questionnaireId, interrogationId)
             );      
         }
-        return lunaticJsonRawDataModel;
+        return lunaticJsonRawDataModels;
     }
 
     @Override

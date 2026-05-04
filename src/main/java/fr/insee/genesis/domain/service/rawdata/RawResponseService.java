@@ -83,24 +83,24 @@ public class  RawResponseService implements RawResponseApiPort {
     }
 
     @Override
-    public RawResponseModel getRawResponseByCollectionInstrumentIdAndInterrogationId(
+    public List<RawResponseModel> getRawResponseByCollectionInstrumentIdAndInterrogationId(
             String collectionInstrumentId,
             String interrogationId
     ) throws NoDataException {
-        RawResponseModel rawResponse = rawResponsePersistencePort
+        List<RawResponseModel> rawResponses = rawResponsePersistencePort
                 .findRawResponseByCollectionInstrumentIdAndInterrogationId(
                         collectionInstrumentId,
                         interrogationId
                 );
 
-        if (rawResponse == null) {
+        if (rawResponses.isEmpty()) {
             throw new NoDataException(
-                    "No raw response found for collectionInstrumentId=%s and interrogationId=%s"
+                    "No raw responses found for collectionInstrumentId=%s and interrogationId=%s"
                             .formatted(collectionInstrumentId, interrogationId)
             );
         }
 
-        return rawResponse;
+        return rawResponses;
     }
 
     @Override

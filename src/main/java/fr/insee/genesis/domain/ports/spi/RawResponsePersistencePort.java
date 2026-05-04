@@ -15,7 +15,7 @@ public interface RawResponsePersistencePort {
 
     List<RawResponseModel> findRawResponses(String collectionInstrumentId, Mode mode, List<String> interrogationIdList);
     List<RawResponseModel> findRawResponsesByInterrogationID(String interrogationId);
-    RawResponseModel findRawResponseByCollectionInstrumentIdAndInterrogationId(String collectionInstrumentId, String interrogationId);
+    List<RawResponseModel> findRawResponseByCollectionInstrumentIdAndInterrogationId(String collectionInstrumentId, String interrogationId);
 
     RawDataIdentifiersDto findRawResponseIdentifiersByCollectionInstrumentId(
             String collectionInstrumentId

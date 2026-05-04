@@ -732,13 +732,13 @@ class LunaticJsonRawDataMongoAdapterTest {
         void findRawData_shouldReturnMappedModel() {
             //GIVEN
             when(repository.findByQuestionnaireIdAndInterrogationId(QUESTIONNAIRE_ID,INTERROGATION_ID))
-                    .thenReturn(getDocument());
+                    .thenReturn(List.of(getDocument()));
 
             //WHEN
-            LunaticJsonRawDataModel result = adapter.findLunaticJsonDataByQuestionnaireIdAndInterrogationId(QUESTIONNAIRE_ID,INTERROGATION_ID);
+            List<LunaticJsonRawDataModel> result = adapter.findLunaticJsonDataByQuestionnaireIdAndInterrogationId(QUESTIONNAIRE_ID,INTERROGATION_ID);
 
             //THEN
-            assertThat(result).isNotNull();
+            assertThat(result).isNotEmpty();
             verify(repository).findByQuestionnaireIdAndInterrogationId(QUESTIONNAIRE_ID,INTERROGATION_ID);
         }
 
