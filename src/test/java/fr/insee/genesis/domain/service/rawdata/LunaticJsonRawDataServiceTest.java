@@ -5,6 +5,7 @@ import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.controller.dto.rawdata.LunaticJsonRawDataUnprocessedDto;
 import fr.insee.genesis.controller.utils.ControllerUtils;
+import fr.insee.genesis.domain.converter.rawdata.LunaticJsonRawDataConverter;
 import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.GroupedInterrogation;
@@ -12,12 +13,14 @@ import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
+import fr.insee.genesis.domain.parser.rawdata.LunaticJsonRawDataPayloadParser;
 import fr.insee.genesis.domain.ports.spi.DataProcessingContextPersistancePort;
 import fr.insee.genesis.domain.ports.spi.LunaticJsonRawDataPersistencePort;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitQualityToolPort;
 import fr.insee.genesis.domain.service.context.DataProcessingContextService;
 import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
+import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityToolService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
@@ -27,7 +30,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -52,8 +54,19 @@ import java.util.Set;
 import static fr.insee.genesis.TestConstants.DEFAULT_INTERROGATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -72,6 +85,8 @@ class LunaticJsonRawDataServiceTest {
     @Mock
     private SurveyUnitQualityToolPort surveyUnitQualityToolPort;
     @Mock
+    private SurveyUnitQualityToolService surveyUnitQualityToolService;
+    @Mock
     private DataProcessingContextService dataProcessingContextService;
     @Mock
     private DataProcessingContextPersistancePort dataProcessingContextPersistancePort;
@@ -80,11 +95,31 @@ class LunaticJsonRawDataServiceTest {
     @Mock
     private Config config;
 
-    @InjectMocks
+    private LunaticJsonRawDataConverter lunaticJsonRawDataConverter;
+    @Mock
     private LunaticJsonRawDataService service;
 
     private static final String QUESTIONNAIRE_ID = "questionnaire-1";
     private static final String INTERROGATION_ID = "interrogation-1";
+
+
+    @BeforeEach
+    void init() {
+        lunaticJsonRawDataConverter = new LunaticJsonRawDataConverter(new LunaticJsonRawDataPayloadParser());
+
+        service = new LunaticJsonRawDataService(
+                controllerUtils,
+                metadataService,
+                surveyUnitService,
+                surveyUnitQualityService,
+                surveyUnitQualityToolService,
+                fileUtils,
+                config,
+                lunaticJsonRawDataConverter,
+                lunaticJsonRawDataPersistencePort,
+                dataProcessingContextPersistancePort
+        );
+    }
 
     @Nested
     @DisplayName("save()")
@@ -220,10 +255,8 @@ class LunaticJsonRawDataServiceTest {
         void withReview_sendsProcessedIds() throws GenesisException, IOException {
             // GIVEN
             // Context with review
-            DataProcessingContextModel context = mock(DataProcessingContextModel.class);
-            when(context.isWithReview()).thenReturn(true);
-            when(dataProcessingContextService.getContextByCollectionInstrumentId(QUESTIONNAIRE_ID))
-                    .thenReturn(context);
+            when(surveyUnitQualityToolService.resolveWithReviewValue(QUESTIONNAIRE_ID))
+                    .thenReturn(true);
 
             MetadataModel metadataModel = new MetadataModel();
             when(metadataService.loadAndSaveIfNotExists(anyString(), anyString(), any(), any(), any()))
@@ -253,8 +286,8 @@ class LunaticJsonRawDataServiceTest {
             service.processRawData(QUESTIONNAIRE_ID);
 
             //THEN
-            verify(surveyUnitQualityToolPort, times(1)).sendProcessedIds(anyMap());
-        }
+            verify(surveyUnitQualityToolService, times(1))
+                    .sendProcessedIdsToQualityTool(anyList());        }
     }
 
     @Nested
@@ -265,7 +298,7 @@ class LunaticJsonRawDataServiceTest {
         @DisplayName("Empty raw data list returns empty list")
         void emptyRawDataList_returnsEmpty() {
             //WHEN
-            List<SurveyUnitModel> result = service.convertRawData(List.of(), new VariablesMap());
+            List<SurveyUnitModel> result = lunaticJsonRawDataConverter.convertRawData(List.of(), new VariablesMap());
 
             //THEN
             assertThat(result).isEmpty();
@@ -276,13 +309,19 @@ class LunaticJsonRawDataServiceTest {
         void noVariables_rawDataIgnored() {
             //GIVEN
             LunaticJsonRawDataModel rawData = buildRawDataWithCollected(Map.of());
+            List<SurveyUnitModel> emptySurveyUnitModels = new ArrayList<>();
 
-            //WHEN
-            List<SurveyUnitModel> result = service.convertRawData(List.of(rawData), new VariablesMap());
+            // WHEN
+            List<SurveyUnitModel> result =
+                    lunaticJsonRawDataConverter.convertRawDataAndCollectEmptyModels(
+                            List.of(rawData),
+                            new VariablesMap(),
+                            emptySurveyUnitModels
+                    );
 
-            //THEN
+            // THEN
             assertThat(result).isEmpty();
-            verify(lunaticJsonRawDataPersistencePort, atLeastOnce()).updateProcessDates(eq(QUESTIONNAIRE_ID), anySet());
+            assertThat(emptySurveyUnitModels).isNotEmpty();
         }
 
         @Test
@@ -298,7 +337,7 @@ class LunaticJsonRawDataServiceTest {
             LunaticJsonRawDataModel rawData = buildRawDataWithCollected(collected);
 
             //WHEN
-            List<SurveyUnitModel> result = service.convertRawData(List.of(rawData), new VariablesMap());
+            List<SurveyUnitModel> result = lunaticJsonRawDataConverter.convertRawData(List.of(rawData), new VariablesMap());
 
             //THEN
             // Expect 1 COLLECTED (VAR1 has a value) and 0 EDITED (EDITED value is null → empty)
@@ -323,7 +362,7 @@ class LunaticJsonRawDataServiceTest {
             LunaticJsonRawDataModel rawData = buildRawDataWithCollected(collected);
 
             //WHEN
-            List<SurveyUnitModel> result = service.convertRawData(List.of(rawData), new VariablesMap());
+            List<SurveyUnitModel> result = lunaticJsonRawDataConverter.convertRawData(List.of(rawData), new VariablesMap());
 
             //THEN
             long editedCount = result.stream()
@@ -349,7 +388,7 @@ class LunaticJsonRawDataServiceTest {
             LunaticJsonRawDataModel rawData = buildRawDataWithCollected(outerData);
 
             //WHEN
-            List<SurveyUnitModel> result = service.convertRawData(List.of(rawData), new VariablesMap());
+            List<SurveyUnitModel> result = lunaticJsonRawDataConverter.convertRawData(List.of(rawData), new VariablesMap());
 
             // Should not throw — FILIERE path is followed TODO More asserts
             assertThat(result).isNotNull();
@@ -380,7 +419,7 @@ class LunaticJsonRawDataServiceTest {
                     .build();
 
             //WHEN
-            List<SurveyUnitModel> result = service.convertRawData(List.of(rawData), new VariablesMap());
+            List<SurveyUnitModel> result = lunaticJsonRawDataConverter.convertRawData(List.of(rawData), new VariablesMap());
 
             //THEN
             assertThat(result).isNotEmpty();
@@ -415,8 +454,7 @@ class LunaticJsonRawDataServiceTest {
                     .build();
 
             //WHEN
-            List<SurveyUnitModel> result = service.convertRawData(List.of(rawData), new VariablesMap());
-
+            List<SurveyUnitModel> result = lunaticJsonRawDataConverter.convertRawData(List.of(rawData), new VariablesMap());
             //THEN
             assertThat(result).isNotEmpty();
             result.stream()
@@ -437,7 +475,7 @@ class LunaticJsonRawDataServiceTest {
             LunaticJsonRawDataModel rawData = buildRawDataWithCollected(collected);
 
             //WHEN
-            List<SurveyUnitModel> result = service.convertRawData(List.of(rawData), new VariablesMap());
+            List<SurveyUnitModel> result = lunaticJsonRawDataConverter.convertRawData(List.of(rawData), new VariablesMap());
 
             //THEN
             SurveyUnitModel collectedModel = result.stream()

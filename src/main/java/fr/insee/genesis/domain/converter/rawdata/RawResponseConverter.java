@@ -1,4 +1,4 @@
-package fr.insee.genesis.domain.utils;
+package fr.insee.genesis.domain.converter.rawdata;
 
 import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.Constants;
@@ -6,6 +6,9 @@ import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponseModel;
+import fr.insee.genesis.domain.utils.GroupUtils;
+import fr.insee.genesis.domain.utils.JsonUtils;
+import fr.insee.genesis.domain.parser.rawdata.RawResponsePayloadParser;
 import fr.insee.modelefiliere.RawResponseDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,10 +32,10 @@ public class RawResponseConverter {
             List<RawResponseModel> rawResponseModels,
             VariablesMap variablesMap
     ) {
-        return convertRawResponse(rawResponseModels, variablesMap, new ArrayList<>());
+        return convertRawResponseAndCollectEmptyModels(rawResponseModels, variablesMap, new ArrayList<>());
     }
 
-    public List<SurveyUnitModel> convertRawResponse(
+    public List<SurveyUnitModel> convertRawResponseAndCollectEmptyModels(
             List<RawResponseModel> rawResponseModels,
             VariablesMap variablesMap,
             List<SurveyUnitModel> emptySurveyUnitModels

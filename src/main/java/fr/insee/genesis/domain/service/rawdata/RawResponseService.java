@@ -4,6 +4,7 @@ import fr.insee.bpm.metadata.model.MetadataModel;
 import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.controller.utils.ControllerUtils;
+import fr.insee.genesis.domain.converter.rawdata.RawResponseConverter;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
@@ -15,8 +16,7 @@ import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityToolService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
-import fr.insee.genesis.domain.utils.ProcessingResult;
-import fr.insee.genesis.domain.utils.RawResponseConverter;
+import fr.insee.genesis.controller.dto.rawdata.ProcessingResultDto;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
@@ -113,7 +113,7 @@ public class RawResponseService implements RawResponseApiPort {
                 int maxIndex = Math.min(remainingInterrogationIds.size(), batchSize);
                 List<String> batch = remainingInterrogationIds.subList(0, maxIndex);
 
-                ProcessingResult result = processRawResponsesForMode(
+                ProcessingResultDto result = processRawResponsesForMode(
                         collectionInstrumentId,
                         mode,
                         batch,
@@ -133,7 +133,7 @@ public class RawResponseService implements RawResponseApiPort {
         return new DataProcessResult(dataCount, formattedDataCount, errors);
     }
 
-    private ProcessingResult processRawResponsesForMode(
+    private ProcessingResultDto processRawResponsesForMode(
             String collectionInstrumentId,
             Mode mode,
             List<String> interrogationIds,
@@ -145,7 +145,7 @@ public class RawResponseService implements RawResponseApiPort {
 
         List<SurveyUnitModel> emptySurveyUnitModels = new ArrayList<>();
         List<SurveyUnitModel> surveyUnitModels =
-                rawResponseConverter.convertRawResponse(rawResponseModels, variablesMap, emptySurveyUnitModels);
+                rawResponseConverter.convertRawResponseAndCollectEmptyModels(rawResponseModels, variablesMap, emptySurveyUnitModels);
 
         surveyUnitQualityService.verifySurveyUnits(surveyUnitModels, variablesMap);
         surveyUnitService.saveSurveyUnits(surveyUnitModels);
@@ -164,7 +164,7 @@ public class RawResponseService implements RawResponseApiPort {
                 .filter(surveyUnitModel -> surveyUnitModel.getState() == DataState.FORMATTED)
                 .count();
 
-        return new ProcessingResult(surveyUnitModels.size(), formattedDataCount);
+        return new ProcessingResultDto(surveyUnitModels.size(), formattedDataCount);
     }
 
     private VariablesMap getVariablesMap(
@@ -256,16 +256,16 @@ public class RawResponseService implements RawResponseApiPort {
 
     @Override
     public void updateProcessDates(List<SurveyUnitModel> surveyUnitModels) {
-        Set<String> collectionInstrumentIds = surveyUnitModels.stream()
-                .map(SurveyUnitModel::getCollectionInstrumentId)
-                .collect(Collectors.toSet());
+        Set<String> collectionInstrumentIds = new HashSet<>();
+        for (SurveyUnitModel surveyUnitModel : surveyUnitModels) {
+            collectionInstrumentIds.add(surveyUnitModel.getCollectionInstrumentId());
+        }
 
         for (String collectionInstrumentId : collectionInstrumentIds) {
             Set<String> interrogationIds = surveyUnitModels.stream()
                     .filter(su -> su.getCollectionInstrumentId().equals(collectionInstrumentId))
                     .map(SurveyUnitModel::getInterrogationId)
                     .collect(Collectors.toSet());
-
             rawResponsePersistencePort.updateProcessDates(collectionInstrumentId, interrogationIds);
         }
     }

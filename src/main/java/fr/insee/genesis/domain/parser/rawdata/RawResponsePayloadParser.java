@@ -1,4 +1,4 @@
-package fr.insee.genesis.domain.utils;
+package fr.insee.genesis.domain.parser.rawdata;
 
 import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponseModel;
 import lombok.extern.slf4j.Slf4j;
