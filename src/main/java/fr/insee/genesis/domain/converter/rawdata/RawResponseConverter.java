@@ -80,9 +80,9 @@ public class RawResponseConverter {
         RawResponseDto.QuestionnaireStateEnum questionnaireStateEnum = null;
         try {
             questionnaireStateEnum = RawResponseDto.QuestionnaireStateEnum.valueOf(questionnaireStateString);
-        } catch (IllegalArgumentException iae) {
+        } catch (IllegalArgumentException _) {
             log.warn("'{}' is not a valid questionnaire state according to filiere model", questionnaireStateString);
-        } catch (NullPointerException ignored) {
+        } catch (NullPointerException _) {
         }
 
         return SurveyUnitModel.builder()
