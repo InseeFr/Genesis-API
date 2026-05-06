@@ -108,14 +108,6 @@ public class RestExceptionHandler {
         return problemDetail;
     }
 
-    @ExceptionHandler
-    public ProblemDetail handleGenericGenesisException(GenesisException genesisException) {
-        log.error("GenesisException: {}", genesisException.getMessage(), genesisException);
-        return ProblemDetail.forStatusAndDetail(
-                genesisException.getStatus(),
-                genesisException.getMessage());
-    }
-
     @ExceptionHandler(ModesConflictException.class)
     public ProblemDetail handleModesConflictException(ModesConflictException e) {
         log.error("ModesConflictException: {}", e.getMessage());

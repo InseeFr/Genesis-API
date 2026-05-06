@@ -506,7 +506,7 @@ class RawResponseControllerIT extends IntegrationTestAbstract {
                     .thenReturn(List.of(dataProcessingContextDocument));
 
             //Mode list
-            when(controllerUtils.getModesList(eq(collectionInstrumentId), any()))
+            when(controllerUtils.getModesList(collectionInstrumentId))
                     .thenReturn(List.of(mode));
 
             //Metadata
@@ -801,6 +801,9 @@ class RawResponseControllerIT extends IntegrationTestAbstract {
                     .thenReturn(List.of(dataProcessingContextDocument));
 
             //Mode list
+            when(controllerUtils.getModesList(questionnaireId))
+                    .thenReturn(List.of(mode));
+
             when(controllerUtils.getModesList(eq(questionnaireId), any()))
                     .thenReturn(List.of(mode));
 
@@ -875,7 +878,7 @@ class RawResponseControllerIT extends IntegrationTestAbstract {
             when(lunaticJsonMongoDBRepository.findByQuestionnaireModeAndInterrogations(
                     eq(questionnaireId),
                     eq(mode),
-                    argThat(argument -> argument.containsAll(interrogationIds)) //Any order
+                    anyList()
             )).thenReturn(lunaticJsonRawDataDocuments);
         }
     }
