@@ -20,18 +20,25 @@ import java.util.Objects;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DataProcessingContextModel {
-    @Id
-    private ObjectId id; // Used to remove warning
 
-    private String collectionInstrumentId; //QuestionnaireId
+    /** (Added to the class only to remove a warning) */
+    @Id
+    private ObjectId id;
+
+    @Deprecated(forRemoval = true)
+    private String partitionId;
+
+    /** New name of legacy 'questionnaireId' property. */
+    private String collectionInstrumentId;
 
     private LocalDateTime lastExecution;
 
     private List<KraftwerkExecutionSchedule> kraftwerkExecutionScheduleList;
 
-    private List<KraftwerkExecutionScheduleV2> kraftwerkExecutionScheduleV2List;
-
+    /** Determines if some review service must be called during the process. */
     private boolean withReview;
+
+    private List<KraftwerkExecutionScheduleV2> kraftwerkExecutionScheduleV2List;
 
     public List<ScheduleResponseDto> toScheduleV1ResponseDtos() {
         if (kraftwerkExecutionScheduleList == null || kraftwerkExecutionScheduleList.isEmpty()) {
@@ -98,4 +105,5 @@ public class DataProcessingContextModel {
                 )
                 .toList();
     }
+
 }

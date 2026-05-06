@@ -53,10 +53,11 @@ public class RawResponseMongoAdapter implements RawResponsePersistencePort {
     @Override
     public void updateProcessDates(String collectionInstrumentId, Set<String> interrogationIds) {
         mongoTemplate.updateMulti(
-                Query.query(Criteria.where("collectionInstrumentId").is(collectionInstrumentId).and("interrogationId").in(interrogationIds))
-                , new Update().set("processDate", LocalDateTime.now())
-                , Constants.MONGODB_RAW_RESPONSES_COLLECTION_NAME
-        );
+                Query.query(Criteria.where("collectionInstrumentId")
+                        .is(collectionInstrumentId)
+                        .and("interrogationId").in(interrogationIds)),
+                new Update().set("processDate", LocalDateTime.now()),
+                Constants.MONGODB_RAW_RESPONSES_COLLECTION_NAME);
     }
 
     @Override
@@ -90,12 +91,6 @@ public class RawResponseMongoAdapter implements RawResponsePersistencePort {
     @Override
     public Set<String> findDistinctCollectionInstrumentIds() {
         return new HashSet<>(repository.findDistinctCollectionInstrumentId());
-    }
-
-    @Override
-    public long countDistinctInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId) {
-        Long count = repository.countDistinctInterrogationIdsByCollectionInstrumentId(collectionInstrumentId);
-        return count != null ? count : 0;
     }
 
     @Override

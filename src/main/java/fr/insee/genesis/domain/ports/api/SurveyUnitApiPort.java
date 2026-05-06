@@ -52,6 +52,10 @@ public interface SurveyUnitApiPort {
 
     List<InterrogationId> findDistinctInterrogationIdsByQuestionnaireId(String questionnaireId);
 
+    List<InterrogationId> findDistinctInterrogationIdsByQuestionnaireIdAndDateAfter(String questionnaireId, LocalDateTime since); // TODO: could probably be removed
+
+    List<InterrogationId> findDistinctInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(String collectionInstrumentId, Instant start, Instant end); // TODO: could probably be removed
+
     List<InterrogationInfo> searchInterrogations(String collectionInstrumentId, Instant start, Instant end);
 
     //========= OPTIMISATIONS PERFS (START) ==========

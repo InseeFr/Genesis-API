@@ -808,4 +808,5 @@ class LunaticJsonRawDataServiceTest {
         );
         assertThat(result).isEqualTo(lunaticJsonRawDataModelPage);
     }
+
 }
