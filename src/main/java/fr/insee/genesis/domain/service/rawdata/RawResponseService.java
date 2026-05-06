@@ -164,10 +164,6 @@ public class  RawResponseService implements RawResponseApiPort {
         if (variablesMap == null) {
             throw new InvalidMetadataException(
                     "Error during metadata parsing for mode %s :%n%s".formatted(mode, errors.getLast().getMessage()));
-            throw new GenesisException(HttpStatus.BAD_REQUEST,
-                    "Error during metadata parsing for mode %s :%n%s"
-                            .formatted(mode, errors.getLast().getMessage())
-            ); // TODO: check that InvalidMetadataException is handled in controller advice and remove the latter
         }
         return variablesMap;
     }
