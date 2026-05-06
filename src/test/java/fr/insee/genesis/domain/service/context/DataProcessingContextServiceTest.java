@@ -1,247 +1,333 @@
 package fr.insee.genesis.domain.service.context;
 
+import fr.insee.genesis.TestConstants;
+import fr.insee.genesis.controller.dto.rawdata.ScheduleResponseDto;
+import fr.insee.genesis.controller.utils.ExportType;
 import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
+import fr.insee.genesis.domain.model.context.schedule.DestinationType;
 import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionSchedule;
+import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionScheduleV2;
 import fr.insee.genesis.domain.model.context.schedule.ServiceToCall;
+import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
+import fr.insee.genesis.domain.ports.spi.DataProcessingContextPersistancePort;
+import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.document.context.DataProcessingContextDocument;
-import fr.insee.genesis.infrastructure.utils.FileUtils;
-import fr.insee.genesis.stubs.ConfigStub;
-import fr.insee.genesis.stubs.DataProcessingContextPersistancePortStub;
-import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
+import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class DataProcessingContextServiceTest {
-    //Given
-    static SurveyUnitPersistencePortStub surveyUnitPersistencePortStub;
-    static DataProcessingContextService dataProcessingContextService;
-    static DataProcessingContextPersistancePortStub dataProcessingContextPersistencePortStub;
-    FileUtils fileUtils = new FileUtils(new ConfigStub());
+    @Mock
+    private DataProcessingContextPersistancePort dataProcessingContextPersistancePort;
 
-    @BeforeAll
-    static void init(){
-        dataProcessingContextPersistencePortStub = new DataProcessingContextPersistancePortStub();
-        surveyUnitPersistencePortStub = new SurveyUnitPersistencePortStub();
+    @Mock
+    private SurveyUnitPersistencePort surveyUnitPersistencePort;
 
-        dataProcessingContextService = new DataProcessingContextService(dataProcessingContextPersistencePortStub, surveyUnitPersistencePortStub);
-    }
+    @InjectMocks
+    private DataProcessingContextService dataProcessingContextService;
 
-    @BeforeEach
-    void reset(){
-        dataProcessingContextPersistencePortStub.getMongoStub().clear();
-        surveyUnitPersistencePortStub.getMongoStub().clear();
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    @SneakyThrows
+    void saveContextByCollectionInstrumentId_test(boolean isNull) {
+        //GIVEN
+        if(!isNull){
+            DataProcessingContextModel dataProcessingContextModel = new DataProcessingContextModel();
+            doReturn(dataProcessingContextModel).when(dataProcessingContextPersistancePort)
+                    .findByCollectionInstrumentId(any());
+        }
+        String collectionInstrumentId = "collectionInstrumentId";
+        Boolean withReview = true;
 
-        List<KraftwerkExecutionSchedule> kraftwerkExecutionScheduleList = new ArrayList<>();
-        kraftwerkExecutionScheduleList.add(new KraftwerkExecutionSchedule(
-                "0 0 6 * * *",
-                ServiceToCall.MAIN,
-                LocalDateTime.MIN,
-                LocalDateTime.MAX,
-                null
-        ));
-        DataProcessingContextDocument doc = new DataProcessingContextDocument();
-        doc.setPartitionId("TEST");
-        doc.setCollectionInstrumentId("TEST");
-        doc.setKraftwerkExecutionScheduleList(kraftwerkExecutionScheduleList);
-        doc.setWithReview(false);
-        dataProcessingContextPersistencePortStub.getMongoStub().add(doc);
+        //WHEN
+        dataProcessingContextService.saveContextByCollectionInstrumentId(collectionInstrumentId, withReview);
+
+        //THEN
+        verify(dataProcessingContextPersistancePort, times(1)).save(
+                any(DataProcessingContextDocument.class)
+        );
     }
 
     @Test
-    void getAllSchedules_test(){
-        //When + Then
-        Assertions.assertThat(dataProcessingContextService.getAllSchedules()).hasSize(1);
+    void countContext_test(){
+        //GIVEN
+        long expected = 5;
+        doReturn(expected).when(dataProcessingContextPersistancePort).count();
+
+        //WHEN
+        long actual = dataProcessingContextService.countContexts();
+
+        //THEN
+        Assertions.assertThat(actual).isEqualTo(expected);
     }
 
     @Test
-    void saveKraftwerkExecutionSchedule_test_new_survey() throws GenesisException {
-        //When
-        dataProcessingContextService.saveKraftwerkExecutionSchedule("TEST2",
-                ServiceToCall.GENESIS,
-                "0 0 6 * * *",
-                LocalDateTime.MIN,
-                LocalDateTime.MAX,
-                null
+    @SneakyThrows
+    void getContext_test() {
+        //GIVEN
+        String collectionInstrumentId = TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID;
+        String interrogationId = TestConstants.DEFAULT_INTERROGATION_ID;
+        SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
+                        .interrogationId(interrogationId)
+                        .collectionInstrumentId(collectionInstrumentId)
+                        .build();
+        doReturn(Collections.singletonList(surveyUnitModel))
+                .when(surveyUnitPersistencePort)
+                .findByInterrogationId(any());
+        DataProcessingContextModel dataProcessingContextModel = DataProcessingContextModel.builder()
+                .collectionInstrumentId(collectionInstrumentId)
+                .withReview(true)
+                .build();
+        doReturn(dataProcessingContextModel).when(dataProcessingContextPersistancePort).findByCollectionInstrumentId(any());
+
+        //WHEN
+        DataProcessingContextModel returnedContext =
+                dataProcessingContextService.getContext(interrogationId);
+
+        //THEN
+        Assertions.assertThat(returnedContext.getCollectionInstrumentId()).isEqualTo(collectionInstrumentId);
+        Assertions.assertThat(returnedContext.isWithReview()).isTrue();
+    }
+
+    @Test
+    @SneakyThrows
+    void getContext_no_surveyUnit_exception_test() {
+        //GIVEN
+        doReturn(new ArrayList<>())
+                .when(surveyUnitPersistencePort)
+                .findByInterrogationId(any());
+        //WHEN + THEN
+        Assertions.assertThatThrownBy(() ->
+                dataProcessingContextService.getContext(TestConstants.DEFAULT_INTERROGATION_ID))
+                .isInstanceOf(GenesisException.class);
+    }
+
+    @Test
+    @SneakyThrows
+    void getContext_multiple_CollectionInstrumentIds_test() {
+        //GIVEN
+        String collectionInstrumentId = TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID;
+        String interrogationId = TestConstants.DEFAULT_INTERROGATION_ID;
+        List<SurveyUnitModel> surveyUnitModelList = new ArrayList<>();
+        SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
+                .interrogationId(interrogationId)
+                .collectionInstrumentId(collectionInstrumentId)
+                .build();
+        surveyUnitModelList.add(surveyUnitModel);
+        SurveyUnitModel surveyUnitModel2 = SurveyUnitModel.builder()
+                .interrogationId(interrogationId)
+                .collectionInstrumentId(collectionInstrumentId + "2")
+                .build();
+        surveyUnitModelList.add(surveyUnitModel2);
+        doReturn(surveyUnitModelList)
+                .when(surveyUnitPersistencePort)
+                .findByInterrogationId(any());
+
+        //WHEN + THEN
+        Assertions.assertThatThrownBy(() ->
+                        dataProcessingContextService.getContext(TestConstants.DEFAULT_INTERROGATION_ID))
+                .isInstanceOf(GenesisException.class);
+    }
+
+    @Test
+    @SneakyThrows
+    void getContext_no_CollectionInstrumentIds_test() {
+        //GIVEN
+        String interrogationId = TestConstants.DEFAULT_INTERROGATION_ID;
+        SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
+                .interrogationId(interrogationId)
+                .collectionInstrumentId(null)
+                .build();
+        doReturn(Collections.singletonList(surveyUnitModel))
+                .when(surveyUnitPersistencePort)
+                .findByInterrogationId(any());
+
+        //WHEN + THEN
+        Assertions.assertThatThrownBy(() ->
+                        dataProcessingContextService.getContext(TestConstants.DEFAULT_INTERROGATION_ID))
+                .isInstanceOf(GenesisException.class);
+    }
+
+    @Test
+    void getContextByCollectionInstrumentId_test() {
+        //GIVEN
+        String collectionInstrumentId = "test";
+        DataProcessingContextModel expected = new DataProcessingContextModel();
+        doReturn(expected).when(dataProcessingContextPersistancePort).findByCollectionInstrumentId(any());
+
+        //WHEN
+        DataProcessingContextModel actual = dataProcessingContextService.getContextByCollectionInstrumentId(collectionInstrumentId);
+
+        //THEN
+        verify(dataProcessingContextPersistancePort, times(1))
+                .findByCollectionInstrumentId(collectionInstrumentId);
+        Assertions.assertThat(actual).isEqualTo(expected);
+    }
+
+    @Test
+    void getCollectionInstrumentIdsWithReview_test() {
+        //GIVEN
+        DataProcessingContextDocument dataProcessingContextDocument = new DataProcessingContextDocument();
+        dataProcessingContextDocument.setCollectionInstrumentId(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID);
+        dataProcessingContextDocument.setWithReview(true);
+        //null collectionInstrumentId
+        DataProcessingContextDocument dataProcessingContextDocumentNull = new DataProcessingContextDocument();
+        dataProcessingContextDocumentNull.setCollectionInstrumentId(null);
+        dataProcessingContextDocumentNull.setWithReview(true);
+        List<DataProcessingContextDocument> documents = List.of(
+                dataProcessingContextDocument,
+                dataProcessingContextDocumentNull
+        );
+        doReturn(documents).when(dataProcessingContextPersistancePort).findAllByReview(anyBoolean());
+
+        //WHEN
+        List<String> collectionInstrumentIds = dataProcessingContextService.getCollectionInstrumentIds(true);
+
+        //THEN
+        Assertions.assertThat(collectionInstrumentIds).containsExactly(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID);
+    }
+
+    @Test
+    @SneakyThrows
+    void getReviewByCollectionInstrumentId_test() {
+        //GIVEN
+        String collectionInstrumentId = "test";
+        boolean withReview = true;
+        DataProcessingContextModel dataProcessingContextModel = DataProcessingContextModel.builder()
+                .collectionInstrumentId(collectionInstrumentId)
+                .withReview(withReview)
+                .build();
+        doReturn(dataProcessingContextModel).when(dataProcessingContextPersistancePort).findByCollectionInstrumentId(any());
+
+        //WHEN
+        boolean actual = dataProcessingContextService.getReviewByCollectionInstrumentId(collectionInstrumentId);
+
+        //THEN
+        verify(dataProcessingContextPersistancePort, times(1)).findByCollectionInstrumentId(collectionInstrumentId);
+        Assertions.assertThat(actual).isEqualTo(withReview);
+    }
+
+    @Test
+    void getReviewByCollectionInstrumentId_not_found_test() {
+        //WHEN + THEN
+        try{
+            dataProcessingContextService.getReviewByCollectionInstrumentId("collectionInstrumentId");
+            Assertions.fail();
+        }catch (GenesisException ge){
+            Assertions.assertThat(ge.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @Test
+    @SneakyThrows
+    void getSchedulesV1_test() {
+        //GIVEN
+        String collectionInstrumentId = "test";
+        String frequency = "0 0 0 0 0 0";
+        ServiceToCall serviceToCall = ServiceToCall.GENESIS;
+        LocalDateTime start = LocalDateTime.now();
+        LocalDateTime end = LocalDateTime.now().plusDays(1);
+        List<KraftwerkExecutionSchedule> kraftwerkExecutionScheduleList = List.of(
+                new KraftwerkExecutionSchedule(
+                        collectionInstrumentId,
+                        frequency,
+                        serviceToCall,
+                        start,
+                        end,
+                        null
+                )
         );
 
-        Assertions.assertThat(dataProcessingContextPersistencePortStub.getMongoStub()).hasSize(2);
-        Assertions.assertThat(dataProcessingContextPersistencePortStub.getMongoStub().get(1).getPartitionId()).isEqualTo("TEST2");
-        Assertions.assertThat(dataProcessingContextPersistencePortStub.getMongoStub().get(1).getLastExecution()).isNull();
+        DataProcessingContextDocument dataProcessingContextDocument = new DataProcessingContextDocument();
+        dataProcessingContextDocument.setPartitionId(collectionInstrumentId);
+        dataProcessingContextDocument.setCollectionInstrumentId(collectionInstrumentId);
+        dataProcessingContextDocument.setKraftwerkExecutionScheduleList(kraftwerkExecutionScheduleList);
+        when(dataProcessingContextPersistancePort.findAll()).thenReturn(List.of(dataProcessingContextDocument));
 
-        Assertions.assertThat(dataProcessingContextPersistencePortStub.getMongoStub().get(1).getKraftwerkExecutionScheduleList()).hasSize(1);
-        Assertions.assertThat(dataProcessingContextPersistencePortStub.getMongoStub().get(1).getKraftwerkExecutionScheduleList().getFirst().getFrequency()).isEqualTo("0 0 6 * * *");
-        Assertions.assertThat(dataProcessingContextPersistencePortStub.getMongoStub().get(1).getKraftwerkExecutionScheduleList().getFirst().getScheduleBeginDate()).isEqualTo(LocalDateTime.MIN);
-        Assertions.assertThat(dataProcessingContextPersistencePortStub.getMongoStub().get(1).getKraftwerkExecutionScheduleList().getFirst().getScheduleEndDate()).isEqualTo(LocalDateTime.MAX);
-        Assertions.assertThat(dataProcessingContextPersistencePortStub.getMongoStub().get(1).getKraftwerkExecutionScheduleList().getFirst().getServiceToCall()).isEqualTo(ServiceToCall.GENESIS);
-        Assertions.assertThat(dataProcessingContextPersistencePortStub.getMongoStub().get(1).getKraftwerkExecutionScheduleList().getFirst().getTrustParameters()).isNull();
+        //WHEN
+        List<ScheduleResponseDto> scheduleResponseDtos = dataProcessingContextService.getAllSchedulesV1();
+
+        //THEN
+        verify(dataProcessingContextPersistancePort, times(1)).findAll();
+        Assertions.assertThat(scheduleResponseDtos).hasSize(1);
+        Assertions.assertThat(scheduleResponseDtos.getFirst().getCollectionInstrumentId())
+                .isEqualTo(collectionInstrumentId);
+        Assertions.assertThat(scheduleResponseDtos.getFirst().getFrequency())
+                .isEqualTo(frequency);
+        Assertions.assertThat(scheduleResponseDtos.getFirst().getExportType())
+                .isEqualTo(ExportType.CSV_PARQUET);
+        Assertions.assertThat(scheduleResponseDtos.getFirst().getScheduleBeginDate()).isEqualTo(start);
+        Assertions.assertThat(scheduleResponseDtos.getFirst().getScheduleEndDate()).isEqualTo(end);
     }
 
     @Test
-    void saveKraftwerkExecutionSchedule_test_old_survey() throws GenesisException {
-        //When
-        dataProcessingContextService.saveKraftwerkExecutionSchedule("TEST",
-                ServiceToCall.GENESIS,
-                "0 0 0 6 * *",
-                LocalDateTime.MIN,
-                LocalDateTime.MAX,
-                null
+    @SneakyThrows
+    void getSchedulesV2_test() {
+        //GIVEN
+        String collectionInstrumentId = "collectionInstrumentId";
+        String frequency = "0 0 0 0 0";
+        LocalDateTime start = LocalDateTime.now();
+        LocalDateTime end = LocalDateTime.now().plusDays(1);
+        ExportType exportType = ExportType.JSON;
+        Mode mode = Mode.WEB;
+        List<KraftwerkExecutionScheduleV2> kraftwerkExecutionScheduleV2List = List.of(
+                new KraftwerkExecutionScheduleV2(
+                        UUID.randomUUID().toString(),
+                        frequency,
+                        exportType,
+                        start,
+                        end,
+                        mode,
+                        DestinationType.APPLISHARE,
+                        true,
+                        "test",
+                        false,
+                        null,
+                        100
+                )
         );
 
-        //Then
-        Assertions.assertThat(dataProcessingContextPersistencePortStub.getMongoStub()).hasSize(1);
-        Assertions.assertThat(dataProcessingContextPersistencePortStub.getMongoStub().getFirst().getPartitionId()).isEqualTo("TEST");
-        Assertions.assertThat(dataProcessingContextPersistencePortStub.getMongoStub().getFirst().getLastExecution()).isNull();
+        DataProcessingContextDocument dataProcessingContextDocument = new DataProcessingContextDocument();
+        dataProcessingContextDocument.setCollectionInstrumentId(collectionInstrumentId);
+        dataProcessingContextDocument.setKraftwerkExecutionScheduleV2List(kraftwerkExecutionScheduleV2List);
+        when(dataProcessingContextPersistancePort.findAll()).thenReturn(List.of(dataProcessingContextDocument));
 
-        Assertions.assertThat(dataProcessingContextPersistencePortStub.getMongoStub().getFirst().getKraftwerkExecutionScheduleList()).hasSize(2);
-        Assertions.assertThat(dataProcessingContextPersistencePortStub.getMongoStub().getFirst().getKraftwerkExecutionScheduleList().get(1).getFrequency()).isEqualTo("0 0 0 6 * *");
-        Assertions.assertThat(dataProcessingContextPersistencePortStub.getMongoStub().getFirst().getKraftwerkExecutionScheduleList().get(1).getScheduleBeginDate()).isEqualTo(LocalDateTime.MIN);
-        Assertions.assertThat(dataProcessingContextPersistencePortStub.getMongoStub().getFirst().getKraftwerkExecutionScheduleList().get(1).getScheduleEndDate()).isEqualTo(LocalDateTime.MAX);
-        Assertions.assertThat(dataProcessingContextPersistencePortStub.getMongoStub().getFirst().getKraftwerkExecutionScheduleList().get(1).getServiceToCall()).isEqualTo(ServiceToCall.GENESIS);
-        Assertions.assertThat(dataProcessingContextPersistencePortStub.getMongoStub().getFirst().getKraftwerkExecutionScheduleList().get(1).getTrustParameters()).isNull();
+        //WHEN
+        List<ScheduleResponseDto> scheduleResponseDtos = dataProcessingContextService.getAllSchedulesV2();
+
+        //THEN
+        verify(dataProcessingContextPersistancePort, times(1)).findAll();
+        Assertions.assertThat(scheduleResponseDtos).hasSize(1);
+        Assertions.assertThat(scheduleResponseDtos.getFirst().getCollectionInstrumentId())
+                .isEqualTo(collectionInstrumentId);
+        Assertions.assertThat(scheduleResponseDtos.getFirst().getFrequency())
+                .isEqualTo(frequency);
+        Assertions.assertThat(scheduleResponseDtos.getFirst().getExportType())
+                .isEqualTo(exportType);
+        Assertions.assertThat(scheduleResponseDtos.getFirst().getScheduleBeginDate()).isEqualTo(start);
+        Assertions.assertThat(scheduleResponseDtos.getFirst().getScheduleEndDate()).isEqualTo(end);
     }
-
-    @Test
-    void deleteSchedule_test() throws GenesisException {
-        //When
-        dataProcessingContextService.deleteSchedules("TEST");
-
-        //Then
-        Assertions.assertThat(dataProcessingContextPersistencePortStub.getMongoStub()).filteredOn(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getPartitionId().equals("TEST")
-        ).hasSize(1);
-        Assertions.assertThat(dataProcessingContextPersistencePortStub.getMongoStub().stream().filter(dataProcessingContextDocument ->
-                dataProcessingContextDocument.getPartitionId().equals("TEST")).toList().getFirst().getKraftwerkExecutionScheduleList()
-        ).isEmpty();
-    }
-
-    @Test
-    void updateLastExecutionName_test() throws GenesisException {
-        //Given
-        LocalDateTime localDateTime = LocalDateTime.now();
-
-        //When
-        dataProcessingContextService.updateLastExecutionDateByCollectionInstrumentId("TEST", localDateTime);
-
-        //Then
-        Assertions.assertThat(dataProcessingContextPersistencePortStub.getMongoStub()).hasSize(1);
-        Assertions.assertThat(dataProcessingContextPersistencePortStub.getMongoStub().getFirst().getLastExecution()).isNotNull().isEqualTo(localDateTime);
-    }
-
-    @Test
-    void removeExpiredSchedules_test_existing_schedule() throws GenesisException {
-        //Given
-        //Expired schedule
-        dataProcessingContextPersistencePortStub.getMongoStub().getFirst().getKraftwerkExecutionScheduleList().add(new KraftwerkExecutionSchedule(
-                "0 0 6 * * *",
-                ServiceToCall.MAIN,
-                LocalDateTime.MIN,
-                LocalDateTime.of(2000,1,1,1,1,1),
-                null
-        ));
-
-        //When
-        dataProcessingContextService.deleteExpiredSchedules(fileUtils.getLogFolder());
-
-        //Then
-        //Execution schedule deleted
-        Assertions.assertThat(dataProcessingContextPersistencePortStub.getMongoStub()).hasSize(1);
-        Assertions.assertThat(dataProcessingContextPersistencePortStub.getMongoStub().getFirst().getKraftwerkExecutionScheduleList()).hasSize(1);
-        Assertions.assertThat(dataProcessingContextPersistencePortStub.getMongoStub().getFirst().getKraftwerkExecutionScheduleList().getFirst().getScheduleEndDate())
-                .isEqualTo(LocalDateTime.MAX);
-    }
-    @Test
-    void removeExpiredSchedules_test_delete_document() throws GenesisException {
-        //Given
-        //Expired schedule + new survey
-        List<KraftwerkExecutionSchedule> kraftwerkExecutionScheduleList = new ArrayList<>();
-        kraftwerkExecutionScheduleList.add(new KraftwerkExecutionSchedule(
-                "0 0 6 * * *",
-                ServiceToCall.MAIN,
-                LocalDateTime.MIN,
-                LocalDateTime.of(2000,1,1,1,1,1),
-                null
-        ));
-        DataProcessingContextDocument doc = new DataProcessingContextDocument();
-        doc.setCollectionInstrumentId("TEST2");
-        doc.setKraftwerkExecutionScheduleList(kraftwerkExecutionScheduleList);
-        doc.setWithReview(false);
-        dataProcessingContextPersistencePortStub.getMongoStub().add(doc);
-
-        //When
-        dataProcessingContextService.deleteExpiredSchedules(fileUtils.getLogFolder());
-
-        //Then
-        //Survey schedule document deleted
-        Assertions.assertThat(dataProcessingContextPersistencePortStub.getMongoStub()).hasSize(2);
-        Assertions.assertThat(dataProcessingContextPersistencePortStub.getMongoStub().stream().filter(
-                scheduleDocument -> scheduleDocument.getCollectionInstrumentId().equals("TEST2")
-        ).toList()).hasSize(1);
-        Assertions.assertThat(dataProcessingContextPersistencePortStub.getMongoStub().stream().filter(
-                scheduleDocument -> scheduleDocument.getCollectionInstrumentId().equals("TEST2")
-        ).toList().getFirst().getKraftwerkExecutionScheduleList()).isEmpty();
-
-    }
-
-    @Test
-    void getContext_shouldThrow500IfMultipleCollectionInstruments() {
-        // Given
-        SurveyUnitModel su1 = SurveyUnitModel.builder()
-                .collectionInstrumentId("CAMPAIGN1")
-                .interrogationId("00001")
-                .build();
-        SurveyUnitModel su2 = SurveyUnitModel.builder()
-                .collectionInstrumentId("CAMPAIGN2")
-                .interrogationId("00001")
-                .build();
-        List<SurveyUnitModel> sus = new ArrayList<>();
-        sus.add(su1);
-        sus.add(su2);
-        surveyUnitPersistencePortStub.saveAll(sus);
-
-        // When & Then
-        GenesisException ex = assertThrows(GenesisException.class, () -> dataProcessingContextService.getContext("00001"));
-        //To ensure test is portable on Unix/Linux/macOS and windows systems
-        String normalizedMessage = ex.getMessage().replaceAll("\\r?\\n", "");
-        Assertions.assertThat(ex.getStatus()).isEqualTo(500);
-        Assertions.assertThat(normalizedMessage).isEqualTo("Multiple collection instruments for interrogation 00001");
-    }
-
-    @Test
-    void getContext_shouldThrow404IfNoInterrogations() {
-        // When & Then
-        GenesisException ex = assertThrows(GenesisException.class, () -> dataProcessingContextService.getContext("00001"));
-        Assertions.assertThat(ex.getStatus()).isEqualTo(404);
-        Assertions.assertThat(ex.getMessage()).isEqualTo("No interrogation in database with id 00001");
-    }
-
-    @Test
-    void getContext_shouldReturnContextIfOneCollectionInstrument() throws GenesisException {
-        // Given
-        SurveyUnitModel su1 = SurveyUnitModel.builder()
-                .collectionInstrumentId("TEST")
-                .interrogationId("00001")
-                .build();
-        List<SurveyUnitModel> sus = new ArrayList<>();
-        sus.add(su1);
-        surveyUnitPersistencePortStub.saveAll(sus);
-        DataProcessingContextModel result = dataProcessingContextService.getContext("00001");
-
-        // When & Then
-        Assertions.assertThat(result).isNotNull();
-        Assertions.assertThat(result.getCollectionInstrumentId()).isEqualTo("TEST");
-        Assertions.assertThat(result.isWithReview()).isFalse();
-    }
-
-
-
 }

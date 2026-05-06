@@ -1,56 +1,34 @@
 package fr.insee.genesis.controller.rest;
 
-import fr.insee.genesis.domain.model.rundeck.Job;
 import fr.insee.genesis.domain.model.rundeck.RundeckExecution;
-import fr.insee.genesis.stubs.RundeckExecutionApiPortStub;
-import org.junit.jupiter.api.BeforeAll;
+import fr.insee.genesis.domain.ports.api.RundeckExecutionApiPort;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.ResponseEntity;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
+@ExtendWith(MockitoExtension.class)
 class RundeckExecutionControllerTest {
 
-    private static RundeckExecutionController rundeckExecutionController;
-    private static RundeckExecutionApiPortStub rundeckExecutionApiPortStub;
+    @Mock
+    RundeckExecutionApiPort rundeckExecutionApiPort;
 
-    @BeforeAll
-    static void init(){
-        rundeckExecutionApiPortStub = new RundeckExecutionApiPortStub();
-        rundeckExecutionController = new RundeckExecutionController(rundeckExecutionApiPortStub);
-    }
+    @InjectMocks
+    RundeckExecutionController rundeckExecutionController;
 
     @Test
-    void testAddRundeckExecution_Success() {
-
+    void addRundeckExecution() {
+        //GIVEN
         RundeckExecution rundeckExecution = new RundeckExecution();
-        Job job = new Job();
-        job.setName("TEST");
-        rundeckExecution.setJob(job);
 
-        // WHEN
-        ResponseEntity<Object> response = rundeckExecutionController.addRundeckExecution(rundeckExecution);
+        //WHEN
+        rundeckExecutionController.addRundeckExecution(rundeckExecution);
 
-        // THEN
-        assertEquals(ResponseEntity.ok().build(), response);
+        //THEN
+        verify(rundeckExecutionApiPort, times(1)).addExecution(rundeckExecution);
     }
-
-    @Test
-    void testAddRundeckExecution_Failure() {
-        // GIVEN
-        rundeckExecutionApiPortStub.setShouldThrowException(true);
-
-        RundeckExecution rundeckExecution = new RundeckExecution();
-        Job job = new Job();
-        job.setName("TEST");
-
-        rundeckExecution.setJob(job);
-
-        // WHEN
-        ResponseEntity<Object> response = rundeckExecutionController.addRundeckExecution(rundeckExecution);
-
-        // THEN
-        assertEquals(ResponseEntity.internalServerError().build(), response);
-    }
-
 }

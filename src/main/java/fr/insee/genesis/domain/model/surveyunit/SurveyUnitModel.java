@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -24,12 +25,6 @@ public class SurveyUnitModel {
 
 	// New name of questionnaireId
 	private String collectionInstrumentId;
-	// To be removed
-	/**
-	 * @deprecated We will not receive this identifier anymore
-	 */
-	@Deprecated(forRemoval = true, since = "2026-01-01")
-	private String campaignId;
 	private String interrogationId;
 	// New name of idUE
 	private String usualSurveyUnitId;
@@ -41,8 +36,7 @@ public class SurveyUnitModel {
 	private Boolean isCapturedIndirectly;
 	private RawResponseDto.QuestionnaireStateEnum questionnaireState;
 	private LocalDateTime validationDate;
-	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'hh:mm")
-	private LocalDateTime recordDate;
+	private Instant recordDate;
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'hh:mm")
 	private LocalDateTime fileDate;
 

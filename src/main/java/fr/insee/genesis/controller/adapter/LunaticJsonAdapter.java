@@ -6,7 +6,7 @@ import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Service
 public class LunaticJsonAdapter {
@@ -14,11 +14,10 @@ public class LunaticJsonAdapter {
     public SurveyUnitModel convert(LunaticJsonSurveyUnit su){
         return SurveyUnitModel.builder()
                 .collectionInstrumentId(su.getQuestionnaireId())
-                .campaignId("")
                 .interrogationId(su.getInterrogationId())
                 .state(DataState.COLLECTED)
                 .mode(Mode.WEB)
-                .recordDate(LocalDateTime.now())
+                .recordDate(Instant.now())
                 .build();
     }
 

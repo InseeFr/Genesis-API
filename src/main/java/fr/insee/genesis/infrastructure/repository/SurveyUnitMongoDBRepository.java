@@ -1,10 +1,11 @@
 package fr.insee.genesis.infrastructure.repository;
 
 import fr.insee.genesis.infrastructure.document.surveyunit.SurveyUnitDocument;
+import fr.insee.genesis.infrastructure.document.surveyunit.SurveyUnitInterrogationProjection;
+import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.Meta;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
-import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
@@ -44,25 +45,29 @@ public interface SurveyUnitMongoDBRepository extends MongoRepository<SurveyUnitD
 	@Query(value = "{ 'collectionInstrumentId' : ?0, 'recordDate': { $gte: ?1 } }", fields = "{ 'interrogationId' : 1, 'mode' :  1 }")
 	List<SurveyUnitDocument> findInterrogationIdsByCollectionInstrumentIdAndDateAfter(String collectionInstrumentId, LocalDateTime since);
 
-    @Query(
-            value = "{ 'collectionInstrumentId' : ?0, 'recordDate': { $gte: ?1, $lt: ?2 } }",
-            fields = "{ 'interrogationId' : 1, 'mode' : 1 }"
-    )
-    List<SurveyUnitDocument> findInterrogationIdsByCollectionInstrumentIdAndRecordDateBetween(
-            String collectionInstrumentId,
-            Instant start,
-            Instant end
-    );
+	@Query(
+			value = "{ 'collectionInstrumentId' : ?0 }",
+			fields = "{ 'interrogationId' : 1, 'mode' : 1, 'recordDate' : 1, '_id': 0 }"
+	)
+	List<SurveyUnitInterrogationProjection> findProjectedByCollectionInstrumentId(String collectionInstrumentId);
 
-    @Query(
-            value = "{ 'questionnaireId' : ?0, 'recordDate': { $gte: ?1, $lt: ?2 } }",
-            fields = "{ 'interrogationId' : 1, 'mode' : 1 }"
-    )
-    List<SurveyUnitDocument> findInterrogationIdsQuestionnaireIdAndRecordDateBetween(
-            String questionnaireId,
-            Instant start,
-            Instant end
-    );
+	@Query(
+			value = "{ 'collectionInstrumentId' : ?0, 'recordDate': { $gt: ?1 } }",
+			fields = "{ 'interrogationId' : 1, 'mode' : 1, 'recordDate' : 1, '_id': 0 }"
+	)
+	List<SurveyUnitInterrogationProjection> findProjectedByCollectionInstrumentIdAndSince(String collectionInstrumentId, Instant since);
+
+	@Query(
+			value = "{ 'collectionInstrumentId' : ?0, 'recordDate': { $lte: ?1 } }",
+			fields = "{ 'interrogationId' : 1, 'mode' : 1, 'recordDate' : 1, '_id': 0 }"
+	)
+	List<SurveyUnitInterrogationProjection> findProjectedByCollectionInstrumentIdAndUntil(String collectionInstrumentId, Instant until);
+
+	@Query(
+			value = "{ 'collectionInstrumentId' : ?0, 'recordDate': { $gt: ?1, $lte: ?2 } }",
+			fields = "{ 'interrogationId' : 1, 'mode' : 1, 'recordDate' : 1, '_id': 0 }"
+	)
+	List<SurveyUnitInterrogationProjection> findProjectedByCollectionInstrumentIdAndBetween(String collectionInstrumentId, Instant since, Instant until);
 
     /**
 	 * @author Adrien Marchal
@@ -85,21 +90,11 @@ public interface SurveyUnitMongoDBRepository extends MongoRepository<SurveyUnitD
 	List<SurveyUnitDocument> findPageableInterrogationIdsByQuestionnaireId(String questionnaireId, Long skip, Long limit);
 
 	@Aggregation(pipeline = {
-			"{ '$match': { 'campaignId' : ?0 } }",
-			"{ '$group': { '_id': '$mode' } }",
-			"{ '$set': { 'mode': '$_id', '_id': '$$REMOVE' } }"
-	})
-	List<SurveyUnitDocument> findModesByCampaignIdV2(String campaignId);
-
-	@Aggregation(pipeline = {
 			"{ '$match': { 'questionnaireId' : ?0 } }",
 			"{ '$group': { '_id': '$mode' } }",
 			"{ '$set': { 'mode': '$_id', '_id': '$$REMOVE' } }"
 	})
-	List<SurveyUnitDocument> findModesByQuestionnaireIdV2(String campaignId);
-
-	@Query(value = "{ 'campaignId' : ?0 }", fields = "{ 'interrogationId' : 1, 'mode' :  1 }")
-	List<SurveyUnitDocument> findInterrogationIdsByCampaignId(String campaignId);
+	List<SurveyUnitDocument> findModesByQuestionnaireIdV2(String questionnaireId);
 
 	Long deleteByQuestionnaireId(String questionnaireId);
 	Long deleteByCollectionInstrumentId(String collectionInstrumentId);
@@ -118,27 +113,6 @@ public interface SurveyUnitMongoDBRepository extends MongoRepository<SurveyUnitD
 	Stream<SurveyUnitDocument> findByQuestionnaireId(String questionnaireId);
 
 	long count();
-
-	@Query(value = "{ 'campaignId' : ?0 }", fields = "{ _id : 0, 'questionnaireId' : 1 }")
-	Set<String> findQuestionnaireIdsByCampaignId(String campaignId);
-
-	//========= OPTIMISATIONS PERFS (START) ==========
-	/**
-	 * @author Adrien Marchal
-	 * Here we make a "DISTINCT" query
-	 */
-	@Aggregation(pipeline = {
-			"{ '$match': { 'campaignId' : ?0 } }",
-			"{ '$group': { '_id': { 'questionnaireId' : '$questionnaireId'} } }",
-			"{ '$set': { 'questionnaireId': '$_id', '_id': '$$REMOVE' } }"
-	})
-	Set<String> findQuestionnaireIdsByCampaignIdV2(String campaignId);
-	//========= OPTIMISATIONS PERFS (END) ==========
-
-	long countByCampaignId(String campaignId);
-
-	@Query(value = "{ 'questionnaireId' : ?0 }", fields = "{ _id : 0, 'campaignId' : 1 }")
-	Set<String> findCampaignIdsByQuestionnaireId(String questionnaireId);
 
 
     @Aggregation(pipeline = {

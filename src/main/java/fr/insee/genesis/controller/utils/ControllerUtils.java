@@ -12,6 +12,16 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import fr.insee.genesis.exceptions.SpecificationNotFoundException;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
+
+import fr.insee.genesis.domain.model.surveyunit.Mode;
+import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.infrastructure.utils.FileUtils;
+
 // Note: this class should be moved in the domain service layer.
 
 @Component
@@ -42,7 +52,8 @@ public class ControllerUtils {
 		List<String> modeSpecFolders = fileUtils.listFolders(specFolder);
 		if (modeSpecFolders.isEmpty()) {
 			throw new UndefinedModesException("No specification folder found " + specFolder);
-		}
+            throw new SpecificationNotFoundException(questionnaireId); // FIXME
+        }
 		for(String modeSpecFolder : modeSpecFolders){
 			if(Mode.getEnumFromModeName(modeSpecFolder) == null) {
 				log.warn("There is an invalid mode folder name in spec folder : {}", modeSpecFolder);
@@ -52,6 +63,7 @@ public class ControllerUtils {
 		}
 		if (modes.contains(Mode.F2F) && modes.contains(Mode.TEL)) {
 			throw new ModesConflictException("Cannot treat simultaneously TEL and FAF modes");
+			throw new GenesisException(HttpStatus.CONFLICT, "Cannot treat simultaneously TEL and FAF modes"); // FIXME
 		}
 		return modes;
 	}

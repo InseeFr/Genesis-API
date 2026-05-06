@@ -1,4 +1,29 @@
 # Changelog
+
+## 2.6.1 [2026-04-29]
+### Fixed
+- Fixed V1 schedules endpoint returning an empty list when V1 schedules have a null `partitionId`.
+
+## 2.6.0 [2026-04-29]
+### Fixed
+- Prevent missing contextual external or previous files from clearing existing contextual data.
+- Endpoint to get data by dates
+
+### Changed
+- Refactor all tests
+- Begin to handle exceptions
+- Log interceptor with user
+
+## 2.5.0 [2026-04-16]
+### Added
+- New schedule endpoints.
+
+### Updated
+- BPM 1.1.3
+## 2.4.7 [2026-04-10]
+### Added
+- Reprocess endpoints for raw responses with optional sinceDate and endDate filters
+
 ## 2.4.0 [2026-03-04]
 ### Added
 - Restful endpoints to get latest responses without the logic in it (not to be confused with get latest states)

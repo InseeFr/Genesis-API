@@ -32,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -149,6 +150,16 @@ public class  RawResponseService implements RawResponseApiPort {
         return dataProcessingContext.isWithReview();
     }
 
+    // TODO: is this still used?
+    private List<SurveyUnitModel> getConvertedSurveyUnits(String collectionInstrumentId, Mode mode, List<String> interrogationIdListForMode, int maxIndex, VariablesMap variablesMap) {
+        List<String> interrogationIdToProcess = interrogationIdListForMode.subList(0, maxIndex);
+        List<RawResponseModel> rawResponseModels = getRawResponses(collectionInstrumentId, mode, interrogationIdToProcess);
+        return convertRawResponse(
+                rawResponseModels,
+                variablesMap
+        );
+    }
+
     /** Load and save metadata into database, throw exception if none. */
     private VariablesMap loadAndSaveMetadata(String collectionInstrumentId, Mode mode, List<GenesisError> errors) {
         VariablesMap variablesMap;
@@ -163,6 +174,10 @@ public class  RawResponseService implements RawResponseApiPort {
         if (variablesMap == null) {
             throw new InvalidMetadataException(
                     "Error during metadata parsing for mode %s :%n%s".formatted(mode, errors.getLast().getMessage()));
+            throw new GenesisException(HttpStatus.BAD_REQUEST,
+                    "Error during metadata parsing for mode %s :%n%s"
+                            .formatted(mode, errors.getLast().getMessage())
+            ); // TODO: check that InvalidMetadataException is handled in controller advice and remove the latter
         }
         return variablesMap;
     }
@@ -183,6 +198,8 @@ public class  RawResponseService implements RawResponseApiPort {
                     questionnaireStateEnum = RawResponseDto.QuestionnaireStateEnum.valueOf(questionnaireStateString);
                 } catch (IllegalArgumentException iae){
                     log.warn("'{}' is not a valid questionnaire state according to filiere model", questionnaireStateString);
+                } catch (NullPointerException ignored){
+                    //WARN already done in getStringFieldInPayload
                 }
                 LocalDateTime validationDate = getValidationDate(rawResponseModel);
                 String usualSurveyUnitId = getStringFieldInPayload(rawResponseModel,"usualSurveyUnitId");
@@ -199,7 +216,7 @@ public class  RawResponseService implements RawResponseApiPort {
                         .isCapturedIndirectly(isCapturedIndirectly)
                         .state(dataState)
                         .fileDate(rawResponseModel.recordDate())
-                        .recordDate(LocalDateTime.now())
+                        .recordDate(Instant.now())
                         .collectedVariables(new ArrayList<>())
                         .externalVariables(new ArrayList<>())
                         .build();

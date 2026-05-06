@@ -1,402 +1,507 @@
 package fr.insee.genesis.controller.adapter;
 
-
-import fr.insee.bpm.metadata.model.Group;
-import fr.insee.bpm.metadata.model.MetadataModel;
-import fr.insee.bpm.metadata.model.Variable;
-import fr.insee.bpm.metadata.model.VariableType;
-import fr.insee.genesis.Constants;
-import fr.insee.genesis.controller.sources.xml.*;
+import fr.insee.bpm.metadata.model.VariablesMap;
+import fr.insee.genesis.controller.sources.xml.LunaticXmlCollectedData;
+import fr.insee.genesis.controller.sources.xml.LunaticXmlOtherData;
+import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
+import fr.insee.genesis.controller.sources.xml.ValueType;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+@DisplayName("LunaticXmlAdapter tests")
 class LunaticXmlAdapterTest {
 
-    private static final String LOOP_NAME = "BOUCLE1";
-    private static final String CAMPAIGN_ID = "CAMPAIGN_ID";
-    LunaticXmlSurveyUnit lunaticXmlSurveyUnit1 = new LunaticXmlSurveyUnit();
-    LunaticXmlSurveyUnit lunaticXmlSurveyUnit2 = new LunaticXmlSurveyUnit();
-    LunaticXmlSurveyUnit lunaticXmlSurveyUnit3 = new LunaticXmlSurveyUnit();
-    LunaticXmlSurveyUnit lunaticXmlSurveyUnit4 = new LunaticXmlSurveyUnit();
-    LunaticXmlSurveyUnit lunaticXmlSurveyUnit5 = new LunaticXmlSurveyUnit();
-    LunaticXmlSurveyUnit lunaticXmlSurveyUnit6 = new LunaticXmlSurveyUnit();
-    LunaticXmlSurveyUnit lunaticXmlSurveyUnit7 = new LunaticXmlSurveyUnit();
-    MetadataModel metadataModel = new MetadataModel();
-    LunaticXmlSurveyUnit lunaticXmlSurveyUnit8 = new LunaticXmlSurveyUnit();
-    LunaticXmlSurveyUnit lunaticXmlSurveyUnit9 = new LunaticXmlSurveyUnit();
+    private static final String QUESTIONNAIRE_ID = "questionnaire-abc";
+    private static final String INTERROGATION_ID = "interrogation-123";
+    private static final Mode MODE = Mode.WEB;
+    private static final VariablesMap VARIABLES_MAP = new VariablesMap();
 
-    @BeforeEach
-    void setUp() {
-        //Given
-        //SurveyUnit 1 : Only collected data
-        LunaticXmlData lunaticXmlData = new LunaticXmlData();
-        LunaticXmlCollectedData lunaticXmlCollectedData = new LunaticXmlCollectedData();
-        lunaticXmlCollectedData.setVariableName("var1");
-        lunaticXmlCollectedData.setCollected(List.of(new ValueType("1", "string"), new ValueType("2", "string")));
-        LunaticXmlCollectedData lunaticXmlCollectedData2 = new LunaticXmlCollectedData();
-        lunaticXmlCollectedData2.setVariableName("var2");
-        lunaticXmlCollectedData2.setCollected(List.of(new ValueType("3", "string"), new ValueType("4", "string")));
-        List<LunaticXmlCollectedData> collected = List.of(lunaticXmlCollectedData, lunaticXmlCollectedData2);
-        lunaticXmlData.setCollected(collected);
-        List<LunaticXmlOtherData> external = List.of();
-        lunaticXmlData.setExternal(external);
-        lunaticXmlSurveyUnit1.setId("interrogationId1");
-        lunaticXmlSurveyUnit1.setQuestionnaireModelId("questionnaireId1");
-        lunaticXmlSurveyUnit1.setData(lunaticXmlData);
+    // -------------------------------------------------------------------------
+    // convert() — returned list composition
+    // -------------------------------------------------------------------------
 
-        //SurveyUnit 2 : COLLECTED + EDITED
-        lunaticXmlData = new LunaticXmlData();
+    @Nested
+    @DisplayName("convert() — list composition tests")
+    class ConvertListCompositionTests {
 
-        lunaticXmlCollectedData = new LunaticXmlCollectedData();
-        lunaticXmlCollectedData.setVariableName("var1");
-        lunaticXmlCollectedData.setCollected(List.of(new ValueType("1", "string"), new ValueType("2", "string")));
-        lunaticXmlCollectedData.setEdited(List.of(new ValueType("1e", "string"), new ValueType("2e", "string")));
+        @Test
+        @DisplayName("Should always include COLLECTED state in the result")
+        void convert_shouldAlwaysIncludeCollected() {
+            // GIVEN
+            LunaticXmlSurveyUnit su = buildSurveyUnit(List.of(collectedDataWithValue("VAR1", "val")));
 
-        lunaticXmlCollectedData2 = new LunaticXmlCollectedData();
-        lunaticXmlCollectedData2.setVariableName("var2");
-        lunaticXmlCollectedData2.setCollected(List.of(new ValueType("3", "string"), new ValueType("4", "string")));
-        collected = List.of(lunaticXmlCollectedData, lunaticXmlCollectedData2);
-        lunaticXmlData.setCollected(collected);
+            // WHEN
+            List<SurveyUnitModel> result = LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE);
 
-        lunaticXmlData.setExternal(external);
-        lunaticXmlSurveyUnit2.setId("interrogationId1");
-        lunaticXmlSurveyUnit2.setQuestionnaireModelId("questionnaireId1");
-        lunaticXmlSurveyUnit2.setData(lunaticXmlData);
+            // THEN
+            assertThat(result).extracting(SurveyUnitModel::getState)
+                    .contains(DataState.COLLECTED);
+        }
 
-        //SurveyUnit 3 : COLLECTED + EDITED + FORCED
-        lunaticXmlData = new LunaticXmlData();
+        @Test
+        @DisplayName("Should return only COLLECTED when no other state has data")
+        void convert_noOtherStateData_shouldReturnOnlyCollected() {
+            // GIVEN
+            LunaticXmlSurveyUnit su = buildSurveyUnit(List.of(collectedDataWithValue("VAR1", "val")));
 
-        lunaticXmlCollectedData = new LunaticXmlCollectedData();
-        lunaticXmlCollectedData.setVariableName("var1");
-        lunaticXmlCollectedData.setCollected(List.of(new ValueType("1", "string"), new ValueType("2", "string")));
-        lunaticXmlCollectedData.setEdited(List.of(new ValueType("1e", "string"), new ValueType("2e", "string")));
+            // WHEN
+            List<SurveyUnitModel> result = LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE);
 
-        lunaticXmlCollectedData2 = new LunaticXmlCollectedData();
-        lunaticXmlCollectedData2.setVariableName("var2");
-        lunaticXmlCollectedData2.setCollected(List.of(new ValueType("3", "string"), new ValueType("4", "string")));
-        lunaticXmlCollectedData2.setForced(List.of(new ValueType("3f", "string"), new ValueType("4f", "string")));
-        collected = List.of(lunaticXmlCollectedData, lunaticXmlCollectedData2);
-        lunaticXmlData.setCollected(collected);
+            // THEN
+            assertThat(result).hasSize(1);
+            assertThat(result.getFirst().getState()).isEqualTo(DataState.COLLECTED);
+        }
 
-        lunaticXmlData.setExternal(external);
-        lunaticXmlSurveyUnit3.setId("interrogationId1");
-        lunaticXmlSurveyUnit3.setQuestionnaireModelId("questionnaireId1");
-        lunaticXmlSurveyUnit3.setData(lunaticXmlData);
+        @Test
+        @DisplayName("Should include EDITED state when it has data")
+        void convert_withEditedData_shouldIncludeEdited() {
+            // GIVEN
+            LunaticXmlCollectedData data = new LunaticXmlCollectedData();
+            data.setVariableName("VAR1");
+            data.setCollected(List.of(getValueType("collected-val")));
+            data.setEdited(List.of(getValueType("edited-val")));
 
-        //SurveyUnit 4 : COLLECTED + EDITED + PREVIOUS
-        lunaticXmlData = new LunaticXmlData();
+            LunaticXmlSurveyUnit su = buildSurveyUnit(List.of(data));
 
-        lunaticXmlCollectedData = new LunaticXmlCollectedData();
-        lunaticXmlCollectedData.setVariableName("var1");
-        lunaticXmlCollectedData.setCollected(List.of(new ValueType("1", "string"), new ValueType("2", "string")));
-        lunaticXmlCollectedData.setEdited(List.of(new ValueType("1e", "string"), new ValueType("2e", "string")));
+            // WHEN
+            List<SurveyUnitModel> result = LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE);
 
-        lunaticXmlCollectedData2 = new LunaticXmlCollectedData();
-        lunaticXmlCollectedData2.setVariableName("var2");
-        lunaticXmlCollectedData2.setCollected(List.of(new ValueType("3", "string"), new ValueType("4", "string")));
-        lunaticXmlCollectedData2.setPrevious(List.of(new ValueType("3p", "string"), new ValueType("4p", "string")));
-        collected = List.of(lunaticXmlCollectedData, lunaticXmlCollectedData2);
-        lunaticXmlData.setCollected(collected);
+            // THEN
+            assertThat(result).extracting(SurveyUnitModel::getState)
+                    .contains(DataState.COLLECTED, DataState.EDITED);
+        }
 
-        lunaticXmlData.setExternal(external);
-        lunaticXmlSurveyUnit4.setId("interrogationId1");
-        lunaticXmlSurveyUnit4.setQuestionnaireModelId("questionnaireId1");
-        lunaticXmlSurveyUnit4.setData(lunaticXmlData);
+        @Test
+        @DisplayName("Should include INPUTED state when it has data")
+        void convert_withInputedData_shouldIncludeInputed() {
+            // GIVEN
+            LunaticXmlCollectedData data = new LunaticXmlCollectedData();
+            data.setVariableName("VAR1");
+            data.setCollected(List.of(getValueType("val")));
+            data.setInputed(List.of(getValueType("inputed-val")));
 
-        //SurveyUnit 5 : COLLECTED + EDITED + PREVIOUS + INPUTED
-        lunaticXmlData = new LunaticXmlData();
+            LunaticXmlSurveyUnit su = buildSurveyUnit(List.of(data));
 
-        lunaticXmlCollectedData = new LunaticXmlCollectedData();
-        lunaticXmlCollectedData.setVariableName("var1");
-        lunaticXmlCollectedData.setCollected(List.of(new ValueType("1", "string"), new ValueType("2", "string")));
-        lunaticXmlCollectedData.setEdited(List.of(new ValueType("1e", "string"), new ValueType("2e", "string")));
-        lunaticXmlCollectedData.setInputed(List.of(new ValueType("1i", "string"), new ValueType("2i", "string")));
+            // WHEN
+            List<SurveyUnitModel> result = LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE);
 
-        lunaticXmlCollectedData2 = new LunaticXmlCollectedData();
-        lunaticXmlCollectedData2.setVariableName("var2");
-        lunaticXmlCollectedData2.setCollected(List.of(new ValueType("3", "string"), new ValueType("4", "string")));
-        lunaticXmlCollectedData2.setPrevious(List.of(new ValueType("3p", "string"), new ValueType("4p", "string")));
-        collected = List.of(lunaticXmlCollectedData, lunaticXmlCollectedData2);
-        lunaticXmlData.setCollected(collected);
+            // THEN
+            assertThat(result).extracting(SurveyUnitModel::getState)
+                    .contains(DataState.INPUTED);
+        }
 
-        lunaticXmlData.setExternal(external);
-        lunaticXmlSurveyUnit5.setId("interrogationId1");
-        lunaticXmlSurveyUnit5.setQuestionnaireModelId("questionnaireId1");
-        lunaticXmlSurveyUnit5.setData(lunaticXmlData);
+        @Test
+        @DisplayName("Should include FORCED state when it has data")
+        void convert_withForcedData_shouldIncludeForced() {
+            // GIVEN
+            LunaticXmlCollectedData data = new LunaticXmlCollectedData();
+            data.setVariableName("VAR1");
+            data.setCollected(List.of(getValueType("val")));
+            data.setForced(List.of(getValueType("forced-val")));
 
-        //SurveyUnit 6 : COLLECTED only, has one unknown variable
-        lunaticXmlData = new LunaticXmlData();
+            LunaticXmlSurveyUnit su = buildSurveyUnit(List.of(data));
 
-        lunaticXmlCollectedData = new LunaticXmlCollectedData();
-        lunaticXmlCollectedData.setVariableName("var1");
-        lunaticXmlCollectedData.setCollected(List.of(new ValueType("1", "string"), new ValueType("2", "string")));
+            // WHEN
+            List<SurveyUnitModel> result = LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE);
 
-        lunaticXmlCollectedData2 = new LunaticXmlCollectedData();
-        lunaticXmlCollectedData2.setVariableName("var3");
-        lunaticXmlCollectedData2.setCollected(List.of(new ValueType("1", "string"), new ValueType("2", "string")));
+            // THEN
+            assertThat(result).extracting(SurveyUnitModel::getState)
+                    .contains(DataState.FORCED);
+        }
 
+        @Test
+        @DisplayName("Should include PREVIOUS state when it has data")
+        void convert_withPreviousData_shouldIncludePrevious() {
+            // GIVEN
+            LunaticXmlCollectedData data = new LunaticXmlCollectedData();
+            data.setVariableName("VAR1");
+            data.setCollected(List.of(getValueType("val")));
+            data.setPrevious(List.of(getValueType("previous-val")));
 
-        collected = List.of(lunaticXmlCollectedData, lunaticXmlCollectedData2);
-        lunaticXmlData.setCollected(collected);
+            LunaticXmlSurveyUnit su = buildSurveyUnit(List.of(data));
 
-        lunaticXmlData.setExternal(external);
-        lunaticXmlSurveyUnit6.setId("interrogationId1");
-        lunaticXmlSurveyUnit6.setQuestionnaireModelId("questionnaireId1");
-        lunaticXmlSurveyUnit6.setData(lunaticXmlData);
+            // WHEN
+            List<SurveyUnitModel> result = LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE);
 
-        //SurveyUnit 7 : COLLECTED only, has two unknown variables with known variable prefix or suffix
-        lunaticXmlData = new LunaticXmlData();
+            // THEN
+            assertThat(result).extracting(SurveyUnitModel::getState)
+                    .contains(DataState.PREVIOUS);
+        }
 
-        lunaticXmlCollectedData = new LunaticXmlCollectedData();
-        lunaticXmlCollectedData.setVariableName("var1");
-        lunaticXmlCollectedData.setCollected(List.of(new ValueType("1", "string"), new ValueType("2", "string")));
+        @Test
+        @DisplayName("Should include all 5 states when all have data")
+        void convert_allStatesHaveData_shouldReturnFiveModels() {
+            // GIVEN
+            LunaticXmlCollectedData data = new LunaticXmlCollectedData();
+            data.setVariableName("VAR1");
+            data.setCollected(List.of(getValueType("c")));
+            data.setEdited(List.of(getValueType("e")));
+            data.setInputed(List.of(getValueType("i")));
+            data.setForced(List.of(getValueType("f")));
+            data.setPrevious(List.of(getValueType("p")));
 
-        lunaticXmlCollectedData2 = new LunaticXmlCollectedData();
-        lunaticXmlCollectedData2.setVariableName("var1_MISSING");
-        lunaticXmlCollectedData2.setCollected(List.of(new ValueType("1", "string"), new ValueType("2", "string")));
+            LunaticXmlSurveyUnit su = buildSurveyUnit(List.of(data));
 
-        LunaticXmlCollectedData lunaticXmlCollectedData3 = new LunaticXmlCollectedData();
-        lunaticXmlCollectedData3.setVariableName("FILTER_RESULT_var1");
-        lunaticXmlCollectedData3.setCollected(List.of(new ValueType("1", "string"), new ValueType("1", "string")));
+            // WHEN
+            List<SurveyUnitModel> result = LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE);
 
-        collected = List.of(lunaticXmlCollectedData, lunaticXmlCollectedData2, lunaticXmlCollectedData3);
-        lunaticXmlData.setCollected(collected);
+            // THEN
+            assertThat(result).hasSize(5);
+            assertThat(result).extracting(SurveyUnitModel::getState)
+                    .containsExactlyInAnyOrder(
+                            DataState.COLLECTED, DataState.EDITED,
+                            DataState.INPUTED, DataState.FORCED, DataState.PREVIOUS);
+        }
 
-        lunaticXmlData.setExternal(external);
-        lunaticXmlSurveyUnit7.setId("interrogationId1");
-        lunaticXmlSurveyUnit7.setQuestionnaireModelId("questionnaireId1");
-        lunaticXmlSurveyUnit7.setData(lunaticXmlData);
+        @Test
+        @DisplayName("Should not include EDITED when its values are all null")
+        void convert_editedAllNullValues_shouldNotIncludeEdited() {
+            // GIVEN
+            LunaticXmlCollectedData data = new LunaticXmlCollectedData();
+            data.setVariableName("VAR1");
+            data.setCollected(List.of(getValueType("val")));
+            data.setEdited(List.of(getValueType(null))); // null value — no data
 
-        //SurveyUnit 8 : Only collected data
-        lunaticXmlData = new LunaticXmlData();
-        lunaticXmlCollectedData = new LunaticXmlCollectedData();
-        lunaticXmlCollectedData.setVariableName("var1");
-        lunaticXmlCollectedData.setCollected(List.of(new ValueType(null,"null"),new ValueType("1", "string"), new ValueType("2", "string")));
-        lunaticXmlCollectedData2 = new LunaticXmlCollectedData();
-        lunaticXmlCollectedData2.setVariableName("var2");
-        lunaticXmlCollectedData2.setCollected(List.of(new ValueType("4", "string")));
-        collected = List.of(lunaticXmlCollectedData, lunaticXmlCollectedData2);
-        lunaticXmlData.setCollected(collected);
-        external = List.of();
-        lunaticXmlData.setExternal(external);
-        lunaticXmlSurveyUnit8.setId("interrogationId1");
-        lunaticXmlSurveyUnit8.setQuestionnaireModelId("questionnaireId1");
-        lunaticXmlSurveyUnit8.setData(lunaticXmlData);
+            LunaticXmlSurveyUnit su = buildSurveyUnit(List.of(data));
 
-        //SurveyUnit 9 : External data only
-        lunaticXmlData = new LunaticXmlData();
-        collected = List.of();
-        lunaticXmlData.setCollected(collected);
-        LunaticXmlOtherData lunaticXmlOtherData = new LunaticXmlOtherData();
-        lunaticXmlOtherData.setVariableName("extvar1");
-        lunaticXmlOtherData.setValues(List.of(new ValueType("ext", "string")));
-        external = List.of(lunaticXmlOtherData);
-        lunaticXmlData.setExternal(external);
-        lunaticXmlSurveyUnit9.setId("interrogationId1");
-        lunaticXmlSurveyUnit9.setQuestionnaireModelId("questionnaireId1");
-        lunaticXmlSurveyUnit9.setData(lunaticXmlData);
+            // WHEN
+            List<SurveyUnitModel> result = LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE);
 
-        //VariablesMap
-        Group group = new Group(LOOP_NAME, Constants.ROOT_GROUP_NAME);
-        Variable var1 = new Variable("var1", group, VariableType.STRING, "1");
-        Variable var2 = new Variable("var2", metadataModel.getRootGroup(), VariableType.STRING, "1");
-        Variable extvar1 = new Variable("extvar1", group, VariableType.STRING, "1");
-        metadataModel.getVariables().putVariable(var1);
-        metadataModel.getVariables().putVariable(var2);
-        metadataModel.getVariables().putVariable(extvar1);
-    }
-
-    @Test
-    @DisplayName("SurveyUnitModel should not be null")
-    void test01() {
-        // When
-        List<SurveyUnitModel> surveyUnitModels = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit1, metadataModel.getVariables(), CAMPAIGN_ID, Mode.WEB);
-        // Then
-        Assertions.assertThat(surveyUnitModels).isNotNull().isNotEmpty();
-    }
-
-    @Test
-    @DisplayName("SurveyUnitModel should have the right questionnaireId")
-    void test02() {
-        // When
-        List<SurveyUnitModel> surveyUnitModels = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit1, metadataModel.getVariables(), CAMPAIGN_ID, Mode.WEB);
-        // Then
-        Assertions.assertThat(surveyUnitModels.getFirst().getCollectionInstrumentId()).isEqualTo("questionnaireId1".toUpperCase());
-    }
-
-    @Test
-    @DisplayName("SurveyUnitModel should have the right id")
-    void test03() {
-        // When
-        List<SurveyUnitModel> surveyUnitModels = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit1, metadataModel.getVariables(), CAMPAIGN_ID, Mode.WEB);
-        // Then
-        Assertions.assertThat(surveyUnitModels.getFirst().getInterrogationId()).isEqualTo("interrogationId1");
-    }
-
-    @Test
-    @DisplayName("SurveyUnitModel should contains 4 variable state updates")
-    void test04() {
-        // When
-        List<SurveyUnitModel> surveyUnitModels = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit1, metadataModel.getVariables(), CAMPAIGN_ID, Mode.WEB);
-        // Then
-        Assertions.assertThat(surveyUnitModels.getFirst().getCollectedVariables()).hasSize(4);
-    }
-
-    @Test
-    @DisplayName("There should be a EDITED survey unit model with EDITED data")
-    void test05() {
-        // When
-        List<SurveyUnitModel> surveyUnitModels = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit2, metadataModel.getVariables(), CAMPAIGN_ID, Mode.WEB);
-        // Then
-        Assertions.assertThat(surveyUnitModels).hasSize(2);
-        Assertions.assertThat(surveyUnitModels).filteredOn(surveyUnitModel ->
-                surveyUnitModel.getState().equals(DataState.EDITED)
-        ).isNotEmpty();
-
-        Optional<SurveyUnitModel> editedSurveyUnitModel = surveyUnitModels.stream().filter(surveyUnitModel ->
-                surveyUnitModel.getState().equals(DataState.EDITED)
-        ).findFirst();
-        Assertions.assertThat(editedSurveyUnitModel).isPresent();
-
-        //Content check
-        for (VariableModel collectedVariable : editedSurveyUnitModel.get().getCollectedVariables()) {
-            Assertions.assertThat(collectedVariable.value()).containsAnyOf("1e","2e").isNotEqualTo("1").isNotEqualTo(
-                    "2");
+            // THEN
+            assertThat(result).extracting(SurveyUnitModel::getState).isNotEmpty()
+                    .doesNotContain(DataState.EDITED);
         }
     }
 
-    @Test
-    @DisplayName("There should be both EDITED survey unit model and FORCED survey unit model if there is EDITED and FORCED data")
-    void test06() {
-        // When
-        List<SurveyUnitModel> surveyUnitModels = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit3, metadataModel.getVariables(), CAMPAIGN_ID, Mode.WEB);
-        // Then
-        Assertions.assertThat(surveyUnitModels).hasSize(3);
-        Assertions.assertThat(surveyUnitModels).filteredOn(surveyUnitModel ->
-                surveyUnitModel.getState().equals(DataState.EDITED)
-        ).isNotEmpty();
-        Assertions.assertThat(surveyUnitModels).filteredOn(surveyUnitModel ->
-                surveyUnitModel.getState().equals(DataState.FORCED)
-        ).isNotEmpty();
+    // -------------------------------------------------------------------------
+    // convert() — field mapping
+    // -------------------------------------------------------------------------
+
+    @Nested
+    @DisplayName("convert() — field mapping tests")
+    class ConvertFieldMappingTests {
+
+        @Test
+        @DisplayName("Should map questionnaireModelId to collectionInstrumentId in uppercase")
+        void convert_shouldMapQuestionnaireIdUppercased() {
+            // GIVEN
+            LunaticXmlSurveyUnit su = buildSurveyUnit(List.of(collectedDataWithValue("VAR1", "val")));
+
+            // WHEN
+            SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE));
+
+            // THEN
+            assertThat(collected.getCollectionInstrumentId()).isEqualTo(QUESTIONNAIRE_ID.toUpperCase());
+        }
+
+        @Test
+        @DisplayName("Should map interrogation id")
+        void convert_shouldMapInterrogationId() {
+            // GIVEN
+            LunaticXmlSurveyUnit su = buildSurveyUnit(List.of(collectedDataWithValue("VAR1", "val")));
+
+            // WHEN
+            SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE));
+
+            // THEN
+            assertThat(collected.getInterrogationId()).isEqualTo(INTERROGATION_ID);
+        }
+
+        @Test
+        @DisplayName("Should map mode")
+        void convert_shouldMapMode() {
+            // GIVEN
+            LunaticXmlSurveyUnit su = buildSurveyUnit(List.of(collectedDataWithValue("VAR1", "val")));
+
+            // WHEN
+            SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE));
+
+            // THEN
+            assertThat(collected.getMode()).isEqualTo(MODE);
+        }
+
+        @Test
+        @DisplayName("Should set a non-null recordDate close to now")
+        void convert_shouldSetRecordDateCloseToNow() {
+            // GIVEN
+            LunaticXmlSurveyUnit su = buildSurveyUnit(List.of(collectedDataWithValue("VAR1", "val")));
+            Instant before = Instant.now();
+
+            // WHEN
+            SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE));
+
+            // THEN
+            Instant after = Instant.now();
+            assertThat(collected.getRecordDate())
+                    .isNotNull()
+                    .isAfterOrEqualTo(before)
+                    .isBeforeOrEqualTo(after);
+        }
+
+        @Test
+        @DisplayName("Should map fileDate from survey unit")
+        void convert_shouldMapFileDate() {
+            // GIVEN
+            LocalDateTime fileDate = LocalDateTime.of(2024, 1, 15, 10, 0);
+            LunaticXmlSurveyUnit su = buildSurveyUnit(List.of(collectedDataWithValue("VAR1", "val")));
+            su.setFileDate(fileDate);
+
+            // WHEN
+            SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE));
+
+            // THEN
+            assertThat(collected.getFileDate()).isEqualTo(fileDate);
+        }
     }
 
-    @Test
-    @DisplayName("There should be a EDITED model and PREVIOUS model if there is EDITED and PREVIOUS data")
-    void test07() {
-        // When
-        List<SurveyUnitModel> surveyUnitModels = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit4, metadataModel.getVariables(), CAMPAIGN_ID, Mode.WEB);
-        // Then
-        Assertions.assertThat(surveyUnitModels).hasSize(3);
-        Assertions.assertThat(surveyUnitModels).filteredOn(surveyUnitModel ->
-                surveyUnitModel.getState().equals(DataState.EDITED)
-        ).isNotEmpty();
-        Assertions.assertThat(surveyUnitModels).filteredOn(surveyUnitModel ->
-                surveyUnitModel.getState().equals(DataState.PREVIOUS)
-        ).isNotEmpty();
+    // -------------------------------------------------------------------------
+    // convert() — collected variables
+    // -------------------------------------------------------------------------
+
+    @Nested
+    @DisplayName("convert() — collected variables tests")
+    class ConvertCollectedVariablesTests {
+
+        @Test
+        @DisplayName("Should populate collectedVariables from COLLECTED data")
+        void convert_shouldPopulateCollectedVariables() {
+            // GIVEN
+            LunaticXmlSurveyUnit su = buildSurveyUnit(List.of(
+                    collectedDataWithValue("VAR1", "value1")
+            ));
+
+            // WHEN
+            SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE));
+
+            // THEN
+            assertThat(collected.getCollectedVariables()).hasSize(1);
+            assertThat(collected.getCollectedVariables().getFirst().varId()).isEqualTo("VAR1");
+            assertThat(collected.getCollectedVariables().getFirst().value()).isEqualTo("value1");
+        }
+
+        @Test
+        @DisplayName("Should set iteration starting at 1 for each value")
+        void convert_shouldSetIterationStartingAtOne() {
+            // GIVEN
+            LunaticXmlCollectedData data = new LunaticXmlCollectedData();
+            data.setVariableName("VAR1");
+            data.setCollected(List.of(getValueType("val1"), getValueType("val2")));
+
+            LunaticXmlSurveyUnit su = buildSurveyUnit(List.of(data));
+
+            // WHEN
+            SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE));
+
+            // THEN
+            assertThat(collected.getCollectedVariables()).hasSize(2);
+            assertThat(collected.getCollectedVariables().get(0).iteration()).isEqualTo(1);
+            assertThat(collected.getCollectedVariables().get(1).iteration()).isEqualTo(2);
+        }
+
+        @Test
+        @DisplayName("Should skip collected variables with null value")
+        void convert_shouldSkipNullValues() {
+            // GIVEN
+            LunaticXmlCollectedData data = new LunaticXmlCollectedData();
+            data.setVariableName("VAR1");
+            data.setCollected(List.of(getValueType("val"), getValueType(null)));
+
+            LunaticXmlSurveyUnit su = buildSurveyUnit(List.of(data));
+
+            // WHEN
+            SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE));
+
+            // THEN
+            assertThat(collected.getCollectedVariables()).hasSize(1);
+            assertThat(collected.getCollectedVariables().getFirst().value()).isEqualTo("val");
+        }
+
+        @Test
+        @DisplayName("Should produce empty collectedVariables when collected list is null for a variable")
+        void convert_nullCollectedList_shouldProduceEmptyVariables() {
+            // GIVEN
+            LunaticXmlCollectedData data = new LunaticXmlCollectedData();
+            data.setVariableName("VAR1");
+            data.setCollected(null); // null list — skipped
+
+            LunaticXmlSurveyUnit su = buildSurveyUnit(List.of(data));
+
+            // WHEN
+            SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE));
+
+            // THEN
+            assertThat(collected.getCollectedVariables()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("Should handle multiple variables in the collected data")
+        void convert_multipleVariables_shouldMapAll() {
+            // GIVEN
+            LunaticXmlSurveyUnit su = buildSurveyUnit(List.of(
+                    collectedDataWithValue("VAR1", "v1"),
+                    collectedDataWithValue("VAR2", "v2")
+            ));
+
+            // WHEN
+            SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE));
+
+            // THEN
+            assertThat(collected.getCollectedVariables()).hasSize(2);
+            assertThat(collected.getCollectedVariables())
+                    .extracting(VariableModel::varId)
+                    .containsExactlyInAnyOrder("VAR1", "VAR2");
+        }
     }
 
-    @Test
-    @DisplayName("There should be multiple survey unit models if there is different data states (all 4)")
-    void test08() {
-        // When
-        List<SurveyUnitModel> surveyUnitModels = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit5, metadataModel.getVariables(), CAMPAIGN_ID, Mode.WEB);
-        // Then
-        Assertions.assertThat(surveyUnitModels).hasSize(4);
-        Assertions.assertThat(surveyUnitModels).filteredOn(surveyUnitModel ->
-                surveyUnitModel.getState().equals(DataState.EDITED)
-        ).isNotEmpty();
-        Assertions.assertThat(surveyUnitModels).filteredOn(surveyUnitModel ->
-                surveyUnitModel.getState().equals(DataState.PREVIOUS)
-        ).isNotEmpty();
-        Assertions.assertThat(surveyUnitModels).filteredOn(surveyUnitModel ->
-                surveyUnitModel.getState().equals(DataState.INPUTED)
-        ).isNotEmpty();
+    // -------------------------------------------------------------------------
+    // convert() — external variables
+    // -------------------------------------------------------------------------
+
+    @Nested
+    @DisplayName("convert() — external variables tests")
+    class ConvertExternalVariablesTests {
+
+        @Test
+        @DisplayName("Should populate externalVariables on the COLLECTED model")
+        void convert_shouldPopulateExternalVariables() {
+            // GIVEN
+            LunaticXmlOtherData external = new LunaticXmlOtherData();
+            external.setVariableName("EXT1");
+            external.setValues(List.of(getValueType("ext-value")));
+
+            LunaticXmlSurveyUnit su = buildSurveyUnit(
+                    List.of(collectedDataWithValue("VAR1", "v")),
+                    List.of(external)
+            );
+
+            // WHEN
+            SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE));
+
+            // THEN
+            assertThat(collected.getExternalVariables()).hasSize(1);
+            assertThat(collected.getExternalVariables().getFirst().varId()).isEqualTo("EXT1");
+            assertThat(collected.getExternalVariables().getFirst().value()).isEqualTo("ext-value");
+        }
+
+        @Test
+        @DisplayName("Should skip external variables with null value")
+        void convert_externalNullValue_shouldSkip() {
+            // GIVEN
+            LunaticXmlOtherData external = new LunaticXmlOtherData();
+            external.setVariableName("EXT1");
+            external.setValues(List.of(getValueType(null)));
+
+            LunaticXmlSurveyUnit su = buildSurveyUnit(
+                    List.of(collectedDataWithValue("VAR1", "v")),
+                    List.of(external)
+            );
+
+            // WHEN
+            SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE));
+
+            // THEN
+            assertThat(collected.getExternalVariables()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("Should skip external variable when values list is null")
+        void convert_externalNullValuesList_shouldSkip() {
+            // GIVEN
+            LunaticXmlOtherData external = new LunaticXmlOtherData();
+            external.setVariableName("EXT1");
+            external.setValues(null);
+
+            LunaticXmlSurveyUnit su = buildSurveyUnit(
+                    List.of(collectedDataWithValue("VAR1", "v")),
+                    List.of(external)
+            );
+
+            // WHEN
+            SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE));
+
+            // THEN
+            assertThat(collected.getExternalVariables()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("Should set iteration starting at 1 for external variables")
+        void convert_externalVariables_shouldSetIteration() {
+            // GIVEN
+            LunaticXmlOtherData external = new LunaticXmlOtherData();
+            external.setVariableName("EXT1");
+            external.setValues(List.of(getValueType("v1"), getValueType("v2")));
+
+            LunaticXmlSurveyUnit su = buildSurveyUnit(
+                    List.of(collectedDataWithValue("VAR1", "v")),
+                    List.of(external)
+            );
+
+            // WHEN
+            SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE));
+
+            // THEN
+            assertThat(collected.getExternalVariables()).hasSize(2);
+            assertThat(collected.getExternalVariables().get(0).iteration()).isEqualTo(1);
+            assertThat(collected.getExternalVariables().get(1).iteration()).isEqualTo(2);
+        }
     }
 
-    @Test
-    @DisplayName("If a variable not present in DDI then he is in the root group")
-    void test09() {
-        // When
-        List<SurveyUnitModel> surveyUnitModels = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit6, metadataModel.getVariables(), CAMPAIGN_ID, Mode.WEB);
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
 
-        // Then
-        Assertions.assertThat(surveyUnitModels).hasSize(1);
-
-        Assertions.assertThat(surveyUnitModels.getFirst().getCollectedVariables()).filteredOn(collectedVariableModel ->
-                collectedVariableModel.varId().equals("var3")).isNotEmpty();
-        Assertions.assertThat(surveyUnitModels.getFirst().getCollectedVariables().stream().filter(collectedVariableModel ->
-                collectedVariableModel.varId().equals("var3")).toList().getFirst().parentId()).isNull();
-        Assertions.assertThat(surveyUnitModels.getFirst().getCollectedVariables().stream().filter(collectedVariableModel ->
-                collectedVariableModel.varId().equals("var3")).toList().getFirst().scope()).isEqualTo(Constants.ROOT_GROUP_NAME);
+    private LunaticXmlSurveyUnit buildSurveyUnit(List<LunaticXmlCollectedData> collectedData) {
+        return buildSurveyUnit(collectedData, List.of());
     }
 
-    @Test
-    @DisplayName("If a variable A not present in DDI and is the extension of a known variable B, then the variable A is in the same group")
-    void test10() {
-        // When
-        List<SurveyUnitModel> surveyUnitModels = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit7, metadataModel.getVariables(), CAMPAIGN_ID, Mode.WEB);
+    private LunaticXmlSurveyUnit buildSurveyUnit(
+            List<LunaticXmlCollectedData> collectedData,
+            List<LunaticXmlOtherData> externalData) {
 
-        // Then
-        Assertions.assertThat(surveyUnitModels).hasSize(1);
-        Assertions.assertThat(surveyUnitModels.getFirst().getCollectedVariables()).filteredOn(collectedVariableModel ->
-                collectedVariableModel.varId().equals("var1_MISSING")).hasSize(2);
-        Assertions.assertThat(surveyUnitModels.getFirst().getCollectedVariables().stream().filter(collectedVariableModel ->
-                collectedVariableModel.varId().equals("var1_MISSING")).toList().getFirst().parentId()).isNotNull().isEqualTo(Constants.ROOT_GROUP_NAME);
-        Assertions.assertThat(surveyUnitModels.getFirst().getCollectedVariables().stream().filter(collectedVariableModel ->
-                collectedVariableModel.varId().equals("var1_MISSING")).toList().getFirst().scope()).isNotEqualTo(Constants.ROOT_GROUP_NAME).isEqualTo(LOOP_NAME);
-        Assertions.assertThat(surveyUnitModels.getFirst().getCollectedVariables().stream().filter(collectedVariableModel ->
-                collectedVariableModel.varId().equals("FILTER_RESULT_var1")).toList().getFirst().parentId()).isNotNull().isEqualTo(Constants.ROOT_GROUP_NAME);
-        Assertions.assertThat(surveyUnitModels.getFirst().getCollectedVariables().stream().filter(collectedVariableModel ->
-                collectedVariableModel.varId().equals("FILTER_RESULT_var1")).toList().getFirst().scope()).isNotEqualTo(Constants.ROOT_GROUP_NAME).isEqualTo(LOOP_NAME);
+        LunaticXmlSurveyUnit su = new LunaticXmlSurveyUnit();
+        su.setId(INTERROGATION_ID);
+        su.setQuestionnaireModelId(QUESTIONNAIRE_ID);
+
+        fr.insee.genesis.controller.sources.xml.LunaticXmlData data =
+                new fr.insee.genesis.controller.sources.xml.LunaticXmlData();
+        data.setCollected(collectedData);
+        data.setExternal(externalData);
+        su.setData(data);
+
+        return su;
     }
 
-    @Test
-    @DisplayName("Value should be affected in the good loop iteration")
-    void test11(){
-        // When
-        List<SurveyUnitModel> surveyUnitModels = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit8, metadataModel.getVariables(), CAMPAIGN_ID, Mode.WEB);
-        // Then
-        Assertions.assertThat(surveyUnitModels).hasSize(1);
-        Assertions.assertThat(surveyUnitModels.getFirst().getCollectedVariables()).hasSize(3);
-        Assertions.assertThat(surveyUnitModels.getFirst().getCollectedVariables()).filteredOn(collectedVariableModel ->
-                collectedVariableModel.varId().equals("var1")).isNotEmpty();
-        Assertions.assertThat(surveyUnitModels.getFirst().getCollectedVariables()).filteredOn(collectedVariableModel ->
-                collectedVariableModel.scope().equals("BOUCLE1")
-                && collectedVariableModel.iteration().equals(1)
-        ).isEmpty();
-        Assertions.assertThat(surveyUnitModels.getFirst().getCollectedVariables().stream().filter(collectedVariableModel ->
-                collectedVariableModel.scope().equals("BOUCLE1")
-                && collectedVariableModel.iteration().equals(2)
-        ).toList().getFirst().value()).isEqualTo("1");
-        Assertions.assertThat(surveyUnitModels.getFirst().getCollectedVariables().stream().filter(collectedVariableModel ->
-                collectedVariableModel.scope().equals("BOUCLE1")
-                && collectedVariableModel.iteration().equals(3)
-        ).toList().getFirst().value()).isEqualTo("2");
+    private LunaticXmlCollectedData collectedDataWithValue(String varName, String value) {
+        LunaticXmlCollectedData data = new LunaticXmlCollectedData();
+        data.setVariableName(varName);
+        data.setCollected(List.of(getValueType(value)));
+        return data;
     }
 
-    @Test
-    @DisplayName("External value should be affected in the good loop iteration")
-    void test12(){
-        // When
-        List<SurveyUnitModel> surveyUnitModels = LunaticXmlAdapter.convert(lunaticXmlSurveyUnit9, metadataModel.getVariables(), CAMPAIGN_ID, Mode.WEB);
-        // Then
-        Assertions.assertThat(surveyUnitModels).hasSize(1);
-        Assertions.assertThat(surveyUnitModels.getFirst().getCollectedVariables()).isEmpty();
-        Assertions.assertThat(surveyUnitModels.getFirst().getExternalVariables()).hasSize(1);
-        Assertions.assertThat(surveyUnitModels.getFirst().getExternalVariables().getFirst().varId()).isEqualTo("extvar1");
-        Assertions.assertThat(surveyUnitModels.getFirst().getExternalVariables().getFirst().value()).isEqualTo("ext");
-        Assertions.assertThat(surveyUnitModels.getFirst().getExternalVariables().getFirst().scope()).isEqualTo(LOOP_NAME);
-        Assertions.assertThat(surveyUnitModels.getFirst().getExternalVariables().getFirst().iteration()).isEqualTo(1);
-        Assertions.assertThat(surveyUnitModels.getFirst().getExternalVariables().getFirst().parentId()).isEqualTo(Constants.ROOT_GROUP_NAME);
+    private ValueType getValueType(String value) {
+        ValueType vt = new ValueType(
+                value,
+                "STRING"
+        );
+        vt.setValue(value);
+        return vt;
     }
 
+    private SurveyUnitModel getCollected(List<SurveyUnitModel> models) {
+        return models.stream()
+                .filter(m -> m.getState() == DataState.COLLECTED)
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("No COLLECTED model found"));
+    }
 }

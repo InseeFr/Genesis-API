@@ -15,6 +15,7 @@ import java.util.List;
 @Service
 @Slf4j
 @RequiredArgsConstructor
+//TODO create API port interface
 public class CombinedRawDataService {
 
     @Qualifier("lunaticJsonMongoAdapter")
@@ -28,7 +29,7 @@ public class CombinedRawDataService {
                 rawResponsePersistencePort.findRawResponsesByInterrogationID(interrogationId);
 
         List<LunaticJsonRawDataModel> lunaticRawDataModels =
-                lunaticJsonRawDataPersistencePort.findRawDataByInterrogationID(interrogationId);
+                lunaticJsonRawDataPersistencePort.findRawDataByInterrogationId(interrogationId);
 
         return new CombinedRawDataDto(
                 rawResponseModels,

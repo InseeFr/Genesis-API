@@ -14,11 +14,6 @@ import java.util.List;
 public class SurveyUnitSimplifiedDto {
 
 	private String collectionInstrumentId;
-	/**
-	 * @deprecated We will not receive this piece of information anymore
-	 */
-	@Deprecated(forRemoval = true, since =  "2026-01-01")
-	private String campaignId;
 	private String interrogationId;
 	private String usualSurveyUnitId;
 	private Mode mode;
