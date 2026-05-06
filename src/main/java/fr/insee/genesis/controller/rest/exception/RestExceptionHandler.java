@@ -1,12 +1,7 @@
 package fr.insee.genesis.controller.rest.exception;
 
 import com.mongodb.DuplicateKeyException;
-import fr.insee.genesis.exceptions.GenesisException;
-import fr.insee.genesis.exceptions.InvalidDateIntervalException;
-import fr.insee.genesis.exceptions.NoDataException;
-import fr.insee.genesis.exceptions.QuestionnaireNotFoundException;
-import fr.insee.genesis.exceptions.ReviewDisabledException;
-import fr.insee.genesis.exceptions.SpecificationNotFoundException;
+import fr.insee.genesis.exceptions.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -29,18 +24,8 @@ public class RestExceptionHandler {
                 genesisException);
 
         return ProblemDetail.forStatusAndDetail(
-                resolveHttpCode(genesisException.getStatus().value()),
+                genesisException.getStatus(),
                 genesisException.getMessage());
-    }
-
-    /** Returns the corresponding http status, or 500 if the given code does not match an http status. */
-    private static HttpStatus resolveHttpCode(int statusCode) {
-        HttpStatus httpStatus = HttpStatus.resolve(statusCode);
-        if (httpStatus == null) {
-            log.warn("Unknown http status code '{}', 500 will be sent.", statusCode);
-            return  HttpStatus.INTERNAL_SERVER_ERROR;
-        }
-        return httpStatus;
     }
 
     @ExceptionHandler(QuestionnaireNotFoundException.class)
@@ -121,6 +106,46 @@ public class RestExceptionHandler {
         problemDetail.setProperty("errors", errors);
 
         return problemDetail;
+    }
+
+    @ExceptionHandler
+    public ProblemDetail handleGenericGenesisException(GenesisException genesisException) {
+        log.error("GenesisException: {}", genesisException.getMessage(), genesisException);
+        return ProblemDetail.forStatusAndDetail(
+                genesisException.getStatus(),
+                genesisException.getMessage());
+    }
+
+    @ExceptionHandler(ModesConflictException.class)
+    public ProblemDetail handleModesConflictException(ModesConflictException e) {
+        log.error("ModesConflictException: {}", e.getMessage());
+        return ProblemDetail.forStatusAndDetail(
+                HttpStatus.CONFLICT,
+                e.getMessage());
+    }
+
+    @ExceptionHandler(UndefinedModesException.class)
+    public ProblemDetail handleUndefinedModesException(UndefinedModesException e) {
+        log.error("UndefinedModesException: {}", e.getMessage());
+        return ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_FOUND,
+                e.getMessage());
+    }
+
+    @ExceptionHandler(UndefinedMetadataException.class)
+    public ProblemDetail handleUndefinedMetadataException(UndefinedMetadataException e) {
+        log.error("UndefinedMetadataException: {}", e.getMessage());
+        return ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_FOUND,
+                e.getMessage());
+    }
+
+    @ExceptionHandler(InvalidMetadataException.class)
+    public ProblemDetail handleInvalidMetadataException(InvalidMetadataException e) {
+        log.error("InvalidMetadataException: {}", e.getMessage());
+        return ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                e.getMessage());
     }
 
 }
