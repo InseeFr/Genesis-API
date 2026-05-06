@@ -22,14 +22,8 @@ public class ExceptionController {
     public ProblemDetail handleGenericGenesisException(GenesisException genesisException) {
         log.error("GenesisException: {}", genesisException.getMessage(), genesisException);
         return ProblemDetail.forStatusAndDetail(
-                resolveHttpCode(genesisException.getStatus()),
+                genesisException.getStatus(),
                 genesisException.getMessage());
-    }
-
-    /** Returns the corresponding http status, or 500 if the given code does not match a http status. */
-    private static HttpStatus resolveHttpCode(int statusCode) {
-        HttpStatus httpStatus = HttpStatus.resolve(statusCode);
-        return httpStatus != null ? httpStatus : HttpStatus.INTERNAL_SERVER_ERROR;
     }
 
     @ExceptionHandler(InvalidDateIntervalException.class)
