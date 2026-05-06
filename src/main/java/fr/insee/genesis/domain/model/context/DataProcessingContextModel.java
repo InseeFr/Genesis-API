@@ -25,6 +25,8 @@ public class DataProcessingContextModel {
     @Id
     private ObjectId id;
 
+    /**
+     * @deprecated The 'partition' concept has shifted, this property isn't used anymore. */
     @Deprecated(forRemoval = true)
     private String partitionId;
 
