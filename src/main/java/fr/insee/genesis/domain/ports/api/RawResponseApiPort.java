@@ -15,8 +15,6 @@ import java.util.Set;
 
 public interface RawResponseApiPort {
 
-    List<RawResponseModel> getRawResponses(String collectionInstrumentId, Mode mode, List<String> interrogationIdList); // TODO: could probably be removed
-    List<RawResponseModel> getRawResponsesByInterrogationID(String interrogationId); // TODO: could probably be removed
     DataProcessResult processRawResponsesByInterrogationIds(String collectionInstrumentId, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException;
     DataProcessResult processRawResponsesByInterrogationIds(String collectionInstrumentId) throws GenesisException;
 
