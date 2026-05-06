@@ -150,16 +150,6 @@ public class  RawResponseService implements RawResponseApiPort {
         return dataProcessingContext.isWithReview();
     }
 
-    // TODO: is this still used?
-    private List<SurveyUnitModel> getConvertedSurveyUnits(String collectionInstrumentId, Mode mode, List<String> interrogationIdListForMode, int maxIndex, VariablesMap variablesMap) {
-        List<String> interrogationIdToProcess = interrogationIdListForMode.subList(0, maxIndex);
-        List<RawResponseModel> rawResponseModels = getRawResponses(collectionInstrumentId, mode, interrogationIdToProcess);
-        return convertRawResponse(
-                rawResponseModels,
-                variablesMap
-        );
-    }
-
     /** Load and save metadata into database, throw exception if none. */
     private VariablesMap loadAndSaveMetadata(String collectionInstrumentId, Mode mode, List<GenesisError> errors) {
         VariablesMap variablesMap;
