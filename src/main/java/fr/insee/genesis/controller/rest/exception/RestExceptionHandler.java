@@ -124,14 +124,6 @@ public class RestExceptionHandler {
                 e.getMessage());
     }
 
-    @ExceptionHandler(UndefinedModesException.class)
-    public ProblemDetail handleUndefinedModesException(UndefinedModesException e) {
-        log.error("UndefinedModesException: {}", e.getMessage());
-        return ProblemDetail.forStatusAndDetail(
-                HttpStatus.NOT_FOUND,
-                e.getMessage());
-    }
-
     @ExceptionHandler(UndefinedMetadataException.class)
     public ProblemDetail handleUndefinedMetadataException(UndefinedMetadataException e) {
         log.error("UndefinedMetadataException: {}", e.getMessage());
