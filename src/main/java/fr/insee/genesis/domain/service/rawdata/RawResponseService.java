@@ -72,7 +72,11 @@ public class  RawResponseService implements RawResponseApiPort {
         this.rawResponsePersistencePort = rawResponsePersistencePort;
     }
 
-    private List<RawResponseModel> getRawResponses(String collectionInstrumentId, Mode mode, List<String> interrogationIdList) {
+    List<RawResponseModel> getRawResponsesByInterrogationID(String interrogationId) {
+        return rawResponsePersistencePort.findRawResponsesByInterrogationID(interrogationId);
+    }
+
+    List<RawResponseModel> getRawResponses(String collectionInstrumentId, Mode mode, List<String> interrogationIdList) {
         return rawResponsePersistencePort.findRawResponses(collectionInstrumentId,mode,interrogationIdList);
     }
 

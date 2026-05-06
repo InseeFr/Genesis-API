@@ -72,4 +72,11 @@ public interface RawResponseRepository extends MongoRepository<RawResponseDocume
 
     boolean existsByInterrogationId(String interrogationId);
 
+    @Aggregation(pipeline = {
+            "{ '$match': { 'collectionInstrumentId': ?0 } }",
+            "{ '$group': { '_id': '$interrogationId' } }",
+            "{ '$count': 'count' }"
+    })
+    Long countDistinctInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId);
+
 }

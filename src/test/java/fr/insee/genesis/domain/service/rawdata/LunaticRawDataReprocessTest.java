@@ -2,13 +2,14 @@ package fr.insee.genesis.domain.service.rawdata;
 
 import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.RawDataModelType;
+import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
 import fr.insee.genesis.exceptions.InvalidDateIntervalException;
 import fr.insee.genesis.stubs.LunaticJsonRawDataServiceStub;
 import fr.insee.genesis.stubs.RawResponseReprocessPersistenceRouterStub;
-import fr.insee.genesis.stubs.SurveyUnitPersistencePortStub;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -18,13 +19,16 @@ class LunaticRawDataReprocessTest {
 
     private ReprocessRawResponseService reprocessRawResponseService;
 
+    @Mock
+    SurveyUnitPersistencePort surveyUnitPersistencePortMock;
+
     @BeforeEach
     void freshStart() {
         reprocessRawResponseService = new ReprocessRawResponseService(
-            new SurveyUnitPersistencePortStub(),
-            null,
-            new LunaticJsonRawDataServiceStub(),
-            new RawResponseReprocessPersistenceRouterStub());
+                surveyUnitPersistencePortMock,
+                null,
+                new LunaticJsonRawDataServiceStub(),
+                new RawResponseReprocessPersistenceRouterStub());
     }
 
     @Test

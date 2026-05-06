@@ -89,6 +89,12 @@ public class RawResponseMongoAdapter implements RawResponsePersistencePort {
     }
 
     @Override
+    public long countDistinctInterrogationIdsByCollectionInstrumentId(String collectionInstrumentId) {
+        Long count = repository.countDistinctInterrogationIdsByCollectionInstrumentId(collectionInstrumentId);
+        return count != null ? count : 0;
+    }
+
+    @Override
     public Set<String> findDistinctCollectionInstrumentIds() {
         return new HashSet<>(repository.findDistinctCollectionInstrumentId());
     }
