@@ -18,6 +18,7 @@ import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.exceptions.NoDataException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.modelefiliere.ModeDto;
 import fr.insee.modelefiliere.RawResponseDto;
@@ -40,8 +41,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+import static fr.insee.genesis.TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID;
 import static fr.insee.genesis.TestConstants.DEFAULT_INTERROGATION_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -693,18 +696,39 @@ class RawResponseServiceUnitTest {
     }
 
     @Test
-    @DisplayName("getRawResponsesByInterrogationID must call persistence port")
-    void getRawResponsesByInterrogationID_shouldDelegateToPersistencePort() {
+    @DisplayName("getRawResponseByCollectionInstrumentIdAndInterrogationId must call persistence port")
+    void getRawResponseByCollectionInstrumentIdAndInterrogationId_shouldDelegateToPersistencePort() throws NoDataException {
         // GIVEN
         String interrogationId = TestConstants.DEFAULT_INTERROGATION_ID;
+        String collectionInstrumentId = DEFAULT_COLLECTION_INSTRUMENT_ID;
         List<RawResponseModel> expected = List.of(mock(RawResponseModel.class));
-        doReturn(expected).when(rawResponsePersistencePort).findRawResponsesByInterrogationID(interrogationId);
+        doReturn(expected).when(rawResponsePersistencePort).findRawResponseByCollectionInstrumentIdAndInterrogationId(collectionInstrumentId, interrogationId);
 
         // WHEN
-        List<RawResponseModel> result = rawResponseService.getRawResponsesByInterrogationID(interrogationId);
+        List<RawResponseModel> result = rawResponseService.getRawResponseByCollectionInstrumentIdAndInterrogationId(collectionInstrumentId, interrogationId);
 
         // THEN
         Assertions.assertThat(result).isEqualTo(expected);
+    }
+
+    @Test
+    @DisplayName("getRawResponseByCollectionInstrumentIdAndInterrogationId must throw NoDataException when no raw response found")
+    void getRawResponseByCollectionInstrumentIdAndInterrogationId_noData_shouldThrowNoDataException() {
+        // GIVEN
+        String interrogationId = TestConstants.DEFAULT_INTERROGATION_ID;
+        String collectionInstrumentId = DEFAULT_COLLECTION_INSTRUMENT_ID;
+
+        doReturn(List.of())
+                .when(rawResponsePersistencePort)
+                .findRawResponseByCollectionInstrumentIdAndInterrogationId(collectionInstrumentId, interrogationId);
+
+        // WHEN + THEN
+        assertThatThrownBy(() ->
+                rawResponseService.getRawResponseByCollectionInstrumentIdAndInterrogationId(
+                        collectionInstrumentId,
+                        interrogationId
+                )
+        ).isInstanceOf(NoDataException.class);
     }
 
     @Test

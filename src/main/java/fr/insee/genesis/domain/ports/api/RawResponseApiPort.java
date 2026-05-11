@@ -6,6 +6,7 @@ import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponseModel;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.exceptions.NoDataException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -15,6 +16,7 @@ import java.util.Set;
 
 public interface RawResponseApiPort {
 
+    List<RawResponseModel> getRawResponseByCollectionInstrumentIdAndInterrogationId(String collectionInstrumentId, String interrogationId) throws NoDataException;
     DataProcessResult processRawResponsesByInterrogationIds(String collectionInstrumentId, List<String> interrogationIdList, List<GenesisError> errors) throws GenesisException;
     DataProcessResult processRawResponsesByInterrogationIds(String collectionInstrumentId) throws GenesisException;
 

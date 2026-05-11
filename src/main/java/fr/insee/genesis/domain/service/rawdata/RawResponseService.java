@@ -25,6 +25,7 @@ import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.exceptions.InvalidMetadataException;
 import fr.insee.genesis.exceptions.UndefinedMetadataException;
+import fr.insee.genesis.exceptions.NoDataException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.modelefiliere.ModeDto;
 import fr.insee.modelefiliere.RawResponseDto;
@@ -72,12 +73,29 @@ public class  RawResponseService implements RawResponseApiPort {
         this.rawResponsePersistencePort = rawResponsePersistencePort;
     }
 
-    List<RawResponseModel> getRawResponsesByInterrogationID(String interrogationId) {
-        return rawResponsePersistencePort.findRawResponsesByInterrogationID(interrogationId);
-    }
-
     List<RawResponseModel> getRawResponses(String collectionInstrumentId, Mode mode, List<String> interrogationIdList) {
         return rawResponsePersistencePort.findRawResponses(collectionInstrumentId,mode,interrogationIdList);
+    }
+
+    @Override
+    public List<RawResponseModel> getRawResponseByCollectionInstrumentIdAndInterrogationId(
+            String collectionInstrumentId,
+            String interrogationId
+    ) throws NoDataException {
+        List<RawResponseModel> rawResponses = rawResponsePersistencePort
+                .findRawResponseByCollectionInstrumentIdAndInterrogationId(
+                        collectionInstrumentId,
+                        interrogationId
+                );
+
+        if (rawResponses.isEmpty()) {
+            throw new NoDataException(
+                    "No raw responses found for collectionInstrumentId=%s and interrogationId=%s"
+                            .formatted(collectionInstrumentId, interrogationId)
+            );
+        }
+
+        return rawResponses;
     }
 
     @Override
@@ -90,7 +108,6 @@ public class  RawResponseService implements RawResponseApiPort {
     @Override
     public DataProcessResult processRawResponsesByInterrogationIds(
             String collectionInstrumentId, List<String> interrogationIdList, List<GenesisError> errors) {
-
         DataProcessingContextModel dataProcessingContext =
                 dataProcessingContextService.getContextByCollectionInstrumentId(collectionInstrumentId);
         List<Mode> modesList = controllerUtils.getModesList(collectionInstrumentId);
