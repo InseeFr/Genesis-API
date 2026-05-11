@@ -243,7 +243,7 @@ public class RawResponseController {
 
     @Operation(summary = "Check existence of an interrogation")
     @RequestMapping(value = "/responses/raw/lunatic-json/{interrogationId}", method = RequestMethod.HEAD)
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'COLLECT_PLATFORM')")
     public ResponseEntity<Void> existsLunaticJsonByInterrogationId(@PathVariable String interrogationId) {
         if (lunaticJsonRawDataApiPort.existsByInterrogationId(interrogationId)) {
             return ResponseEntity.ok().build();
@@ -285,7 +285,7 @@ public class RawResponseController {
 
     @Operation(summary = "Check existence of an interrogation")
     @RequestMapping(value = "/raw-responses/{interrogationId}", method = RequestMethod.HEAD)
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'COLLECT_PLATFORM')")
     public ResponseEntity<Void> exists(@PathVariable String interrogationId) {
         if (rawResponseApiPort.existsByInterrogationId(interrogationId)) {
             return ResponseEntity.ok().build();
