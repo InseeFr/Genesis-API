@@ -1,7 +1,9 @@
 package fr.insee.genesis.controller.rest;
 
 import fr.insee.genesis.controller.dto.rawdata.CombinedRawDataDto;
+import fr.insee.genesis.controller.dto.rawdata.RawDataIdentifiersDto;
 import fr.insee.genesis.domain.service.rawdata.CombinedRawDataService;
+import fr.insee.genesis.exceptions.NoDataException;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -36,5 +39,14 @@ public class CombinedRawDataController {
 
         return ResponseEntity.ok(data);
     }
-
+    @Operation(summary = "Get raw data identifiers by collection instrument ID")
+    @GetMapping("/collection-instruments/{collectionInstrumentId}/ids")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<RawDataIdentifiersDto> getRawDataIdentifiers(
+            @PathVariable String collectionInstrumentId
+    ) throws NoDataException {
+        return ResponseEntity.ok(
+                combinedRawDataService.getRawDataIdentifiersByCollectionInstrumentId(collectionInstrumentId)
+        );
+    }
     }

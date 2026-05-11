@@ -23,6 +23,7 @@ import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityToolService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.exceptions.NoDataException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -352,6 +353,19 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     @Override
     public Page<LunaticJsonRawDataModel> findRawDataByQuestionnaireId(String questionnaireId, Pageable pageable) {
         return lunaticJsonRawDataPersistencePort.findRawDataByQuestionnaireId(questionnaireId, pageable);
+    }
+
+    @Override
+    public List<LunaticJsonRawDataModel> getLunaticJsonDataByQuestionnaireIdAndInterrogationId(String questionnaireId, String interrogationId) throws NoDataException {
+
+        List<LunaticJsonRawDataModel> lunaticJsonRawDataModels = lunaticJsonRawDataPersistencePort.findLunaticJsonDataByQuestionnaireIdAndInterrogationId(questionnaireId, interrogationId);
+        if(lunaticJsonRawDataModels.isEmpty()){
+            throw new NoDataException(
+                    "No lunatic JSON data found for questionnaireId=%s and interrogationId=%s"
+                            .formatted(questionnaireId, interrogationId)
+            );      
+        }
+        return lunaticJsonRawDataModels;
     }
 
     @Override
