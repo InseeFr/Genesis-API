@@ -11,6 +11,8 @@ public class LunaticXmlSurveyUnit {
 
     private String id;
     private String questionnaireModelId;
+    @Deprecated(since = "2026-05-11")
     private LocalDateTime fileDate;
+    private LocalDateTime rawRecordDate;
     private LunaticXmlData data;
 }

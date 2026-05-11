@@ -80,6 +80,7 @@ public class DataVerifier {
                 .mode(sampleSurveyUnitModel.getMode())
                 .recordDate(Instant.now().plusSeconds(1)) // Add 1 second to avoid same recordDate as COLLECTED
                 .fileDate(sampleSurveyUnitModel.getFileDate())
+                .rawRecordDate(sampleSurveyUnitModel.getRawRecordDate())
                 .collectedVariables(new ArrayList<>())
                 .externalVariables(new ArrayList<>())
                 .build();

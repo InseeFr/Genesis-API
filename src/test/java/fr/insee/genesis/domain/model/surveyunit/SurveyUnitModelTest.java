@@ -56,6 +56,7 @@ class SurveyUnitModelTest {
             assertThat(model.getValidationDate()).isNull();
             assertThat(model.getRecordDate()).isNull();
             assertThat(model.getFileDate()).isNull();
+            assertThat(model.getRawRecordDate()).isNull();
             assertThat(model.getCollectedVariables()).isNull();
             assertThat(model.getExternalVariables()).isNull();
             assertThat(model.getModifiedBy()).isNull();
@@ -94,6 +95,7 @@ class SurveyUnitModelTest {
                     now,
                     now.toInstant(ZoneOffset.UTC),
                     now,
+                    now,
                     collected,
                     external,
                     MODIFIED_BY
@@ -111,6 +113,7 @@ class SurveyUnitModelTest {
             assertThat(model.getValidationDate()).isEqualTo(now);
             assertThat(model.getRecordDate()).isEqualTo(now.toInstant(ZoneOffset.UTC));
             assertThat(model.getFileDate()).isEqualTo(now);
+            assertThat(model.getRawRecordDate()).isEqualTo(now);
             assertThat(model.getCollectedVariables()).isEqualTo(collected);
             assertThat(model.getExternalVariables()).isEqualTo(external);
             assertThat(model.getModifiedBy()).isEqualTo(MODIFIED_BY);
@@ -144,6 +147,7 @@ class SurveyUnitModelTest {
                     .validationDate(now)
                     .recordDate(now.toInstant(ZoneOffset.UTC))
                     .fileDate(now)
+                    .rawRecordDate(now)
                     .collectedVariables(collected)
                     .externalVariables(external)
                     .modifiedBy(MODIFIED_BY)
@@ -161,6 +165,7 @@ class SurveyUnitModelTest {
             assertThat(model.getValidationDate()).isEqualTo(now);
             assertThat(model.getRecordDate()).isEqualTo(now.toInstant(ZoneOffset.UTC));
             assertThat(model.getFileDate()).isEqualTo(now);
+            assertThat(model.getRawRecordDate()).isEqualTo(now);
             assertThat(model.getCollectedVariables()).isEqualTo(collected);
             assertThat(model.getExternalVariables()).isEqualTo(external);
             assertThat(model.getModifiedBy()).isEqualTo(MODIFIED_BY);

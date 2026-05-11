@@ -37,8 +37,11 @@ public class SurveyUnitModel {
 	private RawResponseDto.QuestionnaireStateEnum questionnaireState;
 	private LocalDateTime validationDate;
 	private Instant recordDate;
+    @Deprecated(since = "2026-05-11")
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'hh:mm")
 	private LocalDateTime fileDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'hh:mm")
+    private LocalDateTime rawRecordDate;
 
 	private List<VariableModel> collectedVariables;
 	private List<VariableModel> externalVariables;

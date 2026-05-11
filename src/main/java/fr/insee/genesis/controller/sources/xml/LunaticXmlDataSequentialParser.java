@@ -24,12 +24,12 @@ import java.util.List;
  * It iterates through the file instead of storing the entire file into memory
  */
 public class LunaticXmlDataSequentialParser{
-    private final LocalDateTime fileDate;
+    private final LocalDateTime rawRecordDate;
     private final XMLEventReader reader;
 
 
      public LunaticXmlDataSequentialParser(final Path filePath, final InputStream stream) throws IOException, XMLStreamException {
-         this.fileDate = getFileDate(filePath);
+         this.rawRecordDate = getFileDate(filePath);
 
          XMLInputFactory factory = XMLInputFactory.newInstance();
          factory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
@@ -90,7 +90,8 @@ public class LunaticXmlDataSequentialParser{
      */
     private LunaticXmlSurveyUnit parseSurveyUnit(final XMLEventReader reader) throws XMLStreamException {
         LunaticXmlSurveyUnit xmlSurveyUnit = new LunaticXmlSurveyUnit();
-        xmlSurveyUnit.setFileDate(this.fileDate);
+        xmlSurveyUnit.setFileDate(this.rawRecordDate);
+        xmlSurveyUnit.setRawRecordDate(this.rawRecordDate);
 
         LunaticXmlData data = new LunaticXmlData();
 
