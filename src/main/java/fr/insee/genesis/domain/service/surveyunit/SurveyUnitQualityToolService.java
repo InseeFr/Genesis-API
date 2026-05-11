@@ -63,7 +63,7 @@ public class SurveyUnitQualityToolService {
 
         surveyUnitModels.forEach(model ->
                 processedInterrogationIdsPerQuestionnaire
-                        .computeIfAbsent(model.getCollectionInstrumentId(), key -> new HashSet<>())
+                        .computeIfAbsent(model.getCollectionInstrumentId(), _ -> new HashSet<>())
                         .add(model.getInterrogationId())
         );
 

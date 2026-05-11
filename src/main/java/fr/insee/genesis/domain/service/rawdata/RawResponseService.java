@@ -3,6 +3,7 @@ package fr.insee.genesis.domain.service.rawdata;
 import fr.insee.bpm.metadata.model.MetadataModel;
 import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.configuration.Config;
+import fr.insee.genesis.controller.dto.rawdata.ProcessingResultDto;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.converter.rawdata.RawResponseConverter;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
@@ -16,7 +17,6 @@ import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityToolService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
-import fr.insee.genesis.controller.dto.rawdata.ProcessingResultDto;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
@@ -33,6 +33,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -97,21 +98,18 @@ public class RawResponseService implements RawResponseApiPort {
 
         for (Mode mode : modes) {
             VariablesMap variablesMap = getVariablesMap(collectionInstrumentId, mode, errors);
-            List<String> remainingInterrogationIds = new ArrayList<>(interrogationIdList);
-            int totalBatches = Math.ceilDiv(remainingInterrogationIds.size(), batchSize);
-            int batchNumber = 1;
+            for (int fromIndex = 0; fromIndex < interrogationIdList.size(); fromIndex += batchSize) {
+                int toIndex = Math.min(fromIndex + batchSize, interrogationIdList.size());
+                List<String> batch = interrogationIdList.subList(fromIndex, toIndex);
 
-            while (!remainingInterrogationIds.isEmpty()) {
                 log.info(
-                        "Processing raw data batch {}/{} for collectionInstrumentId={} mode={}",
-                        batchNumber,
-                        totalBatches,
+                        "Processing raw data batch [{}-{}] / {} for collectionInstrumentId={} mode={}",
+                        fromIndex + 1,
+                        toIndex,
+                        interrogationIdList.size(),
                         collectionInstrumentId,
                         mode
                 );
-
-                int maxIndex = Math.min(remainingInterrogationIds.size(), batchSize);
-                List<String> batch = remainingInterrogationIds.subList(0, maxIndex);
 
                 ProcessingResultDto result = processRawResponsesForMode(
                         collectionInstrumentId,
@@ -123,10 +121,6 @@ public class RawResponseService implements RawResponseApiPort {
 
                 dataCount += result.dataCount();
                 formattedDataCount += result.formattedDataCount();
-
-                remainingInterrogationIds =
-                        remainingInterrogationIds.subList(maxIndex, remainingInterrogationIds.size());
-                batchNumber++;
             }
         }
 
@@ -193,41 +187,25 @@ public class RawResponseService implements RawResponseApiPort {
 
     @Override
     public List<String> getUnprocessedCollectionInstrumentIds() {
-        List<String> unprocessedCollectionInstrumentIds = rawResponsePersistencePort.getUnprocessedCollectionIds();
-        List<String> unprocessedCollectionInstrumentIdsWithSpecs = new ArrayList<>();
+        return rawResponsePersistencePort.getUnprocessedCollectionIds().stream()
+                .filter(this::hasModesWithAllSpecs)
+                .toList();
+    }
 
-        for (String unprocessedCollectionInstrumentId : unprocessedCollectionInstrumentIds) {
-            Set<ModeDto> modes = new HashSet<>(
-                    rawResponsePersistencePort.findModesByCollectionInstrument(unprocessedCollectionInstrumentId)
-            );
+    private boolean hasModesWithAllSpecs(String collectionInstrumentId) {
+        Set<ModeDto> modes = new HashSet<>(
+                rawResponsePersistencePort.findModesByCollectionInstrument(collectionInstrumentId)
+        );
 
-            if (modes.isEmpty()) {
-                continue;
-            }
+        return hasAtLeastOneValidMode(modes)
+                && modes.stream()
+                .filter(Objects::nonNull)
+                .map(modeDto -> Mode.getEnumFromJsonName(modeDto.toString()))
+                .allMatch(mode -> isSpecsPresentForCollectionInstrumentAndMode(collectionInstrumentId, mode));
+    }
 
-            boolean areAllSpecsOK = true;
-
-            if (modes.contains(null) && modes.size() == 1) {
-                areAllSpecsOK = false;
-            }
-
-            for (ModeDto modeDto : modes) {
-                if (modeDto == null) {
-                    continue;
-                }
-
-                Mode mode = Mode.getEnumFromJsonName(modeDto.toString());
-                if (!isSpecsPresentForCollectionInstrumentAndMode(unprocessedCollectionInstrumentId, mode)) {
-                    areAllSpecsOK = false;
-                }
-            }
-
-            if (areAllSpecsOK) {
-                unprocessedCollectionInstrumentIdsWithSpecs .add(unprocessedCollectionInstrumentId);
-            }
-        }
-
-        return unprocessedCollectionInstrumentIdsWithSpecs ;
+    private static boolean hasAtLeastOneValidMode(Set<ModeDto> modes) {
+        return modes.stream().anyMatch(Objects::nonNull);
     }
 
     private boolean isSpecsPresentForCollectionInstrumentAndMode(String unprocessedCollectionInstrumentId, Mode mode) {
@@ -256,10 +234,9 @@ public class RawResponseService implements RawResponseApiPort {
 
     @Override
     public void updateProcessDates(List<SurveyUnitModel> surveyUnitModels) {
-        Set<String> collectionInstrumentIds = new HashSet<>();
-        for (SurveyUnitModel surveyUnitModel : surveyUnitModels) {
-            collectionInstrumentIds.add(surveyUnitModel.getCollectionInstrumentId());
-        }
+        Set<String> collectionInstrumentIds = surveyUnitModels.stream()
+                .map(SurveyUnitModel::getCollectionInstrumentId)
+                .collect(Collectors.toSet());
 
         for (String collectionInstrumentId : collectionInstrumentIds) {
             Set<String> interrogationIds = surveyUnitModels.stream()

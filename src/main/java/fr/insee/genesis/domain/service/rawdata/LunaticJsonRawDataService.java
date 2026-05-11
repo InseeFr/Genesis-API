@@ -4,6 +4,7 @@ import fr.insee.bpm.metadata.model.MetadataModel;
 import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.controller.dto.rawdata.LunaticJsonRawDataUnprocessedDto;
+import fr.insee.genesis.controller.dto.rawdata.ProcessingResultDto;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.converter.rawdata.LunaticJsonRawDataConverter;
 import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
@@ -20,7 +21,6 @@ import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityToolService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
-import fr.insee.genesis.controller.dto.rawdata.ProcessingResultDto;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -120,36 +121,30 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
 
         for (Mode mode : modes) {
             VariablesMap variablesMap = getVariablesMap(questionnaireId, mode, errors);
-            List<String> remainingInterrogationIds = new ArrayList<>(interrogationIdList);
-            int totalBatches = Math.ceilDiv(remainingInterrogationIds.size(), batchSize);
-            int batchNumber = 1;
 
-            while (!remainingInterrogationIds.isEmpty()) {
+            for (int fromIndex = 0; fromIndex < interrogationIdList.size(); fromIndex += batchSize) {
+                int toIndex = Math.min(fromIndex + batchSize, interrogationIdList.size());
+                List<String> batch = interrogationIdList.subList(fromIndex, toIndex);
+
                 log.info(
-                        "Processing raw data batch {}/{} for questionnaireId={} mode={}",
-                        batchNumber,
-                        totalBatches,
+                        "Processing raw data batch [{}-{}] / {} for questionnaireId={} mode={}",
+                        fromIndex + 1,
+                        toIndex,
+                        interrogationIdList.size(),
                         questionnaireId,
                         mode
                 );
 
-                int maxIndex = Math.min(remainingInterrogationIds.size(), batchSize);
-                List<String> interrogationIdsToProcess = remainingInterrogationIds.subList(0, maxIndex);
-
                 ProcessingResultDto processingResultDto = processRawDataForMode(
                         questionnaireId,
                         mode,
-                        interrogationIdsToProcess,
+                        batch,
                         variablesMap,
                         shouldUseQualityTool
                 );
 
                 dataCount += processingResultDto.dataCount();
                 formattedDataCount += processingResultDto.formattedDataCount();
-
-                remainingInterrogationIds =
-                        remainingInterrogationIds.subList(maxIndex, remainingInterrogationIds.size());
-                batchNumber++;
             }
         }
 
@@ -232,21 +227,16 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
 
     @Override
     public void updateProcessDates(List<SurveyUnitModel> surveyUnitModels) {
-        Set<String> collectionInstrumentIds = new HashSet<>();
-        for (SurveyUnitModel surveyUnitModel : surveyUnitModels) {
-            if (surveyUnitModel.getCollectionInstrumentId() != null) {
-                collectionInstrumentIds.add(surveyUnitModel.getCollectionInstrumentId());
-            }
-        }
+        Set<String> collectionInstrumentIds = surveyUnitModels.stream()
+                .map(SurveyUnitModel::getCollectionInstrumentId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
 
         for (String collectionInstrumentId : collectionInstrumentIds) {
-            Set<String> interrogationIds = new HashSet<>();
-            for (SurveyUnitModel surveyUnitModel :
-                    surveyUnitModels.stream()
-                            .filter(su -> su.getCollectionInstrumentId().equals(collectionInstrumentId))
-                            .toList()) {
-                interrogationIds.add(surveyUnitModel.getInterrogationId());
-            }
+            Set<String> interrogationIds = surveyUnitModels.stream()
+                    .filter(su -> collectionInstrumentId.equals(su.getCollectionInstrumentId()))
+                    .map(SurveyUnitModel::getInterrogationId)
+                    .collect(Collectors.toSet());
             lunaticJsonRawDataPersistencePort.updateProcessDates(collectionInstrumentId, interrogationIds);
         }
     }

@@ -9,13 +9,13 @@ import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponseModel;
+import fr.insee.genesis.domain.parser.rawdata.RawResponsePayloadParser;
 import fr.insee.genesis.domain.ports.spi.QuestionnaireMetadataPersistencePort;
 import fr.insee.genesis.domain.ports.spi.RawResponsePersistencePort;
 import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityToolService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
-import fr.insee.genesis.domain.parser.rawdata.RawResponsePayloadParser;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.modelefiliere.ModeDto;
@@ -444,7 +444,7 @@ class RawResponseServiceUnitTest {
         @DisplayName("Simple COLLECTED raw response conversion")
         void convertRawResponse_shouldConvertCollectedVariable() {
             // GIVEN
-            RawResponseModel rawResponse = buildRawResponseWithVar("VAR1", "COLLECTED", "value1");
+            RawResponseModel rawResponse = buildRawResponseWithVar("COLLECTED", "value1");
             List<RawResponseModel> rawResponses = List.of(rawResponse);
 
             // WHEN
@@ -461,7 +461,7 @@ class RawResponseServiceUnitTest {
         @DisplayName("Simple EDITED conversion")
         void convertRawResponse_shouldConvertEditedVariable() {
             // GIVEN
-            RawResponseModel rawResponse = buildRawResponseWithVar("VAR1", "EDITED", "editedValue");
+            RawResponseModel rawResponse = buildRawResponseWithVar("EDITED", "editedValue");
             List<RawResponseModel> rawResponses = List.of(rawResponse);
 
             // WHEN
@@ -481,7 +481,7 @@ class RawResponseServiceUnitTest {
         @DisplayName("Must convert external variables in COLLECTED")
         void convertRawResponse_shouldConvertExternalVariables() {
             // GIVEN
-            RawResponseModel rawResponse = buildRawResponseWithCollectedAndExternal("VAR1", "val1", "EXT1", "extVal");
+            RawResponseModel rawResponse = buildRawResponseWithCollectedAndExternal();
             List<RawResponseModel> rawResponses = List.of(rawResponse);
 
             // WHEN
@@ -514,7 +514,7 @@ class RawResponseServiceUnitTest {
         @DisplayName("COLLECTED list management")
         void convertRawResponse_shouldHandleListValues() {
             // GIVEN
-            RawResponseModel rawResponse = buildRawResponseWithListVar("VAR_LIST", "COLLECTED", List.of("v1", "v2", "v3"));
+            RawResponseModel rawResponse = buildRawResponseWithListVar(List.of("v1", "v2", "v3"));
             List<RawResponseModel> rawResponses = List.of(rawResponse);
 
             // WHEN
@@ -536,7 +536,7 @@ class RawResponseServiceUnitTest {
         @DisplayName("Ignore null and empty values")
         void convertRawResponse_shouldSkipNullOrEmptyListValues() {
             // GIVEN
-            RawResponseModel rawResponse = buildRawResponseWithListVar("VAR_LIST", "COLLECTED", List.of("v1", "", "v3"));
+            RawResponseModel rawResponse = buildRawResponseWithListVar(List.of("v1", "", "v3"));
             List<RawResponseModel> rawResponses = List.of(rawResponse);
 
             // WHEN
@@ -552,7 +552,7 @@ class RawResponseServiceUnitTest {
 
         //UTILS
 
-        private RawResponseModel buildRawResponseWithVar(String varName, String stateKey, String value) {
+        private RawResponseModel buildRawResponseWithVar(String stateKey, String value) {
             RawResponseModel model = new RawResponseModel(
                     null,
                     TestConstants.DEFAULT_INTERROGATION_ID,
@@ -566,14 +566,14 @@ class RawResponseServiceUnitTest {
             Map<String, Object> collectedMap = new HashMap<>();
             Map<String, Object> varStates = new HashMap<>();
             varStates.put(stateKey, value);
-            collectedMap.put(varName, varStates);
+            collectedMap.put("VAR1", varStates);
             dataMap.put("COLLECTED", collectedMap);
             dataMap.put("EXTERNAL", new HashMap<>());
             model.payload().put("data", dataMap);
             return model;
         }
 
-        private RawResponseModel buildRawResponseWithListVar(String varName, String stateKey, List<String> values) {
+        private RawResponseModel buildRawResponseWithListVar(List<String> values) {
             RawResponseModel model = new RawResponseModel(
                     null,
                     TestConstants.DEFAULT_INTERROGATION_ID,
@@ -586,17 +586,15 @@ class RawResponseServiceUnitTest {
             Map<String, Object> dataMap = new HashMap<>();
             Map<String, Object> collectedMap = new HashMap<>();
             Map<String, Object> varStates = new HashMap<>();
-            varStates.put(stateKey, values);
-            collectedMap.put(varName, varStates);
+            varStates.put("COLLECTED", values);
+            collectedMap.put("VAR_LIST", varStates);
             dataMap.put("COLLECTED", collectedMap);
             dataMap.put("EXTERNAL", new HashMap<>());
             model.payload().put("data", dataMap);
             return model;
         }
 
-        private RawResponseModel buildRawResponseWithCollectedAndExternal(
-                String collectedVarName, String collectedValue,
-                String externalVarName, String externalValue) {
+        private RawResponseModel buildRawResponseWithCollectedAndExternal() {
             RawResponseModel model = new RawResponseModel(
                     null,
                     TestConstants.DEFAULT_INTERROGATION_ID,
@@ -610,12 +608,12 @@ class RawResponseServiceUnitTest {
 
             Map<String, Object> collectedMap = new HashMap<>();
             Map<String, Object> varStates = new HashMap<>();
-            varStates.put("COLLECTED", collectedValue);
-            collectedMap.put(collectedVarName, varStates);
+            varStates.put("COLLECTED", "val1");
+            collectedMap.put("VAR1", varStates);
             dataMap.put("COLLECTED", collectedMap);
 
             Map<String, Object> externalMap = new HashMap<>();
-            externalMap.put(externalVarName, externalValue);
+            externalMap.put("EXT1", "extVal");
             dataMap.put("EXTERNAL", externalMap);
 
             model.payload().put("data", dataMap);

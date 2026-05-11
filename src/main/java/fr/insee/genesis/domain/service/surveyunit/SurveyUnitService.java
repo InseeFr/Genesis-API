@@ -470,8 +470,8 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         if (surveyUnitModels == null || surveyUnitModels.isEmpty()) {
             throw new QuestionnaireNotFoundException(collectionInstrumentId);
         }
-        List<Mode> sources =  surveyUnitModels.stream().map(SurveyUnitModel::getMode).distinct().toList();
-        return sources;
+        return  surveyUnitModels.stream().map(SurveyUnitModel::getMode).distinct().toList();
+
     }
 
     //========= OPTIMISATIONS PERFS (START) ==========

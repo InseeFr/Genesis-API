@@ -1,14 +1,15 @@
 package fr.insee.genesis.domain.converter.rawdata;
 
+import fr.insee.bpm.metadata.model.Variable;
 import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponseModel;
+import fr.insee.genesis.domain.parser.rawdata.RawResponsePayloadParser;
 import fr.insee.genesis.domain.utils.GroupUtils;
 import fr.insee.genesis.domain.utils.JsonUtils;
-import fr.insee.genesis.domain.parser.rawdata.RawResponsePayloadParser;
 import fr.insee.modelefiliere.RawResponseDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -83,6 +84,7 @@ public class RawResponseConverter {
         } catch (IllegalArgumentException _) {
             log.warn("'{}' is not a valid questionnaire state according to filiere model", questionnaireStateString);
         } catch (NullPointerException _) {
+            //Nothing to do
         }
 
         return SurveyUnitModel.builder()
@@ -102,7 +104,6 @@ public class RawResponseConverter {
                 .build();
     }
 
-    @SuppressWarnings("unchecked")
     private void convertCollectedVariables(
             RawResponseModel rawResponseModel,
             SurveyUnitModel dstSurveyUnitModel,
@@ -110,10 +111,9 @@ public class RawResponseConverter {
             VariablesMap variablesMap
     ) {
         Map<String, Object> dataMap = rawResponseModel.payload();
-        dataMap = (Map<String, Object>) dataMap.get("data");
-        dataMap = (Map<String, Object>) dataMap.get("COLLECTED");
+        dataMap = JsonUtils.asMap(dataMap.get("data"));
+        Map<String, Object> collectedMap  = JsonUtils.asMap(dataMap.get("COLLECTED"));
 
-        Map<String, Object> collectedMap = JsonUtils.asMap(dataMap);
         if (collectedMap == null || collectedMap.isEmpty()) {
             if (dataState == DataState.COLLECTED) {
                 log.warn("No collected data for interrogation {}", rawResponseModel.interrogationId());
@@ -196,24 +196,23 @@ public class RawResponseConverter {
     }
 
     private static String getIdLoop(VariablesMap variablesMap, String variableName) {
-        if (variablesMap.getVariable(variableName) == null) {
+        Variable variable = variablesMap.getVariable(variableName);
+        if (variable == null) {
             log.warn("Variable {} not present in metadata, assigning to {}", variableName, Constants.ROOT_GROUP_NAME);
             return Constants.ROOT_GROUP_NAME;
         }
-        return variablesMap.getVariable(variableName).getGroupName();
+        return variable.getGroupName();
     }
 
-    @SuppressWarnings("unchecked")
     private void convertExternalVariables(
             RawResponseModel rawResponseModel,
             SurveyUnitModel dstSurveyUnitModel,
             VariablesMap variablesMap
     ) {
         Map<String, Object> dataMap = rawResponseModel.payload();
-        dataMap = (Map<String, Object>) dataMap.get("data");
-        dataMap = (Map<String, Object>) dataMap.get("EXTERNAL");
+        dataMap = JsonUtils.asMap(dataMap.get("data"));
+        Map<String, Object> externalMap = JsonUtils.asMap(dataMap.get("EXTERNAL"));
 
-        Map<String, Object> externalMap = JsonUtils.asMap(dataMap);
         if (externalMap != null && !externalMap.isEmpty()) {
             for (Map.Entry<String, Object> externalVariableEntry : externalMap.entrySet()) {
                 Object valueObject = externalVariableEntry.getValue();

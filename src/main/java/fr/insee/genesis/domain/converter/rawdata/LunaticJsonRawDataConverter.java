@@ -1,5 +1,6 @@
 package fr.insee.genesis.domain.converter.rawdata;
 
+import fr.insee.bpm.metadata.model.Variable;
 import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
@@ -7,9 +8,9 @@ import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.RawDataModelType;
+import fr.insee.genesis.domain.parser.rawdata.LunaticJsonRawDataPayloadParser;
 import fr.insee.genesis.domain.utils.GroupUtils;
 import fr.insee.genesis.domain.utils.JsonUtils;
-import fr.insee.genesis.domain.parser.rawdata.LunaticJsonRawDataPayloadParser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -89,7 +90,6 @@ public class LunaticJsonRawDataConverter {
                 : RawDataModelType.LEGACY;
     }
 
-    @SuppressWarnings("unchecked")
     private void convertRawDataCollectedVariables(
             LunaticJsonRawDataModel srcRawData,
             SurveyUnitModel dstSurveyUnitModel,
@@ -99,12 +99,11 @@ public class LunaticJsonRawDataConverter {
     ) {
         Map<String, Object> dataMap = srcRawData.data();
         if (rawDataModelType == RawDataModelType.FILIERE) {
-            dataMap = (Map<String, Object>) dataMap.get("data");
+            dataMap = JsonUtils.asMap(dataMap.get("data"));
         }
 
-        dataMap = (Map<String, Object>) dataMap.get("COLLECTED");
+        Map<String, Object>  collectedMap = JsonUtils.asMap(dataMap.get("COLLECTED"));
 
-        Map<String, Object> collectedMap = JsonUtils.asMap(dataMap);
         if (collectedMap == null || collectedMap.isEmpty()) {
             if (dataState == DataState.COLLECTED) {
                 log.warn("No collected data for interrogation {}", srcRawData.interrogationId());
@@ -126,7 +125,7 @@ public class LunaticJsonRawDataConverter {
         }
     }
 
-    @SuppressWarnings("unchecked")
+
     private static void convertRawDataExternalVariables(
             LunaticJsonRawDataModel srcRawData,
             SurveyUnitModel dstSurveyUnitModel,
@@ -135,11 +134,10 @@ public class LunaticJsonRawDataConverter {
     ) {
         Map<String, Object> dataMap = srcRawData.data();
         if (rawDataModelType == RawDataModelType.FILIERE) {
-            dataMap = (Map<String, Object>) dataMap.get("data");
+            dataMap =  JsonUtils.asMap(dataMap.get("data"));
         }
 
-        dataMap = (Map<String, Object>) dataMap.get("EXTERNAL");
-        Map<String, Object> externalMap = JsonUtils.asMap(dataMap);
+        Map<String, Object> externalMap =  JsonUtils.asMap(dataMap.get("EXTERNAL"));
         if (externalMap != null && !externalMap.isEmpty()) {
             convertToExternalVar(dstSurveyUnitModel, variablesMap, externalMap);
         }
@@ -207,10 +205,11 @@ public class LunaticJsonRawDataConverter {
     }
 
     private static String getIdLoop(VariablesMap variablesMap, String variableName) {
-        if (variablesMap.getVariable(variableName) == null) {
-            log.warn("Variable {} not present in metadatas, assigning to {}", variableName, Constants.ROOT_GROUP_NAME);
+        Variable variable = variablesMap.getVariable(variableName);
+        if (variable == null) {
+            log.warn("Variable {} not present in metadata, assigning to {}", variableName, Constants.ROOT_GROUP_NAME);
             return Constants.ROOT_GROUP_NAME;
         }
-        return variablesMap.getVariable(variableName).getGroupName();
+        return variable.getGroupName();
     }
 }
