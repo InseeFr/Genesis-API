@@ -47,6 +47,10 @@ public class SurveyUnitDocument {
 	@Indexed
 	private String mode;
 	private Instant recordDate;
+    /**
+     * @deprecated use {@link #rawRecordDate} instead.
+     * This field is kept temporarily for backward compatibility and will be removed in a future version.
+     */
     @Deprecated(since = "2026-05-11")
 	private LocalDateTime fileDate;
     private LocalDateTime rawRecordDate;

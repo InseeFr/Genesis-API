@@ -37,6 +37,10 @@ public class SurveyUnitModel {
 	private RawResponseDto.QuestionnaireStateEnum questionnaireState;
 	private LocalDateTime validationDate;
 	private Instant recordDate;
+    /**
+     * @deprecated use {@link #rawRecordDate} instead.
+     * This field is kept temporarily for backward compatibility and will be removed in a future version.
+     */
     @Deprecated(since = "2026-05-11")
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'hh:mm")
 	private LocalDateTime fileDate;
