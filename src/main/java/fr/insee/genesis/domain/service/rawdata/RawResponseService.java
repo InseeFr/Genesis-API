@@ -19,6 +19,7 @@ import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityToolService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.exceptions.NoDataException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.modelefiliere.ModeDto;
 import lombok.RequiredArgsConstructor;
@@ -79,6 +80,26 @@ public class RawResponseService implements RawResponseApiPort {
                 interrogationIds,
                 new ArrayList<>()
         );
+    }
+
+    @Override
+    public List<RawResponseModel> getRawResponseByCollectionInstrumentIdAndInterrogationId(
+            String collectionInstrumentId,
+            String interrogationId
+    ) throws NoDataException {
+        List<RawResponseModel> rawResponses = rawResponsePersistencePort
+                .findRawResponseByCollectionInstrumentIdAndInterrogationId(
+                        collectionInstrumentId,
+                        interrogationId
+                );
+
+        if (rawResponses.isEmpty()) {
+            throw new NoDataException(
+                    "No raw responses found for collectionInstrumentId=%s and interrogationId=%s"
+                            .formatted(collectionInstrumentId, interrogationId)
+            );
+        }
+        return rawResponses;
     }
 
     @Override
