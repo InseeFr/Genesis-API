@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.6.2 [TODO]
+### Changed
+- Renamed `fileDate` to `rawRecordDate` in `response` documents to clarify that it represents the original raw record date.
+
+### Deprecated
+- Deprecated `fileDate` in `response` documents. It is still populated with the same value as `rawRecordDate` for backward compatibility.
+
 ## 2.6.1 [2026-04-29]
 ### Fixed
 - Fixed V1 schedules endpoint returning an empty list when V1 schedules have a null `partitionId`.

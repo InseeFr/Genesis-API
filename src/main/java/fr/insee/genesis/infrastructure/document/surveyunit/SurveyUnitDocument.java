@@ -1,5 +1,6 @@
 package fr.insee.genesis.infrastructure.document.surveyunit;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import fr.insee.genesis.Constants;
 import fr.insee.modelefiliere.RawResponseDto;
@@ -46,7 +47,13 @@ public class SurveyUnitDocument {
 	@Indexed
 	private String mode;
 	private Instant recordDate;
+    /**
+     * @deprecated use {@link #rawRecordDate} instead.
+     * This field is kept temporarily for backward compatibility and will be removed in a future version.
+     */
+    @Deprecated(since = "2026-05-11")
 	private LocalDateTime fileDate;
+    private LocalDateTime rawRecordDate;
 	private List<VariableDocument> collectedVariables;
 	private List<VariableDocument> externalVariables;
 	private String modifiedBy;
