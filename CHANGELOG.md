@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.6.2 [TODO]
+## 2.6.3 [TODO]
 ### Changed
 - Renamed `fileDate` to `rawRecordDate` in `response` documents to clarify that it represents the original raw record date.
 
