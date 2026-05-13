@@ -812,7 +812,7 @@ class LunaticJsonRawDataServiceTest {
         );
         assertThat(result).isEqualTo(lunaticJsonRawDataModelPage);
     }
-
+    
     @Test
     @DisplayName("getLunaticJsonDataByQuestionnaireIdAndInterrogationId must call persistence port")
     void getLunaticJsonDataByQuestionnaireIdAndInterrogationId_shouldDelegateToPersistencePort()
@@ -853,3 +853,4 @@ class LunaticJsonRawDataServiceTest {
         ).isInstanceOf(NoDataException.class);
     }
 }
+
