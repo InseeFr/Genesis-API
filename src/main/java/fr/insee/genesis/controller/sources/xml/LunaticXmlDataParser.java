@@ -68,7 +68,9 @@ public class LunaticXmlDataParser {
             if (surveyUnit.getNodeType() == Node.ELEMENT_NODE) {
                 Element surveyUnitElement = (Element) surveyUnit;
                 LunaticXmlSurveyUnit lunaticXmlSurveyUnit = new LunaticXmlSurveyUnit();
-                lunaticXmlSurveyUnit.setFileDate(getFileDate(filePath));
+                LocalDateTime rawRecordDate = getFileDate(filePath);
+                lunaticXmlSurveyUnit.setRawRecordDate(rawRecordDate);
+                lunaticXmlSurveyUnit.setFileDate(rawRecordDate);
                 lunaticXmlSurveyUnit.setId(surveyUnitElement.getElementsByTagName("Id").item(0).getFirstChild().getNodeValue());
                 lunaticXmlSurveyUnit.setQuestionnaireModelId(surveyUnitElement.getElementsByTagName("QuestionnaireModelId").item(0).getFirstChild().getNodeValue());
                 Node data = surveyUnitElement.getElementsByTagName("Data").item(0);
