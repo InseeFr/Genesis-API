@@ -40,7 +40,6 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-@RequiredArgsConstructor
 public class RawResponseService implements RawResponseApiPort {
 
     private final ControllerUtils controllerUtils;
@@ -55,6 +54,19 @@ public class RawResponseService implements RawResponseApiPort {
     @Qualifier("rawResponseMongoAdapter")
     private final RawResponsePersistencePort rawResponsePersistencePort;
 
+    //Lombok cannot use @Qualifier
+    public RawResponseService(ControllerUtils controllerUtils, QuestionnaireMetadataService metadataService, SurveyUnitService surveyUnitService, SurveyUnitQualityService surveyUnitQualityService, SurveyUnitQualityToolService surveyUnitQualityToolService, FileUtils fileUtils, Config config, RawResponseConverter rawResponseConverter, RawResponsePersistencePort rawResponsePersistencePort) {
+        this.controllerUtils = controllerUtils;
+        this.metadataService = metadataService;
+        this.surveyUnitService = surveyUnitService;
+        this.surveyUnitQualityService = surveyUnitQualityService;
+        this.surveyUnitQualityToolService = surveyUnitQualityToolService;
+        this.fileUtils = fileUtils;
+        this.config = config;
+        this.rawResponseConverter = rawResponseConverter;
+        this.rawResponsePersistencePort = rawResponsePersistencePort;
+    }
+
     @Override
     public List<RawResponseModel> getRawResponses(
             String collectionInstrumentId,
@@ -65,10 +77,6 @@ public class RawResponseService implements RawResponseApiPort {
     }
 
     @Override
-    public List<RawResponseModel> getRawResponsesByInterrogationID(String interrogationId) {
-        return rawResponsePersistencePort.findRawResponsesByInterrogationID(interrogationId);
-    }
-
     public DataProcessResult processRawResponsesByCollectionInstrumentId(String collectionInstrumentId) throws GenesisException {
         List<String> interrogationIds = rawResponsePersistencePort
                 .findUnprocessedInterrogationIdsByCollectionInstrumentId(collectionInstrumentId)
@@ -157,6 +165,7 @@ public class RawResponseService implements RawResponseApiPort {
     ) {
         List<RawResponseModel> rawResponseModels =
                 rawResponsePersistencePort.findRawResponses(collectionInstrumentId, mode, interrogationIds);
+        rawResponseModels.removeIf(rawResponseModel -> rawResponseModel.processDate() != null);
 
         List<SurveyUnitModel> emptySurveyUnitModels = new ArrayList<>();
         List<SurveyUnitModel> surveyUnitModels =
