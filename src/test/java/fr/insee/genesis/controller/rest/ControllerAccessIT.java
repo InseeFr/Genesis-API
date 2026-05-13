@@ -5,6 +5,7 @@ import fr.insee.genesis.domain.ports.api.DataProcessingContextApiPort;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.RawResponseApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
+import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityToolService;
 import fr.insee.genesis.infrastructure.repository.RawResponseInputRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -51,7 +52,8 @@ class ControllerAccessIT extends IntegrationTestAbstract {
     private RawResponseApiPort rawResponseApiPort;
     @MockitoBean
     private RawResponseInputRepository rawRepository;
-
+    @MockitoBean
+    private SurveyUnitQualityToolService surveyUnitQualityToolService;
     /**
      * Provides a stream of URIs that are allowed for reader.
      */

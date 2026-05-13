@@ -137,7 +137,7 @@ public class RawResponseController {
             @PathVariable("collectionInstrumentId") String collectionInstrumentId
     ) throws GenesisException{
         log.info("Try to process raw responses for collectionInstrumentId {}", collectionInstrumentId);
-        DataProcessResult result = rawResponseApiPort.processRawResponsesByInterrogationIds(collectionInstrumentId);
+        DataProcessResult result = rawResponseApiPort.processRawResponsesByCollectionInstrumentId(collectionInstrumentId);
         return ResponseEntity.ok(result.message(collectionInstrumentId));
     }
 

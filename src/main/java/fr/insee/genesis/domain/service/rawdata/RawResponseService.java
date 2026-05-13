@@ -2,79 +2,92 @@ package fr.insee.genesis.domain.service.rawdata;
 
 import fr.insee.bpm.metadata.model.MetadataModel;
 import fr.insee.bpm.metadata.model.VariablesMap;
-import fr.insee.genesis.Constants;
 import fr.insee.genesis.configuration.Config;
+import fr.insee.genesis.controller.dto.rawdata.ProcessingResultDto;
 import fr.insee.genesis.controller.utils.ControllerUtils;
-import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
+import fr.insee.genesis.domain.converter.rawdata.RawResponseConverter;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
-import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponseModel;
 import fr.insee.genesis.domain.ports.api.RawResponseApiPort;
 import fr.insee.genesis.domain.ports.spi.RawResponsePersistencePort;
-import fr.insee.genesis.domain.ports.spi.SurveyUnitQualityToolPort;
-import fr.insee.genesis.domain.service.context.DataProcessingContextService;
 import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
+import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityToolService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
-import fr.insee.genesis.domain.utils.GroupUtils;
-import fr.insee.genesis.domain.utils.JsonUtils;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
-import fr.insee.genesis.exceptions.InvalidMetadataException;
-import fr.insee.genesis.exceptions.UndefinedMetadataException;
 import fr.insee.genesis.exceptions.NoDataException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.modelefiliere.ModeDto;
-import fr.insee.modelefiliere.RawResponseDto;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
-
-import static fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService.getValueString;
 
 @Service
 @Slf4j
-public class  RawResponseService implements RawResponseApiPort {
+public class RawResponseService implements RawResponseApiPort {
 
     private final ControllerUtils controllerUtils;
     private final QuestionnaireMetadataService metadataService;
     private final SurveyUnitService surveyUnitService;
     private final SurveyUnitQualityService surveyUnitQualityService;
-    private final SurveyUnitQualityToolPort surveyUnitQualityToolPort;
-    private final DataProcessingContextService dataProcessingContextService;
+    private final SurveyUnitQualityToolService surveyUnitQualityToolService;
     private final FileUtils fileUtils;
     private final Config config;
+    private final RawResponseConverter rawResponseConverter;
 
     @Qualifier("rawResponseMongoAdapter")
     private final RawResponsePersistencePort rawResponsePersistencePort;
 
-    public RawResponseService(ControllerUtils controllerUtils, QuestionnaireMetadataService metadataService, SurveyUnitService surveyUnitService, SurveyUnitQualityService surveyUnitQualityService, SurveyUnitQualityToolPort surveyUnitQualityToolPort, DataProcessingContextService dataProcessingContextService, FileUtils fileUtils, Config config, RawResponsePersistencePort rawResponsePersistencePort) {
+    //Lombok cannot use @Qualifier
+    public RawResponseService(ControllerUtils controllerUtils, QuestionnaireMetadataService metadataService, SurveyUnitService surveyUnitService, SurveyUnitQualityService surveyUnitQualityService, SurveyUnitQualityToolService surveyUnitQualityToolService, FileUtils fileUtils, Config config, RawResponseConverter rawResponseConverter, RawResponsePersistencePort rawResponsePersistencePort) {
         this.controllerUtils = controllerUtils;
         this.metadataService = metadataService;
         this.surveyUnitService = surveyUnitService;
         this.surveyUnitQualityService = surveyUnitQualityService;
-        this.surveyUnitQualityToolPort = surveyUnitQualityToolPort;
-        this.dataProcessingContextService = dataProcessingContextService;
+        this.surveyUnitQualityToolService = surveyUnitQualityToolService;
         this.fileUtils = fileUtils;
         this.config = config;
+        this.rawResponseConverter = rawResponseConverter;
         this.rawResponsePersistencePort = rawResponsePersistencePort;
     }
 
-    List<RawResponseModel> getRawResponses(String collectionInstrumentId, Mode mode, List<String> interrogationIdList) {
-        return rawResponsePersistencePort.findRawResponses(collectionInstrumentId,mode,interrogationIdList);
+    @Override
+    public List<RawResponseModel> getRawResponses(
+            String collectionInstrumentId,
+            Mode mode,
+            List<String> interrogationIdList
+    ) {
+        return rawResponsePersistencePort.findRawResponses(collectionInstrumentId, mode, interrogationIdList);
+    }
+
+    @Override
+    public DataProcessResult processRawResponsesByCollectionInstrumentId(String collectionInstrumentId) throws GenesisException {
+        List<String> interrogationIds = rawResponsePersistencePort
+                .findUnprocessedInterrogationIdsByCollectionInstrumentId(collectionInstrumentId)
+                .stream()
+                .toList();
+
+        return processRawResponsesByInterrogationIds(
+                collectionInstrumentId,
+                interrogationIds,
+                new ArrayList<>()
+        );
     }
 
     @Override
@@ -94,201 +107,141 @@ public class  RawResponseService implements RawResponseApiPort {
                             .formatted(collectionInstrumentId, interrogationId)
             );
         }
-
         return rawResponses;
     }
 
     @Override
-    public DataProcessResult processRawResponsesByInterrogationIds(String collectionInstrumentId) {
-        List<String> interrogationIds = rawResponsePersistencePort
-                .findUnprocessedInterrogationIdsByCollectionInstrumentId(collectionInstrumentId).stream().toList();
-        return processRawResponsesByInterrogationIds(collectionInstrumentId, interrogationIds, new ArrayList<>());
-    }
-
-    @Override
     public DataProcessResult processRawResponsesByInterrogationIds(
-            String collectionInstrumentId, List<String> interrogationIdList, List<GenesisError> errors) {
-        DataProcessingContextModel dataProcessingContext =
-                dataProcessingContextService.getContextByCollectionInstrumentId(collectionInstrumentId);
-        List<Mode> modesList = controllerUtils.getModesList(collectionInstrumentId);
+            String collectionInstrumentId,
+            List<String> interrogationIdList,
+            List<GenesisError> errors
+    ) throws GenesisException {
 
+        List<Mode> modes = controllerUtils.getModesList(collectionInstrumentId, null);
+        boolean shouldUseQualityTool =
+                surveyUnitQualityToolService.resolveWithReviewValue(collectionInstrumentId);
+
+        int batchSize = config.getRawDataProcessingBatchSize();
         int dataCount = 0;
         int formattedDataCount = 0;
-        int batchSize = config.getRawDataProcessingBatchSize();
-        int totalBatches = Math.ceilDiv(interrogationIdList.size(), batchSize);
-        boolean shouldUseQualityTool = resolveWithReviewValue(dataProcessingContext, collectionInstrumentId);
 
-        for (Mode mode : modesList) {
-            VariablesMap variablesMap = loadAndSaveMetadata(collectionInstrumentId, mode, errors);
+        for (Mode mode : modes) {
+            VariablesMap variablesMap = getVariablesMap(collectionInstrumentId, mode, errors);
+            for (int fromIndex = 0; fromIndex < interrogationIdList.size(); fromIndex += batchSize) {
+                int toIndex = Math.min(fromIndex + batchSize, interrogationIdList.size());
+                List<String> batch = interrogationIdList.subList(fromIndex, toIndex);
 
-            List<String> interrogationIdListForMode = new ArrayList<>(interrogationIdList);
-            int batchNumber = 1;
+                log.info(
+                        "Processing raw data batch [{}-{}] / {} for collectionInstrumentId={} mode={}",
+                        fromIndex + 1,
+                        toIndex,
+                        interrogationIdList.size(),
+                        collectionInstrumentId,
+                        mode
+                );
 
-            while(! interrogationIdListForMode.isEmpty()) {
-                log.info("Processing raw data batch {}/{}", batchNumber, totalBatches);
+                ProcessingResultDto result = processRawResponsesForMode(
+                        collectionInstrumentId,
+                        mode,
+                        batch,
+                        variablesMap,
+                        shouldUseQualityTool
+                );
 
-                int maxIndex = Math.min(interrogationIdListForMode.size(), batchSize);
-                List<String> interrogationIdToProcess = interrogationIdListForMode.subList(0, maxIndex);
-
-                List<RawResponseModel> rawResponseModels = getRawResponses(collectionInstrumentId, mode, interrogationIdToProcess);
-                rawResponseModels.removeIf(rawResponseModel -> rawResponseModel.processDate() != null);
-                // (Don't process raw responses that have already been processed.)
-
-                List<SurveyUnitModel> surveyUnitModels = convertRawResponse(rawResponseModels, variablesMap);
-
-                surveyUnitQualityService.verifySurveyUnits(surveyUnitModels, variablesMap);
-                surveyUnitService.saveSurveyUnits(surveyUnitModels);
-                updateProcessDates(surveyUnitModels);
-
-                dataCount += surveyUnitModels.size();
-                formattedDataCount += (int) surveyUnitModels.stream()
-                        .filter(surveyUnitModel -> surveyUnitModel.getState().equals(DataState.FORMATTED))
-                        .count();
-
-                if (shouldUseQualityTool)
-                    sendProcessedIdsToQualityTool(surveyUnitModels);
-
-                interrogationIdListForMode = interrogationIdListForMode.subList(maxIndex, interrogationIdListForMode.size());
-                batchNumber++;
+                dataCount += result.dataCount();
+                formattedDataCount += result.formattedDataCount();
             }
         }
+
         return new DataProcessResult(dataCount, formattedDataCount, errors);
     }
 
-    /**
-     * Returns the value of the 'withReview' property in the context object.
-     * @param dataProcessingContext {@link DataProcessingContextModel}
-     * @param collectionInstrumentId Passed for logging purposes.
-     * @return The 'withReview' value, false if context is null.
-     */
-    private static boolean resolveWithReviewValue(DataProcessingContextModel dataProcessingContext, String collectionInstrumentId) {
-        if (dataProcessingContext == null) {
-            log.warn("Data processing context not found for collection instrument {}. " +
-                    "Ids processed not send to quality tool.", collectionInstrumentId);
-            return false;
+    private ProcessingResultDto processRawResponsesForMode(
+            String collectionInstrumentId,
+            Mode mode,
+            List<String> interrogationIds,
+            VariablesMap variablesMap,
+            boolean shouldUseQualityTool
+    ) {
+        List<RawResponseModel> rawResponseModels =
+                rawResponsePersistencePort.findRawResponses(collectionInstrumentId, mode, interrogationIds);
+        rawResponseModels.removeIf(rawResponseModel -> rawResponseModel.processDate() != null);
+
+        List<SurveyUnitModel> emptySurveyUnitModels = new ArrayList<>();
+        List<SurveyUnitModel> surveyUnitModels =
+                rawResponseConverter.convertRawResponseAndCollectEmptyModels(rawResponseModels, variablesMap, emptySurveyUnitModels);
+
+        surveyUnitQualityService.verifySurveyUnits(surveyUnitModels, variablesMap);
+        surveyUnitService.saveSurveyUnits(surveyUnitModels);
+
+        updateProcessDates(surveyUnitModels);
+
+        if (!emptySurveyUnitModels.isEmpty()) {
+            updateProcessDates(emptySurveyUnitModels);
         }
-        return dataProcessingContext.isWithReview();
+
+        if (shouldUseQualityTool) {
+            surveyUnitQualityToolService.sendProcessedIdsToQualityTool(surveyUnitModels);
+        }
+
+        int formattedDataCount = (int) surveyUnitModels.stream()
+                .filter(surveyUnitModel -> surveyUnitModel.getState() == DataState.FORMATTED)
+                .count();
+
+        return new ProcessingResultDto(surveyUnitModels.size(), formattedDataCount);
     }
 
-    /** Load and save metadata into database, throw exception if none. */
-    private VariablesMap loadAndSaveMetadata(String collectionInstrumentId, Mode mode, List<GenesisError> errors) {
-        VariablesMap variablesMap;
-        try {
-            variablesMap = metadataService.loadAndSaveIfNotExists(
-                    collectionInstrumentId, collectionInstrumentId, mode, fileUtils, errors).getVariables();
-        } catch (GenesisException genesisException) {
-            throw new UndefinedMetadataException(
-                    "Cannot load metadata for collection instrument %s and mode %s.".formatted(collectionInstrumentId, mode),
-                    genesisException);
-        }
+    private VariablesMap getVariablesMap(
+            String collectionInstrumentId,
+            Mode mode,
+            List<GenesisError> errors
+    ) throws GenesisException {
+        VariablesMap variablesMap = metadataService.loadAndSaveIfNotExists(
+                collectionInstrumentId,
+                collectionInstrumentId,
+                mode,
+                fileUtils,
+                errors
+        ).getVariables();
+
         if (variablesMap == null) {
-            throw new InvalidMetadataException(
-                    "Error during metadata parsing for mode %s :%n%s".formatted(mode, errors.getLast().getMessage()));
+            throw new GenesisException(
+                    HttpStatus.BAD_REQUEST,
+                    "Error during metadata parsing for mode %s :%n%s"
+                            .formatted(mode, errors.getLast().getMessage())
+            );
         }
+
         return variablesMap;
     }
 
     @Override
-    public List<SurveyUnitModel> convertRawResponse(List<RawResponseModel> rawResponseModels, VariablesMap variablesMap) {
-        //Convert to genesis model
-        List<SurveyUnitModel> surveyUnitModels = new ArrayList<>();
-        List<SurveyUnitModel> emptySurveyUnitModels = new ArrayList<>();
-        //For each possible data state (we receive COLLECTED or EDITED)
-        for(DataState dataState : List.of(DataState.COLLECTED,DataState.EDITED)){
-            for (RawResponseModel rawResponseModel : rawResponseModels) {
-                //Get optional fields
-                Boolean isCapturedIndirectly = getIsCapturedIndirectly(rawResponseModel);
-                String questionnaireStateString = getStringFieldInPayload(rawResponseModel, "questionnaireState");
-                RawResponseDto.QuestionnaireStateEnum questionnaireStateEnum = null;
-                try{
-                    questionnaireStateEnum = RawResponseDto.QuestionnaireStateEnum.valueOf(questionnaireStateString);
-                } catch (IllegalArgumentException iae){
-                    log.warn("'{}' is not a valid questionnaire state according to filiere model", questionnaireStateString);
-                } catch (NullPointerException ignored){
-                    //WARN already done in getStringFieldInPayload
-                }
-                LocalDateTime validationDate = getValidationDate(rawResponseModel);
-                String usualSurveyUnitId = getStringFieldInPayload(rawResponseModel,"usualSurveyUnitId");
-                String majorModelVersion = getStringFieldInPayload(rawResponseModel, "majorModelVersion");
-
-                SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
-                        .collectionInstrumentId(rawResponseModel.collectionInstrumentId())
-                        .majorModelVersion(majorModelVersion)
-                        .mode(rawResponseModel.mode())
-                        .interrogationId(rawResponseModel.interrogationId())
-                        .usualSurveyUnitId(usualSurveyUnitId)
-                        .questionnaireState(questionnaireStateEnum)
-                        .validationDate(validationDate)
-                        .isCapturedIndirectly(isCapturedIndirectly)
-                        .state(dataState)
-                        .fileDate(rawResponseModel.recordDate())
-                        .rawRecordDate(rawResponseModel.recordDate())
-                        .recordDate(Instant.now())
-                        .collectedVariables(new ArrayList<>())
-                        .externalVariables(new ArrayList<>())
-                        .build();
-
-                //Data collected variables conversion
-                convertRawDataCollectedVariables(rawResponseModel, surveyUnitModel, dataState, variablesMap);
-
-                //External variables conversion into COLLECTED document
-                if(dataState == DataState.COLLECTED){
-                    convertRawDataExternalVariables(rawResponseModel, surveyUnitModel, variablesMap);
-                }
-
-                boolean hasNoVariable = surveyUnitModel.getCollectedVariables().isEmpty()
-                        && surveyUnitModel.getExternalVariables().isEmpty();
-
-                if(hasNoVariable){
-                    if(surveyUnitModel.getState() == DataState.COLLECTED){
-                        log.warn("No collected or external variable for interrogation {}, raw data is ignored.", rawResponseModel.interrogationId());
-                    }
-                    emptySurveyUnitModels.add(surveyUnitModel);
-                    continue;// don't add suModel
-                }
-                surveyUnitModels.add(surveyUnitModel);
-            }
-        }
-        if(!emptySurveyUnitModels.isEmpty()){
-            updateProcessDates(emptySurveyUnitModels);
-        }
-        return surveyUnitModels;
+    public List<String> getUnprocessedCollectionInstrumentIds() {
+        return rawResponsePersistencePort.getUnprocessedCollectionIds().stream()
+                .filter(this::hasModesWithAllSpecs)
+                .toList();
     }
 
-    @Override
-    public List<String> getUnprocessedCollectionInstrumentIds() {
-        List<String> unprocessedCollectionInstrumentIds = rawResponsePersistencePort.getUnprocessedCollectionIds();
-        List<String> unprocessedCollectionInstrumentIdsWithSpecs = new ArrayList<>();
-        for (String unprocessedCollectionInstrumentId : unprocessedCollectionInstrumentIds){
-            Set<ModeDto> modes = new HashSet<>(rawResponsePersistencePort.findModesByCollectionInstrument(unprocessedCollectionInstrumentId));
-            if (modes.isEmpty()){
-                continue;
-            }
+    private boolean hasModesWithAllSpecs(String collectionInstrumentId) {
+        Set<ModeDto> modes = new HashSet<>(
+                rawResponsePersistencePort.findModesByCollectionInstrument(collectionInstrumentId)
+        );
 
-            boolean areAllSpecsOK = true;
-            if(modes.contains(null) && modes.size() == 1){
-                areAllSpecsOK = false;
-            }
-            for(ModeDto modeDto : modes){
-                if(modeDto == null){
-                    continue;
-                }
-                Mode mode = Mode.getEnumFromJsonName(modeDto.toString());
-                if(!isSpecsPresentForCollectionInstrumentAndMode(unprocessedCollectionInstrumentId, mode)){
-                    areAllSpecsOK = false;
-                }
-            }
-            if(areAllSpecsOK){
-                unprocessedCollectionInstrumentIdsWithSpecs.add(unprocessedCollectionInstrumentId);
-            }
-        }
+        return hasAtLeastOneValidMode(modes)
+                && modes.stream()
+                .filter(Objects::nonNull)
+                .map(modeDto -> Mode.getEnumFromJsonName(modeDto.toString()))
+                .allMatch(mode -> isSpecsPresentForCollectionInstrumentAndMode(collectionInstrumentId, mode));
+    }
 
-        return unprocessedCollectionInstrumentIdsWithSpecs;
+    private static boolean hasAtLeastOneValidMode(Set<ModeDto> modes) {
+        return modes.stream().anyMatch(Objects::nonNull);
     }
 
     private boolean isSpecsPresentForCollectionInstrumentAndMode(String unprocessedCollectionInstrumentId, Mode mode) {
         List<GenesisError> genesisErrors = new ArrayList<>();
         MetadataModel metadataModel;
+
         try {
             metadataModel = metadataService.loadAndSaveIfNotExists(
                     unprocessedCollectionInstrumentId,
@@ -298,22 +251,30 @@ public class  RawResponseService implements RawResponseApiPort {
                     genesisErrors
             );
         } catch (GenesisException ge) {
-            log.warn("Genesis exception thrown for collection instrument %s and mode %s, excluding from get collection instrument ids..."
-                    .formatted(unprocessedCollectionInstrumentId, mode));
+            log.warn(
+                    "Genesis exception thrown for collection instrument {} and mode {}, excluding from get collection instrument ids...",
+                    unprocessedCollectionInstrumentId,
+                    mode
+            );
             return false;
         }
+
         return metadataModel != null && genesisErrors.isEmpty();
     }
 
     @Override
     public void updateProcessDates(List<SurveyUnitModel> surveyUnitModels) {
-        surveyUnitModels.stream().map(SurveyUnitModel::getCollectionInstrumentId).distinct().forEach(collectionInstrumentId -> {
+        Set<String> collectionInstrumentIds = surveyUnitModels.stream()
+                .map(SurveyUnitModel::getCollectionInstrumentId)
+                .collect(Collectors.toSet());
+
+        for (String collectionInstrumentId : collectionInstrumentIds) {
             Set<String> interrogationIds = surveyUnitModels.stream()
                     .filter(su -> su.getCollectionInstrumentId().equals(collectionInstrumentId))
                     .map(SurveyUnitModel::getInterrogationId)
                     .collect(Collectors.toSet());
             rawResponsePersistencePort.updateProcessDates(collectionInstrumentId, interrogationIds);
-        });
+        }
     }
 
     @Override
@@ -321,193 +282,14 @@ public class  RawResponseService implements RawResponseApiPort {
         return rawResponsePersistencePort.existsByInterrogationId(interrogationId);
     }
 
-    private Map<String, Set<String>> getProcessedIdsMap(List<SurveyUnitModel> surveyUnitModels) {
-        Map<String, Set<String>> processedInterrogationIdsPerQuestionnaire = new HashMap<>();
-        surveyUnitModels.forEach(model ->
-                processedInterrogationIdsPerQuestionnaire
-                        .computeIfAbsent(model.getCollectionInstrumentId(), k -> new HashSet<>())
-                        .add(model.getInterrogationId())
-        );
-        return processedInterrogationIdsPerQuestionnaire;
-    }
-
-    private void sendProcessedIdsToQualityTool(List<SurveyUnitModel> surveyUnitModels) {
-        try {
-            Map<String, Set<String>> processedIdsMap = getProcessedIdsMap(surveyUnitModels);
-            ResponseEntity<Object> response =
-                    surveyUnitQualityToolPort.sendProcessedIds(processedIdsMap);
-
-            if (response.getStatusCode().is2xxSuccessful()) {
-                log.info("Successfully sent {} ids to quality tool", processedIdsMap.size());
-            }else{
-                log.warn("Survey unit quality tool responded non-2xx code {} and body {}",
-                        response.getStatusCode(), response.getBody());
-            }
-        }catch (IOException e){
-            log.error("Error during Perret call request building : {}", e.toString());
-        }
-    }
-
-    private static Boolean getIsCapturedIndirectly(RawResponseModel rawResponseModel) {
-        try{
-            return rawResponseModel.payload().get("isCapturedIndirectly") == null ? null :
-                    Boolean.parseBoolean(rawResponseModel.payload().get("isCapturedIndirectly").toString());
-        }catch(Exception e){
-            log.warn("Exception when parsing isCapturedIndirectly : {}",e.toString());
-            return Boolean.FALSE;
-        }
-    }
-
-    private static LocalDateTime getValidationDate(RawResponseModel rawResponseModel) {
-        try{
-            return rawResponseModel.payload().get("validationDate") == null ? null :
-                    LocalDateTime.parse(rawResponseModel.payload().get("validationDate").toString(), DateTimeFormatter.ISO_OFFSET_DATE_TIME);
-        }catch(Exception e){
-            log.warn("Exception when parsing validation date : {}",e.toString());
-            return null;
-        }
-    }
-
-    private static String getStringFieldInPayload(RawResponseModel rawResponseModel, String field) {
-        try{
-            return rawResponseModel.payload().get(field).toString();
-        }catch(Exception e){
-            log.warn("Exception when parsing {} : {}",field, e.toString());
-            return null;
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private void convertRawDataCollectedVariables(
-            RawResponseModel rawResponseModel,
-            SurveyUnitModel dstSurveyUnitModel,
-            DataState dataState,
-            VariablesMap variablesMap
-    ) {
-        Map<String, Object> dataMap = rawResponseModel.payload();
-        dataMap = (Map<String, Object>) dataMap.get("data");
-
-        dataMap = (Map<String, Object>)dataMap.get("COLLECTED");
-
-
-        Map<String,Object> collectedMap = JsonUtils.asMap(dataMap);
-        if (collectedMap == null || collectedMap.isEmpty()){
-            if(dataState.equals(DataState.COLLECTED)) {
-                log.warn("No collected data for interrogation {}", rawResponseModel.interrogationId());
-            }
-            return;
-        }
-        convertToCollectedVar(dstSurveyUnitModel, dataState, variablesMap, collectedMap);
-    }
-
-    private static void convertToCollectedVar(
-            SurveyUnitModel dstSurveyUnitModel,
-            DataState dataState,
-            VariablesMap variablesMap,
-            Map<String, Object> collectedMap
-    ) {
-        final String stateKey = dataState.toString();
-        final var collectedVariables = dstSurveyUnitModel.getCollectedVariables();
-
-        for (Map.Entry<String, Object> collectedVariable : collectedMap.entrySet()) {
-            processCollectedVariable(collectedVariable, stateKey, variablesMap, dstSurveyUnitModel, collectedVariables);
-        }
-    }
-
-
-    static void processCollectedVariable(
-            Map.Entry<String, Object> entry,
-            String stateKey,
-            VariablesMap variablesMap,
-            SurveyUnitModel dstSurveyUnitModel,
-            List<VariableModel> variableModelList
-    ) {
-        if (Constants.PAIRWISES.equals(entry.getKey())) {
-            handlePairwiseCollectedVariable(entry, DataState.valueOf(stateKey), variablesMap, dstSurveyUnitModel);
-            return;
-        }
-
-        Map<String, Object> states = JsonUtils.asMap(entry.getValue());
-        if (states == null) return;
-
-        Object value = states.get(stateKey);
-        if (value == null) return;
-
-        if (value instanceof List<?> list) {
-            convertListVar(list, entry, variablesMap, variableModelList);
-        } else {
-            convertOneVar(entry, getValueString(value), variablesMap, 1, variableModelList);
-        }
-    }
-
-
-    private static void convertListVar(Object valuesForState, Map.Entry<String, Object> collectedVariable, VariablesMap variablesMap, List<VariableModel> dstSurveyUnitModel) {
-        List<String> values = JsonUtils.asStringList(valuesForState);
-        if (!values.isEmpty()) {
-            int iteration = 1;
-            for (String value : values) {
-                if (value != null && !value.isEmpty()) {
-                    convertOneVar(collectedVariable, value, variablesMap, iteration, dstSurveyUnitModel);
-                }
-                iteration++;
-            }
-        }
-    }
-
-    private static void convertOneVar(Map.Entry<String, Object> externalVariableEntry, String valueObject, VariablesMap variablesMap, int iteration, List<VariableModel> dstSurveyUnitModel) {
-        VariableModel externalVariableModel = VariableModel.builder()
-                .varId(externalVariableEntry.getKey())
-                .value(valueObject)
-                .scope(getIdLoop(variablesMap, externalVariableEntry.getKey()))
-                .iteration(iteration)
-                .parentId(GroupUtils.getParentGroupName(externalVariableEntry.getKey(), variablesMap))
-                .build();
-        dstSurveyUnitModel.add(externalVariableModel);
-    }
-
-    private static String getIdLoop(VariablesMap variablesMap, String variableName) {
-        if (variablesMap.getVariable(variableName) == null) {
-            log.warn("Variable {} not present in metadata, assigning to {}", variableName, Constants.ROOT_GROUP_NAME);
-            return Constants.ROOT_GROUP_NAME;
-        }
-        return variablesMap.getVariable(variableName).getGroupName();
-    }
-
-    @SuppressWarnings("unchecked")
-    private static void convertRawDataExternalVariables(
-            RawResponseModel rawResponseModel,
-            SurveyUnitModel dstSurveyUnitModel,
-            VariablesMap variablesMap
-    ) {
-        Map<String, Object> dataMap = rawResponseModel.payload();
-        dataMap = (Map<String, Object>) dataMap.get("data");
-
-
-        dataMap = (Map<String, Object>)dataMap.get("EXTERNAL");
-        Map<String,Object> externalMap = JsonUtils.asMap(dataMap);
-        if (externalMap != null && !externalMap.isEmpty()){
-            convertToExternalVar(dstSurveyUnitModel, variablesMap, externalMap);
-        }
-    }
-
-    private static void convertToExternalVar(SurveyUnitModel dstSurveyUnitModel, VariablesMap variablesMap, Map<String, Object> externalMap) {
-        for(Map.Entry<String, Object> externalVariableEntry : externalMap.entrySet()){
-            Object valueObject = externalVariableEntry.getValue();
-            if (valueObject instanceof List<?>){
-                //Array of values
-                convertListVar(valueObject, externalVariableEntry, variablesMap, dstSurveyUnitModel.getExternalVariables());
-                continue;
-            }
-            //Value
-            if (valueObject != null) {
-                convertOneVar(externalVariableEntry, valueObject.toString(), variablesMap, 1, dstSurveyUnitModel.getExternalVariables());
-            }
-        }
-    }
-
     @Override
-    public Page<RawResponseModel> findRawResponseDataByCampaignIdAndDate(String campaignId, Instant startDate, Instant endDate, Pageable pageable) {
-        return rawResponsePersistencePort.findByCampaignIdAndDate(campaignId,startDate, endDate,pageable);
+    public Page<RawResponseModel> findRawResponseDataByCampaignIdAndDate(
+            String campaignId,
+            Instant startDate,
+            Instant endDate,
+            Pageable pageable
+    ) {
+        return rawResponsePersistencePort.findByCampaignIdAndDate(campaignId, startDate, endDate, pageable);
     }
 
     @Override
@@ -526,77 +308,11 @@ public class  RawResponseService implements RawResponseApiPort {
     }
 
     @Override
-    public Page<RawResponseModel> findRawResponseDataByCollectionInstrumentId(String collectionInstrumentId, Pageable pageable) {
+    public Page<RawResponseModel> findRawResponseDataByCollectionInstrumentId(
+            String collectionInstrumentId,
+            Pageable pageable
+    ) {
         return rawResponsePersistencePort.findByCollectionInstrumentId(collectionInstrumentId, pageable);
-    }
-
-
-
-    @SuppressWarnings("unchecked")
-    static void handlePairwiseCollectedVariable(
-            Map.Entry<String, Object> collectedVariable,
-            DataState dataState,
-            VariablesMap variablesMap,
-            SurveyUnitModel dstSurveyUnitModel
-    ) {
-        Object value = getValueForState(collectedVariable, dataState.toString());
-
-        if (isInvalidPairwiseVariable(value, variablesMap)) {
-            return;
-        }
-
-        List<?> individuals = (List<?>) value;
-
-        String groupName = variablesMap
-                .getVariable(Constants.PAIRWISE_PREFIX + 1)
-                .getGroupName();
-
-        for (int individualIndex = 0; individualIndex < individuals.size(); individualIndex++) {
-            List<String> individualLinks = (List<String>) individuals.get(individualIndex);
-
-            for (int linkIndex = 1; linkIndex < Constants.MAX_LINKS_ALLOWED; linkIndex++) {
-                dstSurveyUnitModel.getCollectedVariables().add(
-                        buildPairwiseVariable(individualLinks, linkIndex, individualIndex+ 1, groupName)
-                );
-            }
-        }
-    }
-
-    private static VariableModel buildPairwiseVariable(
-            List<String> individualLinks,
-            int linkIndex,
-            int iteration,
-            String groupName
-    ) {
-        String value = Constants.NO_PAIRWISE_VALUE;
-
-        if (linkIndex  <= individualLinks.size()) {
-            String v = individualLinks.get(linkIndex - 1);
-            value = (v == null || v.isBlank())
-                    ? Constants.SAME_AXIS_VALUE
-                    : v;
-        }
-
-        return VariableModel.builder()
-                .varId(Constants.PAIRWISE_PREFIX + linkIndex)
-                .value(value)
-                .scope(groupName)
-                .iteration(iteration)
-                .parentId(Constants.ROOT_GROUP_NAME)
-                .build();
-    }
-
-
-    private static Object getValueForState(
-            Map.Entry<String, Object> collectedVariable,
-            String stateKey
-    ) {
-        Map<String, Object> states = JsonUtils.asMap(collectedVariable.getValue());
-        return states != null ? states.get(stateKey) : null;
-    }
-
-    private static boolean isInvalidPairwiseVariable(Object value, VariablesMap variablesMap) {
-        return !(value instanceof List<?>) || !variablesMap.hasVariable(Constants.PAIRWISE_PREFIX + 1);
     }
 
 }

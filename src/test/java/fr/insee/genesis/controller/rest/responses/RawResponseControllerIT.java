@@ -506,7 +506,7 @@ class RawResponseControllerIT extends IntegrationTestAbstract {
                     .thenReturn(List.of(dataProcessingContextDocument));
 
             //Mode list
-            when(controllerUtils.getModesList(collectionInstrumentId))
+            when(controllerUtils.getModesList(eq(collectionInstrumentId), any()))
                     .thenReturn(List.of(mode));
 
             //Metadata

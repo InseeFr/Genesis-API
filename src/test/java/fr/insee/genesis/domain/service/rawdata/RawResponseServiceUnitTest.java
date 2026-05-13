@@ -4,18 +4,20 @@ import fr.insee.bpm.metadata.model.MetadataModel;
 import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.TestConstants;
 import fr.insee.genesis.controller.utils.ControllerUtils;
+import fr.insee.genesis.domain.converter.rawdata.RawResponseConverter;
 import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponseModel;
+import fr.insee.genesis.domain.parser.rawdata.RawResponsePayloadParser;
 import fr.insee.genesis.domain.ports.spi.QuestionnaireMetadataPersistencePort;
 import fr.insee.genesis.domain.ports.spi.RawResponsePersistencePort;
-import fr.insee.genesis.domain.ports.spi.SurveyUnitQualityToolPort;
 import fr.insee.genesis.domain.service.context.DataProcessingContextService;
 import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
+import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityToolService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.exceptions.NoDataException;
@@ -52,16 +54,22 @@ import static org.mockito.Mockito.*;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class RawResponseServiceUnitTest {
 
-    static RawResponseService rawResponseService;
+    private RawResponseService rawResponseService;
 
     @Mock
-    static RawResponsePersistencePort rawResponsePersistencePort;
+    private RawResponsePersistencePort rawResponsePersistencePort;
     @Mock
-    static ControllerUtils controllerUtils;
+    private ControllerUtils controllerUtils;
     @Mock
-    static QuestionnaireMetadataService metadataService;
+    private QuestionnaireMetadataService metadataService;
     @Mock
-    static SurveyUnitService surveyUnitService;
+    private SurveyUnitService surveyUnitService;
+    @Mock
+    private SurveyUnitQualityService surveyUnitQualityService;
+    @Mock
+    private SurveyUnitQualityToolService surveyUnitQualityToolService;
+
+    private RawResponseConverter rawResponseConverter;
     @Mock
     static DataProcessingContextService dataProcessingContextService;
 
@@ -72,15 +80,17 @@ class RawResponseServiceUnitTest {
 
     @BeforeEach
     void init() {
+        rawResponseConverter = new RawResponseConverter(new RawResponsePayloadParser());
+
         rawResponseService = new RawResponseService(
                 controllerUtils,
                 metadataService,
                 surveyUnitService,
-                mock(SurveyUnitQualityService.class),
-                mock(SurveyUnitQualityToolPort.class),
-                dataProcessingContextService,
+                surveyUnitQualityService,
+                surveyUnitQualityToolService,
                 new FileUtils(TestConstants.getConfigStub()),
                 TestConstants.getConfigStub(),
+                rawResponseConverter,
                 rawResponsePersistencePort
         );
     }
@@ -116,14 +126,14 @@ class RawResponseServiceUnitTest {
                 mock(QuestionnaireMetadataPersistencePort.class)
         );
         rawResponseService = new RawResponseService(
-                new ControllerUtils(new FileUtils(TestConstants.getConfigStub())),
+                controllerUtils,
                 metadataService,
-                mock(SurveyUnitService.class),
-                mock(SurveyUnitQualityService.class),
-                mock(SurveyUnitQualityToolPort.class),
-                mock(DataProcessingContextService.class),
+                surveyUnitService,
+                surveyUnitQualityService,
+                surveyUnitQualityToolService,
                 new FileUtils(TestConstants.getConfigStub()),
                 TestConstants.getConfigStub(),
+                rawResponseConverter,
                 rawResponsePersistencePort
         );
 
@@ -158,13 +168,6 @@ class RawResponseServiceUnitTest {
 
     @Nested
     @DisplayName("Non regression tests of InseeFr/Genesis-API#365: validation date and questionnaire state in processed responses")
-    @Disabled("to be fixed") /* hint:
-    since processRawResponsesByInterrogationIds is mocked, after refactor where
-    processRawResponsesByInterrogationIds(String collectionInstrumentId) doesn't directly call
-    surveyUnitService.saveSurveyUnits(...), but calls
-    processRawResponsesByInterrogationIds(String collectionInstrumentId, List<String> interrogationIds, List<GenesisError> errors),
-    the assertion "surveyUnitService.saveSurveyUnits(...) should be called" no longer passes.
-    */ // TODO: see what's going on here after recent update from main
     class ValidationDateAndQuestionnaireStateTests{
         //OK cases
         @ParameterizedTest
@@ -281,6 +284,7 @@ class RawResponseServiceUnitTest {
             rawResponse.payload().put("questionnaireState", questionnaireState);
             rawResponse.payload().put("usualSurveyUnitId", TestConstants.DEFAULT_SURVEY_UNIT_ID);
             rawResponse.payload().put("majorModelVersion", 2);
+
             Map<String, Map<String, Map<String, String>>> dataMap = new HashMap<>();
             dataMap.put("COLLECTED", new HashMap<>());
             dataMap.get("COLLECTED").put("VAR1", new HashMap<>());
@@ -366,7 +370,7 @@ class RawResponseServiceUnitTest {
 
         //WHENS
         private List<SurveyUnitModel> whenProcessByCollectionInstrumentIdAndInterrogationIdList() throws GenesisException {
-            rawResponseService.processRawResponsesByInterrogationIds(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID);
+            rawResponseService.processRawResponsesByCollectionInstrumentId(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID);
             verify(surveyUnitService).saveSurveyUnits(surveyUnitModelsCaptor.capture());
             return surveyUnitModelsCaptor.getValue();
         }
@@ -448,6 +452,7 @@ class RawResponseServiceUnitTest {
         LocalDateTime processDate = LocalDateTime.of(2026, 1, 1, 9, 0);
         LocalDateTime recordDate2 = LocalDateTime.of(2026, 1, 1, 10, 0);
 
+        //2 responses for interrogation-id-1
         List<RawResponseModel> mockedRawResponses = new ArrayList<>(List.of(
                 new RawResponseModel(new ObjectId(), "interrogation-id-1", fooCollectionInstrumentId, fooMode, fooPayload, recordDate1, processDate),
                 new RawResponseModel(new ObjectId(), "interrogation-id-1", fooCollectionInstrumentId, fooMode, fooPayload, recordDate2, null),
@@ -456,12 +461,14 @@ class RawResponseServiceUnitTest {
 
         Mockito.when(rawResponsePersistencePort.findUnprocessedInterrogationIdsByCollectionInstrumentId(fooCollectionInstrumentId)).thenReturn(interrogationIds);
         Mockito.when(rawResponsePersistencePort.findRawResponses(fooCollectionInstrumentId, fooMode, interrogationIdList)).thenReturn(mockedRawResponses);
-        Mockito.when(controllerUtils.getModesList(fooCollectionInstrumentId)).thenReturn(List.of(fooMode));
+        Mockito.when(controllerUtils.getModesList(eq(fooCollectionInstrumentId), any())).thenReturn(List.of(fooMode));
         Mockito.when(dataProcessingContextService.getContextByCollectionInstrumentId(fooCollectionInstrumentId)).thenReturn(fooProcessingContext);
         Mockito.when(metadataService.loadAndSaveIfNotExists(eq(fooCollectionInstrumentId), eq(fooCollectionInstrumentId), eq(fooMode), any(), any())).thenReturn(new MetadataModel());
 
         // When
-        DataProcessResult dataProcessResult = rawResponseService.processRawResponsesByInterrogationIds(fooCollectionInstrumentId);
+        DataProcessResult dataProcessResult = rawResponseService.processRawResponsesByCollectionInstrumentId(
+                fooCollectionInstrumentId
+        );
 
         // Then
         assertEquals(2, dataProcessResult.dataCount());
@@ -482,11 +489,11 @@ class RawResponseServiceUnitTest {
         @DisplayName("Simple COLLECTED raw response conversion")
         void convertRawResponse_shouldConvertCollectedVariable() {
             // GIVEN
-            RawResponseModel rawResponse = buildRawResponseWithVar("VAR1", "COLLECTED", "value1");
+            RawResponseModel rawResponse = buildRawResponseWithVar("COLLECTED", "value1");
             List<RawResponseModel> rawResponses = List.of(rawResponse);
 
             // WHEN
-            List<SurveyUnitModel> result = rawResponseService.convertRawResponse(rawResponses, variablesMap);
+            List<SurveyUnitModel> result = rawResponseConverter.convertRawResponse(rawResponses, variablesMap);
 
             // THEN
             Assertions.assertThat(result).hasSize(1); // only COLLECTED state (EDITED has no data)
@@ -499,11 +506,11 @@ class RawResponseServiceUnitTest {
         @DisplayName("Simple EDITED conversion")
         void convertRawResponse_shouldConvertEditedVariable() {
             // GIVEN
-            RawResponseModel rawResponse = buildRawResponseWithVar("VAR1", "EDITED", "editedValue");
+            RawResponseModel rawResponse = buildRawResponseWithVar("EDITED", "editedValue");
             List<RawResponseModel> rawResponses = List.of(rawResponse);
 
             // WHEN
-            List<SurveyUnitModel> result = rawResponseService.convertRawResponse(rawResponses, variablesMap);
+            List<SurveyUnitModel> result = rawResponseConverter.convertRawResponse(rawResponses, variablesMap);
 
             // THEN
             // On attend 1 modèle EDITED avec des variables
@@ -519,11 +526,11 @@ class RawResponseServiceUnitTest {
         @DisplayName("Must convert external variables in COLLECTED")
         void convertRawResponse_shouldConvertExternalVariables() {
             // GIVEN
-            RawResponseModel rawResponse = buildRawResponseWithCollectedAndExternal("VAR1", "val1", "EXT1", "extVal");
+            RawResponseModel rawResponse = buildRawResponseWithCollectedAndExternal();
             List<RawResponseModel> rawResponses = List.of(rawResponse);
 
             // WHEN
-            List<SurveyUnitModel> result = rawResponseService.convertRawResponse(rawResponses, variablesMap);
+            List<SurveyUnitModel> result = rawResponseConverter.convertRawResponse(rawResponses, variablesMap);
 
             // THEN
             List<SurveyUnitModel> collectedModels = result.stream()
@@ -542,7 +549,7 @@ class RawResponseServiceUnitTest {
             List<RawResponseModel> rawResponses = List.of(rawResponse);
 
             // WHEN
-            List<SurveyUnitModel> result = rawResponseService.convertRawResponse(rawResponses, variablesMap);
+            List<SurveyUnitModel> result = rawResponseConverter.convertRawResponse(rawResponses, variablesMap);
 
             // THEN
             Assertions.assertThat(result).isEmpty();
@@ -552,11 +559,11 @@ class RawResponseServiceUnitTest {
         @DisplayName("COLLECTED list management")
         void convertRawResponse_shouldHandleListValues() {
             // GIVEN
-            RawResponseModel rawResponse = buildRawResponseWithListVar("VAR_LIST", "COLLECTED", List.of("v1", "v2", "v3"));
+            RawResponseModel rawResponse = buildRawResponseWithListVar(List.of("v1", "v2", "v3"));
             List<RawResponseModel> rawResponses = List.of(rawResponse);
 
             // WHEN
-            List<SurveyUnitModel> result = rawResponseService.convertRawResponse(rawResponses, variablesMap);
+            List<SurveyUnitModel> result = rawResponseConverter.convertRawResponse(rawResponses, variablesMap);
 
             // THEN
             List<SurveyUnitModel> collectedModels = result.stream()
@@ -574,11 +581,11 @@ class RawResponseServiceUnitTest {
         @DisplayName("Ignore null and empty values")
         void convertRawResponse_shouldSkipNullOrEmptyListValues() {
             // GIVEN
-            RawResponseModel rawResponse = buildRawResponseWithListVar("VAR_LIST", "COLLECTED", List.of("v1", "", "v3"));
+            RawResponseModel rawResponse = buildRawResponseWithListVar(List.of("v1", "", "v3"));
             List<RawResponseModel> rawResponses = List.of(rawResponse);
 
             // WHEN
-            List<SurveyUnitModel> result = rawResponseService.convertRawResponse(rawResponses, variablesMap);
+            List<SurveyUnitModel> result = rawResponseConverter.convertRawResponse(rawResponses, variablesMap);
 
             // THEN
             List<SurveyUnitModel> collectedModels = result.stream()
@@ -590,7 +597,7 @@ class RawResponseServiceUnitTest {
 
         //UTILS
 
-        private RawResponseModel buildRawResponseWithVar(String varName, String stateKey, String value) {
+        private RawResponseModel buildRawResponseWithVar(String stateKey, String value) {
             RawResponseModel model = new RawResponseModel(
                     null,
                     TestConstants.DEFAULT_INTERROGATION_ID,
@@ -604,14 +611,14 @@ class RawResponseServiceUnitTest {
             Map<String, Object> collectedMap = new HashMap<>();
             Map<String, Object> varStates = new HashMap<>();
             varStates.put(stateKey, value);
-            collectedMap.put(varName, varStates);
+            collectedMap.put("VAR1", varStates);
             dataMap.put("COLLECTED", collectedMap);
             dataMap.put("EXTERNAL", new HashMap<>());
             model.payload().put("data", dataMap);
             return model;
         }
 
-        private RawResponseModel buildRawResponseWithListVar(String varName, String stateKey, List<String> values) {
+        private RawResponseModel buildRawResponseWithListVar(List<String> values) {
             RawResponseModel model = new RawResponseModel(
                     null,
                     TestConstants.DEFAULT_INTERROGATION_ID,
@@ -624,17 +631,15 @@ class RawResponseServiceUnitTest {
             Map<String, Object> dataMap = new HashMap<>();
             Map<String, Object> collectedMap = new HashMap<>();
             Map<String, Object> varStates = new HashMap<>();
-            varStates.put(stateKey, values);
-            collectedMap.put(varName, varStates);
+            varStates.put("COLLECTED", values);
+            collectedMap.put("VAR_LIST", varStates);
             dataMap.put("COLLECTED", collectedMap);
             dataMap.put("EXTERNAL", new HashMap<>());
             model.payload().put("data", dataMap);
             return model;
         }
 
-        private RawResponseModel buildRawResponseWithCollectedAndExternal(
-                String collectedVarName, String collectedValue,
-                String externalVarName, String externalValue) {
+        private RawResponseModel buildRawResponseWithCollectedAndExternal() {
             RawResponseModel model = new RawResponseModel(
                     null,
                     TestConstants.DEFAULT_INTERROGATION_ID,
@@ -648,12 +653,12 @@ class RawResponseServiceUnitTest {
 
             Map<String, Object> collectedMap = new HashMap<>();
             Map<String, Object> varStates = new HashMap<>();
-            varStates.put("COLLECTED", collectedValue);
-            collectedMap.put(collectedVarName, varStates);
+            varStates.put("COLLECTED", "val1");
+            collectedMap.put("VAR1", varStates);
             dataMap.put("COLLECTED", collectedMap);
 
             Map<String, Object> externalMap = new HashMap<>();
-            externalMap.put(externalVarName, externalValue);
+            externalMap.put("EXT1", "extVal");
             dataMap.put("EXTERNAL", externalMap);
 
             model.payload().put("data", dataMap);
