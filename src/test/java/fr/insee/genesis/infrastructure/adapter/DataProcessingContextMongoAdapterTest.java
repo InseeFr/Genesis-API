@@ -3,6 +3,7 @@ package fr.insee.genesis.infrastructure.adapter;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.utils.ExportType;
 import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
+import fr.insee.genesis.domain.model.context.schedule.DeletedExpiredSchedules;
 import fr.insee.genesis.domain.model.context.schedule.DestinationType;
 import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionSchedule;
 import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionScheduleV2;
@@ -21,7 +22,6 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -241,93 +241,92 @@ class DataProcessingContextMongoAdapterTest {
             assertThat(adapter.count()).isZero();
         }
     }
-
     @Nested
     @DisplayName("removeExpiredSchedules() tests")
     class RemoveExpiredSchedulesTests {
 
         @Test
-        @DisplayName("Should return empty list when no schedule is expired")
-        void removeExpiredSchedules_noExpired_shouldReturnEmptyList() throws IOException {
-            //GIVEN
-            KraftwerkExecutionScheduleV2 future = buildSchedule(LocalDateTime.now().plusDays(1));
+        @DisplayName("Should return empty result when no schedule is expired")
+        void removeExpiredSchedules_noExpired_shouldReturnEmptyResult() {
+            KraftwerkExecutionScheduleV2 future = buildScheduleV2(LocalDateTime.now().plusDays(1));
             DataProcessingContextModel model = buildModelWithSchedulesV2(List.of(future));
 
-            //WHEN
-            List<KraftwerkExecutionScheduleV2> removed = adapter.removeExpiredSchedules(model);
+            DeletedExpiredSchedules removed = adapter.removeExpiredSchedules(model);
 
-            //THEN
-            assertThat(removed).isEmpty();
+            assertThat(removed.isEmpty()).isTrue();
+            assertThat(removed.v1Schedules()).isEmpty();
+            assertThat(removed.v2Schedules()).isEmpty();
             verifyNoInteractions(mongoTemplate);
         }
 
         @Test
-        @DisplayName("Should return expired schedules and call updateMulti by collectionInstrumentId when set")
-        void removeExpiredSchedules_withCollectionInstrumentId_shouldUpdateByCollectionInstrumentId() throws IOException {
-            //GIVEN
-            KraftwerkExecutionScheduleV2 expired = buildSchedule(LocalDateTime.now().minusDays(1));
+        @DisplayName("Should return expired V2 schedules and call updateMulti")
+        void removeExpiredSchedules_withExpiredV2_shouldUpdateByCollectionInstrumentId() {
+            KraftwerkExecutionScheduleV2 expired = buildScheduleV2(LocalDateTime.now().minusDays(1));
             DataProcessingContextModel model = buildModelWithSchedulesV2(List.of(expired));
 
-            //WHEN
-            List<KraftwerkExecutionScheduleV2> removed = adapter.removeExpiredSchedules(model);
+            DeletedExpiredSchedules removed = adapter.removeExpiredSchedules(model);
 
-            //THEN
-            assertThat(removed).hasSize(1).containsExactly(expired);
+            assertThat(removed.v1Schedules()).isEmpty();
+            assertThat(removed.v2Schedules()).hasSize(1).containsExactly(expired);
 
             ArgumentCaptor<Query> queryCaptor = ArgumentCaptor.forClass(Query.class);
+
             verify(mongoTemplate).updateMulti(
                     queryCaptor.capture(),
                     any(Update.class),
                     eq(Constants.MONGODB_CONTEXT_COLLECTION_NAME)
             );
-            // The outer query must filter by collectionInstrumentId
+
             assertThat(queryCaptor.getValue().toString()).contains("collectionInstrumentId");
         }
 
         @Test
-        @DisplayName("Should remove only expired schedules from a mixed list")
-        void removeExpiredSchedules_mixedList_shouldRemoveOnlyExpired() throws IOException {
-            //GIVEN
-            KraftwerkExecutionScheduleV2 expired = buildSchedule(LocalDateTime.now().minusDays(1));
-            KraftwerkExecutionScheduleV2 future = buildSchedule(LocalDateTime.now().plusDays(1));
+        @DisplayName("Should remove only expired V2 schedules from a mixed V2 list")
+        void removeExpiredSchedules_mixedV2List_shouldRemoveOnlyExpired() {
+            KraftwerkExecutionScheduleV2 expired = buildScheduleV2(LocalDateTime.now().minusDays(1));
+            KraftwerkExecutionScheduleV2 future = buildScheduleV2(LocalDateTime.now().plusDays(1));
             DataProcessingContextModel model = buildModelWithSchedulesV2(List.of(expired, future));
 
-            //WHEN
-            List<KraftwerkExecutionScheduleV2> removed = adapter.removeExpiredSchedules(model);
+            DeletedExpiredSchedules removed = adapter.removeExpiredSchedules(model);
 
-            //THEN
-            assertThat(removed).hasSize(1).containsExactly(expired);
-            // updateMulti called once, only for the expired one
-            verify(mongoTemplate, times(1)).updateMulti(any(), any(), any(String.class));
+            assertThat(removed.v1Schedules()).isEmpty();
+            assertThat(removed.v2Schedules()).hasSize(1).containsExactly(expired);
+
+            verify(mongoTemplate, times(1))
+                    .updateMulti(any(), any(), eq(Constants.MONGODB_CONTEXT_COLLECTION_NAME));
         }
 
         @Test
-        @DisplayName("Should call updateMulti once per expired schedule")
-        void removeExpiredSchedules_multipleExpired_shouldCallUpdateMultiForEach() throws IOException {
-            //GIVEN
-            KraftwerkExecutionScheduleV2 expired1 = buildSchedule(LocalDateTime.now().minusDays(1));
-            KraftwerkExecutionScheduleV2 expired2 = buildSchedule(LocalDateTime.now().minusDays(2));
+        @DisplayName("Should call updateMulti once per expired V2 schedule")
+        void removeExpiredSchedules_multipleExpiredV2_shouldCallUpdateMultiForEach() {
+            KraftwerkExecutionScheduleV2 expired1 = buildScheduleV2(LocalDateTime.now().minusDays(1));
+            KraftwerkExecutionScheduleV2 expired2 = buildScheduleV2(LocalDateTime.now().minusDays(2));
             DataProcessingContextModel model = buildModelWithSchedulesV2(List.of(expired1, expired2));
 
-            //WHEN
-            List<KraftwerkExecutionScheduleV2> removed = adapter.removeExpiredSchedules(model);
+            DeletedExpiredSchedules removed = adapter.removeExpiredSchedules(model);
 
-            //THEN
-            assertThat(removed).hasSize(2);
-            verify(mongoTemplate, times(2)).updateMulti(any(), any(), any(String.class));
+            assertThat(removed.v1Schedules()).isEmpty();
+            assertThat(removed.v2Schedules()).hasSize(2);
+
+            verify(mongoTemplate, times(2))
+                    .updateMulti(any(), any(), eq(Constants.MONGODB_CONTEXT_COLLECTION_NAME));
         }
 
         @Test
-        @DisplayName("Should return empty list when schedule list is empty")
-        void removeExpiredSchedules_emptyScheduleList_shouldReturnEmptyList() throws IOException {
-            //GIVEN
-            DataProcessingContextModel model = buildModelWithSchedules(List.of());
+        @DisplayName("Should return empty result when schedule lists are empty")
+        void removeExpiredSchedules_emptyScheduleLists_shouldReturnEmptyResult() {
+            DataProcessingContextModel model = DataProcessingContextModel.builder()
+                    .collectionInstrumentId(DataProcessingContextMongoAdapterTest.COLLECTION_INSTRUMENT_ID)
+                    .kraftwerkExecutionScheduleList(List.of())
+                    .kraftwerkExecutionScheduleV2List(List.of())
+                    .build();
 
-            //WHEN
-            List<KraftwerkExecutionScheduleV2> removed = adapter.removeExpiredSchedules(model);
+            DeletedExpiredSchedules removed = adapter.removeExpiredSchedules(model);
 
-            //THEN
-            assertThat(removed).isEmpty();
+            assertThat(removed.isEmpty()).isTrue();
+            assertThat(removed.v1Schedules()).isEmpty();
+            assertThat(removed.v2Schedules()).isEmpty();
             verifyNoInteractions(mongoTemplate);
         }
     }
@@ -407,7 +406,7 @@ class DataProcessingContextMongoAdapterTest {
     }
 
     //UTILS
-    private KraftwerkExecutionScheduleV2 buildSchedule(LocalDateTime endDate) {
+    private KraftwerkExecutionScheduleV2 buildScheduleV2(LocalDateTime endDate) {
         return new KraftwerkExecutionScheduleV2(
                 UUID.randomUUID().toString(),
                 "0 10 * * *",
@@ -420,7 +419,8 @@ class DataProcessingContextMongoAdapterTest {
                 "string",
                 false,
                 null,
-                100);
+                100
+        );
     }
 
     private DataProcessingContextModel buildModelWithSchedules(List<KraftwerkExecutionSchedule> schedules) {

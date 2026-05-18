@@ -2,6 +2,8 @@ package fr.insee.genesis.infrastructure.adapter;
 
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
+import fr.insee.genesis.domain.model.context.schedule.DeletedExpiredSchedules;
+import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionSchedule;
 import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionScheduleV2;
 import fr.insee.genesis.domain.ports.spi.DataProcessingContextPersistancePort;
 import fr.insee.genesis.infrastructure.document.context.DataProcessingContextDocument;
@@ -74,12 +76,18 @@ public class DataProcessingContextMongoAdapter implements DataProcessingContextP
     }
 
     @Override
-    public List<KraftwerkExecutionScheduleV2> removeExpiredSchedules(
-            DataProcessingContextModel context
-    ) {
+    public DeletedExpiredSchedules removeExpiredSchedules(DataProcessingContextModel context) {
         LocalDateTime now = LocalDateTime.now();
 
-        List<KraftwerkExecutionScheduleV2> deletedSchedules =
+        List<KraftwerkExecutionSchedule> deletedV1 =
+                Optional.ofNullable(context.getKraftwerkExecutionScheduleList())
+                        .orElse(List.of())
+                        .stream()
+                        .filter(schedule -> schedule.getScheduleEndDate() != null)
+                        .filter(schedule -> schedule.getScheduleEndDate().isBefore(now))
+                        .toList();
+
+        List<KraftwerkExecutionScheduleV2> deletedV2 =
                 Optional.ofNullable(context.getKraftwerkExecutionScheduleV2List())
                         .orElse(List.of())
                         .stream()
@@ -87,26 +95,43 @@ public class DataProcessingContextMongoAdapter implements DataProcessingContextP
                         .filter(schedule -> schedule.getScheduleEndDate().isBefore(now))
                         .toList();
 
-        for (KraftwerkExecutionScheduleV2 scheduleToRemove : deletedSchedules) {
-            Query query = Query.query(
-                    Criteria.where("collectionInstrumentId").is(context.getCollectionInstrumentId())
-            );
+        Query query = Query.query(
+                Criteria.where("collectionInstrumentId").is(context.getCollectionInstrumentId())
+        );
 
+        for (KraftwerkExecutionSchedule scheduleToRemove : deletedV1) {
             Update update = new Update().pull(
-                    "kraftwerkExecutionScheduleV2List",
+                    "kraftwerkExecutionScheduleList",
                     Query.query(
-                            Criteria.where("scheduleUuid").is(scheduleToRemove.getScheduleUuid())
+                            Criteria.where("scheduleEndDate")
+                                    .is(scheduleToRemove.getScheduleEndDate())
                     ).getQueryObject()
             );
+
             mongoTemplate.updateMulti(
                     query,
                     update,
                     Constants.MONGODB_CONTEXT_COLLECTION_NAME
             );
-
         }
 
-        return deletedSchedules;
+        for (KraftwerkExecutionScheduleV2 scheduleToRemove : deletedV2) {
+            Update update = new Update().pull(
+                    "kraftwerkExecutionScheduleV2List",
+                    Query.query(
+                            Criteria.where("scheduleUuid")
+                                    .is(scheduleToRemove.getScheduleUuid())
+                    ).getQueryObject()
+            );
+
+            mongoTemplate.updateMulti(
+                    query,
+                    update,
+                    Constants.MONGODB_CONTEXT_COLLECTION_NAME
+            );
+        }
+
+        return new DeletedExpiredSchedules(deletedV1, deletedV2);
     }
 
     @Override

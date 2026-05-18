@@ -6,6 +6,7 @@ import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.dto.KraftwerkExecutionScheduleInput;
 import fr.insee.genesis.controller.dto.rawdata.ScheduleResponseDto;
 import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
+import fr.insee.genesis.domain.model.context.schedule.DeletedExpiredSchedules;
 import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionScheduleV2;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.ports.api.DataProcessingContextApiPort;
@@ -271,11 +272,10 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
 
         for (DataProcessingContextModel context : dataProcessingContextModels) {
             try {
-                List<KraftwerkExecutionScheduleV2> deletedKraftwerkExecutionSchedules =
+                DeletedExpiredSchedules deletedSchedules =
                         dataProcessingContextPersistancePort.removeExpiredSchedules(context);
 
-                // Save in JSON log
-                if (!deletedKraftwerkExecutionSchedules.isEmpty()) {
+                if (!deletedSchedules.isEmpty()) {
                     String scheduleName = context.getCollectionInstrumentId();
                     Path jsonLogPath = Path.of(
                             logFolder,
@@ -286,7 +286,7 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
                     ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
                     objectMapper.registerModule(new JavaTimeModule());
 
-                    String jsonToWrite = objectMapper.writeValueAsString(deletedKraftwerkExecutionSchedules);
+                    String jsonToWrite = objectMapper.writeValueAsString(deletedSchedules);
 
                     if (Files.exists(jsonLogPath)) {
                         StringBuilder content = new StringBuilder(Files.readString(jsonLogPath));

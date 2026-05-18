@@ -1,6 +1,7 @@
 package fr.insee.genesis.domain.ports.spi;
 
 import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
+import fr.insee.genesis.domain.model.context.schedule.DeletedExpiredSchedules;
 import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionScheduleV2;
 import fr.insee.genesis.infrastructure.document.context.DataProcessingContextDocument;
 
@@ -21,7 +22,7 @@ public interface DataProcessingContextPersistancePort {
 
     long count();
 
-    List<KraftwerkExecutionScheduleV2> removeExpiredSchedules(DataProcessingContextModel dataProcessingContextModel) throws IOException;
+    DeletedExpiredSchedules removeExpiredSchedules(DataProcessingContextModel dataProcessingContextModel) throws IOException;
 
     List<DataProcessingContextDocument> findAllByReview(boolean withReview);
 }
