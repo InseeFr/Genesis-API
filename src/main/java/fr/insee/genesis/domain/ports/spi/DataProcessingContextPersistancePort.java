@@ -2,7 +2,6 @@ package fr.insee.genesis.domain.ports.spi;
 
 import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
 import fr.insee.genesis.domain.model.context.schedule.DeletedExpiredSchedules;
-import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionScheduleV2;
 import fr.insee.genesis.infrastructure.document.context.DataProcessingContextDocument;
 
 import java.io.IOException;

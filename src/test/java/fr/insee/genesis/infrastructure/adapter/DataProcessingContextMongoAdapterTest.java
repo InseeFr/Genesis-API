@@ -423,13 +423,6 @@ class DataProcessingContextMongoAdapterTest {
         );
     }
 
-    private DataProcessingContextModel buildModelWithSchedules(List<KraftwerkExecutionSchedule> schedules) {
-        return DataProcessingContextModel.builder()
-                .collectionInstrumentId(DataProcessingContextMongoAdapterTest.COLLECTION_INSTRUMENT_ID)
-                .kraftwerkExecutionScheduleList(schedules)
-                .build();
-    }
-
     private DataProcessingContextModel buildModelWithSchedulesV2(
             List<KraftwerkExecutionScheduleV2> schedules
     ) {
