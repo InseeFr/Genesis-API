@@ -6,7 +6,6 @@ import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.dto.KraftwerkExecutionScheduleInput;
 import fr.insee.genesis.controller.dto.rawdata.ScheduleResponseDto;
 import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
-import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionSchedule;
 import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionScheduleV2;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.ports.api.DataProcessingContextApiPort;
@@ -266,33 +265,50 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
     @Override
     public void deleteExpiredSchedules(String logFolder) throws GenesisException {
         List<DataProcessingContextModel> dataProcessingContextModels =
-                DataProcessingContextMapper.INSTANCE.listDocumentToListModel(dataProcessingContextPersistancePort.findAll());
-        for(DataProcessingContextModel context : dataProcessingContextModels){
+                DataProcessingContextMapper.INSTANCE.listDocumentToListModel(
+                        dataProcessingContextPersistancePort.findAll()
+                );
+
+        for (DataProcessingContextModel context : dataProcessingContextModels) {
             try {
-                List<KraftwerkExecutionSchedule> deletedKraftwerkExecutionSchedules = dataProcessingContextPersistancePort.removeExpiredSchedules(context);
-                //Save in JSON log
-                if(!deletedKraftwerkExecutionSchedules.isEmpty()) {
+                List<KraftwerkExecutionScheduleV2> deletedKraftwerkExecutionSchedules =
+                        dataProcessingContextPersistancePort.removeExpiredSchedules(context);
+
+                // Save in JSON log
+                if (!deletedKraftwerkExecutionSchedules.isEmpty()) {
                     String scheduleName = context.getCollectionInstrumentId();
-                    Path jsonLogPath = Path.of(logFolder, Constants.SCHEDULE_ARCHIVE_FOLDER_NAME,
-                            scheduleName + ".json");
+                    Path jsonLogPath = Path.of(
+                            logFolder,
+                            Constants.SCHEDULE_ARCHIVE_FOLDER_NAME,
+                            scheduleName + ".json"
+                    );
+
                     ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
                     objectMapper.registerModule(new JavaTimeModule());
+
                     String jsonToWrite = objectMapper.writeValueAsString(deletedKraftwerkExecutionSchedules);
-                    if(Files.exists(jsonLogPath)){
-                        //Remove last ] and append survey
+
+                    if (Files.exists(jsonLogPath)) {
                         StringBuilder content = new StringBuilder(Files.readString(jsonLogPath));
-                        content.setCharAt(content.length()-1, ',');
-                        content.append(jsonToWrite, 1, jsonToWrite.length()-1);
+                        content.setCharAt(content.length() - 1, ',');
+                        content.append(jsonToWrite, 1, jsonToWrite.length() - 1);
                         content.append(']');
-                        Files.write(jsonLogPath, content.toString().getBytes(), StandardOpenOption.TRUNCATE_EXISTING);
-                    }else {
+                        Files.write(
+                                jsonLogPath,
+                                content.toString().getBytes(),
+                                StandardOpenOption.TRUNCATE_EXISTING
+                        );
+                    } else {
                         Files.createDirectories(jsonLogPath.getParent());
                         Files.write(jsonLogPath, jsonToWrite.getBytes());
                     }
                 }
             } catch (IOException _) {
-                String name =  context.getCollectionInstrumentId();
-                throw new GenesisException(HttpStatus.INTERNAL_SERVER_ERROR,String.format("An error occured trying to delete expired schedules for %s",name));
+                String name = context.getCollectionInstrumentId();
+                throw new GenesisException(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        String.format("An error occured trying to delete expired schedules for %s", name)
+                );
             }
         }
     }
