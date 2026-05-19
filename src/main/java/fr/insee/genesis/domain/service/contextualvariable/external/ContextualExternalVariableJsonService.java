@@ -1,9 +1,9 @@
 package fr.insee.genesis.domain.service.contextualvariable.external;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
+import fr.insee.genesis.exceptions.JsonParsingException;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.json.JsonFactory;
+import tools.jackson.core.JsonToken;
 import fr.insee.genesis.domain.model.contextualvariable.ContextualExternalVariableModel;
 import fr.insee.genesis.domain.ports.api.ContextualExternalVariableApiPort;
 import fr.insee.genesis.domain.ports.spi.ContextualExternalVariablePersistancePort;
@@ -74,7 +74,7 @@ public class ContextualExternalVariableJsonService implements ContextualExternal
                 contextualExternalVariablePersistancePort.deleteBackup(collectionInstrumentId);
                 return true;
             }
-        }catch (JsonParseException jpe){
+        }catch (JsonParsingException jpe){
             contextualExternalVariablePersistancePort.restoreBackup(collectionInstrumentId);
             throw new GenesisException(HttpStatus.BAD_REQUEST, "JSON Parsing exception : %s".formatted(jpe.toString()));
         }catch (IOException ioe){
@@ -90,7 +90,7 @@ public class ContextualExternalVariableJsonService implements ContextualExternal
 
     private static boolean goToContextualExternalToken(JsonParser jsonParser) throws IOException {
         while (jsonParser.nextToken() != null) {
-            if (jsonParser.currentToken() == JsonToken.FIELD_NAME
+            if (jsonParser.currentToken() == JsonToken.PROPERTY_NAME
                     && "editedExternal".equals(jsonParser.currentName())) {
                 return true;
             }
@@ -127,7 +127,7 @@ public class ContextualExternalVariableJsonService implements ContextualExternal
                                                                String collectionInstrumentId
                                                                ) throws IOException {
         if(jsonParser.currentToken() != JsonToken.START_OBJECT){
-            throw new JsonParseException("Expected { on line %d, got token %s".formatted(jsonParser.currentLocation().getLineNr(), jsonParser.currentToken()));
+            throw new JsonParsingException("Expected { on line %d, got token %s".formatted(jsonParser.currentLocation().getLineNr(), jsonParser.currentToken()));
         }
         ContextualExternalVariableModel contextualExternalVariableModel = ContextualExternalVariableModel.builder()
                 .collectionInstrumentId(collectionInstrumentId)
@@ -135,7 +135,7 @@ public class ContextualExternalVariableJsonService implements ContextualExternal
                 .build();
         jsonParser.nextToken();
         while (!jsonParser.currentToken().equals(JsonToken.END_OBJECT)){
-            if(jsonParser.currentToken().equals(JsonToken.FIELD_NAME) && jsonParser.currentName().equals("interrogationId")){
+            if(jsonParser.currentToken().equals(JsonToken.PROPERTY_NAME) && jsonParser.currentName().equals("interrogationId")){
                 jsonParser.nextToken();
                 contextualExternalVariableModel.setInterrogationId(jsonParser.getText());
                 jsonParser.nextToken();

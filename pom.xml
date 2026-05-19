@@ -11,7 +11,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.14</version>
+        <version>4.0.6</version>
     </parent>
 
     <properties>
@@ -21,7 +21,6 @@
         <tomcat.version>11.0.21</tomcat.version>
         <commons-lang3.version>3.20.0</commons-lang3.version>
         <junit-jupiter.version>5.13.4</junit-jupiter.version>
-        <jackson-bom.version>2.21.1</jackson-bom.version>
 
         <!-- Dependency versions not managed by Spring -->
         <bpm.version>1.1.4</bpm.version>
@@ -77,6 +76,11 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
             <scope>test</scope>
         </dependency>
         <!-- AssertJ -->
