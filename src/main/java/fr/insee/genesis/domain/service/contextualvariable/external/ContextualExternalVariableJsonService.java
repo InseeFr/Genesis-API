@@ -1,6 +1,7 @@
 package fr.insee.genesis.domain.service.contextualvariable.external;
 
 import fr.insee.genesis.exceptions.JsonParsingException;
+import tools.jackson.core.JacksonException;
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.json.JsonFactory;
 import tools.jackson.core.JsonToken;
@@ -74,7 +75,7 @@ public class ContextualExternalVariableJsonService implements ContextualExternal
                 contextualExternalVariablePersistancePort.deleteBackup(collectionInstrumentId);
                 return true;
             }
-        }catch (JsonParsingException jpe){
+        }catch (JacksonException jpe){
             contextualExternalVariablePersistancePort.restoreBackup(collectionInstrumentId);
             throw new GenesisException(HttpStatus.BAD_REQUEST, "JSON Parsing exception : %s".formatted(jpe.toString()));
         }catch (IOException ioe){

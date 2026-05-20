@@ -20,11 +20,10 @@
         <!-- (!!!) Dependency versions temporary overwritten for security reasons -->
         <tomcat.version>11.0.21</tomcat.version>
         <commons-lang3.version>3.20.0</commons-lang3.version>
-        <junit-jupiter.version>5.13.4</junit-jupiter.version>
 
         <!-- Dependency versions not managed by Spring -->
         <bpm.version>1.1.4</bpm.version>
-        <springdoc.version>2.8.17</springdoc.version>
+        <springdoc.version>3.0.3</springdoc.version>
         <mapstruct.version>1.6.3</mapstruct.version>
         <pitest.version>1.23.1</pitest.version>
         <pitest.junit.version>1.2.3</pitest.junit.version>
@@ -74,14 +73,18 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-test</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security-test</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webmvc-test</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
         <!-- AssertJ -->
         <!-- https://www.baeldung.com/introduction-to-assertj -->

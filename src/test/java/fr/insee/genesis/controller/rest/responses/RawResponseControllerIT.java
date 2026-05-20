@@ -70,7 +70,7 @@ class RawResponseControllerIT extends IntegrationTestAbstract {
 
     @BeforeEach
     void init(){
-        JsonMapper objectMapper = JsonMapper.builder()
+         objectMapper = JsonMapper.builder()
                 .findAndAddModules()
                 .build();
     }

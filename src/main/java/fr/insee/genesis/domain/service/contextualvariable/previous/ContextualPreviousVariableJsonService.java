@@ -1,5 +1,6 @@
 package fr.insee.genesis.domain.service.contextualvariable.previous;
 
+import tools.jackson.core.JacksonException;
 import tools.jackson.core.json.JsonFactory;
 import fr.insee.genesis.exceptions.JsonParsingException;
 import tools.jackson.core.JsonParser;
@@ -79,7 +80,7 @@ public class ContextualPreviousVariableJsonService implements ContextualPrevious
                 contextualPreviousVariablePersistancePort.deleteBackup(collectionInstrumentId);
                 return true;
             }
-        }catch (JsonParsingException jpe){
+        }catch (JacksonException jpe){
             contextualPreviousVariablePersistancePort.restoreBackup(collectionInstrumentId);
             throw new GenesisException(HttpStatus.BAD_REQUEST, "JSON Parsing exception : %s".formatted(jpe.toString()));
         }catch (IOException _){

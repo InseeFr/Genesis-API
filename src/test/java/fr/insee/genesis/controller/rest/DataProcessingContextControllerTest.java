@@ -68,7 +68,7 @@ class DataProcessingContextControllerTest {
 
     @BeforeEach
     void setUp() {
-        JsonMapper objectMapper = JsonMapper.builder()
+         objectMapper = JsonMapper.builder()
                 .findAndAddModules()
                 .build();
     }

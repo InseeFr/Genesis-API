@@ -16,12 +16,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
 import org.springframework.data.mongodb.core.ExecutableUpdateOperation;
 import org.springframework.data.mongodb.core.query.CriteriaDefinition;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 import java.nio.file.Files;
@@ -39,6 +38,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -46,13 +46,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class LunaticModelControllerIT extends IntegrationTestAbstract {
 
-    @Mock
+    @MockitoBean
     private ExecutableUpdateOperation.ExecutableUpdate<LunaticModelDocument> executableUpdate;
 
-    @Mock
+    @MockitoBean
     private ExecutableUpdateOperation.UpdateWithUpdate<LunaticModelDocument> updateWithUpdate;
 
-    @Mock
+    @MockitoBean
     private ExecutableUpdateOperation.TerminatingUpdate<LunaticModelDocument> terminatingUpdate;
 
     @MockitoSpyBean
@@ -76,7 +76,6 @@ class LunaticModelControllerIT extends IntegrationTestAbstract {
                 "specs/LUNATIC-TEST/lunaticlog2021x21_web.json",
                 "specs/RAWDATATESTCAMPAIGN/WEB/lunaticFAM2025X01.json"
         })
-        @WithMockUser(roles = "USER_BACK_OFFICE")
         @DisplayName("Lunatic model saving test")
         @SneakyThrows
         void save_lunaticModel_test(String jsonFilePathString){
@@ -89,6 +88,7 @@ class LunaticModelControllerIT extends IntegrationTestAbstract {
 
             //WHEN
             mockMvc.perform(put("/lunatic-model/save")
+                            .with(user("test").roles("USER_BACK_OFFICE"))
                             .with(csrf())
                             .param("questionnaireId", questionnaireId)
                             .contentType(MediaType.APPLICATION_JSON)
@@ -131,7 +131,6 @@ class LunaticModelControllerIT extends IntegrationTestAbstract {
 
         //SAD PATH
         @Test
-        @WithMockUser(roles = "USER_BACK_OFFICE")
         @DisplayName("Lunatic model save invalid syntax")
         @SneakyThrows
         void save_lunaticModel_syntax_error_test(){
@@ -144,6 +143,7 @@ class LunaticModelControllerIT extends IntegrationTestAbstract {
 
             //WHEN + THEN
             mockMvc.perform(put("/lunatic-model/save")
+                            .with(user("test").roles("USER_BACK_OFFICE"))
                             .with(csrf())
                             .param("questionnaireId", questionnaireId)
                             .contentType(MediaType.APPLICATION_JSON)
@@ -159,7 +159,6 @@ class LunaticModelControllerIT extends IntegrationTestAbstract {
         //HAPPY PATH
         @Test
         @DisplayName("Get Lunatic model test")
-        @WithMockUser(roles = "READER")
         @SneakyThrows
         void get_lunaticModel_test(){
             //GIVEN
@@ -180,6 +179,7 @@ class LunaticModelControllerIT extends IntegrationTestAbstract {
 
             //WHEN + THEN
             mockMvc.perform(get("/lunatic-model/get")
+                            .with(user("test").roles("READER"))
                             .with(csrf())
                             .param("questionnaireId", collectionInstrumentId))
                     .andExpect(status().isOk())
@@ -189,14 +189,12 @@ class LunaticModelControllerIT extends IntegrationTestAbstract {
         //BAD PATHS
         @Test
         @DisplayName("Get non existent Lunatic model")
-        @WithMockUser(roles = "READER")
         @SneakyThrows
-        void get_lunaticModel_not_found_test(){
-            //GIVEN
+        void get_lunaticModel_not_found_test() {
             String collectionInstrumentId = "collectionInstrumentId";
 
-            //WHEN + THEN
             mockMvc.perform(get("/lunatic-model/get")
+                            .with(user("test").roles("READER"))
                             .with(csrf())
                             .param("questionnaireId", collectionInstrumentId))
                     .andExpect(status().isNotFound());
