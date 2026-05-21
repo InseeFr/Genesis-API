@@ -97,7 +97,7 @@ public class RawResponseConverter {
                 .validationDate(rawResponsePayloadParser.getValidationDate(rawResponseModel))
                 .isCapturedIndirectly(rawResponsePayloadParser.getIsCapturedIndirectly(rawResponseModel))
                 .state(dataState)
-                .fileDate(rawResponseModel.recordDate())
+                .rawRecordDate(rawResponseModel.recordDate())
                 .recordDate(Instant.now())
                 .collectedVariables(new ArrayList<>())
                 .externalVariables(new ArrayList<>())

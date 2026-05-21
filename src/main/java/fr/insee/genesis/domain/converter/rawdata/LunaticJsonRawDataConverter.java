@@ -53,7 +53,6 @@ public class LunaticJsonRawDataConverter {
                         .validationDate(payloadParser.getValidationDate(rawData))
                         .isCapturedIndirectly(payloadParser.getIsCapturedIndirectly(rawData))
                         .state(dataState)
-                        .fileDate(rawData.recordDate())
                         .rawRecordDate(rawData.recordDate())
                         .recordDate(Instant.now())
                         .collectedVariables(new ArrayList<>())
