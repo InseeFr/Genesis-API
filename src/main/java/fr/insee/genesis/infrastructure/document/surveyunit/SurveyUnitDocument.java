@@ -1,6 +1,5 @@
 package fr.insee.genesis.infrastructure.document.surveyunit;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import fr.insee.genesis.Constants;
 import fr.insee.modelefiliere.RawResponseDto;

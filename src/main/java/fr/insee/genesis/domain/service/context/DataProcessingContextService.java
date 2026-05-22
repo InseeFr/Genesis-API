@@ -1,7 +1,6 @@
 package fr.insee.genesis.domain.service.context;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.databind.json.JsonMapper;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.dto.KraftwerkExecutionScheduleInput;
 import fr.insee.genesis.controller.dto.rawdata.ScheduleResponseDto;
@@ -275,8 +274,9 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
                     String scheduleName = context.getCollectionInstrumentId();
                     Path jsonLogPath = Path.of(logFolder, Constants.SCHEDULE_ARCHIVE_FOLDER_NAME,
                             scheduleName + ".json");
-                    ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
-                    objectMapper.registerModule(new JavaTimeModule());
+                    JsonMapper objectMapper = JsonMapper.builder()
+                            .findAndAddModules()
+                            .build();
                     String jsonToWrite = objectMapper.writeValueAsString(deletedKraftwerkExecutionSchedules);
                     if(Files.exists(jsonLogPath)){
                         //Remove last ] and append survey
