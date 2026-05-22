@@ -72,8 +72,7 @@ public class LunaticXmlAdapter {
                 .state(dataState)
                 .mode(mode)
                 .recordDate(Instant.now())
-                .fileDate(su.getFileDate())
-                .rawRecordDate(su.getFileDate())
+                .rawRecordDate(su.getRawRecordDate())
                 .build();
 
         return getCollectedDataFromSurveyUnit(su, surveyUnitModel, variablesMap, dataState);
