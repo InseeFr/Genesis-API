@@ -1,5 +1,5 @@
 # Changelog
-## 2.6.5 [TODO]
+## 2.6.5 [2026-05-26]
 ### Fixed
 - Compound index names
 
