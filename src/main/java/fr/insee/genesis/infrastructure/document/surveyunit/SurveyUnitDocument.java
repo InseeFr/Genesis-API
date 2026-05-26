@@ -16,8 +16,8 @@ import java.util.List;
 @Data
 @Document(collection = Constants.MONGODB_RESPONSE_COLLECTION_NAME)
 
-@CompoundIndex(name = "questionnaireId_interrogationId", def = "{'questionnaireId': 1, 'interrogationId': 1}")
-@CompoundIndex(name = "collectionInstrumentId_interrogationId", def = "{'collectionInstrumentId': 1, 'interrogationId': 1}")
+@CompoundIndex(name = "questionnaireId_1_interrogationId_1", def = "{'questionnaireId': 1, 'interrogationId': 1}")
+@CompoundIndex(name = "collectionInstrumentId_1_interrogationId_1", def = "{'collectionInstrumentId': 1, 'interrogationId': 1}")
 @CompoundIndex(name = "usualSurveyUnitId_collectionInstrumentId", def = "{'usualSurveyUnitId': 1, 'collectionInstrumentId': 1}")
 @CompoundIndex(name = "usualSurveyUnitId_questionnaireId", def = "{'usualSurveyUnitId': 1, 'questionnaireId': 1}")
 @CompoundIndex(name = "questionnaireId_mode_interrogationId", def = "{'questionnaireId': 1, 'mode': 1, 'interrogationId': 1}")
