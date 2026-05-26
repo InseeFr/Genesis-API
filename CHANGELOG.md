@@ -1,5 +1,5 @@
 # Changelog
-## 2.6.4 [TODO]
+## 2.6.4 [2026-05-26]
 ### Fixed
 - Indexes of SurveyUnitDocument
 
