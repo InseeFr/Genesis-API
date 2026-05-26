@@ -1,9 +1,9 @@
 # Changelog
-## 2.6.5 [2026-05-26]
+## 2.6.6 [2026-05-26]
 ### Fixed
 - Compound index names
 
-## 2.6.4 [2026-05-26]
+## 2.6.5 [2026-05-26]
 ### Fixed
 - Indexes of SurveyUnitDocument
 
