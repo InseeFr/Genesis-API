@@ -286,7 +286,7 @@ public class ResponseController implements CommonApiResponse {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<SurveyUnitModel>> getLatestByInterrogationAndCollectionInstrument(@RequestParam("interrogationId") String interrogationId,
                                                                @RequestParam("collectionInstrumentId") String collectionInstrumentId) {
-        List<SurveyUnitModel> responses = surveyUnitService.findLatestByInterrogationIdAndCollectionInstrumentId(interrogationId, collectionInstrumentId);
+        List<SurveyUnitModel> responses = surveyUnitService.findLatestByIdAndByCollectionInstrumentId(interrogationId, collectionInstrumentId);
         return ResponseEntity.ok(responses);
     }
 
@@ -300,7 +300,7 @@ public class ResponseController implements CommonApiResponse {
     public ResponseEntity<SurveyUnitSimplifiedDto> getLatestByInterrogationOneObject(@RequestParam("interrogationId") String interrogationId,
                                                                                      @RequestParam("collectionInstrumentId") String collectionInstrumentId,
                                                                                      @RequestParam("mode") Mode mode) {
-        List<SurveyUnitModel> responses = surveyUnitService.findLatestByInterrogationIdAndCollectionInstrumentId(interrogationId, collectionInstrumentId);
+        List<SurveyUnitModel> responses = surveyUnitService.findLatestByIdAndByCollectionInstrumentId(interrogationId, collectionInstrumentId);
         List<VariableModel> outputVariables = new ArrayList<>();
         List<VariableModel> outputExternalVariables = new ArrayList<>();
         RawResponseDto.QuestionnaireStateEnum questionnaireState = null;
@@ -365,7 +365,7 @@ public class ResponseController implements CommonApiResponse {
         List<SurveyUnitSimplifiedDto> results = new ArrayList<>();
         List<Mode> modes = surveyUnitService.findModesByCollectionInstrumentId(collectionInstrumentId);
         interrogationIds.forEach(interrogationId -> {
-            List<SurveyUnitModel> responses = surveyUnitService.findLatestByInterrogationIdAndCollectionInstrumentId(
+            List<SurveyUnitModel> responses = surveyUnitService.findLatestByIdAndByCollectionInstrumentId(
                     interrogationId.getInterrogationId(), collectionInstrumentId
             );
             modes.forEach(mode -> {
