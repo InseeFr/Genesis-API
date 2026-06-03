@@ -9,37 +9,55 @@ import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.RawDataModelType;
 import fr.insee.genesis.domain.parser.rawdata.LunaticJsonRawDataPayloadParser;
+import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.domain.utils.GroupUtils;
 import fr.insee.genesis.domain.utils.JsonUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
-@RequiredArgsConstructor
-public class LunaticJsonRawDataConverter {
+public class LunaticJsonRawDataConverter extends RawDataConverter{
 
     private final LunaticJsonRawDataPayloadParser payloadParser;
 
+    public LunaticJsonRawDataConverter(SurveyUnitService surveyUnitService, LunaticJsonRawDataPayloadParser lunaticJsonRawDataPayloadParser) {
+        super(surveyUnitService);
+        this.payloadParser = lunaticJsonRawDataPayloadParser;
+    }
+
     public List<SurveyUnitModel> convertRawData(
+            String questionnaireId,
             List<LunaticJsonRawDataModel> rawDataList,
             VariablesMap variablesMap
     ) {
-        return convertRawDataAndCollectEmptyModels(rawDataList, variablesMap, new ArrayList<>());
+        return convertRawDataAndCollectEmptyModels(
+                questionnaireId,
+                rawDataList,
+                variablesMap,
+                new ArrayList<>()
+        );
     }
 
     public List<SurveyUnitModel> convertRawDataAndCollectEmptyModels(
+            String questionnaireId,
             List<LunaticJsonRawDataModel> rawDataList,
             VariablesMap variablesMap,
             List<SurveyUnitModel> emptySurveyUnitModels
     ) {
         List<SurveyUnitModel> surveyUnitModels = new ArrayList<>();
+        Map<String, SurveyUnitModel> lastSurveyUnitModelsByInterrogationId = getLastSurveyUnitModels(
+                questionnaireId,
+                rawDataList.stream().map(LunaticJsonRawDataModel::interrogationId).collect(Collectors.toList())
+        );
 
         for (DataState dataState : List.of(DataState.COLLECTED, DataState.EDITED)) {
             for (LunaticJsonRawDataModel rawData : rawDataList) {
@@ -60,7 +78,14 @@ public class LunaticJsonRawDataConverter {
                         .externalVariables(new ArrayList<>())
                         .build();
 
-                convertRawDataCollectedVariables(rawData, surveyUnitModel, dataState, rawDataModelType, variablesMap);
+                convertRawDataCollectedVariables(
+                        rawData,
+                        lastSurveyUnitModelsByInterrogationId.get(rawData.interrogationId()),
+                        surveyUnitModel,
+                        dataState,
+                        rawDataModelType,
+                        variablesMap
+                );
 
                 if (dataState == DataState.COLLECTED) {
                     convertRawDataExternalVariables(rawData, surveyUnitModel, rawDataModelType, variablesMap);
@@ -93,6 +118,7 @@ public class LunaticJsonRawDataConverter {
 
     private void convertRawDataCollectedVariables(
             LunaticJsonRawDataModel srcRawData,
+            @Nullable SurveyUnitModel lastSurveyUnitModel,
             SurveyUnitModel dstSurveyUnitModel,
             DataState dataState,
             RawDataModelType rawDataModelType,
@@ -116,10 +142,11 @@ public class LunaticJsonRawDataConverter {
         List<VariableModel> destination = dstSurveyUnitModel.getCollectedVariables();
 
         for (Map.Entry<String, Object> collectedVariable : collectedMap.entrySet()) {
-            RawResponseConverter.processCollectedVariable(
+            RawResponseRawDataConverter.processCollectedVariable(
                     collectedVariable,
                     stateKey,
                     variablesMap,
+                    lastSurveyUnitModel,
                     dstSurveyUnitModel,
                     destination
             );

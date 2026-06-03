@@ -6,9 +6,10 @@ import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
-import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
-import fr.insee.genesis.domain.parser.rawdata.LunaticJsonRawDataPayloadParser;
+import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponseModel;
+import fr.insee.genesis.domain.parser.rawdata.RawResponsePayloadParser;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
+import fr.insee.modelefiliere.RawResponseDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -17,7 +18,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
@@ -27,36 +27,36 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class LunaticJsonRawDataConverterTest {
+class RawResponseRawDataConverterTest {
 
-    private static final LocalDateTime DATE_TIME = LocalDateTime.parse("2025-01-01T10:00:00");
-    private static final String QUESTIONNAIRE_ID = "testQuestionnaire";
+    private static final String COLLECTION_INSTRUMENT_ID = "collection-instrument-id";
+    private static final Mode MODE = Mode.WEB;
+
+
+    @Mock
+    private RawResponsePayloadParser rawResponsePayloadParser;
 
     @Mock
     private SurveyUnitService surveyUnitService;
 
-    @Mock
-    private LunaticJsonRawDataPayloadParser payloadParser;
-
     @InjectMocks
-    private LunaticJsonRawDataConverter converter;
+    private RawResponseRawDataConverter rawResponseRawDataConverter;
 
     @Test
-    void shouldReturnNoSurveyUnitWhenRawDataListIsEmpty() {
+    void shouldReturnNoSurveyUnitWhenRawResponseListIsEmpty() {
         VariablesMap variablesMap = mock(VariablesMap.class);
         List<SurveyUnitModel> emptySurveyUnitModels = new ArrayList<>();
 
-        List<SurveyUnitModel> result = converter.convertRawDataAndCollectEmptyModels(
-                "test",
+        List<SurveyUnitModel> result = rawResponseRawDataConverter.convertRawResponseAndCollectEmptyModels(
+                COLLECTION_INSTRUMENT_ID,
                 List.of(),
                 variablesMap,
                 emptySurveyUnitModels
@@ -67,72 +67,63 @@ class LunaticJsonRawDataConverterTest {
     }
 
     @Test
-    void shouldCreateCollectedAndEditedSurveyUnitsFromLegacyRawData() {
-        VariablesMap variablesMap = mock(VariablesMap.class);
+    void shouldCreateCollectedAndEditedSurveyUnitsFromCollectedPayloadStates() {
+        VariablesMap variablesMap = mock(VariablesMap.class, RETURNS_DEEP_STUBS);
 
-        LunaticJsonRawDataModel rawData = rawData(Map.of(
-                "COLLECTED", Map.of(
-                        "FIRST_NAME", Map.of("COLLECTED", "Alice", "EDITED", "Alicia")
-                )
+        when(variablesMap.getVariable("FIRST_NAME").getGroupName()).thenReturn(Constants.ROOT_GROUP_NAME);
+
+        RawResponseModel rawResponseModel = rawResponseModel(payloadWith(
+                collectedVariables(
+                        Map.of(
+                                "COLLECTED", "Alice",
+                                "EDITED", "Alicia"
+                        )
+                ),
+                Map.of()
         ));
 
-        try (MockedStatic<RawResponseRawDataConverter> rawResponseConverter = mockStatic(RawResponseRawDataConverter.class)) {
-            rawResponseConverter
-                    .when(() -> RawResponseRawDataConverter.processCollectedVariable(any(), any(), any(), any(), any(), any()))
-                    .thenAnswer(invocation -> {
-                        String state = invocation.getArgument(1);
-                        List<VariableModel> destination = invocation.getArgument(4);
+        List<SurveyUnitModel> result = rawResponseRawDataConverter.convertRawResponse(
+                COLLECTION_INSTRUMENT_ID,
+                List.of(rawResponseModel),
+                variablesMap
+        );
 
-                        destination.add(VariableModel.builder()
-                                .varId("FIRST_NAME")
-                                .value(state)
-                                .build());
+        assertThat(result).hasSize(2);
 
-                        return null;
-                    });
+        assertThat(result)
+                .extracting(SurveyUnitModel::getState)
+                .containsExactly(DataState.COLLECTED, DataState.EDITED);
 
-            List<SurveyUnitModel> result = converter.convertRawData(
-                    QUESTIONNAIRE_ID,
-                    List.of(rawData),
-                    variablesMap
-            );
+        assertThat(result.get(0).getCollectedVariables())
+                .extracting("varId", "value", "iteration", "scope")
+                .containsExactly(tuple("FIRST_NAME", "Alice", 1, Constants.ROOT_GROUP_NAME));
 
-            assertThat(result).hasSize(2);
-
-            assertThat(result)
-                    .extracting(SurveyUnitModel::getState)
-                    .containsExactly(DataState.COLLECTED, DataState.EDITED);
-
-            assertThat(result.get(0).getCollectedVariables())
-                    .extracting(VariableModel::value)
-                    .containsExactly("COLLECTED");
-
-            assertThat(result.get(1).getCollectedVariables())
-                    .extracting( VariableModel::value)
-                    .containsExactly("EDITED");
-        }
+        assertThat(result.get(1).getCollectedVariables())
+                .extracting("varId", "value", "iteration", "scope")
+                .containsExactly(tuple("FIRST_NAME", "Alicia", 1, Constants.ROOT_GROUP_NAME));
     }
 
     @Test
     void shouldConvertExternalVariablesOnlyForCollectedSurveyUnit() {
         VariablesMap variablesMap = mock(VariablesMap.class, RETURNS_DEEP_STUBS);
 
-        when(variablesMap.getVariable("COUNTRY").getGroupName()).thenReturn("ROOT");
+        when(variablesMap.getVariable("COUNTRY").getGroupName()).thenReturn(Constants.ROOT_GROUP_NAME);
         when(variablesMap.getVariable("CHILDREN").getGroupName()).thenReturn("HOUSEHOLD");
 
-        LunaticJsonRawDataModel rawData = rawData(Map.of(
-                "COLLECTED", Map.of(),
-                "EXTERNAL", Map.of(
-                        "COUNTRY", "FR",
-                        "CHILDREN", List.of("Anna", "", "Paul")
-                )
+        Map<String, Object> externalVariables = new LinkedHashMap<>();
+        externalVariables.put("COUNTRY", "FR");
+        externalVariables.put("CHILDREN", List.of("Anna", "", "Paul"));
+
+        RawResponseModel rawResponseModel = rawResponseModel(payloadWith(
+                Map.of(),
+                externalVariables
         ));
 
         List<SurveyUnitModel> emptySurveyUnitModels = new ArrayList<>();
 
-        List<SurveyUnitModel> result = converter.convertRawDataAndCollectEmptyModels(
-                QUESTIONNAIRE_ID,
-                List.of(rawData),
+        List<SurveyUnitModel> result = rawResponseRawDataConverter.convertRawResponseAndCollectEmptyModels(
+                COLLECTION_INSTRUMENT_ID,
+                List.of(rawResponseModel),
                 variablesMap,
                 emptySurveyUnitModels
         );
@@ -145,34 +136,33 @@ class LunaticJsonRawDataConverterTest {
         assertThat(collectedSurveyUnit.getCollectedVariables()).isEmpty();
 
         assertThat(collectedSurveyUnit.getExternalVariables())
-                .extracting(VariableModel::varId, VariableModel::value, VariableModel::iteration)
-                .containsExactlyInAnyOrder(
-                        org.assertj.core.groups.Tuple.tuple("CHILDREN", "Anna", 1),
-                        org.assertj.core.groups.Tuple.tuple("CHILDREN", "Paul", 3),
-                        org.assertj.core.groups.Tuple.tuple("COUNTRY", "FR", 1)
+                .extracting("varId", "value", "iteration", "scope")
+                .containsExactly(
+                        tuple("COUNTRY", "FR", 1, Constants.ROOT_GROUP_NAME),
+                        tuple("CHILDREN", "Anna", 1, "HOUSEHOLD"),
+                        tuple("CHILDREN", "Paul", 3, "HOUSEHOLD")
                 );
 
         assertThat(emptySurveyUnitModels)
                 .hasSize(1)
-                .first()
                 .extracting(SurveyUnitModel::getState)
-                .isEqualTo(DataState.EDITED);
+                .containsExactly(DataState.EDITED);
     }
 
     @Test
-    void shouldCollectEmptySurveyUnitsWhenNoCollectedNorExternalVariablesExist() {
+    void shouldCollectEmptySurveyUnitsWhenNoVariableExists() {
         VariablesMap variablesMap = mock(VariablesMap.class);
 
-        LunaticJsonRawDataModel rawData = rawData(Map.of(
-                "COLLECTED", Map.of(),
-                "EXTERNAL", Map.of()
+        RawResponseModel rawResponseModel = rawResponseModel(payloadWith(
+                Map.of(),
+                Map.of()
         ));
 
         List<SurveyUnitModel> emptySurveyUnitModels = new ArrayList<>();
 
-        List<SurveyUnitModel> result = converter.convertRawDataAndCollectEmptyModels(
-                QUESTIONNAIRE_ID,
-                List.of(rawData),
+        List<SurveyUnitModel> result = rawResponseRawDataConverter.convertRawResponseAndCollectEmptyModels(
+                COLLECTION_INSTRUMENT_ID,
+                List.of(rawResponseModel),
                 variablesMap,
                 emptySurveyUnitModels
         );
@@ -186,48 +176,19 @@ class LunaticJsonRawDataConverterTest {
     }
 
     @Test
-    void shouldReadFiliereRawDataFromNestedDataProperty() {
-        VariablesMap variablesMap = mock(VariablesMap.class, RETURNS_DEEP_STUBS);
-
-        when(variablesMap.getVariable("COUNTRY").getGroupName()).thenReturn("ROOT");
-
-        LunaticJsonRawDataModel rawData = rawData(Map.of(
-                "data", Map.of(
-                        "COLLECTED", Map.of(),
-                        "EXTERNAL", Map.of("COUNTRY", "FR")
-                )
-        ));
-
-        List<SurveyUnitModel> emptySurveyUnitModels = new ArrayList<>();
-
-        List<SurveyUnitModel> result = converter.convertRawDataAndCollectEmptyModels(
-                QUESTIONNAIRE_ID,
-                List.of(rawData),
-                variablesMap,
-                emptySurveyUnitModels
-        );
-
-        assertThat(result).hasSize(1);
-
-        assertThat(result.getFirst().getExternalVariables())
-                .extracting(VariableModel::varId, VariableModel::value)
-                .containsExactly(org.assertj.core.groups.Tuple.tuple("COUNTRY", "FR"));
-    }
-
-    @Test
-    void shouldAssignRootScopeWhenExternalVariableIsMissingFromMetadata() {
+    void shouldAssignRootScopeWhenVariableIsMissingFromMetadata() {
         VariablesMap variablesMap = mock(VariablesMap.class);
 
         when(variablesMap.getVariable("UNKNOWN_VARIABLE")).thenReturn(null);
 
-        LunaticJsonRawDataModel rawData = rawData(Map.of(
-                "COLLECTED", Map.of(),
-                "EXTERNAL", Map.of("UNKNOWN_VARIABLE", "value")
+        RawResponseModel rawResponseModel = rawResponseModel(payloadWith(
+                Map.of(),
+                Map.of("UNKNOWN_VARIABLE", "value")
         ));
 
-        List<SurveyUnitModel> result = converter.convertRawData(
-                QUESTIONNAIRE_ID,
-                List.of(rawData),
+        List<SurveyUnitModel> result = rawResponseRawDataConverter.convertRawResponse(
+                COLLECTION_INSTRUMENT_ID,
+                List.of(rawResponseModel),
                 variablesMap
         );
 
@@ -235,8 +196,101 @@ class LunaticJsonRawDataConverterTest {
 
         assertThat(result.getFirst().getExternalVariables())
                 .singleElement()
-                .extracting(VariableModel::scope)
+                .extracting("scope")
                 .isEqualTo(Constants.ROOT_GROUP_NAME);
+    }
+
+    @Test
+    void shouldSetQuestionnaireStateWhenPayloadContainsValidState() {
+        VariablesMap variablesMap = mock(VariablesMap.class);
+
+        RawResponseModel rawResponseModel = rawResponseModel(payloadWith(
+                Map.of(),
+                Map.of()
+        ));
+
+        when(rawResponsePayloadParser.getStringField(rawResponseModel, "questionnaireState"))
+                .thenReturn(RawResponseDto.QuestionnaireStateEnum.FINISHED.name());
+
+        List<SurveyUnitModel> emptySurveyUnitModels = new ArrayList<>();
+
+        rawResponseRawDataConverter.convertRawResponseAndCollectEmptyModels(
+                COLLECTION_INSTRUMENT_ID,
+                List.of(rawResponseModel),
+                variablesMap,
+                emptySurveyUnitModels
+        );
+
+        assertThat(emptySurveyUnitModels)
+                .extracting(SurveyUnitModel::getQuestionnaireState)
+                .containsOnly(RawResponseDto.QuestionnaireStateEnum.FINISHED);
+    }
+
+    @Test
+    void shouldKeepQuestionnaireStateNullWhenPayloadContainsInvalidState() {
+        VariablesMap variablesMap = mock(VariablesMap.class);
+
+        RawResponseModel rawResponseModel = rawResponseModel(payloadWith(
+                Map.of(),
+                Map.of()
+        ));
+
+        when(rawResponsePayloadParser.getStringField(rawResponseModel, "questionnaireState"))
+                .thenReturn("INVALID_STATE");
+
+        List<SurveyUnitModel> emptySurveyUnitModels = new ArrayList<>();
+
+        rawResponseRawDataConverter.convertRawResponseAndCollectEmptyModels(
+                COLLECTION_INSTRUMENT_ID,
+                List.of(rawResponseModel),
+                variablesMap,
+                emptySurveyUnitModels
+        );
+
+        assertThat(emptySurveyUnitModels)
+                .extracting(SurveyUnitModel::getQuestionnaireState)
+                .containsOnlyNulls();
+    }
+
+    @Test
+    void shouldConvertPairwiseCollectedVariables() {
+        RawResponseRawDataConverter converter = new RawResponseRawDataConverter(
+                surveyUnitService, rawResponsePayloadParser
+        );
+        VariablesMap variablesMap = mock(VariablesMap.class, RETURNS_DEEP_STUBS);
+
+        when(variablesMap.hasVariable(Constants.PAIRWISE_PREFIX + 1)).thenReturn(true);
+        when(variablesMap.getVariable(Constants.PAIRWISE_PREFIX + 1).getGroupName()).thenReturn("PAIRWISE_GROUP");
+
+        List<List<String>> pairwiseValues = List.of(
+                List.of("1", "", "3"),
+                List.of()
+        );
+
+        RawResponseModel rawResponseModel = rawResponseModel(payloadWith(
+                Map.of(Constants.PAIRWISES, Map.of("COLLECTED", pairwiseValues)),
+                Map.of()
+        ));
+
+        List<SurveyUnitModel> result = converter.convertRawResponse(
+                COLLECTION_INSTRUMENT_ID,
+                List.of(rawResponseModel),
+                variablesMap
+        );
+
+        SurveyUnitModel collectedSurveyUnit = result.getFirst();
+
+        assertThat(collectedSurveyUnit.getCollectedVariables())
+                .hasSize(2 * (Constants.MAX_LINKS_ALLOWED - 1));
+
+        assertThat(collectedSurveyUnit.getCollectedVariables())
+                .extracting("varId", "value", "iteration", "scope", "parentId")
+                .contains(
+                        tuple(Constants.PAIRWISE_PREFIX + 1, "1", 1, "PAIRWISE_GROUP", Constants.ROOT_GROUP_NAME),
+                        tuple(Constants.PAIRWISE_PREFIX + 2, Constants.SAME_AXIS_VALUE, 1, "PAIRWISE_GROUP", Constants.ROOT_GROUP_NAME),
+                        tuple(Constants.PAIRWISE_PREFIX + 3, "3", 1, "PAIRWISE_GROUP", Constants.ROOT_GROUP_NAME),
+                        tuple(Constants.PAIRWISE_PREFIX + 1, Constants.NO_PAIRWISE_VALUE, 2, "PAIRWISE_GROUP", Constants.ROOT_GROUP_NAME)
+                );
     }
 
     @Nested
@@ -245,14 +299,14 @@ class LunaticJsonRawDataConverterTest {
 
         @Test
         @DisplayName("Should not add variable if not already existant and null in raw")
-        void shouldNotAddIfNull() {
+        void shouldNotAddIfNull(){
             //GIVEN
             VariablesMap variablesMap = mock(VariablesMap.class);
 
             //Already existing survey unit
             String interrogationId = "testInterrogation";
             SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
-                    .collectionInstrumentId(QUESTIONNAIRE_ID)
+                    .collectionInstrumentId(COLLECTION_INSTRUMENT_ID)
                     .interrogationId(interrogationId)
                     .collectedVariables(new ArrayList<>())
                     .externalVariables(new ArrayList<>())
@@ -277,7 +331,7 @@ class LunaticJsonRawDataConverterTest {
                             .build()
             );
 
-            when(surveyUnitService.findLatestByInterrogationIds(eq(QUESTIONNAIRE_ID), anySet()))
+            when(surveyUnitService.findLatestByInterrogationIds(eq(COLLECTION_INSTRUMENT_ID), anySet()))
                     .thenReturn(List.of(
                             surveyUnitModel
                     ));
@@ -291,19 +345,19 @@ class LunaticJsonRawDataConverterTest {
             externalVariablesMap.put("EXTVAR1", "ext1");
             externalVariablesMap.put("EXTVAR2", null);
 
-            LunaticJsonRawDataModel lunaticJsonRawDataModel = rawData(
-                    Map.of(
-                            "COLLECTED", collectedVariablesMap,
-                            "EXTERNAL", externalVariablesMap
+            RawResponseModel rawResponseModel = rawResponseModel(
+                    payloadWith(
+                            collectedVariablesMap,
+                            externalVariablesMap
                     )
             );
 
-            List<LunaticJsonRawDataModel> lunaticJsonRawDataModels = new ArrayList<>(List.of(lunaticJsonRawDataModel));
+            List<RawResponseModel> rawResponseModels = new ArrayList<>(List.of(rawResponseModel));
 
             //WHEN
-            List<SurveyUnitModel> surveyUnitModels = converter.convertRawData(
-                    QUESTIONNAIRE_ID,
-                    lunaticJsonRawDataModels,
+            List<SurveyUnitModel> surveyUnitModels = rawResponseRawDataConverter.convertRawResponse(
+                    COLLECTION_INSTRUMENT_ID,
+                    rawResponseModels,
                     variablesMap
             );
 
@@ -328,7 +382,7 @@ class LunaticJsonRawDataConverterTest {
             //Already existing survey unit
             String interrogationId = "testInterrogation";
             SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
-                    .collectionInstrumentId(QUESTIONNAIRE_ID)
+                    .collectionInstrumentId(COLLECTION_INSTRUMENT_ID)
                     .interrogationId(interrogationId)
                     .collectedVariables(new ArrayList<>())
                     .externalVariables(new ArrayList<>())
@@ -355,7 +409,7 @@ class LunaticJsonRawDataConverterTest {
                 );
             }
 
-            when(surveyUnitService.findLatestByInterrogationIds(eq(QUESTIONNAIRE_ID), anySet()))
+            when(surveyUnitService.findLatestByInterrogationIds(eq(COLLECTION_INSTRUMENT_ID), anySet()))
                     .thenReturn(List.of(
                             surveyUnitModel
                     ));
@@ -367,19 +421,19 @@ class LunaticJsonRawDataConverterTest {
             Map<String, Object> externalVariablesMap = new LinkedHashMap<>();
             externalVariablesMap.put("EXTVAR1", "ext1");
 
-            LunaticJsonRawDataModel lunaticJsonRawDataModel = rawData(
-                    Map.of(
-                            "COLLECTED", collectedVariablesMap,
-                            "EXTERNAL", externalVariablesMap
+            RawResponseModel rawResponseModel = rawResponseModel(
+                    payloadWith(
+                            collectedVariablesMap,
+                            externalVariablesMap
                     )
             );
 
-            List<LunaticJsonRawDataModel> lunaticJsonRawDataModels = new ArrayList<>(List.of(lunaticJsonRawDataModel));
+            List<RawResponseModel> rawResponseModels = new ArrayList<>(List.of(rawResponseModel));
 
             //WHEN
-            List<SurveyUnitModel> surveyUnitModels = converter.convertRawData(
-                    QUESTIONNAIRE_ID,
-                    lunaticJsonRawDataModels,
+            List<SurveyUnitModel> surveyUnitModels = rawResponseRawDataConverter.convertRawResponse(
+                    COLLECTION_INSTRUMENT_ID,
+                    rawResponseModels,
                     variablesMap
             );
 
@@ -406,7 +460,7 @@ class LunaticJsonRawDataConverterTest {
             //Already existing survey unit with non-null variables
             String interrogationId = "testInterrogation";
             SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
-                    .collectionInstrumentId(QUESTIONNAIRE_ID)
+                    .collectionInstrumentId(COLLECTION_INSTRUMENT_ID)
                     .interrogationId(interrogationId)
                     .collectedVariables(new ArrayList<>())
                     .externalVariables(new ArrayList<>())
@@ -431,7 +485,7 @@ class LunaticJsonRawDataConverterTest {
                             .build()
             );
 
-            when(surveyUnitService.findLatestByInterrogationIds(eq(QUESTIONNAIRE_ID), anySet()))
+            when(surveyUnitService.findLatestByInterrogationIds(eq(COLLECTION_INSTRUMENT_ID), anySet()))
                     .thenReturn(List.of(
                             surveyUnitModel
                     ));
@@ -444,19 +498,19 @@ class LunaticJsonRawDataConverterTest {
             externalVariablesMap.put("EXTVAR1", null);
 
 
-            LunaticJsonRawDataModel lunaticJsonRawDataModel = rawData(
-                    Map.of(
-                            "COLLECTED", collectedVariablesMap,
-                            "EXTERNAL", externalVariablesMap
+            RawResponseModel rawResponseModel = rawResponseModel(
+                    payloadWith(
+                            Map.of("COLLECTED", collectedVariablesMap),
+                            externalVariablesMap
                     )
             );
 
-            List<LunaticJsonRawDataModel> lunaticJsonRawDataModels = new ArrayList<>(List.of(lunaticJsonRawDataModel));
+            List<RawResponseModel> rawResponseModels = new ArrayList<>(List.of(rawResponseModel));
 
             //WHEN
-            List<SurveyUnitModel> surveyUnitModels = converter.convertRawData(
-                    QUESTIONNAIRE_ID,
-                    lunaticJsonRawDataModels,
+            List<SurveyUnitModel> surveyUnitModels = rawResponseRawDataConverter.convertRawResponse(
+                    COLLECTION_INSTRUMENT_ID,
+                    rawResponseModels,
                     variablesMap
             );
 
@@ -478,50 +532,50 @@ class LunaticJsonRawDataConverterTest {
             //Already existing survey unit with non-null variables
             String interrogationId = "testInterrogation";
             SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
-                    .collectionInstrumentId(QUESTIONNAIRE_ID)
+                    .collectionInstrumentId(COLLECTION_INSTRUMENT_ID)
                     .interrogationId(interrogationId)
                     .collectedVariables(new ArrayList<>())
                     .externalVariables(new ArrayList<>())
                     .build();
 
-            surveyUnitModel.getCollectedVariables().add(
-                    VariableModel.builder()
-                            .varId("VAR1")
-                            .value("VALUE1")
-                            .state(DataState.COLLECTED)
-                            .scope(Constants.ROOT_GROUP_NAME)
-                            .iteration(1)
-                            .build()
-            );
-            surveyUnitModel.getCollectedVariables().add(
-                    VariableModel.builder()
-                            .varId("VAR1")
-                            .value("VALUE2")
-                            .state(DataState.COLLECTED)
-                            .scope(Constants.ROOT_GROUP_NAME)
-                            .iteration(2)
-                            .build()
-            );
-            surveyUnitModel.getExternalVariables().add(
-                    VariableModel.builder()
-                            .varId("EXTVAR1")
-                            .value("ext1")
-                            .state(DataState.COLLECTED)
-                            .scope(Constants.ROOT_GROUP_NAME)
-                            .iteration(1)
-                            .build()
-            );
-            surveyUnitModel.getExternalVariables().add(
-                    VariableModel.builder()
-                            .varId("EXTVAR1")
-                            .value("ext2")
-                            .state(DataState.COLLECTED)
-                            .scope(Constants.ROOT_GROUP_NAME)
-                            .iteration(2)
-                            .build()
-            );
+                surveyUnitModel.getCollectedVariables().add(
+                        VariableModel.builder()
+                                .varId("VAR1")
+                                .value("VALUE1")
+                                .state(DataState.COLLECTED)
+                                .scope(Constants.ROOT_GROUP_NAME)
+                                .iteration(1)
+                                .build()
+                );
+                surveyUnitModel.getCollectedVariables().add(
+                        VariableModel.builder()
+                                .varId("VAR1")
+                                .value("VALUE2")
+                                .state(DataState.COLLECTED)
+                                .scope(Constants.ROOT_GROUP_NAME)
+                                .iteration(2)
+                                .build()
+                );
+                surveyUnitModel.getExternalVariables().add(
+                        VariableModel.builder()
+                                .varId("EXTVAR1")
+                                .value("ext1")
+                                .state(DataState.COLLECTED)
+                                .scope(Constants.ROOT_GROUP_NAME)
+                                .iteration(1)
+                                .build()
+                );
+                surveyUnitModel.getExternalVariables().add(
+                        VariableModel.builder()
+                                .varId("EXTVAR1")
+                                .value("ext2")
+                                .state(DataState.COLLECTED)
+                                .scope(Constants.ROOT_GROUP_NAME)
+                                .iteration(2)
+                                .build()
+                );
 
-            when(surveyUnitService.findLatestByInterrogationIds(eq(QUESTIONNAIRE_ID), anySet()))
+            when(surveyUnitService.findLatestByInterrogationIds(eq(COLLECTION_INSTRUMENT_ID), anySet()))
                     .thenReturn(List.of(
                             surveyUnitModel
                     ));
@@ -540,19 +594,20 @@ class LunaticJsonRawDataConverterTest {
             variablesStrings.add(null);
             externalVariablesMap.put("EXTVAR1", variablesStrings);
 
-            LunaticJsonRawDataModel lunaticJsonRawDataModel = rawData(
-                    Map.of(
-                            "COLLECTED", collectedVariablesMap,
-                            "EXTERNAL", externalVariablesMap
+
+            RawResponseModel rawResponseModel = rawResponseModel(
+                    payloadWith(
+                            Map.of("COLLECTED", collectedVariablesMap),
+                            externalVariablesMap
                     )
             );
 
-            List<LunaticJsonRawDataModel> lunaticJsonRawDataModels = new ArrayList<>(List.of(lunaticJsonRawDataModel));
+            List<RawResponseModel> rawResponseModels = new ArrayList<>(List.of(rawResponseModel));
 
             //WHEN
-            List<SurveyUnitModel> surveyUnitModels = converter.convertRawData(
-                    QUESTIONNAIRE_ID,
-                    lunaticJsonRawDataModels,
+            List<SurveyUnitModel> surveyUnitModels = rawResponseRawDataConverter.convertRawResponse(
+                    COLLECTION_INSTRUMENT_ID,
+                    rawResponseModels,
                     variablesMap
             );
 
@@ -589,7 +644,7 @@ class LunaticJsonRawDataConverterTest {
             //Already existing survey unit
             String interrogationId = "testInterrogation";
             SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
-                    .collectionInstrumentId(QUESTIONNAIRE_ID)
+                    .collectionInstrumentId(COLLECTION_INSTRUMENT_ID)
                     .interrogationId(interrogationId)
                     .collectedVariables(new ArrayList<>())
                     .externalVariables(new ArrayList<>())
@@ -614,7 +669,7 @@ class LunaticJsonRawDataConverterTest {
                             .build()
             );
 
-            when(surveyUnitService.findLatestByInterrogationIds(eq(QUESTIONNAIRE_ID), anySet()))
+            when(surveyUnitService.findLatestByInterrogationIds(eq(COLLECTION_INSTRUMENT_ID), anySet()))
                     .thenReturn(List.of(
                             surveyUnitModel
                     ));
@@ -628,19 +683,19 @@ class LunaticJsonRawDataConverterTest {
                 externalVariablesMap.put("EXTVAR1", null);
             }
 
-            LunaticJsonRawDataModel lunaticJsonRawDataModel = rawData(
-                    Map.of(
-                            "COLLECTED", collectedVariablesMap,
-                            "EXTERNAL", externalVariablesMap
+            RawResponseModel rawResponseModel = rawResponseModel(
+                    payloadWith(
+                            Map.of("COLLECTED", collectedVariablesMap),
+                            externalVariablesMap
                     )
             );
 
-            List<LunaticJsonRawDataModel> lunaticJsonRawDataModels = new ArrayList<>(List.of(lunaticJsonRawDataModel));
+            List<RawResponseModel> rawResponseModels = new ArrayList<>(List.of(rawResponseModel));
 
             //WHEN
-            List<SurveyUnitModel> surveyUnitModels = converter.convertRawData(
-                    QUESTIONNAIRE_ID,
-                    lunaticJsonRawDataModels,
+            List<SurveyUnitModel> surveyUnitModels = rawResponseRawDataConverter.convertRawResponse(
+                    COLLECTION_INSTRUMENT_ID,
+                    rawResponseModels,
                     variablesMap
             );
 
@@ -668,7 +723,7 @@ class LunaticJsonRawDataConverterTest {
             //Already existing survey unit
             String interrogationId = "testInterrogation";
             SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
-                    .collectionInstrumentId(QUESTIONNAIRE_ID)
+                    .collectionInstrumentId(COLLECTION_INSTRUMENT_ID)
                     .interrogationId(interrogationId)
                     .collectedVariables(new ArrayList<>())
                     .externalVariables(new ArrayList<>())
@@ -711,7 +766,7 @@ class LunaticJsonRawDataConverterTest {
                             .build()
             );
 
-            when(surveyUnitService.findLatestByInterrogationIds(eq(QUESTIONNAIRE_ID), anySet()))
+            when(surveyUnitService.findLatestByInterrogationIds(eq(COLLECTION_INSTRUMENT_ID), anySet()))
                     .thenReturn(List.of(
                             surveyUnitModel
                     ));
@@ -737,19 +792,19 @@ class LunaticJsonRawDataConverterTest {
                 externalVariablesMap.put("EXTVAR1", List.of("ext1"));
             }
 
-            LunaticJsonRawDataModel lunaticJsonRawDataModel = rawData(
-                    Map.of(
-                            "COLLECTED", collectedVariablesMap,
-                            "EXTERNAL", externalVariablesMap
+            RawResponseModel rawResponseModel = rawResponseModel(
+                    payloadWith(
+                            Map.of("COLLECTED", collectedVariablesMap),
+                            externalVariablesMap
                     )
             );
 
-            List<LunaticJsonRawDataModel> lunaticJsonRawDataModels = new ArrayList<>(List.of(lunaticJsonRawDataModel));
+            List<RawResponseModel> rawResponseModels = new ArrayList<>(List.of(rawResponseModel));
 
             //WHEN
-            List<SurveyUnitModel> surveyUnitModels = converter.convertRawData(
-                    QUESTIONNAIRE_ID,
-                    lunaticJsonRawDataModels,
+            List<SurveyUnitModel> surveyUnitModels = rawResponseRawDataConverter.convertRawResponse(
+                    COLLECTION_INSTRUMENT_ID,
+                    rawResponseModels,
                     variablesMap
             );
 
@@ -768,19 +823,46 @@ class LunaticJsonRawDataConverterTest {
         }
     }
 
-    private LunaticJsonRawDataModel rawData(Map<String, Object> data) {
-        LunaticJsonRawDataModel rawData = LunaticJsonRawDataModel.builder()
-                .questionnaireId("questionnaire-id")
-                .mode(Mode.WEB)
+
+    //UTILS
+    private RawResponseModel rawResponseModel(Map<String, Object> payload) {
+        RawResponseModel rawResponseModel = RawResponseModel.builder()
+                .collectionInstrumentId(COLLECTION_INSTRUMENT_ID)
+                .mode(MODE)
                 .interrogationId("interrogation-id")
-                .idUE("survey-unit-id")
-                .recordDate(DATE_TIME)
-                .data(data)
+                .recordDate(LocalDateTime.parse("2025-01-01T10:00:00"))
+                .payload(payload)
                 .build();
 
-        when(payloadParser.getValidationDate(rawData)).thenReturn(DATE_TIME);
-        when(payloadParser.getIsCapturedIndirectly(rawData)).thenReturn(false);
+        when(rawResponsePayloadParser.getStringField(rawResponseModel, "majorModelVersion"))
+                .thenReturn("1");
+        when(rawResponsePayloadParser.getStringField(rawResponseModel, "usualSurveyUnitId"))
+                .thenReturn("survey-unit-id");
+        when(rawResponsePayloadParser.getStringField(rawResponseModel, "questionnaireState"))
+                .thenReturn(null);
+        when(rawResponsePayloadParser.getValidationDate(rawResponseModel))
+                .thenReturn(LocalDateTime.parse("2025-01-02T10:00:00"));
+        when(rawResponsePayloadParser.getIsCapturedIndirectly(rawResponseModel))
+                .thenReturn(false);
 
-        return rawData;
+        return rawResponseModel;
+    }
+
+    private static Map<String, Object> payloadWith(
+            Map<String, Object> collectedVariables,
+            Map<String, Object> externalVariables
+    ) {
+        return Map.of(
+                "data", Map.of(
+                        "COLLECTED", collectedVariables,
+                        "EXTERNAL", externalVariables
+                )
+        );
+    }
+
+    private static Map<String, Object> collectedVariables(
+            Map<String, Object> states
+    ) {
+        return Map.of("FIRST_NAME", states);
     }
 }

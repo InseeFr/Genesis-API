@@ -8,46 +8,81 @@ import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponseModel;
 import fr.insee.genesis.domain.parser.rawdata.RawResponsePayloadParser;
+import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.domain.utils.GroupUtils;
 import fr.insee.genesis.domain.utils.JsonUtils;
 import fr.insee.modelefiliere.RawResponseDto;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService.getValueString;
 
 @Component
 @Slf4j
-@RequiredArgsConstructor
-public class RawResponseConverter {
+public class RawResponseRawDataConverter extends RawDataConverter {
 
     private final RawResponsePayloadParser rawResponsePayloadParser;
 
+    public RawResponseRawDataConverter(SurveyUnitService surveyUnitService, RawResponsePayloadParser rawResponsePayloadParser) {
+        super(surveyUnitService);
+        this.rawResponsePayloadParser = rawResponsePayloadParser;
+    }
+
+    /**
+     * Like convertRawResponseAndCollectEmptyModels but ignoring the empty raw responses
+     */
     public List<SurveyUnitModel> convertRawResponse(
+            String collectionInstrumentId,
             List<RawResponseModel> rawResponseModels,
             VariablesMap variablesMap
     ) {
-        return convertRawResponseAndCollectEmptyModels(rawResponseModels, variablesMap, new ArrayList<>());
+        return convertRawResponseAndCollectEmptyModels(
+                collectionInstrumentId,
+                rawResponseModels,
+                variablesMap,
+                new ArrayList<>()
+        );
     }
 
+    /**
+     * Converts RawResponseModels into SurveyUnitModels
+     * @param collectionInstrumentId Collection instrument id of raw responses to convert
+     * @param rawResponseModels raw responses to convert
+     * @param variablesMap variables map of the collection instrument
+     * @param emptySurveyUnitModels A list of survey units that will be filled with empty raw responses
+     * @return a list of SurveyUnitModels converted from raw responses
+     */
     public List<SurveyUnitModel> convertRawResponseAndCollectEmptyModels(
+            String collectionInstrumentId,
             List<RawResponseModel> rawResponseModels,
             VariablesMap variablesMap,
             List<SurveyUnitModel> emptySurveyUnitModels
     ) {
         List<SurveyUnitModel> surveyUnitModels = new ArrayList<>();
 
+        Map<String, SurveyUnitModel> lastSurveyUnitModelsByInterrogationId = getLastSurveyUnitModels(
+                collectionInstrumentId,
+                rawResponseModels.stream().map(RawResponseModel::interrogationId).collect(Collectors.toList())
+        );
+
         for (DataState dataState : List.of(DataState.COLLECTED, DataState.EDITED)) {
             for (RawResponseModel rawResponseModel : rawResponseModels) {
                 SurveyUnitModel surveyUnitModel = buildSurveyUnitModel(rawResponseModel, dataState);
 
-                convertCollectedVariables(rawResponseModel, surveyUnitModel, dataState, variablesMap);
+                convertCollectedVariables(
+                        rawResponseModel,
+                        lastSurveyUnitModelsByInterrogationId.get(rawResponseModel.interrogationId()),
+                        surveyUnitModel,
+                        dataState,
+                        variablesMap
+                );
 
                 if (dataState == DataState.COLLECTED) {
                     convertExternalVariables(rawResponseModel, surveyUnitModel, variablesMap);
@@ -106,6 +141,7 @@ public class RawResponseConverter {
 
     private void convertCollectedVariables(
             RawResponseModel rawResponseModel,
+            @Nullable SurveyUnitModel lastSurveyUnitModel,
             SurveyUnitModel dstSurveyUnitModel,
             DataState dataState,
             VariablesMap variablesMap
@@ -125,7 +161,14 @@ public class RawResponseConverter {
         List<VariableModel> collectedVariables = dstSurveyUnitModel.getCollectedVariables();
 
         for (Map.Entry<String, Object> entry : collectedMap.entrySet()) {
-            processCollectedVariable(entry, stateKey, variablesMap, dstSurveyUnitModel, collectedVariables);
+            processCollectedVariable(
+                    entry,
+                    stateKey,
+                    variablesMap,
+                    lastSurveyUnitModel,
+                    dstSurveyUnitModel,
+                    collectedVariables
+            );
         }
     }
 
@@ -133,6 +176,7 @@ public class RawResponseConverter {
             Map.Entry<String, Object> entry,
             String stateKey,
             VariablesMap variablesMap,
+            @Nullable SurveyUnitModel lastSurveyUnitModel,
             SurveyUnitModel dstSurveyUnitModel,
             List<VariableModel> variableModelList
     ) {
@@ -142,20 +186,25 @@ public class RawResponseConverter {
         }
 
         Map<String, Object> states = JsonUtils.asMap(entry.getValue());
-        if (states == null) {
+        if (states == null || states.get(stateKey) == null) {
+            convertNullVar(entry, lastSurveyUnitModel, variableModelList);
             return;
         }
 
         Object value = states.get(stateKey);
-        if (value == null) {
-            return;
-        }
-
         if (value instanceof List<?> list) {
             convertListVar(list, entry, variablesMap, variableModelList);
-        } else {
-            convertOneVar(entry, getValueString(value), variablesMap, 1, variableModelList);
+            return;
         }
+        convertOneVar(entry, getValueString(value), variablesMap, 1, variableModelList);
+    }
+
+    private static void convertNullVar(
+            Map.Entry<String, Object> variableEntry,
+            @Nullable SurveyUnitModel lastSurveyUnitModel,
+            List<VariableModel> destination
+    ) {
+        //TODO
     }
 
     private static void convertListVar(

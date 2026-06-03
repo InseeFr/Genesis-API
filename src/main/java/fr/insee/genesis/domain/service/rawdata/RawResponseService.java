@@ -5,7 +5,7 @@ import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.controller.dto.rawdata.ProcessingResultDto;
 import fr.insee.genesis.controller.utils.ControllerUtils;
-import fr.insee.genesis.domain.converter.rawdata.RawResponseConverter;
+import fr.insee.genesis.domain.converter.rawdata.RawResponseRawDataConverter;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
@@ -22,7 +22,6 @@ import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.exceptions.NoDataException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.modelefiliere.ModeDto;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
@@ -49,13 +48,13 @@ public class RawResponseService implements RawResponseApiPort {
     private final SurveyUnitQualityToolService surveyUnitQualityToolService;
     private final FileUtils fileUtils;
     private final Config config;
-    private final RawResponseConverter rawResponseConverter;
+    private final RawResponseRawDataConverter rawResponseRawDataConverter;
 
     @Qualifier("rawResponseMongoAdapter")
     private final RawResponsePersistencePort rawResponsePersistencePort;
 
     //Lombok cannot use @Qualifier
-    public RawResponseService(ControllerUtils controllerUtils, QuestionnaireMetadataService metadataService, SurveyUnitService surveyUnitService, SurveyUnitQualityService surveyUnitQualityService, SurveyUnitQualityToolService surveyUnitQualityToolService, FileUtils fileUtils, Config config, RawResponseConverter rawResponseConverter, RawResponsePersistencePort rawResponsePersistencePort) {
+    public RawResponseService(ControllerUtils controllerUtils, QuestionnaireMetadataService metadataService, SurveyUnitService surveyUnitService, SurveyUnitQualityService surveyUnitQualityService, SurveyUnitQualityToolService surveyUnitQualityToolService, FileUtils fileUtils, Config config, RawResponseRawDataConverter rawResponseRawDataConverter, RawResponsePersistencePort rawResponsePersistencePort) {
         this.controllerUtils = controllerUtils;
         this.metadataService = metadataService;
         this.surveyUnitService = surveyUnitService;
@@ -63,7 +62,7 @@ public class RawResponseService implements RawResponseApiPort {
         this.surveyUnitQualityToolService = surveyUnitQualityToolService;
         this.fileUtils = fileUtils;
         this.config = config;
-        this.rawResponseConverter = rawResponseConverter;
+        this.rawResponseRawDataConverter = rawResponseRawDataConverter;
         this.rawResponsePersistencePort = rawResponsePersistencePort;
     }
 
@@ -169,7 +168,12 @@ public class RawResponseService implements RawResponseApiPort {
 
         List<SurveyUnitModel> emptySurveyUnitModels = new ArrayList<>();
         List<SurveyUnitModel> surveyUnitModels =
-                rawResponseConverter.convertRawResponseAndCollectEmptyModels(rawResponseModels, variablesMap, emptySurveyUnitModels);
+                rawResponseRawDataConverter.convertRawResponseAndCollectEmptyModels(
+                        collectionInstrumentId,
+                        rawResponseModels,
+                        variablesMap,
+                        emptySurveyUnitModels
+                );
 
         surveyUnitQualityService.verifySurveyUnits(surveyUnitModels, variablesMap);
         surveyUnitService.saveSurveyUnits(surveyUnitModels);

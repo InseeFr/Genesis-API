@@ -169,6 +169,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
         List<SurveyUnitModel> emptySurveyUnitModels = new ArrayList<>();
         List<SurveyUnitModel> surveyUnitModels =
                 lunaticJsonRawDataConverter.convertRawDataAndCollectEmptyModels(
+                        questionnaireId,
                         rawData,
                         variablesMap,
                         emptySurveyUnitModels
@@ -216,14 +217,6 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
         }
 
         return variablesMap;
-    }
-
-    @Override
-    public List<SurveyUnitModel> convertRawData(
-            List<LunaticJsonRawDataModel> rawDataList,
-            VariablesMap variablesMap
-    ) {
-        return lunaticJsonRawDataConverter.convertRawData(rawDataList, variablesMap);
     }
 
     @Override
