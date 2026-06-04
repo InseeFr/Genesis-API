@@ -12,7 +12,6 @@ import fr.insee.genesis.domain.parser.rawdata.LunaticJsonRawDataPayloadParser;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.domain.utils.GroupUtils;
 import fr.insee.genesis.domain.utils.JsonUtils;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
@@ -142,7 +141,7 @@ public class LunaticJsonRawDataConverter extends RawDataConverter{
         List<VariableModel> destination = dstSurveyUnitModel.getCollectedVariables();
 
         for (Map.Entry<String, Object> collectedVariable : collectedMap.entrySet()) {
-            RawResponseRawDataConverter.processCollectedVariable(
+            RawResponseRawDataConverter.processCollectedVariableForState(
                     collectedVariable,
                     stateKey,
                     variablesMap,

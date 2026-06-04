@@ -161,7 +161,7 @@ public class RawResponseRawDataConverter extends RawDataConverter {
         List<VariableModel> collectedVariables = dstSurveyUnitModel.getCollectedVariables();
 
         for (Map.Entry<String, Object> entry : collectedMap.entrySet()) {
-            processCollectedVariable(
+            processCollectedVariableForState(
                     entry,
                     stateKey,
                     variablesMap,
@@ -172,7 +172,7 @@ public class RawResponseRawDataConverter extends RawDataConverter {
         }
     }
 
-    public static void processCollectedVariable(
+    public static void processCollectedVariableForState(
             Map.Entry<String, Object> entry,
             String stateKey,
             VariablesMap variablesMap,
@@ -185,13 +185,14 @@ public class RawResponseRawDataConverter extends RawDataConverter {
             return;
         }
 
-        Map<String, Object> states = JsonUtils.asMap(entry.getValue());
-        if (states == null || states.get(stateKey) == null) {
+        Map<String, Object> variableStates = JsonUtils.asMap(entry.getValue());
+        //If variable value absent for state or null value
+        if (variableStates == null || variableStates.get(stateKey) == null) {
             convertNullVar(entry, lastSurveyUnitModel, variableModelList);
             return;
         }
 
-        Object value = states.get(stateKey);
+        Object value = variableStates.get(stateKey);
         if (value instanceof List<?> list) {
             convertListVar(list, entry, variablesMap, variableModelList);
             return;
@@ -204,7 +205,11 @@ public class RawResponseRawDataConverter extends RawDataConverter {
             @Nullable SurveyUnitModel lastSurveyUnitModel,
             List<VariableModel> destination
     ) {
+        if(lastSurveyUnitModel == null){
+            return;
+        }
         //TODO
+
     }
 
     private static void convertListVar(

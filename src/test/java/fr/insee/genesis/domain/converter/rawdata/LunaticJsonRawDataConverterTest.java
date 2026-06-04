@@ -78,7 +78,7 @@ class LunaticJsonRawDataConverterTest {
 
         try (MockedStatic<RawResponseRawDataConverter> rawResponseConverter = mockStatic(RawResponseRawDataConverter.class)) {
             rawResponseConverter
-                    .when(() -> RawResponseRawDataConverter.processCollectedVariable(any(), any(), any(), any(), any(), any()))
+                    .when(() -> RawResponseRawDataConverter.processCollectedVariableForState(any(), any(), any(), any(), any(), any()))
                     .thenAnswer(invocation -> {
                         String state = invocation.getArgument(1);
                         List<VariableModel> destination = invocation.getArgument(4);
