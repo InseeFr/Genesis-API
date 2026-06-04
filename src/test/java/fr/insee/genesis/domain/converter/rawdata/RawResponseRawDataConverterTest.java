@@ -297,6 +297,13 @@ class RawResponseRawDataConverterTest {
     @DisplayName("Null cases tests")
     class NullVariablesTests {
 
+        //NullVariablesTests constants
+        private static final String INTERROGATION_ID = "testInterrogation";
+        private static final String COLLECTED_VARIABLE_NAME = "VAR1";
+        private static final String COLLECTED_VARIABLE_VALUE = "test";
+        private static final String EXTERNAL_VARIABLE_NAME = "EXTVAR1";
+        private static final String EXTERNAL_VARIABLE_VALUE = "ext1";
+
         @Test
         @DisplayName("Should not add variable if not already existant and null in raw")
         void shouldNotAddIfNull(){
@@ -304,32 +311,7 @@ class RawResponseRawDataConverterTest {
             VariablesMap variablesMap = mock(VariablesMap.class);
 
             //Already existing survey unit
-            String interrogationId = "testInterrogation";
-            SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
-                    .collectionInstrumentId(COLLECTION_INSTRUMENT_ID)
-                    .interrogationId(interrogationId)
-                    .collectedVariables(new ArrayList<>())
-                    .externalVariables(new ArrayList<>())
-                    .build();
-
-            surveyUnitModel.getCollectedVariables().add(
-                    VariableModel.builder()
-                            .varId("VAR1")
-                            .value("1")
-                            .state(DataState.COLLECTED)
-                            .scope(Constants.ROOT_GROUP_NAME)
-                            .iteration(1)
-                            .build()
-            );
-            surveyUnitModel.getExternalVariables().add(
-                    VariableModel.builder()
-                            .varId("EXTVAR1")
-                            .value("ext1")
-                            .state(DataState.COLLECTED)
-                            .scope(Constants.ROOT_GROUP_NAME)
-                            .iteration(1)
-                            .build()
-            );
+            SurveyUnitModel surveyUnitModel = getSurveyUnitModel();
 
             when(surveyUnitService.findLatestByInterrogationIds(eq(COLLECTION_INSTRUMENT_ID), anySet()))
                     .thenReturn(List.of(
@@ -338,11 +320,12 @@ class RawResponseRawDataConverterTest {
 
             //Raw response with new null variables
             Map<String, Object> collectedVariablesMap = new LinkedHashMap<>();
-            collectedVariablesMap.put("VAR1", Map.of("COLLECTED", "test"));
+
+            collectedVariablesMap.put(COLLECTED_VARIABLE_NAME, Map.of("COLLECTED", COLLECTED_VARIABLE_VALUE));
             collectedVariablesMap.put("VAR2", null);
 
             Map<String, Object> externalVariablesMap = new LinkedHashMap<>();
-            externalVariablesMap.put("EXTVAR1", "ext1");
+            externalVariablesMap.put(EXTERNAL_VARIABLE_NAME, EXTERNAL_VARIABLE_VALUE);
             externalVariablesMap.put("EXTVAR2", null);
 
             RawResponseModel rawResponseModel = rawResponseModel(
@@ -362,36 +345,30 @@ class RawResponseRawDataConverterTest {
             );
 
             //THEN
-            assertThat(surveyUnitModels).hasSize(1);
-            assertThat(surveyUnitModels.getFirst().getCollectedVariables()).hasSize(1);
-            assertThat(surveyUnitModels.getFirst().getCollectedVariables().getFirst()
-                    .value()).isEqualTo("test");
-            assertThat(surveyUnitModels.getFirst().getExternalVariables()).hasSize(1);
-            assertThat(surveyUnitModels.getFirst().getExternalVariables().getFirst()
-                    .value()).isEqualTo("ext1");
-
+            // No new variables added
+            assertNonNullVariables(surveyUnitModels);
         }
 
         @ParameterizedTest
         @ValueSource(booleans = {false, true})
         @DisplayName("Should convert to non null if existant variable is null or absent")
-        void shouldConvertToNonNullValueIfNullOrNotExists(boolean isVariableAlreadyPresent){
+        void shouldConvertToNonNullValueIfNullOrNotExists(boolean addNullVariables){
             //GIVEN
             VariablesMap variablesMap = mock(VariablesMap.class);
 
             //Already existing survey unit
-            String interrogationId = "testInterrogation";
             SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
                     .collectionInstrumentId(COLLECTION_INSTRUMENT_ID)
-                    .interrogationId(interrogationId)
+                    .interrogationId(INTERROGATION_ID)
                     .collectedVariables(new ArrayList<>())
                     .externalVariables(new ArrayList<>())
                     .build();
-
-            if(isVariableAlreadyPresent) {
+            
+            //Add null variables if true
+            if(addNullVariables) {
                 surveyUnitModel.getCollectedVariables().add(
                         VariableModel.builder()
-                                .varId("VAR1")
+                                .varId(COLLECTED_VARIABLE_NAME)
                                 .value(null)
                                 .state(DataState.COLLECTED)
                                 .scope(Constants.ROOT_GROUP_NAME)
@@ -400,7 +377,7 @@ class RawResponseRawDataConverterTest {
                 );
                 surveyUnitModel.getExternalVariables().add(
                         VariableModel.builder()
-                                .varId("EXTVAR1")
+                                .varId(EXTERNAL_VARIABLE_NAME)
                                 .value(null)
                                 .state(DataState.COLLECTED)
                                 .scope(Constants.ROOT_GROUP_NAME)
@@ -416,10 +393,10 @@ class RawResponseRawDataConverterTest {
 
             //Raw response
             Map<String, Object> collectedVariablesMap = new LinkedHashMap<>();
-            collectedVariablesMap.put("VAR1", Map.of("COLLECTED", "1"));
+            collectedVariablesMap.put(COLLECTED_VARIABLE_NAME, Map.of("COLLECTED", COLLECTED_VARIABLE_VALUE));
 
             Map<String, Object> externalVariablesMap = new LinkedHashMap<>();
-            externalVariablesMap.put("EXTVAR1", "ext1");
+            externalVariablesMap.put(EXTERNAL_VARIABLE_NAME, EXTERNAL_VARIABLE_VALUE);
 
             RawResponseModel rawResponseModel = rawResponseModel(
                     payloadWith(
@@ -438,17 +415,7 @@ class RawResponseRawDataConverterTest {
             );
 
             //THEN
-            assertThat(surveyUnitModels).hasSize(1);
-            assertThat(surveyUnitModels.getFirst().getCollectedVariables()).hasSize(1);
-            assertThat(surveyUnitModels.getFirst().getCollectedVariables().getFirst()
-                    .varId()).isEqualTo("VAR1");
-            assertThat(surveyUnitModels.getFirst().getCollectedVariables().getFirst()
-                    .value()).isEqualTo("1");
-            assertThat(surveyUnitModels.getFirst().getExternalVariables()).hasSize(1);
-            assertThat(surveyUnitModels.getFirst().getExternalVariables().getFirst()
-                    .varId()).isEqualTo("EXTVAR1");
-            assertThat(surveyUnitModels.getFirst().getExternalVariables().getFirst()
-                    .value()).isEqualTo("ext1");
+            assertNonNullVariables(surveyUnitModels);
         }
 
         @Test
@@ -458,32 +425,7 @@ class RawResponseRawDataConverterTest {
             VariablesMap variablesMap = mock(VariablesMap.class);
 
             //Already existing survey unit with non-null variables
-            String interrogationId = "testInterrogation";
-            SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
-                    .collectionInstrumentId(COLLECTION_INSTRUMENT_ID)
-                    .interrogationId(interrogationId)
-                    .collectedVariables(new ArrayList<>())
-                    .externalVariables(new ArrayList<>())
-                    .build();
-
-            surveyUnitModel.getCollectedVariables().add(
-                    VariableModel.builder()
-                            .varId("VAR1")
-                            .value("1")
-                            .state(DataState.COLLECTED)
-                            .scope(Constants.ROOT_GROUP_NAME)
-                            .iteration(1)
-                            .build()
-            );
-            surveyUnitModel.getExternalVariables().add(
-                    VariableModel.builder()
-                            .varId("EXTVAR1")
-                            .value("ext1")
-                            .state(DataState.COLLECTED)
-                            .scope(Constants.ROOT_GROUP_NAME)
-                            .iteration(1)
-                            .build()
-            );
+            SurveyUnitModel surveyUnitModel = getSurveyUnitModel();
 
             when(surveyUnitService.findLatestByInterrogationIds(eq(COLLECTION_INSTRUMENT_ID), anySet()))
                     .thenReturn(List.of(
@@ -494,8 +436,8 @@ class RawResponseRawDataConverterTest {
             Map<String, Object> collectedVariablesMap = new LinkedHashMap<>();
             Map<String, Object> externalVariablesMap = new LinkedHashMap<>();
 
-            collectedVariablesMap.put("VAR1", null);
-            externalVariablesMap.put("EXTVAR1", null);
+            collectedVariablesMap.put(COLLECTED_VARIABLE_NAME, null);
+            externalVariablesMap.put(EXTERNAL_VARIABLE_NAME, null);
 
 
             RawResponseModel rawResponseModel = rawResponseModel(
@@ -515,12 +457,7 @@ class RawResponseRawDataConverterTest {
             );
 
             //THEN
-            assertThat(surveyUnitModels).hasSize(1);
-            assertThat(surveyUnitModels.getFirst().getCollectedVariables()).hasSize(1);
-            assertThat(surveyUnitModels.getFirst().getCollectedVariables().getFirst()).isNull();
-
-            assertThat(surveyUnitModels.getFirst().getExternalVariables()).hasSize(1);
-            assertThat(surveyUnitModels.getFirst().getExternalVariables().getFirst()).isNull();
+            assertNullVariables(surveyUnitModels);
         }
 
         @Test
@@ -530,26 +467,10 @@ class RawResponseRawDataConverterTest {
             VariablesMap variablesMap = mock(VariablesMap.class);
 
             //Already existing survey unit with non-null variables
-            String interrogationId = "testInterrogation";
-            SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
-                    .collectionInstrumentId(COLLECTION_INSTRUMENT_ID)
-                    .interrogationId(interrogationId)
-                    .collectedVariables(new ArrayList<>())
-                    .externalVariables(new ArrayList<>())
-                    .build();
-
+            SurveyUnitModel surveyUnitModel = getSurveyUnitModel();
                 surveyUnitModel.getCollectedVariables().add(
                         VariableModel.builder()
-                                .varId("VAR1")
-                                .value("VALUE1")
-                                .state(DataState.COLLECTED)
-                                .scope(Constants.ROOT_GROUP_NAME)
-                                .iteration(1)
-                                .build()
-                );
-                surveyUnitModel.getCollectedVariables().add(
-                        VariableModel.builder()
-                                .varId("VAR1")
+                                .varId(COLLECTED_VARIABLE_NAME)
                                 .value("VALUE2")
                                 .state(DataState.COLLECTED)
                                 .scope(Constants.ROOT_GROUP_NAME)
@@ -558,16 +479,7 @@ class RawResponseRawDataConverterTest {
                 );
                 surveyUnitModel.getExternalVariables().add(
                         VariableModel.builder()
-                                .varId("EXTVAR1")
-                                .value("ext1")
-                                .state(DataState.COLLECTED)
-                                .scope(Constants.ROOT_GROUP_NAME)
-                                .iteration(1)
-                                .build()
-                );
-                surveyUnitModel.getExternalVariables().add(
-                        VariableModel.builder()
-                                .varId("EXTVAR1")
+                                .varId(EXTERNAL_VARIABLE_NAME)
                                 .value("ext2")
                                 .state(DataState.COLLECTED)
                                 .scope(Constants.ROOT_GROUP_NAME)
@@ -585,14 +497,14 @@ class RawResponseRawDataConverterTest {
             Map<String, Object> externalVariablesMap = new LinkedHashMap<>();
 
             List<String> variablesStrings = new ArrayList<>();
-            variablesStrings.add("VALUE1");
+            variablesStrings.add(COLLECTED_VARIABLE_VALUE);
             variablesStrings.add(null);
-            collectedVariablesMap.put("VAR1", Map.of("COLLECTED", variablesStrings));
+            collectedVariablesMap.put(COLLECTED_VARIABLE_NAME, Map.of("COLLECTED", variablesStrings));
 
             variablesStrings = new ArrayList<>();
-            variablesStrings.add("ext1");
+            variablesStrings.add(EXTERNAL_VARIABLE_VALUE);
             variablesStrings.add(null);
-            externalVariablesMap.put("EXTVAR1", variablesStrings);
+            externalVariablesMap.put(EXTERNAL_VARIABLE_NAME, variablesStrings);
 
 
             RawResponseModel rawResponseModel = rawResponseModel(
@@ -612,26 +524,7 @@ class RawResponseRawDataConverterTest {
             );
 
             //THEN
-            assertThat(surveyUnitModels).hasSize(1);
-            assertThat(surveyUnitModels.getFirst().getCollectedVariables()).hasSize(2);
-            for(VariableModel variableModel : surveyUnitModels.getFirst().getCollectedVariables()){
-                assertThat(variableModel.iteration()).isIn(0,1);
-                if(variableModel.iteration().equals(1)){
-                    assertThat(variableModel.value()).isNull();
-                    continue;
-                }
-                assertThat(variableModel.value()).isEqualTo("VALUE1");
-            }
-
-            assertThat(surveyUnitModels.getFirst().getExternalVariables()).hasSize(2);
-            for(VariableModel variableModel : surveyUnitModels.getFirst().getExternalVariables()) {
-                assertThat(variableModel.iteration()).isIn(0, 1);
-                if (variableModel.iteration().equals(1)) {
-                    assertThat(variableModel.value()).isNull();
-                    continue;
-                }
-                assertThat(variableModel.value()).isEqualTo("ext1");
-            }
+            assertSecondIterationNull(surveyUnitModels);
         }
 
         @ParameterizedTest
@@ -641,18 +534,16 @@ class RawResponseRawDataConverterTest {
             //GIVEN
             VariablesMap variablesMap = mock(VariablesMap.class);
 
-            //Already existing survey unit
-            String interrogationId = "testInterrogation";
+            //Already existing survey unit with null variables
             SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
                     .collectionInstrumentId(COLLECTION_INSTRUMENT_ID)
-                    .interrogationId(interrogationId)
+                    .interrogationId(INTERROGATION_ID)
                     .collectedVariables(new ArrayList<>())
                     .externalVariables(new ArrayList<>())
                     .build();
-
             surveyUnitModel.getCollectedVariables().add(
                     VariableModel.builder()
-                            .varId("VAR1")
+                            .varId(COLLECTED_VARIABLE_NAME)
                             .value(null)
                             .state(DataState.COLLECTED)
                             .scope(Constants.ROOT_GROUP_NAME)
@@ -661,7 +552,7 @@ class RawResponseRawDataConverterTest {
             );
             surveyUnitModel.getExternalVariables().add(
                     VariableModel.builder()
-                            .varId("EXTVAR1")
+                            .varId(EXTERNAL_VARIABLE_NAME)
                             .value(null)
                             .state(DataState.COLLECTED)
                             .scope(Constants.ROOT_GROUP_NAME)
@@ -674,13 +565,12 @@ class RawResponseRawDataConverterTest {
                             surveyUnitModel
                     ));
 
-            //Raw response
+            //Raw response with null variables or no variable at all
             Map<String, Object> collectedVariablesMap = new LinkedHashMap<>();
             Map<String, Object> externalVariablesMap = new LinkedHashMap<>();
-
             if(isNewVariablesPresent) {
-                collectedVariablesMap.put("VAR1", null);
-                externalVariablesMap.put("EXTVAR1", null);
+                collectedVariablesMap.put(COLLECTED_VARIABLE_NAME, null);
+                externalVariablesMap.put(EXTERNAL_VARIABLE_NAME, null);
             }
 
             RawResponseModel rawResponseModel = rawResponseModel(
@@ -700,47 +590,21 @@ class RawResponseRawDataConverterTest {
             );
 
             //THEN
-            assertThat(surveyUnitModels).hasSize(1);
-            assertThat(surveyUnitModels.getFirst().getCollectedVariables()).hasSize(1);
-            assertThat(surveyUnitModels.getFirst().getCollectedVariables().getFirst()
-                    .varId()).isEqualTo("VAR1");
-            assertThat(surveyUnitModels.getFirst().getCollectedVariables().getFirst()
-                    .value()).isNull();
-            assertThat(surveyUnitModels.getFirst().getExternalVariables()).hasSize(1);
-            assertThat(surveyUnitModels.getFirst().getExternalVariables().getFirst()
-                    .varId()).isEqualTo("EXTVAR1");
-            assertThat(surveyUnitModels.getFirst().getExternalVariables().getFirst()
-                    .value()).isNull();
+            assertNullVariables(surveyUnitModels);
         }
 
         @ParameterizedTest
         @ValueSource(booleans = {false, true})
         @DisplayName("Should keep null value if variable null or absent (multiple iterations)")
-        void shouldKeepNullIteration(boolean isNewVariablesPresent){
+        void shouldKeepNullIteration(boolean isSecondIterationPresent){
             //GIVEN
             VariablesMap variablesMap = mock(VariablesMap.class);
 
-            //Already existing survey unit
-            String interrogationId = "testInterrogation";
-            SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
-                    .collectionInstrumentId(COLLECTION_INSTRUMENT_ID)
-                    .interrogationId(interrogationId)
-                    .collectedVariables(new ArrayList<>())
-                    .externalVariables(new ArrayList<>())
-                    .build();
-
+            //Already existing survey unit with null second iterations
+            SurveyUnitModel surveyUnitModel = getSurveyUnitModel();
             surveyUnitModel.getCollectedVariables().add(
                     VariableModel.builder()
-                            .varId("VAR1")
-                            .value("1")
-                            .state(DataState.COLLECTED)
-                            .scope(Constants.ROOT_GROUP_NAME)
-                            .iteration(1)
-                            .build()
-            );
-            surveyUnitModel.getCollectedVariables().add(
-                    VariableModel.builder()
-                            .varId("VAR1")
+                            .varId(COLLECTED_VARIABLE_NAME)
                             .value(null)
                             .state(DataState.COLLECTED)
                             .scope(Constants.ROOT_GROUP_NAME)
@@ -749,16 +613,7 @@ class RawResponseRawDataConverterTest {
             );
             surveyUnitModel.getExternalVariables().add(
                     VariableModel.builder()
-                            .varId("EXTVAR1")
-                            .value("ext1")
-                            .state(DataState.COLLECTED)
-                            .scope(Constants.ROOT_GROUP_NAME)
-                            .iteration(1)
-                            .build()
-            );
-            surveyUnitModel.getExternalVariables().add(
-                    VariableModel.builder()
-                            .varId("EXTVAR1")
+                            .varId(EXTERNAL_VARIABLE_NAME)
                             .value(null)
                             .state(DataState.COLLECTED)
                             .scope(Constants.ROOT_GROUP_NAME)
@@ -771,26 +626,23 @@ class RawResponseRawDataConverterTest {
                             surveyUnitModel
                     ));
 
-            //Raw response
+            //Raw response with null second iteration or no second iteration at all
             Map<String, Object> collectedVariablesMap = new LinkedHashMap<>();
             Map<String, Object> externalVariablesMap = new LinkedHashMap<>();
 
+            List<String> collectedVariablesValues = new ArrayList<>();
+            collectedVariablesValues.add(COLLECTED_VARIABLE_VALUE);
 
+            List<String> externalVariablesValues = new ArrayList<>();
+            externalVariablesValues.add(EXTERNAL_VARIABLE_VALUE);
 
-            if(isNewVariablesPresent) {
-                List<String> variablesStrings = new ArrayList<>();
-                variablesStrings.add("VALUE1");
-                variablesStrings.add(null);
-                collectedVariablesMap.put("VAR1", Map.of("COLLECTED", variablesStrings));
-
-                variablesStrings = new ArrayList<>();
-                variablesStrings.add("ext1");
-                variablesStrings.add(null);
-                externalVariablesMap.put("EXTVAR1", variablesStrings);
-            } else {
-                collectedVariablesMap.put("VAR1", Map.of("COLLECTED", List.of("VALUE1")));
-                externalVariablesMap.put("EXTVAR1", List.of("ext1"));
+            if(isSecondIterationPresent) {
+                collectedVariablesValues.add(null);
+                externalVariablesValues.add(null);
             }
+
+            collectedVariablesMap.put(COLLECTED_VARIABLE_NAME, Map.of("COLLECTED", collectedVariablesValues));
+            externalVariablesMap.put(EXTERNAL_VARIABLE_NAME, externalVariablesValues);
 
             RawResponseModel rawResponseModel = rawResponseModel(
                     payloadWith(
@@ -809,18 +661,90 @@ class RawResponseRawDataConverterTest {
             );
 
             //THEN
+            assertSecondIterationNull(surveyUnitModels);
+        }
+
+        //NullVariablesTests UTILS
+        private SurveyUnitModel getSurveyUnitModel() {
+            SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
+                    .collectionInstrumentId(COLLECTION_INSTRUMENT_ID)
+                    .interrogationId(INTERROGATION_ID)
+                    .collectedVariables(new ArrayList<>())
+                    .externalVariables(new ArrayList<>())
+                    .build();
+
+            surveyUnitModel.getCollectedVariables().add(
+                    VariableModel.builder()
+                            .varId(COLLECTED_VARIABLE_NAME)
+                            .value(COLLECTED_VARIABLE_VALUE)
+                            .state(DataState.COLLECTED)
+                            .scope(Constants.ROOT_GROUP_NAME)
+                            .iteration(1)
+                            .build()
+            );
+            surveyUnitModel.getExternalVariables().add(
+                    VariableModel.builder()
+                            .varId(EXTERNAL_VARIABLE_NAME)
+                            .value(EXTERNAL_VARIABLE_VALUE)
+                            .state(DataState.COLLECTED)
+                            .scope(Constants.ROOT_GROUP_NAME)
+                            .iteration(1)
+                            .build()
+            );
+            return surveyUnitModel;
+        }
+
+        private void assertNullVariables(List<SurveyUnitModel> surveyUnitModels) {
             assertThat(surveyUnitModels).hasSize(1);
             assertThat(surveyUnitModels.getFirst().getCollectedVariables()).hasSize(1);
             assertThat(surveyUnitModels.getFirst().getCollectedVariables().getFirst()
-                    .varId()).isEqualTo("VAR1");
+                    .varId()).isEqualTo(NullVariablesTests.COLLECTED_VARIABLE_NAME);
             assertThat(surveyUnitModels.getFirst().getCollectedVariables().getFirst()
                     .value()).isNull();
             assertThat(surveyUnitModels.getFirst().getExternalVariables()).hasSize(1);
             assertThat(surveyUnitModels.getFirst().getExternalVariables().getFirst()
-                    .varId()).isEqualTo("EXTVAR1");
+                    .varId()).isEqualTo(NullVariablesTests.EXTERNAL_VARIABLE_NAME);
             assertThat(surveyUnitModels.getFirst().getExternalVariables().getFirst()
                     .value()).isNull();
         }
+
+        private void assertNonNullVariables(List<SurveyUnitModel> surveyUnitModels) {
+            assertThat(surveyUnitModels).hasSize(1);
+            assertThat(surveyUnitModels.getFirst().getCollectedVariables()).hasSize(1);
+            assertThat(surveyUnitModels.getFirst().getCollectedVariables().getFirst()
+                    .varId()).isEqualTo(COLLECTED_VARIABLE_NAME);
+            assertThat(surveyUnitModels.getFirst().getCollectedVariables().getFirst()
+                    .value()).isEqualTo(COLLECTED_VARIABLE_VALUE);
+            assertThat(surveyUnitModels.getFirst().getExternalVariables()).hasSize(1);
+            assertThat(surveyUnitModels.getFirst().getExternalVariables().getFirst()
+                    .varId()).isEqualTo(EXTERNAL_VARIABLE_NAME);
+            assertThat(surveyUnitModels.getFirst().getExternalVariables().getFirst()
+                    .value()).isEqualTo(EXTERNAL_VARIABLE_VALUE);
+        }
+
+        private void assertSecondIterationNull(List<SurveyUnitModel> surveyUnitModels) {
+            assertThat(surveyUnitModels).hasSize(1);
+            assertThat(surveyUnitModels.getFirst().getCollectedVariables()).hasSize(2);
+            for(VariableModel variableModel : surveyUnitModels.getFirst().getCollectedVariables()){
+                assertThat(variableModel.iteration()).isIn(1,2);
+                if(variableModel.iteration().equals(2)){
+                    assertThat(variableModel.value()).isNull();
+                    continue;
+                }
+                assertThat(variableModel.value()).isEqualTo(COLLECTED_VARIABLE_VALUE);
+            }
+
+            assertThat(surveyUnitModels.getFirst().getExternalVariables()).hasSize(2);
+            for(VariableModel variableModel : surveyUnitModels.getFirst().getExternalVariables()) {
+                assertThat(variableModel.iteration()).isIn(1,2);
+                if (variableModel.iteration().equals(2)) {
+                    assertThat(variableModel.value()).isNull();
+                    continue;
+                }
+                assertThat(variableModel.value()).isEqualTo(EXTERNAL_VARIABLE_VALUE);
+            }
+        }
+
     }
 
 
