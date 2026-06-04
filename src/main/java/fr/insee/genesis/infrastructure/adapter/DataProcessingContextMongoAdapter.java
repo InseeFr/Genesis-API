@@ -103,8 +103,12 @@ public class DataProcessingContextMongoAdapter implements DataProcessingContextP
             Update update = new Update().pull(
                     "kraftwerkExecutionScheduleList",
                     Query.query(
-                            Criteria.where("scheduleEndDate")
-                                    .is(scheduleToRemove.getScheduleEndDate())
+                            Criteria.where("partitionId").is(scheduleToRemove.getPartitionId())
+                                    .and("frequency").is(scheduleToRemove.getFrequency())
+                                    .and("serviceToCall").is(scheduleToRemove.getServiceToCall())
+                                    .and("scheduleBeginDate").is(scheduleToRemove.getScheduleBeginDate())
+                                    .and("scheduleEndDate").is(scheduleToRemove.getScheduleEndDate())
+                                    .and("trustParameters").is(scheduleToRemove.getTrustParameters())
                     ).getQueryObject()
             );
 
