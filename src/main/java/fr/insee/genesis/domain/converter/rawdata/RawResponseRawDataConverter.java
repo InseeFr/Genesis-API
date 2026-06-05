@@ -12,14 +12,17 @@ import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.domain.utils.GroupUtils;
 import fr.insee.genesis.domain.utils.JsonUtils;
 import fr.insee.modelefiliere.RawResponseDto;
+import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static fr.insee.genesis.domain.service.rawdata.LunaticJsonRawDataService.getValueString;
@@ -67,7 +70,7 @@ public class RawResponseRawDataConverter extends RawDataConverter {
     ) {
         List<SurveyUnitModel> surveyUnitModels = new ArrayList<>();
 
-        Map<String, SurveyUnitModel> lastSurveyUnitModelsByInterrogationId = getLastSurveyUnitModels(
+        Map<String, Map<DataState, SurveyUnitModel>> lastSurveyUnitModelsByInterrogationIdAndState = getLastSurveyUnitModels(
                 collectionInstrumentId,
                 rawResponseModels.stream().map(RawResponseModel::interrogationId).collect(Collectors.toList())
         );
@@ -75,17 +78,28 @@ public class RawResponseRawDataConverter extends RawDataConverter {
         for (DataState dataState : List.of(DataState.COLLECTED, DataState.EDITED)) {
             for (RawResponseModel rawResponseModel : rawResponseModels) {
                 SurveyUnitModel surveyUnitModel = buildSurveyUnitModel(rawResponseModel, dataState);
+                SurveyUnitModel lastSurveyUnitModelForDataState = null;
+                if(lastSurveyUnitModelsByInterrogationIdAndState.containsKey(rawResponseModel.interrogationId())){
+                    lastSurveyUnitModelForDataState = lastSurveyUnitModelsByInterrogationIdAndState
+                            .get(rawResponseModel.interrogationId())
+                            .get(dataState);
+                }
 
                 convertCollectedVariables(
                         rawResponseModel,
-                        lastSurveyUnitModelsByInterrogationId.get(rawResponseModel.interrogationId()),
+                        lastSurveyUnitModelForDataState,
                         surveyUnitModel,
                         dataState,
                         variablesMap
                 );
 
                 if (dataState == DataState.COLLECTED) {
-                    convertExternalVariables(rawResponseModel, surveyUnitModel, variablesMap);
+                    convertExternalVariables(
+                            rawResponseModel,
+                            lastSurveyUnitModelForDataState,
+                            surveyUnitModel,
+                            variablesMap
+                    );
                 }
 
                 boolean hasNoVariable = surveyUnitModel.getCollectedVariables().isEmpty()
@@ -148,9 +162,13 @@ public class RawResponseRawDataConverter extends RawDataConverter {
     ) {
         Map<String, Object> dataMap = rawResponseModel.payload();
         dataMap = JsonUtils.asMap(dataMap.get("data"));
-        Map<String, Object> collectedMap  = JsonUtils.asMap(dataMap.get("COLLECTED"));
+        Map<String, Object> collectedMap  = new HashMap<>(JsonUtils.asMap(dataMap.get("COLLECTED")));
 
-        if (collectedMap == null || collectedMap.isEmpty()) {
+        if(lastSurveyUnitModel != null && lastSurveyUnitModel.getState().equals(dataState)) {
+            fillRawDataMapWithAbsentVariables(lastSurveyUnitModel, collectedMap, dataState);
+        }
+
+        if (collectedMap.isEmpty()) {
             if (dataState == DataState.COLLECTED) {
                 log.warn("No collected data for interrogation {}", rawResponseModel.interrogationId());
             }
@@ -188,62 +206,98 @@ public class RawResponseRawDataConverter extends RawDataConverter {
         Map<String, Object> variableStates = JsonUtils.asMap(entry.getValue());
         //If variable value absent for state or null value
         if (variableStates == null || variableStates.get(stateKey) == null) {
-            convertNullVar(entry, lastSurveyUnitModel, variableModelList);
+            convertNullVar(entry.getKey(), lastSurveyUnitModel, 1, variablesMap, variableModelList, true);
             return;
         }
 
         Object value = variableStates.get(stateKey);
         if (value instanceof List<?> list) {
-            convertListVar(list, entry, variablesMap, variableModelList);
+            convertListVar(list, lastSurveyUnitModel, entry, variablesMap, variableModelList, true);
             return;
         }
-        convertOneVar(entry, getValueString(value), variablesMap, 1, variableModelList);
+        convertOneVar(entry.getKey(), getValueString(value), variablesMap, 1, variableModelList);
     }
 
     private static void convertNullVar(
-            Map.Entry<String, Object> variableEntry,
+            String variableName,
             @Nullable SurveyUnitModel lastSurveyUnitModel,
-            List<VariableModel> destination
+            int iteration,
+            VariablesMap variablesMap,
+            List<VariableModel> destination,
+            boolean isCollected //true if in collected variables, false if in external
     ) {
-        if(lastSurveyUnitModel == null){
+        //Do nothing if last response is null or variable is not present in last response
+        if (lastSurveyUnitModel == null || isVariableAbsentInSurveyUnitModel(
+                variableName, iteration, lastSurveyUnitModel, isCollected
+        )) {
             return;
         }
-        //TODO
+        convertOneVar(variableName, null, variablesMap, iteration, destination);
+    }
 
+    private static boolean isVariableAbsentInSurveyUnitModel(
+            String variableName,
+            int iteration,
+            SurveyUnitModel lastSurveyUnitModel,
+            boolean isCollected
+    ) {
+        //Check in collected variables
+        if(isCollected){
+            return lastSurveyUnitModel.getCollectedVariables().stream().noneMatch(
+                    variableModel -> variableModel.varId().equals(variableName)
+                    && variableModel.iteration().equals(iteration)
+            );
+        }
+        //Check in external variables
+        return lastSurveyUnitModel.getExternalVariables().stream().noneMatch(
+                variableModel -> variableModel.varId().equals(variableName)
+                        && variableModel.iteration().equals(iteration)
+        );
     }
 
     private static void convertListVar(
             Object valuesForState,
+            @Nullable SurveyUnitModel lastSurveyUnit,
             Map.Entry<String, Object> variableEntry,
             VariablesMap variablesMap,
-            List<VariableModel> destination
+            List<VariableModel> destination,
+            boolean isCollected
     ) {
         List<String> values = JsonUtils.asStringList(valuesForState);
 
         if (!values.isEmpty()) {
             int iteration = 1;
             for (String value : values) {
-                if (value != null && !value.isEmpty()) {
-                    convertOneVar(variableEntry, value, variablesMap, iteration, destination);
+                if(value == null || value.isEmpty()){
+                    convertNullVar(
+                            variableEntry.getKey(),
+                            lastSurveyUnit,
+                            iteration,
+                            variablesMap,
+                            destination,
+                            isCollected);
+                    iteration++;
+                    continue;
                 }
+                convertOneVar(variableEntry.getKey(), value, variablesMap, iteration, destination);
                 iteration++;
             }
         }
     }
 
     private static void convertOneVar(
-            Map.Entry<String, Object> variableEntry,
+            String variableName,
             String value,
             VariablesMap variablesMap,
             int iteration,
             List<VariableModel> destination
     ) {
         VariableModel variableModel = VariableModel.builder()
-                .varId(variableEntry.getKey())
+                .varId(variableName)
                 .value(value)
-                .scope(getIdLoop(variablesMap, variableEntry.getKey()))
+                .scope(getIdLoop(variablesMap, variableName))
                 .iteration(iteration)
-                .parentId(GroupUtils.getParentGroupName(variableEntry.getKey(), variablesMap))
+                .parentId(GroupUtils.getParentGroupName(variableName, variablesMap))
                 .build();
 
         destination.add(variableModel);
@@ -260,36 +314,53 @@ public class RawResponseRawDataConverter extends RawDataConverter {
 
     private void convertExternalVariables(
             RawResponseModel rawResponseModel,
+            @Nullable SurveyUnitModel lastSurveyUnitModel,
             SurveyUnitModel dstSurveyUnitModel,
             VariablesMap variablesMap
     ) {
         Map<String, Object> dataMap = rawResponseModel.payload();
         dataMap = JsonUtils.asMap(dataMap.get("data"));
-        Map<String, Object> externalMap = JsonUtils.asMap(dataMap.get("EXTERNAL"));
+        Map<String, Object> externalMap = null;
+        if(dataMap.containsKey("EXTERNAL")) {
+            externalMap = new HashMap<>(JsonUtils.asMap(dataMap.get("EXTERNAL")));
+        }
 
-        if (externalMap != null && !externalMap.isEmpty()) {
+        if(lastSurveyUnitModel != null){
+            fillRawDataMapWithAbsentVariables(lastSurveyUnitModel, externalMap, null);
+        }
+
+        if (externalMap != null) {
             for (Map.Entry<String, Object> externalVariableEntry : externalMap.entrySet()) {
                 Object valueObject = externalVariableEntry.getValue();
 
+                if(valueObject == null){
+                    convertNullVar(
+                            externalVariableEntry.getKey(),
+                            lastSurveyUnitModel,
+                            1,
+                            variablesMap,
+                            dstSurveyUnitModel.getExternalVariables(),
+                            false);
+                    continue;
+                }
                 if (valueObject instanceof List<?>) {
                     convertListVar(
                             valueObject,
+                            lastSurveyUnitModel,
                             externalVariableEntry,
                             variablesMap,
-                            dstSurveyUnitModel.getExternalVariables()
+                            dstSurveyUnitModel.getExternalVariables(),
+                            false
                     );
                     continue;
                 }
-
-                if (valueObject != null) {
-                    convertOneVar(
-                            externalVariableEntry,
-                            valueObject.toString(),
-                            variablesMap,
-                            1,
-                            dstSurveyUnitModel.getExternalVariables()
-                    );
-                }
+                convertOneVar(
+                        externalVariableEntry.getKey(),
+                        valueObject.toString(),
+                        variablesMap,
+                        1,
+                        dstSurveyUnitModel.getExternalVariables()
+                );
             }
         }
     }
@@ -353,5 +424,173 @@ public class RawResponseRawDataConverter extends RawDataConverter {
 
     private static boolean isInvalidPairwiseVariable(Object value, VariablesMap variablesMap) {
         return !(value instanceof List<?>) || !variablesMap.hasVariable(Constants.PAIRWISE_PREFIX + 1);
+    }
+
+    /**
+     * <p>Adds missing variables/iterations to raw data map based on last survey unit in database</p>
+     * <p>e.g. raw: var1 absent AND response: var1 present -> var1 added with null value</p>
+     *
+     * @param rawDataMap dataMap (COLLECTED or EXTERNAL)
+     * @param dataState null if EXTERNAL
+     */
+    private static void fillRawDataMapWithAbsentVariables(
+            @NotNull SurveyUnitModel lastSurveyUnit,
+            Map<String, Object> rawDataMap,
+            @Nullable DataState dataState
+    ) {
+        List<VariableModel> lastSurveyUnitVariables = dataState == null ?
+                lastSurveyUnit.getExternalVariables() : lastSurveyUnit.getCollectedVariables();
+
+        //Extract variable names
+        Set<String> lastSurveyUnitVariablesNames = lastSurveyUnitVariables.stream()
+                .map(VariableModel::varId).collect(Collectors.toSet());
+
+        for(String lastSurveyUnitVariableName : lastSurveyUnitVariablesNames){
+            List<VariableModel> variableModelsForSameVariable = lastSurveyUnitVariables.stream().filter(
+                    variableAlreadyPresent ->
+                            variableAlreadyPresent.varId().equals(lastSurveyUnitVariableName)
+            ).toList();
+
+            //If multiple iterations
+            if(variableModelsForSameVariable.size() > 1){
+                fillRawDataMapWithIterations(
+                        variableModelsForSameVariable,
+                        rawDataMap,
+                        dataState
+                );
+                continue;
+            }
+            addNullVariableToRawDataMapIfAbsent(lastSurveyUnitVariableName, rawDataMap);
+        }
+    }
+
+    /**
+     * Checks each iteration of a last response variable and adds null to raw data if iteration is absent
+     * @param alreadyPresentVariableIterations Variables models for same variable in last response
+     * @param rawDataMap data map (COLLECTED or EXTERNAL)
+     * @param dataState null if EXTERNAL
+     */
+    @SuppressWarnings("unchecked")
+    private static void fillRawDataMapWithIterations(
+            List<VariableModel> alreadyPresentVariableIterations,
+            Map<String, Object> rawDataMap,
+            @Nullable DataState dataState
+    ){
+        if(alreadyPresentVariableIterations == null || alreadyPresentVariableIterations.isEmpty()){
+            return;
+        }
+        String variableName = alreadyPresentVariableIterations.getFirst().varId();
+
+        int maxResponseIteration = alreadyPresentVariableIterations.stream()
+                .map(VariableModel::iteration)
+                .max(Integer::compareTo).orElse(0);
+
+        List<Object> rawValuesList = getRawDataListForVariable(
+                variableName,
+                rawDataMap,
+                dataState
+        );
+
+        //Add null element at end of raw list until max iteration
+        fillListUntilMaxIteration(rawValuesList, maxResponseIteration);
+
+        //Replace list in raw data map
+        if(dataState == null){
+            rawDataMap.put(variableName, rawValuesList);
+            return;
+        }
+        Map<String, Object> stateMap = (Map<String, Object>) rawDataMap.get(variableName);
+        stateMap.put(dataState.toString(), rawValuesList);
+    }
+
+    /**
+     * @param variableName Name of the variable contained in last response
+     * @param rawDataMap data map (COLLECTED or EXTERNAL)
+     * @param dataState null if EXTERNAL
+     * @return The list of values to put in raw data
+     */
+    @SuppressWarnings("unchecked")
+    private static List<Object> getRawDataListForVariable(
+            String variableName,
+            Map<String, Object> rawDataMap,
+            DataState dataState
+    ) {
+        //Instantiate list in rawDataMap if variable exists in response but not in raw
+        if(!rawDataMap.containsKey(variableName)){
+            return instantiateEmptyListInRawDataMap(variableName, rawDataMap, dataState);
+        }
+
+        if(dataState == null){
+            return rawDataMap.get(variableName) instanceof List ?
+                    (List<Object>) rawDataMap.get(variableName)
+                    //If single value in raw but multiple in response, return a list with the single raw value
+                    : instantiateListInRawDataMapWithSingleValue(variableName, rawDataMap, null);
+        }
+        Map<String, Object> stateMap = (Map<String, Object>) rawDataMap.get(variableName);
+        return stateMap.get(dataState.toString()) instanceof List ?
+                (List<Object>) stateMap.get(dataState.toString())
+                : instantiateListInRawDataMapWithSingleValue(variableName, rawDataMap, dataState);
+    }
+
+    /**
+     * @param variableName Name of the variable to add in map
+     * @param rawDataMap COLLECTED or EXTERNAL map to fill
+     * @param dataState null if in EXTERNAL map, COLLECTED if not
+     * @return the instantiated list
+     */
+    private static List<Object> instantiateEmptyListInRawDataMap(
+            String variableName,
+            Map<String, Object> rawDataMap,
+            @Nullable DataState dataState
+    ) {
+        List<Object> valueList = new ArrayList<>();
+        if(dataState == null){
+            rawDataMap.put(variableName, valueList);
+            return valueList;
+        }
+        Map<String, Object> statesMap = new HashMap<>();
+        statesMap.put(dataState.toString(), valueList);
+        rawDataMap.put(variableName, statesMap);
+
+        return valueList;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<Object> instantiateListInRawDataMapWithSingleValue(
+            String variableName,
+            Map<String, Object> rawDataMap,
+            DataState dataState
+    ) {
+        List<Object> singleValueList = new ArrayList<>(1);
+        if(dataState == null){
+            singleValueList.add(rawDataMap.get(variableName));
+            return singleValueList;
+        }
+        Map<String, Object> stateMap = (Map<String, Object>) rawDataMap.get(variableName);
+        singleValueList.add(stateMap.get(dataState.toString()));
+        return singleValueList;
+    }
+
+    /**
+     * Fills the list of values with null until max iteration
+     * @param rawValuesList raw data values for a variable
+     * @param maxResponseIteration max iteration in last survey unit for said variable
+     */
+    private static void fillListUntilMaxIteration(List<Object> rawValuesList, int maxResponseIteration) {
+        for(int i = 1; i <= maxResponseIteration; i++){
+            if(rawValuesList.size() >= i){
+                continue;
+            }
+            rawValuesList.addLast(null);
+        }
+    }
+
+    private static void addNullVariableToRawDataMapIfAbsent(
+            String variableName,
+            Map<String, Object> rawDataMap
+    ) {
+        if (!rawDataMap.containsKey(variableName)){
+            rawDataMap.put(variableName, null);
+        }
     }
 }

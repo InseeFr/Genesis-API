@@ -38,6 +38,7 @@ import static org.mockito.Mockito.when;
 class RawResponseRawDataConverterTest {
 
     private static final String COLLECTION_INSTRUMENT_ID = "collection-instrument-id";
+    private static final String INTERROGATION_ID = "testInterrogation";
     private static final Mode MODE = Mode.WEB;
 
 
@@ -298,7 +299,6 @@ class RawResponseRawDataConverterTest {
     class NullVariablesTests {
 
         //NullVariablesTests constants
-        private static final String INTERROGATION_ID = "testInterrogation";
         private static final String COLLECTED_VARIABLE_NAME = "VAR1";
         private static final String COLLECTED_VARIABLE_VALUE = "test";
         private static final String EXTERNAL_VARIABLE_NAME = "EXTVAR1";
@@ -433,16 +433,16 @@ class RawResponseRawDataConverterTest {
                     ));
 
             //Raw response with null
-            Map<String, Object> collectedVariablesMap = new LinkedHashMap<>();
+            Map<String, Object> collectedVariableStatesMap = new LinkedHashMap<>();
             Map<String, Object> externalVariablesMap = new LinkedHashMap<>();
 
-            collectedVariablesMap.put(COLLECTED_VARIABLE_NAME, null);
+            collectedVariableStatesMap.put("COLLECTED", null);
             externalVariablesMap.put(EXTERNAL_VARIABLE_NAME, null);
 
 
             RawResponseModel rawResponseModel = rawResponseModel(
                     payloadWith(
-                            Map.of("COLLECTED", collectedVariablesMap),
+                            Map.of(COLLECTED_VARIABLE_NAME, collectedVariableStatesMap),
                             externalVariablesMap
                     )
             );
@@ -468,24 +468,22 @@ class RawResponseRawDataConverterTest {
 
             //Already existing survey unit with non-null variables
             SurveyUnitModel surveyUnitModel = getSurveyUnitModel();
-                surveyUnitModel.getCollectedVariables().add(
-                        VariableModel.builder()
-                                .varId(COLLECTED_VARIABLE_NAME)
-                                .value("VALUE2")
-                                .state(DataState.COLLECTED)
-                                .scope(Constants.ROOT_GROUP_NAME)
-                                .iteration(2)
-                                .build()
-                );
-                surveyUnitModel.getExternalVariables().add(
-                        VariableModel.builder()
-                                .varId(EXTERNAL_VARIABLE_NAME)
-                                .value("ext2")
-                                .state(DataState.COLLECTED)
-                                .scope(Constants.ROOT_GROUP_NAME)
-                                .iteration(2)
-                                .build()
-                );
+            surveyUnitModel.getCollectedVariables().add(
+                    VariableModel.builder()
+                            .varId(COLLECTED_VARIABLE_NAME)
+                            .value("VALUE2")
+                            .scope(Constants.ROOT_GROUP_NAME)
+                            .iteration(2)
+                            .build()
+            );
+            surveyUnitModel.getExternalVariables().add(
+                    VariableModel.builder()
+                            .varId(EXTERNAL_VARIABLE_NAME)
+                            .value("ext2")
+                            .scope(Constants.ROOT_GROUP_NAME)
+                            .iteration(2)
+                            .build()
+            );
 
             when(surveyUnitService.findLatestByInterrogationIds(eq(COLLECTION_INSTRUMENT_ID), anySet()))
                     .thenReturn(List.of(
@@ -493,13 +491,13 @@ class RawResponseRawDataConverterTest {
                     ));
 
             //Raw response with null second iteration
-            Map<String, Object> collectedVariablesMap = new LinkedHashMap<>();
+            Map<String, Object> collectedVariableStatesMap = new LinkedHashMap<>();
             Map<String, Object> externalVariablesMap = new LinkedHashMap<>();
 
             List<String> variablesStrings = new ArrayList<>();
             variablesStrings.add(COLLECTED_VARIABLE_VALUE);
             variablesStrings.add(null);
-            collectedVariablesMap.put(COLLECTED_VARIABLE_NAME, Map.of("COLLECTED", variablesStrings));
+            collectedVariableStatesMap.put("COLLECTED", variablesStrings);
 
             variablesStrings = new ArrayList<>();
             variablesStrings.add(EXTERNAL_VARIABLE_VALUE);
@@ -509,7 +507,7 @@ class RawResponseRawDataConverterTest {
 
             RawResponseModel rawResponseModel = rawResponseModel(
                     payloadWith(
-                            Map.of("COLLECTED", collectedVariablesMap),
+                            Map.of(COLLECTED_VARIABLE_NAME, collectedVariableStatesMap),
                             externalVariablesMap
                     )
             );
@@ -529,7 +527,7 @@ class RawResponseRawDataConverterTest {
 
         @ParameterizedTest
         @ValueSource(booleans = {false, true})
-        @DisplayName("Should keep null value if variable null or absent")
+        @DisplayName("Should keep null value if variable null or absent in raw")
         void shouldKeepNull(boolean isNewVariablesPresent){
             //GIVEN
             VariablesMap variablesMap = mock(VariablesMap.class);
@@ -538,6 +536,7 @@ class RawResponseRawDataConverterTest {
             SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
                     .collectionInstrumentId(COLLECTION_INSTRUMENT_ID)
                     .interrogationId(INTERROGATION_ID)
+                    .state(DataState.COLLECTED)
                     .collectedVariables(new ArrayList<>())
                     .externalVariables(new ArrayList<>())
                     .build();
@@ -545,7 +544,6 @@ class RawResponseRawDataConverterTest {
                     VariableModel.builder()
                             .varId(COLLECTED_VARIABLE_NAME)
                             .value(null)
-                            .state(DataState.COLLECTED)
                             .scope(Constants.ROOT_GROUP_NAME)
                             .iteration(1)
                             .build()
@@ -554,7 +552,6 @@ class RawResponseRawDataConverterTest {
                     VariableModel.builder()
                             .varId(EXTERNAL_VARIABLE_NAME)
                             .value(null)
-                            .state(DataState.COLLECTED)
                             .scope(Constants.ROOT_GROUP_NAME)
                             .iteration(1)
                             .build()
@@ -566,16 +563,16 @@ class RawResponseRawDataConverterTest {
                     ));
 
             //Raw response with null variables or no variable at all
-            Map<String, Object> collectedVariablesMap = new LinkedHashMap<>();
+            Map<String, Object> collectedVariableStatesMap = new LinkedHashMap<>();
             Map<String, Object> externalVariablesMap = new LinkedHashMap<>();
             if(isNewVariablesPresent) {
-                collectedVariablesMap.put(COLLECTED_VARIABLE_NAME, null);
+                collectedVariableStatesMap.put("COLLECTED", null);
                 externalVariablesMap.put(EXTERNAL_VARIABLE_NAME, null);
             }
 
             RawResponseModel rawResponseModel = rawResponseModel(
                     payloadWith(
-                            Map.of("COLLECTED", collectedVariablesMap),
+                            Map.of(COLLECTED_VARIABLE_NAME, collectedVariableStatesMap),
                             externalVariablesMap
                     )
             );
@@ -606,7 +603,6 @@ class RawResponseRawDataConverterTest {
                     VariableModel.builder()
                             .varId(COLLECTED_VARIABLE_NAME)
                             .value(null)
-                            .state(DataState.COLLECTED)
                             .scope(Constants.ROOT_GROUP_NAME)
                             .iteration(2)
                             .build()
@@ -615,7 +611,6 @@ class RawResponseRawDataConverterTest {
                     VariableModel.builder()
                             .varId(EXTERNAL_VARIABLE_NAME)
                             .value(null)
-                            .state(DataState.COLLECTED)
                             .scope(Constants.ROOT_GROUP_NAME)
                             .iteration(2)
                             .build()
@@ -627,7 +622,7 @@ class RawResponseRawDataConverterTest {
                     ));
 
             //Raw response with null second iteration or no second iteration at all
-            Map<String, Object> collectedVariablesMap = new LinkedHashMap<>();
+            Map<String, Object> collectedVariableStatesMap = new LinkedHashMap<>();
             Map<String, Object> externalVariablesMap = new LinkedHashMap<>();
 
             List<String> collectedVariablesValues = new ArrayList<>();
@@ -641,12 +636,12 @@ class RawResponseRawDataConverterTest {
                 externalVariablesValues.add(null);
             }
 
-            collectedVariablesMap.put(COLLECTED_VARIABLE_NAME, Map.of("COLLECTED", collectedVariablesValues));
+            collectedVariableStatesMap.put("COLLECTED", collectedVariablesValues);
             externalVariablesMap.put(EXTERNAL_VARIABLE_NAME, externalVariablesValues);
 
             RawResponseModel rawResponseModel = rawResponseModel(
                     payloadWith(
-                            Map.of("COLLECTED", collectedVariablesMap),
+                            Map.of(COLLECTED_VARIABLE_NAME, collectedVariableStatesMap),
                             externalVariablesMap
                     )
             );
@@ -669,6 +664,7 @@ class RawResponseRawDataConverterTest {
             SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
                     .collectionInstrumentId(COLLECTION_INSTRUMENT_ID)
                     .interrogationId(INTERROGATION_ID)
+                    .state(DataState.COLLECTED)
                     .collectedVariables(new ArrayList<>())
                     .externalVariables(new ArrayList<>())
                     .build();
@@ -677,7 +673,6 @@ class RawResponseRawDataConverterTest {
                     VariableModel.builder()
                             .varId(COLLECTED_VARIABLE_NAME)
                             .value(COLLECTED_VARIABLE_VALUE)
-                            .state(DataState.COLLECTED)
                             .scope(Constants.ROOT_GROUP_NAME)
                             .iteration(1)
                             .build()
@@ -686,7 +681,6 @@ class RawResponseRawDataConverterTest {
                     VariableModel.builder()
                             .varId(EXTERNAL_VARIABLE_NAME)
                             .value(EXTERNAL_VARIABLE_VALUE)
-                            .state(DataState.COLLECTED)
                             .scope(Constants.ROOT_GROUP_NAME)
                             .iteration(1)
                             .build()
@@ -753,7 +747,7 @@ class RawResponseRawDataConverterTest {
         RawResponseModel rawResponseModel = RawResponseModel.builder()
                 .collectionInstrumentId(COLLECTION_INSTRUMENT_ID)
                 .mode(MODE)
-                .interrogationId("interrogation-id")
+                .interrogationId(INTERROGATION_ID)
                 .recordDate(LocalDateTime.parse("2025-01-01T10:00:00"))
                 .payload(payload)
                 .build();

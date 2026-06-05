@@ -53,14 +53,22 @@ public class LunaticJsonRawDataConverter extends RawDataConverter{
             List<SurveyUnitModel> emptySurveyUnitModels
     ) {
         List<SurveyUnitModel> surveyUnitModels = new ArrayList<>();
-        Map<String, SurveyUnitModel> lastSurveyUnitModelsByInterrogationId = getLastSurveyUnitModels(
-                questionnaireId,
-                rawDataList.stream().map(LunaticJsonRawDataModel::interrogationId).collect(Collectors.toList())
-        );
+
+        Map<String, Map<DataState, SurveyUnitModel>> lastSurveyUnitModelsByInterrogationIdAndState =
+                getLastSurveyUnitModels(
+                        questionnaireId,
+                        rawDataList.stream().map(LunaticJsonRawDataModel::interrogationId).collect(Collectors.toList())
+                );
 
         for (DataState dataState : List.of(DataState.COLLECTED, DataState.EDITED)) {
             for (LunaticJsonRawDataModel rawData : rawDataList) {
                 RawDataModelType rawDataModelType = getRawDataModelType(rawData);
+                SurveyUnitModel lastSurveyUnitModelForDataState = null;
+                if(lastSurveyUnitModelsByInterrogationIdAndState.containsKey(rawData.interrogationId())){
+                    lastSurveyUnitModelForDataState = lastSurveyUnitModelsByInterrogationIdAndState
+                            .get(rawData.interrogationId())
+                            .get(dataState);
+                }
 
                 SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
                         .collectionInstrumentId(rawData.questionnaireId())
@@ -79,7 +87,7 @@ public class LunaticJsonRawDataConverter extends RawDataConverter{
 
                 convertRawDataCollectedVariables(
                         rawData,
-                        lastSurveyUnitModelsByInterrogationId.get(rawData.interrogationId()),
+                        lastSurveyUnitModelForDataState,
                         surveyUnitModel,
                         dataState,
                         rawDataModelType,
