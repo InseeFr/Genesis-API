@@ -77,7 +77,6 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: InseeFr/BPM
-          ref: ${{ github.ref_name }}
           path: bpm
 
       - name: Build BPM
