@@ -375,15 +375,4 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
     ) {
         return lunaticJsonRawDataPersistencePort.findByCampaignIdAndDate(campaignId, startDt, endDt, pageable);
     }
-
-    public static String getValueString(Object value) {
-        if (value instanceof Double || value instanceof Float) {
-            BigDecimal bd = new BigDecimal(value.toString());
-            return bd.stripTrailingZeros().toPlainString();
-        }
-        if (value instanceof Number) {
-            return value.toString();
-        }
-        return String.valueOf(value);
-    }
 }

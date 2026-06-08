@@ -238,7 +238,7 @@ class LunaticJsonRawDataConverterTest {
                 .extracting(VariableModel::scope)
                 .isEqualTo(Constants.ROOT_GROUP_NAME);
     }
-
+//FIXME Faire les devs de feat(rawresponses): keep null values if variable present in last survey... dans lunaticjson converter
     @Nested
     @DisplayName("Null cases tests")
     class NullVariablesTests {

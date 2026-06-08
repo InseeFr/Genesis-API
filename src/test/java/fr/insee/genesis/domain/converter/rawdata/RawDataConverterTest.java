@@ -3,7 +3,6 @@ package fr.insee.genesis.domain.converter.rawdata;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -19,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 
 @ExtendWith(MockitoExtension.class)
@@ -76,19 +76,66 @@ class RawDataConverterTest {
                     eq(questionnaireId),
                     setArgumentCaptor.capture()
             );
-            Assertions.assertThat(setArgumentCaptor.getValue()).containsExactlyInAnyOrder(
+            assertThat(setArgumentCaptor.getValue()).containsExactlyInAnyOrder(
                     "Interrogation1","Interrogation2"
             );
 
             //Check resulted map key and values content
-            Assertions.assertThat(resultMap).containsOnlyKeys(interrogationIds);
+            assertThat(resultMap).containsOnlyKeys(interrogationIds);
             for(String interrogationId : interrogationIds){
                 Map<DataState, SurveyUnitModel> surveyUnitModelsOfInterrogationId = resultMap.get(interrogationId);
-                Assertions.assertThat(surveyUnitModelsOfInterrogationId).containsOnlyKeys(DataState.COLLECTED);
-                Assertions.assertThat(
+                assertThat(surveyUnitModelsOfInterrogationId).containsOnlyKeys(DataState.COLLECTED);
+                assertThat(
                         surveyUnitModelsOfInterrogationId.get(DataState.COLLECTED).getInterrogationId()
                 ).isEqualTo(interrogationId);
             }
+        }
+    }
+
+    @Nested
+    @DisplayName("getValueString() util")
+    class GetValueStringTests {
+
+        @Test
+        @DisplayName("Double value strips trailing zeros")
+        void doubleStripsTrailingZeros() {
+            //WHEN + THEN
+            assertThat(RawDataConverter.getValueString(1.50)).isEqualTo("1.5");
+        }
+
+        @Test
+        @DisplayName("Float value strips trailing zeros")
+        void floatStripsTrailingZeros() {
+            //WHEN + THEN
+            assertThat(RawDataConverter.getValueString(1.500f)).isEqualTo("1.5");
+        }
+
+        @Test
+        @DisplayName("Integer value returns plain string")
+        void integerReturnsPlainString() {
+            //WHEN + THEN
+            assertThat(RawDataConverter.getValueString(42)).isEqualTo("42");
+        }
+
+        @Test
+        @DisplayName("String value returns same string")
+        void stringReturnsItself() {
+            //WHEN + THEN
+            assertThat(RawDataConverter.getValueString("hello")).isEqualTo("hello");
+        }
+
+        @Test
+        @DisplayName("Null returns 'null' string")
+        void nullReturnsNullString() {
+            //WHEN + THEN
+            assertThat(RawDataConverter.getValueString(null)).isEqualTo("null");
+        }
+
+        @Test
+        @DisplayName("BigDecimal integer-like double has no decimal point")
+        void bigDecimalIntegerDouble() {
+            //WHEN + THEN
+            assertThat(RawDataConverter.getValueString(3.0)).isEqualTo("3");
         }
     }
 }

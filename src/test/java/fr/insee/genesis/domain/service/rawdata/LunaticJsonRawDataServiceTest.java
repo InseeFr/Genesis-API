@@ -735,53 +735,6 @@ class LunaticJsonRawDataServiceTest {
         }
     }
 
-    @Nested
-    @DisplayName("getValueString() util")
-    class GetValueStringTests {
-
-        @Test
-        @DisplayName("Double value strips trailing zeros")
-        void doubleStripsTrailingZeros() {
-            //WHEN + THEN
-            assertThat(LunaticJsonRawDataService.getValueString(1.50)).isEqualTo("1.5");
-        }
-
-        @Test
-        @DisplayName("Float value strips trailing zeros")
-        void floatStripsTrailingZeros() {
-            //WHEN + THEN
-            assertThat(LunaticJsonRawDataService.getValueString(1.500f)).isEqualTo("1.5");
-        }
-
-        @Test
-        @DisplayName("Integer value returns plain string")
-        void integerReturnsPlainString() {
-            //WHEN + THEN
-            assertThat(LunaticJsonRawDataService.getValueString(42)).isEqualTo("42");
-        }
-
-        @Test
-        @DisplayName("String value returns same string")
-        void stringReturnsItself() {
-            //WHEN + THEN
-            assertThat(LunaticJsonRawDataService.getValueString("hello")).isEqualTo("hello");
-        }
-
-        @Test
-        @DisplayName("Null returns 'null' string")
-        void nullReturnsNullString() {
-            //WHEN + THEN
-            assertThat(LunaticJsonRawDataService.getValueString(null)).isEqualTo("null");
-        }
-
-        @Test
-        @DisplayName("BigDecimal integer-like double has no decimal point")
-        void bigDecimalIntegerDouble() {
-            //WHEN + THEN
-            assertThat(LunaticJsonRawDataService.getValueString(3.0)).isEqualTo("3");
-        }
-    }
-
     //UTILS
     /** Builds a minimal raw data document with COLLECTED data. */
     private LunaticJsonRawDataModel buildRawDataWithCollected(Map<String, Object> collectedData) {
