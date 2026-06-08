@@ -9,6 +9,7 @@ import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
 import fr.insee.genesis.domain.parser.rawdata.LunaticJsonRawDataPayloadParser;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -17,7 +18,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
@@ -25,14 +25,14 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -76,40 +76,31 @@ class LunaticJsonRawDataConverterTest {
                 )
         ));
 
-        try (MockedStatic<RawResponseRawDataConverter> rawResponseConverter = mockStatic(RawResponseRawDataConverter.class)) {
-            rawResponseConverter
-                    .when(() -> RawResponseRawDataConverter.processCollectedVariableForState(any(), any(), any(), any(), any(), any()))
-                    .thenAnswer(invocation -> {
-                        String state = invocation.getArgument(1);
-                        List<VariableModel> destination = invocation.getArgument(4);
+        List<SurveyUnitModel> result = converter.convertRawData(
+                QUESTIONNAIRE_ID,
+                List.of(rawData),
+                variablesMap
+        );
 
-                        destination.add(VariableModel.builder()
-                                .varId("FIRST_NAME")
-                                .value(state)
-                                .build());
+        assertThat(result).hasSize(2);
 
-                        return null;
-                    });
+        assertThat(result)
+                .extracting(SurveyUnitModel::getState)
+                .containsExactly(DataState.COLLECTED, DataState.EDITED);
 
-            List<SurveyUnitModel> result = converter.convertRawData(
-                    QUESTIONNAIRE_ID,
-                    List.of(rawData),
-                    variablesMap
-            );
+        for(DataState dataState : Set.of(DataState.COLLECTED, DataState.EDITED)){
+            Optional<SurveyUnitModel> surveyUnitModelOptional = result.stream().filter(
+                    surveyUnitModel -> surveyUnitModel.getState().equals(dataState)
+            ).findFirst();
 
-            assertThat(result).hasSize(2);
-
-            assertThat(result)
-                    .extracting(SurveyUnitModel::getState)
-                    .containsExactly(DataState.COLLECTED, DataState.EDITED);
-
-            assertThat(result.get(0).getCollectedVariables())
+            Assertions.assertThat(surveyUnitModelOptional).isPresent();
+            SurveyUnitModel surveyUnitModel = surveyUnitModelOptional.get();
+            Assertions.assertThat(surveyUnitModel.getCollectedVariables())
+                    .extracting(VariableModel::varId)
+                    .containsExactly("FIRST_NAME");
+            Assertions.assertThat(surveyUnitModel.getCollectedVariables())
                     .extracting(VariableModel::value)
-                    .containsExactly("COLLECTED");
-
-            assertThat(result.get(1).getCollectedVariables())
-                    .extracting( VariableModel::value)
-                    .containsExactly("EDITED");
+                    .containsExactly(dataState.equals(DataState.COLLECTED) ? "Alice" : "Alicia");
         }
     }
 
