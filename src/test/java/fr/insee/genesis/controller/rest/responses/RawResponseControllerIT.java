@@ -508,7 +508,7 @@ class RawResponseControllerIT extends IntegrationTestAbstract {
             Assertions.assertThat(savedDocuments).isNotNull().hasSize(interrogationIds.size());
             SurveyUnitDocument savedDocument = savedDocuments.stream().filter(
                     surveyUnitDocument ->
-                            surveyUnitDocument.getInterrogationId().equals("interrogationId"))
+                            surveyUnitDocument.getInterrogationId().equals(interrogationIds.getFirst()))
             .toList().getFirst();
             Assertions.assertThat(savedDocument.getCollectedVariables()).isNotNull().hasSize(1);
             VariableDocument variableDocument = savedDocument.getCollectedVariables().getFirst();
@@ -577,7 +577,7 @@ class RawResponseControllerIT extends IntegrationTestAbstract {
             Assertions.assertThat(savedDocuments).isNotNull().hasSize(interrogationIds.size());
             SurveyUnitDocument savedDocument = savedDocuments.stream().filter(
                             surveyUnitDocument ->
-                                    surveyUnitDocument.getInterrogationId().equals("interrogationId"))
+                                    surveyUnitDocument.getInterrogationId().equals(interrogationIds.getFirst()))
                     .toList().getFirst();
             Assertions.assertThat(savedDocument.getCollectedVariables()).isNotNull().hasSize(1);
             VariableDocument variableDocument = savedDocument.getCollectedVariables().getFirst();
@@ -891,7 +891,7 @@ class RawResponseControllerIT extends IntegrationTestAbstract {
             Assertions.assertThat(savedDocuments).isNotNull().hasSize(interrogationIds.size());
             SurveyUnitDocument savedDocument = savedDocuments.stream().filter(
                             surveyUnitDocument ->
-                                    surveyUnitDocument.getInterrogationId().equals("interrogationId"))
+                                    surveyUnitDocument.getInterrogationId().equals(interrogationIds.getFirst()))
                     .toList().getFirst();
             Assertions.assertThat(savedDocument.getCollectedVariables()).isNotNull().hasSize(1);
             VariableDocument variableDocument = savedDocument.getCollectedVariables().getFirst();
@@ -961,7 +961,7 @@ class RawResponseControllerIT extends IntegrationTestAbstract {
             Assertions.assertThat(savedDocuments).isNotNull().hasSize(interrogationIds.size());
             SurveyUnitDocument savedDocument = savedDocuments.stream().filter(
                             surveyUnitDocument ->
-                                    surveyUnitDocument.getInterrogationId().equals("interrogationId"))
+                                    surveyUnitDocument.getInterrogationId().equals(interrogationIds.getFirst()))
                     .toList().getFirst();
             Assertions.assertThat(savedDocument.getCollectedVariables()).isNotNull().hasSize(1);
             VariableDocument variableDocument = savedDocument.getCollectedVariables().getFirst();
@@ -1269,6 +1269,7 @@ class RawResponseControllerIT extends IntegrationTestAbstract {
         alreadyPresentSurveyUnitDocument.setCollectionInstrumentId(collectionInstrumentId);
         alreadyPresentSurveyUnitDocument.setInterrogationId(interrogationId);
         alreadyPresentSurveyUnitDocument.setMode(Mode.WEB.getModeName());
+        alreadyPresentSurveyUnitDocument.setState("COLLECTED");
 
         alreadyPresentSurveyUnitDocument.setCollectedVariables(new ArrayList<>());
         VariableDocument oldVariable = new VariableDocument();
@@ -1284,6 +1285,7 @@ class RawResponseControllerIT extends IntegrationTestAbstract {
         oldVariable.setIteration(1);
         oldVariable.setValue(externalValue);
         oldVariable.setScope(Constants.ROOT_GROUP_NAME);
+        alreadyPresentSurveyUnitDocument.getExternalVariables().add(oldVariable);
         return alreadyPresentSurveyUnitDocument;
     }
 

@@ -40,6 +40,7 @@ class LunaticJsonRawDataConverterTest {
 
     private static final LocalDateTime DATE_TIME = LocalDateTime.parse("2025-01-01T10:00:00");
     private static final String QUESTIONNAIRE_ID = "testQuestionnaire";
+    private static final String INTERROGATION_ID = "testInterrogation";
 
     @Mock
     private SurveyUnitService surveyUnitService;
@@ -229,13 +230,12 @@ class LunaticJsonRawDataConverterTest {
                 .extracting(VariableModel::scope)
                 .isEqualTo(Constants.ROOT_GROUP_NAME);
     }
-//FIXME Faire les devs de feat(rawresponses): keep null values if variable present in last survey... dans lunaticjson converter
+
     @Nested
     @DisplayName("Null cases tests")
     class NullVariablesTests {
 
         //NullVariablesTests constants
-        private static final String INTERROGATION_ID = "testInterrogation";
         private static final String COLLECTED_VARIABLE_NAME = "VAR1";
         private static final String COLLECTED_VARIABLE_VALUE = "test";
         private static final String EXTERNAL_VARIABLE_NAME = "EXTVAR1";
@@ -471,6 +471,7 @@ class LunaticJsonRawDataConverterTest {
             SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
                     .collectionInstrumentId(QUESTIONNAIRE_ID)
                     .interrogationId(INTERROGATION_ID)
+                    .state(DataState.COLLECTED)
                     .collectedVariables(new ArrayList<>())
                     .externalVariables(new ArrayList<>())
                     .build();
@@ -478,7 +479,6 @@ class LunaticJsonRawDataConverterTest {
                     VariableModel.builder()
                             .varId(COLLECTED_VARIABLE_NAME)
                             .value(null)
-                            .state(DataState.COLLECTED)
                             .scope(Constants.ROOT_GROUP_NAME)
                             .iteration(1)
                             .build()
@@ -487,7 +487,6 @@ class LunaticJsonRawDataConverterTest {
                     VariableModel.builder()
                             .varId(EXTERNAL_VARIABLE_NAME)
                             .value(null)
-                            .state(DataState.COLLECTED)
                             .scope(Constants.ROOT_GROUP_NAME)
                             .iteration(1)
                             .build()
@@ -540,7 +539,6 @@ class LunaticJsonRawDataConverterTest {
                     VariableModel.builder()
                             .varId(COLLECTED_VARIABLE_NAME)
                             .value(null)
-                            .state(DataState.COLLECTED)
                             .scope(Constants.ROOT_GROUP_NAME)
                             .iteration(2)
                             .build()
@@ -549,7 +547,6 @@ class LunaticJsonRawDataConverterTest {
                     VariableModel.builder()
                             .varId(EXTERNAL_VARIABLE_NAME)
                             .value(null)
-                            .state(DataState.COLLECTED)
                             .scope(Constants.ROOT_GROUP_NAME)
                             .iteration(2)
                             .build()
@@ -603,6 +600,7 @@ class LunaticJsonRawDataConverterTest {
             SurveyUnitModel surveyUnitModel = SurveyUnitModel.builder()
                     .collectionInstrumentId(QUESTIONNAIRE_ID)
                     .interrogationId(INTERROGATION_ID)
+                    .state(DataState.COLLECTED)
                     .collectedVariables(new ArrayList<>())
                     .externalVariables(new ArrayList<>())
                     .build();
@@ -611,7 +609,6 @@ class LunaticJsonRawDataConverterTest {
                     VariableModel.builder()
                             .varId(COLLECTED_VARIABLE_NAME)
                             .value(COLLECTED_VARIABLE_VALUE)
-                            .state(DataState.COLLECTED)
                             .scope(Constants.ROOT_GROUP_NAME)
                             .iteration(1)
                             .build()
@@ -620,7 +617,6 @@ class LunaticJsonRawDataConverterTest {
                     VariableModel.builder()
                             .varId(EXTERNAL_VARIABLE_NAME)
                             .value(EXTERNAL_VARIABLE_VALUE)
-                            .state(DataState.COLLECTED)
                             .scope(Constants.ROOT_GROUP_NAME)
                             .iteration(1)
                             .build()
@@ -683,9 +679,9 @@ class LunaticJsonRawDataConverterTest {
 
     private LunaticJsonRawDataModel rawData(Map<String, Object> data) {
         LunaticJsonRawDataModel rawData = LunaticJsonRawDataModel.builder()
-                .questionnaireId("questionnaire-id")
+                .questionnaireId(QUESTIONNAIRE_ID)
                 .mode(Mode.WEB)
-                .interrogationId("interrogation-id")
+                .interrogationId(INTERROGATION_ID)
                 .idUE("survey-unit-id")
                 .recordDate(DATE_TIME)
                 .data(data)

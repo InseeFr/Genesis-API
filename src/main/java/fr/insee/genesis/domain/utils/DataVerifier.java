@@ -45,7 +45,7 @@ public class DataVerifier {
      * @param variablesMap VariablesMap containing definitions of each variable
      */
     public static void verifySurveyUnits(List<SurveyUnitModel> surveyUnitModelsList, VariablesMap variablesMap){
-        List<SurveyUnitModel> surveyUnitModelsListFormatted = new ArrayList<>(); // Created FORCED SU models
+        List<SurveyUnitModel> surveyUnitModelsListFormatted = new ArrayList<>(); // Created FORMATTED SU models
 
         for(String interrogationId : getInterrogationIds(surveyUnitModelsList)) { // For each id of the list
             List<SurveyUnitModel> srcSurveyUnitModelsOfInterrogationId = surveyUnitModelsList.stream().filter(element -> element.getInterrogationId().equals(interrogationId)).toList();
@@ -56,7 +56,7 @@ public class DataVerifier {
             collectedVariablesManagement(srcSurveyUnitModelsOfInterrogationId, variablesMap, correctedCollectedVariables);
             externalVariablesManagement(srcSurveyUnitModelsOfInterrogationId, variablesMap, correctedExternalVariables);
 
-            //Create FORCED if any corrected variable
+            //Create FORMATTED if any corrected variable
             if(!correctedCollectedVariables.isEmpty() || !correctedExternalVariables.isEmpty()){
                 SurveyUnitModel newFormattedSurveyUnitModel = createFormattedSurveyUnitModel(surveyUnitModelsList, interrogationId, correctedCollectedVariables, correctedExternalVariables);
                 surveyUnitModelsListFormatted.add(newFormattedSurveyUnitModel);
@@ -194,6 +194,10 @@ public class DataVerifier {
             fr.insee.bpm.metadata.model.Variable variableDefinition,
             DataState dataState
     ) {
+        //null values are OK
+        if(variableModel.value() == null){
+            return null;
+        }
         if(isParseError(variableModel.value(), variableDefinition.getType(),dataState)){
             return VariableModel.builder()
                     .varId(variableModel.varId())

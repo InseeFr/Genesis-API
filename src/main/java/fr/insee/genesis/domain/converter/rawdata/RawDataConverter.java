@@ -160,8 +160,9 @@ public abstract class RawDataConverter {
             rawDataMap.put(variableName, rawValuesList);
             return;
         }
-        Map<String, Object> stateMap = (Map<String, Object>) rawDataMap.get(variableName);
+        Map<String, Object> stateMap = new HashMap<>((Map<String, Object>) rawDataMap.get(variableName));
         stateMap.put(dataState.toString(), rawValuesList);
+        rawDataMap.put(variableName, stateMap);
     }
 
     /**
