@@ -19,6 +19,7 @@ public interface SurveyUnitDocumentMapper {
 	@Mapping(target = "mode", source = "mode", qualifiedByName = "mapMode")
 	SurveyUnitModel documentToModel(SurveyUnitDocument surveyUnit);
 
+    @Mapping(target = "fileDate", ignore = true)
 	SurveyUnitDocument modelToDocument(SurveyUnitModel surveyUnitModel);
 
 	@Mapping(target = "mode", source = "mode", qualifiedByName = "mapMode")
@@ -38,6 +39,10 @@ public interface SurveyUnitDocumentMapper {
 		if (model.getCollectionInstrumentId() == null) {
 			model.setCollectionInstrumentId(doc.getQuestionnaireId());
 		}
+
+        if (model.getRawRecordDate() == null) {
+            model.setRawRecordDate(doc.getFileDate());
+        }
 
 	}
 

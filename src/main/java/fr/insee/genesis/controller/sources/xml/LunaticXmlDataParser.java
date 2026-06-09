@@ -47,7 +47,7 @@ public class LunaticXmlDataParser {
         return document;
     }
 
-    private LocalDateTime getFileDate(Path filePath) throws IOException {
+    private LocalDateTime getRawRecordDate(Path filePath) throws IOException {
         BasicFileAttributes attr = Files.readAttributes(filePath, BasicFileAttributes.class);
         return LocalDateTime.ofInstant(attr.lastModifiedTime().toInstant(), ZoneId.of("Europe/Paris"));
     }
@@ -68,9 +68,8 @@ public class LunaticXmlDataParser {
             if (surveyUnit.getNodeType() == Node.ELEMENT_NODE) {
                 Element surveyUnitElement = (Element) surveyUnit;
                 LunaticXmlSurveyUnit lunaticXmlSurveyUnit = new LunaticXmlSurveyUnit();
-                LocalDateTime rawRecordDate = getFileDate(filePath);
+                LocalDateTime rawRecordDate = getRawRecordDate(filePath);
                 lunaticXmlSurveyUnit.setRawRecordDate(rawRecordDate);
-                lunaticXmlSurveyUnit.setFileDate(rawRecordDate);
                 lunaticXmlSurveyUnit.setId(surveyUnitElement.getElementsByTagName("Id").item(0).getFirstChild().getNodeValue());
                 lunaticXmlSurveyUnit.setQuestionnaireModelId(surveyUnitElement.getElementsByTagName("QuestionnaireModelId").item(0).getFirstChild().getNodeValue());
                 Node data = surveyUnitElement.getElementsByTagName("Data").item(0);
