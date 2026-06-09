@@ -6,7 +6,7 @@ import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.RawDataModelType;
 import fr.insee.genesis.domain.parser.rawdata.LunaticJsonRawDataPayloadParser;
-import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
+import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -22,8 +22,9 @@ public class LunaticJsonRawDataConverter extends RawDataConverter {
 
     private final LunaticJsonRawDataPayloadParser payloadParser;
 
-    public LunaticJsonRawDataConverter(SurveyUnitService surveyUnitService, LunaticJsonRawDataPayloadParser lunaticJsonRawDataPayloadParser) {
-        super(surveyUnitService);
+    public LunaticJsonRawDataConverter(SurveyUnitApiPort surveyUnitApiPort,
+                                       LunaticJsonRawDataPayloadParser lunaticJsonRawDataPayloadParser) {
+        super(surveyUnitApiPort);
         this.payloadParser = lunaticJsonRawDataPayloadParser;
     }
 

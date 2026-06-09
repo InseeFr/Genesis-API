@@ -7,7 +7,7 @@ import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.RawDataModelType;
-import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
+import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.utils.GroupUtils;
 import fr.insee.genesis.domain.utils.JsonUtils;
 import jakarta.validation.constraints.NotNull;
@@ -28,11 +28,12 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 public abstract class RawDataConverter {
-    private final SurveyUnitService surveyUnitService;
+    @SuppressWarnings("FieldMayBeFinal") //Final would break RawDataConverterTest
+    private SurveyUnitApiPort surveyUnitApiPort;
 
     @Autowired
-    public RawDataConverter(SurveyUnitService surveyUnitService) {
-        this.surveyUnitService = surveyUnitService;
+    public RawDataConverter(SurveyUnitApiPort surveyUnitApiPort) {
+        this.surveyUnitApiPort = surveyUnitApiPort;
     }
 
     /**
@@ -46,7 +47,7 @@ public abstract class RawDataConverter {
     ) {
         Set<String> interrogationIdsSet = new HashSet<>(interrogationIds);
 
-        List<SurveyUnitModel> surveyUnitModels = surveyUnitService.findLatestByInterrogationIds(
+        List<SurveyUnitModel> surveyUnitModels = surveyUnitApiPort.findLatestByInterrogationIds(
                 questionnaireOrCollectionInstrumentId,
                 interrogationIdsSet
         );

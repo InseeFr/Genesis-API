@@ -6,6 +6,7 @@ import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.RawDataModelType;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponseModel;
 import fr.insee.genesis.domain.parser.rawdata.RawResponsePayloadParser;
+import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.modelefiliere.RawResponseDto;
 import lombok.extern.slf4j.Slf4j;
@@ -23,8 +24,9 @@ public class RawResponseRawDataConverter extends RawDataConverter {
 
     private final RawResponsePayloadParser rawResponsePayloadParser;
 
-    public RawResponseRawDataConverter(SurveyUnitService surveyUnitService, RawResponsePayloadParser rawResponsePayloadParser) {
-        super(surveyUnitService);
+    public RawResponseRawDataConverter(SurveyUnitApiPort surveyUnitApiPort,
+                                       RawResponsePayloadParser rawResponsePayloadParser) {
+        super(surveyUnitApiPort);
         this.rawResponsePayloadParser = rawResponsePayloadParser;
     }
 

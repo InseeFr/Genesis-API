@@ -255,59 +255,7 @@ class DataVerifierTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = DataState.class, names = {"EDITED", "FORCED", "FORMATTED"}, mode = EnumSource.Mode.EXCLUDE)
-    void shouldCreateFormattedIfNull(DataState dataState) {
-        String variableName = "varnull";
-        for(VariableType variableType : VariableType.values()){
-            if(variableType.equals(VariableType.STRING)){
-                continue; //Skip STRING
-            }
-            variablesMap.removeVariable(variableName);
-
-            // GIVEN
-            Variable variableDefinition = new Variable(
-                    variableName,
-                    new MetadataModel().getRootGroup(),
-                    variableType
-            );
-            variablesMap.putVariable(variableDefinition);
-
-            // Add null value
-            surveyUnits.clear();
-            VariableModel collectedVariable1 = VariableModel.builder()
-                    .varId(variableName)
-                    .value(null)
-                    .scope(Constants.ROOT_GROUP_NAME)
-                    .iteration(1)
-                    .build();
-            SurveyUnitModel surveyUnit = SurveyUnitModel.builder()
-                    .interrogationId("UE1100000001")
-                    .collectionInstrumentId("Quest1")
-                    .state(dataState)
-                    .collectedVariables(List.of(collectedVariable1))
-                    .externalVariables(List.of())
-                    .build();
-            surveyUnits.add(surveyUnit);
-
-            // WHEN
-            DataVerifier.verifySurveyUnits(surveyUnits, variablesMap);
-
-            // THEN FORMATTED values added
-            try{
-                Assertions.assertTrue(surveyUnits.size() > 1);
-                SurveyUnitModel formattedUnit = surveyUnits.get(1);
-                Assertions.assertEquals(DataState.FORMATTED, formattedUnit.getState());
-                Assertions.assertEquals(1, formattedUnit.getCollectedVariables().size());
-                Assertions.assertEquals("", formattedUnit.getCollectedVariables().getFirst().value()); // Corrected value
-            }catch (AssertionFailedError afe){
-                log.error("Failed on type {}", variableType);
-                throw afe;
-            }
-        }
-    }
-
-    @ParameterizedTest
-    @EnumSource(value = DataState.class, names = {"EDITED", "FORCED", "FORMATTED"})
+    @EnumSource(value = DataState.class)
     void shouldNotCreateFormattedIfNull(DataState dataState) {
         String variableName = "varnull";
         for(VariableType variableType : VariableType.values()){

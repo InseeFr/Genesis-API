@@ -153,8 +153,7 @@ public class DataVerifier {
             {
                 VariableModel correctedCollectedVariable = verifyVariable(
                         collectedVariableToVerify.variableModel(),
-                        variablesMap.getVariable(collectedVariableToVerify.variableModel().varId()),
-                        collectedVariableToVerify.dataState()
+                        variablesMap.getVariable(collectedVariableToVerify.variableModel().varId())
                 );
 
                 if(correctedCollectedVariable != null){
@@ -191,14 +190,9 @@ public class DataVerifier {
 
     private static VariableModel verifyVariable(
             VariableModel variableModel,
-            fr.insee.bpm.metadata.model.Variable variableDefinition,
-            DataState dataState
+            fr.insee.bpm.metadata.model.Variable variableDefinition
     ) {
-        //null values are OK
-        if(variableModel.value() == null){
-            return null;
-        }
-        if(isParseError(variableModel.value(), variableDefinition.getType(),dataState)){
+        if(isParseError(variableModel.value(), variableDefinition.getType())){
             return VariableModel.builder()
                     .varId(variableModel.varId())
                     .value("")
@@ -223,8 +217,7 @@ public class DataVerifier {
                 if(variablesMap.hasVariable(externalVariable.varId())) {
                     VariableModel correctedExternalVariable = verifyVariable(
                             externalVariable,
-                            variablesMap.getVariable(externalVariable.varId()),
-                            state
+                            variablesMap.getVariable(externalVariable.varId())
                     );
                     if (correctedExternalVariable != null) {
                         correctedExternalVariables.add(correctedExternalVariable);
@@ -238,15 +231,12 @@ public class DataVerifier {
      * Use the correct parser and try to parse
      * @param value value to verify
      * @param type type of the variable
-     * @param state state of the data where the variable is contained in
      * @return true if the value is not conform to the variable type
      */
-    private static boolean isParseError(String value, VariableType type, DataState state){
+    private static boolean isParseError(String value, VariableType type){
         //Allow null values
         if(value == null){
-            return !(state.equals(DataState.EDITED)
-                    || state.equals(DataState.FORCED)
-                    || state.equals(DataState.FORMATTED)); //Return false if datastate one of those
+            return false;
         }
         switch(type){
             case BOOLEAN:
