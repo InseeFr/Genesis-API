@@ -1,5 +1,6 @@
 package fr.insee.genesis.domain.utils;
 
+import fr.insee.bpm.metadata.model.Variable;
 import fr.insee.bpm.metadata.model.VariableType;
 import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.Constants;
@@ -190,7 +191,7 @@ public class DataVerifier {
 
     private static VariableModel verifyVariable(
             VariableModel variableModel,
-            fr.insee.bpm.metadata.model.Variable variableDefinition
+            Variable variableDefinition
     ) {
         if(isParseError(variableModel.value(), variableDefinition.getType())){
             return VariableModel.builder()
