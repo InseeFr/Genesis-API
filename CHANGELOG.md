@@ -1,4 +1,7 @@
 # Changelog
+## 2.6.9 [TODO]
+### Fixed
+- Delete only expired V2 schedules from dataProcessingContext
 ## 2.6.6 [2026-05-26]
 ### Fixed
 - Compound index names

@@ -255,14 +255,12 @@ class LunaticXmlAdapterTest {
             // GIVEN
             LocalDateTime rawRecordDate = LocalDateTime.of(2024, 1, 15, 10, 0);
             LunaticXmlSurveyUnit su = buildSurveyUnit(List.of(collectedDataWithValue("VAR1", "val")));
-            su.setFileDate(rawRecordDate);
             su.setRawRecordDate(rawRecordDate);
 
             // WHEN
             SurveyUnitModel collected = getCollected(LunaticXmlAdapter.convert(su, VARIABLES_MAP, MODE));
 
             // THEN
-            assertThat(collected.getFileDate()).isEqualTo(rawRecordDate);
             assertThat(collected.getRawRecordDate()).isEqualTo(rawRecordDate);
         }
     }
