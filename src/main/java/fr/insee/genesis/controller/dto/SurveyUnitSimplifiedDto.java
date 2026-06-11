@@ -3,13 +3,17 @@ package fr.insee.genesis.controller.dto;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.modelefiliere.RawResponseDto;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Data
 public class SurveyUnitSimplifiedDto {
 

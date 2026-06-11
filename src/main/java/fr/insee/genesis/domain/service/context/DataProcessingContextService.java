@@ -1,7 +1,6 @@
 package fr.insee.genesis.domain.service.context;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.databind.json.JsonMapper;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.dto.KraftwerkExecutionScheduleInput;
 import fr.insee.genesis.controller.dto.rawdata.ScheduleResponseDto;
@@ -283,8 +282,9 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
                             scheduleName + ".json"
                     );
 
-                    ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
-                    objectMapper.registerModule(new JavaTimeModule());
+                    JsonMapper objectMapper = JsonMapper.builder()
+                            .findAndAddModules()
+                            .build();
 
                     String jsonToWrite = objectMapper.writeValueAsString(deletedSchedules);
 

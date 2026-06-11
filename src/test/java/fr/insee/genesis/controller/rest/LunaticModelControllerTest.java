@@ -1,6 +1,6 @@
 package fr.insee.genesis.controller.rest;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import fr.insee.genesis.domain.model.lunaticmodel.LunaticModelModel;
 import fr.insee.genesis.domain.ports.api.LunaticModelApiPort;
 import lombok.SneakyThrows;
@@ -11,6 +11,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -50,7 +51,9 @@ class LunaticModelControllerTest {
     void getLunaticModelFromQuestionnaireId() {
         //GIVEN
         String questionnaireId = "test";
-        ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
+        JsonMapper objectMapper = JsonMapper.builder()
+                .findAndAddModules()
+                .build();
         Map<String, Object> lunaticModel = new HashMap<>();
         String expected = objectMapper.writeValueAsString(lunaticModel);
         doReturn(LunaticModelModel.builder()

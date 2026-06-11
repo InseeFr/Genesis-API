@@ -1,9 +1,9 @@
 package fr.insee.genesis.controller.utils;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
+import tools.jackson.databind.node.StringNode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 public class ExtendedJsonNormalizer {
 
     public static final String $_DATE = "$date";
@@ -23,8 +23,8 @@ public class ExtendedJsonNormalizer {
             ObjectNode obj = (ObjectNode) node;
 
             if (obj.size() == 1) {
-                if (obj.has($_DATE) && obj.get($_DATE).isTextual()) {
-                    return TextNode.valueOf(obj.get($_DATE).asText());
+                if (obj.has($_DATE) && obj.get($_DATE).isString()) {
+                    return StringNode.valueOf(obj.get($_DATE).asString());
                 }
 //                if (obj.has("$oid") && obj.get("$oid").isTextual()) {
 //                    return TextNode.valueOf(obj.get("$oid").asText());
@@ -32,9 +32,11 @@ public class ExtendedJsonNormalizer {
             }
 
             ObjectNode copy = obj.objectNode();
-            obj.fields().forEachRemaining(e ->
+
+            obj.properties().forEach(e ->
                     copy.set(e.getKey(), normalize(e.getValue()))
             );
+
             return copy;
         }
 
