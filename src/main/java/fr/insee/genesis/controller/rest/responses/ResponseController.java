@@ -19,6 +19,7 @@ import fr.insee.genesis.controller.sources.xml.LunaticXmlSurveyUnit;
 import fr.insee.genesis.controller.utils.AuthUtils;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.controller.utils.DataTransformer;
+import fr.insee.genesis.controller.utils.DateTimeUtils;
 import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
 import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
@@ -39,6 +40,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -420,13 +422,27 @@ public class ResponseController implements CommonApiResponse {
                     schema = @Schema(type = "string", format = "date-time", example = "2026-01-01T00:00:00Z")
             )
             @RequestParam(value = "recordedBefore", required = false) Instant recordedBefore,
+            @Parameter(
+                    description = "Filter responses recorded before or at the same time of the given timestamp in Europe/Paris local time",
+                    schema = @Schema(
+                            type = "string",
+                            format = "date-time",
+                            example = "2026-01-01T01:00:00"
+                    )
+            )
+            @RequestParam(value = "localRecordedBefore", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            LocalDateTime localRecordedBefore,
             @RequestBody List<InterrogationId> interrogationIds)
     {
+        Instant resolvedRecordedBefore = DateTimeUtils.resolveInstant(
+                recordedBefore,
+                localRecordedBefore
+        );
         return ResponseEntity.ok(
                 surveyUnitService.findSimplifiedList(
                         collectionInstrumentId,
                         interrogationIds,
-                        recordedBefore
+                        resolvedRecordedBefore
                 )
         );
     }
