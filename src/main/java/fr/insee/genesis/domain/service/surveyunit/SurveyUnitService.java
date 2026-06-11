@@ -88,9 +88,32 @@ public class SurveyUnitService implements SurveyUnitApiPort {
      * @return the latest update for each variable of a survey unit
      */
     @Override
-    public List<SurveyUnitModel> findLatestByIdAndByCollectionInstrumentId(String interrogationId, String collectionInstrumentId) {
-        List<SurveyUnitModel> latestUpdatesbyVariables = new ArrayList<>();
+    public List<SurveyUnitModel> findLatestByInterrogationIdAndCollectionInstrumentId(String interrogationId, String collectionInstrumentId) {
         List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findByIds(interrogationId, collectionInstrumentId);
+        return getLatestSurveyUnitModels(surveyUnitModels);
+    }
+
+    /**
+     * @param collectionInstrumentOrQuestionnaireId : Collection instrument id/questionnaire id
+     * @param interrogationIdSet : Interrogation ids
+     * @return the latest updates for given interrogationIds
+     */
+    @Override
+    public List<SurveyUnitModel> findLatestByInterrogationIds(
+            String collectionInstrumentOrQuestionnaireId,
+            Set<String> interrogationIdSet
+    ) {
+        List<SurveyUnitModel> surveyUnitModels = surveyUnitPersistencePort.findByCollectionInstrumentOrQuestionnaireIdAndInterrogationIds(
+                collectionInstrumentOrQuestionnaireId,
+                interrogationIdSet.stream().toList()
+        );
+
+        return getLatestSurveyUnitModels(surveyUnitModels);
+    }
+
+    private List<SurveyUnitModel> getLatestSurveyUnitModels(List<SurveyUnitModel> surveyUnitModels) {
+        List<SurveyUnitModel> latestUpdatesByVariables = new ArrayList<>();
+
         List<Mode> modes = getDistinctsModes(surveyUnitModels);
         modes.forEach(mode ->{
             List<SurveyUnitModel> suByMode = surveyUnitModels.stream()
@@ -99,7 +122,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                     .toList();
 
             //We had all the variables of the oldest update
-            latestUpdatesbyVariables.add(suByMode.getFirst());
+            latestUpdatesByVariables.add(suByMode.getFirst());
             //We keep the name of already added variables to skip them in older updates
             Set<VarIdScopeTuple> addedVariables = new HashSet<>();
             SurveyUnitModel latestUpdate = suByMode.getFirst();
@@ -152,11 +175,11 @@ public class SurveyUnitService implements SurveyUnitApiPort {
                 if (!collectedVariablesToKeep.isEmpty() || !externalVariablesToKeep.isEmpty()){
                     surveyUnitModel.setCollectedVariables(collectedVariablesToKeep);
                     surveyUnitModel.setExternalVariables(externalVariablesToKeep);
-                    latestUpdatesbyVariables.add(surveyUnitModel);
+                    latestUpdatesByVariables.add(surveyUnitModel);
                 }
             });
         });
-        return latestUpdatesbyVariables;
+        return latestUpdatesByVariables;
     }
 
     private void addDataStateIntoList(List<VariableModel> variableModelList, DataState state){
@@ -197,7 +220,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             String interrogationId,
             Mode mode,
             Instant recordedBefore) throws NoDataException {
-        List<SurveyUnitModel> responses = findLatestByIdAndByCollectionInstrumentId(interrogationId, collectionInstrumentId);
+        List<SurveyUnitModel> responses = findLatestByInterrogationIdAndCollectionInstrumentId(interrogationId, collectionInstrumentId);
 
         if(responses.isEmpty()){
             String errorMessage = "No response found for interrogation %s".formatted(interrogationId);
@@ -294,7 +317,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         List<String> queryInParam = interrogationIds.stream().map(InterrogationId::getInterrogationId).toList();
 
         //Get !!!all versions!!! of a set of "interrogationIds"
-        List<SurveyUnitModel> allResponsesVersionsSet = surveyUnitPersistencePort.findBySetOfIdsAndQuestionnaireIdAndMode(questionnaireId, mode, queryInParam);
+        List<SurveyUnitModel> allResponsesVersionsSet = surveyUnitPersistencePort.findByQuestionnaireIdAndModeAndInterrogationIds(questionnaireId, mode, queryInParam);
 
         //2) FILTER BY interrogationId AND ORDER BY DATE (MOST RECENT FIRST, oldest last)
         interrogationIds.forEach(interrogationId -> {
