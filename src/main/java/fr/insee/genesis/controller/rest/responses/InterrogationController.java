@@ -2,6 +2,7 @@ package fr.insee.genesis.controller.rest.responses;
 
 import fr.insee.genesis.controller.dto.InterrogationBatchResponse;
 import fr.insee.genesis.controller.rest.CommonApiResponse;
+import fr.insee.genesis.controller.utils.DateTimeUtils;
 import fr.insee.genesis.domain.model.surveyunit.InterrogationId;
 import fr.insee.genesis.domain.model.surveyunit.InterrogationInfo;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
@@ -61,14 +62,27 @@ public class InterrogationController implements CommonApiResponse {
             )
             @RequestParam(value = "since", required = false)
             Instant since,
+            @RequestParam(value = "localSinceDate", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            @Parameter(description = "Filter interrogations to those recorded strictly after the given timestamp (Europe/Paris timezone)",
+                    schema = @Schema(type = "string", format = "date-time", example = "2026-02-02T01:00:00"))
+            LocalDateTime localSinceDate,
             @RequestParam(value = "until", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
             @Parameter(
                     description = "Filter interrogations to those recorded before the given timestamp or at the same time (ISO-8601 UTC format).",
                     schema = @Schema(type = "string", format = "date-time", example = "2026-01-31T23:59:59Z")
             )
-            Instant until) {
-        List<InterrogationInfo> idsInfo = surveyUnitService.searchInterrogations(collectionInstrumentId, since, until);
+            Instant until,
+            @RequestParam(value = "localUntilDate", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            @Parameter(description = "Filter interrogations to those recorded before the given timestamp or at the same time (Europe/Paris timezone)",
+                    schema = @Schema(type = "string", format = "date-time", example = "2026-04-02T01:00:00"))
+            LocalDateTime localUntilDate) {
+
+        Instant resolvedSinceDate = DateTimeUtils.resolveInstant(since, localSinceDate);
+        Instant resolvedEndDate = DateTimeUtils.resolveInstant(until, localUntilDate);
+        List<InterrogationInfo> idsInfo = surveyUnitService.searchInterrogations(collectionInstrumentId, resolvedSinceDate, resolvedEndDate);
         InterrogationBatchResponse response = buildInterrogationBatchResponse(idsInfo);
         return ResponseEntity.ok(response);
     }
