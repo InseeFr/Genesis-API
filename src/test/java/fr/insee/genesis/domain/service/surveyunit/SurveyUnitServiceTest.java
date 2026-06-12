@@ -37,14 +37,19 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class SurveyUnitServiceTest {
 
@@ -74,7 +79,7 @@ class SurveyUnitServiceTest {
         doReturn(SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(Collections.singletonList(surveyUnitDocument)))
                 .when(surveyUnitPersistencePortStub).findByIds(any(), any());
 
-        List<SurveyUnitModel> surveyUnitModels = surveyUnitService.findLatestByIdAndByCollectionInstrumentId(
+        List<SurveyUnitModel> surveyUnitModels = surveyUnitService.findLatestByInterrogationIdAndCollectionInstrumentId(
                 TestConstants.DEFAULT_INTERROGATION_ID,
                 TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID
         );
@@ -106,7 +111,7 @@ class SurveyUnitServiceTest {
                 .when(surveyUnitPersistencePortStub).findByIds(any(), any());
 
         //WHEN
-        List<SurveyUnitModel> surveyUnitModels = surveyUnitService.findLatestByIdAndByCollectionInstrumentId(
+        List<SurveyUnitModel> surveyUnitModels = surveyUnitService.findLatestByInterrogationIdAndCollectionInstrumentId(
                 TestConstants.DEFAULT_INTERROGATION_ID,
                 TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID
         );
@@ -140,7 +145,7 @@ class SurveyUnitServiceTest {
                 .when(surveyUnitPersistencePortStub).findByIds(any(), any());
 
         //WHEN
-        List<SurveyUnitModel> surveyUnitModels = surveyUnitService.findLatestByIdAndByCollectionInstrumentId(
+        List<SurveyUnitModel> surveyUnitModels = surveyUnitService.findLatestByInterrogationIdAndCollectionInstrumentId(
                 TestConstants.DEFAULT_INTERROGATION_ID,
                 TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID
         );
@@ -317,7 +322,7 @@ class SurveyUnitServiceTest {
         doReturn(SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(Collections.singletonList(surveyUnitDocument)))
                 .when(surveyUnitPersistencePortStub).findByIds(any(), any());
 
-        List<SurveyUnitModel> surveyUnitModels = surveyUnitService.findLatestByIdAndByCollectionInstrumentId(
+        List<SurveyUnitModel> surveyUnitModels = surveyUnitService.findLatestByInterrogationIdAndCollectionInstrumentId(
                 TestConstants.DEFAULT_INTERROGATION_ID,
                 TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID
         );
@@ -359,7 +364,7 @@ class SurveyUnitServiceTest {
         doReturn(SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnitDocuments))
                 .when(surveyUnitPersistencePortStub).findByIds(any(), any());
 
-        List<SurveyUnitModel> surveyUnitModels = surveyUnitService.findLatestByIdAndByCollectionInstrumentId(
+        List<SurveyUnitModel> surveyUnitModels = surveyUnitService.findLatestByInterrogationIdAndCollectionInstrumentId(
                 TestConstants.DEFAULT_INTERROGATION_ID,
                 TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID
         );
@@ -779,6 +784,146 @@ class SurveyUnitServiceTest {
             metadataModel.getVariables().putVariable(variable);
             return metadataModel.getVariables();
         }
+    }
+
+    @Nested
+    @DisplayName("findLatestByInterrogationIds tests")
+    class findLatestByInterrogationIdsTests {
+        @Test
+        @DisplayName("Should return empty list if no survey unit is found")
+        void shouldReturnEmptyList() {
+            // GIVEN
+            String questionnaireId = "QUESTIONNAIRE";
+            Set<String> interrogationIds = Set.of("INT1", "INT2");
+
+            when(surveyUnitPersistencePortStub.findByCollectionInstrumentOrQuestionnaireIdAndInterrogationIds(
+                    eq(questionnaireId),
+                    anyList()))
+                    .thenReturn(List.of());
+
+            // WHEN
+            List<SurveyUnitModel> result =
+                    surveyUnitService.findLatestByInterrogationIds(questionnaireId, interrogationIds);
+
+            // THEN
+            assertThat(result).isEmpty();
+
+            verify(surveyUnitPersistencePortStub)
+                    .findByCollectionInstrumentOrQuestionnaireIdAndInterrogationIds(
+                            eq(questionnaireId),
+                            argThat(ids -> ids.containsAll(interrogationIds) && ids.size() == 2)
+                    );
+        }
+
+        @Test
+        @DisplayName("Should return survey unit (only 1 version)")
+        void should_return_latest_survey_unit_when_single_version_exists() {
+            // GIVEN
+            String questionnaireId = "QUESTIONNAIRE";
+            Set<String> interrogationIds = Set.of("INT1");
+
+            SurveyUnitModel surveyUnit = SurveyUnitModel.builder()
+                    .interrogationId("INT1")
+                    .mode(Mode.WEB)
+                    .recordDate(Instant.now())
+                    .collectedVariables(new ArrayList<>(List.of(
+                            VariableModel.builder()
+                                    .varId("VAR1")
+                                    .iteration(1)
+                                    .value("VALUE1")
+                                    .build())))
+                    .externalVariables(new ArrayList<>())
+                    .build();
+
+            when(surveyUnitPersistencePortStub.findByCollectionInstrumentOrQuestionnaireIdAndInterrogationIds(
+                    eq(questionnaireId),
+                    anyList()))
+                    .thenReturn(List.of(surveyUnit));
+
+            // WHEN
+            List<SurveyUnitModel> result =
+                    surveyUnitService.findLatestByInterrogationIds(questionnaireId, interrogationIds);
+
+            // THEN
+            assertThat(result)
+                    .hasSize(1)
+                    .first()
+                    .extracting(SurveyUnitModel::getInterrogationId)
+                    .isEqualTo("INT1");
+        }
+
+        @Test
+        @DisplayName("Should return survey unit (multiple versions)")
+        void should_keep_latest_variable_values_when_multiple_versions_exist() {
+            // GIVEN
+            String questionnaireId = "QUESTIONNAIRE";
+            Set<String> interrogationIds = Set.of("INT1");
+
+            Instant latestDate = Instant.parse("2025-01-02T10:00:00Z");
+            Instant oldestDate = Instant.parse("2025-01-01T10:00:00Z");
+
+            VariableModel latestVariable = VariableModel.builder()
+                    .varId("VAR1")
+                    .iteration(1)
+                    .value("NEW_VALUE")
+                    .build();
+
+            VariableModel oldVariable = VariableModel.builder()
+                    .varId("VAR1")
+                    .iteration(1)
+                    .value("OLD_VALUE")
+                    .build();
+
+            VariableModel oldVariableOnlyInOldVersion = VariableModel.builder()
+                    .varId("VAR2")
+                    .iteration(1)
+                    .value("VALUE2")
+                    .build();
+
+            SurveyUnitModel latestVersion = SurveyUnitModel.builder()
+                    .interrogationId("INT1")
+                    .mode(Mode.WEB)
+                    .recordDate(latestDate)
+                    .collectedVariables(new ArrayList<>(List.of(latestVariable)))
+                    .externalVariables(new ArrayList<>())
+                    .build();
+
+            SurveyUnitModel oldestVersion = SurveyUnitModel.builder()
+                    .interrogationId("INT1")
+                    .mode(Mode.WEB)
+                    .recordDate(oldestDate)
+                    .collectedVariables(new ArrayList<>(List.of(oldVariable, oldVariableOnlyInOldVersion)))
+                    .externalVariables(new ArrayList<>())
+                    .build();
+
+            when(surveyUnitPersistencePortStub.findByCollectionInstrumentOrQuestionnaireIdAndInterrogationIds(
+                    eq(questionnaireId),
+                    anyList()))
+                    .thenReturn(List.of(oldestVersion, latestVersion));
+
+            // WHEN
+            List<SurveyUnitModel> result =
+                    surveyUnitService.findLatestByInterrogationIds(questionnaireId, interrogationIds);
+
+            // THEN
+            assertThat(result).hasSize(2);
+
+            SurveyUnitModel latestResult = result.get(0);
+            SurveyUnitModel additionalVariablesResult = result.get(1);
+
+            assertThat(latestResult.getCollectedVariables())
+                    .extracting(VariableModel::varId)
+                    .containsExactly("VAR1");
+
+            assertThat(latestResult.getCollectedVariables())
+                    .extracting(VariableModel::value)
+                    .containsExactly("NEW_VALUE");
+
+            assertThat(additionalVariablesResult.getCollectedVariables())
+                    .extracting(VariableModel::varId)
+                    .containsExactly("VAR2");
+        }
+
     }
 
     //UTILS
