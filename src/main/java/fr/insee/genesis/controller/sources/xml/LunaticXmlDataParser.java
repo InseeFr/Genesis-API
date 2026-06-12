@@ -248,7 +248,7 @@ public class LunaticXmlDataParser {
                 varData.setPrevious(valueTypes);
                 break;
             default:
-                throw new GenesisException(HttpStatus.DESTINATION_LOCKED, "Tag not recognized: " + valueElement.getTagName());
+                throw new GenesisException(HttpStatus.LOCKED, "Tag not recognized: " + valueElement.getTagName());
         }
     }
 
