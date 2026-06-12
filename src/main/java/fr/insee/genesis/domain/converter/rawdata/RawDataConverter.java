@@ -12,8 +12,8 @@ import fr.insee.genesis.domain.utils.GroupUtils;
 import fr.insee.genesis.domain.utils.JsonUtils;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -268,10 +268,14 @@ public abstract class RawDataConverter {
     ) {
         //Get data map from payload
         Map<String, Object> dataMap = dataOrPayloadMap;
-        if (rawDataModelType == RawDataModelType.FILIERE) {
+        if (rawDataModelType == RawDataModelType.FILIERE && dataOrPayloadMap.containsKey("data")) {
             dataMap = JsonUtils.asMap(dataOrPayloadMap.get("data"));
         }
-        Map<String, Object> collectedMap  = new HashMap<>(JsonUtils.asMap(dataMap.get("COLLECTED")));
+
+        Map<String, Object> collectedMap = new HashMap<>();
+        if(dataMap.containsKey("COLLECTED")) {
+            collectedMap = new HashMap<>(JsonUtils.asMap(dataMap.get("COLLECTED")));
+        }
 
         if(lastSurveyUnitModel != null && lastSurveyUnitModel.getState().equals(dataState)) {
             fillRawDataMapWithAbsentVariables(lastSurveyUnitModel, collectedMap, dataState);
@@ -491,10 +495,10 @@ public abstract class RawDataConverter {
     ) {
         //Get data map from payload if filiere model
         Map<String, Object> dataMap = dataOrPayloadMap;
-        if (rawDataModelType == RawDataModelType.FILIERE) {
+        if (rawDataModelType == RawDataModelType.FILIERE && dataOrPayloadMap.containsKey("data")) {
             dataMap = JsonUtils.asMap(dataOrPayloadMap.get("data"));
         }
-        Map<String, Object> externalMap = null;
+        Map<String, Object> externalMap = new HashMap<>();
         if(dataMap.containsKey("EXTERNAL")) {
             externalMap = new HashMap<>(JsonUtils.asMap(dataMap.get("EXTERNAL")));
         }
@@ -502,7 +506,7 @@ public abstract class RawDataConverter {
         if(lastSurveyUnitModel != null){
             fillRawDataMapWithAbsentVariables(lastSurveyUnitModel, externalMap, null);
         }
-        if(externalMap == null){
+        if(externalMap.isEmpty()){
             return;
         }
 
