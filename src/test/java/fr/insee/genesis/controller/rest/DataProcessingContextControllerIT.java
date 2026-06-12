@@ -117,14 +117,16 @@ public class DataProcessingContextControllerIT extends IntegrationTestAbstract {
                     .andExpect(status().isOk());
 
             //THEN
-            ArgumentCaptor<DataProcessingContextDocument> dataProcessingContextDocumentCaptor =
-                    ArgumentCaptor.forClass(DataProcessingContextDocument.class);
-            verify(dataProcessingContextMongoDBRepository,times(1)).save(
-                    dataProcessingContextDocumentCaptor.capture()
+            @SuppressWarnings("unchecked")
+            ArgumentCaptor<List<DataProcessingContextDocument>> dataProcessingContextListDocumentCaptor =
+                    ArgumentCaptor.forClass(List.class);
+            verify(dataProcessingContextMongoDBRepository,times(1)).saveAll(
+                    dataProcessingContextListDocumentCaptor.capture()
             );
 
             //Saved document content
-            DataProcessingContextDocument savedDataProcessingContextDocument = dataProcessingContextDocumentCaptor.getValue();
+            Assertions.assertThat(dataProcessingContextListDocumentCaptor.getValue()).hasSize(1);
+            DataProcessingContextDocument savedDataProcessingContextDocument = dataProcessingContextListDocumentCaptor.getValue().getFirst();
             Assertions.assertThat(savedDataProcessingContextDocument).isNotNull();
             Assertions.assertThat(savedDataProcessingContextDocument.getCollectionInstrumentId())
                     .isEqualTo(collectionInstrumentId);

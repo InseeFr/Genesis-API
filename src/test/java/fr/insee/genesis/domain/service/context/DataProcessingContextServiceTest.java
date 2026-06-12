@@ -33,6 +33,7 @@ import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -56,8 +57,8 @@ class DataProcessingContextServiceTest {
         //GIVEN
         if(!isNull){
             DataProcessingContextModel dataProcessingContextModel = new DataProcessingContextModel();
-            doReturn(dataProcessingContextModel).when(dataProcessingContextPersistancePort)
-                    .findByCollectionInstrumentId(any());
+            doReturn(List.of(dataProcessingContextModel)).when(dataProcessingContextPersistancePort)
+                    .findAllByCollectionInstrumentId(any());
         }
         String collectionInstrumentId = "collectionInstrumentId";
         Boolean withReview = true;
@@ -66,8 +67,14 @@ class DataProcessingContextServiceTest {
         dataProcessingContextService.saveContextByCollectionInstrumentId(collectionInstrumentId, withReview);
 
         //THEN
-        verify(dataProcessingContextPersistancePort, times(1)).save(
-                any(DataProcessingContextDocument.class)
+        if(isNull){
+            verify(dataProcessingContextPersistancePort, times(1)).save(
+                    any(DataProcessingContextDocument.class)
+            );
+            return;
+        }
+        verify(dataProcessingContextPersistancePort, times(1)).saveAll(
+                anyList()
         );
     }
 

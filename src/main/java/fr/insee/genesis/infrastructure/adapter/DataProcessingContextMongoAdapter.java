@@ -19,6 +19,7 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -43,9 +44,24 @@ public class DataProcessingContextMongoAdapter implements DataProcessingContextP
     public DataProcessingContextModel findByCollectionInstrumentId(String collectionInstrumentId) {
         List<DataProcessingContextDocument> existingDocuments =
                 dataProcessingContextMongoDBRepository.findByCollectionInstrumentIdList(List.of(collectionInstrumentId));
+        if(existingDocuments.size() > 1){
+            log.warn("Multiple context documents for collection instrument {}", collectionInstrumentId);
+        }
         return DataProcessingContextMapper.INSTANCE.documentToModel(
                 existingDocuments.isEmpty() ? null : existingDocuments.getFirst()
         );
+    }
+
+    @Override
+    public List<DataProcessingContextModel> findAllByCollectionInstrumentId(String collectionInstrumentId) {
+        List<DataProcessingContextDocument> existingDocuments =
+                dataProcessingContextMongoDBRepository.findByCollectionInstrumentIdList(List.of(collectionInstrumentId));
+
+        if(existingDocuments == null){
+            return new ArrayList<>();
+        }
+
+        return DataProcessingContextMapper.INSTANCE.listDocumentToListModel(existingDocuments);
     }
 
     @Override

@@ -267,12 +267,8 @@ public class ResponseController implements CommonApiResponse {
             @RequestParam("interrogationId") String interrogationId,
             @RequestParam("collectionInstrumentId") String collectionInstrumentId) throws GenesisException {
         //TODO move logic to service
-        DataProcessingContextModel dataProcessingContextModel;
         //Check context
-        dataProcessingContextModel = contextService.getContext(interrogationId);
-
-
-        if(dataProcessingContextModel == null || !dataProcessingContextModel.isWithReview()){
+        if(!contextService.isWithReview(collectionInstrumentId)){
             throw new ReviewDisabledException();
         }
 

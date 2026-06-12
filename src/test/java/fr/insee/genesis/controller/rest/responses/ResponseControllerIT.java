@@ -390,7 +390,6 @@ class ResponseControllerIT extends IntegrationTestAbstract {
 
         //SAD PATHS
         //FIXME remove ignore when multiple context case is implemented
-        @Disabled("This needs to be implemented, code is actually using the first context")
         @Test
         @WithMockUser(roles = "USER_PLATINE")
         @DisplayName("Get response latest states should return 403 if at least one context with false withReview")
@@ -411,6 +410,14 @@ class ResponseControllerIT extends IntegrationTestAbstract {
             Mockito.when(dataProcessingContextMongoDBRepository.findByCollectionInstrumentIdList(anyList()))
                     .thenReturn(List.of(dataProcessingContextDocumentTrue, dataProcessingContextDocumentFalse));
 
+            //Survey unit
+            SurveyUnitDocument surveyUnitDocument = new SurveyUnitDocument();
+            surveyUnitDocument.setCollectionInstrumentId(collectionInstrumentId);
+            surveyUnitDocument.setInterrogationId(interrogationId);
+            Mockito.when(surveyUnitMongoDBRepository.findByInterrogationId(interrogationId)).thenReturn(
+                    List.of(surveyUnitDocument)
+            );
+
             //WHEN + THEN
             mockMvc.perform(get("/responses/by-interrogation-and-collection-instrument/latest-states")
                             .with(csrf())
@@ -421,7 +428,8 @@ class ResponseControllerIT extends IntegrationTestAbstract {
 
         @Test
         @WithMockUser(roles = "USER_PLATINE")
-        @DisplayName("Get response latest states should return 500 if multiple contexts for one interrogationId")
+        @DisplayName("Get response latest states should return 403 if multiple contexts for one interrogationId and " +
+                "one is false")
         @SneakyThrows
         void get_response_latest_states_multiple_contexts_for_one_interrogation_test() {
             //GIVEN
@@ -440,12 +448,23 @@ class ResponseControllerIT extends IntegrationTestAbstract {
             Mockito.when(surveyUnitMongoDBRepository.findByInterrogationId(interrogationId))
                     .thenReturn(List.of(surveyUnitDocument1, surveyUnitDocument2));
 
+            DataProcessingContextDocument dataProcessingContextDocument1 = new DataProcessingContextDocument();
+            dataProcessingContextDocument1.setCollectionInstrumentId(collectionInstrumentId1);
+            dataProcessingContextDocument1.setWithReview(true);
+
+            DataProcessingContextDocument dataProcessingContextDocument2 = new DataProcessingContextDocument();
+            dataProcessingContextDocument2.setCollectionInstrumentId(collectionInstrumentId2);
+            dataProcessingContextDocument2.setWithReview(false);
+
+            Mockito.when(dataProcessingContextMongoDBRepository.findByCollectionInstrumentIdList(anyList()))
+                            .thenReturn(List.of(dataProcessingContextDocument1, dataProcessingContextDocument2));
+
             //WHEN + THEN
             mockMvc.perform(get("/responses/by-interrogation-and-collection-instrument/latest-states")
                             .with(csrf())
                             .param("collectionInstrumentId", collectionInstrumentId1)
                             .param("interrogationId", interrogationId))
-                    .andExpect(status().isInternalServerError());
+                    .andExpect(status().isForbidden());
         }
     }
 }

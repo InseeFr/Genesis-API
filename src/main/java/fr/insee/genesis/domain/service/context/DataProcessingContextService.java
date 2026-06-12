@@ -47,17 +47,22 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
 
     @Override
     public void saveContextByCollectionInstrumentId(String collectionInstrumentId, Boolean withReview)  {
-        DataProcessingContextModel dataProcessingContextModel = dataProcessingContextPersistancePort.findByCollectionInstrumentId(collectionInstrumentId);
-        if(dataProcessingContextModel == null){
+        List<DataProcessingContextModel> dataProcessingContextModels = dataProcessingContextPersistancePort.findAllByCollectionInstrumentId(collectionInstrumentId);
+        if(dataProcessingContextModels == null || dataProcessingContextModels.isEmpty()){
             //Create if not exist
-            dataProcessingContextModel = DataProcessingContextModel.builder()
+            DataProcessingContextModel dataProcessingContextModel = DataProcessingContextModel.builder()
                     .collectionInstrumentId(collectionInstrumentId)
+                    .withReview(withReview)
                     .kraftwerkExecutionScheduleList(new ArrayList<>())
                     .build();
+            dataProcessingContextPersistancePort.save(DataProcessingContextMapper.INSTANCE.modelToDocument(dataProcessingContextModel));
+            return;
         }
-        dataProcessingContextModel.setWithReview(withReview);
+        for(DataProcessingContextModel dataProcessingContextModel : dataProcessingContextModels){
+            dataProcessingContextModel.setWithReview(withReview);
+        }
 
-        dataProcessingContextPersistancePort.save(DataProcessingContextMapper.INSTANCE.modelToDocument(dataProcessingContextModel));
+        dataProcessingContextPersistancePort.saveAll(DataProcessingContextMapper.INSTANCE.listModelToListDocument(dataProcessingContextModels));
     }
 
     @Override
@@ -341,6 +346,29 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
         }
 
         return dataProcessingContextPersistancePort.findByCollectionInstrumentId(collectionInstrumentIds.stream().toList().getFirst());
+    }
+
+    /**
+     * Determines if collection instrument is concerned by review
+     * @param collectionInstrumentId collection instrument id
+     * @return false if no context or at least one false review indicator
+     */
+    @Override
+    public boolean isWithReview(String collectionInstrumentId) throws GenesisException {
+        List<DataProcessingContextModel> dataProcessingContextModels =
+                dataProcessingContextPersistancePort.findAllByCollectionInstrumentId(collectionInstrumentId);
+
+        if(dataProcessingContextModels == null || dataProcessingContextModels.isEmpty()){
+            return false;
+        }
+
+        for (DataProcessingContextModel dataProcessingContextModel : dataProcessingContextModels){
+            if(!dataProcessingContextModel.isWithReview()){
+               return false;
+            }
+        }
+
+        return true;
     }
 
     @Override

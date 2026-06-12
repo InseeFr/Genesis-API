@@ -19,6 +19,7 @@ import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.infrastructure.document.context.DataProcessingContextDocument;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -187,9 +188,13 @@ class ResponseControllerTest {
             // GIVEN
             DataProcessingContextModel ctx = new DataProcessingContextModel();
             ctx.setWithReview(true);
-            when(contextService.getContext("INTERRO01")).thenReturn(ctx);
+            when(contextService.isWithReview("QUEST01")).thenReturn(true);
             when(surveyUnitApiPort.findLatestValuesByStateByIdAndByCollectionInstrumentId("INTERRO01", "QUEST01"))
                     .thenReturn(getSurveyUnitDto());
+
+            DataProcessingContextDocument dataProcessingContextDocument1 = new DataProcessingContextDocument();
+            dataProcessingContextDocument1.setCollectionInstrumentId("test");
+            dataProcessingContextDocument1.setWithReview(true);
 
             // WHEN / THEN
             mockMvc.perform(get("/responses/by-interrogation-and-collection-instrument/latest-states")

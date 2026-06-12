@@ -30,6 +30,7 @@ public interface DataProcessingContextApiPort {
     long countContexts();
 
     DataProcessingContextModel getContext(String interrogationId) throws GenesisException;
+    boolean isWithReview(String collectionInstrumentId) throws GenesisException;
 
     DataProcessingContextModel getContextByCollectionInstrumentId(String collectionInstrumentId);
 
