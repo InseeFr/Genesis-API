@@ -7,7 +7,6 @@ import fr.insee.genesis.domain.model.surveyunit.rawdata.RawDataModelType;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponseModel;
 import fr.insee.genesis.domain.parser.rawdata.RawResponsePayloadParser;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
-import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.modelefiliere.RawResponseDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -141,7 +140,7 @@ public class RawResponseRawDataConverter extends RawDataConverter {
                 .validationDate(rawResponsePayloadParser.getValidationDate(rawResponseModel))
                 .isCapturedIndirectly(rawResponsePayloadParser.getIsCapturedIndirectly(rawResponseModel))
                 .state(dataState)
-                .fileDate(rawResponseModel.recordDate())
+                .rawRecordDate(rawResponseModel.recordDate())
                 .recordDate(Instant.now())
                 .collectedVariables(new ArrayList<>())
                 .externalVariables(new ArrayList<>())
