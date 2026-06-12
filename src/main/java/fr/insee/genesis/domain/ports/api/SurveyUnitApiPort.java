@@ -83,6 +83,7 @@ public interface SurveyUnitApiPort {
     String findQuestionnaireIdByInterrogationId(String interrogationId) throws GenesisException;
 
     long countResponsesByQuestionnaireId(String questionnaireId);
+    long countAllInterrogationIdsByQuestionnaireOrCollectionInstrument(String questionnaireId);
 
     long countDistinctInterrogationIdsByQuestionnaireAndCollectionInstrumentId(String id);
 }

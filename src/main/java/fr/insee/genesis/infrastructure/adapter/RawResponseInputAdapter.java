@@ -1,4 +1,4 @@
-package fr.insee.genesis.infrastructure.repository;
+package fr.insee.genesis.infrastructure.adapter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,8 +13,7 @@ import java.util.Map;
 
 @Repository
 @RequiredArgsConstructor
-//TODO rename to adapter, it's not a repo
-public class RawResponseInputRepository {
+public class RawResponseInputAdapter {
 
     private final MongoTemplate mongoTemplate;
     private final ObjectMapper objectMapper;

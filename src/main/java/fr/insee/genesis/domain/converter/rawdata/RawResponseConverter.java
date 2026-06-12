@@ -1,6 +1,7 @@
 package fr.insee.genesis.domain.converter.rawdata;
 
 import fr.insee.bpm.metadata.model.Variable;
+import fr.insee.bpm.metadata.model.VariableType;
 import fr.insee.bpm.metadata.model.VariablesMap;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
@@ -15,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -164,16 +166,46 @@ public class RawResponseConverter {
             VariablesMap variablesMap,
             List<VariableModel> destination
     ) {
-        List<String> values = JsonUtils.asStringList(valuesForState);
+        if (!(valuesForState instanceof List<?> values)) {
+            throw new IllegalArgumentException("Object is not a List");
+        }
 
-        if (!values.isEmpty()) {
-            int iteration = 1;
-            for (String value : values) {
-                if (value != null && !value.isEmpty()) {
-                    convertOneVar(variableEntry, value, variablesMap, iteration, destination);
-                }
-                iteration++;
+        int iteration = 1;
+        for (Object rawValue : values) {
+            String value = getValueAsStringByExpectedType(
+                    variableEntry.getKey(),
+                    rawValue,
+                    variablesMap
+            );
+
+            if (value != null && !value.isEmpty()) {
+                convertOneVar(variableEntry, value, variablesMap, iteration, destination);
             }
+
+            iteration++;
+        }
+    }
+
+    private static String getValueAsStringByExpectedType(
+            String variableName,
+            Object value,
+            VariablesMap variablesMap
+    ) {
+        if (value == null) {
+            return null;
+        }
+
+        Variable variable = variablesMap.getVariable(variableName);
+        if (variable == null || variable.getType() != VariableType.INTEGER) {
+            return String.valueOf(value);
+        }
+
+        try {
+            return new BigDecimal(value.toString())
+                    .toBigIntegerExact()
+                    .toString();
+        } catch (NumberFormatException | ArithmeticException e) {
+            return String.valueOf(value);
         }
     }
 

@@ -6,7 +6,7 @@ import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.RawResponseApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityToolService;
-import fr.insee.genesis.infrastructure.repository.RawResponseInputRepository;
+import fr.insee.genesis.infrastructure.adapter.RawResponseInputAdapter;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -51,7 +51,7 @@ class ControllerAccessIT extends IntegrationTestAbstract {
     @MockitoBean
     private RawResponseApiPort rawResponseApiPort;
     @MockitoBean
-    private RawResponseInputRepository rawRepository;
+    private RawResponseInputAdapter rawRepository;
     @MockitoBean
     private SurveyUnitQualityToolService surveyUnitQualityToolService;
     /**

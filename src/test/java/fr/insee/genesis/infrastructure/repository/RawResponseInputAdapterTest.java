@@ -2,6 +2,7 @@ package fr.insee.genesis.infrastructure.repository;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.insee.genesis.infrastructure.adapter.RawResponseInputAdapter;
 import fr.insee.modelefiliere.ModeDto;
 import fr.insee.modelefiliere.RawResponseDto;
 import org.junit.jupiter.api.DisplayName;
@@ -28,7 +29,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("RawResponseInputRepository tests")
-class RawResponseInputRepositoryTest {
+class RawResponseInputAdapterTest {
 
     private static final String COLLECTION_NAME = "rawResponses";
     private static final String INTERROGATION_ID = "interrogation-123";
@@ -41,7 +42,7 @@ class RawResponseInputRepositoryTest {
     private ObjectMapper objectMapper;
 
     @InjectMocks
-    private RawResponseInputRepository repository;
+    private RawResponseInputAdapter repository;
 
     @Nested
     @DisplayName("saveAsRawJson() tests")

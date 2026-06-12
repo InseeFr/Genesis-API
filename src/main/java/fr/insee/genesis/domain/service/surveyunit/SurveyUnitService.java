@@ -591,6 +591,12 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         return surveyUnitPersistencePort.countByQuestionnaireId(questionnaireId);
     }
 
+    @Override
+    public long countAllInterrogationIdsByQuestionnaireOrCollectionInstrument(String questionnaireId) {
+        return countResponsesByQuestionnaireId(questionnaireId)
+                + countResponsesByCollectionInstrumentId(questionnaireId);
+    }
+
     //Utils
     private static List<Mode> getDistinctsModes(List<SurveyUnitModel> surveyUnitModels) {
         List<Mode> sources = new ArrayList<>();
