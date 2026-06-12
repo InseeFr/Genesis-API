@@ -1,5 +1,5 @@
 # Changelog
-## 2.6.9 [TODO]
+## 2.6.9 [2026-06-11]
 ### Fixed
 - Delete only expired V2 schedules from dataProcessingContext
 ## 2.6.6 [2026-05-26]
