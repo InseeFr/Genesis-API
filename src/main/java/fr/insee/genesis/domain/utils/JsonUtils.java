@@ -1,5 +1,6 @@
 package fr.insee.genesis.domain.utils;
 
+import fr.insee.genesis.exceptions.JsonParsingException;
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.JsonToken;
@@ -55,7 +56,7 @@ public class JsonUtils {
             case START_ARRAY -> {
                 return readArray(jsonParser);
             }
-            case null, default -> throw new IOException("Unexpected token %s on line %d".formatted(
+            case null, default -> throw new JsonParsingException("Unexpected token %s on line %d".formatted(
                     jsonParser.currentToken(), jsonParser.currentLocation().getLineNr())
             );
         }
