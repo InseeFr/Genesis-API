@@ -92,7 +92,7 @@ class SurveyUnitMongoAdapterTest {
 			verify(mongoRepository).insert(captor.capture());
 			assertThat(captor.getValue()).hasSize(3);
 		}
-		
+
 		@Test
 		@DisplayName("saveAll() should be annotated with @Transactional")
 		void saveAll_shouldBeTransactional() throws NoSuchMethodException {
