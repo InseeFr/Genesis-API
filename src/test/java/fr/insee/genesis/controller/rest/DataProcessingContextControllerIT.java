@@ -336,66 +336,6 @@ public class DataProcessingContextControllerIT extends IntegrationTestAbstract {
             Assertions.assertThat(savedDocument.getKraftwerkExecutionScheduleList()).isEmpty();
         }
 
-        @Test
-        //TODO use a file infra interface (mocked) here
-        @Disabled("Writes directly on the pod/runner with files")
-        @WithMockUser(roles = "SCHEDULER")
-        @DisplayName("Delete expired schedules test")
-        @SneakyThrows
-        void delete_expired_schedules_test(){
-            //GIVEN
-            String collectionInstrumentId = "collectionInstrumentId";
-            ObjectId objectId = new ObjectId();
-
-            DataProcessingContextDocument dataProcessingContextDocument = new DataProcessingContextDocument();
-            dataProcessingContextDocument.setId(objectId);
-            dataProcessingContextDocument.setCollectionInstrumentId(collectionInstrumentId);
-            dataProcessingContextDocument.setKraftwerkExecutionScheduleList(new ArrayList<>());
-            //Expired schedule
-            String expiredFrequency = "0 0 0 0 0 0";
-            LocalDateTime expiredDate = LocalDateTime.now().minusDays(3);
-            dataProcessingContextDocument.getKraftwerkExecutionScheduleList().add(new KraftwerkExecutionSchedule(
-                    null,
-                    expiredFrequency,
-                    null,
-                    LocalDateTime.now().minusDays(7),
-                    expiredDate,
-                    null
-            ));
-            when(dataProcessingContextMongoDBRepository.findAll())
-                    .thenReturn(List.of(dataProcessingContextDocument));
-
-            //WHEN
-            //TODO s in context
-            mockMvc.perform(delete("/context/schedules/expired-schedules")
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isOk());
-
-            //THEN
-            ArgumentCaptor<Query> queryCaptor = ArgumentCaptor.forClass(Query.class);
-            ArgumentCaptor<Update> updateCaptor = ArgumentCaptor.forClass(Update.class);
-
-            verify(mongoTemplate).updateMulti(
-                    queryCaptor.capture(),
-                    updateCaptor.capture(),
-                    eq(Constants.MONGODB_SCHEDULE_COLLECTION_NAME)
-            );
-
-            Assertions.assertThat(queryCaptor.getValue().getQueryObject()).containsEntry(
-                   "collectionInstrumentId", collectionInstrumentId
-            );
-
-            Document updateObject = updateCaptor.getValue().getUpdateObject();
-            Document pullClause = (Document) updateObject.get("$pull");
-            Assertions.assertThat(pullClause).isNotNull();
-
-            Query pullQuery = (Query) pullClause.get("kraftwerkExecutionScheduleList");
-
-            Document pullQueryObject = pullQuery.getQueryObject();
-            Assertions.assertThat(pullQueryObject).isNotNull().containsEntry("scheduleEndDate", expiredDate);
-        }
-
         //BAD PATHS
         @Test
         @WithMockUser(roles = "USER_KRAFTWERK")

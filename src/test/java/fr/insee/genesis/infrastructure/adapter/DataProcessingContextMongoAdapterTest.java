@@ -5,7 +5,6 @@ import fr.insee.genesis.controller.utils.ExportType;
 import fr.insee.genesis.domain.model.context.DataProcessingContextModel;
 import fr.insee.genesis.domain.model.context.schedule.DeletedExpiredSchedules;
 import fr.insee.genesis.domain.model.context.schedule.DestinationType;
-import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionSchedule;
 import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionScheduleV2;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.infrastructure.document.context.DataProcessingContextDocument;
