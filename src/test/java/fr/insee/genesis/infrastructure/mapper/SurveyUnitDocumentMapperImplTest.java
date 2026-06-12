@@ -51,7 +51,6 @@ class SurveyUnitDocumentMapperImplTest {
         surveyUnitDocumentStatic.setInterrogationId(INTERROGATION_ID);
         surveyUnitDocumentStatic.setState("COLLECTED");
         LocalDateTime rawRecordDate = LocalDateTime.of(2023, 1, 1, 0, 0, 0);
-        surveyUnitDocumentStatic.setFileDate(rawRecordDate);
         surveyUnitDocumentStatic.setRawRecordDate(rawRecordDate);
 
         List<VariableDocument> documentExternalVariableList = new ArrayList<>();
@@ -90,7 +89,6 @@ class SurveyUnitDocumentMapperImplTest {
         deprecatedSurveyUnitDocumentStatic.setIdUE(ID_UE);
         deprecatedSurveyUnitDocumentStatic.setInterrogationId(INTERROGATION_ID);
         deprecatedSurveyUnitDocumentStatic.setState("COLLECTED");
-        deprecatedSurveyUnitDocumentStatic.setFileDate(rawRecordDate);
         deprecatedSurveyUnitDocumentStatic.setRawRecordDate(rawRecordDate);
 
         documentExternalVariableList = new ArrayList<>();
@@ -158,7 +156,6 @@ class SurveyUnitDocumentMapperImplTest {
         Assertions.assertThat(surveyUnit.getCollectionInstrumentId()).isEqualTo(COLLECTION_INSTRUMENT_ID);
         Assertions.assertThat(surveyUnit.getUsualSurveyUnitId()).isEqualTo(USUAL_SURVEY_UNIT_ID);
         Assertions.assertThat(surveyUnit.getState()).isEqualTo(DataState.COLLECTED);
-        Assertions.assertThat(surveyUnit.getFileDate()).isEqualTo(rawRecordDate);
         Assertions.assertThat(surveyUnit.getRawRecordDate()).isEqualTo(rawRecordDate);
 
         Assertions.assertThat(surveyUnit.getExternalVariables()).filteredOn(externalVariableModel ->
@@ -184,7 +181,6 @@ class SurveyUnitDocumentMapperImplTest {
         Assertions.assertThat(surveyUnit.getCollectionInstrumentId()).isEqualTo(QUESTIONNAIRE_ID);
         Assertions.assertThat(surveyUnit.getUsualSurveyUnitId()).isEqualTo(ID_UE);
         Assertions.assertThat(surveyUnit.getState()).isEqualTo(DataState.COLLECTED);
-        Assertions.assertThat(surveyUnit.getFileDate()).isEqualTo(rawRecordDate);
         Assertions.assertThat(surveyUnit.getRawRecordDate()).isEqualTo(rawRecordDate);
 
         Assertions.assertThat(surveyUnit.getExternalVariables()).filteredOn(externalVariableModel ->
@@ -209,7 +205,6 @@ class SurveyUnitDocumentMapperImplTest {
         Assertions.assertThat(surveyUnitDocument.getInterrogationId()).isEqualTo(INTERROGATION_ID);
         Assertions.assertThat(surveyUnitDocument.getCollectionInstrumentId()).isEqualTo(COLLECTION_INSTRUMENT_ID);
         Assertions.assertThat(surveyUnitDocument.getState()).isEqualTo("COLLECTED");
-        Assertions.assertThat(surveyUnitDocument.getFileDate()).isEqualTo(rawRecordDate);
         Assertions.assertThat(surveyUnitDocument.getRawRecordDate()).isEqualTo(rawRecordDate);
 
         Assertions.assertThat(surveyUnitDocument.getExternalVariables()).filteredOn(externalVariableDocument ->
@@ -239,7 +234,6 @@ class SurveyUnitDocumentMapperImplTest {
         Assertions.assertThat(surveyUnitList.getFirst().getCollectionInstrumentId()).isEqualTo(COLLECTION_INSTRUMENT_ID);
         Assertions.assertThat(surveyUnitList.getFirst().getUsualSurveyUnitId()).isEqualTo(USUAL_SURVEY_UNIT_ID);
         Assertions.assertThat(surveyUnitList.getFirst().getState()).isEqualTo(DataState.COLLECTED);
-        Assertions.assertThat(surveyUnitList.getFirst().getFileDate()).isEqualTo(rawRecordDate);
         Assertions.assertThat(surveyUnitList.getFirst().getRawRecordDate()).isEqualTo(rawRecordDate);
 
         Assertions.assertThat(surveyUnitList.getFirst().getExternalVariables()).filteredOn(externalVariableModel ->
@@ -267,7 +261,6 @@ class SurveyUnitDocumentMapperImplTest {
         Assertions.assertThat(surveyUnitList.getFirst().getCollectionInstrumentId()).isEqualTo(QUESTIONNAIRE_ID);
         Assertions.assertThat(surveyUnitList.getFirst().getUsualSurveyUnitId()).isEqualTo(ID_UE);
         Assertions.assertThat(surveyUnitList.getFirst().getState()).isEqualTo(DataState.COLLECTED);
-        Assertions.assertThat(surveyUnitList.getFirst().getFileDate()).isEqualTo(rawRecordDate);
         Assertions.assertThat(surveyUnitList.getFirst().getRawRecordDate()).isEqualTo(rawRecordDate);
 
         Assertions.assertThat(surveyUnitList.getFirst().getExternalVariables()).filteredOn(externalVariableModel ->
@@ -293,7 +286,6 @@ class SurveyUnitDocumentMapperImplTest {
         Assertions.assertThat(surveyUnitDocumentList.getFirst().getInterrogationId()).isEqualTo(INTERROGATION_ID);
         Assertions.assertThat(surveyUnitDocumentList.getFirst().getCollectionInstrumentId()).isEqualTo(COLLECTION_INSTRUMENT_ID);
         Assertions.assertThat(surveyUnitDocumentList.getFirst().getState()).isEqualTo("COLLECTED");
-        Assertions.assertThat(surveyUnitDocumentList.getFirst().getFileDate()).isEqualTo(rawRecordDate);
         Assertions.assertThat(surveyUnitDocumentList.getFirst().getRawRecordDate()).isEqualTo(rawRecordDate);
 
         Assertions.assertThat(surveyUnitDocumentList.getFirst().getExternalVariables()).filteredOn(externalVariableDocument ->

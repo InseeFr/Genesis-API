@@ -55,7 +55,6 @@ class SurveyUnitModelTest {
             assertThat(model.getQuestionnaireState()).isNull();
             assertThat(model.getValidationDate()).isNull();
             assertThat(model.getRecordDate()).isNull();
-            assertThat(model.getFileDate()).isNull();
             assertThat(model.getRawRecordDate()).isNull();
             assertThat(model.getCollectedVariables()).isNull();
             assertThat(model.getExternalVariables()).isNull();
@@ -112,7 +111,6 @@ class SurveyUnitModelTest {
             assertThat(model.getQuestionnaireState()).isEqualTo(RawResponseDto.QuestionnaireStateEnum.FINISHED);
             assertThat(model.getValidationDate()).isEqualTo(now);
             assertThat(model.getRecordDate()).isEqualTo(now.toInstant(ZoneOffset.UTC));
-            assertThat(model.getFileDate()).isEqualTo(now);
             assertThat(model.getRawRecordDate()).isEqualTo(now);
             assertThat(model.getCollectedVariables()).isEqualTo(collected);
             assertThat(model.getExternalVariables()).isEqualTo(external);
@@ -164,7 +162,6 @@ class SurveyUnitModelTest {
             assertThat(model.getQuestionnaireState()).isEqualTo(RawResponseDto.QuestionnaireStateEnum.FINISHED);
             assertThat(model.getValidationDate()).isEqualTo(now);
             assertThat(model.getRecordDate()).isEqualTo(now.toInstant(ZoneOffset.UTC));
-            assertThat(model.getFileDate()).isEqualTo(now);
             assertThat(model.getRawRecordDate()).isEqualTo(now);
             assertThat(model.getCollectedVariables()).isEqualTo(collected);
             assertThat(model.getExternalVariables()).isEqualTo(external);
