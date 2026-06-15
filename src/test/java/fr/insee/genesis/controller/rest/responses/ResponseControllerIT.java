@@ -40,7 +40,7 @@ class ResponseControllerIT extends IntegrationTestAbstract {
     class GetSimplifiedResponsesTests {
         //HAPPY PATHS
         @Test
-        @WithMockUser(roles = "USER_KRAFTWERK")
+        @WithMockUser(roles = "ADMIN")
         @DisplayName("Get simplified response, collected only")
         @SneakyThrows
         void get_simplified_response_test() {
@@ -118,7 +118,7 @@ class ResponseControllerIT extends IntegrationTestAbstract {
         }
 
         @Test
-        @WithMockUser(roles = "USER_KRAFTWERK")
+        @WithMockUser(roles = "ADMIN")
         @DisplayName("Get simplified response with null variable")
         @SneakyThrows
         void get_simplified_response_null_variable_test() {
@@ -193,7 +193,7 @@ class ResponseControllerIT extends IntegrationTestAbstract {
         }
 
         @Test
-        @WithMockUser(roles = "USER_KRAFTWERK")
+        @WithMockUser(roles = "ADMIN")
         @DisplayName("Get simplified response with an additionnal EDITED document")
         @SneakyThrows
         void get_simplified_response_with_edited_test() {
@@ -296,7 +296,7 @@ class ResponseControllerIT extends IntegrationTestAbstract {
 
         //SAD PATHS
         @Test
-        @WithMockUser(roles = "USER_KRAFTWERK")
+        @WithMockUser(roles = "ADMIN")
         @DisplayName("Get non existent simplified response")
         @SneakyThrows
         void get_simplified_response_not_found_test() {

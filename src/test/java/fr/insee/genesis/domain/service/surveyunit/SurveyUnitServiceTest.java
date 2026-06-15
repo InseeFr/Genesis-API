@@ -931,7 +931,7 @@ class SurveyUnitServiceTest {
             assertThat(latestResult.getCollectedVariables())
                     .filteredOn(variableModel -> variableModel.varId().equals("VAR2"))
                     .extracting(VariableModel::value)
-                    .isNull();
+                    .containsExactlyInAnyOrder("VALUE2");
         }
 
     }
