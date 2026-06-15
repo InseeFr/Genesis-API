@@ -986,6 +986,91 @@ class RawResponseControllerIT extends IntegrationTestAbstract {
             Assertions.assertThat(variableDocument.getValue()).isNull();
         }
 
+        @ParameterizedTest
+        @ValueSource(booleans = {false, true})
+        @WithMockUser(roles = "SCHEDULER")
+        @DisplayName("Old model raw data null values should be added if iterations already exists")
+        @SneakyThrows
+        void processLunaticJsonRawData_add_null_iterations_test(boolean isNullSurveyUnitValues){
+            //GIVEN
+            String questionnaireId = "TESTQUEST";
+            Mode mode = Mode.WEB;
+
+            List<String> interrogationIds = List.of("INTERRO1");
+
+            String variableName = "VAR1";
+            String collectedValue = "value1";
+            Map<String, String> collectedVariablesAndValues = new HashMap<>();
+            collectedVariablesAndValues.put(variableName, collectedValue);
+
+            String externalVariableName = "EXTVAR1";
+            String externalValue = "externalvalue1";
+            Map<String, String> externalVariablesAndValues = new HashMap<>();
+            externalVariablesAndValues.put(externalVariableName, externalValue);
+
+            setOldModelTestMockBehaviour(
+                    questionnaireId,
+                    mode,
+                    interrogationIds,
+                    collectedVariablesAndValues,
+                    externalVariablesAndValues,
+                    true
+            );
+
+            //Survey unit that already exists for first interrogation
+            SurveyUnitDocument alreadyPresentSurveyUnitDocument = getSurveyUnitDocumentWithIterations(
+                    questionnaireId,
+                    interrogationIds.getFirst(),
+                    variableName,
+                    isNullSurveyUnitValues ? null : collectedValue,
+                    externalVariableName,
+                    isNullSurveyUnitValues ? null : externalValue
+            );
+            when(surveyUnitMongoDBRepository.findByCollectionInstrumentIdAndInterrogationIds(questionnaireId, interrogationIds))
+                    .thenReturn(List.of(alreadyPresentSurveyUnitDocument));
+
+            // WHEN
+            mockMvc.perform(post("/responses/raw/lunatic-json/%s/process".formatted(questionnaireId))
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk());
+
+            //THEN
+            @SuppressWarnings("unchecked")
+            ArgumentCaptor<List<SurveyUnitDocument>> listArgumentCaptor =
+                    ArgumentCaptor.forClass(List.class);
+            verify(surveyUnitMongoDBRepository, times(1))
+                    .insert(listArgumentCaptor.capture());
+
+            //Document must have null variables values
+            List<SurveyUnitDocument> savedDocuments = listArgumentCaptor.getValue();
+            Assertions.assertThat(savedDocuments).isNotNull().hasSize(interrogationIds.size());
+            SurveyUnitDocument savedDocument = savedDocuments.stream().filter(
+                            surveyUnitDocument ->
+                                    surveyUnitDocument.getInterrogationId().equals(interrogationIds.getFirst()))
+                    .toList().getFirst();
+
+            Assertions.assertThat(savedDocument.getCollectedVariables())
+                    .isNotNull()
+                    .hasSize(3)
+                    .allSatisfy(v -> {
+                        assertThat(v.getVarId()).isEqualTo(variableName);
+                        assertThat(v.getValue()).isNull();
+                    })
+                    .extracting(VariableDocument::getIteration)
+                    .containsExactlyInAnyOrder(1, 2, 3);
+
+            Assertions.assertThat(savedDocument.getExternalVariables())
+                    .isNotNull()
+                    .hasSize(3)
+                    .allSatisfy(v -> {
+                        assertThat(v.getVarId()).isEqualTo(externalVariableName);
+                        assertThat(v.getValue()).isNull();
+                    })
+                    .extracting(VariableDocument::getIteration)
+                    .containsExactlyInAnyOrder(1, 2, 3);
+        }
+
         @Test
         @WithMockUser(roles = "SCHEDULER")
         @DisplayName("Old model raw data null values should be kept if non null value already exists")
