@@ -34,6 +34,7 @@ import fr.insee.genesis.exceptions.NoDataException;
 import fr.insee.genesis.exceptions.ReviewDisabledException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.modelefiliere.RawResponseDto;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -333,7 +334,7 @@ public class ResponseController implements CommonApiResponse {
     @Operation(summary = "Returns the response with the latest variables for a collectionInstrument, mode and " +
             "interrogation")
     @GetMapping(path = "/{collectionInstrumentId}/{mode}/{interrogationId}")
-    @PreAuthorize("hasRole('USER_KRAFTWERK')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<SurveyUnitSimplifiedDto> getResponseByCollectionInstrumentAndInterrogation(
             @PathVariable("collectionInstrumentId") String collectionInstrumentId,
             @PathVariable("interrogationId") String interrogationId,
@@ -407,6 +408,7 @@ public class ResponseController implements CommonApiResponse {
         return ResponseEntity.ok(results);
     }
 
+    //Kraftwerk uses this
     @Operation(summary = "Retrieve responses for a collection instrument and a list of interrogations",
             description = "Return the latest state for each variable for the given interrogationIds and a given collection instrument (formerly questionnaire).<br>" +
                     "For a given id, the endpoint returns a document by collection mode (if there is more than one)<br>" +
@@ -696,6 +698,7 @@ public class ResponseController implements CommonApiResponse {
      */
     //TODO Unused for now, reuse code for optimizations, also move it to service
     @Deprecated
+    @Hidden
     @Operation(summary = "Retrieve all responses for a questionnaire and a list of UE",
             description = "Return the latest state for each variable for the given ids and a given questionnaire.<br>" +
                     "For a given id, the endpoint returns a document by collection mode (if there is more than one).")

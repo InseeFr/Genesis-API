@@ -11,6 +11,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -154,6 +156,7 @@ class RawDataConverterTest {
     @Nested
     class convertCollectedVariablesTests{
         @Test
+        @DisplayName("Should no nothing if no COLLECTED in payload and no last SU")
         void convertCollectedVariables_shouldDoNothing_whenNoCollectedKeyAndNoLastSurveyUnit() {
             Map<String, Object> payload = new HashMap<>();
 
@@ -176,12 +179,13 @@ class RawDataConverterTest {
         }
 
         @Test
+        @DisplayName("Should no nothing if no COLLECTED in payload and last SU does not match datastate")
         void convertCollectedVariables_shouldDoNothing_whenNoCollectedKeyAndLastSurveyUnitStateDoesNotMatch() {
-            Map<String, Object> payload = new HashMap<>(); // pas de clé "COLLECTED"
+            Map<String, Object> payload = new HashMap<>();
 
             SurveyUnitModel lastSurveyUnit = SurveyUnitModel.builder()
                     .interrogationId("INT1")
-                    .state(DataState.FORCED) // différent de DataState.COLLECTED
+                    .state(DataState.FORCED)
                     .collectedVariables(List.of(
                             VariableModel.builder().varId("VAR1").value("val").iteration(1).build()
                     ))
@@ -206,12 +210,13 @@ class RawDataConverterTest {
         }
 
         @Test
+        @DisplayName("Should add null variable if no COLLECTED in payload and last SU has the variable")
         void convertCollectedVariables_shouldAddNullVariable_whenNoCollectedKeyAndLastSurveyUnitHasSingleVariable() {
-            Map<String, Object> payload = new HashMap<>(); // pas de clé "COLLECTED"
+            Map<String, Object> payload = new HashMap<>();
 
             SurveyUnitModel lastSurveyUnit = SurveyUnitModel.builder()
                     .interrogationId("INT1")
-                    .state(DataState.COLLECTED) // même état que dataState attendu
+                    .state(DataState.COLLECTED)
                     .collectedVariables(List.of(
                             VariableModel.builder().varId("VAR1").value("oldVal").iteration(1).build()
                     ))
@@ -242,9 +247,17 @@ class RawDataConverterTest {
                     });
         }
 
-        @Test
-        void convertCollectedVariables_shouldAddNullVariablesForEachIteration_whenNoCollectedKeyAndLastSurveyUnitHasMultipleIterations() {
-            Map<String, Object> payload = new HashMap<>(); // pas de clé "COLLECTED"
+        @ParameterizedTest
+        @ValueSource(booleans = {false, true})
+        @DisplayName("Should add null iterations if variable or COLLECED key absent in payload and last SU has the variable with iterations")
+        void convertCollectedVariables_shouldAddNullVariablesForEachIteration_whenLastSurveyUnitHasMultipleIterations(
+                boolean isCollectedKeyPresentInPayload
+        ) {
+            Map<String, Object> payload = new HashMap<>();
+            if(isCollectedKeyPresentInPayload) {
+                Map<String, Object> dataMap = new HashMap<>();
+                payload.put("COLLECTED", dataMap);
+            }
 
             SurveyUnitModel lastSurveyUnit = SurveyUnitModel.builder()
                     .interrogationId("INT1")
@@ -280,6 +293,70 @@ class RawDataConverterTest {
                     .extracting(VariableModel::iteration)
                     .containsExactlyInAnyOrder(1, 2, 3);
         }
+
+        @Test
+        @DisplayName("Should add null iterations that are absent in payload")
+        void convertCollectedVariables_shouldAddNullIterations_whenLastSurveyUnitHasMultipleIterations() {
+            //GIVEN
+            String variableName = "VAR1";
+
+            Map<String, Object> dataMap = new HashMap<>();
+            List<String> newValues = new ArrayList<>();
+            newValues.add(null); //Null raw value on first iteration
+            newValues.addAll(List.of("new2", "new3"));
+            dataMap.put(variableName, Map.of("COLLECTED", newValues));
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("COLLECTED", dataMap);
+
+            SurveyUnitModel lastSurveyUnit = SurveyUnitModel.builder()
+                    .interrogationId("INT1")
+                    .state(DataState.COLLECTED)
+                    .collectedVariables(List.of(
+                            VariableModel.builder().varId(variableName).value("old1").iteration(1).build(),
+                            VariableModel.builder().varId(variableName).value("old2").iteration(2).build(),
+                            VariableModel.builder().varId(variableName).value("old3").iteration(3).build()
+                    ))
+                    .build();
+
+            SurveyUnitModel dst = SurveyUnitModel.builder()
+                    .interrogationId("INT1")
+                    .collectedVariables(new ArrayList<>())
+                    .build();
+
+            //WHEN
+            rawDataConverterTestImpl.convertCollectedVariables(
+                    payload,
+                    "INT1",
+                    lastSurveyUnit,
+                    dst,
+                    DataState.COLLECTED,
+                    RawDataModelType.FILIERE,
+                    variablesMap
+            );
+
+            assertThat(dst.getCollectedVariables())
+                    .hasSize(3)
+                    .extracting(VariableModel::iteration)
+                    .containsExactlyInAnyOrder(1, 2, 3);
+
+            //First iteration present and null
+            assertThat(dst.getCollectedVariables())
+                    .filteredOn(variableModel -> variableModel.varId().equals(variableName)
+                            && variableModel.iteration().equals(1))
+                    .extracting(VariableModel::value)
+                    .containsOnlyNulls();
+
+            //Other iterations
+            assertThat(dst.getCollectedVariables())
+                    .filteredOn(variableModel ->
+                            variableModel.iteration().equals(2) || variableModel.iteration().equals(3))
+                    .hasSize(2)
+                    .allSatisfy(v -> {
+                        assertThat(v.varId()).isEqualTo("VAR1");
+                    })
+                    .extracting(VariableModel::value)
+                    .containsExactlyInAnyOrder("new2","new3");
+        }
     }
 
     @DisplayName("convertExternalVariables tests")
@@ -287,7 +364,7 @@ class RawDataConverterTest {
     class convertExternalVariablesTests {
         @Test
         void convertExternalVariables_shouldDoNothing_whenNoExternalKeyAndNoLastSurveyUnit() {
-            Map<String, Object> payload = new HashMap<>(); // pas de clé "EXTERNAL"
+            Map<String, Object> payload = new HashMap<>();
 
             SurveyUnitModel dst = SurveyUnitModel.builder()
                     .interrogationId("INT1")

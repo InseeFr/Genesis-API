@@ -356,7 +356,7 @@ class SurveyUnitServiceTest {
         surveyUnitDocument.getCollectedVariables().add(new VariableDocument());
         surveyUnitDocument.getCollectedVariables().getFirst().setVarId("VAR2");
         surveyUnitDocument.getCollectedVariables().getFirst().setIteration(1);
-        surveyUnitDocument.getCollectedVariables().getFirst().setValue("VAR2");
+        surveyUnitDocument.getCollectedVariables().getFirst().setValue("EDITEDVALUE");
         surveyUnitDocuments.add(surveyUnitDocument);
 
         doReturn(SurveyUnitDocumentMapper.INSTANCE.listDocumentToListModel(surveyUnitDocuments))
@@ -369,7 +369,16 @@ class SurveyUnitServiceTest {
                 TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID
         );
 
-        assertThat(surveyUnitModels).isNotNull().hasSize(2);
+        assertThat(surveyUnitModels).isNotNull().hasSize(1);
+        assertThat(surveyUnitModels.getFirst().getCollectedVariables())
+                .hasSize(2)
+                .filteredOn(variableModel -> variableModel.varId().equals("VAR2"))
+                .extracting(VariableModel::value)
+                .containsExactly("EDITEDVALUE");
+        assertThat(surveyUnitModels.getFirst().getCollectedVariables())
+                .filteredOn(variableModel -> variableModel.varId().equals("VAR2"))
+                .extracting(VariableModel::state)
+                .containsExactly(DataState.EDITED);
     }
 
     @Test
@@ -906,22 +915,23 @@ class SurveyUnitServiceTest {
                     surveyUnitService.findLatestByInterrogationIds(questionnaireId, interrogationIds);
 
             // THEN
-            assertThat(result).hasSize(2);
+            assertThat(result).hasSize(1);
 
-            SurveyUnitModel latestResult = result.get(0);
-            SurveyUnitModel additionalVariablesResult = result.get(1);
+            SurveyUnitModel latestResult = result.getFirst();
 
             assertThat(latestResult.getCollectedVariables())
                     .extracting(VariableModel::varId)
-                    .containsExactly("VAR1");
+                    .containsExactly("VAR1", "VAR2");
 
             assertThat(latestResult.getCollectedVariables())
+                    .filteredOn(variableModel -> variableModel.varId().equals("VAR1"))
                     .extracting(VariableModel::value)
-                    .containsExactly("NEW_VALUE");
+                    .doesNotContain("OLD_VALUE");
 
-            assertThat(additionalVariablesResult.getCollectedVariables())
-                    .extracting(VariableModel::varId)
-                    .containsExactly("VAR2");
+            assertThat(latestResult.getCollectedVariables())
+                    .filteredOn(variableModel -> variableModel.varId().equals("VAR2"))
+                    .extracting(VariableModel::value)
+                    .containsExactlyInAnyOrder("VALUE2");
         }
 
     }
