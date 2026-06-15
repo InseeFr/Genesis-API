@@ -115,13 +115,13 @@ public class SurveyUnitService implements SurveyUnitApiPort {
         List<SurveyUnitModel> latestUpdatesByVariables = new ArrayList<>();
 
         List<Mode> modes = getDistinctsModes(surveyUnitModels);
-        modes.forEach(mode ->{
+        modes.forEach(mode -> {
             List<SurveyUnitModel> suByMode = surveyUnitModels.stream()
                     .filter(surveyUnitModel -> surveyUnitModel.getMode().equals(mode))
                     .sorted((o1, o2) -> o2.getRecordDate().compareTo(o1.getRecordDate())) //Sorting update by date (latest updates first by date of upload in database)
                     .toList();
 
-            //We had all the variables of the oldest update
+            //We add all the variables of the latest update
             latestUpdatesByVariables.add(suByMode.getFirst());
             //We keep the name of already added variables to skip them in older updates
             Set<VarIdScopeTuple> addedVariables = new HashSet<>();
@@ -142,7 +142,7 @@ public class SurveyUnitService implements SurveyUnitApiPort {
             ;
 
             suByMode.forEach(surveyUnitModel -> {
-                //Get non null usualSurveyUnitId
+                //Get non-null usualSurveyUnitId
                 if (surveyUnitModel.getUsualSurveyUnitId() != null){
                     latestUpdate.setUsualSurveyUnitId(surveyUnitModel.getUsualSurveyUnitId());
                 }
@@ -173,9 +173,8 @@ public class SurveyUnitService implements SurveyUnitApiPort {
 
                 // If there are new variables, we add the update to the list of latest updates
                 if (!collectedVariablesToKeep.isEmpty() || !externalVariablesToKeep.isEmpty()){
-                    surveyUnitModel.setCollectedVariables(collectedVariablesToKeep);
-                    surveyUnitModel.setExternalVariables(externalVariablesToKeep);
-                    latestUpdatesByVariables.add(surveyUnitModel);
+                    latestUpdate.getCollectedVariables().addAll(collectedVariablesToKeep);
+                    latestUpdate.getExternalVariables().addAll(externalVariablesToKeep);
                 }
             });
         });

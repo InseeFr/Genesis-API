@@ -44,6 +44,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static fr.insee.genesis.domain.utils.JsonUtils.jsonToMap;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -516,6 +517,90 @@ class RawResponseControllerIT extends IntegrationTestAbstract {
             Assertions.assertThat(savedDocument.getExternalVariables()).isNotNull().hasSize(1);
             variableDocument = savedDocument.getExternalVariables().getFirst();
             Assertions.assertThat(variableDocument.getValue()).isNull();
+        }
+
+        @ParameterizedTest
+        @ValueSource(booleans = {false, true})
+        @WithMockUser(roles = "SCHEDULER")
+        @DisplayName("Filiere model raw data null values should be added if iterations already exists")
+        @SneakyThrows
+        void process_raw_response_add_null_iterations_test(boolean isNullSurveyUnitValues) {
+            //GIVEN
+            String collectionInstrumentId = "TESTQUEST";
+            Mode mode = Mode.WEB;
+            List<String> interrogationIds = List.of("INTERRO1");
+
+            //Raw response with absent variables
+            String variableName = "VAR1";
+            String collectedValue = "value1";
+            Map<String, String> collectedVariablesAndValues = new HashMap<>();
+
+            String externalVariableName = "EXTVAR1";
+            String externalValue = "externalvalue1";
+            Map<String, String> externalVariablesAndValues = new HashMap<>();
+
+            setFiliereModelTestMockBehaviour(
+                    collectionInstrumentId,
+                    mode,
+                    interrogationIds,
+                    collectedVariablesAndValues,
+                    externalVariablesAndValues,
+                    true
+            );
+
+            //Survey unit that already exists for first interrogation with null values or not
+            SurveyUnitDocument alreadyPresentSurveyUnitDocument = getSurveyUnitDocumentWithIterations(
+                    collectionInstrumentId,
+                    interrogationIds.getFirst(),
+                    variableName,
+                    isNullSurveyUnitValues ? null : collectedValue,
+                    externalVariableName,
+                    isNullSurveyUnitValues ? null : externalValue
+            );
+
+            when(surveyUnitMongoDBRepository.findByCollectionInstrumentIdAndInterrogationIds(collectionInstrumentId, interrogationIds))
+                    .thenReturn(List.of(alreadyPresentSurveyUnitDocument));
+
+            // WHEN
+            mockMvc.perform(post("/raw-responses/%s/process".formatted(collectionInstrumentId))
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk());
+
+            //THEN
+            @SuppressWarnings("unchecked")
+            ArgumentCaptor<List<SurveyUnitDocument>> listArgumentCaptor =
+                    ArgumentCaptor.forClass(List.class);
+            verify(surveyUnitMongoDBRepository, times(1))
+                    .insert(listArgumentCaptor.capture());
+
+            //Document must have null variables values
+            List<SurveyUnitDocument> savedDocuments = listArgumentCaptor.getValue();
+            Assertions.assertThat(savedDocuments).isNotNull().hasSize(interrogationIds.size());
+            SurveyUnitDocument savedDocument = savedDocuments.stream().filter(
+                            surveyUnitDocument ->
+                                    surveyUnitDocument.getInterrogationId().equals(interrogationIds.getFirst()))
+                    .toList().getFirst();
+
+            Assertions.assertThat(savedDocument.getCollectedVariables())
+                    .isNotNull()
+                    .hasSize(3)
+                    .allSatisfy(v -> {
+                        assertThat(v.getVarId()).isEqualTo(variableName);
+                        assertThat(v.getValue()).isNull();
+                    })
+                    .extracting(VariableDocument::getIteration)
+                    .containsExactlyInAnyOrder(1, 2, 3);
+
+            Assertions.assertThat(savedDocument.getExternalVariables())
+                    .isNotNull()
+                    .hasSize(3)
+                    .allSatisfy(v -> {
+                        assertThat(v.getVarId()).isEqualTo(externalVariableName);
+                        assertThat(v.getValue()).isNull();
+                    })
+                    .extracting(VariableDocument::getIteration)
+                    .containsExactlyInAnyOrder(1, 2, 3);
         }
 
         @Test
@@ -1286,6 +1371,42 @@ class RawResponseControllerIT extends IntegrationTestAbstract {
         oldVariable.setValue(externalValue);
         oldVariable.setScope(Constants.ROOT_GROUP_NAME);
         alreadyPresentSurveyUnitDocument.getExternalVariables().add(oldVariable);
+        return alreadyPresentSurveyUnitDocument;
+    }
+
+    private SurveyUnitDocument getSurveyUnitDocumentWithIterations(
+            String collectionInstrumentId,
+            String interrogationId,
+            String variableName,
+            String collectedValue,
+            String externalVariableName,
+            String externalValue
+    ) {
+        SurveyUnitDocument alreadyPresentSurveyUnitDocument = new SurveyUnitDocument();
+        alreadyPresentSurveyUnitDocument.setCollectionInstrumentId(collectionInstrumentId);
+        alreadyPresentSurveyUnitDocument.setInterrogationId(interrogationId);
+        alreadyPresentSurveyUnitDocument.setMode(Mode.WEB.getModeName());
+        alreadyPresentSurveyUnitDocument.setState("COLLECTED");
+
+        alreadyPresentSurveyUnitDocument.setCollectedVariables(new ArrayList<>());
+        for(int i = 1; i <= 3; i++) {
+            VariableDocument oldVariable = new VariableDocument();
+            oldVariable.setVarId(variableName);
+            oldVariable.setIteration(i);
+            oldVariable.setValue(collectedValue);
+            oldVariable.setScope(Constants.ROOT_GROUP_NAME);
+            alreadyPresentSurveyUnitDocument.getCollectedVariables().add(oldVariable);
+        }
+
+        alreadyPresentSurveyUnitDocument.setExternalVariables(new ArrayList<>());
+        for(int i = 1; i <= 3; i++) {
+            VariableDocument oldVariable = new VariableDocument();
+            oldVariable.setVarId(externalVariableName);
+            oldVariable.setIteration(i);
+            oldVariable.setValue(externalValue);
+            oldVariable.setScope(Constants.ROOT_GROUP_NAME);
+            alreadyPresentSurveyUnitDocument.getExternalVariables().add(oldVariable);
+        }
         return alreadyPresentSurveyUnitDocument;
     }
 
