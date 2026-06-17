@@ -82,10 +82,8 @@ class InterrogationControllerTest {
     @Test
     void countAllInterrogationIdsByQuestionnaireOrCollectionInstrument() {
         //GIVEN
-        long questionnaireCount = 2;
-        long collectionInstrumentCount = 3;
-        doReturn(questionnaireCount).when(surveyUnitApiPort).countResponsesByQuestionnaireId(any());
-        doReturn(collectionInstrumentCount).when(surveyUnitApiPort).countResponsesByCollectionInstrumentId(any());
+        long collectionInstrumentAndQuestionnaireCount = 5;
+        doReturn(collectionInstrumentAndQuestionnaireCount).when(surveyUnitApiPort).countAllInterrogationIdsByQuestionnaireOrCollectionInstrument(any());
 
         //WHEN
         ResponseEntity<Long> response = interrogationController.countAllInterrogationIdsByQuestionnaireOrCollectionInstrument(
@@ -93,13 +91,10 @@ class InterrogationControllerTest {
         );
 
         //THEN
-        verify(surveyUnitApiPort, times(1)).countResponsesByQuestionnaireId(
+        verify(surveyUnitApiPort, times(1)).countAllInterrogationIdsByQuestionnaireOrCollectionInstrument(
                 TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID
         );
-        verify(surveyUnitApiPort, times(1)).countResponsesByCollectionInstrumentId(
-                TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID
-        );
-        Assertions.assertThat(response.getBody()).isEqualTo(collectionInstrumentCount + questionnaireCount);
+        Assertions.assertThat(response.getBody()).isEqualTo(collectionInstrumentAndQuestionnaireCount);
     }
 
     @Test

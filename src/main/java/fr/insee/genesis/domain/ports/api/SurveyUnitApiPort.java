@@ -85,4 +85,6 @@ public interface SurveyUnitApiPort {
     long countResponsesByQuestionnaireId(String questionnaireId);
 
     long countDistinctInterrogationIdsByQuestionnaireAndCollectionInstrumentId(String id);
+
+    long countAllInterrogationIdsByQuestionnaireOrCollectionInstrument(String questionnaireId);
 }

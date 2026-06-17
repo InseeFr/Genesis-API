@@ -2,6 +2,7 @@ package fr.insee.genesis.infrastructure.repository;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.insee.genesis.domain.ports.api.RawResponseInputApiPort;
 import fr.insee.modelefiliere.RawResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.bson.Document;
@@ -13,8 +14,7 @@ import java.util.Map;
 
 @Repository
 @RequiredArgsConstructor
-//TODO rename to adapter, it's not a repo
-public class RawResponseInputRepository {
+public class RawResponseInputAdapter implements RawResponseInputApiPort {
 
     private final MongoTemplate mongoTemplate;
     private final ObjectMapper objectMapper;

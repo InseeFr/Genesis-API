@@ -41,7 +41,7 @@ class RawResponseInputRepositoryTest {
     private ObjectMapper objectMapper;
 
     @InjectMocks
-    private RawResponseInputRepository repository;
+    private RawResponseInputAdapter repository;
 
     @Nested
     @DisplayName("saveAsRawJson() tests")

@@ -7,10 +7,10 @@ import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.RawResponseModel;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.RawResponseApiPort;
+import fr.insee.genesis.domain.ports.api.RawResponseInputApiPort;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.exceptions.NoDataException;
-import fr.insee.genesis.infrastructure.repository.RawResponseInputRepository;
 import fr.insee.modelefiliere.RawResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -52,7 +52,7 @@ public class RawResponseController {
 
     private final LunaticJsonRawDataApiPort lunaticJsonRawDataApiPort;
     private final RawResponseApiPort rawResponseApiPort;
-    private final RawResponseInputRepository rawRepository;
+    private final RawResponseInputApiPort rawResponseInputApiPort;
 
     @Operation(summary = "Save lunatic json data from one interrogation in Genesis Database")
     @PutMapping(path = "/responses/raw/lunatic-json/save")
@@ -90,7 +90,7 @@ public class RawResponseController {
     public ResponseEntity<String> saveRawResponsesFromRawResponseDto(
             @Valid @RequestBody RawResponseDto dto
     ) {
-        rawRepository.saveAsRawJson(dto); //TODO put in service, repository is infra layer
+        rawResponseInputApiPort.saveAsRawJson(dto);
         return ResponseEntity.status(201).body(String.format(SUCCESS_MESSAGE, dto.getInterrogationId()));
     }
 
