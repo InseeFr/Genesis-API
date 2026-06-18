@@ -1,5 +1,9 @@
 # Changelog
-## 2.6.10 [TODO]
+## 2.7.0 [TODO]
+### Changed
+- spring-boot 3.5.14 -> 4.0.6
+
+## 2.6.10 [2026-06-18]
 ### Fixed
 - Aligned the conversion logic for multi-iteration variables with single-value variables during collectedVariables creation to avoid unexpected xxx.0 values for INTEGER variables.
 
