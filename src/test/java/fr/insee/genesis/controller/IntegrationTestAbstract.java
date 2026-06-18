@@ -1,5 +1,6 @@
 package fr.insee.genesis.controller;
 
+import fr.insee.genesis.TransactionManagerTestConfig;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitQualityToolPort;
 import fr.insee.genesis.infrastructure.repository.ContextualExternalVariableMongoDBRepository;
@@ -18,6 +19,7 @@ import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfigurat
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
@@ -35,6 +37,7 @@ import org.springframework.test.web.servlet.MockMvc;
         "logging.level.=DEBUG"
 })
 @EnableAutoConfiguration(exclude = {MongoAutoConfiguration.class, MongoDataAutoConfiguration.class})
+@Import(TransactionManagerTestConfig.class)
 public abstract class IntegrationTestAbstract {
     @Autowired
     protected MockMvc mockMvc;
