@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
@@ -22,7 +23,7 @@ class DateTimeUtilsTest {
 
     @Test
     void shouldConvertLocalDateToInstantWhenLocalDateIsProvided() {
-        LocalDateTime localDate = LocalDateTime.of(2026, 6, 10, 14, 0);
+        LocalDateTime localDate = LocalDateTime.of(2026, Month.JUNE, 10, 14, 0);
 
         Instant result = DateTimeUtils.resolveInstant(null, localDate);
 
