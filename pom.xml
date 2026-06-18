@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>fr.insee.genesis</groupId>
     <artifactId>genesis-api</artifactId>
-    <version>2.6.8</version>
+    <version>2.6.9</version>
     <packaging>jar</packaging>
     <name>genesis-api</name>
 
@@ -25,7 +25,7 @@
         <bpm.version>1.2.0</bpm.version>
         <springdoc.version>3.0.3</springdoc.version>
         <mapstruct.version>1.6.3</mapstruct.version>
-        <pitest.version>1.25.3</pitest.version>
+        <pitest.version>1.25.5</pitest.version>
         <pitest.junit.version>1.2.3</pitest.junit.version>
 
         <!-- Sonar properties -->
