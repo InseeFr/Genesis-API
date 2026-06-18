@@ -1,7 +1,6 @@
 package fr.insee.genesis.controller.rest;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
 import fr.insee.genesis.domain.model.lunaticmodel.LunaticModelModel;
 import fr.insee.genesis.domain.ports.api.LunaticModelApiPort;
 import fr.insee.genesis.exceptions.GenesisException;
@@ -15,6 +14,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.Map;
 
@@ -45,10 +45,12 @@ public class LunaticModelController implements CommonApiResponse{
     @PreAuthorize("hasRole('READER')")
     public ResponseEntity<String> getLunaticModelFromQuestionnaireId(
             @RequestParam("questionnaireId") String questionnaireId
-    ) throws JsonProcessingException, GenesisException {
+    ) throws JacksonException, GenesisException {
 
         LunaticModelModel lunaticModelModel = lunaticModelApiPort.get(questionnaireId);
-        ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
+        JsonMapper objectMapper = JsonMapper.builder()
+                .findAndAddModules()
+                .build();
         return ResponseEntity.ok(objectMapper.writeValueAsString(lunaticModelModel.lunaticModel()));
     }
 }
