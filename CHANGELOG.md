@@ -1,4 +1,12 @@
 # Changelog
+## 2.7.0 [2026-06-18]
+### Changed
+- spring-boot 3.5.14 -> 4.0.6
+
+## 2.6.10 [2026-06-18]
+### Fixed
+- Aligned the conversion logic for multi-iteration variables with single-value variables during collectedVariables creation to avoid unexpected xxx.0 values for INTEGER variables.
+
 ## 2.6.9 [2026-06-11]
 ### Fixed
 - Delete only expired V2 schedules from dataProcessingContext

@@ -464,25 +464,36 @@ public abstract class RawDataConverter {
             List<VariableModel> destination,
             boolean isCollected
     ) {
-        List<String> values = JsonUtils.asStringList(valuesForState);
+        if (!(valuesForState instanceof List<?> values)) {
+            throw new IllegalArgumentException("Object is not a List");
+        }
 
-        if (!values.isEmpty()) {
-            int iteration = 1;
-            for (String value : values) {
-                if(value == null || value.isEmpty()){
-                    convertNullVar(
-                            variableEntry.getKey(),
-                            lastSurveyUnit,
-                            iteration,
-                            variablesMap,
-                            destination,
-                            isCollected);
-                    iteration++;
-                    continue;
-                }
-                convertOneVar(variableEntry.getKey(), value, variablesMap, iteration, destination);
+        int iteration = 1;
+        for (Object rawValue : values) {
+            String value = rawValue == null ? null : getValueString(rawValue);
+
+            if (value == null || value.isEmpty()) {
+                convertNullVar(
+                        variableEntry.getKey(),
+                        lastSurveyUnit,
+                        iteration,
+                        variablesMap,
+                        destination,
+                        isCollected
+                );
                 iteration++;
+                continue;
             }
+
+            convertOneVar(
+                    variableEntry.getKey(),
+                    value,
+                    variablesMap,
+                    iteration,
+                    destination
+            );
+
+            iteration++;
         }
     }
 
