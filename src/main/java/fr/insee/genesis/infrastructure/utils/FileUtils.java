@@ -1,6 +1,5 @@
 package fr.insee.genesis.infrastructure.utils;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
@@ -10,8 +9,13 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.json.JsonMapper;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
@@ -226,8 +230,9 @@ public class FileUtils {
 	 */
 	public void writeSuUpdatesInFile(Path filePath, Stream<SurveyUnitModel> responsesStream) throws IOException {
 		Files.createDirectories(filePath.getParent());
-		ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
-		objectMapper.findAndRegisterModules();
+        JsonMapper objectMapper = JsonMapper.builder()
+                .findAndAddModules()
+                .build();
 		try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath.toFile(), true))) {
 			writer.write("[");
 			responsesStream.forEach(response -> {

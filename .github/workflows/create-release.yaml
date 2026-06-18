@@ -71,7 +71,7 @@ jobs:
           java-version: '25'
 
       - name: install model filiere
-        run: mvn install:install-file -Dfile="$(pwd)/libs/modelefiliere-2.1.0.jar" -DgroupId=fr.insee -DartifactId=modelefiliere -Dversion=2.1.0 -Dpackaging=jar -DgeneratePom=true
+        run: mvn install:install-file -Dfile="$(pwd)/libs/modelefiliere-2.2.2-springboot4.jar" -DgroupId=fr.insee -DartifactId=modelefiliere -Dversion=2.2.2-springboot4 -Dpackaging=jar -DgeneratePom=true
 
       - name: Clone BPM
         uses: actions/checkout@v6
@@ -86,7 +86,7 @@ jobs:
           cd ..
 
       - uses: actions/checkout@v6
-      - name: Build app
+      - name: Build app        
         run: |
           git fetch origin main
           git checkout origin/main
