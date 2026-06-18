@@ -29,7 +29,7 @@ public class LunaticXmlDataSequentialParser{
 
 
      public LunaticXmlDataSequentialParser(final Path filePath, final InputStream stream) throws IOException, XMLStreamException {
-         this.rawRecordDate = getFileDate(filePath);
+         this.rawRecordDate = getRawRecordDate(filePath);
 
          XMLInputFactory factory = XMLInputFactory.newInstance();
          factory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
@@ -90,7 +90,6 @@ public class LunaticXmlDataSequentialParser{
      */
     private LunaticXmlSurveyUnit parseSurveyUnit(final XMLEventReader reader) throws XMLStreamException {
         LunaticXmlSurveyUnit xmlSurveyUnit = new LunaticXmlSurveyUnit();
-        xmlSurveyUnit.setFileDate(this.rawRecordDate);
         xmlSurveyUnit.setRawRecordDate(this.rawRecordDate);
 
         LunaticXmlData data = new LunaticXmlData();
@@ -276,7 +275,7 @@ public class LunaticXmlDataSequentialParser{
         return lunaticXmlOtherDataList;
     }
 
-    private LocalDateTime getFileDate(Path filePath) throws IOException {
+    private LocalDateTime getRawRecordDate(Path filePath) throws IOException {
         BasicFileAttributes attr = Files.readAttributes(filePath, BasicFileAttributes.class);
         return LocalDateTime.ofInstant(attr.lastModifiedTime().toInstant(), ZoneId.of("Europe/Paris"));
     }

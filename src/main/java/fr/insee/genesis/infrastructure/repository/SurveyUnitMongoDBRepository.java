@@ -37,12 +37,12 @@ public interface SurveyUnitMongoDBRepository extends MongoRepository<SurveyUnitD
 	);
 	//========= OPTIMISATIONS PERFS (END) ==========
 
-	@Query("{ 'questionnaireId' : ?0, 'interrogationId' : { $in: ?2 } }")
+	@Query("{ 'questionnaireId' : ?0, 'interrogationId' : { $in: ?1 } }")
 	List<SurveyUnitDocument> findByQuestionnaireIdAndInterrogationIds(
 			String questionnaireId,
 			List<String> interrogationIds
 	);
-	@Query("{ 'collectionInstrumentId' : ?0, 'interrogationId' : { $in: ?2 } }")
+	@Query("{ 'collectionInstrumentId' : ?0, 'interrogationId' : { $in: ?1 } }")
 	List<SurveyUnitDocument> findByCollectionInstrumentIdAndInterrogationIds(
 			String collectionInstrumentId,
 			List<String> interrogationIds
