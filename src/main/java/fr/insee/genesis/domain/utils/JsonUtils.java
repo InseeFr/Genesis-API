@@ -1,11 +1,11 @@
 package fr.insee.genesis.domain.utils;
 
-import fr.insee.genesis.exceptions.JsonParsingException;
-import tools.jackson.core.JsonParser;
-import tools.jackson.core.JacksonException;
-import tools.jackson.core.JsonToken;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.experimental.UtilityClass;
-import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -14,11 +14,9 @@ import java.util.Map;
 
 @UtilityClass
 public class JsonUtils {
-    JsonMapper objectMapper = JsonMapper.builder()
-            .findAndAddModules()
-            .build();
+    private static final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
-    public static Map<String, Object> jsonToMap(String json) throws JacksonException {
+    public static Map<String, Object> jsonToMap(String json) throws JsonProcessingException {
         return objectMapper.readValue(json, Map.class);
     }
 
@@ -56,7 +54,7 @@ public class JsonUtils {
             case START_ARRAY -> {
                 return readArray(jsonParser);
             }
-            case null, default -> throw new JsonParsingException("Unexpected token %s on line %d".formatted(
+            case null, default -> throw new JsonParseException("Unexpected token %s on line %d".formatted(
                     jsonParser.currentToken(), jsonParser.currentLocation().getLineNr())
             );
         }

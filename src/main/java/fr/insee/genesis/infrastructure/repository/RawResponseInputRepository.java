@@ -1,7 +1,7 @@
 package fr.insee.genesis.infrastructure.repository;
 
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.insee.modelefiliere.RawResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.bson.Document;
@@ -35,7 +35,7 @@ public class RawResponseInputRepository {
             document.put("recordDate", Instant.now());
             document.put("payload", payload);
             mongoTemplate.save(document, "rawResponses");
-        } catch (JacksonException e) {
+        } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
 

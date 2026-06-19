@@ -1,6 +1,6 @@
 package fr.insee.genesis.domain.utils;
 
-import tools.jackson.core.JacksonException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -31,7 +31,7 @@ class JsonUtilsTest {
         String invalidJson = "{key1: value1, key2: }";
 
         assertThatThrownBy(() -> JsonUtils.jsonToMap(invalidJson))
-                .isInstanceOf(JacksonException.class);
+                .isInstanceOf(JsonProcessingException.class);
     }
 
     @Test
