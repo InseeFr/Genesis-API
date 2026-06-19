@@ -1,7 +1,8 @@
 package fr.insee.genesis.infrastructure.adapter;
 
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.JsonNode;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.client.MongoCollection;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.domain.model.surveyunit.InterrogationInfo;
@@ -18,7 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
-import tools.jackson.databind.json.JsonMapper;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -142,13 +142,11 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
     private static @NotNull Set<String> extractQuestionnaireIdsFromJson(Set<String> mongoResponse) {
         Set<String> questionnaireIds = new HashSet<>();
         for(String line : mongoResponse){
-            JsonMapper objectMapper = JsonMapper.builder()
-                    .findAndAddModules()
-                    .build();
+            ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
             try{
                 JsonNode jsonNode = objectMapper.readTree(line);
                 questionnaireIds.add(jsonNode.get(QUESTIONNAIRE_ID).asText());
-            }catch (JacksonException e){
+            }catch (JsonProcessingException e){
                 log.error(e.getMessage());
             }
         }

@@ -1,10 +1,9 @@
 package fr.insee.genesis.domain.service.contextualvariable.previous;
 
-import tools.jackson.core.JacksonException;
-import tools.jackson.core.json.JsonFactory;
-import fr.insee.genesis.exceptions.JsonParsingException;
-import tools.jackson.core.JsonParser;
-import tools.jackson.core.JsonToken;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 import fr.insee.genesis.domain.model.contextualvariable.ContextualPreviousVariableModel;
 import fr.insee.genesis.domain.ports.api.ContextualPreviousVariableApiPort;
 import fr.insee.genesis.domain.ports.spi.ContextualPreviousVariablePersistancePort;
@@ -42,7 +41,7 @@ public class ContextualPreviousVariableJsonService implements ContextualPrevious
         try(FileInputStream inputStream = new FileInputStream(filePath)){
             checkSourceStateLength(sourceState);
 
-            JsonFactory jsonFactory = JsonFactory.builder().build();
+            JsonFactory jsonFactory = new JsonFactory();
             try (JsonParser jsonParser = jsonFactory.createParser(inputStream)) {
                 if (!goToEditedPreviousToken(jsonParser)) {
                     log.warn("No EditedPrevious part found in file {}", filePath);
@@ -80,7 +79,7 @@ public class ContextualPreviousVariableJsonService implements ContextualPrevious
                 contextualPreviousVariablePersistancePort.deleteBackup(collectionInstrumentId);
                 return true;
             }
-        }catch (JacksonException jpe){
+        }catch (JsonParseException jpe){
             contextualPreviousVariablePersistancePort.restoreBackup(collectionInstrumentId);
             throw new GenesisException(HttpStatus.BAD_REQUEST, "JSON Parsing exception : %s".formatted(jpe.toString()));
         }catch (IOException _){
@@ -117,8 +116,8 @@ public class ContextualPreviousVariableJsonService implements ContextualPrevious
 
     private boolean goToEditedPreviousToken(JsonParser jsonParser) throws IOException {
         while (jsonParser.nextToken() != null) {
-            if (jsonParser.currentToken() == JsonToken.PROPERTY_NAME
-                    && "editedPrevious".equals(jsonParser.currentName())) {
+            if (jsonParser.currentToken() == JsonToken.FIELD_NAME
+                    && "editedPrevious".equals(jsonParser.getCurrentName())) {
                 return true;
             }
         }
@@ -130,7 +129,7 @@ public class ContextualPreviousVariableJsonService implements ContextualPrevious
                                                                String sourceState
                                                                ) throws IOException {
         if(jsonParser.currentToken() != JsonToken.START_OBJECT){
-            throw new JsonParsingException("Expected { on line %d, got token %s".formatted(jsonParser.currentLocation().getLineNr(), jsonParser.currentToken()));
+            throw new JsonParseException("Expected { on line %d, got token %s".formatted(jsonParser.currentLocation().getLineNr(), jsonParser.currentToken()));
         }
         ContextualPreviousVariableModel contextualPreviousVariableModel = ContextualPreviousVariableModel.builder()
                 .collectionInstrumentId(collectionInstrumentId)
@@ -139,7 +138,7 @@ public class ContextualPreviousVariableJsonService implements ContextualPrevious
                 .build();
         jsonParser.nextToken();
         while (!jsonParser.currentToken().equals(JsonToken.END_OBJECT)){
-            if(jsonParser.currentToken().equals(JsonToken.PROPERTY_NAME) && jsonParser.currentName().equals("interrogationId")){
+            if(jsonParser.currentToken().equals(JsonToken.FIELD_NAME) && jsonParser.currentName().equals("interrogationId")){
                 jsonParser.nextToken();
                 contextualPreviousVariableModel.setInterrogationId(jsonParser.getText());
                 jsonParser.nextToken();
@@ -175,7 +174,7 @@ public class ContextualPreviousVariableJsonService implements ContextualPrevious
             case START_ARRAY -> {
                 return readArray(jsonParser);
             }
-            case null, default -> throw new JsonParsingException("Unexpected token %s on line %d".formatted(
+            case null, default -> throw new JsonParseException("Unexpected token %s on line %d".formatted(
                     jsonParser.currentToken(), jsonParser.currentLocation().getLineNr())
             );
         }

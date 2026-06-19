@@ -164,19 +164,16 @@ public class RawResponseConverter {
             VariablesMap variablesMap,
             List<VariableModel> destination
     ) {
-        if (!(valuesForState instanceof List<?> values)) {
-            throw new IllegalArgumentException("Object is not a List");
-        }
+        List<String> values = JsonUtils.asStringList(valuesForState);
 
-        int iteration = 1;
-        for (Object rawValue : values) {
-            String value = rawValue == null ? null : getValueString(rawValue);
-
-            if (value != null && !value.isEmpty()) {
-                convertOneVar(variableEntry, value, variablesMap, iteration, destination);
+        if (!values.isEmpty()) {
+            int iteration = 1;
+            for (String value : values) {
+                if (value != null && !value.isEmpty()) {
+                    convertOneVar(variableEntry, value, variablesMap, iteration, destination);
+                }
+                iteration++;
             }
-
-            iteration++;
         }
     }
 

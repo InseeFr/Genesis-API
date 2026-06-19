@@ -1,7 +1,7 @@
 package fr.insee.genesis.infrastructure.repository;
 
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.insee.modelefiliere.ModeDto;
 import fr.insee.modelefiliere.RawResponseDto;
 import org.junit.jupiter.api.DisplayName;
@@ -49,7 +49,7 @@ class RawResponseInputRepositoryTest {
 
         @Test
         @DisplayName("Should serialize the DTO to JSON and save to the correct collection")
-        void saveAsRawJson_shouldSerializeAndSave() throws JacksonException {
+        void saveAsRawJson_shouldSerializeAndSave() throws JsonProcessingException {
             // GIVEN
             RawResponseDto dto = buildDto();
             when(objectMapper.writeValueAsString(dto)).thenReturn("{\"interrogationId\":\"interrogation-123\"}");
@@ -64,7 +64,7 @@ class RawResponseInputRepositoryTest {
 
         @Test
         @DisplayName("Should save a document containing interrogationId")
-        void saveAsRawJson_documentShouldContainInterrogationId() throws JacksonException {
+        void saveAsRawJson_documentShouldContainInterrogationId() throws JsonProcessingException {
             // GIVEN
             RawResponseDto dto = buildDto();
             when(objectMapper.writeValueAsString(dto)).thenReturn("{}");
@@ -81,7 +81,7 @@ class RawResponseInputRepositoryTest {
 
         @Test
         @DisplayName("Should save a document containing collectionInstrumentId")
-        void saveAsRawJson_documentShouldContainCollectionInstrumentId() throws JacksonException {
+        void saveAsRawJson_documentShouldContainCollectionInstrumentId() throws JsonProcessingException {
             // GIVEN
             RawResponseDto dto = buildDto();
             when(objectMapper.writeValueAsString(dto)).thenReturn("{}");
@@ -98,7 +98,7 @@ class RawResponseInputRepositoryTest {
 
         @Test
         @DisplayName("Should save a document containing mode")
-        void saveAsRawJson_documentShouldContainMode() throws JacksonException {
+        void saveAsRawJson_documentShouldContainMode() throws JsonProcessingException {
             // GIVEN
             RawResponseDto dto = buildDto();
             when(objectMapper.writeValueAsString(dto)).thenReturn("{}");
@@ -115,7 +115,7 @@ class RawResponseInputRepositoryTest {
 
         @Test
         @DisplayName("Should save a document containing a non-null recordDate")
-        void saveAsRawJson_documentShouldContainRecordDate() throws JacksonException {
+        void saveAsRawJson_documentShouldContainRecordDate() throws JsonProcessingException {
             // GIVEN
             RawResponseDto dto = buildDto();
             when(objectMapper.writeValueAsString(dto)).thenReturn("{}");
@@ -133,7 +133,7 @@ class RawResponseInputRepositoryTest {
 
         @Test
         @DisplayName("Should save a document containing a non-null payload")
-        void saveAsRawJson_documentShouldContainPayload() throws JacksonException {
+        void saveAsRawJson_documentShouldContainPayload() throws JsonProcessingException {
             // GIVEN
             RawResponseDto dto = buildDto();
             when(objectMapper.writeValueAsString(dto))
@@ -152,7 +152,7 @@ class RawResponseInputRepositoryTest {
 
         @Test
         @DisplayName("Should save to the 'rawResponses' collection exactly")
-        void saveAsRawJson_shouldSaveToCorrectCollection() throws JacksonException {
+        void saveAsRawJson_shouldSaveToCorrectCollection() throws JsonProcessingException {
             // GIVEN
             RawResponseDto dto = buildDto();
             when(objectMapper.writeValueAsString(dto)).thenReturn("{}");
@@ -168,7 +168,7 @@ class RawResponseInputRepositoryTest {
 
         @Test
         @DisplayName("Should call mongoTemplate.save() exactly once")
-        void saveAsRawJson_shouldCallSaveExactlyOnce() throws JacksonException {
+        void saveAsRawJson_shouldCallSaveExactlyOnce() throws JsonProcessingException {
             // GIVEN
             RawResponseDto dto = buildDto();
             when(objectMapper.writeValueAsString(dto)).thenReturn("{}");
@@ -183,26 +183,26 @@ class RawResponseInputRepositoryTest {
 
         @Test
         @DisplayName("Should wrap JsonProcessingException in RuntimeException")
-        void saveAsRawJson_jsonProcessingException_shouldThrowRuntimeException() throws JacksonException {
+        void saveAsRawJson_jsonProcessingException_shouldThrowRuntimeException() throws JsonProcessingException {
             // GIVEN
             RawResponseDto dto = buildDto();
             when(objectMapper.writeValueAsString(dto))
-                    .thenThrow(new JacksonException("serialization error") {});
+                    .thenThrow(new JsonProcessingException("serialization error") {});
 
             // WHEN / THEN
             assertThatThrownBy(() -> repository.saveAsRawJson(dto))
                     .isInstanceOf(RuntimeException.class)
-                    .hasCauseInstanceOf(JacksonException.class)
+                    .hasCauseInstanceOf(JsonProcessingException.class)
                     .hasRootCauseMessage("serialization error");
         }
 
         @Test
         @DisplayName("Should not call mongoTemplate when serialization fails")
-        void saveAsRawJson_jsonProcessingException_shouldNotCallMongoTemplate() throws JacksonException {
+        void saveAsRawJson_jsonProcessingException_shouldNotCallMongoTemplate() throws JsonProcessingException {
             // GIVEN
             RawResponseDto dto = buildDto();
             when(objectMapper.writeValueAsString(dto))
-                    .thenThrow(new JacksonException("serialization error") {});
+                    .thenThrow(new JsonProcessingException("serialization error") {});
 
             // WHEN
             try {
