@@ -1,5 +1,5 @@
 # Changelog
-## 2.7.1-rc [2026-06-23]
+## 2.7.1-rc [TODO]
 ### Fixed
 - Change application.properties
 
