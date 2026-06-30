@@ -10,7 +10,13 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 public class GenesisApi {
 
         public static void main(String[] args) {
-                configureApplicationBuilder(new SpringApplicationBuilder()).build().run(args);        }
+                try {
+                        Class.forName("com.mongodb.internal.connection.InternalStreamConnection");
+                } catch (ClassNotFoundException e) {
+                        throw new RuntimeException(e);
+                }
+                configureApplicationBuilder(new SpringApplicationBuilder()).build().run(args);
+        }
 
         public static SpringApplicationBuilder configureApplicationBuilder(SpringApplicationBuilder springApplicationBuilder){
                 return springApplicationBuilder.sources(GenesisApi.class)
