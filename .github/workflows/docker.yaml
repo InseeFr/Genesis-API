@@ -17,7 +17,7 @@ jobs:
         run: echo "branch=$(echo ${GITHUB_REF#refs/heads/})" >>$GITHUB_OUTPUT
         id: extract_branch
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           ref: ${{ steps.extract_branch.outputs.branch }}
 
@@ -28,7 +28,7 @@ jobs:
           java-version: "25"
 
       - name: install model filiere
-        run: mvn install:install-file -Dfile="$(pwd)/libs/modelefiliere-2.1.0.jar" -DgroupId=fr.insee -DartifactId=modelefiliere -Dversion=2.1.0 -Dpackaging=jar -DgeneratePom=true
+        run: mvn install:install-file -Dfile="$(pwd)/libs/modelefiliere-2.2.2-springboot4.jar" -DgroupId=fr.insee -DartifactId=modelefiliere -Dversion=2.2.2-springboot4 -Dpackaging=jar -DgeneratePom=true
 
       - name: Clone BPM
         uses: actions/checkout@master
@@ -56,7 +56,7 @@ jobs:
       - build-snapshot
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Download uploaded jar
         uses: actions/download-artifact@v8
