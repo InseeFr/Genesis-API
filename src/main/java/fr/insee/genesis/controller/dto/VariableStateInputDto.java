@@ -1,13 +1,9 @@
 package fr.insee.genesis.controller.dto;
 
 import fr.insee.genesis.domain.model.surveyunit.DataState;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
 @Data
 public class VariableStateInputDto {
