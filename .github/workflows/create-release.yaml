@@ -27,7 +27,7 @@ jobs:
           java-version: '25'
 
       - name: Checkout repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -63,7 +63,7 @@ jobs:
     needs: check-version
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Set up JDK 25
         uses: actions/setup-java@v5
         with:
@@ -74,7 +74,7 @@ jobs:
         run: mvn install:install-file -Dfile="$(pwd)/libs/modelefiliere-2.1.0.jar" -DgroupId=fr.insee -DartifactId=modelefiliere -Dversion=2.1.0 -Dpackaging=jar -DgeneratePom=true
 
       - name: Clone BPM
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: InseeFr/BPM
           path: bpm
@@ -85,9 +85,11 @@ jobs:
           mvn clean install --no-transfer-progress
           cd ..
 
-      - uses: actions/checkout@v6
-      - name: Build app
-        run:
+      - uses: actions/checkout@v7
+      - name: Build app        
+        run: |
+          git fetch origin main
+          git checkout origin/main
           mvn package --no-transfer-progress
 
       - name: Upload app jar
@@ -101,7 +103,7 @@ jobs:
     if: needs.check-version.outputs.should_run_next_job == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.ref }}
           fetch-depth: 0
@@ -164,7 +166,7 @@ jobs:
     needs: [ check-version, create-release ]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Download uploaded jar
         uses: actions/download-artifact@v8
