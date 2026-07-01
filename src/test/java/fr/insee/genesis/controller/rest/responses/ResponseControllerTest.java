@@ -39,6 +39,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.time.ZoneId;
 import java.util.List;
 
@@ -458,7 +459,7 @@ class ResponseControllerTest {
     @Test
     @DisplayName("Should convert localRecordedBefore to UTC before calling service")
     void getResponseList_withLocalRecordedBefore_shouldConvertToUtc() throws Exception {
-        LocalDateTime localRecordedBefore = LocalDateTime.of(2026, 1, 1, 1, 0);
+        LocalDateTime localRecordedBefore = LocalDateTime.of(2026,  Month.JANUARY, 1, 1, 0);
         Instant expectedUtc = localRecordedBefore
                 .atZone(ZoneId.of("Europe/Paris"))
                 .toInstant();
