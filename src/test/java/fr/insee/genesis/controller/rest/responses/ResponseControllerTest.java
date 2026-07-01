@@ -38,6 +38,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.Month;
+import java.time.ZoneId;
 import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
@@ -451,6 +454,44 @@ class ResponseControllerTest {
             verify(surveyUnitApiPort).findSimplifiedList(
                     eq("QUEST01"), any(), any());
         }
+    }
+
+    @Test
+    @DisplayName("Should convert localRecordedBefore to UTC before calling service")
+    void getResponseList_withLocalRecordedBefore_shouldConvertToUtc() throws Exception {
+        LocalDateTime localRecordedBefore = LocalDateTime.of(2026,  Month.JANUARY, 1, 1, 0);
+        Instant expectedUtc = localRecordedBefore
+                .atZone(ZoneId.of("Europe/Paris"))
+                .toInstant();
+
+        when(surveyUnitApiPort.findSimplifiedList(
+                anyString(), any(), any()))
+                .thenReturn(List.of());
+
+        mockMvc.perform(post("/responses/QUEST01")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("localRecordedBefore", "2026-01-01T01:00:00")
+                        .content("[{\"interrogationId\":\"INTERRO01\"}]"))
+                .andExpect(status().isOk());
+
+        verify(surveyUnitApiPort).findSimplifiedList(
+                eq("QUEST01"),
+                any(),
+                eq(expectedUtc)
+        );
+    }
+
+    @Test
+    @DisplayName("Should return bad request when both recordedBefore and localRecordedBefore are provided")
+    void getResponseList_withBothRecordedBeforeParams_shouldReturnBadRequest() throws Exception {
+        mockMvc.perform(post("/responses/QUEST01")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("recordedBefore", "2026-01-01T00:00:00Z")
+                        .param("localRecordedBefore", "2026-01-01T01:00:00")
+                        .content("[{\"interrogationId\":\"INTERRO01\"}]"))
+                .andExpect(status().isBadRequest());
     }
 
     @Nested
