@@ -1,5 +1,5 @@
 # Changelog
-## 2.7.5 [TODO]
+## 2.7.5 [2026-07-02]
 ### Changed
 - Transactionnal mongo docs
 - Use French hour in API datetimes
