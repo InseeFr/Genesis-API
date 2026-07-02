@@ -26,7 +26,11 @@ public interface SurveyUnitApiPort {
 
     List<SurveyUnitModel> findByInterrogationId(String interrogationId);
 
-    List<SurveyUnitModel> findLatestByIdAndByCollectionInstrumentId(String interrogationId, String collectionInstrumentId);
+    List<SurveyUnitModel> findLatestByInterrogationIdAndCollectionInstrumentId(String interrogationId, String collectionInstrumentId);
+    List<SurveyUnitModel> findLatestByInterrogationIds(
+            String collectionInstrumentOrQuestionnaireId,
+            Set<String> interrogationIds
+    );
 
     SurveyUnitSimplifiedDto findSimplified(
             String collectionInstrumentId,

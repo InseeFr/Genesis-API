@@ -46,7 +46,6 @@ class SurveyUnitMongoAdapterTest {
 	private static final String QUESTIONNAIRE_ID = "questionnaire-123";
 	private static final String COLLECTION_INSTRUMENT_ID = "instrument-456";
 	private static final String INTERROGATION_ID = "interrogation-789";
-	private static final String CAMPAIGN_ID = "campaign-101";
 	private static final String MODE = "CAWI";
 
 	@Mock
@@ -191,7 +190,7 @@ class SurveyUnitMongoAdapterTest {
 					.thenReturn(List.of(buildDoc("i1")));
 
 			// WHEN
-			List<SurveyUnitModel> result = adapter.findBySetOfIdsAndQuestionnaireIdAndMode(QUESTIONNAIRE_ID, MODE, ids);
+			List<SurveyUnitModel> result = adapter.findByQuestionnaireIdAndModeAndInterrogationIds(QUESTIONNAIRE_ID, MODE, ids);
 
 			// THEN
 			assertThat(result).hasSize(1);
@@ -204,10 +203,141 @@ class SurveyUnitMongoAdapterTest {
 			when(mongoRepository.findBySetOfIdsAndQuestionnaireIdAndMode(any(), any(), any())).thenReturn(List.of());
 
 			// WHEN
-			List<SurveyUnitModel> result = adapter.findBySetOfIdsAndQuestionnaireIdAndMode(QUESTIONNAIRE_ID, MODE, List.of());
+			List<SurveyUnitModel> result = adapter.findByQuestionnaireIdAndModeAndInterrogationIds(QUESTIONNAIRE_ID, MODE, List.of());
 
 			// THEN
 			assertThat(result).isEmpty();
+		}
+	}
+
+	@Nested
+	@DisplayName("findByCollectionInstrumentOrQuestionnaireIdAndInterrogationIds() tests")
+	class FindByCollectionInstrumentIdAndModeAndInterrogationIdsTests {
+		@Test
+		@DisplayName("Should return models from both repository methods combined")
+		void find_shouldCombineBothRepositoryResults() {
+			// GIVEN
+			SurveyUnitDocument docByQuestionnaire = buildDoc("INTERRO01");
+			SurveyUnitDocument docByCollectionInstrument = buildDoc("INTERRO02");
+			when(mongoRepository.findByQuestionnaireIdAndInterrogationIds("QUEST01", List.of("INTERRO01", "INTERRO02")))
+					.thenReturn(List.of(docByQuestionnaire));
+			when(mongoRepository.findByCollectionInstrumentIdAndInterrogationIds("QUEST01", List.of("INTERRO01", "INTERRO02")))
+					.thenReturn(List.of(docByCollectionInstrument));
+
+			// WHEN
+			List<SurveyUnitModel> result = adapter.findByCollectionInstrumentOrQuestionnaireIdAndInterrogationIds(
+					"QUEST01", List.of("INTERRO01", "INTERRO02"));
+
+			// THEN
+			assertThat(result).hasSize(2);
+		}
+
+		@Test
+		@DisplayName("Should return models from questionnaireId repository only when collectionInstrument returns empty")
+		void find_onlyQuestionnaireResults_shouldReturnThose() {
+			// GIVEN
+			SurveyUnitDocument doc = buildDoc("INTERRO01");
+			when(mongoRepository.findByQuestionnaireIdAndInterrogationIds("QUEST01", List.of("INTERRO01")))
+					.thenReturn(List.of(doc));
+			when(mongoRepository.findByCollectionInstrumentIdAndInterrogationIds("QUEST01", List.of("INTERRO01")))
+					.thenReturn(List.of());
+
+			// WHEN
+			List<SurveyUnitModel> result = adapter.findByCollectionInstrumentOrQuestionnaireIdAndInterrogationIds(
+					"QUEST01", List.of("INTERRO01"));
+
+			// THEN
+			assertThat(result).hasSize(1);
+		}
+
+		@Test
+		@DisplayName("Should return models from collectionInstrumentId repository only when questionnaire returns empty")
+		void find_onlyCollectionInstrumentResults_shouldReturnThose() {
+			// GIVEN
+			SurveyUnitDocument doc = buildDoc("INTERRO01");
+			when(mongoRepository.findByQuestionnaireIdAndInterrogationIds("QUEST01", List.of("INTERRO01")))
+					.thenReturn(List.of());
+			when(mongoRepository.findByCollectionInstrumentIdAndInterrogationIds("QUEST01", List.of("INTERRO01")))
+					.thenReturn(List.of(doc));
+
+			// WHEN
+			List<SurveyUnitModel> result = adapter.findByCollectionInstrumentOrQuestionnaireIdAndInterrogationIds(
+					"QUEST01", List.of("INTERRO01"));
+
+			// THEN
+			assertThat(result).hasSize(1);
+		}
+
+		@Test
+		@DisplayName("Should return empty list when both repositories return empty")
+		void find_bothEmpty_shouldReturnEmptyList() {
+			// GIVEN
+			when(mongoRepository.findByQuestionnaireIdAndInterrogationIds(any(), any()))
+					.thenReturn(List.of());
+			when(mongoRepository.findByCollectionInstrumentIdAndInterrogationIds(any(), any()))
+					.thenReturn(List.of());
+
+			// WHEN
+			List<SurveyUnitModel> result = adapter.findByCollectionInstrumentOrQuestionnaireIdAndInterrogationIds(
+					"QUEST01", List.of("INTERRO01"));
+
+			// THEN
+			assertThat(result).isEmpty();
+		}
+
+		@Test
+		@DisplayName("Should pass the same id to both repository methods")
+		void find_shouldPassSameIdToBothRepositories() {
+			// GIVEN
+			when(mongoRepository.findByQuestionnaireIdAndInterrogationIds(any(), any()))
+					.thenReturn(List.of());
+			when(mongoRepository.findByCollectionInstrumentIdAndInterrogationIds(any(), any()))
+					.thenReturn(List.of());
+
+			// WHEN
+			adapter.findByCollectionInstrumentOrQuestionnaireIdAndInterrogationIds(
+					"QUEST01", List.of("INTERRO01"));
+
+			// THEN
+			verify(mongoRepository).findByQuestionnaireIdAndInterrogationIds(eq("QUEST01"), any());
+			verify(mongoRepository).findByCollectionInstrumentIdAndInterrogationIds(eq("QUEST01"), any());
+		}
+
+		@Test
+		@DisplayName("Should pass the same interrogationId list to both repository methods")
+		void find_shouldPassSameInterrogationIdListToBothRepositories() {
+			// GIVEN
+			List<String> interrogationIds = List.of("INTERRO01", "INTERRO02", "INTERRO03");
+			when(mongoRepository.findByQuestionnaireIdAndInterrogationIds(any(), any()))
+					.thenReturn(List.of());
+			when(mongoRepository.findByCollectionInstrumentIdAndInterrogationIds(any(), any()))
+					.thenReturn(List.of());
+
+			// WHEN
+			adapter.findByCollectionInstrumentOrQuestionnaireIdAndInterrogationIds("QUEST01", interrogationIds);
+
+			// THEN
+			verify(mongoRepository).findByQuestionnaireIdAndInterrogationIds(any(), eq(interrogationIds));
+			verify(mongoRepository).findByCollectionInstrumentIdAndInterrogationIds(any(), eq(interrogationIds));
+		}
+
+		@Test
+		@DisplayName("Should return mapped models (not raw documents)")
+		void find_shouldReturnMappedModels() {
+			// GIVEN
+			SurveyUnitDocument doc = buildDoc("INTERRO01");
+			when(mongoRepository.findByQuestionnaireIdAndInterrogationIds(any(), any()))
+					.thenReturn(List.of(doc));
+			when(mongoRepository.findByCollectionInstrumentIdAndInterrogationIds(any(), any()))
+					.thenReturn(List.of());
+
+			// WHEN
+			List<SurveyUnitModel> result = adapter.findByCollectionInstrumentOrQuestionnaireIdAndInterrogationIds(
+					"QUEST01", List.of("INTERRO01"));
+
+			// THEN
+			assertThat(result).hasSize(1);
+			assertThat(result.getFirst().getInterrogationId()).isEqualTo("INTERRO01");
 		}
 	}
 

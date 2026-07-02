@@ -98,7 +98,7 @@ class LunaticJsonRawDataServiceTest {
 
     @BeforeEach
     void init() {
-        lunaticJsonRawDataConverter = new LunaticJsonRawDataConverter(new LunaticJsonRawDataPayloadParser());
+        lunaticJsonRawDataConverter = new LunaticJsonRawDataConverter(surveyUnitService, new LunaticJsonRawDataPayloadParser());
 
         service = new LunaticJsonRawDataService(
                 controllerUtils,
@@ -291,7 +291,9 @@ class LunaticJsonRawDataServiceTest {
         @DisplayName("Empty raw data list returns empty list")
         void emptyRawDataList_returnsEmpty() {
             //WHEN
-            List<SurveyUnitModel> result = lunaticJsonRawDataConverter.convertRawData(List.of(), new VariablesMap());
+            List<SurveyUnitModel> result = lunaticJsonRawDataConverter.convertRawData(
+                    QUESTIONNAIRE_ID, List.of(), new VariablesMap()
+            );
 
             //THEN
             assertThat(result).isEmpty();
@@ -307,6 +309,7 @@ class LunaticJsonRawDataServiceTest {
             // WHEN
             List<SurveyUnitModel> result =
                     lunaticJsonRawDataConverter.convertRawDataAndCollectEmptyModels(
+                            QUESTIONNAIRE_ID,
                             List.of(rawData),
                             new VariablesMap(),
                             emptySurveyUnitModels
@@ -330,7 +333,9 @@ class LunaticJsonRawDataServiceTest {
             LunaticJsonRawDataModel rawData = buildRawDataWithCollected(collected);
 
             //WHEN
-            List<SurveyUnitModel> result = lunaticJsonRawDataConverter.convertRawData(List.of(rawData), new VariablesMap());
+            List<SurveyUnitModel> result = lunaticJsonRawDataConverter.convertRawData(
+                    QUESTIONNAIRE_ID, List.of(rawData), new VariablesMap()
+            );
 
             //THEN
             // Expect 1 COLLECTED (VAR1 has a value) and 0 EDITED (EDITED value is null → empty)
@@ -355,7 +360,9 @@ class LunaticJsonRawDataServiceTest {
             LunaticJsonRawDataModel rawData = buildRawDataWithCollected(collected);
 
             //WHEN
-            List<SurveyUnitModel> result = lunaticJsonRawDataConverter.convertRawData(List.of(rawData), new VariablesMap());
+            List<SurveyUnitModel> result = lunaticJsonRawDataConverter.convertRawData(
+                    QUESTIONNAIRE_ID, List.of(rawData), new VariablesMap()
+            );
 
             //THEN
             long editedCount = result.stream()
@@ -381,7 +388,9 @@ class LunaticJsonRawDataServiceTest {
             LunaticJsonRawDataModel rawData = buildRawDataWithCollected(outerData);
 
             //WHEN
-            List<SurveyUnitModel> result = lunaticJsonRawDataConverter.convertRawData(List.of(rawData), new VariablesMap());
+            List<SurveyUnitModel> result = lunaticJsonRawDataConverter.convertRawData(
+                    QUESTIONNAIRE_ID, List.of(rawData), new VariablesMap()
+            );
 
             // Should not throw — FILIERE path is followed TODO More asserts
             assertThat(result).isNotNull();
@@ -412,7 +421,9 @@ class LunaticJsonRawDataServiceTest {
                     .build();
 
             //WHEN
-            List<SurveyUnitModel> result = lunaticJsonRawDataConverter.convertRawData(List.of(rawData), new VariablesMap());
+            List<SurveyUnitModel> result = lunaticJsonRawDataConverter.convertRawData(
+                    QUESTIONNAIRE_ID, List.of(rawData), new VariablesMap()
+            );
 
             //THEN
             assertThat(result).isNotEmpty();
@@ -447,7 +458,9 @@ class LunaticJsonRawDataServiceTest {
                     .build();
 
             //WHEN
-            List<SurveyUnitModel> result = lunaticJsonRawDataConverter.convertRawData(List.of(rawData), new VariablesMap());
+            List<SurveyUnitModel> result = lunaticJsonRawDataConverter.convertRawData(
+                    QUESTIONNAIRE_ID, List.of(rawData), new VariablesMap()
+            );
             //THEN
             assertThat(result).isNotEmpty();
             result.stream()
@@ -468,7 +481,9 @@ class LunaticJsonRawDataServiceTest {
             LunaticJsonRawDataModel rawData = buildRawDataWithCollected(collected);
 
             //WHEN
-            List<SurveyUnitModel> result = lunaticJsonRawDataConverter.convertRawData(List.of(rawData), new VariablesMap());
+            List<SurveyUnitModel> result = lunaticJsonRawDataConverter.convertRawData(
+                    QUESTIONNAIRE_ID, List.of(rawData), new VariablesMap()
+            );
 
             //THEN
             SurveyUnitModel collectedModel = result.stream()
@@ -717,53 +732,6 @@ class LunaticJsonRawDataServiceTest {
 
             //THEN
             assertThat(result.getContent()).containsExactly(model);
-        }
-    }
-
-    @Nested
-    @DisplayName("getValueString() util")
-    class GetValueStringTests {
-
-        @Test
-        @DisplayName("Double value strips trailing zeros")
-        void doubleStripsTrailingZeros() {
-            //WHEN + THEN
-            assertThat(LunaticJsonRawDataService.getValueString(1.50)).isEqualTo("1.5");
-        }
-
-        @Test
-        @DisplayName("Float value strips trailing zeros")
-        void floatStripsTrailingZeros() {
-            //WHEN + THEN
-            assertThat(LunaticJsonRawDataService.getValueString(1.500f)).isEqualTo("1.5");
-        }
-
-        @Test
-        @DisplayName("Integer value returns plain string")
-        void integerReturnsPlainString() {
-            //WHEN + THEN
-            assertThat(LunaticJsonRawDataService.getValueString(42)).isEqualTo("42");
-        }
-
-        @Test
-        @DisplayName("String value returns same string")
-        void stringReturnsItself() {
-            //WHEN + THEN
-            assertThat(LunaticJsonRawDataService.getValueString("hello")).isEqualTo("hello");
-        }
-
-        @Test
-        @DisplayName("Null returns 'null' string")
-        void nullReturnsNullString() {
-            //WHEN + THEN
-            assertThat(LunaticJsonRawDataService.getValueString(null)).isEqualTo("null");
-        }
-
-        @Test
-        @DisplayName("BigDecimal integer-like double has no decimal point")
-        void bigDecimalIntegerDouble() {
-            //WHEN + THEN
-            assertThat(LunaticJsonRawDataService.getValueString(3.0)).isEqualTo("3");
         }
     }
 
