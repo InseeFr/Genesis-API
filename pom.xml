@@ -22,7 +22,7 @@
         <commons-lang3.version>3.20.0</commons-lang3.version>
 
         <!-- Dependency versions not managed by Spring -->
-        <bpm.version>1.2.1</bpm.version>
+        <bpm.version>1.2.2-SNAPSHOT</bpm.version>
         <springdoc.version>3.0.3</springdoc.version>
         <mapstruct.version>1.6.3</mapstruct.version>
         <pitest.version>1.25.5</pitest.version>
