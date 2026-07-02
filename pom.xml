@@ -114,6 +114,12 @@
             <groupId>fr.insee</groupId>
             <artifactId>modelefiliere</artifactId>
             <version>2.2.2-springboot4</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>tools.jackson.core</groupId>
+                    <artifactId>jackson-databind</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <!-- XML libraries -->
         <!-- XML-XSLT with Saxon -->
