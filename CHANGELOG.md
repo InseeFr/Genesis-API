@@ -1,4 +1,9 @@
 # Changelog
+## 2.7.5 [TODO]
+### Changed
+- Transactionnal mongo docs
+- Use French hour in API datetimes
+
 ## 2.7.2-rc [2026-06-24]
 ### Fixed
 - Change application.properties
