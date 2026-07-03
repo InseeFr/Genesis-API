@@ -121,18 +121,29 @@ public class ContextualVariableJsonService implements ContextualVariableApiPort 
                 while (it.hasNext()) {
                     Path jsonFilePath = it.next();
 
-                    Optional<String> type = processContextualVariableFileAndGetType(
-                            collectionInstrumentId,
-                            jsonFilePath
-                    );
+                    try {
+                        Optional<String> type = processContextualVariableFileAndGetType(
+                                collectionInstrumentId,
+                                jsonFilePath
+                        );
 
-                    if (type.isPresent()) {
-                        moveFile(collectionInstrumentId, mode, fileUtils, jsonFilePath.toString());
+                        if (type.isPresent()) {
+                            moveFile(collectionInstrumentId, mode, fileUtils, jsonFilePath.toString());
 
-                        files.add(new ContextualVariableFileReportDto(
-                                jsonFilePath.getFileName().toString(),
-                                type.get()
-                        ));
+                            files.add(new ContextualVariableFileReportDto(
+                                    jsonFilePath.getFileName().toString(),
+                                    type.get()
+                            ));
+                        }
+                    } catch (GenesisException e) {
+                        throw new GenesisException(
+                                e.getStatus(),
+                                "Error while processing file '%s' : %s"
+                                        .formatted(
+                                                jsonFilePath.getFileName(),
+                                                e.getMessage()
+                                        )
+                        );
                     }
                 }
             } catch (NoSuchFileException nsfe) {
