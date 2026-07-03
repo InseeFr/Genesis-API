@@ -121,29 +121,12 @@ public class ContextualVariableJsonService implements ContextualVariableApiPort 
                 while (it.hasNext()) {
                     Path jsonFilePath = it.next();
 
-                    try {
-                        Optional<String> type = processContextualVariableFileAndGetType(
-                                collectionInstrumentId,
-                                jsonFilePath
-                        );
+                    Optional<ContextualVariableFileReportDto> report =
+                            processContextualVariableFileForReport(collectionInstrumentId, jsonFilePath);
 
-                        if (type.isPresent()) {
-                            moveFile(collectionInstrumentId, mode, fileUtils, jsonFilePath.toString());
-
-                            files.add(new ContextualVariableFileReportDto(
-                                    jsonFilePath.getFileName().toString(),
-                                    type.get()
-                            ));
-                        }
-                    } catch (GenesisException e) {
-                        throw new GenesisException(
-                                e.getStatus(),
-                                "Error while processing file '%s' : %s"
-                                        .formatted(
-                                                jsonFilePath.getFileName(),
-                                                e.getMessage()
-                                        )
-                        );
+                    if (report.isPresent()) {
+                        moveFile(collectionInstrumentId, mode, fileUtils, jsonFilePath.toString());
+                        files.add(report.get());
                     }
                 }
             } catch (NoSuchFileException nsfe) {
@@ -158,6 +141,29 @@ public class ContextualVariableJsonService implements ContextualVariableApiPort 
                 files.size(),
                 files
         );
+    }
+
+    private Optional<ContextualVariableFileReportDto> processContextualVariableFileForReport(
+            String collectionInstrumentId,
+            Path jsonFilePath
+    ) throws GenesisException {
+        try {
+            Optional<String> type = processContextualVariableFileAndGetType(
+                    collectionInstrumentId,
+                    jsonFilePath
+            );
+
+            return type.map(value -> new ContextualVariableFileReportDto(
+                    jsonFilePath.getFileName().toString(),
+                    value
+            ));
+        } catch (GenesisException e) {
+            throw new GenesisException(
+                    e.getStatus(),
+                    "Error while processing file '%s' : %s"
+                            .formatted(jsonFilePath.getFileName().toString(), e.getMessage())
+            );
+        }
     }
 
     private Optional<String> processContextualVariableFileAndGetType(
