@@ -1,5 +1,7 @@
 package fr.insee.genesis.domain.service.contextualvariable;
 
+import fr.insee.genesis.controller.dto.ContextualVariableFileReportDto;
+import fr.insee.genesis.controller.dto.SaveContextualVariablesReportDto;
 import fr.insee.genesis.controller.dto.VariableQualityToolDto;
 import fr.insee.genesis.controller.dto.VariableStateDto;
 import fr.insee.genesis.domain.model.contextualvariable.ContextualExternalVariableModel;
@@ -26,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 @Service
@@ -100,6 +103,78 @@ public class ContextualVariableJsonService implements ContextualVariableApiPort 
         }
         return fileCount;
     }
+
+    @Override
+    public SaveContextualVariablesReportDto saveContextualVariableFilesWithReport(
+            String collectionInstrumentId,
+            FileUtils fileUtils,
+            String contextualFolderPath
+    ) throws GenesisException {
+        List<ContextualVariableFileReportDto> files = new ArrayList<>();
+
+        for (Mode mode : Mode.values()) {
+            try (Stream<Path> filePaths = Files.list(Path.of(contextualFolderPath))) {
+                Iterator<Path> it = filePaths
+                        .filter(path -> path.toString().endsWith(".json"))
+                        .iterator();
+
+                while (it.hasNext()) {
+                    Path jsonFilePath = it.next();
+
+                    Optional<String> type = processContextualVariableFileAndGetType(
+                            collectionInstrumentId,
+                            jsonFilePath
+                    );
+
+                    if (type.isPresent()) {
+                        moveFile(collectionInstrumentId, mode, fileUtils, jsonFilePath.toString());
+
+                        files.add(new ContextualVariableFileReportDto(
+                                jsonFilePath.getFileName().toString(),
+                                type.get()
+                        ));
+                    }
+                }
+            } catch (NoSuchFileException nsfe) {
+                log.debug(nsfe.toString());
+            } catch (IOException ioe) {
+                log.warn(ioe.toString());
+            }
+        }
+
+        return new SaveContextualVariablesReportDto(
+                collectionInstrumentId,
+                files.size(),
+                files
+        );
+    }
+
+    private Optional<String> processContextualVariableFileAndGetType(
+            String collectionInstrumentId,
+            Path jsonFilePath
+    ) throws GenesisException {
+        boolean isPrevious = contextualPreviousVariableApiPort.readContextualPreviousFile(
+                collectionInstrumentId.toUpperCase(),
+                null,
+                jsonFilePath.toString()
+        );
+
+        if (isPrevious) {
+            return Optional.of("PREVIOUS");
+        }
+
+        boolean isExternal = contextualExternalVariableApiPort.readContextualExternalFile(
+                collectionInstrumentId.toUpperCase(),
+                jsonFilePath.toString()
+        );
+
+        if (isExternal) {
+            return Optional.of("EXTERNAL");
+        }
+
+        return Optional.empty();
+    }
+
 
     private static void moveFile(String collectionInstrumentId, Mode mode, FileUtils fileUtils, String filePath) throws GenesisException {
         try {

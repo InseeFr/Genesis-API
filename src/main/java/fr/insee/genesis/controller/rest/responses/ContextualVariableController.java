@@ -2,6 +2,7 @@ package fr.insee.genesis.controller.rest.responses;
 
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.configuration.Config;
+import fr.insee.genesis.controller.dto.SaveContextualVariablesReportDto;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.ports.api.ContextualExternalVariableApiPort;
 import fr.insee.genesis.domain.ports.api.ContextualPreviousVariableApiPort;
@@ -60,6 +61,27 @@ public class ContextualVariableController {
 
             return ResponseEntity.ok("%d file(s) processed for questionnaire %s !".formatted(fileCount, questionnaireId));
 
+    }
+
+    @Operation(summary = "Save all contextual variables json files and return processed file details")
+    @PostMapping(path = "/json/report")
+    @PreAuthorize("hasAnyRole('USER_PLATINE','SCHEDULER')")
+    public ResponseEntity<SaveContextualVariablesReportDto> saveContextualVariablesWithReport(
+            @RequestParam("questionnaireId") String questionnaireId
+    ) throws GenesisException {
+        FileUtils fileUtils = new FileUtils(config);
+
+        String contextualFolderPath =
+                fileUtils.getDataFolder(questionnaireId, "WEB", null) + Constants.CONTEXTUAL_FOLDER;
+
+        SaveContextualVariablesReportDto report =
+                contextualVariableApiPort.saveContextualVariableFilesWithReport(
+                        questionnaireId,
+                        fileUtils,
+                        contextualFolderPath
+                );
+
+        return ResponseEntity.ok(report);
     }
 
     @Operation(summary = "Add contextual previous json file")
