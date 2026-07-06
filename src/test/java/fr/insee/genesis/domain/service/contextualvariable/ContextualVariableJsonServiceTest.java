@@ -1,6 +1,8 @@
 package fr.insee.genesis.domain.service.contextualvariable;
 
 import fr.insee.genesis.TestConstants;
+import fr.insee.genesis.controller.dto.ContextualVariableFileReportDto;
+import fr.insee.genesis.controller.dto.SaveContextualVariablesReportDto;
 import fr.insee.genesis.controller.dto.VariableQualityToolDto;
 import fr.insee.genesis.controller.dto.VariableStateDto;
 import fr.insee.genesis.domain.model.contextualvariable.ContextualExternalVariableModel;
@@ -336,6 +338,48 @@ class ContextualVariableJsonServiceTest {
                 any(),
                 eq(doneFolder)
         );
+    }
+
+    @Test
+    @SneakyThrows
+    void saveContextualVariableFilesWithReport() {
+        // GIVEN
+        String collectionInstrumentId = "test";
+        FileUtils fileUtils = mock(FileUtils.class);
+        String doneFolder = "testDone";
+
+        doReturn(doneFolder).when(fileUtils).getDoneFolder(anyString(), anyString());
+
+        doReturn(true).when(contextualPreviousVariableApiPort)
+                .readContextualPreviousFile(any(), any(), any());
+
+        doAnswer(invocation ->
+                Files.deleteIfExists(invocation.getArgument(0))
+        ).when(fileUtils).moveFiles(any(Path.class), any());
+
+        // WHEN
+        SaveContextualVariablesReportDto report =
+                contextualVariableJsonService.saveContextualVariableFilesWithReport(
+                        collectionInstrumentId,
+                        fileUtils,
+                        TEST_FOLDER_PATH.toString()
+                );
+
+        // THEN
+        Assertions.assertThat(report).isNotNull();
+        Assertions.assertThat(report.questionnaireId()).isEqualTo(collectionInstrumentId);
+        Assertions.assertThat(report.processedFiles()).isEqualTo(2);
+
+        Assertions.assertThat(report.files())
+                .hasSize(2)
+                .extracting(ContextualVariableFileReportDto::fileName)
+                .containsExactlyInAnyOrder("ok.json", "ok2.json");
+
+        Assertions.assertThat(report.files())
+                .extracting(ContextualVariableFileReportDto::type)
+                .containsOnly("PREVIOUS");
+
+        verify(fileUtils, times(2)).moveFiles(any(Path.class), eq(doneFolder));
     }
 
     @AfterEach

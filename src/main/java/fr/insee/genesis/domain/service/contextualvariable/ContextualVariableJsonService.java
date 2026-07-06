@@ -31,6 +31,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import static fr.insee.genesis.Constants.TYPE_EXTERNAL;
+import static fr.insee.genesis.Constants.TYPE_PREVIOUS;
+
 @Service
 @Slf4j
 public class ContextualVariableJsonService implements ContextualVariableApiPort {
@@ -104,6 +107,11 @@ public class ContextualVariableJsonService implements ContextualVariableApiPort 
         return fileCount;
     }
 
+    /**
+     * Generates a detailed report of processed contextual variable files.
+     * Added to preserve the existing behavior of {@link #saveContextualVariableFiles(String, FileUtils, String)},
+     * which only returns the number of processed files.
+     */
     @Override
     public SaveContextualVariablesReportDto saveContextualVariableFilesWithReport(
             String collectionInstrumentId,
@@ -177,7 +185,7 @@ public class ContextualVariableJsonService implements ContextualVariableApiPort 
         );
 
         if (isPrevious) {
-            return Optional.of("PREVIOUS");
+            return Optional.of(TYPE_PREVIOUS);
         }
 
         boolean isExternal = contextualExternalVariableApiPort.readContextualExternalFile(
@@ -186,7 +194,7 @@ public class ContextualVariableJsonService implements ContextualVariableApiPort 
         );
 
         if (isExternal) {
-            return Optional.of("EXTERNAL");
+            return Optional.of(TYPE_EXTERNAL);
         }
 
         return Optional.empty();

@@ -21,6 +21,8 @@ public class Constants {
     public static final String MONGODB_CONTEXT_COLLECTION_NAME = "dataProcessingContexts";
     public static final String MONGODB_CONTEXTUAL_PREVIOUS_COLLECTION_NAME = "editedPrevious";
     public static final String MONGODB_CONTEXTUAL_EXTERNAL_COLLECTION_NAME = "editedExternal";
+    public static final String TYPE_PREVIOUS = "PREVIOUS";
+    public static final String TYPE_EXTERNAL = "EXTERNAL";
     public static final String LOOP_NAME_PREFIX = "BOUCLE";
     public static final String MONGODB_RESPONSE_COLLECTION_NAME = "responses";
     public static final String MONGODB_RAW_RESPONSES_COLLECTION_NAME = "rawResponses";
