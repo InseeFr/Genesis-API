@@ -82,29 +82,16 @@ public class ContextualVariableJsonService implements ContextualVariableApiPort 
     }
 
     @Override
-    public int saveContextualVariableFiles(String collectionInstrumentId, FileUtils fileUtils, String contextualFolderPath) throws GenesisException {
-        int fileCount = 0;
-
-        for (Mode mode : Mode.values()) {
-            try (Stream<Path> filePaths = Files.list(Path.of(contextualFolderPath))) {
-                Iterator<Path> it = filePaths
-                        .filter(path -> path.toString().endsWith(".json"))
-                        .iterator();
-                while (it.hasNext()) {
-                    Path jsonFilePath = it.next();
-                    if (processContextualVariableFile(collectionInstrumentId, jsonFilePath)) {
-                        //If the file is indeed a contextual variables file and had been processed
-                        moveFile(collectionInstrumentId, mode, fileUtils, jsonFilePath.toString());
-                        fileCount++;
-                    }
-                }
-            } catch (NoSuchFileException nsfe) {
-                log.debug(nsfe.toString());
-            } catch (IOException ioe) {
-                log.warn(ioe.toString());
-            }
-        }
-        return fileCount;
+    public int saveContextualVariableFiles(
+            String collectionInstrumentId,
+            FileUtils fileUtils,
+            String contextualFolderPath
+    ) throws GenesisException {
+        return saveContextualVariableFilesWithReport(
+                collectionInstrumentId,
+                fileUtils,
+                contextualFolderPath
+        ).processedFiles();
     }
 
     /**
@@ -241,19 +228,5 @@ public class ContextualVariableJsonService implements ContextualVariableApiPort 
                         .build()
         );
         return variableQualityToolDto;
-    }
-
-    /**
-     * @return true if any contextual variable part found in file, false otherwise
-     */
-    private boolean processContextualVariableFile(String collectionInstrumentId, Path jsonFilePath) throws GenesisException {
-        return contextualPreviousVariableApiPort.readContextualPreviousFile(
-                collectionInstrumentId.toUpperCase(),
-                null,
-                jsonFilePath.toString()
-        ) || contextualExternalVariableApiPort.readContextualExternalFile(
-                collectionInstrumentId.toUpperCase(),
-                jsonFilePath.toString()
-        );
     }
 }
