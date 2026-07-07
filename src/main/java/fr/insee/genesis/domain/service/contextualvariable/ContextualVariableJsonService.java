@@ -108,7 +108,8 @@ public class ContextualVariableJsonService implements ContextualVariableApiPort 
         List<ContextualVariableFileReportDto> files = new ArrayList<>();
 
         for (Mode mode : Mode.values()) {
-            try (Stream<Path> filePaths = Files.list(Path.of(contextualFolderPath))) {
+            Path contextualFolder = Path.of(contextualFolderPath);
+            try (Stream<Path> filePaths = Files.list(contextualFolder)) {
                 Iterator<Path> it = filePaths
                         .filter(path -> path.toString().endsWith(".json"))
                         .iterator();

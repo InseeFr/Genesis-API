@@ -172,7 +172,7 @@ class ContextualVariableControllerTest {
     }
 
     @Test
-    void readContextualPreviousJson_notJson() throws GenesisException {
+    void readContextualPreviousJson_notJson() {
         Assertions.assertThatThrownBy(() -> contextualVariableController.readContextualPreviousJson(
                         TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
                         Mode.WEB,
@@ -218,13 +218,13 @@ class ContextualVariableControllerTest {
 
         //THEN
         verify(contextualExternalVariableApiPort).readContextualExternalFile(
-                eq(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID.toUpperCase()),
-                eq(expectedFilePath)
+                TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID.toUpperCase(),
+                expectedFilePath
         );
     }
 
     @Test
-    void readContextualExternalJson_notJson() throws GenesisException {
+    void readContextualExternalJson_notJson() {
 
         Assertions.assertThatThrownBy(() -> contextualVariableController.readContextualExternalJson(
                         TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
