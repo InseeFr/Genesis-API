@@ -55,9 +55,7 @@ public class ContextualVariableController {
     ) throws GenesisException{
             FileUtils fileUtils = new FileUtils(config);
 
-            String contextualFolderPath = fileUtils.getDataFolder(questionnaireId, "WEB", null) + Constants.CONTEXTUAL_FOLDER;
-
-            int fileCount = contextualVariableApiPort.saveContextualVariableFiles(questionnaireId, fileUtils,contextualFolderPath);
+            int fileCount = contextualVariableApiPort.saveContextualVariableFiles(questionnaireId, fileUtils);
 
             return ResponseEntity.ok("%d file(s) processed for questionnaire %s !".formatted(fileCount, questionnaireId));
 
@@ -71,14 +69,10 @@ public class ContextualVariableController {
     ) throws GenesisException {
         FileUtils fileUtils = new FileUtils(config);
 
-        String contextualFolderPath =
-                fileUtils.getDataFolder(questionnaireId, "WEB", null) + Constants.CONTEXTUAL_FOLDER;
-
         SaveContextualVariablesReportDto report =
                 contextualVariableApiPort.saveContextualVariableFilesWithReport(
                         questionnaireId,
-                        fileUtils,
-                        contextualFolderPath
+                        fileUtils
                 );
 
         return ResponseEntity.ok(report);

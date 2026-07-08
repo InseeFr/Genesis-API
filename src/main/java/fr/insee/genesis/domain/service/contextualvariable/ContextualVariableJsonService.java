@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import static fr.insee.genesis.Constants.CONTEXTUAL_FOLDER;
 import static fr.insee.genesis.Constants.TYPE_EXTERNAL;
 import static fr.insee.genesis.Constants.TYPE_PREVIOUS;
 
@@ -84,28 +85,28 @@ public class ContextualVariableJsonService implements ContextualVariableApiPort 
     @Override
     public int saveContextualVariableFiles(
             String collectionInstrumentId,
-            FileUtils fileUtils,
-            String contextualFolderPath
+            FileUtils fileUtils
     ) throws GenesisException {
         return saveContextualVariableFilesWithReport(
                 collectionInstrumentId,
-                fileUtils,
-                contextualFolderPath
+                fileUtils
         ).processedFiles();
     }
 
     /**
      * Generates a detailed report of processed contextual variable files.
-     * Added to preserve the existing behavior of {@link #saveContextualVariableFiles(String, FileUtils, String)},
+     * Added to preserve the existing behavior of {@link #saveContextualVariableFiles(String, FileUtils)},
      * which only returns the number of processed files.
      */
     @Override
     public SaveContextualVariablesReportDto saveContextualVariableFilesWithReport(
             String collectionInstrumentId,
-            FileUtils fileUtils,
-            String contextualFolderPath
+            FileUtils fileUtils
     ) throws GenesisException {
         List<ContextualVariableFileReportDto> files = new ArrayList<>();
+        String contextualFolderPath =
+                fileUtils.getDataFolder(collectionInstrumentId, "WEB", null)
+                        + CONTEXTUAL_FOLDER;
 
         for (Mode mode : Mode.values()) {
             Path contextualFolder = Path.of(contextualFolderPath);

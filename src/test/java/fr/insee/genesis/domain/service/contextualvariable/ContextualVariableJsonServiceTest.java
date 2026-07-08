@@ -1,5 +1,6 @@
 package fr.insee.genesis.domain.service.contextualvariable;
 
+import fr.insee.genesis.Constants;
 import fr.insee.genesis.TestConstants;
 import fr.insee.genesis.controller.dto.ContextualVariableFileReportDto;
 import fr.insee.genesis.controller.dto.SaveContextualVariablesReportDto;
@@ -37,6 +38,7 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -65,8 +67,12 @@ class ContextualVariableJsonServiceTest {
             FileSystemUtils.deleteRecursively(TEST_FOLDER_PATH);
         }
         Files.createDirectories(TEST_FOLDER_PATH);
-        Files.createFile(TEST_FOLDER_PATH.resolve("ok.json"));
-        Files.createFile(TEST_FOLDER_PATH.resolve("ok2.json"));
+
+        Path contextualFolderPath = TEST_FOLDER_PATH.resolve("contextual");
+        Files.createDirectories(contextualFolderPath);
+
+        Files.createFile(contextualFolderPath.resolve("ok.json"));
+        Files.createFile(contextualFolderPath.resolve("ok2.json"));
     }
 
     @Test
@@ -315,6 +321,8 @@ class ContextualVariableJsonServiceTest {
                 Path.of("ok2.json")
         );
         String doneFolder = "testDone";
+        doReturn(TEST_FOLDER_PATH.toString()).when(fileUtils)
+                .getDataFolder(eq(collectionInstrumentId), eq("WEB"), isNull());
         doReturn(doneFolder).when(fileUtils).getDoneFolder(anyString(),anyString());
         doReturn(pathList).when(fileUtils).listFiles(anyString());
         doReturn(true).when(contextualPreviousVariableApiPort)
@@ -328,9 +336,7 @@ class ContextualVariableJsonServiceTest {
         //WHEN
         int fileCount = contextualVariableJsonService.saveContextualVariableFiles(
                 collectionInstrumentId,
-                fileUtils,
-                TEST_FOLDER_PATH.toString()
-                );
+                fileUtils);
 
         //THEN
         Assertions.assertThat(fileCount).isEqualTo(pathList.size());
@@ -347,7 +353,8 @@ class ContextualVariableJsonServiceTest {
         String collectionInstrumentId = "test";
         FileUtils fileUtils = mock(FileUtils.class);
         String doneFolder = "testDone";
-
+        doReturn(TEST_FOLDER_PATH.toString()).when(fileUtils)
+                .getDataFolder(eq(collectionInstrumentId), eq("WEB"), isNull());
         doReturn(doneFolder).when(fileUtils).getDoneFolder(anyString(), anyString());
 
         doReturn(true).when(contextualPreviousVariableApiPort)
@@ -361,8 +368,7 @@ class ContextualVariableJsonServiceTest {
         SaveContextualVariablesReportDto report =
                 contextualVariableJsonService.saveContextualVariableFilesWithReport(
                         collectionInstrumentId,
-                        fileUtils,
-                        TEST_FOLDER_PATH.toString()
+                        fileUtils
                 );
 
         // THEN

@@ -92,7 +92,6 @@ class ContextualVariableControllerTest {
         //THEN
         verify(contextualVariableApiPort, times(1)).saveContextualVariableFiles(
                 eq(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID),
-                any(),
                 any()
         );
     }
@@ -109,7 +108,6 @@ class ContextualVariableControllerTest {
 
         doReturn(report).when(contextualVariableApiPort).saveContextualVariableFilesWithReport(
                 eq(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID),
-                any(),
                 any()
         );
 
@@ -122,7 +120,6 @@ class ContextualVariableControllerTest {
         // THEN
         verify(contextualVariableApiPort, times(1)).saveContextualVariableFilesWithReport(
                 eq(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID),
-                any(),
                 any()
         );
 
