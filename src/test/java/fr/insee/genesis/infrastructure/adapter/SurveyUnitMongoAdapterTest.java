@@ -18,7 +18,9 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.lang.reflect.Method;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -90,6 +92,15 @@ class SurveyUnitMongoAdapterTest {
 			verify(mongoRepository).insert(captor.capture());
 			assertThat(captor.getValue()).hasSize(3);
 		}
+
+		@Test
+		@DisplayName("saveAll() should be annotated with @Transactional")
+		void saveAll_shouldBeTransactional() throws NoSuchMethodException {
+			Method method = SurveyUnitMongoAdapter.class.getMethod("saveAll", List.class);
+			assertThat(method.isAnnotationPresent(Transactional.class)).isTrue();
+		}
+
+
 	}
 
 	@Nested

@@ -1,5 +1,7 @@
 package fr.insee.genesis.domain.service.contextualvariable;
 
+import fr.insee.genesis.controller.dto.ContextualVariableFileReportDto;
+import fr.insee.genesis.controller.dto.SaveContextualVariablesReportDto;
 import fr.insee.genesis.controller.dto.VariableQualityToolDto;
 import fr.insee.genesis.controller.dto.VariableStateDto;
 import fr.insee.genesis.domain.model.contextualvariable.ContextualExternalVariableModel;
@@ -26,7 +28,12 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
+
+import static fr.insee.genesis.Constants.CONTEXTUAL_FOLDER;
+import static fr.insee.genesis.Constants.TYPE_EXTERNAL;
+import static fr.insee.genesis.Constants.TYPE_PREVIOUS;
 
 @Service
 @Slf4j
@@ -76,20 +83,47 @@ public class ContextualVariableJsonService implements ContextualVariableApiPort 
     }
 
     @Override
-    public int saveContextualVariableFiles(String collectionInstrumentId, FileUtils fileUtils, String contextualFolderPath) throws GenesisException {
-        int fileCount = 0;
+    public int saveContextualVariableFiles(
+            String collectionInstrumentId,
+            FileUtils fileUtils
+    ) throws GenesisException {
+        return saveContextualVariableFilesWithReport(
+                collectionInstrumentId,
+                fileUtils
+        ).processedFiles();
+    }
+
+    /**
+     * Generates a detailed report of processed contextual variable files.
+     * Added to preserve the existing behavior of {@link #saveContextualVariableFiles(String, FileUtils)},
+     * which only returns the number of processed files.
+     */
+    @Override
+    public SaveContextualVariablesReportDto saveContextualVariableFilesWithReport(
+            String collectionInstrumentId,
+            FileUtils fileUtils
+    ) throws GenesisException {
+        List<ContextualVariableFileReportDto> files = new ArrayList<>();
+        String contextualFolderPath =
+                fileUtils.getDataFolder(collectionInstrumentId, "WEB", null)
+                        + CONTEXTUAL_FOLDER;
 
         for (Mode mode : Mode.values()) {
-            try (Stream<Path> filePaths = Files.list(Path.of(contextualFolderPath))) {
+            Path contextualFolder = Path.of(contextualFolderPath);
+            try (Stream<Path> filePaths = Files.list(contextualFolder)) {
                 Iterator<Path> it = filePaths
                         .filter(path -> path.toString().endsWith(".json"))
                         .iterator();
+
                 while (it.hasNext()) {
                     Path jsonFilePath = it.next();
-                    if (processContextualVariableFile(collectionInstrumentId, jsonFilePath)) {
-                        //If the file is indeed a contextual variables file and had been processed
+
+                    Optional<ContextualVariableFileReportDto> report =
+                            processContextualVariableFileForReport(collectionInstrumentId, jsonFilePath);
+
+                    if (report.isPresent()) {
                         moveFile(collectionInstrumentId, mode, fileUtils, jsonFilePath.toString());
-                        fileCount++;
+                        files.add(report.get());
                     }
                 }
             } catch (NoSuchFileException nsfe) {
@@ -98,8 +132,63 @@ public class ContextualVariableJsonService implements ContextualVariableApiPort 
                 log.warn(ioe.toString());
             }
         }
-        return fileCount;
+
+        return new SaveContextualVariablesReportDto(
+                collectionInstrumentId,
+                files.size(),
+                files
+        );
     }
+
+    private Optional<ContextualVariableFileReportDto> processContextualVariableFileForReport(
+            String collectionInstrumentId,
+            Path jsonFilePath
+    ) throws GenesisException {
+        try {
+            Optional<String> type = processContextualVariableFileAndGetType(
+                    collectionInstrumentId,
+                    jsonFilePath
+            );
+
+            return type.map(value -> new ContextualVariableFileReportDto(
+                    jsonFilePath.getFileName().toString(),
+                    value
+            ));
+        } catch (GenesisException e) {
+            throw new GenesisException(
+                    e.getStatus(),
+                    "Error while processing file '%s' : %s"
+                            .formatted(jsonFilePath.getFileName().toString(), e.getMessage())
+            );
+        }
+    }
+
+    private Optional<String> processContextualVariableFileAndGetType(
+            String collectionInstrumentId,
+            Path jsonFilePath
+    ) throws GenesisException {
+        boolean isPrevious = contextualPreviousVariableApiPort.readContextualPreviousFile(
+                collectionInstrumentId.toUpperCase(),
+                null,
+                jsonFilePath.toString()
+        );
+
+        if (isPrevious) {
+            return Optional.of(TYPE_PREVIOUS);
+        }
+
+        boolean isExternal = contextualExternalVariableApiPort.readContextualExternalFile(
+                collectionInstrumentId.toUpperCase(),
+                jsonFilePath.toString()
+        );
+
+        if (isExternal) {
+            return Optional.of(TYPE_EXTERNAL);
+        }
+
+        return Optional.empty();
+    }
+
 
     private static void moveFile(String collectionInstrumentId, Mode mode, FileUtils fileUtils, String filePath) throws GenesisException {
         try {
@@ -141,19 +230,5 @@ public class ContextualVariableJsonService implements ContextualVariableApiPort 
                         .build()
         );
         return variableQualityToolDto;
-    }
-
-    /**
-     * @return true if any contextual variable part found in file, false otherwise
-     */
-    private boolean processContextualVariableFile(String collectionInstrumentId, Path jsonFilePath) throws GenesisException {
-        return contextualPreviousVariableApiPort.readContextualPreviousFile(
-                collectionInstrumentId.toUpperCase(),
-                null,
-                jsonFilePath.toString()
-        ) || contextualExternalVariableApiPort.readContextualExternalFile(
-                collectionInstrumentId.toUpperCase(),
-                jsonFilePath.toString()
-        );
     }
 }

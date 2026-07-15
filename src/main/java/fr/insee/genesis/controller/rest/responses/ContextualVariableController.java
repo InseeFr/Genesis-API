@@ -2,6 +2,7 @@ package fr.insee.genesis.controller.rest.responses;
 
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.configuration.Config;
+import fr.insee.genesis.controller.dto.SaveContextualVariablesReportDto;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.ports.api.ContextualExternalVariableApiPort;
 import fr.insee.genesis.domain.ports.api.ContextualPreviousVariableApiPort;
@@ -22,6 +23,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.regex.Pattern;
+
+import static fr.insee.genesis.Constants.QUESTIONNAIRE_ID_PATTERN;
 
 @RequestMapping(path = "/contextual-variables")
 @Controller
@@ -33,6 +37,7 @@ public class ContextualVariableController {
     private final ContextualExternalVariableApiPort contextualExternalVariableApiPort;
     private final ContextualVariableApiPort contextualVariableApiPort;
     private final Config config;
+
 
     @Operation(summary = "Get contextual variables (external and previous)")
     @GetMapping(path = "/")
@@ -52,14 +57,33 @@ public class ContextualVariableController {
     public ResponseEntity<Object> saveContextualVariables(
             @RequestParam("questionnaireId") String questionnaireId
     ) throws GenesisException{
+            validateQuestionnaireId(questionnaireId);
+
             FileUtils fileUtils = new FileUtils(config);
 
-            String contextualFolderPath = fileUtils.getDataFolder(questionnaireId, "WEB", null) + Constants.CONTEXTUAL_FOLDER;
-
-            int fileCount = contextualVariableApiPort.saveContextualVariableFiles(questionnaireId, fileUtils,contextualFolderPath);
+            int fileCount = contextualVariableApiPort.saveContextualVariableFiles(questionnaireId, fileUtils);
 
             return ResponseEntity.ok("%d file(s) processed for questionnaire %s !".formatted(fileCount, questionnaireId));
 
+    }
+
+    @Operation(summary = "Save all contextual variables json files and return processed file details")
+    @PostMapping(path = "/json/report")
+    @PreAuthorize("hasAnyRole('USER_PLATINE','SCHEDULER')")
+    public ResponseEntity<SaveContextualVariablesReportDto> saveContextualVariablesWithReport(
+            @RequestParam("questionnaireId") String questionnaireId
+    ) throws GenesisException {
+        validateQuestionnaireId(questionnaireId);
+
+        FileUtils fileUtils = new FileUtils(config);
+
+        SaveContextualVariablesReportDto report =
+                contextualVariableApiPort.saveContextualVariableFilesWithReport(
+                        questionnaireId,
+                        fileUtils
+                );
+
+        return ResponseEntity.ok(report);
     }
 
     @Operation(summary = "Add contextual previous json file")
@@ -119,6 +143,12 @@ public class ContextualVariableController {
             fileUtils.moveFiles(Path.of(filePath), fileUtils.getDoneFolder(questionnaireId, mode.getFolder()));
         } catch (IOException _) {
             throw new GenesisException(HttpStatus.INTERNAL_SERVER_ERROR, "Error while moving file to done");
+        }
+    }
+
+    private void validateQuestionnaireId(String questionnaireId) throws GenesisException {
+        if (!QUESTIONNAIRE_ID_PATTERN.matcher(questionnaireId).matches()) {
+            throw new GenesisException(HttpStatus.BAD_REQUEST, "Invalid questionnaireId");
         }
     }
 }

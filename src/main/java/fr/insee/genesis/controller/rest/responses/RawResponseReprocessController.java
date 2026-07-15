@@ -1,5 +1,6 @@
 package fr.insee.genesis.controller.rest.responses;
 
+import fr.insee.genesis.controller.utils.DateTimeUtils;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.RawDataModelType;
 import fr.insee.genesis.domain.ports.api.ReprocessRawResponseApiPort;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Controller
 @RequiredArgsConstructor
@@ -44,20 +46,33 @@ public class RawResponseReprocessController {
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
             Instant sinceDate,
 
+            @RequestParam(value = "localSinceDate", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            @Parameter(description = "Extract since in Europe/Paris timezone", schema = @Schema(type = "string", format = "date-time", example = "2026-02-02T01:00:00"))
+            LocalDateTime localSinceDate,
+
             @Parameter(
                     description = "Extract until",
                     schema = @Schema(type = "string", format = "date-time", example = "2026-02-02T00:00:00Z")
             )
             @RequestParam(value = "endDate", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-            Instant endDate
+            Instant endDate,
+
+            @RequestParam(value = "localEndDate", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            @Parameter(description = "Extract until in Europe/Paris timezone", schema = @Schema(type = "string", format = "date-time", example = "2026-02-02T01:00:00"))
+            LocalDateTime localEndDate
     ) throws GenesisException {
+
+        Instant resolvedSinceDate = DateTimeUtils.resolveInstant(sinceDate, localSinceDate);
+        Instant resolvedEndDate = DateTimeUtils.resolveInstant(endDate, localEndDate);
 
         DataProcessResult result = reprocessRawResponseApiPort.reprocessRawResponses(
                 RawDataModelType.FILIERE,
                 collectionInstrumentId,
-                sinceDate,
-                endDate);
+                resolvedSinceDate,
+                resolvedEndDate);
 
         return ResponseEntity.ok(result.message(collectionInstrumentId));
     }
@@ -81,20 +96,33 @@ public class RawResponseReprocessController {
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
             Instant sinceDate,
 
+            @RequestParam(value = "localSinceDate", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            @Parameter(description = "Extract since in Europe/Paris timezone", schema = @Schema(type = "string", format = "date-time", example = "2026-02-02T01:00:00"))
+            LocalDateTime localSinceDate,
+
             @Parameter(
                     description = "Extract until",
                     schema = @Schema(type = "string", format = "date-time", example = "2026-02-02T00:00:00Z")
             )
             @RequestParam(value = "endDate", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-            Instant endDate
+            Instant endDate,
+
+            @RequestParam(value = "localEndDate", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            @Parameter(description = "Extract until in Europe/Paris timezone", schema = @Schema(type = "string", format = "date-time", example = "2026-02-02T01:00:00"))
+            LocalDateTime localEndDate
     ) throws GenesisException {
+
+        Instant resolvedSinceDate = DateTimeUtils.resolveInstant(sinceDate, localSinceDate);
+        Instant resolvedEndDate = DateTimeUtils.resolveInstant(endDate, localEndDate);
 
         DataProcessResult result = reprocessRawResponseApiPort.reprocessRawResponses(
                 RawDataModelType.LEGACY,
                 collectionInstrumentId,
-                sinceDate,
-                endDate);
+                resolvedSinceDate,
+                resolvedEndDate);
 
         return ResponseEntity.ok(result.message(collectionInstrumentId));
     }

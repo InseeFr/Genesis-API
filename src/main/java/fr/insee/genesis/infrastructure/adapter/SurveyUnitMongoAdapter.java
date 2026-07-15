@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.json.JsonMapper;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -45,6 +46,7 @@ public class SurveyUnitMongoAdapter implements SurveyUnitPersistencePort {
 	}
 
 	@Override
+	@Transactional
 	public void saveAll(List<SurveyUnitModel> surveyUnitModels) {
 		List<SurveyUnitDocument> suList = SurveyUnitDocumentMapper.INSTANCE.listModelToListDocument(surveyUnitModels);
 		mongoRepository.insert(suList);

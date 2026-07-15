@@ -2,6 +2,8 @@ package fr.insee.genesis.controller.rest.responses;
 
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.TestConstants;
+import fr.insee.genesis.controller.dto.ContextualVariableFileReportDto;
+import fr.insee.genesis.controller.dto.SaveContextualVariablesReportDto;
 import fr.insee.genesis.domain.model.contextualvariable.ContextualVariableModel;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.ports.api.ContextualExternalVariableApiPort;
@@ -18,10 +20,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
@@ -87,9 +92,39 @@ class ContextualVariableControllerTest {
         //THEN
         verify(contextualVariableApiPort, times(1)).saveContextualVariableFiles(
                 eq(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID),
-                any(),
                 any()
         );
+    }
+
+    @Test
+    @SneakyThrows
+    void saveContextualVariablesWithReport() {
+        // GIVEN
+        SaveContextualVariablesReportDto report = new SaveContextualVariablesReportDto(
+                TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
+                1,
+                List.of(new ContextualVariableFileReportDto("ok.json", "PREVIOUS"))
+        );
+
+        doReturn(report).when(contextualVariableApiPort).saveContextualVariableFilesWithReport(
+                eq(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID),
+                any()
+        );
+
+        // WHEN
+        ResponseEntity<SaveContextualVariablesReportDto> response =
+                contextualVariableController.saveContextualVariablesWithReport(
+                        TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID
+                );
+
+        // THEN
+        verify(contextualVariableApiPort, times(1)).saveContextualVariableFilesWithReport(
+                eq(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID),
+                any()
+        );
+
+        Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Assertions.assertThat(response.getBody()).isEqualTo(report);
     }
 
     @Test
@@ -134,7 +169,7 @@ class ContextualVariableControllerTest {
     }
 
     @Test
-    void readContextualPreviousJson_notJson() throws GenesisException {
+    void readContextualPreviousJson_notJson() {
         Assertions.assertThatThrownBy(() -> contextualVariableController.readContextualPreviousJson(
                         TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
                         Mode.WEB,
@@ -180,13 +215,13 @@ class ContextualVariableControllerTest {
 
         //THEN
         verify(contextualExternalVariableApiPort).readContextualExternalFile(
-                eq(TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID.toUpperCase()),
-                eq(expectedFilePath)
+                TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID.toUpperCase(),
+                expectedFilePath
         );
     }
 
     @Test
-    void readContextualExternalJson_notJson() throws GenesisException {
+    void readContextualExternalJson_notJson() {
 
         Assertions.assertThatThrownBy(() -> contextualVariableController.readContextualExternalJson(
                         TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,

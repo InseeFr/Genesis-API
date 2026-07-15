@@ -67,7 +67,8 @@ class InterrogationControllerTest {
             interrogationController.getAllInterrogationIdsByQuestionnaire(
                     TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
                     since,
-                    null
+                    null,
+                    null,null
             );
 
         //THEN

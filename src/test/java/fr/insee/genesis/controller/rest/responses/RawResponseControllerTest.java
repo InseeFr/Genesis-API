@@ -1,5 +1,6 @@
 package fr.insee.genesis.controller.rest.responses;
 
+import fr.insee.genesis.TransactionManagerTestConfig;
 import fr.insee.genesis.configuration.auth.security.DefaultSecurityConfig;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
@@ -59,7 +60,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @TestPropertySource(properties = {
         "fr.insee.genesis.authentication=NONE"
 })
-@Import({DefaultSecurityConfig.class})
+@Import({DefaultSecurityConfig.class, TransactionManagerTestConfig.class})
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
 @EnableAutoConfiguration(exclude = {MongoAutoConfiguration.class, DataMongoAutoConfiguration.class})

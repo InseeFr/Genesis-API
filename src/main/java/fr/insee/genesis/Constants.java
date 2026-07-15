@@ -2,6 +2,8 @@ package fr.insee.genesis;
 
 import lombok.experimental.UtilityClass;
 
+import java.util.regex.Pattern;
+
 @UtilityClass
 public class Constants {
 
@@ -11,6 +13,8 @@ public class Constants {
     public static final String METADATA_SEPARATOR = ".";
     public static final String DATE_REGEX = "(^([0-9]{4})[\\-\\/]([0-9]|1[0-2]|0[1-9])[\\-\\/]([0-9]|[0-2][0-9]|3[0-1])$)|" +
             "(^([0-9]|[0-2][0-9]|3[0-1])[\\-\\/]([0-9]|1[0-2]|0[1-9])[\\-\\/]([0-9]{4})$)";
+    public static final Pattern QUESTIONNAIRE_ID_PATTERN =
+            Pattern.compile("^[A-Za-z0-9_-]+$");
     public static final String FILTER_RESULT_PREFIX = "FILTER_RESULT_";
     public static final String MISSING_SUFFIX = "_MISSING";
     public static final String MONGODB_LUNATIC_RAWDATA_COLLECTION_NAME = "lunaticjsondata";
@@ -21,6 +25,8 @@ public class Constants {
     public static final String MONGODB_CONTEXT_COLLECTION_NAME = "dataProcessingContexts";
     public static final String MONGODB_CONTEXTUAL_PREVIOUS_COLLECTION_NAME = "editedPrevious";
     public static final String MONGODB_CONTEXTUAL_EXTERNAL_COLLECTION_NAME = "editedExternal";
+    public static final String TYPE_PREVIOUS = "PREVIOUS";
+    public static final String TYPE_EXTERNAL = "EXTERNAL";
     public static final String LOOP_NAME_PREFIX = "BOUCLE";
     public static final String MONGODB_RESPONSE_COLLECTION_NAME = "responses";
     public static final String MONGODB_RAW_RESPONSES_COLLECTION_NAME = "rawResponses";

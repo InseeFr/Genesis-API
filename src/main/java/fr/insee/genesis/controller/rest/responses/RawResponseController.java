@@ -1,6 +1,7 @@
 package fr.insee.genesis.controller.rest.responses;
 
 import fr.insee.genesis.controller.dto.rawdata.LunaticJsonRawDataUnprocessedDto;
+import fr.insee.genesis.controller.utils.DateTimeUtils;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.DataProcessResult;
 import fr.insee.genesis.domain.model.surveyunit.rawdata.LunaticJsonRawDataModel;
@@ -14,6 +15,7 @@ import fr.insee.genesis.infrastructure.repository.RawResponseInputRepository;
 import fr.insee.modelefiliere.RawResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -199,15 +201,44 @@ public class RawResponseController {
     @PreAuthorize("hasRole('USER_BATCH_GENERIC')")
     public ResponseEntity<PagedModel<LunaticJsonRawDataModel>> getLunaticJsonRawDataModelFromJsonBody(
             @PathVariable String campaignId,
-            @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant startDate,
-            @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant endDate,
+            @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            @Parameter(description = "Start date in UTC", example = "2026-02-02T00:00:00Z")
+            Instant startDate,
+            @RequestParam(value = "localStartDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            @Parameter(description = "Extract since in Europe/Paris timezone", schema = @Schema(type = "string", format = "date-time", example = "2026-02-02T01:00:00"))
+            LocalDateTime localStartDate,
+            @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            @Parameter(description = "End date in UTC", example = "2026-02-02T00:00:00Z")
+            Instant endDate,
+            @RequestParam(value = "localEndDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            @Parameter(description = "Extract until in Europe/Paris timezone", schema = @Schema(type = "string", format = "date-time", example = "2026-02-02T01:00:00"))
+            LocalDateTime localEndDate,
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "1000") int size
     ) {
-        log.info("Try to read raw JSONs for campaign {}, with startDate={} and endDate={} - page={} - size={}", campaignId, startDate, endDate,page,size);
+        Instant resolvedStartDate = DateTimeUtils.resolveInstant(startDate, localStartDate);
+        Instant resolvedEndDate = DateTimeUtils.resolveInstant(endDate, localEndDate);
+        log.info(
+                "Try to read raw JSONs for campaign {} with startDateUtc={} startDateLocal={} endDateUtc={} endDateLocal={} - page={} - size={}",
+                campaignId,
+                resolvedStartDate,
+                DateTimeUtils.toFranceDateTime(resolvedStartDate),
+                resolvedEndDate,
+                DateTimeUtils.toFranceDateTime(resolvedEndDate),
+                page,
+                size
+        );
         Pageable pageable = PageRequest.of(page, size);
-        Page<LunaticJsonRawDataModel> rawResponses = lunaticJsonRawDataApiPort.findRawDataByCampaignIdAndDate(campaignId, startDate, endDate, pageable);
-        log.info("rawResponses, lunatic-json for campaign {}, with startDate={} and endDate={} ={}", campaignId, startDate, endDate,rawResponses.getContent().size());
+        Page<LunaticJsonRawDataModel> rawResponses = lunaticJsonRawDataApiPort.findRawDataByCampaignIdAndDate(campaignId, resolvedStartDate, resolvedEndDate, pageable);
+        log.info(
+                "rawResponses, lunatic-json for campaign {} with startDateUtc={} startDateLocal={} endDateUtc={} endDateLocal={} count={}",
+                campaignId,
+                resolvedStartDate,
+                DateTimeUtils.toFranceDateTime(resolvedStartDate),
+                resolvedEndDate,
+                DateTimeUtils.toFranceDateTime(resolvedEndDate),
+                rawResponses.getContent().size()
+        );
         return ResponseEntity.status(HttpStatus.OK).body(new PagedModel<>(rawResponses));
     }
 
@@ -256,15 +287,41 @@ public class RawResponseController {
     @PreAuthorize("hasRole('USER_BATCH_GENERIC')")
     public ResponseEntity<PagedModel<RawResponseModel>> getRawResponsesFromJsonBody(
             @PathVariable String campaignId,
-            @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant startDate,
-            @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant endDate,
+            @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            @Parameter(description = "Start date in UTC", example = "2026-02-02T00:00:00Z")
+            Instant startDate,
+            @RequestParam(value = "localStartDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            @Parameter(description = "Extract since in Europe/Paris timezone", schema = @Schema(type = "string", format = "date-time", example = "2026-02-02T01:00:00"))
+            LocalDateTime localStartDate,
+            @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            @Parameter(description = "End date in UTC", example = "2026-04-02T00:00:00Z")
+            Instant endDate,
+            @RequestParam(value = "localEndDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            @Parameter(description = "Extract until in Europe/Paris timezone", schema = @Schema(type = "string", format = "date-time", example = "2026-02-02T01:00:00"))
+            LocalDateTime localEndDate,
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "1000") int size
     ) {
-        log.info("Try to read raw lunatic JSONs for campaign {}, with startDate={} and endDate={} - page={} - size={}", campaignId, startDate, endDate,page,size);
+        Instant resolvedStartDate = DateTimeUtils.resolveInstant(startDate, localStartDate);
+        Instant resolvedEndDate = DateTimeUtils.resolveInstant(endDate, localEndDate);
+        log.info("Try to read raw JSONs for campaign {} with startDateUtc={} startDateLocal={} endDateUtc={} endDateLocal={} - page={} - size={}",
+                campaignId,
+                resolvedStartDate,
+                DateTimeUtils.toFranceDateTime(resolvedStartDate),
+                resolvedEndDate,
+                DateTimeUtils.toFranceDateTime(resolvedEndDate),
+                page,
+                size
+        );
         Pageable pageable = PageRequest.of(page, size);
-        Page<RawResponseModel> rawResponses = rawResponseApiPort.findRawResponseDataByCampaignIdAndDate(campaignId, startDate, endDate, pageable);
-        log.info("rawResponses for campaign {}, with startDate={} and endDate={} ={}",campaignId, startDate, endDate, rawResponses.getContent().size());
+        Page<RawResponseModel> rawResponses = rawResponseApiPort.findRawResponseDataByCampaignIdAndDate(campaignId, resolvedStartDate, resolvedEndDate, pageable);
+        log.info("rawResponses for campaign {},with startDateUtc={} startDateLocal={} endDateUtc={} endDateLocal={} count={}",
+                campaignId,
+                resolvedStartDate,
+                DateTimeUtils.toFranceDateTime(resolvedStartDate),
+                resolvedEndDate,
+                DateTimeUtils.toFranceDateTime(resolvedEndDate),
+                rawResponses.getContent().size());
         return ResponseEntity.status(HttpStatus.OK).body(new PagedModel<>(rawResponses));
     }
 
