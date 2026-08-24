@@ -25,7 +25,7 @@
         <bpm.version>1.2.2</bpm.version>
         <springdoc.version>3.0.3</springdoc.version>
         <mapstruct.version>1.6.3</mapstruct.version>
-        <pitest.version>1.25.8</pitest.version>
+        <pitest.version>1.25.9</pitest.version>
         <pitest.junit.version>1.2.3</pitest.junit.version>
 
         <!-- Sonar properties -->
