@@ -1,4 +1,4 @@
-FROM eclipse-temurin:25.0.3_9-jre
+FROM eclipse-temurin:25.0.4_7-jre
 
 ENV PATH_TO_JAR /opt/app/app.jar
 WORKDIR /opt/app/
