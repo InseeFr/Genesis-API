@@ -17,8 +17,8 @@
     <properties>
         <java.version>25</java.version>
 
-        <!-- (!!!) Dependency versions temporary overwritten for security reasons -->
-        <tomcat.version>10.1.55</tomcat.version>
+        <!-- CVE-2026-65182 (CRITICAL) : version imposee par spring-boot-dependencies non corrigee -->
+        <tomcat.version>11.0.25</tomcat.version>
         <commons-lang3.version>3.20.0</commons-lang3.version>
 
         <!-- Dependency versions not managed by Spring -->
