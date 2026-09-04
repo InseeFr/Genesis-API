@@ -169,6 +169,7 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
         List<SurveyUnitModel> emptySurveyUnitModels = new ArrayList<>();
         List<SurveyUnitModel> surveyUnitModels =
                 lunaticJsonRawDataConverter.convertRawDataAndCollectEmptyModels(
+                        questionnaireId,
                         rawData,
                         variablesMap,
                         emptySurveyUnitModels
@@ -216,14 +217,6 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
         }
 
         return variablesMap;
-    }
-
-    @Override
-    public List<SurveyUnitModel> convertRawData(
-            List<LunaticJsonRawDataModel> rawDataList,
-            VariablesMap variablesMap
-    ) {
-        return lunaticJsonRawDataConverter.convertRawData(rawDataList, variablesMap);
     }
 
     @Override
@@ -381,16 +374,5 @@ public class LunaticJsonRawDataService implements LunaticJsonRawDataApiPort {
             Pageable pageable
     ) {
         return lunaticJsonRawDataPersistencePort.findByCampaignIdAndDate(campaignId, startDt, endDt, pageable);
-    }
-
-    public static String getValueString(Object value) {
-        if (value instanceof Double || value instanceof Float) {
-            BigDecimal bd = new BigDecimal(value.toString());
-            return bd.stripTrailingZeros().toPlainString();
-        }
-        if (value instanceof Number) {
-            return value.toString();
-        }
-        return String.valueOf(value);
     }
 }
