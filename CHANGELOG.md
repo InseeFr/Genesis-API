@@ -1,4 +1,8 @@
 # Changelog
+## 2.7.12 [2026-09-09]
+### Changed
+- Keep null variable if variable already exists during process
+
 ## 2.7.5 [2026-07-02]
 ### Changed
 - Transactionnal mongo docs
