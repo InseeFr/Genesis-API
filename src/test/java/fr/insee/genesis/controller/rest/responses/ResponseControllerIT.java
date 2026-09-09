@@ -40,7 +40,7 @@ class ResponseControllerIT extends IntegrationTestAbstract {
     class GetSimplifiedResponsesTests {
         //HAPPY PATHS
         @Test
-        @WithMockUser(roles = "USER_KRAFTWERK")
+        @WithMockUser(roles = "ADMIN")
         @DisplayName("Get simplified response, collected only")
         @SneakyThrows
         void get_simplified_response_test() {
@@ -118,7 +118,82 @@ class ResponseControllerIT extends IntegrationTestAbstract {
         }
 
         @Test
-        @WithMockUser(roles = "USER_KRAFTWERK")
+        @WithMockUser(roles = "ADMIN")
+        @DisplayName("Get simplified response with null variable")
+        @SneakyThrows
+        void get_simplified_response_null_variable_test() {
+            //GIVEN
+            String collectionInstrumentId = "collectionInstrumentId";
+            String interrogationId = "interrogationId";
+            String usualSurveyUnitId = "usualSurveyUnitId";
+            Mode mode = Mode.WEB;
+            RawResponseDto.QuestionnaireStateEnum questionnaireStateEnum =
+                    RawResponseDto.QuestionnaireStateEnum.FINISHED;
+            LocalDateTime validationDate = LocalDateTime.now().minusDays(2);
+            DataState dataState = DataState.COLLECTED;
+
+            SurveyUnitDocument surveyUnitDocument = new SurveyUnitDocument();
+            surveyUnitDocument.setCollectionInstrumentId(collectionInstrumentId);
+            surveyUnitDocument.setInterrogationId(interrogationId);
+            surveyUnitDocument.setMode(mode.getModeName());
+            surveyUnitDocument.setState(dataState.name());
+            surveyUnitDocument.setUsualSurveyUnitId(usualSurveyUnitId);
+            surveyUnitDocument.setQuestionnaireState(questionnaireStateEnum);
+            surveyUnitDocument.setValidationDate(validationDate);
+            surveyUnitDocument.setCollectedVariables(new ArrayList<>());
+            surveyUnitDocument.setExternalVariables(new ArrayList<>());
+            surveyUnitDocument.setRecordDate(Instant.now().minusSeconds(60));
+
+            String collectedVariableName = "var1";
+            VariableDocument collectedVariableDocument = new VariableDocument();
+            collectedVariableDocument.setVarId(collectedVariableName);
+            collectedVariableDocument.setValue(null); //null value
+            collectedVariableDocument.setIteration(1);
+            collectedVariableDocument.setScope(Constants.ROOT_GROUP_NAME);
+            surveyUnitDocument.getCollectedVariables().add(collectedVariableDocument);
+
+            String externalVariableName = "extvar1";
+            VariableDocument externalVariableDocument = new VariableDocument();
+            externalVariableDocument.setVarId(externalVariableName);
+            externalVariableDocument.setValue(null); //null value
+            externalVariableDocument.setIteration(1);
+            externalVariableDocument.setScope(Constants.ROOT_GROUP_NAME);
+            surveyUnitDocument.getExternalVariables().add(externalVariableDocument);
+
+
+            Mockito.when(surveyUnitMongoDBRepository.findByInterrogationIdAndCollectionInstrumentId(
+                    interrogationId, collectionInstrumentId
+            )).thenReturn(List.of(surveyUnitDocument));
+
+            //WHEN + THEN
+            mockMvc.perform(get("/responses/%s/%s/%s"
+                            .formatted(collectionInstrumentId, mode.getModeName(), interrogationId)
+                    )
+                            .with(csrf()))
+                    .andExpect(status().isOk())
+
+                    .andExpect(jsonPath("$.collectionInstrumentId").value(collectionInstrumentId))
+                    .andExpect(jsonPath("$.interrogationId").value(interrogationId))
+                    .andExpect(jsonPath("$.usualSurveyUnitId").value(usualSurveyUnitId))
+                    .andExpect(jsonPath("$.mode").value(mode.getModeName()))
+                    .andExpect(jsonPath("$.validationDate").value(validationDate.format(DateTimeFormatter.ISO_DATE_TIME)))
+                    .andExpect(jsonPath("$.questionnaireState").value(questionnaireStateEnum.name()))
+
+                    .andExpect(jsonPath("$.variablesUpdate[0].varId").value(collectedVariableName))
+                    .andExpect(jsonPath("$.variablesUpdate[0].value").isEmpty())
+                    .andExpect(jsonPath("$.variablesUpdate[0].state").value(dataState.name()))
+                    .andExpect(jsonPath("$.variablesUpdate[0].scope").value(Constants.ROOT_GROUP_NAME))
+                    .andExpect(jsonPath("$.variablesUpdate[0].iteration").value(1))
+
+                    .andExpect(jsonPath("$.externalVariables[0].varId").value(externalVariableName))
+                    .andExpect(jsonPath("$.externalVariables[0].value").isEmpty())
+                    .andExpect(jsonPath("$.externalVariables[0].state").value(dataState.name()))
+                    .andExpect(jsonPath("$.externalVariables[0].scope").value(Constants.ROOT_GROUP_NAME))
+                    .andExpect(jsonPath("$.externalVariables[0].iteration").value(1));
+        }
+
+        @Test
+        @WithMockUser(roles = "ADMIN")
         @DisplayName("Get simplified response with an additionnal EDITED document")
         @SneakyThrows
         void get_simplified_response_with_edited_test() {
@@ -221,7 +296,7 @@ class ResponseControllerIT extends IntegrationTestAbstract {
 
         //SAD PATHS
         @Test
-        @WithMockUser(roles = "USER_KRAFTWERK")
+        @WithMockUser(roles = "ADMIN")
         @DisplayName("Get non existent simplified response")
         @SneakyThrows
         void get_simplified_response_not_found_test() {

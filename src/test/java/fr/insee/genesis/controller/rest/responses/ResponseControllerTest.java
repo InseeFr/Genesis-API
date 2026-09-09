@@ -282,7 +282,7 @@ class ResponseControllerTest {
         @DisplayName("Should return 200 with list of models")
         void getLatest_shouldReturn200() throws Exception {
             // GIVEN
-            when(surveyUnitApiPort.findLatestByIdAndByCollectionInstrumentId("INTERRO01", "QUEST01"))
+            when(surveyUnitApiPort.findLatestByInterrogationIdAndCollectionInstrumentId("INTERRO01", "QUEST01"))
                     .thenReturn(List.of());
 
             // WHEN / THEN
@@ -302,7 +302,7 @@ class ResponseControllerTest {
         void getLatestOneObject_shouldReturn200AndAggregateVariables() throws Exception {
             // GIVEN
             SurveyUnitModel model = buildSurveyUnitModel("INTERRO01", "QUEST01", Mode.WEB, DataState.COLLECTED);
-            when(surveyUnitApiPort.findLatestByIdAndByCollectionInstrumentId("INTERRO01", "QUEST01"))
+            when(surveyUnitApiPort.findLatestByInterrogationIdAndCollectionInstrumentId("INTERRO01", "QUEST01"))
                     .thenReturn(List.of(model));
 
             // WHEN / THEN
@@ -320,7 +320,7 @@ class ResponseControllerTest {
             // GIVEN
             SurveyUnitModel webModel = buildSurveyUnitModel("INTERRO01", "QUEST01", Mode.WEB, DataState.COLLECTED);
             SurveyUnitModel paperModel = buildSurveyUnitModel("INTERRO01", "QUEST01", Mode.PAPER, DataState.COLLECTED);
-            when(surveyUnitApiPort.findLatestByIdAndByCollectionInstrumentId("INTERRO01", "QUEST01"))
+            when(surveyUnitApiPort.findLatestByInterrogationIdAndCollectionInstrumentId("INTERRO01", "QUEST01"))
                     .thenReturn(List.of(webModel, paperModel));
 
             // WHEN / THEN
@@ -378,7 +378,7 @@ class ResponseControllerTest {
             SurveyUnitModel model = buildSurveyUnitModel("INTERRO01", "QUEST01", Mode.WEB, DataState.COLLECTED);
             when(surveyUnitApiPort.findModesByCollectionInstrumentId("QUEST01"))
                     .thenReturn(List.of(Mode.WEB));
-            when(surveyUnitApiPort.findLatestByIdAndByCollectionInstrumentId("INTERRO01", "QUEST01"))
+            when(surveyUnitApiPort.findLatestByInterrogationIdAndCollectionInstrumentId("INTERRO01", "QUEST01"))
                     .thenReturn(List.of(model));
 
             // WHEN / THEN
@@ -403,7 +403,7 @@ class ResponseControllerTest {
                     .build();
             when(surveyUnitApiPort.findModesByCollectionInstrumentId("QUEST01"))
                     .thenReturn(List.of(Mode.WEB));
-            when(surveyUnitApiPort.findLatestByIdAndByCollectionInstrumentId("INTERRO01", "QUEST01"))
+            when(surveyUnitApiPort.findLatestByInterrogationIdAndCollectionInstrumentId("INTERRO01", "QUEST01"))
                     .thenReturn(List.of(modelNoVars));
 
             // WHEN / THEN

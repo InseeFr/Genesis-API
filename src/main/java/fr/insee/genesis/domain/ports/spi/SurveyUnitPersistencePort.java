@@ -17,12 +17,12 @@ public interface SurveyUnitPersistencePort {
 
     List<SurveyUnitModel> findByUsualSurveyUnitAndCollectionInstrumentIds(String usualSurveyUnitId, String collectionInstrumentId);
 
-    //========= OPTIMISATIONS PERFS (START) ==========
     /**
      * @author Adrien Marchal
      */
-    List<SurveyUnitModel> findBySetOfIdsAndQuestionnaireIdAndMode(String questionnaireId, String mode, List<String> interrogationIdSet);
-    //========= OPTIMISATIONS PERFS (START) ==========
+    List<SurveyUnitModel> findByQuestionnaireIdAndModeAndInterrogationIds(String questionnaireId, String mode, List<String> interrogationIdSet);
+
+    List<SurveyUnitModel> findByCollectionInstrumentOrQuestionnaireIdAndInterrogationIds(String collectionInstrumentOrQuestionnaireId, List<String> interrogationIdSet);
 
     List<SurveyUnitModel> findByInterrogationId(String interrogationId);
 
