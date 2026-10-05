@@ -9,6 +9,7 @@ import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.ports.spi.QuestionnaireMetadataPersistencePort;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.QuestionnaireNotFoundException;
+import fr.insee.genesis.infrastructure.adapter.LocalFileSystemAdapter;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
@@ -18,6 +19,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -38,6 +40,9 @@ class QuestionnaireMetadataServiceTest {
 
     @Mock
     QuestionnaireMetadataPersistencePort questionnaireMetadataPersistencePort;
+
+    @Spy
+    LocalFileSystemAdapter localFileSystemAdapter;
 
     @InjectMocks
     QuestionnaireMetadataService questionnaireMetadataService;
@@ -88,7 +93,7 @@ class QuestionnaireMetadataServiceTest {
         doReturn(new ArrayList<>()).when(questionnaireMetadataPersistencePort).find(
                 any(), any()
         );
-        FileUtils fileUtils = new FileUtils(TestConstants.getConfigStub());
+        FileUtils fileUtils = new FileUtils(TestConstants.getConfigStub(), localFileSystemAdapter);
         ArrayList<GenesisError> errors = new ArrayList<>();
 
         //WHEN

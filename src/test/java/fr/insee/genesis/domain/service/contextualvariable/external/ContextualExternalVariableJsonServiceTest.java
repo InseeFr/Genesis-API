@@ -4,15 +4,18 @@ import fr.insee.genesis.TestConstants;
 import fr.insee.genesis.domain.model.contextualvariable.ContextualExternalVariableModel;
 import fr.insee.genesis.domain.ports.spi.ContextualExternalVariablePersistancePort;
 import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.infrastructure.adapter.LocalFileSystemAdapter;
 import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
+import java.io.FileNotFoundException;
 import java.nio.file.Path;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -21,12 +24,16 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ContextualExternalVariableJsonServiceTest {
 
     @Mock
     ContextualExternalVariablePersistancePort contextualExternalVariablePersistancePort;
+
+    @Spy
+    LocalFileSystemAdapter localFileSystemAdapter;
 
     @InjectMocks
     ContextualExternalVariableJsonService contextualExternalVariableJsonService;

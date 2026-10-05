@@ -4,12 +4,14 @@ import fr.insee.genesis.TestConstants;
 import fr.insee.genesis.domain.model.contextualvariable.ContextualPreviousVariableModel;
 import fr.insee.genesis.domain.ports.spi.ContextualPreviousVariablePersistancePort;
 import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.infrastructure.adapter.LocalFileSystemAdapter;
 import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
@@ -28,6 +30,9 @@ class ContextualPreviousVariableJsonServiceTest {
 
     @Mock
     ContextualPreviousVariablePersistancePort contextualPreviousVariablePersistancePort;
+
+    @Spy
+    LocalFileSystemAdapter localFileSystemAdapter;
 
     @InjectMocks
     ContextualPreviousVariableJsonService contextualPreviousVariableJsonService;

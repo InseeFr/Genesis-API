@@ -3,9 +3,11 @@ package fr.insee.genesis.domain.service.volumetry;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.TestConstants;
 import fr.insee.genesis.configuration.Config;
+import fr.insee.genesis.domain.ports.api.FileSystemPort;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.RawResponseApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
+import fr.insee.genesis.infrastructure.adapter.LocalFileSystemAdapter;
 import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
@@ -15,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.Mock;
 import org.springframework.util.FileSystemUtils;
 
 import java.nio.file.Files;
@@ -41,7 +44,7 @@ class VolumetryLogServiceTest {
     @BeforeEach
     @SneakyThrows
     void setUp() {
-        volumetryLogService = new VolumetryLogService(config);
+        volumetryLogService = new VolumetryLogService(config, new LocalFileSystemAdapter());
         if (Files.notExists(logFilePath)) {
             Files.createDirectories(logFilePath);
         }

@@ -2,7 +2,6 @@ package fr.insee.genesis.controller.sources.xml;
 
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.domain.ports.api.FileSystemPort;
-import org.springframework.stereotype.Service;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLEventReader;
@@ -24,7 +23,6 @@ import java.util.List;
  * This class is used to read large lunatic XML files
  * It iterates through the file instead of storing the entire file into memory
  */
-@Service
 public class LunaticXmlDataSequentialParser{
     private final LocalDateTime rawRecordDate;
     private final XMLEventReader reader;
@@ -35,13 +33,13 @@ public class LunaticXmlDataSequentialParser{
                                            final InputStream stream,
                                            final FileSystemPort fileSystemPort
      ) throws IOException, XMLStreamException {
+         this.fileSystemPort = fileSystemPort;
          this.rawRecordDate = getRawRecordDate(filePath);
 
          XMLInputFactory factory = XMLInputFactory.newInstance();
          factory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
 
          reader = factory.createXMLEventReader(stream);
-         this.fileSystemPort = fileSystemPort;
      }
 
     /**

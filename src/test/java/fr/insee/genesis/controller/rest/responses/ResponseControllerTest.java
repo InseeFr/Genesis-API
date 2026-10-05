@@ -20,6 +20,7 @@ import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
 import fr.insee.genesis.exceptions.GenesisError;
 import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.infrastructure.adapter.LocalFileSystemAdapter;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -97,6 +98,8 @@ class ResponseControllerTest {
     @MockitoBean
     private RawResponseApiPort rawResponseApiPort;
 
+    @MockitoBean
+    private LocalFileSystemAdapter localFileSystemAdapter;
 
     @Nested
     @DisplayName("DELETE /responses/delete/{collectionInstrumentId} tests")

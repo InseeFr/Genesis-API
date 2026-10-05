@@ -1,5 +1,7 @@
 package fr.insee.genesis.controller.sources.xml;
 
+import fr.insee.genesis.domain.ports.api.FileSystemPort;
+import fr.insee.genesis.infrastructure.adapter.LocalFileSystemAdapter;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,12 +22,15 @@ class LunaticXmlDataSequentialParserTest {
 
     static LunaticXmlSurveyUnit surveyUnit;
 
+    private FileSystemPort fileSystemPort;
+
     // Given + When
     @BeforeEach
     void setUp() throws Exception {
+        fileSystemPort = new LocalFileSystemAdapter();
         Path path = Path.of("src/test/resources/data_test_parser_xml.xml");
         stream = new FileInputStream(path.toFile());
-        parser = new LunaticXmlDataSequentialParser(path, stream);
+        parser = new LunaticXmlDataSequentialParser(path, stream, fileSystemPort);
 
         campaign = parser.getCampaign();
         surveyUnit = parser.readNextSurveyUnit();
@@ -87,7 +92,7 @@ class LunaticXmlDataSequentialParserTest {
         //Given
         Path path = Path.of("src/test/resources/data_test_parser_xml_external_loops.xml");
         stream = new FileInputStream(path.toFile());
-        parser = new LunaticXmlDataSequentialParser(path, stream);
+        parser = new LunaticXmlDataSequentialParser(path, stream, fileSystemPort);
 
         //When
         campaign = parser.getCampaign();

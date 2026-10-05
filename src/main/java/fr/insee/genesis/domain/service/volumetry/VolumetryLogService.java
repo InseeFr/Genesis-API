@@ -152,18 +152,19 @@ public class VolumetryLogService {
     public void cleanOldFiles() throws IOException {
         try (Stream<String> stream =
                      fileSystemPort.walk(Path.of(config.getLogFolder()).resolve(Constants.VOLUMETRY_FOLDER_NAME).toString())){
-            for (String logFilePath : stream.filter(path -> path.endsWith(".csv")).toList()){
+            for (String logFilePathString : stream.filter(path -> path.endsWith(".csv")).toList()){
+                Path logFilePath = Path.of(logFilePathString);
                 //If older than x months
                 //Extract date
-                String datePart = logFilePath
+                String datePart = logFilePath.getFileName().toString()
                         .split(Constants.VOLUMETRY_FILE_SUFFIX + "\\.csv")[0] // Delete common suffix
                         .replace("_RAW", ""); // Delete "_RAW" if present
                 try{
                     if (LocalDateTime.parse(datePart, DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
                             .isBefore(LocalDateTime.now().minusDays(Constants.VOLUMETRY_FILE_EXPIRATION_DAYS))
                     ) {
-                        fileSystemPort.deleteIfExists(logFilePath);
-                        log.info("Deleted {}", logFilePath);
+                        fileSystemPort.deleteIfExists(logFilePathString);
+                        log.info("Deleted {}", logFilePathString);
                     }
                 }catch (DateTimeParseException dtpe){
                     log.warn(dtpe.toString());

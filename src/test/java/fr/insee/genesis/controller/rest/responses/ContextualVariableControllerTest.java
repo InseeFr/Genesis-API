@@ -9,6 +9,7 @@ import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.ports.api.ContextualExternalVariableApiPort;
 import fr.insee.genesis.domain.ports.api.ContextualPreviousVariableApiPort;
 import fr.insee.genesis.domain.ports.api.ContextualVariableApiPort;
+import fr.insee.genesis.domain.ports.api.FileSystemPort;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import lombok.SneakyThrows;
@@ -44,6 +45,8 @@ class ContextualVariableControllerTest {
     private ContextualExternalVariableApiPort contextualExternalVariableApiPort;
     @Mock
     private ContextualVariableApiPort contextualVariableApiPort;
+    @Mock
+    private FileSystemPort fileSystemPort;
 
     private ContextualVariableController contextualVariableController;
 
@@ -53,7 +56,8 @@ class ContextualVariableControllerTest {
             contextualPreviousVariableApiPort,
             contextualExternalVariableApiPort,
             contextualVariableApiPort,
-            TestConstants.getConfigStub()
+            TestConstants.getConfigStub(),
+            fileSystemPort
         );
     }
 
@@ -131,7 +135,7 @@ class ContextualVariableControllerTest {
     @SneakyThrows
     void readContextualPreviousJson() {
         // GIVEN
-        FileUtils fileUtils = new FileUtils(TestConstants.getConfigStub());
+        FileUtils fileUtils = new FileUtils(TestConstants.getConfigStub(), fileSystemPort);
 
         String dataFolder = fileUtils.getDataFolder(
                 TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
@@ -186,7 +190,7 @@ class ContextualVariableControllerTest {
     @SneakyThrows
     void readContextualExternalJson() {
         //GIVEN
-        FileUtils fileUtils = new FileUtils(TestConstants.getConfigStub());
+        FileUtils fileUtils = new FileUtils(TestConstants.getConfigStub(), fileSystemPort);
         String dataFolder = fileUtils.getDataFolder(
                 TestConstants.DEFAULT_COLLECTION_INSTRUMENT_ID,
                 Mode.WEB.getFolder(),
