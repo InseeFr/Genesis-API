@@ -2,15 +2,15 @@ package fr.insee.genesis.domain.service.volumetry;
 
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.configuration.Config;
+import fr.insee.genesis.domain.ports.api.FileSystemPort;
 import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.RawResponseApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
@@ -28,13 +28,10 @@ import java.util.stream.Stream;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class VolumetryLogService {
     private final Config config;
-
-    @Autowired
-    public VolumetryLogService(Config config) {
-        this.config = config;
-    }
+    private final FileSystemPort fileSystemPort;
 
     public Map<String, Long> writeVolumetries(SurveyUnitApiPort surveyUnitApiPort) throws IOException {
         Map<String, Long> responseVolumetricsByQuestionnaireMap = new HashMap<>();
@@ -43,12 +40,10 @@ public class VolumetryLogService {
                 .resolve(
                         LocalDateTime.now().format(DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
                                 + Constants.VOLUMETRY_FILE_SUFFIX + ".csv");
-        Files.createDirectories(logFilePath.getParent());
+        fileSystemPort.createDirectories(logFilePath.getParent().toString());
         //Overwrite log file with header if exists
-        if (Files.exists(logFilePath)){
-            Files.delete(logFilePath);
-        }
-        Files.writeString(logFilePath, "campaign;volumetry;distinctInterrogationIds\n");
+        fileSystemPort.deleteIfExists(logFilePath.toString());
+        fileSystemPort.writeString(logFilePath.toString(), "campaign;volumetry;distinctInterrogationIds\n");
 
         //Write lines
         Set<String> collectionInstrumentIds =
@@ -65,7 +60,7 @@ public class VolumetryLogService {
                     surveyUnitApiPort.countDistinctInterrogationIdsByQuestionnaireAndCollectionInstrumentId(collectionInstrumentId);
 
             String line = collectionInstrumentId + ";" + countResult + ";" + distinctInterrogationIds + "\n";
-            Files.writeString(logFilePath, line, StandardOpenOption.APPEND);
+            fileSystemPort.writeString(logFilePath.toString(), line, StandardOpenOption.APPEND);
             responseVolumetricsByQuestionnaireMap.put(collectionInstrumentId, countResult);
         }
 
@@ -90,15 +85,13 @@ public class VolumetryLogService {
                                 + Constants.VOLUMETRY_RAW_FILE_SUFFIX + ".csv"
                 );
 
-        Files.createDirectories(logFilePath.getParent());
+        fileSystemPort.createDirectories(logFilePath.getParent().toString());
 
         // Overwrite file if exists
-        if (Files.exists(logFilePath)) {
-            Files.delete(logFilePath);
-        }
+        fileSystemPort.deleteIfExists(logFilePath.toString());
 
-        Files.writeString(
-                logFilePath,
+        fileSystemPort.writeString(
+                logFilePath.toString(),
                 "questionnaireId;%s;%s;%s;distinctInterrogationIds%n"
                         .formatted(
                                 Constants.MONGODB_LUNATIC_RAWDATA_COLLECTION_NAME,
@@ -141,7 +134,7 @@ public class VolumetryLogService {
                     + distinctTotal
                     + "\n";
 
-            Files.writeString(logFilePath, line, StandardOpenOption.APPEND);
+            fileSystemPort.writeString(logFilePath.toString(), line, StandardOpenOption.APPEND);
 
             rawDataVolumetricsMap.get(Constants.MONGODB_LUNATIC_RAWDATA_COLLECTION_NAME)
                     .put(questionnaireId, lunaticCount);
@@ -157,18 +150,19 @@ public class VolumetryLogService {
     }
 
     public void cleanOldFiles() throws IOException {
-        try (Stream<Path> pathStream = Files.walk(Path.of(config.getLogFolder()).resolve(Constants.VOLUMETRY_FOLDER_NAME))){
-            for (Path logFilePath : pathStream.filter(path -> path.getFileName().toString().endsWith(".csv")).toList()){
+        try (Stream<String> stream =
+                     fileSystemPort.walk(Path.of(config.getLogFolder()).resolve(Constants.VOLUMETRY_FOLDER_NAME).toString())){
+            for (String logFilePath : stream.filter(path -> path.endsWith(".csv")).toList()){
                 //If older than x months
                 //Extract date
-                String datePart = logFilePath.getFileName().toString()
+                String datePart = logFilePath
                         .split(Constants.VOLUMETRY_FILE_SUFFIX + "\\.csv")[0] // Delete common suffix
                         .replace("_RAW", ""); // Delete "_RAW" if present
                 try{
                     if (LocalDateTime.parse(datePart, DateTimeFormatter.ofPattern(Constants.VOLUMETRY_FILE_DATE_FORMAT))
                             .isBefore(LocalDateTime.now().minusDays(Constants.VOLUMETRY_FILE_EXPIRATION_DAYS))
                     ) {
-                        Files.deleteIfExists(logFilePath);
+                        fileSystemPort.deleteIfExists(logFilePath);
                         log.info("Deleted {}", logFilePath);
                     }
                 }catch (DateTimeParseException dtpe){

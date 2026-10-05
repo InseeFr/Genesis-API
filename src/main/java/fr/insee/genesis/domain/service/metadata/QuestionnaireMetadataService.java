@@ -9,6 +9,7 @@ import fr.insee.bpm.metadata.reader.lunatic.LunaticReader;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.domain.model.metadata.QuestionnaireMetadataModel;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
+import fr.insee.genesis.domain.ports.api.FileSystemPort;
 import fr.insee.genesis.domain.ports.api.QuestionnaireMetadataApiPort;
 import fr.insee.genesis.domain.ports.spi.QuestionnaireMetadataPersistencePort;
 import fr.insee.genesis.exceptions.GenesisError;
@@ -16,6 +17,7 @@ import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.exceptions.QuestionnaireNotFoundException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -28,14 +30,14 @@ import java.nio.file.Path;
 import java.util.List;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Slf4j
 public class QuestionnaireMetadataService implements QuestionnaireMetadataApiPort {
     private static final String DDI_FILE_PATTERN = "ddi[\\w,\\s-]+\\.xml";
     private static final String LUNATIC_FILE_PATTERN = "lunatic[\\w,\\s-]+\\.json";
 
-    QuestionnaireMetadataPersistencePort questionnaireMetadataPersistencePort;
-
+    private final QuestionnaireMetadataPersistencePort questionnaireMetadataPersistencePort;
+    private final FileSystemPort fileSystemPort;
 
     @Override
     public MetadataModel find(String collectionInstrumentId, Mode mode) {
@@ -126,13 +128,14 @@ public class QuestionnaireMetadataService implements QuestionnaireMetadataApiPor
      * @param ddiFilePath path to the DDI metadata file, will parse only lunatic if null
      * @return VariablesMap or null if an error occurs
      */
+    //TODO changer paths en strings
     private MetadataModel parseMetadata(Path lunaticFilePath, Path ddiFilePath) {
         try {
             log.info("Try to read {} file: {}", ddiFilePath != null ? "DDI" : "Lunatic", ddiFilePath);
 
             if (ddiFilePath != null) {
-                InputStream metadataInputStream = new FileInputStream(ddiFilePath.toFile());
-                InputStream lunaticInputStream = new FileInputStream(lunaticFilePath.toFile());
+                InputStream metadataInputStream = fileSystemPort.readAsStream(ddiFilePath.toString());
+                InputStream lunaticInputStream = fileSystemPort.readAsStream(lunaticFilePath.toString());
                 MetadataModel metadataModel = ReaderUtils.getMetadataFromDDIAndLunatic(
                         ddiFilePath.toFile().toURI().toURL().toString(),
                         metadataInputStream,
@@ -146,7 +149,7 @@ public class QuestionnaireMetadataService implements QuestionnaireMetadataApiPor
                 }
                 return metadataModel;
             }
-            return LunaticReader.getMetadataFromLunatic(new FileInputStream(lunaticFilePath.toFile()));
+            return LunaticReader.getMetadataFromLunatic(fileSystemPort.readAsStream(lunaticFilePath.toString()));
         } catch (MetadataParserException | IOException e) {
             log.error("Error reading metadata file", e);
             return null;

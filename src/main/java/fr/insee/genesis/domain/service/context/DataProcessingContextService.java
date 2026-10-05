@@ -1,6 +1,5 @@
 package fr.insee.genesis.domain.service.context;
 
-import tools.jackson.databind.json.JsonMapper;
 import fr.insee.genesis.Constants;
 import fr.insee.genesis.controller.dto.KraftwerkExecutionScheduleInput;
 import fr.insee.genesis.controller.dto.rawdata.ScheduleResponseDto;
@@ -9,18 +8,19 @@ import fr.insee.genesis.domain.model.context.schedule.DeletedExpiredSchedules;
 import fr.insee.genesis.domain.model.context.schedule.KraftwerkExecutionScheduleV2;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.ports.api.DataProcessingContextApiPort;
+import fr.insee.genesis.domain.ports.api.FileSystemPort;
 import fr.insee.genesis.domain.ports.spi.DataProcessingContextPersistancePort;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.mappers.DataProcessingContextMapper;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
@@ -32,17 +32,12 @@ import java.util.UUID;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class DataProcessingContextService implements DataProcessingContextApiPort {
     public static final String NOT_FOUND_MESSAGE = "Context not found";
     private final DataProcessingContextPersistancePort dataProcessingContextPersistancePort;
     private final SurveyUnitPersistencePort surveyUnitPersistencePort;
-
-    @Autowired
-    public DataProcessingContextService(DataProcessingContextPersistancePort dataProcessingContextPersistancePort,
-                                        SurveyUnitPersistencePort surveyUnitPersistencePort) {
-        this.dataProcessingContextPersistancePort = dataProcessingContextPersistancePort;
-        this.surveyUnitPersistencePort = surveyUnitPersistencePort;
-    }
+    private final FileSystemPort fileSystemPort;
 
     @Override
     public void saveContextByCollectionInstrumentId(String collectionInstrumentId, Boolean withReview)  {
@@ -287,20 +282,20 @@ public class DataProcessingContextService implements DataProcessingContextApiPor
                             .build();
 
                     String jsonToWrite = objectMapper.writeValueAsString(deletedSchedules);
-
-                    if (Files.exists(jsonLogPath)) {
-                        StringBuilder content = new StringBuilder(Files.readString(jsonLogPath));
+                    if (fileSystemPort.exists(jsonLogPath.toString())) {
+                        StringBuilder content = new StringBuilder(fileSystemPort.readAsString(jsonLogPath.toString()));
                         content.setCharAt(content.length() - 1, ',');
                         content.append(jsonToWrite, 1, jsonToWrite.length() - 1);
                         content.append(']');
-                        Files.write(
-                                jsonLogPath,
+                        fileSystemPort.write(
+                                jsonLogPath.toString(),
                                 content.toString().getBytes(),
                                 StandardOpenOption.TRUNCATE_EXISTING
                         );
                     } else {
-                        Files.createDirectories(jsonLogPath.getParent());
-                        Files.write(jsonLogPath, jsonToWrite.getBytes());
+                        fileSystemPort.createDirectories(jsonLogPath.getParent().toString());
+                        fileSystemPort.write(jsonLogPath.toString(), jsonToWrite.getBytes(),
+                                StandardOpenOption.TRUNCATE_EXISTING);
                     }
                 }
             } catch (IOException _) {

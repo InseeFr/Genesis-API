@@ -26,6 +26,7 @@ import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
 import fr.insee.genesis.domain.ports.api.DataProcessingContextApiPort;
+import fr.insee.genesis.domain.ports.api.FileSystemPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityService;
@@ -61,12 +62,10 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLStreamException;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
@@ -91,6 +90,7 @@ public class ResponseController implements CommonApiResponse {
     private final ControllerUtils controllerUtils;
     private final AuthUtils authUtils;
     private final QuestionnaireMetadataService metadataService;
+    private final FileSystemPort fileSystemPort;
 
     public ResponseController(SurveyUnitApiPort surveyUnitService,
                               SurveyUnitQualityService surveyUnitQualityService,
@@ -98,7 +98,8 @@ public class ResponseController implements CommonApiResponse {
                               ControllerUtils controllerUtils,
                               AuthUtils authUtils,
                               QuestionnaireMetadataService metadataService,
-                              DataProcessingContextApiPort contextService
+                              DataProcessingContextApiPort contextService,
+                              FileSystemPort fileSystemPort
     ) {
         this.surveyUnitService = surveyUnitService;
         this.surveyUnitQualityService = surveyUnitQualityService;
@@ -107,6 +108,7 @@ public class ResponseController implements CommonApiResponse {
         this.authUtils = authUtils;
         this.metadataService = metadataService;
         this.contextService = contextService;
+        this.fileSystemPort = fileSystemPort;
     }
 
     //SAVE
@@ -561,7 +563,7 @@ public class ResponseController implements CommonApiResponse {
         //Check if file not in done folder, delete if true
         if(isDataFileInDoneFolder(filepath, campaignName, mode.getFolder())){
             log.warn("File {} already exists in DONE folder ! Deleting...", fileName);
-            Files.deleteIfExists(filepath);
+            fileSystemPort.deleteIfExists(filepath.toString());
             return;
         }
         //Read file
@@ -595,7 +597,7 @@ public class ResponseController implements CommonApiResponse {
             ParserConfigurationException, SAXException, GenesisException {
         LunaticXmlCampaign campaign;
         // DOM method
-        LunaticXmlDataParser parser = new LunaticXmlDataParser();
+        LunaticXmlDataParser parser = new LunaticXmlDataParser(fileSystemPort);
 
             campaign = parser.parseDataFile(filepath);
 
@@ -625,8 +627,8 @@ public class ResponseController implements CommonApiResponse {
         LunaticXmlCampaign campaign;
         //Sequential method
         log.warn("File size > {} MB! Parsing XML file using sequential method...", Constants.MAX_FILE_SIZE_UNTIL_SEQUENTIAL);
-        try (final InputStream stream = new FileInputStream(filepath.toFile())) {
-            LunaticXmlDataSequentialParser parser = new LunaticXmlDataSequentialParser(filepath, stream);
+        try (final InputStream stream = fileSystemPort.readAsStream(filepath.toString())) {
+            LunaticXmlDataSequentialParser parser = new LunaticXmlDataSequentialParser(filepath, stream, fileSystemPort);
             int suCount = 0;
 
             campaign = parser.getCampaign();
@@ -675,12 +677,12 @@ public class ResponseController implements CommonApiResponse {
         return variablesMap;
     }
 
-    private static VariablesMap getVariablesMapWithPath(String metadataFilePath) throws GenesisException {
+    private VariablesMap getVariablesMapWithPath(String metadataFilePath) throws GenesisException {
         if(metadataFilePath.endsWith(".xml")) {
             //Parse DDI
             log.info("Try to read DDI file : {}", metadataFilePath);
             try {
-                InputStream metadataInputStream = new FileInputStream(metadataFilePath);
+                InputStream metadataInputStream = fileSystemPort.readAsStream(metadataFilePath);
                 return ReaderUtils.getMetadataFromDDIAndLunatic(Path.of(metadataFilePath).toFile().toURI().toURL().toString(),
                         metadataInputStream,metadataInputStream).getVariables();
             } catch (MetadataParserException e) {
@@ -694,7 +696,7 @@ public class ResponseController implements CommonApiResponse {
             //Parse Lunatic
             log.info("Try to read lunatic file : {}", metadataFilePath);
             try {
-                return LunaticReader.getMetadataFromLunatic(new FileInputStream(metadataFilePath)).getVariables();
+                return LunaticReader.getMetadataFromLunatic(fileSystemPort.readAsStream(metadataFilePath)).getVariables();
             } catch (FileNotFoundException fnfe){
                 throw new GenesisException(HttpStatus.NOT_FOUND, fnfe.toString());
             }

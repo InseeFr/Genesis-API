@@ -1,6 +1,8 @@
 package fr.insee.genesis.controller.sources.xml;
 
 import fr.insee.genesis.Constants;
+import fr.insee.genesis.domain.ports.api.FileSystemPort;
+import org.springframework.stereotype.Service;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLEventReader;
@@ -11,7 +13,6 @@ import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.LocalDateTime;
@@ -23,18 +24,24 @@ import java.util.List;
  * This class is used to read large lunatic XML files
  * It iterates through the file instead of storing the entire file into memory
  */
+@Service
 public class LunaticXmlDataSequentialParser{
     private final LocalDateTime rawRecordDate;
     private final XMLEventReader reader;
+    private final FileSystemPort fileSystemPort;
 
 
-     public LunaticXmlDataSequentialParser(final Path filePath, final InputStream stream) throws IOException, XMLStreamException {
+     public LunaticXmlDataSequentialParser(final Path filePath,
+                                           final InputStream stream,
+                                           final FileSystemPort fileSystemPort
+     ) throws IOException, XMLStreamException {
          this.rawRecordDate = getRawRecordDate(filePath);
 
          XMLInputFactory factory = XMLInputFactory.newInstance();
          factory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
 
          reader = factory.createXMLEventReader(stream);
+         this.fileSystemPort = fileSystemPort;
      }
 
     /**
@@ -276,7 +283,7 @@ public class LunaticXmlDataSequentialParser{
     }
 
     private LocalDateTime getRawRecordDate(Path filePath) throws IOException {
-        BasicFileAttributes attr = Files.readAttributes(filePath, BasicFileAttributes.class);
+        BasicFileAttributes attr = fileSystemPort.readAttributes(filePath.toString(), BasicFileAttributes.class);
         return LocalDateTime.ofInstant(attr.lastModifiedTime().toInstant(), ZoneId.of("Europe/Paris"));
     }
 }
