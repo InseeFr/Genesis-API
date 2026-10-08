@@ -4,6 +4,7 @@ import fr.insee.genesis.Constants;
 import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
+import fr.insee.genesis.domain.ports.api.FileSystemPort;
 import fr.insee.genesis.exceptions.GenesisException;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +17,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -37,10 +37,14 @@ public class FileUtils {
 
 	private final String logFolderSource;
 
-	public FileUtils(Config config) {
+	private final FileSystemPort fileSystemPort;
+
+	public FileUtils(Config config, FileSystemPort fileSystemPort) {
 		this.dataFolderSource = config.getDataFolderSource();
 		this.specFolderSource = config.getSpecFolderSource();
 		this.logFolderSource = config.getLogFolder();
+
+		this.fileSystemPort = fileSystemPort;
 	}
 
 	/**
@@ -52,9 +56,13 @@ public class FileUtils {
 	 */
 	public void moveFiles(Path from, String destination) throws IOException {
 		if (!isFolderPresent(destination)) {
-			Files.createDirectories(Path.of(destination));
+			fileSystemPort.createDirectories(destination);
 		}
-		Files.move(from,Path.of(destination+"/"+ from.getFileName().toString()), StandardCopyOption.REPLACE_EXISTING);
+		fileSystemPort.move(
+				from.toString(),
+				destination+"/"+ from.getFileName().toString(),
+				StandardCopyOption.REPLACE_EXISTING
+		);
 		log.info("File {} moved from {} to {}", from.getFileName().toString(), from, destination);
 	}
 
@@ -76,7 +84,7 @@ public class FileUtils {
 	 * @return true if the file exists, false otherwise
 	 */
 	public boolean isFilePresent(String path) {
-		return Files.exists(Path.of(path));
+		return fileSystemPort.exists(path);
 	}
 
 	/**
@@ -85,7 +93,7 @@ public class FileUtils {
 	 * @return true if the folder exists, false otherwise
 	 */
 	public boolean isFolderPresent(String path) {
-		return Files.exists(Path.of(path));
+		return fileSystemPort.exists(path);
 	}
 
 	/**
@@ -133,9 +141,10 @@ public class FileUtils {
 	 * @throws IOException
 	 */
 	public Path findFile(String directory, String regex) throws IOException {
-		try (Stream<Path> files = Files.find(Path.of(directory), 1, (path, basicFileAttributes) -> path.toFile().getName().toLowerCase().matches(regex))) {
-			return files.findFirst()
-					.orElseThrow(() -> new NoSuchFileException("No file (%s) found in %s".formatted(regex, directory)));
+		try (Stream<String> files = fileSystemPort.find(directory, 1,
+				(path, basicFileAttributes) -> path.getFileName().toString().toLowerCase().matches(regex))) {
+			return Path.of(files.findFirst()
+					.orElseThrow(() -> new NoSuchFileException("No file (%s) found in %s".formatted(regex, directory))));
 		}
 	}
 
@@ -207,7 +216,7 @@ public class FileUtils {
 		boolean fileCreated = false;
 		File myFile = null;
 		try {
-			Files.createDirectories(path.getParent());
+			fileSystemPort.createDirectories(path.getParent().toString());
 			myFile = path.toFile();
 			fileCreated = myFile.createNewFile();
 		} catch (IOException e) {
@@ -229,7 +238,7 @@ public class FileUtils {
 	 * @param responsesStream Stream of SurveyUnitModels to write
 	 */
 	public void writeSuUpdatesInFile(Path filePath, Stream<SurveyUnitModel> responsesStream) throws IOException {
-		Files.createDirectories(filePath.getParent());
+		fileSystemPort.createDirectories(filePath.getParent().toString());
         JsonMapper objectMapper = JsonMapper.builder()
                 .findAndAddModules()
                 .build();
@@ -273,7 +282,7 @@ public class FileUtils {
                 return;
             }
 
-            Files.createDirectories(Path.of(contextualFolderPath));
+			fileSystemPort.createDirectories(contextualFolderPath);
             log.debug("contextual folder created : {}", contextualFolderPath);
 
         } catch (IOException _) {

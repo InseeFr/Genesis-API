@@ -1,6 +1,5 @@
 package fr.insee.genesis.domain.service.contextualvariable;
 
-import fr.insee.genesis.Constants;
 import fr.insee.genesis.TestConstants;
 import fr.insee.genesis.controller.dto.ContextualVariableFileReportDto;
 import fr.insee.genesis.controller.dto.SaveContextualVariablesReportDto;
@@ -12,6 +11,7 @@ import fr.insee.genesis.domain.model.contextualvariable.ContextualVariableModel;
 import fr.insee.genesis.domain.model.surveyunit.DataState;
 import fr.insee.genesis.domain.ports.api.ContextualExternalVariableApiPort;
 import fr.insee.genesis.domain.ports.api.ContextualPreviousVariableApiPort;
+import fr.insee.genesis.infrastructure.adapter.LocalFileSystemAdapter;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
@@ -23,6 +23,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -58,11 +59,16 @@ class ContextualVariableJsonServiceTest {
     @Mock
     private ContextualExternalVariableApiPort contextualExternalVariableApiPort;
 
-    @InjectMocks
     ContextualVariableJsonService contextualVariableJsonService;
 
     @BeforeEach
     void setUp() throws IOException {
+        contextualVariableJsonService = new ContextualVariableJsonService(
+                contextualPreviousVariableApiPort,
+                contextualExternalVariableApiPort,
+                new LocalFileSystemAdapter()
+        );
+
         if (Files.exists(TEST_FOLDER_PATH)){
             FileSystemUtils.deleteRecursively(TEST_FOLDER_PATH);
         }

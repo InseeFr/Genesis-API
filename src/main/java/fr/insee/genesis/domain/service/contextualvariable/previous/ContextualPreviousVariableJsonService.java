@@ -1,5 +1,7 @@
 package fr.insee.genesis.domain.service.contextualvariable.previous;
 
+import fr.insee.genesis.domain.ports.api.FileSystemPort;
+import lombok.RequiredArgsConstructor;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.json.JsonFactory;
 import fr.insee.genesis.exceptions.JsonParsingException;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,25 +27,23 @@ import java.util.List;
 import java.util.Set;
 
 @Service
+@RequiredArgsConstructor
 @Slf4j
 public class ContextualPreviousVariableJsonService implements ContextualPreviousVariableApiPort {
     private final ContextualPreviousVariablePersistancePort contextualPreviousVariablePersistancePort;
+    private final FileSystemPort fileSystemPort;
 
     private static final int BLOCK_SIZE = 1000;
-
-    @Autowired
-    public ContextualPreviousVariableJsonService(ContextualPreviousVariablePersistancePort contextualPreviousVariablePersistancePort) {
-        this.contextualPreviousVariablePersistancePort = contextualPreviousVariablePersistancePort;
-    }
 
     @Override
     public boolean readContextualPreviousFile(String collectionInstrumentId,
                                               String sourceState,
                                               String filePath) throws GenesisException {
-        try(FileInputStream inputStream = new FileInputStream(filePath)){
+        try(InputStream inputStream = fileSystemPort.readAsStream(filePath.toString())){
             checkSourceStateLength(sourceState);
 
             JsonFactory jsonFactory = JsonFactory.builder().build();
+            //TODO change parser
             try (JsonParser jsonParser = jsonFactory.createParser(inputStream)) {
                 if (!goToEditedPreviousToken(jsonParser)) {
                     log.warn("No EditedPrevious part found in file {}", filePath);

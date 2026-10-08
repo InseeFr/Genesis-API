@@ -3,6 +3,7 @@ package fr.insee.genesis.controller;
 import fr.insee.genesis.TransactionManagerTestConfig;
 import fr.insee.genesis.controller.utils.ControllerUtils;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitQualityToolPort;
+import fr.insee.genesis.infrastructure.adapter.LocalFileSystemAdapter;
 import fr.insee.genesis.infrastructure.repository.ContextualExternalVariableMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.ContextualPreviousVariableMongoDBRepository;
 import fr.insee.genesis.infrastructure.repository.DataProcessingContextMongoDBRepository;
@@ -24,6 +25,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 /**
@@ -66,6 +68,8 @@ public abstract class IntegrationTestAbstract {
     protected ContextualExternalVariableMongoDBRepository contextualExternalVariableMongoDBRepository;
     @MockitoBean
     protected QuestionnaireMetadataMongoDBRepository questionnaireMetadataMongoDBRepository;
+    @MockitoSpyBean
+    protected LocalFileSystemAdapter localFileSystemAdapter;
 
     //Mocked quality tool port
     @MockitoBean

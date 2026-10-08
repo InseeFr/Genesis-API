@@ -7,10 +7,11 @@ import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.ports.api.ContextualExternalVariableApiPort;
 import fr.insee.genesis.domain.ports.api.ContextualPreviousVariableApiPort;
 import fr.insee.genesis.domain.ports.api.ContextualVariableApiPort;
+import fr.insee.genesis.domain.ports.api.FileSystemPort;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import io.swagger.v3.oas.annotations.Operation;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,20 +24,20 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.regex.Pattern;
 
 import static fr.insee.genesis.Constants.QUESTIONNAIRE_ID_PATTERN;
 
 @RequestMapping(path = "/contextual-variables")
 @Controller
 @Slf4j
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ContextualVariableController {
 
     private final ContextualPreviousVariableApiPort contextualPreviousVariableApiPort;
     private final ContextualExternalVariableApiPort contextualExternalVariableApiPort;
     private final ContextualVariableApiPort contextualVariableApiPort;
     private final Config config;
+    private final FileSystemPort fileSystemPort;
 
 
     @Operation(summary = "Get contextual variables (external and previous)")
@@ -59,7 +60,7 @@ public class ContextualVariableController {
     ) throws GenesisException{
             validateQuestionnaireId(questionnaireId);
 
-            FileUtils fileUtils = new FileUtils(config);
+            FileUtils fileUtils = new FileUtils(config, fileSystemPort);
 
             int fileCount = contextualVariableApiPort.saveContextualVariableFiles(questionnaireId, fileUtils);
 
@@ -75,7 +76,7 @@ public class ContextualVariableController {
     ) throws GenesisException {
         validateQuestionnaireId(questionnaireId);
 
-        FileUtils fileUtils = new FileUtils(config);
+        FileUtils fileUtils = new FileUtils(config, fileSystemPort);
 
         SaveContextualVariablesReportDto report =
                 contextualVariableApiPort.saveContextualVariableFilesWithReport(
@@ -96,7 +97,7 @@ public class ContextualVariableController {
             @RequestParam(value = "jsonFileName") String jsonFileName
     ) throws GenesisException{
 
-            FileUtils fileUtils = new FileUtils(config);
+            FileUtils fileUtils = new FileUtils(config, fileSystemPort);
 
             fileUtils.ensureContextualFolderExists(questionnaireId, mode);
 
@@ -121,7 +122,7 @@ public class ContextualVariableController {
             @RequestParam("mode") Mode mode,
             @RequestParam(value = "jsonFileName") String jsonFileName
     ) throws GenesisException{
-            FileUtils fileUtils = new FileUtils(config);
+            FileUtils fileUtils = new FileUtils(config, fileSystemPort);
 
             fileUtils.ensureContextualFolderExists(questionnaireId, mode);
 

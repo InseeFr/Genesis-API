@@ -1,18 +1,25 @@
 package fr.insee.genesis.controller.sources.xml;
 
+import fr.insee.genesis.domain.ports.api.FileSystemPort;
+import fr.insee.genesis.infrastructure.adapter.LocalFileSystemAdapter;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 
 import java.nio.file.Path;
 
 class LunaticXmlDataParserTest {
 
+    @Mock
+    static FileSystemPort fileSystemPort;
+
     static LunaticXmlCampaign campaign;
 
     @BeforeAll
     static void setUp() throws Exception {
-        LunaticXmlDataParser parser = new LunaticXmlDataParser();
+        fileSystemPort = new LocalFileSystemAdapter();
+        LunaticXmlDataParser parser = new LunaticXmlDataParser(fileSystemPort);
         Path path = Path.of("src/test/resources/data_test_parser_xml.xml");
         campaign = parser.parseDataFile(path);
     }

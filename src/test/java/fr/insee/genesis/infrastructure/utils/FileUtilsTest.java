@@ -5,6 +5,7 @@ import fr.insee.genesis.configuration.Config;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.exceptions.GenesisException;
+import fr.insee.genesis.infrastructure.adapter.LocalFileSystemAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -38,12 +39,14 @@ class FileUtilsTest {
 
 	private FileUtils fileUtils;
 
+	//TODO changer les then pour vérif les appels au port
+
 	@BeforeEach
 	void setUp() {
 		when(config.getDataFolderSource()).thenReturn(tempDir.toString());
 		when(config.getSpecFolderSource()).thenReturn(tempDir.toString());
 		when(config.getLogFolder()).thenReturn(tempDir.resolve("logs").toString());
-		fileUtils = new FileUtils(config);
+		fileUtils = new FileUtils(config, new LocalFileSystemAdapter());
 	}
 
 	@Nested

@@ -21,6 +21,7 @@ import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityToolService;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.exceptions.NoDataException;
+import fr.insee.genesis.infrastructure.adapter.LocalFileSystemAdapter;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
 import fr.insee.modelefiliere.ModeDto;
 import fr.insee.modelefiliere.RawResponseDto;
@@ -35,6 +36,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -68,11 +70,13 @@ class RawResponseServiceUnitTest {
     private SurveyUnitQualityService surveyUnitQualityService;
     @Mock
     private SurveyUnitQualityToolService surveyUnitQualityToolService;
+    @Mock
+    private static DataProcessingContextService dataProcessingContextService;
+    @Spy
+    private LocalFileSystemAdapter localFileSystemAdapter;
 
     private RawResponseRawDataConverter rawResponseRawDataConverter;
-    @Mock
-    static DataProcessingContextService dataProcessingContextService;
-
+    
     @Captor
     private ArgumentCaptor<List<SurveyUnitModel>> surveyUnitModelsCaptor;
 
@@ -88,7 +92,7 @@ class RawResponseServiceUnitTest {
                 surveyUnitService,
                 surveyUnitQualityService,
                 surveyUnitQualityToolService,
-                new FileUtils(TestConstants.getConfigStub()),
+                new FileUtils(TestConstants.getConfigStub(), localFileSystemAdapter),
                 TestConstants.getConfigStub(),
                 rawResponseRawDataConverter,
                 rawResponsePersistencePort
@@ -123,7 +127,7 @@ class RawResponseServiceUnitTest {
         doReturn(List.of(ModeDto.CAWI)).when(rawResponsePersistencePort).findModesByCollectionInstrument(any());
         //No mock for metadataservice this time
         metadataService = new QuestionnaireMetadataService(
-                mock(QuestionnaireMetadataPersistencePort.class)
+                mock(QuestionnaireMetadataPersistencePort.class), localFileSystemAdapter
         );
         rawResponseService = new RawResponseService(
                 controllerUtils,
@@ -131,7 +135,7 @@ class RawResponseServiceUnitTest {
                 surveyUnitService,
                 surveyUnitQualityService,
                 surveyUnitQualityToolService,
-                new FileUtils(TestConstants.getConfigStub()),
+                new FileUtils(TestConstants.getConfigStub(), localFileSystemAdapter),
                 TestConstants.getConfigStub(),
                 rawResponseRawDataConverter,
                 rawResponsePersistencePort

@@ -12,15 +12,15 @@ import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.ports.api.ContextualExternalVariableApiPort;
 import fr.insee.genesis.domain.ports.api.ContextualPreviousVariableApiPort;
 import fr.insee.genesis.domain.ports.api.ContextualVariableApiPort;
+import fr.insee.genesis.domain.ports.api.FileSystemPort;
 import fr.insee.genesis.exceptions.GenesisException;
 import fr.insee.genesis.infrastructure.utils.FileUtils;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.time.Instant;
@@ -36,16 +36,12 @@ import static fr.insee.genesis.Constants.TYPE_EXTERNAL;
 import static fr.insee.genesis.Constants.TYPE_PREVIOUS;
 
 @Service
+@RequiredArgsConstructor
 @Slf4j
 public class ContextualVariableJsonService implements ContextualVariableApiPort {
     private final ContextualPreviousVariableApiPort contextualPreviousVariableApiPort;
     private final ContextualExternalVariableApiPort contextualExternalVariableApiPort;
-
-    @Autowired
-    public ContextualVariableJsonService(ContextualPreviousVariableApiPort contextualPreviousVariableApiPort, ContextualExternalVariableApiPort contextualExternalVariableApiPort) {
-        this.contextualPreviousVariableApiPort = contextualPreviousVariableApiPort;
-        this.contextualExternalVariableApiPort = contextualExternalVariableApiPort;
-    }
+    private final FileSystemPort fileSystemPort;
 
     @Override
     public ContextualVariableModel getContextualVariable(String collectionInstrumentId, String interrogationId) {
@@ -110,19 +106,19 @@ public class ContextualVariableJsonService implements ContextualVariableApiPort 
 
         for (Mode mode : Mode.values()) {
             Path contextualFolder = Path.of(contextualFolderPath);
-            try (Stream<Path> filePaths = Files.list(contextualFolder)) {
-                Iterator<Path> it = filePaths
-                        .filter(path -> path.toString().endsWith(".json"))
+            try (Stream<String> filePaths = fileSystemPort.listFiles(contextualFolder.toString())) {
+                Iterator<String> it = filePaths
+                        .filter(fileName -> fileName.endsWith(".json"))
                         .iterator();
 
                 while (it.hasNext()) {
-                    Path jsonFilePath = it.next();
+                    String jsonFilePath = it.next();
 
                     Optional<ContextualVariableFileReportDto> report =
-                            processContextualVariableFileForReport(collectionInstrumentId, jsonFilePath);
+                            processContextualVariableFileForReport(collectionInstrumentId, Path.of(jsonFilePath));
 
                     if (report.isPresent()) {
-                        moveFile(collectionInstrumentId, mode, fileUtils, jsonFilePath.toString());
+                        moveFile(collectionInstrumentId, mode, fileUtils, jsonFilePath);
                         files.add(report.get());
                     }
                 }

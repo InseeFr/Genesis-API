@@ -1,9 +1,12 @@
 package fr.insee.genesis.controller.sources.xml;
 
 import fr.insee.genesis.Constants;
+import fr.insee.genesis.domain.ports.api.FileSystemPort;
 import fr.insee.genesis.exceptions.GenesisException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -16,7 +19,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.LocalDateTime;
@@ -25,12 +27,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
+@Service
+@RequiredArgsConstructor
 public class LunaticXmlDataParser {
+
+    private final FileSystemPort fileSystemPort;
 
     private Document readXmlFile(Path filePath) throws IOException, SAXException, GenesisException, ParserConfigurationException {
         File file = filePath.toFile();
         //Extraction of the file last modified date
-        BasicFileAttributes attr = Files.readAttributes(filePath, BasicFileAttributes.class);
+        BasicFileAttributes attr = fileSystemPort.readAttributes(filePath.toString(), BasicFileAttributes.class);
         log.info("lastModifiedTime: {}", attr.lastModifiedTime());
 
         //Parse xml
@@ -48,7 +54,7 @@ public class LunaticXmlDataParser {
     }
 
     private LocalDateTime getRawRecordDate(Path filePath) throws IOException {
-        BasicFileAttributes attr = Files.readAttributes(filePath, BasicFileAttributes.class);
+        BasicFileAttributes attr = fileSystemPort.readAttributes(filePath.toString(), BasicFileAttributes.class);
         return LocalDateTime.ofInstant(attr.lastModifiedTime().toInstant(), ZoneId.of("Europe/Paris"));
     }
 

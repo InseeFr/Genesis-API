@@ -1,6 +1,8 @@
 package fr.insee.genesis.domain.service.contextualvariable.external;
 
+import fr.insee.genesis.domain.ports.api.FileSystemPort;
 import fr.insee.genesis.exceptions.JsonParsingException;
+import lombok.RequiredArgsConstructor;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.json.JsonFactory;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,21 +27,20 @@ import java.util.List;
 import java.util.Set;
 
 @Service
+@RequiredArgsConstructor
 @Slf4j
 public class ContextualExternalVariableJsonService implements ContextualExternalVariableApiPort {
     private final ContextualExternalVariablePersistancePort contextualExternalVariablePersistancePort;
+    private final FileSystemPort fileSystemPort;
+
 
     private static final int BLOCK_SIZE = 1000;
 
-    @Autowired
-    public ContextualExternalVariableJsonService(ContextualExternalVariablePersistancePort contextualExternalVariablePersistancePort) {
-        this.contextualExternalVariablePersistancePort = contextualExternalVariablePersistancePort;
-    }
-
     @Override
     public boolean readContextualExternalFile(String collectionInstrumentId, String filePath) throws GenesisException {
-        try(FileInputStream inputStream = new FileInputStream(filePath)){
+        try(InputStream inputStream = fileSystemPort.readAsStream(filePath.toString())){
             JsonFactory jsonFactory = new JsonFactory();
+            //TODO change json parser
             try(JsonParser jsonParser = jsonFactory.createParser(inputStream)){
                 if (!goToContextualExternalToken(jsonParser)) {
                     log.warn("No contextualExternal part found in file {}", filePath);

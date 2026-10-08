@@ -15,6 +15,7 @@ import fr.insee.genesis.domain.model.surveyunit.InterrogationInfo;
 import fr.insee.genesis.domain.model.surveyunit.Mode;
 import fr.insee.genesis.domain.model.surveyunit.SurveyUnitModel;
 import fr.insee.genesis.domain.model.surveyunit.VariableModel;
+import fr.insee.genesis.domain.ports.api.FileSystemPort;
 import fr.insee.genesis.domain.ports.spi.SurveyUnitPersistencePort;
 import fr.insee.genesis.domain.service.metadata.QuestionnaireMetadataService;
 import fr.insee.genesis.exceptions.GenesisException;
@@ -30,6 +31,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -57,6 +59,9 @@ class SurveyUnitServiceTest {
     static SurveyUnitPersistencePort surveyUnitPersistencePortStub;
     static QuestionnaireMetadataService questionnaireMetadataServiceStub;
 
+    @Mock
+    private FileSystemPort fileSystemPort;
+
     @BeforeEach
     void init() {
         surveyUnitPersistencePortStub = mock(SurveyUnitPersistencePort.class);
@@ -64,7 +69,7 @@ class SurveyUnitServiceTest {
         surveyUnitService = new SurveyUnitService(
                 surveyUnitPersistencePortStub,
                 questionnaireMetadataServiceStub,
-                new FileUtils(TestConstants.getConfigStub())
+                new FileUtils(TestConstants.getConfigStub(), fileSystemPort)
         );
     }
 

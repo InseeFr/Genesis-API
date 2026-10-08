@@ -1,6 +1,7 @@
 package fr.insee.genesis.controller.sources.xml;
 
 import fr.insee.genesis.Constants;
+import fr.insee.genesis.domain.ports.api.FileSystemPort;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLEventReader;
@@ -11,7 +12,6 @@ import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.LocalDateTime;
@@ -26,9 +26,14 @@ import java.util.List;
 public class LunaticXmlDataSequentialParser{
     private final LocalDateTime rawRecordDate;
     private final XMLEventReader reader;
+    private final FileSystemPort fileSystemPort;
 
 
-     public LunaticXmlDataSequentialParser(final Path filePath, final InputStream stream) throws IOException, XMLStreamException {
+     public LunaticXmlDataSequentialParser(final Path filePath,
+                                           final InputStream stream,
+                                           final FileSystemPort fileSystemPort
+     ) throws IOException, XMLStreamException {
+         this.fileSystemPort = fileSystemPort;
          this.rawRecordDate = getRawRecordDate(filePath);
 
          XMLInputFactory factory = XMLInputFactory.newInstance();
@@ -276,7 +281,7 @@ public class LunaticXmlDataSequentialParser{
     }
 
     private LocalDateTime getRawRecordDate(Path filePath) throws IOException {
-        BasicFileAttributes attr = Files.readAttributes(filePath, BasicFileAttributes.class);
+        BasicFileAttributes attr = fileSystemPort.readAttributes(filePath.toString(), BasicFileAttributes.class);
         return LocalDateTime.ofInstant(attr.lastModifiedTime().toInstant(), ZoneId.of("Europe/Paris"));
     }
 }

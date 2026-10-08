@@ -6,7 +6,6 @@ import fr.insee.genesis.domain.ports.api.LunaticJsonRawDataApiPort;
 import fr.insee.genesis.domain.ports.api.RawResponseApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
 import fr.insee.genesis.domain.service.surveyunit.SurveyUnitQualityToolService;
-import fr.insee.genesis.domain.service.surveyunit.SurveyUnitService;
 import fr.insee.genesis.infrastructure.repository.RawResponseInputRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
