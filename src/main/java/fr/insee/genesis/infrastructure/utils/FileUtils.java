@@ -142,7 +142,7 @@ public class FileUtils {
 	 */
 	public Path findFile(String directory, String regex) throws IOException {
 		try (Stream<String> files = fileSystemPort.find(directory, 1,
-				(path, basicFileAttributes) -> path.toFile().getName().toLowerCase().matches(regex))) {
+				(path, basicFileAttributes) -> path.getFileName().toString().toLowerCase().matches(regex))) {
 			return Path.of(files.findFirst()
 					.orElseThrow(() -> new NoSuchFileException("No file (%s) found in %s".formatted(regex, directory))));
 		}

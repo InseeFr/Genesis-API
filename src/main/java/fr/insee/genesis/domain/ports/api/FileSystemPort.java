@@ -11,7 +11,6 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.function.BiPredicate;
 import java.util.stream.Stream;
 
-//TODO paths en strings
 public interface FileSystemPort {
 
     void createDirectories(String path) throws IOException;

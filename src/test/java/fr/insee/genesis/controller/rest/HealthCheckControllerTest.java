@@ -1,7 +1,9 @@
 package fr.insee.genesis.controller.rest;
 
+import fr.insee.genesis.domain.model.healthcheck.FileSystemHealthCheckResult;
 import fr.insee.genesis.domain.ports.api.DataProcessingContextApiPort;
 import fr.insee.genesis.domain.ports.api.SurveyUnitApiPort;
+import fr.insee.genesis.domain.service.healthcheck.FileSystemHealthCheckService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -30,6 +32,9 @@ class HealthCheckControllerTest {
 
     @MockitoBean
     private DataProcessingContextApiPort dataProcessingContextApiPort;
+
+    @MockitoBean
+    private FileSystemHealthCheckService fileSystemHealthCheckService;
 
     // -------------------------------------------------------------------------
     // GET /health-check
@@ -168,6 +173,40 @@ class HealthCheckControllerTest {
             // WHEN / THEN
             mockMvc.perform(get("/health-check/mongoDb"))
                     .andExpect(content().string(containsString("Contexts")));
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // GET /health-check/fileSystem
+    // -------------------------------------------------------------------------
+    @Nested
+    class HealthCheckFileSystemTests{
+        @Test
+        @WithMockUser
+        @DisplayName("Should return 200 if file system health check ok")
+        void healthCheckFileSystem_shouldReturn200_ifOk() throws Exception {
+            // GIVEN
+            when(fileSystemHealthCheckService.check()).thenReturn(
+                    FileSystemHealthCheckResult.builder().isOK(true).build()
+            );
+
+            // WHEN / THEN
+            mockMvc.perform(get("/health-check/fileSystem"))
+                    .andExpect(status().isOk());
+        }
+
+        @Test
+        @WithMockUser
+        @DisplayName("Should return 500 if file system health check not ok")
+        void healthCheckFileSystem_shouldReturn500_ifKo() throws Exception {
+            // GIVEN
+            when(fileSystemHealthCheckService.check()).thenReturn(
+                    FileSystemHealthCheckResult.builder().isOK(false).build()
+            );
+
+            // WHEN / THEN
+            mockMvc.perform(get("/health-check/fileSystem"))
+                    .andExpect(status().isInternalServerError());
         }
     }
 }

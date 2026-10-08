@@ -18,7 +18,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.function.BiPredicate;
 import java.util.stream.Stream;
 
-@ConditionalOnProperty(name = "fr.insee.genesis.filesystem", havingValue = "local", matchIfMissing = true)
+@ConditionalOnProperty(name = "fr.insee.genesis.minio.enable", havingValue = "false", matchIfMissing = true)
 @Service
 @RequiredArgsConstructor
 public class LocalFileSystemAdapter implements FileSystemPort {
